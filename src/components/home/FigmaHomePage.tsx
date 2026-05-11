@@ -136,22 +136,35 @@ function HeroHeader() {
 
 function NewsCard({ item }: { item: CardItem }) {
   return (
-    <article className="relative w-[236px] shrink-0 rounded-[20px] bg-white p-3 pb-4">
-      <img src={item.image} alt={item.title} className="h-[145px] w-full rounded-[16px] object-cover" />
-      <div className="mt-2 flex items-start justify-between">
-        <div>
-          <p className="text-sm text-[#5b5b5b]">⭐ 4.7</p>
-          <h3 className="text-xl font-black leading-tight text-[#3c2f2f]">{item.title}</h3>
-          <p className="text-sm text-[#9b9b9b]">{item.subtitle}</p>
-        </div>
-        <div className="rounded-full bg-[#ff7f20] px-3 py-1 text-xs font-bold text-black">-30%</div>
+    <article className="relative h-[284px] w-[236px] shrink-0 rounded-[20px] border-[1.5px] border-[#dedede] bg-white">
+      <div className="absolute left-1/2 top-1 h-[147px] w-[227px] -translate-x-1/2">
+        <img src={item.image} alt={item.title} className="h-full w-full rounded-[18px] object-cover" />
       </div>
-      <p className="mt-2 text-right text-3xl font-black text-[#3c2f2f]">{item.price}</p>
+      <div className="absolute left-4 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-[#ff2b2e] p-1">
+        <img src={assets.productCardHot} alt="" className="h-[19px] w-[19px] -rotate-[13deg] object-contain" />
+      </div>
+      <div className="absolute left-4 top-[58px] flex h-8 w-8 items-center justify-center overflow-hidden rounded-full">
+        <img src={assets.productCardRibbon} alt="" className="h-8 w-8 scale-110 object-cover" />
+      </div>
+      <div className="absolute left-[14px] top-[170px] flex items-center gap-[6px]">
+        <img src={assets.productCardStar} alt="" className="h-5 w-5 object-contain" />
+        <p className="text-base font-medium leading-[1.35] text-[rgba(60,47,47,0.62)]">4.7</p>
+      </div>
+      <h3 className="absolute left-[14px] top-[194px] text-base font-bold leading-[1.05] text-[#3c2f2f]">
+        <span className="block">Double</span>
+        <span className="block">Cheeseburger</span>
+      </h3>
+      <p className="absolute left-[14px] top-[230px] text-base font-medium leading-none text-[#a1a1a1]">{item.subtitle}</p>
+      <span className="absolute right-px top-[170px] inline-flex h-[30px] items-center rounded-[60px] bg-[#ff7f20] px-[17px] text-sm font-bold leading-none text-black">
+        -30%
+      </span>
+      <p className="absolute right-[14px] top-[236px] text-[20px] font-black leading-none text-[#3c2f2f]">{item.price}</p>
+      <p className="absolute right-[14px] top-[262px] text-sm font-light leading-none text-[#3c2f2f] line-through">1200 Դ</p>
       <button
         type="button"
-        className="absolute -bottom-6 left-1/2 inline-flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-full bg-[#ff7f20] shadow-lg"
+        className="absolute -bottom-[25px] left-1/2 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center"
       >
-        <img src={assets.cartIcon} alt="" className="h-5 w-5 object-contain brightness-0 invert" />
+        <img src={assets.productCardAddToCart} alt="Add to cart" className="h-[52px] w-[51px] object-contain" />
       </button>
     </article>
   );
@@ -232,8 +245,8 @@ export function FigmaHomePage() {
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ff2b2e]">
                   <img src={assets.productCardHot} alt="" className="h-[19px] w-[19px] -rotate-[13deg] object-contain" />
                 </div>
-                <div className="flex h-8 w-8 items-center justify-center">
-                  <img src={assets.productCardRibbon} alt="" className="h-8 w-8 object-contain" />
+                <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full">
+                  <img src={assets.productCardRibbon} alt="" className="h-8 w-8 scale-110 object-cover" />
                 </div>
               </div>
             </div>
@@ -272,17 +285,17 @@ export function FigmaHomePage() {
         </div>
       </section>
 
-      <section className="rounded-t-[40px] bg-[#0c0d12] px-4 pb-14 pt-6 md:px-8 lg:px-12">
-        <div className="mx-auto max-w-[1280px]">
-          <div className="mb-10 flex items-center justify-between">
-            <h2 className="text-4xl font-black text-white md:text-6xl">
+      <section className="h-[700px] w-full rounded-t-[40px] bg-[#0c0d12] pb-14 pt-6">
+        <div className="w-full px-4 md:px-8 ">
+          <div className="flex items-center justify-between">
+            <h2 className="translate-x-[70px] translate-y-[70px] text-4xl font-black text-white md:text-6xl">
               <span className="text-[#f66913]">Մենք ունենք </span>նորույթներ
             </h2>
-            <Link href="/products" className="rounded-full bg-[#ff7f20] px-6 py-4 text-lg font-bold text-white">
+            <Link href="/products" className="translate-x-[-115px] translate-y-[70px] inline-block rounded-full bg-[#ff7f20] px-6 py-4 text-lg font-bold text-white">
               Ավելին →
             </Link>
           </div>
-          <div className="flex gap-5 overflow-x-auto pb-8">
+          <div className="mt-[150px] flex flex-wrap justify-center gap-[10px] pb-8">
             {newsCards.map((item) => (
               <NewsCard key={item.id} item={item} />
             ))}
