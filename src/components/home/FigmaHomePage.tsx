@@ -11,6 +11,7 @@ const assets = {
   loginIcon: 'https://www.figma.com/api/mcp/asset/4299f4af-fc27-4fde-bc7e-21740c9dd71d',
   searchBadge: 'https://www.figma.com/api/mcp/asset/ab1b1dfb-856b-418a-8afa-d41d546a1015',
   searchIcon: 'https://www.figma.com/api/mcp/asset/a1be6bd2-36cd-46cd-b53e-d7669727be92',
+  offerBadge: 'https://www.figma.com/api/mcp/asset/d3a756a8-cee5-463a-84de-431457f8df09',
   product: 'https://www.figma.com/api/mcp/asset/391d8c26-5fd9-4a5a-bd37-4fb776b3791d',
   categorySoup: 'https://www.figma.com/api/mcp/asset/f59e55b2-9f13-4728-a2ab-b81a336c933e',
   categorySalad: 'https://www.figma.com/api/mcp/asset/bb38ad79-89f9-419e-adaf-93b0ac75db5a',
@@ -165,33 +166,36 @@ export function FigmaHomePage() {
 
         <HeroHeader />
 
-        <div className="relative z-10 ml-2 mt-8 h-[284px] w-[236px] md:ml-4 md:mt-10">
-          <div className="absolute inset-0 rounded-[20px] bg-white shadow-xl" />
-          <img
-            src={assets.product}
-            alt="Daily offer"
-            className="absolute left-1/2 top-[12px] h-[147px] w-[227px] -translate-x-1/2 rounded-[18px] object-cover"
-          />
-          <p className="absolute left-[14px] top-[172px] text-base font-medium leading-none text-[rgba(60,47,47,0.62)]">⭐ 4.7</p>
-          <h2 className="absolute left-[14px] top-[194px] text-base font-bold leading-none text-[#3c2f2f]">
-            <span className="block">Double</span>
-            <span className="block">Cheeseburger</span>
-          </h2>
-          <p className="absolute left-[14px] top-[252px] text-base font-medium leading-none text-[#a1a1a1]">Բուրգեր</p>
-          <span className="absolute right-[12px] top-[184px] inline-flex items-center rounded-[60px] bg-[#ff7f20] px-[17px] py-[5px] text-sm font-bold leading-none text-black">
-            -30%
-          </span>
-          <span className="absolute right-[14px] top-[242px] text-[20px] font-black leading-none text-[#3c2f2f]">1200 ֏</span>
-          <button
-            type="button"
-            className="absolute bottom-[-25px] left-1/2 h-[52px] w-[51px] -translate-x-1/2 rounded-full bg-[#ff7f20] text-white shadow-lg"
-          >
-            🛒
-          </button>
-          <div className="absolute -right-9 -top-9 rounded-[50%] bg-black px-4 py-5 text-center text-xs font-bold text-white">
-            Օրվա
-            <br />
-            Առաջարկ
+        <div className="relative z-10 mx-auto mt-11 w-full max-w-[1450px] px-4 lg:mt-14 lg:px-6">
+          <div className="relative h-[284px] w-[236px] sm:ml-[45px]">
+            <div className="absolute inset-0 rounded-[20px] bg-white shadow-xl" />
+            <img
+              src={assets.product}
+              alt="Daily offer"
+              className="absolute left-1/2 top-[12px] h-[147px] w-[227px] -translate-x-1/2 rounded-[18px] object-cover"
+            />
+            <p className="absolute left-[14px] top-[172px] text-base font-medium leading-none text-[rgba(60,47,47,0.62)]">⭐ 4.7</p>
+            <h2 className="absolute left-[14px] top-[194px] text-base font-bold leading-none text-[#3c2f2f]">
+              <span className="block">Double</span>
+              <span className="block">Cheeseburger</span>
+            </h2>
+            <p className="absolute left-[14px] top-[252px] text-base font-medium leading-none text-[#a1a1a1]">Բուրգեր</p>
+            <span className="absolute right-[12px] top-[184px] inline-flex items-center rounded-[60px] bg-[#ff7f20] px-[17px] py-[5px] text-sm font-bold leading-none text-black">
+              -30%
+            </span>
+            <span className="absolute right-[14px] top-[242px] text-[20px] font-black leading-none text-[#3c2f2f]">1200 ֏</span>
+            <button
+              type="button"
+              className="absolute bottom-[-25px] left-1/2 h-[52px] w-[51px] -translate-x-1/2 rounded-full bg-[#ff7f20] text-white shadow-lg"
+            >
+              🛒
+            </button>
+            <div className="absolute -right-[88px] -top-[46px] h-[132px] w-[132px]">
+              <img src={assets.offerBadge} alt="" className="absolute inset-0 h-full w-full object-contain" />
+              <div className="absolute left-0 top-0 flex h-[132px] w-[132px] flex-col items-center gap-[10px] px-[29px] py-[49px] text-center text-[14px] font-bold leading-[17px] text-white">
+                <span style={{ fontFamily: '"Montserrat arm", "Montserrat", sans-serif' }}>Օրվա Առաջարկ</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
