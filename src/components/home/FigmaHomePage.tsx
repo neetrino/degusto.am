@@ -142,8 +142,11 @@ function NewsCard({ item }: { item: CardItem }) {
         <div className="rounded-full bg-[#ff7f20] px-3 py-1 text-xs font-bold text-black">-30%</div>
       </div>
       <p className="mt-2 text-right text-3xl font-black text-[#3c2f2f]">{item.price}</p>
-      <button type="button" className="absolute -bottom-6 left-1/2 h-12 w-12 -translate-x-1/2 rounded-full bg-[#ff7f20] text-white shadow-lg">
-        🛒
+      <button
+        type="button"
+        className="absolute -bottom-6 left-1/2 inline-flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-full bg-[#ff7f20] shadow-lg"
+      >
+        <img src={assets.cartIcon} alt="" className="h-5 w-5 object-contain brightness-0 invert" />
       </button>
     </article>
   );
@@ -235,9 +238,9 @@ export function FigmaHomePage() {
             <span className="absolute right-[14px] top-[242px] text-[20px] font-black leading-none text-[#3c2f2f]">1200 ֏</span>
             <button
               type="button"
-              className="absolute bottom-[-25px] left-1/2 h-[52px] w-[51px] -translate-x-1/2 rounded-full bg-[#ff7f20] text-white shadow-lg"
+              className="absolute bottom-[-25px] left-1/2 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center rounded-full bg-[#ff7f20] shadow-lg"
             >
-              🛒
+              <img src={assets.cartIcon} alt="" className="h-5 w-5 object-contain brightness-0 invert" />
             </button>
             <div className="absolute -right-[88px] -top-[46px] h-[132px] w-[132px]">
               <img src={assets.offerBadge} alt="" className="absolute inset-0 h-full w-full object-contain" />
