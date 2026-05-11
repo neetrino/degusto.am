@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { FigmaHomePageMobile } from './FigmaHomePageMobile';
 
 const assets = {
   heroBg: 'https://www.figma.com/api/mcp/asset/85cedb2c-a501-40fe-9b97-de4ab816ce45',
@@ -200,7 +201,11 @@ function CategoryCard({ item }: { item: CategoryItem }) {
 
 export function FigmaHomePage() {
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#ff6a10]">
+    <>
+      <div className="lg:hidden">
+        <FigmaHomePageMobile />
+      </div>
+      <div className="hidden min-h-screen overflow-x-hidden bg-[#ff6a10] lg:block">
       <section className="relative w-full overflow-hidden bg-[#ff6a10] pb-56 pt-8 lg:h-[930px] lg:pb-0 lg:[aspect-ratio:231/130]">
         <img
           src={assets.heroBg}
@@ -432,6 +437,7 @@ export function FigmaHomePage() {
           </div>
         </footer>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

@@ -5,7 +5,6 @@ import './globals.css';
 import { ClientProviders } from '../components/ClientProviders';
 import { ConditionalHeader } from '../components/ConditionalHeader';
 import { ConditionalFooter } from '../components/ConditionalFooter';
-import { MobileBottomNav } from '../components/MobileBottomNav';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -30,7 +29,6 @@ export default function RootLayout({
                 {children}
               </main>
               <ConditionalFooter />
-              <MobileBottomNav />
             </div>
           </ClientProviders>
         </Suspense>
