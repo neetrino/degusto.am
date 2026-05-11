@@ -5,7 +5,6 @@ import { useState } from 'react';
 
 const assets = {
   heroBg: 'https://www.figma.com/api/mcp/asset/85cedb2c-a501-40fe-9b97-de4ab816ce45',
-  heroArcRight: 'https://www.figma.com/api/mcp/asset/139854e1-a89f-411c-ad5d-4f4a47341a35',
   logo: 'https://www.figma.com/api/mcp/asset/b684f5ca-5543-4689-be84-ac53b6c5d14c',
   cartIcon: 'https://www.figma.com/api/mcp/asset/6af1086c-a9ef-4e40-a198-a1dc8ae19a1b',
   cartCounterBubble: 'https://www.figma.com/api/mcp/asset/92cf106e-719d-418a-9062-442c2c704c3a',
@@ -163,8 +162,12 @@ function CategoryCard({ item }: { item: CategoryItem }) {
 export function FigmaHomePage() {
   return (
     <div className="bg-[#ff6a10]">
-      <section className="relative w-full overflow-hidden pb-32 pt-5 lg:h-[840px] lg:pb-0 lg:[aspect-ratio:231/130]">
-        <img src={assets.heroBg} alt="Degusto hero" className="absolute inset-x-0 top-0 h-[900px] w-full object-cover lg:h-full" />
+      <section className="relative w-full overflow-hidden pb-56 pt-8 lg:h-[930px] lg:pb-0 lg:[aspect-ratio:231/130]">
+        <img
+          src={assets.heroBg}
+          alt="Degusto hero"
+          className="absolute inset-x-0 top-[92px] h-[900px] w-full object-contain object-top lg:h-full"
+        />
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="725"
@@ -187,21 +190,32 @@ export function FigmaHomePage() {
             strokeLinecap="square"
           />
         </svg>
-        <img
-          src={assets.heroArcRight}
-          alt=""
-          className="pointer-events-none absolute right-[-170px] top-[-130px] opacity-75"
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="211"
+          height="985"
+          viewBox="0 0 211 985"
+          fill="none"
+          aria-hidden="true"
+          className="pointer-events-none absolute right-[-170px] top-[-60px] opacity-75"
           style={{
             width: '611.208px',
             height: '979.275px',
-            transform: 'rotate(-18.041deg)',
+            transform: 'rotate(2deg)',
             transformOrigin: 'center',
           }}
-        />
+        >
+          <path
+            d="M537.749 -25.8738C537.749 -25.8738 56.6915 174.312 70.8068 462.466C84.9222 750.619 850.632 902.127 850.632 902.127"
+            stroke="#3E573D"
+            strokeWidth="141"
+            strokeLinecap="square"
+          />
+        </svg>
 
         <HeroHeader />
 
-        <div className="relative z-10 mx-auto mt-11 w-full max-w-[1450px] px-4 lg:mt-14 lg:px-6">
+        <div className="relative z-10 mx-auto mt-14 w-full max-w-[1450px] px-4 lg:mt-16 lg:px-6">
           <div className="relative h-[284px] w-[236px] sm:ml-[45px]">
             <div className="absolute inset-0 rounded-[20px] bg-white shadow-xl" />
             <img
@@ -235,7 +249,7 @@ export function FigmaHomePage() {
         </div>
       </section>
 
-      <section className="rounded-t-[40px] bg-[#0c0d12] px-4 pb-14 pt-14 md:px-8 lg:px-12">
+      <section className="rounded-t-[40px] bg-[#0c0d12] px-4 pb-14 pt-6 md:px-8 lg:px-12">
         <div className="mx-auto max-w-[1280px]">
           <div className="mb-10 flex items-center justify-between">
             <h2 className="text-4xl font-black text-white md:text-6xl">
