@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { MobileBottomNavigation } from './MobileBottomNavigation';
 
 const mobileAssets = {
   logo: 'https://www.figma.com/api/mcp/asset/345dbbe4-761a-42f0-a554-83511545e58f',
@@ -49,11 +51,11 @@ type MobileProduct = {
 };
 
 const mobileCategories: MobileCategory[] = [
-  { id: 'pizza', title: 'Անուն', image: mobileAssets.categoryPizza, framed: true },
-  { id: 'burger', title: 'Անուն', image: mobileAssets.categoryBurger },
-  { id: 'sushi', title: 'Անուն', image: mobileAssets.categorySushi },
-  { id: 'salad', title: 'Անուն', image: mobileAssets.categorySalad },
-  { id: 'soup', title: 'Անուն', image: mobileAssets.categorySoup },
+  { id: 'pizza', title: 'Պիցցա', image: mobileAssets.categoryPizza, framed: true },
+  { id: 'burger', title: 'Բուրգեր', image: mobileAssets.categoryBurger },
+  { id: 'sushi', title: 'Սուշի', image: mobileAssets.categorySushi },
+  { id: 'salad', title: 'Աղցան', image: mobileAssets.categorySalad },
+  { id: 'soup', title: 'Ապուր', image: mobileAssets.categorySoup },
 ];
 
 const mobileProducts: MobileProduct[] = Array.from({ length: 12 }, (_, index) => ({
@@ -177,35 +179,13 @@ function MobileCategorySliderIndicator() {
   );
 }
 
-function MobileBottomNavigation() {
-  return (
-    <div className="pointer-events-none fixed bottom-0 left-1/2 z-40 h-[159px] w-[375px] -translate-x-1/2">
-      <img src={mobileAssets.bottomNavBackground} alt="" className="absolute bottom-0 left-0 h-20 w-[375px] object-cover" />
-      <img src={mobileAssets.bottomNavShop} alt="" className="absolute left-1/2 top-[40px] h-[70px] w-[70px] -translate-x-1/2 object-contain" />
-
-      <nav className="pointer-events-auto absolute bottom-[25px] left-1/2 flex -translate-x-1/2 items-start">
-        <Link href="/" className="inline-flex h-[30px] w-[71px] items-center justify-center">
-          <span className="relative inline-flex h-[30px] w-[30px]">
-            <img src={mobileAssets.bottomNavHome} alt="Home" className="absolute inset-[8.33%] h-[83.34%] w-[83.34%] object-contain" />
-          </span>
-        </Link>
-        <Link href="/cart" className="inline-flex h-[30px] w-[71px] items-start">
-          <img src={mobileAssets.bottomNavCart} alt="Cart" className="h-[30px] w-[71px] object-contain" />
-        </Link>
-        <span className="inline-flex h-[24px] w-[71px]" aria-hidden="true" />
-        <Link href="/favorites" className="inline-flex h-[30px] w-[71px] items-start">
-          <img src={mobileAssets.bottomNavFavorite} alt="Favorites" className="h-[30px] w-[71px] object-contain" />
-        </Link>
-        <Link href="/profile" className="inline-flex h-[30px] w-[71px] items-center justify-center">
-          <img src={mobileAssets.bottomNavProfile} alt="Profile" className="h-[30px] w-[30px] object-contain" />
-        </Link>
-      </nav>
-    </div>
-  );
-}
-
 export function FigmaHomePageMobile() {
   const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
+
+  const handleOpenShopPicker = () => {
+    router.push('/shop');
+  };
 
   return (
     <div className="relative mx-auto min-h-screen w-full max-w-[393px] overflow-hidden bg-[#f66a13]">
@@ -281,7 +261,17 @@ export function FigmaHomePageMobile() {
           </div>
         </div>
       </main>
-      <MobileBottomNavigation />
+      <MobileBottomNavigation
+        assets={{
+          bottomNavBackground: mobileAssets.bottomNavBackground,
+          bottomNavShop: mobileAssets.bottomNavShop,
+          bottomNavHome: mobileAssets.bottomNavHome,
+          bottomNavCart: mobileAssets.bottomNavCart,
+          bottomNavFavorite: mobileAssets.bottomNavFavorite,
+          bottomNavProfile: mobileAssets.bottomNavProfile,
+        }}
+        onShopClick={handleOpenShopPicker}
+      />
     </div>
   );
 }
