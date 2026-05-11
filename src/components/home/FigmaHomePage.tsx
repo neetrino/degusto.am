@@ -139,7 +139,7 @@ function CategoryCard({ item }: { item: CategoryItem }) {
 export function FigmaHomePage() {
   return (
     <div className="bg-[#ff6a10]">
-      <section className="relative w-full overflow-hidden pb-28 pt-3 lg:h-[807px] lg:pb-0 lg:[aspect-ratio:231/130]">
+      <section className="relative w-full overflow-hidden pb-32 pt-5 lg:h-[840px] lg:pb-0 lg:[aspect-ratio:231/130]">
         <img src={assets.heroBg} alt="Degusto hero" className="absolute inset-x-0 top-0 h-[900px] w-full object-cover lg:h-full" />
         <img
           src={assets.heroArcLeft}
