@@ -169,7 +169,7 @@ function CategoryCard({ item }: { item: CategoryItem }) {
 
 export function FigmaHomePage() {
   return (
-    <div className="min-h-screen overflow-x-hidden bg-black">
+    <div className="min-h-screen overflow-x-hidden bg-[#ff6a10]">
       <section className="relative w-full overflow-hidden bg-[#ff6a10] pb-56 pt-8 lg:h-[930px] lg:pb-0 lg:[aspect-ratio:231/130]">
         <img
           src={assets.heroBg}
