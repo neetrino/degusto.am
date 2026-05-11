@@ -1,0 +1,29 @@
+{
+  "title": "Welcome Back",
+  "subtitle": "Sign in to your account to continue",
+  "form": {
+    "email": "Email",
+    "emailPlaceholder": "your@email.com",
+    "password": "Password",
+    "passwordPlaceholder": "••••••••",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "submit": "Sign In",
+    "submitting": "Signing in...",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign Up"
+  },
+  "errors": {
+    "emailRequired": "Please enter your email",
+    "passwordRequired": "Please enter your password",
+    "invalidCredentials": "Invalid email or password.",
+    "accountBlocked": "Your account has been blocked.",
+    "loginFailed": "Login failed. Please try again."
+  }
+}
+
+
+
+
+
+

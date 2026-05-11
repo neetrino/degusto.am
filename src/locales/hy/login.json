@@ -1,0 +1,29 @@
+{
+  "title": "Բարի վերադարձ",
+  "subtitle": "Մուտք գործեք ձեր հաշիվ՝ շարունակելու համար",
+  "form": {
+    "email": "Էլ. փոստ",
+    "emailPlaceholder": "your@email.com",
+    "password": "Գաղտնաբառ",
+    "passwordPlaceholder": "••••••••",
+    "rememberMe": "Հիշել ինձ",
+    "forgotPassword": "Մոռացել եք գաղտնաբառը?",
+    "submit": "Մուտք",
+    "submitting": "Մուտք գործվում է...",
+    "noAccount": "Հաշիվ չունե՞ք:",
+    "signUp": "Գրանցվել"
+  },
+  "errors": {
+    "emailRequired": "Խնդրում ենք մուտքագրել ձեր էլ. փոստը",
+    "passwordRequired": "Խնդրում ենք մուտքագրել ձեր գաղտնաբառը",
+    "invalidCredentials": "Սխալ էլ. փոստ կամ գաղտնաբառ։",
+    "accountBlocked": "Ձեր հաշիվը արգելափակված է։",
+    "loginFailed": "Մուտքը ձախողվեց: Խնդրում ենք կրկին փորձել:"
+  }
+}
+
+
+
+
+
+

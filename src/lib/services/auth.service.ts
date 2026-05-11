@@ -1,0 +1,277 @@
+import * as bcrypt from "bcryptjs";
+import * as jwt from "jsonwebtoken";
+import { db } from "@white-shop/db";
+import { logger } from "../utils/logger";
+import { usersService } from "./users.service";
+
+export interface RegisterData {
+  email?: string;
+  phone?: string;
+  password: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+export interface LoginData {
+  email: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  user: {
+    id: string;
+    email: string | null;
+    phone: string | null;
+    firstName: string | null;
+    lastName: string | null;
+    roles: string[];
+  };
+  token: string;
+}
+
+class AuthService {
+  /**
+   * Register new user
+   */
+  async register(data: RegisterData): Promise<AuthResponse> {
+    logger.debug("Auth registration attempt", {
+      hasEmail: !!data.email,
+      hasPhone: !!data.phone,
+      hasFirstName: !!data.firstName,
+      hasLastName: !!data.lastName,
+    });
+
+    if (!data.email && !data.phone) {
+      throw {
+        status: 400,
+        type: "https://api.shop.am/problems/validation-error",
+        title: "Validation failed",
+        detail: "Either email or phone is required",
+      };
+    }
+
+    if (!data.password || data.password.length < 6) {
+      throw {
+        status: 400,
+        type: "https://api.shop.am/problems/validation-error",
+        title: "Validation failed",
+        detail: "Password must be at least 6 characters",
+      };
+    }
+
+    const emailNorm = data.email?.trim().toLowerCase() || undefined;
+    const phoneNorm = data.phone?.trim() || undefined;
+
+    const candidates = await db.user.findMany({
+      where: {
+        OR: [
+          ...(emailNorm ? [{ email: emailNorm }] : []),
+          ...(phoneNorm ? [{ phone: phoneNorm }] : []),
+        ],
+      },
+      select: { id: true, deletedAt: true },
+    });
+
+    for (const row of candidates) {
+      if (!row.deletedAt) {
+        logger.info("Auth registration rejected: user already exists");
+        throw {
+          status: 409,
+          type: "https://api.shop.am/problems/conflict",
+          title: "User already exists",
+          detail: "User with this email or phone already exists",
+        };
+      }
+    }
+
+    const reclaimIds = [...new Set(candidates.map((c) => c.id))];
+    for (const id of reclaimIds) {
+      await usersService.permanentlyDeleteUserById(id);
+    }
+
+    // Hash password
+    const passwordHash = await bcrypt.hash(data.password, 10);
+
+    // Create user
+    let user;
+    try {
+      user = await db.user.create({
+        data: {
+          email: emailNorm || null,
+          phone: phoneNorm || null,
+          passwordHash,
+          firstName: data.firstName || null,
+          lastName: data.lastName || null,
+          locale: "en",
+          roles: ["customer"],
+        },
+        select: {
+          id: true,
+          email: true,
+          phone: true,
+          firstName: true,
+          lastName: true,
+          roles: true,
+        },
+      });
+      logger.info("Auth user created", { userId: user.id });
+    } catch (error: unknown) {
+      const err = error as { code?: string };
+      logger.error("Auth user creation failed", { error: err });
+      if (err.code === "P2002") {
+        // Prisma unique constraint error
+        throw {
+          status: 409,
+          type: "https://api.shop.am/problems/conflict",
+          title: "User already exists",
+          detail: "User with this email or phone already exists",
+        };
+      }
+      throw error;
+    }
+
+    // Generate JWT token
+    if (!process.env.JWT_SECRET) {
+      logger.error("Auth config error: JWT_SECRET is not set");
+      throw {
+        status: 500,
+        type: "https://api.shop.am/problems/internal-error",
+        title: "Internal Server Error",
+        detail: "Server configuration error",
+      };
+    }
+
+    const token = jwt.sign(
+      { userId: user.id },
+      process.env.JWT_SECRET as string,
+      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" } as jwt.SignOptions
+    );
+    logger.info("Auth registration success", { userId: user.id });
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        phone: user.phone,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        roles: user.roles,
+      },
+      token,
+    };
+  }
+
+  /**
+   * Login user
+   */
+  async login(data: LoginData): Promise<AuthResponse> {
+    logger.debug("Auth login attempt", { hasEmail: !!data.email });
+
+    if (!data.email) {
+      throw {
+        status: 400,
+        type: "https://api.shop.am/problems/validation-error",
+        title: "Validation failed",
+        detail: "Email is required",
+      };
+    }
+
+    if (!data.password) {
+      throw {
+        status: 400,
+        type: "https://api.shop.am/problems/validation-error",
+        title: "Validation failed",
+        detail: "Password is required",
+      };
+    }
+
+    const loginEmail = data.email.trim().toLowerCase();
+
+    // Find user
+    const user = await db.user.findFirst({
+      where: {
+        email: loginEmail,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        email: true,
+        phone: true,
+        firstName: true,
+        lastName: true,
+        passwordHash: true,
+        roles: true,
+        blocked: true,
+      },
+    });
+
+    if (!user || !user.passwordHash) {
+      logger.debug("Auth login: user not found or no password");
+      throw {
+        status: 401,
+        type: "https://api.shop.am/problems/unauthorized",
+        title: "Invalid credentials",
+        detail: "Invalid email or password",
+      };
+    }
+
+    // Check password
+    const isValidPassword = await bcrypt.compare(
+      data.password,
+      user.passwordHash
+    );
+
+    if (!isValidPassword) {
+      logger.debug("Auth login: invalid password");
+      throw {
+        status: 401,
+        type: "https://api.shop.am/problems/unauthorized",
+        title: "Invalid credentials",
+        detail: "Invalid email or password",
+      };
+    }
+
+    if (user.blocked) {
+      logger.info("Auth login rejected: account blocked", { userId: user.id });
+      throw {
+        status: 403,
+        type: "https://api.shop.am/problems/forbidden",
+        title: "Account blocked",
+        detail: "Your account has been blocked",
+      };
+    }
+
+    // Generate JWT token
+    if (!process.env.JWT_SECRET) {
+      throw {
+        status: 500,
+        type: "https://api.shop.am/problems/internal-error",
+        title: "Internal Server Error",
+        detail: "Server configuration error",
+      };
+    }
+
+    const token = jwt.sign(
+      { userId: user.id },
+      process.env.JWT_SECRET as string,
+      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" } as jwt.SignOptions
+    );
+
+    logger.info("Auth login success", { userId: user.id });
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        phone: user.phone,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        roles: user.roles,
+      },
+      token,
+    };
+  }
+}
+
+export const authService = new AuthService();
+
