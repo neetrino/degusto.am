@@ -175,7 +175,7 @@ export function FigmaHomePage() {
           viewBox="0 0 725 450"
           fill="none"
           aria-hidden="true"
-          className="pointer-events-none absolute left-[-120px] top-[-550px] opacity-100"
+          className="pointer-events-none absolute left-[-120px] top-[-450px] opacity-100"
           style={{
             width: '678.855px',
             height: '1512.29px',
@@ -197,7 +197,7 @@ export function FigmaHomePage() {
           viewBox="0 0 211 985"
           fill="none"
           aria-hidden="true"
-          className="pointer-events-none absolute right-[-170px] top-[-60px] opacity-75"
+          className="pointer-events-none absolute right-[-170px] top-[-1px] opacity-100"
           style={{
             width: '611.208px',
             height: '979.275px',
