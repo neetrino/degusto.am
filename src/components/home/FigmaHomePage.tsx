@@ -1,16 +1,19 @@
+'use client';
+
 import Link from 'next/link';
+import { useState } from 'react';
 
 const assets = {
   heroBg: 'https://www.figma.com/api/mcp/asset/85cedb2c-a501-40fe-9b97-de4ab816ce45',
-  heroArcLeft: 'https://www.figma.com/api/mcp/asset/80d80afd-93ae-418b-9b0c-21c970356fbf',
   heroArcRight: 'https://www.figma.com/api/mcp/asset/139854e1-a89f-411c-ad5d-4f4a47341a35',
-  logo: 'https://www.figma.com/api/mcp/asset/689cc9c9-6791-4a68-82c6-806f5f88f2db',
-  cartIcon: 'https://www.figma.com/api/mcp/asset/a0f28cb6-e6d7-4578-9f41-996e3f956397',
-  cartCounterBubble: 'https://www.figma.com/api/mcp/asset/88d287e8-13b9-4289-830b-adce14cdcb4a',
-  switcherIcon: 'https://www.figma.com/api/mcp/asset/75d2eab2-d524-4cf7-95b1-afe2b0feef74',
-  loginIcon: 'https://www.figma.com/api/mcp/asset/4299f4af-fc27-4fde-bc7e-21740c9dd71d',
-  searchBadge: 'https://www.figma.com/api/mcp/asset/ab1b1dfb-856b-418a-8afa-d41d546a1015',
-  searchIcon: 'https://www.figma.com/api/mcp/asset/a1be6bd2-36cd-46cd-b53e-d7669727be92',
+  logo: 'https://www.figma.com/api/mcp/asset/b684f5ca-5543-4689-be84-ac53b6c5d14c',
+  cartIcon: 'https://www.figma.com/api/mcp/asset/6af1086c-a9ef-4e40-a198-a1dc8ae19a1b',
+  cartCounterBubble: 'https://www.figma.com/api/mcp/asset/92cf106e-719d-418a-9062-442c2c704c3a',
+  switcherIcon: 'https://www.figma.com/api/mcp/asset/7e774d0a-9c34-437c-b6a6-eb0f02674821',
+  switcherArrow: 'https://www.figma.com/api/mcp/asset/7eb0464d-351a-4497-9966-932e83d0dc1c',
+  loginIcon: 'https://www.figma.com/api/mcp/asset/78b21874-ca2c-4a82-ad97-53f6d15d758a',
+  searchBadge: 'https://www.figma.com/api/mcp/asset/717cf64a-7dc5-44fd-8730-e63c2abe5677',
+  searchIcon: 'https://www.figma.com/api/mcp/asset/79afe4c8-e7f4-44f9-8a3e-d76365facd5a',
   offerBadge: 'https://www.figma.com/api/mcp/asset/d3a756a8-cee5-463a-84de-431457f8df09',
   product: 'https://www.figma.com/api/mcp/asset/391d8c26-5fd9-4a5a-bd37-4fb776b3791d',
   categorySoup: 'https://www.figma.com/api/mcp/asset/f59e55b2-9f13-4728-a2ab-b81a336c933e',
@@ -56,29 +59,47 @@ const categories: CategoryItem[] = [...categoryBase, ...categoryBase, ...categor
 }));
 
 function HeroHeader() {
+  const [searchQuery, setSearchQuery] = useState('');
+
   return (
-    <header className="relative z-10 mx-auto mt-3 flex h-20 w-full max-w-[1450px] items-center rounded-[120px] bg-black px-4 lg:px-6">
-      <img src={assets.logo} alt="Degusto" className="h-12 w-[134px] shrink-0 object-cover" />
-      <div className="relative ml-6 hidden h-12 w-[237px] rounded-[90px] bg-white md:block">
-        <p className="absolute left-[18px] top-[10px] text-base leading-6 text-[rgba(105,105,105,0.56)]">...</p>
-        <button
-          type="button"
-          className="absolute left-[calc(50%+62px)] top-1/2 inline-flex h-10 -translate-x-1/2 -translate-y-1/2 items-center overflow-hidden rounded-[20px] bg-[#f66812] py-3 pl-10 pr-4"
-        >
+    <header className="relative z-10 mx-auto mt-3 flex h-20 w-full max-w-[1450px] items-center rounded-[120px] bg-black px-4 md:px-6 lg:px-7">
+      <img src={assets.logo} alt="Degusto" className="h-12 w-[134px] shrink-0 object-contain" />
+      <nav className="ml-8 mr-auto hidden items-center gap-[30px] whitespace-nowrap px-4 text-[18px] font-semibold leading-[30px] text-white lg:flex">
+        <Link href="/" className="shrink-0">
+          Գլխավոր
+        </Link>
+        <Link href="/products" className="shrink-0">
+          Խոհանոց
+        </Link>
+        <Link href="/products" className="shrink-0">
+          Կոմբոներ
+        </Link>
+        <Link href="/about" className="shrink-0">
+          Մեր մասին
+        </Link>
+      </nav>
+      <div
+        className="relative ml-auto hidden h-12 w-[237px] items-center rounded-[90px] bg-white p-1 transition-all duration-300 ease-out hover:w-[380px] focus-within:w-[380px] md:flex"
+      >
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(event) => {
+            setSearchQuery(event.target.value);
+          }}
+          placeholder="Փնտրել..."
+          className="h-full min-w-0 flex-1 bg-transparent pl-[14px] text-base leading-6 text-[#252525] outline-none placeholder:text-[rgba(105,105,105,0.56)]"
+          aria-label="Search"
+        />
+        <span className="relative ml-auto inline-flex h-10 items-center overflow-hidden rounded-[20px] bg-[#f66812] py-2 pl-10 pr-4">
           <span className="absolute left-0 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center overflow-hidden">
             <img src={assets.searchBadge} alt="" className="h-8 w-8 object-contain" />
             <img src={assets.searchIcon} alt="" className="absolute h-6 w-6 object-contain" />
           </span>
           <span className="text-[15px] font-semibold leading-6 text-white">Որոնել</span>
-        </button>
+        </span>
       </div>
-      <nav className="mx-auto hidden items-center gap-[30px] px-4 text-[18px] font-semibold leading-[30px] text-white lg:flex">
-        <Link href="/">Գլխավոր</Link>
-        <Link href="/products">Խոհանոց</Link>
-        <Link href="/products">Կոմբոներ</Link>
-        <Link href="/about">Մեր մասին</Link>
-      </nav>
-      <div className="ml-auto flex items-center gap-[11px]">
+      <div className="ml-3 flex items-center gap-[11px]">
         <div className="hidden items-center gap-[7px] md:flex">
           <button type="button" className="relative h-12 w-[117px] shrink-0">
             <span className="absolute right-0 top-0 inline-flex h-12 w-[88px] items-center justify-center rounded-[70px] bg-[#f1f2f4] text-base font-bold text-black">
@@ -92,10 +113,13 @@ function HeroHeader() {
           </button>
           <button
             type="button"
-            className="inline-flex h-12 items-center rounded-[70px] bg-[#f55c0a] px-[18px] text-base font-bold leading-[18px] text-white"
+            className="relative inline-flex h-12 w-[159px] shrink-0 items-center justify-center overflow-hidden rounded-[70px] bg-[#f55c0a] px-[18px] text-base font-bold leading-[18px] text-white"
           >
-            <img src={assets.switcherIcon} alt="" className="mr-[3px] h-[19px] w-[19px] object-contain" />
-            EN / AMD
+            <span className="inline-flex -translate-x-[6px] items-center justify-center gap-[2px]">
+              <img src={assets.switcherIcon} alt="" className="h-[19px] w-[19px] shrink-0 object-contain" />
+              <span className="shrink-0">EN / AMD</span>
+            </span>
+            <img src={assets.switcherArrow} alt="" className="absolute right-[18px] h-3 w-2 shrink-0 rotate-90 object-contain" />
           </button>
         </div>
         <button type="button" className="inline-flex h-12 w-12 items-center justify-center">
@@ -141,17 +165,28 @@ export function FigmaHomePage() {
     <div className="bg-[#ff6a10]">
       <section className="relative w-full overflow-hidden pb-32 pt-5 lg:h-[840px] lg:pb-0 lg:[aspect-ratio:231/130]">
         <img src={assets.heroBg} alt="Degusto hero" className="absolute inset-x-0 top-0 h-[900px] w-full object-cover lg:h-full" />
-        <img
-          src={assets.heroArcLeft}
-          alt=""
-          className="pointer-events-none absolute left-[-180px] top-[-380px] opacity-75"
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="725"
+          height="450"
+          viewBox="0 0 725 450"
+          fill="none"
+          aria-hidden="true"
+          className="pointer-events-none absolute left-[-120px] top-[-550px] opacity-100"
           style={{
-            width: '717.855px',
+            width: '678.855px',
             height: '1512.29px',
-            transform: 'rotate(-139.877deg)',
+            transform: 'rotate(20deg)',
             transformOrigin: 'center',
           }}
-        />
+        >
+          <path
+            d="M-387.936 202.028C-387.936 202.028 119.69 546.315 464.803 275C809.917 3.68502 577.568 -962.001 577.568 -962.001"
+            stroke="#3E573D"
+            strokeWidth="141"
+            strokeLinecap="square"
+          />
+        </svg>
         <img
           src={assets.heroArcRight}
           alt=""
