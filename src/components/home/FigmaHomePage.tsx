@@ -340,7 +340,7 @@ export function FigmaHomePage() {
             <img
               src={assets.footerPastaVisual}
               alt="Degusto footer visual"
-              className="pointer-events-none absolute -right-[50px] top-[-200px] hidden h-[800px] w-[512px] -rotate-90 [aspect-ratio:90/173] object-contain lg:block"
+              className="pointer-events-none absolute -right-[10px] top-[-115px] hidden h-[800px] w-[512px] -rotate-90 -scale-x-100 [aspect-ratio:90/173] object-contain lg:block"
             />
 
             <div className="relative z-10 grid gap-10 lg:grid-cols-[244px_283px_120px_1fr] lg:pt-[73px]">
