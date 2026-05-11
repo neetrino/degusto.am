@@ -81,41 +81,71 @@ function CategoryCard({ item }: { item: CategoryItem }) {
 export function FigmaHomePage() {
   return (
     <div className="bg-[#ff6a10]">
-      <section className="relative overflow-hidden px-4 pb-12 pt-8 md:px-8 lg:px-12">
-        <img src={assets.heroBg} alt="Degusto hero" className="absolute inset-x-0 top-20 h-[760px] w-full rounded-b-[28px] object-cover" />
-        <img src={assets.heroArcLeft} alt="" className="pointer-events-none absolute left-0 top-[120px] h-[620px] w-[280px] opacity-75" />
-        <img src={assets.heroArcRight} alt="" className="pointer-events-none absolute right-0 top-[140px] h-[620px] w-[280px] opacity-75" />
+      <section className="relative mx-auto w-full max-w-[1434px] overflow-hidden px-4 pb-28 pt-3 md:px-8 lg:h-[807px] lg:px-12 lg:pb-0 lg:[aspect-ratio:231/130]">
+        <img src={assets.heroBg} alt="Degusto hero" className="absolute inset-x-0 top-3 h-[900px] w-full rounded-b-[28px] object-cover lg:top-0 lg:h-full" />
+        <img
+          src={assets.heroArcLeft}
+          alt=""
+          className="pointer-events-none absolute left-[-180px] top-[-380px] opacity-75"
+          style={{
+            width: '717.855px',
+            height: '1512.29px',
+            transform: 'rotate(-139.877deg)',
+            transformOrigin: 'center',
+          }}
+        />
+        <img
+          src={assets.heroArcRight}
+          alt=""
+          className="pointer-events-none absolute right-[-170px] top-[-130px] opacity-75"
+          style={{
+            width: '611.208px',
+            height: '979.275px',
+            transform: 'rotate(-18.041deg)',
+            transformOrigin: 'center',
+          }}
+        />
 
-        <header className="relative z-10 mx-auto flex max-w-[1370px] items-center justify-between gap-4 rounded-[90px] bg-black px-4 py-3 md:px-8">
-          <img src={assets.logo} alt="Degusto" className="h-11 w-auto" />
-          <nav className="hidden items-center gap-8 text-lg font-semibold text-white lg:flex">
+        <header className="relative z-10 mx-auto flex h-20 max-w-[1374px] items-center justify-between gap-3 rounded-[90px] bg-black px-3 md:px-7">
+          <img src={assets.logo} alt="Degusto" className="h-12 w-auto" />
+          <nav className="hidden items-center gap-8 text-[18px] font-semibold text-white lg:flex">
             <Link href="/">Գլխավոր</Link>
             <Link href="/products">Խոհանոց</Link>
             <Link href="/products">Կոմբոներ</Link>
             <Link href="/about">Մեր մասին</Link>
           </nav>
-          <div className="flex items-center gap-2 md:gap-3">
-            <button type="button" className="rounded-full bg-white px-4 py-2 text-sm text-[#696969]">
+          <div className="flex items-center gap-2">
+            <button type="button" className="hidden rounded-full bg-white px-4 py-2 text-sm text-[#696969] md:block">
               ...
             </button>
-            <button type="button" className="rounded-full bg-[#f66812] px-5 py-2 font-semibold text-white">
+            <button type="button" className="rounded-full bg-[#f66812] px-4 py-2 text-sm font-semibold text-white md:px-5 md:text-base">
               Որոնել
             </button>
-            <button type="button" className="rounded-full bg-[#f1f2f4] px-4 py-2 font-bold text-black">
+            <button type="button" className="rounded-full bg-[#f1f2f4] px-4 py-2 text-sm font-bold text-black">
               0 ֏
+            </button>
+            <button type="button" className="hidden h-10 w-10 rounded-full bg-white text-black md:block">
+              👤
             </button>
           </div>
         </header>
 
-        <div className="relative z-10 mt-16 max-w-[300px] rounded-[22px] bg-white p-3 shadow-xl">
-          <img src={assets.product} alt="Daily offer" className="h-[170px] w-full rounded-[16px] object-cover" />
-          <h2 className="mt-3 text-3xl font-black leading-tight text-[#3c2f2f]">Double Cheeseburger</h2>
-          <p className="text-sm text-[#9b9b9b]">Բուրգեր</p>
-          <div className="mt-4 flex items-center justify-between">
-            <span className="rounded-full bg-[#ff7f20] px-3 py-1 text-sm font-bold">-30%</span>
-            <span className="text-3xl font-black text-[#3c2f2f]">1200 ֏</span>
+        <div className="relative z-10 mt-10 w-[236px] rounded-[20px] bg-white p-2.5 pb-3 shadow-xl md:mt-14">
+          <img src={assets.product} alt="Daily offer" className="h-[147px] w-full rounded-[14px] object-cover" />
+          <p className="mt-2 text-xs text-[#5b5b5b]">⭐ 4.7</p>
+          <h2 className="mt-1 text-[28px] font-black leading-[1] text-[#3c2f2f]">
+            <span className="block">Double</span>
+            <span className="block">Cheeseburger</span>
+          </h2>
+          <p className="mt-1 text-sm text-[#9b9b9b]">Բուրգեր</p>
+          <div className="mt-2 flex items-center justify-between">
+            <span className="rounded-full bg-[#ff7f20] px-3 py-1 text-xs font-bold">-30%</span>
+            <span className="text-[38px] font-black leading-none text-[#3c2f2f]">1200 ֏</span>
           </div>
-          <div className="absolute -right-12 -top-10 rounded-[50%] bg-black px-5 py-6 text-center text-sm font-bold text-white">
+          <button type="button" className="absolute -bottom-6 left-1/2 h-12 w-12 -translate-x-1/2 rounded-full bg-[#ff7f20] text-white shadow-lg">
+            🛒
+          </button>
+          <div className="absolute -right-9 -top-9 rounded-[50%] bg-black px-4 py-5 text-center text-xs font-bold text-white">
             Օրվա
             <br />
             Առաջարկ
