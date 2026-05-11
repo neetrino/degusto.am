@@ -15,6 +15,11 @@ const assets = {
   searchIcon: 'https://www.figma.com/api/mcp/asset/79afe4c8-e7f4-44f9-8a3e-d76365facd5a',
   offerBadge: 'https://www.figma.com/api/mcp/asset/d3a756a8-cee5-463a-84de-431457f8df09',
   product: 'https://www.figma.com/api/mcp/asset/391d8c26-5fd9-4a5a-bd37-4fb776b3791d',
+  productCardImage: 'https://www.figma.com/api/mcp/asset/bfa37838-b9d6-4bdf-8ad2-5f4d937f39b3',
+  productCardAddToCart: 'https://www.figma.com/api/mcp/asset/46263ee5-81fc-4599-bc9c-4fbe5266856f',
+  productCardHot: 'https://www.figma.com/api/mcp/asset/f511c8ac-085a-4aa8-9f8f-b417639f1eec',
+  productCardRibbon: 'https://www.figma.com/api/mcp/asset/575acea0-5e0b-4151-a172-963f16eb96fa',
+  productCardStar: 'https://www.figma.com/api/mcp/asset/0060a54b-084d-493d-90df-32f0bd4ae3c4',
   categorySoup: 'https://www.figma.com/api/mcp/asset/f59e55b2-9f13-4728-a2ab-b81a336c933e',
   categorySalad: 'https://www.figma.com/api/mcp/asset/bb38ad79-89f9-419e-adaf-93b0ac75db5a',
   categoryShawarma: 'https://www.figma.com/api/mcp/asset/43549dd0-8594-452d-9fd3-c5f3697f20d8',
@@ -221,31 +226,46 @@ export function FigmaHomePage() {
         <div className="relative z-10 mx-auto mt-14 w-full max-w-[1450px] px-4 lg:mt-16 lg:px-6">
           <div className="relative h-[284px] w-[236px] sm:ml-[45px]">
             <div className="absolute inset-0 rounded-[20px] bg-white shadow-xl" />
-            <img
-              src={assets.product}
-              alt="Daily offer"
-              className="absolute left-1/2 top-[12px] h-[147px] w-[227px] -translate-x-1/2 rounded-[18px] object-cover"
-            />
-            <p className="absolute left-[14px] top-[172px] text-base font-medium leading-none text-[rgba(60,47,47,0.62)]">⭐ 4.7</p>
+            <div className="absolute left-1/2 top-[5px] h-[147px] w-[227px] -translate-x-1/2">
+              <img src={assets.productCardImage} alt="Daily offer" className="h-full w-full rounded-[18px] object-cover" />
+              <div className="absolute left-[11px] top-[8px] flex flex-col gap-[6px]">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ff2b2e]">
+                  <img src={assets.productCardHot} alt="" className="h-[19px] w-[19px] -rotate-[13deg] object-contain" />
+                </div>
+                <div className="flex h-8 w-8 items-center justify-center">
+                  <img src={assets.productCardRibbon} alt="" className="h-8 w-8 object-contain" />
+                </div>
+              </div>
+            </div>
+            <div className="absolute left-[14px] top-[172px] flex items-center gap-1.5">
+              <img src={assets.productCardStar} alt="" className="h-5 w-5 object-contain" />
+              <p className="text-base font-medium leading-none text-[rgba(60,47,47,0.62)]">4.7</p>
+            </div>
             <h2 className="absolute left-[14px] top-[194px] text-base font-bold leading-none text-[#3c2f2f]">
               <span className="block">Double</span>
               <span className="block">Cheeseburger</span>
             </h2>
-            <p className="absolute left-[14px] top-[252px] text-base font-medium leading-none text-[#a1a1a1]">Բուրգեր</p>
-            <span className="absolute right-[12px] top-[184px] inline-flex items-center rounded-[60px] bg-[#ff7f20] px-[17px] py-[5px] text-sm font-bold leading-none text-black">
+            <p className="absolute left-[14px] top-[230px] text-base font-medium leading-none text-[#a1a1a1]">Բուրգեր</p>
+            <span className="absolute right-[12px] top-[165px] inline-flex items-center rounded-[60px] bg-[#ff7f20] px-[17px] py-[8px] text-sm font-bold leading-none text-black">
               -30%
             </span>
-            <span className="absolute right-[14px] top-[242px] text-[20px] font-black leading-none text-[#3c2f2f]">1200 ֏</span>
+            <span className="absolute right-[14px] top-[242px] font-['Montserrat_arm','Montserrat',sans-serif] text-[22px] font-[1000] leading-none tracking-[-0.3px] text-[#3c2f2f]">
+              1200 Դ
+            </span>
             <button
               type="button"
-              className="absolute bottom-[-25px] left-1/2 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center rounded-full bg-[#ff7f20] shadow-lg"
+              className="absolute bottom-[-25px] left-1/2 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center"
             >
-              <img src={assets.cartIcon} alt="" className="h-5 w-5 object-contain brightness-0 invert" />
+              <img src={assets.productCardAddToCart} alt="Add to cart" className="h-[52px] w-[51px] object-contain" />
             </button>
             <div className="absolute -right-[88px] -top-[46px] h-[132px] w-[132px]">
               <img src={assets.offerBadge} alt="" className="absolute inset-0 h-full w-full object-contain" />
-              <div className="absolute left-0 top-0 flex h-[132px] w-[132px] flex-col items-center gap-[10px] px-[29px] py-[49px] text-center text-[14px] font-bold leading-[17px] text-white">
-                <span style={{ fontFamily: '"Montserrat arm", "Montserrat", sans-serif' }}>Օրվա Առաջարկ</span>
+              <div className="absolute inset-0 flex items-center justify-center text-center text-[16px] font-black leading-[1.1] text-white">
+                <span>
+                  Օրվա
+                  <br />
+                  Առաջարկ
+                </span>
               </div>
             </div>
           </div>
