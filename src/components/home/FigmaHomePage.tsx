@@ -24,7 +24,22 @@ const assets = {
   categorySalad: 'https://www.figma.com/api/mcp/asset/bb38ad79-89f9-419e-adaf-93b0ac75db5a',
   categoryShawarma: 'https://www.figma.com/api/mcp/asset/43549dd0-8594-452d-9fd3-c5f3697f20d8',
   categoryPizza: 'https://www.figma.com/api/mcp/asset/23f5ca6d-8c2f-4461-ae15-1888a189e1b5',
-  footerImage: 'https://www.figma.com/api/mcp/asset/6abff93b-7778-4529-b767-af04ebcb8750',
+  footerBrandLogo: 'https://www.figma.com/api/mcp/asset/af1386b6-6403-4d12-b481-b0a886d658ac',
+  footerMailIcon: 'https://www.figma.com/api/mcp/asset/fa1f18f7-5fb4-4969-a352-7ba68988990b',
+  footerPhoneIcon: 'https://www.figma.com/api/mcp/asset/26278683-2f5b-4e23-a574-4cf0ee5a74e2',
+  footerInstagramIcon: 'https://www.figma.com/api/mcp/asset/badac04a-9f91-4327-b869-444fac713eae',
+  footerTikTokIcon: 'https://www.figma.com/api/mcp/asset/f2b1e657-7dee-46b9-8406-398d2399731f',
+  footerTelegramIcon: 'https://www.figma.com/api/mcp/asset/77fcdba1-46b8-44f7-9903-805ead66b2de',
+  footerWhatsappIcon: 'https://www.figma.com/api/mcp/asset/90e301d2-29b6-4c8a-958b-f52692611d7e',
+  footerViberIcon: 'https://www.figma.com/api/mcp/asset/69968fcd-a155-47cc-b0aa-8f07c6ffaf95',
+  footerAppStoreBadge: 'https://www.figma.com/api/mcp/asset/11b4b283-8108-4c9d-8ce1-b5a27e579ccb',
+  footerGooglePlayBadge: 'https://www.figma.com/api/mcp/asset/1a4ee134-cb1e-4f57-82da-2a57dfe644ae',
+  footerIdramLogo: 'https://www.figma.com/api/mcp/asset/7e6ea7ce-62b4-4944-a231-439e3c4ad39a',
+  footerFastshiftLogo: 'https://www.figma.com/api/mcp/asset/0bbbacf6-84d8-4233-9db2-6a06643aabfa',
+  footerArcaLogo: 'https://www.figma.com/api/mcp/asset/87b1034e-9e9a-4689-88ab-511074f64d78',
+  footerVisaLogo: 'https://www.figma.com/api/mcp/asset/b2630fe9-6a4f-45f5-aca7-eb823d6a990c',
+  footerPastaVisual: 'https://www.figma.com/api/mcp/asset/8374a97d-b4c4-4430-822c-d6214226119e',
+  footerAddressPinIcon: 'https://www.figma.com/api/mcp/asset/2986cc51-e2e3-4e3a-a3e1-7e9816116373',
 };
 
 type CardItem = {
@@ -317,47 +332,97 @@ export function FigmaHomePage() {
       </div>
 
       <div className="bg-[#e6e6e8]">
-        <footer className="overflow-hidden rounded-t-[40px] bg-[#121212] px-4 pb-10 pt-12 text-white md:px-8 lg:px-12">
-          <div className="mx-auto max-w-[1280px]">
-            <div className="grid gap-10 lg:grid-cols-[1fr_1fr_1fr_1.3fr]">
+        <footer className="overflow-hidden rounded-t-[40px] bg-[#121212] px-4 pb-10 pt-14 text-white md:px-8 lg:px-12 lg:pb-0 lg:pt-0">
+          <div className="relative mx-auto max-w-[1280px] lg:h-[576px]">
+            <img
+              src={assets.footerPastaVisual}
+              alt="Degusto footer visual"
+              className="pointer-events-none absolute -right-[50px] top-[-200px] hidden h-[800px] w-[512px] -rotate-90 [aspect-ratio:90/173] object-contain lg:block"
+            />
+
+            <div className="relative z-10 grid gap-10 lg:grid-cols-[244px_283px_120px_1fr] lg:pt-[73px]">
               <div>
-                <h3 className="mb-4 text-3xl font-black text-[#ff7f20]">Հասցեներ</h3>
-                <p className="leading-8">Պարույր Սևակի 92</p>
-                <p className="leading-8">Բագրատունյաց 11Ա</p>
-                <p className="leading-8">Ազատության 24/19, Coffee Studio by Degusto</p>
+                <h3 className="mb-4 flex items-center gap-[6px] text-[20px] font-black leading-6 text-[#ff7f20]">
+                  <img src={assets.footerAddressPinIcon} alt="" className="h-6 w-[18px] object-contain" />
+                  <span>Հասցեներ</span>
+                </h3>
+                <p className="text-sm leading-[27px]">Պարույր Սևակի 92</p>
+                <p className="text-sm leading-[27px]">Բագրատունյաց 11Ա</p>
+                <p className="max-w-[246px] text-sm leading-[27px]">Ազատության 24/19, Coffee Studio by Degusto</p>
               </div>
+
               <div>
-                <h3 className="mb-4 text-3xl font-black text-[#ff7f20]">Պայմաններ</h3>
-                <p className="leading-8">Գաղտնիության քաղաքականություն</p>
-                <p className="leading-8">Առաքման քաղաքականություն</p>
-                <p className="leading-8">Վերադարձի քաղաքականություն</p>
-                <p className="leading-8">Պայմաններ և դրույթներ</p>
+                <h3 className="mb-4 text-[20px] font-black uppercase tracking-[0.55px] text-[#ff7f20]">Պայմաններ</h3>
+                <div className="space-y-2 text-sm text-white">
+                  <p className="leading-5">Գաղտնիության քաղաքականություն</p>
+                  <p className="leading-7">Առաքման քաղաքականություն</p>
+                  <p className="leading-5">Վերադարձի քաղաքականություն</p>
+                  <p className="leading-5">Պայմաններ և դրույթներ</p>
+                </div>
               </div>
+
               <div>
-                <h3 className="mb-4 text-3xl font-black text-[#ff7f20]">Հղումներ</h3>
-                <p className="leading-8">Գլխավոր</p>
-                <p className="leading-8">Խոհանոց</p>
-                <p className="leading-8">Կոմբոներ</p>
-                <p className="leading-8">Մեր մասին</p>
+                <h3 className="mb-2 text-[20px] font-black leading-6 text-[#ff7f20]">Հղումներ</h3>
+                <div className="space-y-0 text-sm leading-[30px]">
+                  <p>Գլխավոր</p>
+                  <p>Խոհանոց</p>
+                  <p>Կոմբոներ</p>
+                  <p>Մեր մասին</p>
+                </div>
               </div>
-              <img
-                src={assets.footerImage}
-                alt="Degusto footer visual"
-                className="h-full max-h-[260px] w-full -rotate-90 scale-[2.4] rounded-2xl object-contain"
-              />
+
+              <div className="hidden lg:block" />
             </div>
 
-            <div className="mt-8 border-t border-white/20 pt-6">
+            <div className="relative z-10 mt-[18px] flex flex-col gap-3 lg:mt-8 lg:w-[472px]">
+              <h3 className="text-[20px] font-black leading-6 text-[#ff7f20]">Կոնտակտներ</h3>
+
+              <div className="flex items-center gap-3">
+                <img src={assets.footerMailIcon} alt="" className="h-[25px] w-6 object-contain" />
+                <p className="text-sm leading-[27px]">info@degusto.am</p>
+              </div>
+
+              <div className="flex items-start gap-[11px]">
+                <img src={assets.footerPhoneIcon} alt="" className="mt-[1px] h-[25px] w-6 object-contain" />
+                <p className="text-sm leading-[27px]">Հեռ. (060) 38-80-80 / (033)-80-80-80 / (010)-38-80-80</p>
+              </div>
+
+              <div className="mt-1 flex h-[41px] items-center gap-4">
+                <img src={assets.footerInstagramIcon} alt="Instagram" className="h-10 w-10 object-contain" />
+                <img src={assets.footerTikTokIcon} alt="TikTok" className="h-10 w-10 object-contain" />
+                <img src={assets.footerTelegramIcon} alt="Telegram" className="h-10 w-10 object-contain" />
+                <img src={assets.footerWhatsappIcon} alt="WhatsApp" className="h-10 w-10 object-contain" />
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#ff7c1d]">
+                  <img src={assets.footerViberIcon} alt="Viber" className="h-[22px] w-[22px] object-contain" />
+                </span>
+              </div>
+            </div>
+
+            <div className="relative z-10 mt-6 flex flex-wrap justify-start gap-[5px] lg:absolute lg:bottom-[164px] lg:right-0 lg:mt-0">
+              <img src={assets.footerAppStoreBadge} alt="Download on the App Store" className="h-10 w-auto object-contain" />
+              <img src={assets.footerGooglePlayBadge} alt="Get it on Google Play" className="h-10 w-auto object-contain" />
+            </div>
+
+            <div className="relative z-10 mt-8 border-t border-white/20 pt-4 lg:absolute lg:bottom-[52px] lg:left-0 lg:right-0 lg:mt-0 lg:pt-[18px]">
               <div className="flex flex-wrap items-center justify-between gap-4">
-                <img src={assets.logo} alt="Degusto" className="h-10 w-auto" />
-                <p className="text-sm text-white/80">
-                  Copyright © 2026 | Բոլոր իրավունքները պաշտպանված են | Ստեղծվել է <span className="font-black text-[#ff7f20]">Neetrino IT Company</span> կողմից
+                <img src={assets.footerBrandLogo} alt="Degusto" className="h-[42px] w-[117px] object-contain" />
+                <p className="text-sm leading-[23px] text-white lg:pr-[24px]">
+                  Copyright © 2026 | Բոլոր իրավունքները պաշտպանված են | Ստեղծվել է{' '}
+                  <span className="font-black text-[#ff7f20]">Neetrino IT Company</span> կողմից
                 </p>
-                <div className="flex gap-2 text-xs">
-                  <span className="rounded-lg bg-white px-3 py-1 text-black">idram</span>
-                  <span className="rounded-lg bg-white px-3 py-1 text-black">fastshift</span>
-                  <span className="rounded-lg bg-white px-3 py-1 text-black">arca</span>
-                  <span className="rounded-lg bg-white px-3 py-1 text-black">visa</span>
+                <div className="flex items-center gap-[11px]">
+                  <span className="inline-flex h-[30px] w-[73px] items-center justify-center rounded-lg bg-white px-1">
+                    <img src={assets.footerIdramLogo} alt="Idram" className="h-[17px] w-[66px] object-contain" />
+                  </span>
+                  <span className="inline-flex h-[30px] w-[73px] items-center justify-center rounded-lg bg-white px-1">
+                    <img src={assets.footerFastshiftLogo} alt="Fastshift" className="h-4 w-[61px] object-contain" />
+                  </span>
+                  <span className="inline-flex h-[30px] w-[74px] items-center justify-center rounded-lg bg-white px-1">
+                    <img src={assets.footerArcaLogo} alt="Arca" className="h-[13px] w-[50px] object-contain" />
+                  </span>
+                  <span className="inline-flex h-[30px] w-[73px] items-center justify-center rounded-lg bg-white px-1">
+                    <img src={assets.footerVisaLogo} alt="Visa" className="h-[22px] w-12 object-contain" />
+                  </span>
                 </div>
               </div>
             </div>
