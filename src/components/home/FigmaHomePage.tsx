@@ -169,8 +169,8 @@ function CategoryCard({ item }: { item: CategoryItem }) {
 
 export function FigmaHomePage() {
   return (
-    <div className="bg-[#ff6a10]">
-      <section className="relative w-full overflow-hidden pb-56 pt-8 lg:h-[930px] lg:pb-0 lg:[aspect-ratio:231/130]">
+    <div className="min-h-screen overflow-x-hidden bg-black">
+      <section className="relative w-full overflow-hidden bg-[#ff6a10] pb-56 pt-8 lg:h-[930px] lg:pb-0 lg:[aspect-ratio:231/130]">
         <img
           src={assets.heroBg}
           alt="Degusto hero"
@@ -290,59 +290,67 @@ export function FigmaHomePage() {
         </div>
       </section>
 
-      <section className="rounded-t-[40px] bg-[#e6e6e8] px-4 pb-20 pt-10 md:px-8 lg:px-12">
-        <div className="mx-auto max-w-[1280px]">
-          <h2 className="mb-8 text-5xl font-black text-black md:text-6xl">Կատեգորիաներ</h2>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {categories.map((item) => (
-              <CategoryCard key={item.id} item={item} />
-            ))}
+      <div className="bg-black">
+        <section className="rounded-t-[40px] bg-[#e6e6e8] px-4 pb-20 pt-10 md:px-8 lg:px-12">
+          <div className="mx-auto max-w-[1280px]">
+            <h2 className="mb-8 text-5xl font-black text-black md:text-6xl">Կատեգորիաներ</h2>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {categories.map((item) => (
+                <CategoryCard key={item.id} item={item} />
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
-      <footer className="rounded-t-[40px] bg-[#121212] px-4 pb-10 pt-12 text-white md:px-8 lg:px-12">
-        <div className="mx-auto max-w-[1280px]">
-          <div className="grid gap-10 lg:grid-cols-[1fr_1fr_1fr_1.3fr]">
-            <div>
-              <h3 className="mb-4 text-3xl font-black text-[#ff7f20]">Հասցեներ</h3>
-              <p className="leading-8">Պարույր Սևակի 92</p>
-              <p className="leading-8">Բագրատունյաց 11Ա</p>
-              <p className="leading-8">Ազատության 24/19, Coffee Studio by Degusto</p>
+      <div className="bg-[#e6e6e8]">
+        <footer className="overflow-hidden rounded-t-[40px] bg-[#121212] px-4 pb-10 pt-12 text-white md:px-8 lg:px-12">
+          <div className="mx-auto max-w-[1280px]">
+            <div className="grid gap-10 lg:grid-cols-[1fr_1fr_1fr_1.3fr]">
+              <div>
+                <h3 className="mb-4 text-3xl font-black text-[#ff7f20]">Հասցեներ</h3>
+                <p className="leading-8">Պարույր Սևակի 92</p>
+                <p className="leading-8">Բագրատունյաց 11Ա</p>
+                <p className="leading-8">Ազատության 24/19, Coffee Studio by Degusto</p>
+              </div>
+              <div>
+                <h3 className="mb-4 text-3xl font-black text-[#ff7f20]">Պայմաններ</h3>
+                <p className="leading-8">Գաղտնիության քաղաքականություն</p>
+                <p className="leading-8">Առաքման քաղաքականություն</p>
+                <p className="leading-8">Վերադարձի քաղաքականություն</p>
+                <p className="leading-8">Պայմաններ և դրույթներ</p>
+              </div>
+              <div>
+                <h3 className="mb-4 text-3xl font-black text-[#ff7f20]">Հղումներ</h3>
+                <p className="leading-8">Գլխավոր</p>
+                <p className="leading-8">Խոհանոց</p>
+                <p className="leading-8">Կոմբոներ</p>
+                <p className="leading-8">Մեր մասին</p>
+              </div>
+              <img
+                src={assets.footerImage}
+                alt="Degusto footer visual"
+                className="h-full max-h-[260px] w-full -rotate-90 scale-[2.4] rounded-2xl object-contain"
+              />
             </div>
-            <div>
-              <h3 className="mb-4 text-3xl font-black text-[#ff7f20]">Պայմաններ</h3>
-              <p className="leading-8">Գաղտնիության քաղաքականություն</p>
-              <p className="leading-8">Առաքման քաղաքականություն</p>
-              <p className="leading-8">Վերադարձի քաղաքականություն</p>
-              <p className="leading-8">Պայմաններ և դրույթներ</p>
-            </div>
-            <div>
-              <h3 className="mb-4 text-3xl font-black text-[#ff7f20]">Հղումներ</h3>
-              <p className="leading-8">Գլխավոր</p>
-              <p className="leading-8">Խոհանոց</p>
-              <p className="leading-8">Կոմբոներ</p>
-              <p className="leading-8">Մեր մասին</p>
-            </div>
-            <img src={assets.footerImage} alt="Degusto footer visual" className="h-full max-h-[260px] w-full rounded-2xl object-cover" />
-          </div>
 
-          <div className="mt-8 border-t border-white/20 pt-6">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <img src={assets.logo} alt="Degusto" className="h-10 w-auto" />
-              <p className="text-sm text-white/80">
-                Copyright © 2026 | Բոլոր իրավունքները պաշտպանված են | Ստեղծվել է <span className="font-black text-[#ff7f20]">Neetrino IT Company</span> կողմից
-              </p>
-              <div className="flex gap-2 text-xs">
-                <span className="rounded-lg bg-white px-3 py-1 text-black">idram</span>
-                <span className="rounded-lg bg-white px-3 py-1 text-black">fastshift</span>
-                <span className="rounded-lg bg-white px-3 py-1 text-black">arca</span>
-                <span className="rounded-lg bg-white px-3 py-1 text-black">visa</span>
+            <div className="mt-8 border-t border-white/20 pt-6">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <img src={assets.logo} alt="Degusto" className="h-10 w-auto" />
+                <p className="text-sm text-white/80">
+                  Copyright © 2026 | Բոլոր իրավունքները պաշտպանված են | Ստեղծվել է <span className="font-black text-[#ff7f20]">Neetrino IT Company</span> կողմից
+                </p>
+                <div className="flex gap-2 text-xs">
+                  <span className="rounded-lg bg-white px-3 py-1 text-black">idram</span>
+                  <span className="rounded-lg bg-white px-3 py-1 text-black">fastshift</span>
+                  <span className="rounded-lg bg-white px-3 py-1 text-black">arca</span>
+                  <span className="rounded-lg bg-white px-3 py-1 text-black">visa</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </footer>
+        </footer>
+      </div>
     </div>
   );
 }
