@@ -67,8 +67,8 @@ export default function DeliveryTermsPage() {
             <h2 className="text-2xl font-semibold text-gray-900">{t('delivery-terms.contact.title')}</h2>
             <p className="text-gray-600">
               {t('delivery-terms.contact.description')}{' '}
-              <a href="mailto:shipping@whiteshop.com" className="text-blue-600 hover:underline">
-                shipping@whiteshop.com
+              <a href="mailto:info@degusto.am" className="text-blue-600 hover:underline">
+                info@degusto.am
               </a>
               .
             </p>

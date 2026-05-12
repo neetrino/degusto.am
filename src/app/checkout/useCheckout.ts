@@ -59,7 +59,12 @@ export function useCheckout() {
   const shippingMethod = watch('shippingMethod');
   const shippingCity = watch('shippingCity');
 
-  const { deliveryPrice, loadingDeliveryPrice } = useDeliveryPrice(shippingMethod, shippingCity);
+  const {
+    deliveryPrice,
+    bagFee,
+    deliveryUnavailable,
+    loadingDeliveryPrice,
+  } = useDeliveryPrice(shippingMethod, shippingCity);
   const { cart, loading, fetchCart } = useCart(isLoggedIn);
   useUserProfile(isLoggedIn, isLoading, setValue);
 
@@ -67,6 +72,7 @@ export function useCheckout() {
     cart,
     isLoggedIn,
     deliveryPrice,
+    bagFee,
     setError,
   });
 
@@ -74,6 +80,7 @@ export function useCheckout() {
     cart,
     shippingMethod,
     deliveryPrice,
+    bagFee,
     currency,
   });
 
@@ -123,6 +130,10 @@ export function useCheckout() {
         }
         return;
       }
+      if (deliveryUnavailable) {
+        setError(t('checkout.errors.deliveryOnlyYerevan'));
+        return;
+      }
     }
     
     if (paymentMethod === 'arca' || paymentMethod === 'idram') {
@@ -156,6 +167,8 @@ export function useCheckout() {
     showCardModal,
     setShowCardModal,
     deliveryPrice,
+    bagFee,
+    deliveryUnavailable,
     loadingDeliveryPrice,
     // Form
     register,

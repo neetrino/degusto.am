@@ -23,12 +23,15 @@ interface CardDetailsModalProps {
   orderSummary: {
     subtotalDisplay: number;
     taxDisplay: number;
+    bagFeeDisplay: number;
     shippingDisplay: number;
     totalDisplay: number;
   };
   currency: 'USD' | 'AMD' | 'EUR' | 'RUB' | 'GEL';
   loadingDeliveryPrice: boolean;
   deliveryPrice: number | null;
+  bagFee: number;
+  deliveryUnavailable: boolean;
   logoErrors: Record<string, boolean>;
   setLogoErrors: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
   isLoggedIn: boolean;
@@ -52,6 +55,8 @@ export function CardDetailsModal({
   currency,
   loadingDeliveryPrice,
   deliveryPrice,
+  bagFee,
+  deliveryUnavailable,
   logoErrors,
   setLogoErrors,
   isLoggedIn,
@@ -151,6 +156,8 @@ export function CardDetailsModal({
             shippingCity={shippingCity}
             loadingDeliveryPrice={loadingDeliveryPrice}
             deliveryPrice={deliveryPrice}
+            bagFee={bagFee}
+            deliveryUnavailable={deliveryUnavailable}
           />
         </div>
 

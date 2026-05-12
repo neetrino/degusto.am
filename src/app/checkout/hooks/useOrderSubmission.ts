@@ -8,6 +8,7 @@ interface UseOrderSubmissionProps {
   cart: Cart | null;
   isLoggedIn: boolean;
   deliveryPrice: number | null;
+  bagFee: number;
   setError: (error: string | null) => void;
 }
 
@@ -15,6 +16,7 @@ export function useOrderSubmission({
   cart,
   isLoggedIn,
   deliveryPrice,
+  bagFee,
   setError,
 }: UseOrderSubmissionProps) {
   const router = useRouter();
@@ -50,7 +52,10 @@ export function useOrderSubmission({
           }
         : undefined;
 
-      const shippingAmount = data.shippingMethod === 'delivery' && deliveryPrice !== null ? deliveryPrice : 0;
+      const shippingAmount =
+        data.shippingMethod === 'delivery' && deliveryPrice !== null
+          ? deliveryPrice + bagFee
+          : 0;
       const cashChangeFromValue = data.cashChangeFrom?.trim()
         ? Number(data.cashChangeFrom.replace(',', '.'))
         : undefined;

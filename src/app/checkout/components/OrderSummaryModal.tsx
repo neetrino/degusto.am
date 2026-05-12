@@ -9,6 +9,7 @@ interface OrderSummaryModalProps {
   orderSummary: {
     subtotalDisplay: number;
     taxDisplay: number;
+    bagFeeDisplay: number;
     shippingDisplay: number;
     totalDisplay: number;
   };
@@ -17,6 +18,8 @@ interface OrderSummaryModalProps {
   shippingCity?: string;
   loadingDeliveryPrice: boolean;
   deliveryPrice: number | null;
+  bagFee: number;
+  deliveryUnavailable: boolean;
 }
 
 export function OrderSummaryModal({
@@ -27,6 +30,8 @@ export function OrderSummaryModal({
   shippingCity,
   loadingDeliveryPrice,
   deliveryPrice,
+  bagFee,
+  deliveryUnavailable,
 }: OrderSummaryModalProps) {
   const { t } = useTranslation();
 
@@ -38,7 +43,9 @@ export function OrderSummaryModal({
     ? t('checkout.shipping.freePickup')
     : loadingDeliveryPrice
       ? t('checkout.shipping.loading')
-      : deliveryPrice !== null
+      : deliveryUnavailable
+        ? t('checkout.errors.deliveryOnlyYerevan')
+        : deliveryPrice !== null
         ? formatPriceInCurrency(orderSummary.shippingDisplay, currency) + 
           (shippingCity ? ` (${shippingCity})` : ` (${t('checkout.shipping.delivery')})`)
         : t('checkout.shipping.enterCity');
@@ -56,6 +63,14 @@ export function OrderSummaryModal({
       <div className="flex justify-between text-sm">
         <span className="text-gray-600">{t('checkout.summary.shipping')}:</span>
         <span className="font-medium">{shippingDisplay}</span>
+      </div>
+      <div className="flex justify-between text-sm">
+        <span className="text-gray-600">{t('checkout.summary.bagFee')}:</span>
+        <span className="font-medium">
+          {shippingMethod === 'delivery'
+            ? formatPriceInCurrency(orderSummary.bagFeeDisplay, currency)
+            : formatPriceInCurrency(0, currency)}
+        </span>
       </div>
       <div className="flex justify-between text-sm">
         <span className="text-gray-600">{t('checkout.summary.tax')}:</span>

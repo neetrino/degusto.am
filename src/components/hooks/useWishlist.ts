@@ -1,8 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
-const WISHLIST_KEY = 'shop_wishlist';
+import { apiClient } from '../../lib/api-client';
+import { logger } from '../../lib/utils/logger';
+import {
+  emitWishlistUpdated,
+  getLocalWishlistIds,
+  toggleLocalWishlistId,
+  setLocalWishlistIds,
+} from '../../lib/wishlist';
 
 /**
  * Hook for managing wishlist state for a product
@@ -14,14 +20,7 @@ export function useWishlist(productId: string) {
 
   useEffect(() => {
     const checkWishlist = () => {
-      if (typeof window === 'undefined') return;
-      try {
-        const stored = localStorage.getItem(WISHLIST_KEY);
-        const wishlist = stored ? JSON.parse(stored) : [];
-        setIsInWishlist(wishlist.includes(productId));
-      } catch {
-        setIsInWishlist(false);
-      }
+      setIsInWishlist(getLocalWishlistIds().includes(productId));
     };
 
     checkWishlist();
@@ -34,26 +33,25 @@ export function useWishlist(productId: string) {
     };
   }, [productId]);
 
-  const toggleWishlist = () => {
-    if (typeof window === 'undefined') return;
-    
+  const toggleWishlist = async () => {
+    const previousIds = getLocalWishlistIds();
+    const updatedIds = toggleLocalWishlistId(productId);
+    const nextState = updatedIds.includes(productId);
+    setIsInWishlist(nextState);
+    emitWishlistUpdated();
+
     try {
-      const stored = localStorage.getItem(WISHLIST_KEY);
-      const wishlist: string[] = stored ? JSON.parse(stored) : [];
-      
-      if (isInWishlist) {
-        const updated = wishlist.filter((id) => id !== productId);
-        localStorage.setItem(WISHLIST_KEY, JSON.stringify(updated));
-        setIsInWishlist(false);
+      if (nextState) {
+        await apiClient.post('/api/v1/users/wishlist', { productId });
       } else {
-        wishlist.push(productId);
-        localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlist));
-        setIsInWishlist(true);
+        await apiClient.delete(`/api/v1/users/wishlist/${productId}`);
       }
-      
-      window.dispatchEvent(new Event('wishlist-updated'));
     } catch (error) {
-      console.error('Error updating wishlist:', error);
+      // Revert local optimistic change if server sync failed.
+      setLocalWishlistIds(previousIds);
+      setIsInWishlist(previousIds.includes(productId));
+      emitWishlistUpdated();
+      logger.error('Error syncing wishlist item', { error, productId });
     }
   };
 

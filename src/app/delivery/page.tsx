@@ -160,8 +160,8 @@ export default function DeliveryPage() {
           <div className="space-y-2 text-gray-700">
             <p>
               <span className="font-semibold">{t('delivery.contact.email')}</span>{' '}
-              <a href="mailto:support@whiteshop.com" className="text-blue-600 hover:underline">
-                support@whiteshop.com
+              <a href="mailto:info@degusto.am" className="text-blue-600 hover:underline">
+                info@degusto.am
               </a>
             </p>
             <p>

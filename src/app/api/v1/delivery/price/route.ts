@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminService } from "@/lib/services/admin.service";
+import { resolveFixedDeliveryFees } from "@/lib/delivery-rules";
 import { logger } from "@/lib/utils/logger";
 
 /**
@@ -10,8 +10,6 @@ export async function GET(req: NextRequest) {
   try {
     const searchParams = req.nextUrl.searchParams;
     const city = searchParams.get('city');
-    const country = searchParams.get('country') || 'Armenia';
-
     if (!city) {
       return NextResponse.json(
         {
@@ -25,10 +23,28 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    logger.debug("Delivery price request", { city, country });
-    const price = await adminService.getDeliveryPrice(city, country);
+    logger.debug("Delivery price request", { city });
+    const fixed = resolveFixedDeliveryFees('delivery', city);
+    if (!fixed.isAllowed) {
+      return NextResponse.json(
+        {
+          type: "https://api.shop.am/problems/validation-error",
+          title: "Validation Error",
+          status: 422,
+          detail: "Delivery is available only in Yerevan",
+          instance: req.url,
+        },
+        { status: 422 }
+      );
+    }
 
-    return NextResponse.json({ price });
+    return NextResponse.json({
+      price: fixed.deliveryPriceAmd,
+      bagFee: fixed.bagFeeAmd,
+      totalShipping: fixed.totalShippingAmd,
+      city: fixed.normalizedCity,
+      fixedRule: true,
+    });
   } catch (error: unknown) {
     const err = error as { message?: string; stack?: string; code?: string; type?: string; title?: string; status?: number; detail?: string; meta?: unknown };
     logger.error("Delivery price error", {

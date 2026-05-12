@@ -22,6 +22,7 @@ interface ShippingAddressModalProps {
   orderSummary: {
     subtotalDisplay: number;
     taxDisplay: number;
+    bagFeeDisplay: number;
     shippingDisplay: number;
     totalDisplay: number;
   };
@@ -29,6 +30,8 @@ interface ShippingAddressModalProps {
   shippingCity?: string;
   loadingDeliveryPrice: boolean;
   deliveryPrice: number | null;
+  bagFee: number;
+  deliveryUnavailable: boolean;
   onSubmit: (data: CheckoutFormData) => void;
 }
 
@@ -48,6 +51,8 @@ export function ShippingAddressModal({
   shippingCity,
   loadingDeliveryPrice,
   deliveryPrice,
+  bagFee,
+  deliveryUnavailable,
   onSubmit,
 }: ShippingAddressModalProps) {
   const { t } = useTranslation();
@@ -166,6 +171,8 @@ export function ShippingAddressModal({
               shippingCity={shippingCity}
               loadingDeliveryPrice={loadingDeliveryPrice}
               deliveryPrice={deliveryPrice}
+              bagFee={bagFee}
+              deliveryUnavailable={deliveryUnavailable}
             />
           </>
         ) : (
@@ -207,6 +214,8 @@ export function ShippingAddressModal({
               shippingCity={shippingCity}
               loadingDeliveryPrice={loadingDeliveryPrice}
               deliveryPrice={deliveryPrice}
+              bagFee={bagFee}
+              deliveryUnavailable={deliveryUnavailable}
             />
           </div>
         )}

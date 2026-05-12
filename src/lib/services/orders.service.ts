@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { customAlphabet } from "nanoid";
 import type { CheckoutData } from "../types/checkout";
 import { logger } from "../utils/logger";
-import { adminDeliveryService } from "./admin/admin-delivery.service";
+import { resolveFixedDeliveryFees } from "../delivery-rules";
 import { extractMediaUrl } from "../utils/extractMediaUrl";
 import { cartService } from "./cart.service";
 import {
@@ -13,6 +13,8 @@ import {
 } from "../cart/customizations";
 
 const orderNumberId = customAlphabet("0123456789ABCDEFGHJKLMNPQRSTUVWXYZ", 10);
+const ALLOWED_SHIPPING_METHODS = ["pickup", "delivery"] as const;
+const ALLOWED_PAYMENT_METHODS = ["idram", "arca", "cash_on_delivery"] as const;
 
 function generateOrderNumber(): string {
   const now = new Date();
@@ -148,6 +150,27 @@ function normalizeCouponCode(input: unknown): string | null {
   return normalized;
 }
 
+function normalizeQuantity(input: unknown): number {
+  if (typeof input !== "number" || !Number.isFinite(input)) {
+    throw {
+      status: 400,
+      type: "https://api.shop.am/problems/validation-error",
+      title: "Validation Error",
+      detail: "Item quantity must be a valid number",
+    };
+  }
+  const quantity = Math.floor(input);
+  if (quantity < 1 || quantity > 999) {
+    throw {
+      status: 400,
+      type: "https://api.shop.am/problems/validation-error",
+      title: "Validation Error",
+      detail: "Item quantity must be between 1 and 999",
+    };
+  }
+  return quantity;
+}
+
 class OrdersService {
   /**
    * Create order (checkout)
@@ -175,6 +198,31 @@ class OrdersService {
           type: "https://api.shop.am/problems/validation-error",
           title: "Validation Error",
           detail: "Email and phone are required",
+        };
+      }
+
+      if (!ALLOWED_SHIPPING_METHODS.includes(shippingMethod as (typeof ALLOWED_SHIPPING_METHODS)[number])) {
+        throw {
+          status: 400,
+          type: "https://api.shop.am/problems/validation-error",
+          title: "Validation Error",
+          detail: "Invalid shipping method",
+        };
+      }
+      if (!ALLOWED_PAYMENT_METHODS.includes(paymentMethod as (typeof ALLOWED_PAYMENT_METHODS)[number])) {
+        throw {
+          status: 400,
+          type: "https://api.shop.am/problems/validation-error",
+          title: "Validation Error",
+          detail: "Invalid payment method",
+        };
+      }
+      if (shippingMethod === "delivery" && !shippingAddress?.city?.trim()) {
+        throw {
+          status: 400,
+          type: "https://api.shop.am/problems/validation-error",
+          title: "Validation Error",
+          detail: "Shipping city is required for delivery orders",
         };
       }
 
@@ -270,13 +318,15 @@ class OrdersService {
             // Get image URL
             const imageUrl = extractMediaUrl(product.media) ?? undefined;
 
+            const safeQuantity = normalizeQuantity(item.quantity);
+
             // Check stock availability
-            if (variant.stock < item.quantity) {
+            if (variant.stock < safeQuantity) {
               throw {
                 status: 422,
                 type: "https://api.shop.am/problems/validation-error",
                 title: "Insufficient stock",
-                detail: `Product "${translation?.title || 'Unknown'}" - insufficient stock. Available: ${variant.stock}, Requested: ${item.quantity}`,
+                detail: `Product "${translation?.title || 'Unknown'}" - insufficient stock. Available: ${variant.stock}, Requested: ${safeQuantity}`,
               };
             }
 
@@ -285,7 +335,7 @@ class OrdersService {
             const cartItem = {
               variantId: variant.id,
               productId: product.id,
-              quantity: item.quantity,
+              quantity: safeQuantity,
               price: currentPrice,
               productTitle: translation?.title || 'Unknown Product',
               variantTitle: customizationsSuffix
@@ -312,7 +362,7 @@ class OrdersService {
         // Validate and collect variant IDs
         const variantIds: string[] = [];
         for (const item of guestItems) {
-          if (!item.productId || !item.variantId || !item.quantity) {
+          if (!item.productId || !item.variantId) {
             throw {
               status: 400,
               type: "https://api.shop.am/problems/validation-error",
@@ -320,13 +370,21 @@ class OrdersService {
               detail: "Each item must have productId, variantId, and quantity",
             };
           }
+          normalizeQuantity(item.quantity);
           variantIds.push(item.variantId);
         }
         const uniqueVariantIds = [...new Set(variantIds)];
 
         // Batch fetch all variants (one query instead of N)
         const variants = await db.productVariant.findMany({
-          where: { id: { in: uniqueVariantIds } },
+          where: {
+            id: { in: uniqueVariantIds },
+            published: true,
+            product: {
+              published: true,
+              deletedAt: null,
+            },
+          },
           include: {
             product: { include: { translations: true } },
             options: true,
@@ -340,8 +398,14 @@ class OrdersService {
           quantity: number;
           customizations?: ProductCustomizations;
         }) => {
+          const safeQuantity = normalizeQuantity(item.quantity);
           const variant = variantMap.get(item.variantId);
-          if (!variant || variant.productId !== item.productId) {
+          if (
+            !variant ||
+            variant.productId !== item.productId ||
+            !variant.published ||
+            !variant.product
+          ) {
             throw {
               status: 404,
               type: "https://api.shop.am/problems/not-found",
@@ -349,12 +413,12 @@ class OrdersService {
               detail: `Variant ${item.variantId} not found for product ${item.productId}`,
             };
           }
-          if (variant.stock < item.quantity) {
+          if (variant.stock < safeQuantity) {
             throw {
               status: 422,
               type: "https://api.shop.am/problems/validation-error",
               title: "Insufficient stock",
-              detail: `Insufficient stock. Available: ${variant.stock}, Requested: ${item.quantity}`,
+              detail: `Insufficient stock. Available: ${variant.stock}, Requested: ${safeQuantity}`,
             };
           }
           const translation = variant.product.translations?.[0] || variant.product.translations?.[0];
@@ -367,7 +431,7 @@ class OrdersService {
           return {
             variantId: variant.id,
             productId: variant.product.id,
-            quantity: item.quantity,
+            quantity: safeQuantity,
             price: Number(variant.price),
             productTitle: translation?.title ?? "Unknown Product",
             variantTitle: customizationsSuffix
@@ -401,15 +465,24 @@ class OrdersService {
       const normalizedCouponCode = normalizeCouponCode(couponCode);
       const appliedCoupon = await this.resolveCouponDiscount(subtotal, normalizedCouponCode);
       const discountAmount = appliedCoupon?.discountAmount ?? 0;
-      // Shipping: computed server-side only (never trust client-provided amount)
+      // Shipping: fixed backend rule (Yerevan-only: 1000 AMD delivery + 50 AMD bag fee)
       let shippingAmount = 0;
-      if (shippingMethod === 'delivery' && shippingAddress?.city?.trim()) {
-        const country = (shippingAddress.countryCode ?? 'Armenia').toString();
-        shippingAmount = await adminDeliveryService.getDeliveryPrice(
-          shippingAddress.city.trim(),
-          country
-        );
-        if (shippingAmount < 0) shippingAmount = 0;
+      let deliveryPriceAmount = 0;
+      let bagFeeAmount = 0;
+      if (shippingMethod === 'delivery') {
+        const city = shippingAddress?.city?.trim() || '';
+        const fixedDelivery = resolveFixedDeliveryFees('delivery', city);
+        if (!fixedDelivery.isAllowed) {
+          throw {
+            status: 422,
+            type: "https://api.shop.am/problems/validation-error",
+            title: "Validation Error",
+            detail: "Delivery is available only in Yerevan",
+          };
+        }
+        deliveryPriceAmount = fixedDelivery.deliveryPriceAmd;
+        bagFeeAmount = fixedDelivery.bagFeeAmd;
+        shippingAmount = fixedDelivery.totalShippingAmd;
       }
       const taxAmount = 0; // TODO: Calculate tax if needed
       const total = subtotal - discountAmount + shippingAmount + taxAmount;
@@ -490,6 +563,8 @@ class OrdersService {
                   shippingMethod,
                   couponCode: appliedCoupon?.code ?? null,
                   discountAmount,
+                  deliveryPriceAmount,
+                  bagFeeAmount,
                   cashChangeFrom: normalizedCashChangeFrom ?? null,
                 },
               },

@@ -64,7 +64,7 @@ export function Footer() {
 
           <div className="grid grid-cols-2 gap-2 text-sm">
             <Link href="/privacy">Գաղտնիության քաղաքականություն</Link>
-            <Link href="/delivery-terms">Առաքման քաղաքականություն</Link>
+            <Link href="/delivery-policy">Առաքման քաղաքականություն</Link>
             <Link href="/refund-policy">Վերադարձի քաղաքականություն</Link>
             <Link href="/terms">Պայմաններ և դրույթներ</Link>
           </div>
@@ -96,7 +96,7 @@ export function Footer() {
                 <Link href="/privacy" className="block leading-5 hover:text-[#ff7f20]">
                   Գաղտնիության քաղաքականություն
                 </Link>
-                <Link href="/delivery-terms" className="block leading-7 hover:text-[#ff7f20]">
+                <Link href="/delivery-policy" className="block leading-7 hover:text-[#ff7f20]">
                   Առաքման քաղաքականություն
                 </Link>
                 <Link href="/refund-policy" className="block leading-5 hover:text-[#ff7f20]">

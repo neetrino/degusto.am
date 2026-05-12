@@ -6,6 +6,7 @@ import { processImageUrl } from '@/lib/utils/image-utils';
 
 const DEFAULT_LIMIT = 8;
 const MAX_LIMIT = 20;
+const MIN_LIMIT = 1;
 
 export interface InstantSearchResult {
   id: string;
@@ -60,10 +61,9 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const q = searchParams.get('q')?.trim();
     const lang = searchParams.get('lang') || 'en';
-    const limit = Math.min(
-      parseInt(searchParams.get('limit') || String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT,
-      MAX_LIMIT
-    );
+    const rawLimit = parseInt(searchParams.get('limit') || String(DEFAULT_LIMIT), 10);
+    const normalizedLimit = Number.isNaN(rawLimit) ? DEFAULT_LIMIT : rawLimit;
+    const limit = Math.min(Math.max(normalizedLimit, MIN_LIMIT), MAX_LIMIT);
 
     if (!q || q.length === 0) {
       return NextResponse.json(
@@ -96,12 +96,15 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    const results: InstantSearchResult[] = products.map((product) => {
+    const results: InstantSearchResult[] = products.flatMap((product) => {
       const translations = Array.isArray(product.translations) ? product.translations : [];
       const translation =
         translations.find((t: { locale: string }) => t.locale === lang) || translations[0];
       const slug = translation?.slug ?? '';
       const title = translation?.title ?? '';
+      if (!slug || !title) {
+        return [];
+      }
 
       const variants = Array.isArray(product.variants) ? product.variants : [];
       const firstVariant = variants[0];
@@ -128,7 +131,7 @@ export async function GET(req: NextRequest) {
         categoryTranslations[0];
       const category = categoryTranslation?.title ?? null;
 
-      return {
+      return [{
         id: product.id,
         slug,
         title,
@@ -136,7 +139,7 @@ export async function GET(req: NextRequest) {
         compareAtPrice,
         image,
         category,
-      };
+      }];
     });
 
     return NextResponse.json(

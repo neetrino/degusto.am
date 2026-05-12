@@ -1,4 +1,5 @@
 import { db } from "@white-shop/db";
+import { Prisma } from "@prisma/client";
 import * as bcrypt from "bcryptjs";
 
 interface AddressMutationInput {
@@ -49,6 +50,13 @@ interface UserCouponHistoryItem {
   usedAt: string;
   discountAmount: number;
   code: string | null;
+}
+
+const MAX_WISHLIST_ITEMS = 200;
+
+function generateWishlistItemId(): string {
+  const randomPart = Math.random().toString(36).slice(2, 12);
+  return `wish_${Date.now().toString(36)}_${randomPart}`;
 }
 
 function normalizeOptionalString(value: unknown): string | null | undefined {
@@ -197,7 +205,177 @@ function extractCouponCodeFromNotes(notes: string | null): string | null {
   return match?.[1]?.toUpperCase() ?? null;
 }
 
+function normalizeWishlistIds(input: unknown): string[] {
+  if (!Array.isArray(input)) {
+    throw {
+      status: 400,
+      type: "https://api.shop.am/problems/validation-error",
+      title: "Validation Error",
+      detail: "ids must be an array of product ids",
+    };
+  }
+
+  const unique = new Set<string>();
+  for (const raw of input) {
+    if (typeof raw !== "string") {
+      continue;
+    }
+    const id = raw.trim();
+    if (!id) {
+      continue;
+    }
+    unique.add(id);
+    if (unique.size >= MAX_WISHLIST_ITEMS) {
+      break;
+    }
+  }
+
+  return Array.from(unique);
+}
+
 class UsersService {
+  async getWishlistIds(userId: string): Promise<{ ids: string[] }> {
+    const items = await db.$queryRaw<
+      Array<{ productId: string; published: boolean; deletedAt: Date | null }>
+    >(
+      Prisma.sql`
+        SELECT wi."productId", p."published", p."deletedAt"
+        FROM "wishlist_items" wi
+        INNER JOIN "products" p ON p."id" = wi."productId"
+        WHERE wi."userId" = ${userId}
+        ORDER BY wi."createdAt" DESC
+      `
+    );
+
+    const staleProductIds = items
+      .filter((item) => !item.published || item.deletedAt)
+      .map((item) => item.productId);
+
+    if (staleProductIds.length > 0) {
+      await db.$executeRaw(
+        Prisma.sql`
+          DELETE FROM "wishlist_items"
+          WHERE "userId" = ${userId}
+            AND "productId" IN (${Prisma.join(staleProductIds)})
+        `
+      );
+    }
+
+    const ids = items
+      .filter((item) => item.published && !item.deletedAt)
+      .map((item) => item.productId);
+
+    return { ids };
+  }
+
+  async replaceWishlistIds(userId: string, input: unknown): Promise<{ ids: string[] }> {
+    const ids = normalizeWishlistIds(input);
+    if (ids.length === 0) {
+      await db.$executeRaw(
+        Prisma.sql`DELETE FROM "wishlist_items" WHERE "userId" = ${userId}`
+      );
+      return { ids: [] };
+    }
+
+    const allowedProducts = await db.product.findMany({
+      where: {
+        id: { in: ids },
+        published: true,
+        deletedAt: null,
+      },
+      select: { id: true },
+    });
+    const allowedIdSet = new Set(allowedProducts.map((product) => product.id));
+    const sanitizedIds = ids.filter((id) => allowedIdSet.has(id));
+
+    await db.$transaction(async (tx) => {
+      await tx.$executeRaw(
+        Prisma.sql`DELETE FROM "wishlist_items" WHERE "userId" = ${userId}`
+      );
+
+      if (sanitizedIds.length > 0) {
+        for (const productId of sanitizedIds) {
+          await tx.$executeRaw(
+            Prisma.sql`
+              INSERT INTO "wishlist_items" ("id", "userId", "productId", "createdAt")
+              VALUES (${generateWishlistItemId()}, ${userId}, ${productId}, NOW())
+              ON CONFLICT ("userId", "productId") DO NOTHING
+            `
+          );
+        }
+      }
+    });
+
+    return { ids: sanitizedIds };
+  }
+
+  async syncWishlist(userId: string, localIdsInput: unknown): Promise<{ ids: string[] }> {
+    const localIds = normalizeWishlistIds(localIdsInput);
+    const server = await this.getWishlistIds(userId);
+    const merged = Array.from(new Set([...localIds, ...server.ids])).slice(0, MAX_WISHLIST_ITEMS);
+    return this.replaceWishlistIds(userId, merged);
+  }
+
+  async addWishlistItem(userId: string, productId: string): Promise<{ ids: string[] }> {
+    const normalizedProductId = typeof productId === "string" ? productId.trim() : "";
+    if (!normalizedProductId) {
+      throw {
+        status: 400,
+        type: "https://api.shop.am/problems/validation-error",
+        title: "Validation Error",
+        detail: "productId is required",
+      };
+    }
+
+    const product = await db.product.findFirst({
+      where: {
+        id: normalizedProductId,
+        published: true,
+        deletedAt: null,
+      },
+      select: { id: true },
+    });
+    if (!product) {
+      throw {
+        status: 404,
+        type: "https://api.shop.am/problems/not-found",
+        title: "Product not found",
+      };
+    }
+
+    await db.$executeRaw(
+      Prisma.sql`
+        INSERT INTO "wishlist_items" ("id", "userId", "productId", "createdAt")
+        VALUES (${generateWishlistItemId()}, ${userId}, ${normalizedProductId}, NOW())
+        ON CONFLICT ("userId", "productId") DO NOTHING
+      `
+    );
+
+    return this.getWishlistIds(userId);
+  }
+
+  async removeWishlistItem(userId: string, productId: string): Promise<{ ids: string[] }> {
+    const normalizedProductId = typeof productId === "string" ? productId.trim() : "";
+    if (!normalizedProductId) {
+      throw {
+        status: 400,
+        type: "https://api.shop.am/problems/validation-error",
+        title: "Validation Error",
+        detail: "productId is required",
+      };
+    }
+
+    await db.$executeRaw(
+      Prisma.sql`
+        DELETE FROM "wishlist_items"
+        WHERE "userId" = ${userId}
+          AND "productId" = ${normalizedProductId}
+      `
+    );
+
+    return this.getWishlistIds(userId);
+  }
+
   /**
    * Get user profile
    */

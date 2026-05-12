@@ -1,7 +1,14 @@
 import type { MouseEvent } from 'react';
-import { WISHLIST_KEY, COMPARE_KEY } from '../types';
+import { COMPARE_KEY } from '../types';
 import { t } from '../../../../lib/i18n';
 import type { LanguageCode } from '../../../../lib/language';
+import { useAuth } from '../../../../lib/auth/AuthContext';
+import { apiClient } from '../../../../lib/api-client';
+import {
+  emitWishlistUpdated,
+  getLocalWishlistIds,
+  setLocalWishlistIds,
+} from '../../../../lib/wishlist';
 
 interface UseProductActionsProps {
   productId: string | null;
@@ -22,28 +29,38 @@ export function useProductActions({
   setShowMessage,
   language,
 }: UseProductActionsProps) {
-  const handleAddToWishlist = (e: MouseEvent) => {
+  const { isLoggedIn } = useAuth();
+
+  const handleAddToWishlist = async (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (!productId || typeof window === 'undefined') return;
     
     try {
-      const stored = localStorage.getItem(WISHLIST_KEY);
-      const wishlist: string[] = stored ? JSON.parse(stored) : [];
+      const wishlist = getLocalWishlistIds();
       
       if (isInWishlist) {
-        localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlist.filter(id => id !== productId)));
+        const updated = setLocalWishlistIds(wishlist.filter(id => id !== productId));
         setIsInWishlist(false);
         setShowMessage(t(language, 'product.removedFromWishlist'));
+        emitWishlistUpdated();
+        if (isLoggedIn) {
+          await apiClient.delete(`/api/v1/users/wishlist/${productId}`);
+          setLocalWishlistIds(updated);
+        }
       } else {
-        wishlist.push(productId);
-        localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlist));
+        const updated = setLocalWishlistIds([...wishlist, productId]);
         setIsInWishlist(true);
         setShowMessage(t(language, 'product.addedToWishlist'));
+        emitWishlistUpdated();
+        if (isLoggedIn) {
+          await apiClient.post('/api/v1/users/wishlist', { productId });
+          setLocalWishlistIds(updated);
+        }
       }
       
       setTimeout(() => setShowMessage(null), 2000);
-      window.dispatchEvent(new Event('wishlist-updated'));
+      emitWishlistUpdated();
     } catch {
       // Silently fail
     }

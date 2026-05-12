@@ -25,6 +25,8 @@ export default function CheckoutPage() {
     showCardModal,
     setShowCardModal,
     deliveryPrice,
+    bagFee,
+    deliveryUnavailable,
     loadingDeliveryPrice,
     register,
     handleSubmit,
@@ -101,6 +103,8 @@ export default function CheckoutPage() {
             shippingCity={shippingCity}
             loadingDeliveryPrice={loadingDeliveryPrice}
             deliveryPrice={deliveryPrice}
+            bagFee={bagFee}
+            deliveryUnavailable={deliveryUnavailable}
             error={error}
             isSubmitting={isSubmitting}
             onPlaceOrder={(e) => {
@@ -132,6 +136,8 @@ export default function CheckoutPage() {
         currency={currency}
         loadingDeliveryPrice={loadingDeliveryPrice}
         deliveryPrice={deliveryPrice}
+        bagFee={bagFee}
+        deliveryUnavailable={deliveryUnavailable}
         logoErrors={logoErrors}
         setLogoErrors={setLogoErrors}
         isLoggedIn={isLoggedIn}

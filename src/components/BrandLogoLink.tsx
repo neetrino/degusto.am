@@ -11,11 +11,11 @@ export function BrandLogoLink({ className = '', compact = false, ...rest }: Bran
     return (
       <Link
         href="/"
-        title="White-Shop"
+        title="Degusto"
         className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-gray-900 text-[0.65rem] font-bold leading-none tracking-tight text-white transition-colors hover:bg-gray-800 ${className}`}
         {...rest}
       >
-        WS
+        DG
       </Link>
     );
   }
@@ -27,7 +27,7 @@ export function BrandLogoLink({ className = '', compact = false, ...rest }: Bran
       {...rest}
     >
       <span className="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-xl font-bold text-transparent transition-all duration-300 group-hover:from-gray-800 group-hover:to-gray-600 sm:text-2xl">
-        White-Shop
+        Degusto
       </span>
     </Link>
   );

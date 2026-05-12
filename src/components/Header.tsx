@@ -1164,7 +1164,7 @@ export function Header() {
                 </div>
 
                 <div className="border-t border-gray-200 px-4 py-4 text-xs font-medium tracking-wide text-gray-500 normal-case">
-                  © {currentYear} White-Shop
+                  © {currentYear} Degusto
                 </div>
               </nav>
             </div>
