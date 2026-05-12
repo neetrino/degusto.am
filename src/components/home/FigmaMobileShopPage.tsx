@@ -72,10 +72,7 @@ export function FigmaMobileShopPage() {
             </button>
           </div>
         </div>
-      </header>
-
-      <main className="relative z-10 mt-[46px] rounded-t-[30px] bg-[#e7e7e7] px-[15px] pb-[130px] pt-[22px]">
-        <div className="relative h-12 rounded-[30px] bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.05)]">
+        <div className="relative mt-[8px] h-12 translate-y-[20px] rounded-[30px] bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.05)]">
           <img src={mobileShopAssets.searchIcon} alt="" className="absolute left-[15px] top-1/2 h-[17px] w-[17px] -translate-y-1/2 object-contain" />
           <input
             type="text"
@@ -90,8 +87,10 @@ export function FigmaMobileShopPage() {
             <img src={mobileShopAssets.searchFilterButton} alt="Filters" className="h-10 w-10 object-contain" />
           </button>
         </div>
+      </header>
 
-        <h1 className="mt-6 text-base font-semibold leading-5 text-black">Կատեգորիաներ</h1>
+      <main className="relative z-10 mt-[87px] rounded-t-[30px] bg-[#e7e7e7] px-[15px] pb-[130px] pt-[22px]">
+        <h1 className="text-base font-semibold leading-5 text-black">Կատեգորիաներ</h1>
 
         <div className="mt-4 grid grid-cols-2 gap-x-[12px] gap-y-[14px]">
           {repeatedShopCards.map((category) => (

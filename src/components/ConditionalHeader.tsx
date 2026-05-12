@@ -14,5 +14,8 @@ export function ConditionalHeader() {
   if (pathname?.startsWith('/profile')) {
     return <div className="hidden md:block"><Header /></div>;
   }
+  if (pathname?.startsWith('/shop')) {
+    return <div className="hidden md:block"><Header /></div>;
+  }
   return <Header />;
 }
