@@ -78,11 +78,10 @@ export function LanguageSwitcherHeader() {
       // Close menu first
       setShowMenu(false);
       
-      // Immediately update UI state before page reload.
+      // Immediately update UI state for responsive interaction.
       setCurrentLang(langCode);
       
-      // Update language - this will reload the page after a small delay
-      // The delay ensures the UI state is updated before reload
+      // Persist and broadcast language update without full page reload.
       setStoredLanguage(langCode);
     }
   };

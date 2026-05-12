@@ -8,6 +8,7 @@ export const LANGUAGES = {
 export type LanguageCode = keyof typeof LANGUAGES;
 
 const LANGUAGE_STORAGE_KEY = 'shop_language';
+const LANGUAGE_COOKIE_KEY = 'shop_language';
 
 export function getStoredLanguage(): LanguageCode {
   if (typeof window === 'undefined') return 'hy';
@@ -22,14 +23,13 @@ export function getStoredLanguage(): LanguageCode {
   return 'hy';
 }
 
-export function setStoredLanguage(language: LanguageCode, options?: { skipReload?: boolean }): void {
+export function setStoredLanguage(language: LanguageCode, options?: { forceReload?: boolean }): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+    document.cookie = `${LANGUAGE_COOKIE_KEY}=${language}; path=/; max-age=31536000; samesite=lax`;
     window.dispatchEvent(new Event('language-updated'));
-    // Only reload if skipReload is not true
-    if (!options?.skipReload) {
-      // Use a small delay to ensure state updates are visible before reload
+    if (options?.forceReload) {
       setTimeout(() => {
         window.location.reload();
       }, 50);

@@ -6,6 +6,7 @@
 
 import { type LanguageCode } from './language';
 import { getStoredLanguage } from './language';
+import type { TranslationKey } from './i18n-keys';
 
 // Pre-load all translations at build time for optimal performance
 import enCommon from '../locales/en/common.json';
@@ -215,6 +216,8 @@ export function loadTranslation(lang: LanguageCode, namespace: Namespace): any {
  * @param path - Translation path in format "namespace.key.subkey"
  * @returns Translated string or the path if translation not found
  */
+export function t(lang: LanguageCode | undefined, path: TranslationKey): string;
+export function t(lang: LanguageCode | undefined, path: string): string;
 export function t(lang: LanguageCode | undefined, path: string): string {
   // Validate path parameter
   if (!path || typeof path !== 'string') {

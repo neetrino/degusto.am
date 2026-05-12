@@ -27,7 +27,8 @@
     "db:migrate:deploy": "node src/scripts/run-migrations.js",
     "images:migrate:r2": "node src/scripts/migrate-images-to-r2.js",
     "images:migrate:homepage": "node src/scripts/migrate-homepage-assets-to-r2.js",
-    "images:migrate:figma": "node src/scripts/migrate-figma-assets-to-r2.js"
+    "images:migrate:figma": "node src/scripts/migrate-figma-assets-to-r2.js",
+    "i18n:check": "node src/scripts/check-locales-coverage.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.995.0",

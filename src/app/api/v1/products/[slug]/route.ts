@@ -9,6 +9,7 @@ import {
   getStorefrontLocaleFallbackChain,
   resolveStorefrontLocaleFromSearchParams,
 } from "@/lib/i18n/locale";
+import { buildLocalizedProblem } from "@/lib/i18n/api-problem";
 import { productsService } from "@/lib/services/products.service";
 import { logger } from "@/lib/utils/logger";
 
@@ -49,15 +50,18 @@ export async function GET(
   } catch (error: unknown) {
     const err = error as { type?: string; title?: string; status?: number; detail?: string; message?: string };
     logger.error("GET product by slug failed", { error: err?.message ?? String(error) });
+    const status = err.status || 500;
     return NextResponse.json(
-      {
+      buildLocalizedProblem(req, {
         type: err.type || "https://api.shop.am/problems/internal-error",
-        title: err.title || "Internal Server Error",
-        status: err.status || 500,
-        detail: err.detail || err.message || "An error occurred",
+        status,
+        titleKey: "internalErrorTitle",
+        detailKey: "internalErrorDetail",
+        detailOverride: err.detail || err.message,
+        titleOverride: err.title,
         instance: req.url,
-      },
-      { status: err.status || 500 }
+      }),
+      { status }
     );
   }
 }

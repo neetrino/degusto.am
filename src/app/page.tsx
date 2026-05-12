@@ -2,6 +2,8 @@ import { categoriesService } from '@/lib/services/categories.service';
 import { FigmaHomePage, type HomeCategoryItem, type HomeFeaturedProduct } from '../components/home/FigmaHomePage';
 import { db } from '@white-shop/db';
 import { Prisma } from '@prisma/client';
+import { cookies } from 'next/headers';
+import { resolveStorefrontLocaleFromCookie, type StorefrontLocale } from '@/lib/i18n/locale';
 
 type CategoryTreeItem = {
   id: string;
@@ -10,56 +12,57 @@ type CategoryTreeItem = {
   children: CategoryTreeItem[];
 };
 
-const HOME_LANG = 'hy';
 const HOME_FEATURED_PRODUCTS_LIMIT = 5;
 const HOME_CATEGORIES_LIMIT = 8;
 export const revalidate = 1800;
 
-const HOME_PRODUCT_SELECT = {
-  id: true,
-  media: true,
-  discountPercent: true,
-  translations: {
-    where: {
-      locale: {
-        in: [HOME_LANG, 'en'],
+function getHomeProductSelect(homeLang: StorefrontLocale) {
+  return {
+    id: true,
+    media: true,
+    discountPercent: true,
+    translations: {
+      where: {
+        locale: {
+          in: [homeLang, 'en'],
+        },
+      },
+      select: {
+        locale: true,
+        title: true,
       },
     },
-    select: {
-      locale: true,
-      title: true,
-    },
-  },
-  categories: {
-    take: 1,
-    select: {
-      translations: {
-        where: {
-          locale: {
-            in: [HOME_LANG, 'en'],
+    categories: {
+      take: 1,
+      select: {
+        translations: {
+          where: {
+            locale: {
+              in: [homeLang, 'en'],
+            },
+          },
+          select: {
+            locale: true,
+            title: true,
           },
         },
-        select: {
-          locale: true,
-          title: true,
-        },
       },
     },
-  },
-  variants: {
-    where: {
-      published: true,
+    variants: {
+      where: {
+        published: true,
+      },
+      orderBy: {
+        price: 'asc' as const,
+      },
+      take: 1,
+      select: {
+        price: true,
+        compareAtPrice: true,
+      },
     },
-    orderBy: {
-      price: 'asc' as const,
-    },
-    take: 1,
-    select: {
-      price: true,
-      compareAtPrice: true,
-    },
-  },
-};
+  };
+}
 
 function flattenCategoryTree(items: CategoryTreeItem[]): CategoryTreeItem[] {
   const flattened: CategoryTreeItem[] = [];
@@ -94,6 +97,10 @@ function toCountNumber(value: unknown): number {
 }
 
 export default async function HomePage() {
+  const cookieStore = await cookies();
+  const homeLang = resolveStorefrontLocaleFromCookie(cookieStore.get('shop_language')?.value);
+  const homeProductSelect = getHomeProductSelect(homeLang);
+
   const [selectedRows, promoRows, categoriesTreeResult] = await Promise.all([
     db.product.findMany({
       where: {
@@ -105,7 +112,7 @@ export default async function HomePage() {
         updatedAt: 'desc',
       },
       take: HOME_FEATURED_PRODUCTS_LIMIT,
-      select: HOME_PRODUCT_SELECT,
+      select: homeProductSelect,
     }),
     db.product.findMany({
       where: {
@@ -119,9 +126,9 @@ export default async function HomePage() {
         discountPercent: 'desc',
       },
       take: HOME_FEATURED_PRODUCTS_LIMIT * 2,
-      select: HOME_PRODUCT_SELECT,
+      select: homeProductSelect,
     }),
-    categoriesService.getTree(HOME_LANG),
+    categoriesService.getTree(homeLang),
   ]);
 
   const selectedProductIds = new Set(selectedRows.map((product) => product.id));
@@ -130,10 +137,10 @@ export default async function HomePage() {
 
   const featuredProducts: HomeFeaturedProduct[] = homeRows.map((product) => {
     const preferredTranslation =
-      product.translations.find((translation) => translation.locale === HOME_LANG) ?? product.translations[0];
+      product.translations.find((translation) => translation.locale === homeLang) ?? product.translations[0];
     const firstCategory = product.categories[0];
     const preferredCategoryTranslation =
-      firstCategory?.translations.find((translation) => translation.locale === HOME_LANG) ??
+      firstCategory?.translations.find((translation) => translation.locale === homeLang) ??
       firstCategory?.translations[0];
     const mainVariant = product.variants[0];
     const imageUrlRaw = Array.isArray(product.media) && product.media.length > 0 ? product.media[0] : null;

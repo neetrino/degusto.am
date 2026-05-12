@@ -26,9 +26,9 @@ import { CartIcon } from './icons/CartIcon';
 // Navigation links will be translated dynamically using useTranslation hook
 const primaryNavLinks = [
   { href: '/', translationKey: 'common.navigation.home' },
-  { href: '/products', translationKey: 'common.navigation.products' },
+  { href: '/shop', translationKey: 'common.navigation.shop' },
+  { href: '/products', translationKey: 'common.navigation.combo' },
   { href: '/about', translationKey: 'common.navigation.about' },
-  { href: '/contact', translationKey: 'common.navigation.contact' },
 ];
 
 /** Same transform timing as top bar so the nav lifts in lockstep while the strip hides. */
@@ -48,7 +48,7 @@ function isHeaderNavActive(pathname: string | null, href: string): boolean {
 const HEADER_NAV_LINK_BASE =
   'px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium whitespace-nowrap';
 
-const HEADER_FAST_NAV_ROUTES = ['/', '/products', '/about', '/contact', '/wishlist', '/compare', '/cart'] as const;
+const HEADER_FAST_NAV_ROUTES = ['/', '/shop', '/products', '/about', '/wishlist', '/compare', '/cart'] as const;
 
 function headerTextNavClassName(active: boolean): string {
   return active

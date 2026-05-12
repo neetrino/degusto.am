@@ -21,6 +21,61 @@
     "errorLoading": "Не удалось загрузить товары",
     "tryAgain": "Попробовать снова",
     "noProducts": "В этой категории нет товаров."
+  },
+  "figma": {
+    "desktop": {
+      "specialOffersTitleAccent": "Акции и ",
+      "specialOffersTitleMain": "спецпредложения",
+      "moreButton": "Подробнее",
+      "categoriesTitle": "Категории",
+      "shop": {
+        "menuTitle": "Меню",
+        "menuSubtitle": "Выберите любимые блюда из нашего широкого ассортимента",
+        "priceLabel": "Цена",
+        "priceFrom": "От",
+        "priceTo": "До",
+        "foodAttributeSwitcherAria": "Переключатель пищевых атрибутов",
+        "moreButton": "Подробнее"
+      },
+      "categories": {
+        "all": "Все",
+        "soupsAndHotDishes": "Супы и горячие блюда",
+        "salads": "Салаты",
+        "shawarma": "Шаурма",
+        "pizza": "Пицца",
+        "lahmajo": "Лахмаджо",
+        "georgianKhachapuri": "Грузинский хачапури",
+        "bbq": "Шашлык",
+        "khinkali": "Хинкали",
+        "stuffedPotato": "Фаршированный картофель",
+        "burgersAndSandwiches": "Бургеры и сэндвичи",
+        "piesAndPancakes": "Пироги и блины",
+        "comboSets": "Комбо-наборы",
+        "lunchBoxes": "Ланч-боксы",
+        "grillAndSmokedProducts": "Гриль и копченые продукты"
+      }
+    },
+    "mobile": {
+      "category": {
+        "pizza": "Пицца",
+        "burger": "Бургер",
+        "sushi": "Суши",
+        "salad": "Салат",
+        "soup": "Суп"
+      },
+      "shopCategory": {
+        "soup": "Супы и горячие блюда",
+        "salad": "Салаты",
+        "shawarma": "Шаурма"
+      },
+      "callButtonAria": "Позвонить",
+      "product": {
+        "title": "Двойной чизбургер",
+        "subtitle": "Бургер"
+      },
+      "dailyOfferTitle": "Предложение\nдня",
+      "dailyOfferImageAlt": "Пицца предложения дня"
+    }
   }
 }
 

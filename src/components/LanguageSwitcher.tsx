@@ -28,7 +28,6 @@ export function LanguageSwitcher() {
   const handleLanguageChange = (langCode: LanguageCode) => {
     if (langCode !== currentLang) {
       setStoredLanguage(langCode);
-      // setStoredLanguage automatically reloads the page
     }
     setShowMenu(false);
   };

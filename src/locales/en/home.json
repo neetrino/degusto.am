@@ -21,6 +21,61 @@
     "errorLoading": "Failed to load products",
     "tryAgain": "Try Again",
     "noProducts": "No products in this category."
+  },
+  "figma": {
+    "desktop": {
+      "specialOffersTitleAccent": "Deals and ",
+      "specialOffersTitleMain": "special offers",
+      "moreButton": "More",
+      "categoriesTitle": "Categories",
+      "shop": {
+        "menuTitle": "Menu",
+        "menuSubtitle": "Choose your favorite dishes from our wide assortment",
+        "priceLabel": "Price",
+        "priceFrom": "From",
+        "priceTo": "To",
+        "foodAttributeSwitcherAria": "Food attributes switcher",
+        "moreButton": "More"
+      },
+      "categories": {
+        "all": "All",
+        "soupsAndHotDishes": "Soups and hot dishes",
+        "salads": "Salads",
+        "shawarma": "Shawarma",
+        "pizza": "Pizza",
+        "lahmajo": "Lahmajo",
+        "georgianKhachapuri": "Georgian Khachapuri",
+        "bbq": "BBQ",
+        "khinkali": "Khinkali",
+        "stuffedPotato": "Stuffed potato",
+        "burgersAndSandwiches": "Burgers and sandwiches",
+        "piesAndPancakes": "Pies and pancakes",
+        "comboSets": "Combo sets",
+        "lunchBoxes": "Lunch boxes",
+        "grillAndSmokedProducts": "Grill and smoked products"
+      }
+    },
+    "mobile": {
+      "category": {
+        "pizza": "Pizza",
+        "burger": "Burger",
+        "sushi": "Sushi",
+        "salad": "Salad",
+        "soup": "Soup"
+      },
+      "shopCategory": {
+        "soup": "Soups and hot dishes",
+        "salad": "Salads",
+        "shawarma": "Shawarma"
+      },
+      "callButtonAria": "Call",
+      "product": {
+        "title": "Double Cheeseburger",
+        "subtitle": "Burger"
+      },
+      "dailyOfferTitle": "Daily\nOffer",
+      "dailyOfferImageAlt": "Daily offer pizza"
+    }
   }
 }
 

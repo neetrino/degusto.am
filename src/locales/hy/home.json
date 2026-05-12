@@ -21,6 +21,61 @@
     "errorLoading": "Չհաջողվեց բեռնել ապրանքները",
     "tryAgain": "Փորձել կրկին",
     "noProducts": "Այս կատեգորիայում ապրանքներ չկան:"
+  },
+  "figma": {
+    "desktop": {
+      "specialOffersTitleAccent": "Ակցիաներ և ",
+      "specialOffersTitleMain": "հատուկ առաջարկներ",
+      "moreButton": "Ավելին",
+      "categoriesTitle": "Կատեգորիաներ",
+      "shop": {
+        "menuTitle": "Մենյու",
+        "menuSubtitle": "Ընտրեք ձեր նախընտրած ուտեստները մեր լայն տեսականուց",
+        "priceLabel": "Գին",
+        "priceFrom": "Սկսած",
+        "priceTo": "Մինչև",
+        "foodAttributeSwitcherAria": "Սննդային հատկանիշների փոխարկիչ",
+        "moreButton": "Ավելին"
+      },
+      "categories": {
+        "all": "Բոլորը",
+        "soupsAndHotDishes": "Ապուրներ եւ տաք ուտեստներ",
+        "salads": "Աղցաններ",
+        "shawarma": "Շաուրմա",
+        "pizza": "Պիցցա",
+        "lahmajo": "Լահմաջո",
+        "georgianKhachapuri": "Վրացական Խաչապուրի",
+        "bbq": "Խորոված",
+        "khinkali": "Խինկալի",
+        "stuffedPotato": "Լցոնած կարտոֆիլ",
+        "burgersAndSandwiches": "Բուրգերներ եւ սենդվիչներ",
+        "piesAndPancakes": "Կարկանդակներ եւ նրբաբլիթներ",
+        "comboSets": "Կոմբո փաթեթներ",
+        "lunchBoxes": "Լանչ Բոքսեր",
+        "grillAndSmokedProducts": "Գրիլ եւ ապխտած արտադրանքներ"
+      }
+    },
+    "mobile": {
+      "category": {
+        "pizza": "Պիցցա",
+        "burger": "Բուրգեր",
+        "sushi": "Սուշի",
+        "salad": "Աղցան",
+        "soup": "Ապուր"
+      },
+      "shopCategory": {
+        "soup": "Ապուրներ և տաք ուտեստներ",
+        "salad": "Աղցաններ",
+        "shawarma": "Շաուրմա"
+      },
+      "callButtonAria": "Զանգ",
+      "product": {
+        "title": "Կրկնակի չիզբուրգեր",
+        "subtitle": "Բուրգեր"
+      },
+      "dailyOfferTitle": "Օրվա\nԱռաջարկ",
+      "dailyOfferImageAlt": "Օրվա առաջարկի պիցցա"
+    }
   }
 }
 

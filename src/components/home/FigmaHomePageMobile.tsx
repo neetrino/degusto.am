@@ -4,6 +4,10 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { MobileBottomNavigation } from './MobileBottomNavigation';
+import { LanguageCurrencySwitcher } from '../LanguageCurrencySwitcher';
+import { useTranslation } from '../../lib/i18n-client';
+import { formatPrice } from '../../lib/currency';
+import { useCurrency } from '../hooks/useCurrency';
 
 const mobileAssets = {
   logo: '/api/r2/logo/20260512-SkrFbnskhy.png',
@@ -37,50 +41,66 @@ const mobileAssets = {
 
 type MobileCategory = {
   id: string;
-  title: string;
+  titleKey: string;
   image: string;
   framed?: boolean;
 };
 
 type MobileProduct = {
   id: string;
-  title: string;
-  subtitle: string;
-  price: string;
-  oldPrice: string;
+  titleKey: string;
+  subtitleKey: string;
+  price: number;
+  oldPrice: number;
 };
 
+function getMobilePriceSizeClass(formattedPrice: string): string {
+  const length = formattedPrice.length;
+
+  if (length >= 14) {
+    return 'text-[13px]';
+  }
+
+  if (length >= 11) {
+    return 'text-sm';
+  }
+
+  return 'text-base';
+}
+
 const mobileCategories: MobileCategory[] = [
-  { id: 'pizza', title: 'Պիցցա', image: mobileAssets.categoryPizza, framed: true },
-  { id: 'burger', title: 'Բուրգեր', image: mobileAssets.categoryBurger },
-  { id: 'sushi', title: 'Սուշի', image: mobileAssets.categorySushi },
-  { id: 'salad', title: 'Աղցան', image: mobileAssets.categorySalad },
-  { id: 'soup', title: 'Ապուր', image: mobileAssets.categorySoup },
+  { id: 'pizza', titleKey: 'home.figma.mobile.category.pizza', image: mobileAssets.categoryPizza, framed: true },
+  { id: 'burger', titleKey: 'home.figma.mobile.category.burger', image: mobileAssets.categoryBurger },
+  { id: 'sushi', titleKey: 'home.figma.mobile.category.sushi', image: mobileAssets.categorySushi },
+  { id: 'salad', titleKey: 'home.figma.mobile.category.salad', image: mobileAssets.categorySalad },
+  { id: 'soup', titleKey: 'home.figma.mobile.category.soup', image: mobileAssets.categorySoup },
 ];
 
 const mobileProducts: MobileProduct[] = Array.from({ length: 12 }, (_, index) => ({
   id: `mobile-product-${index + 1}`,
-  title: 'Double Cheeseburger',
-  subtitle: 'Բուրգեր',
-  price: '1200 ֏',
-  oldPrice: '1200 ֏',
+  titleKey: 'home.figma.mobile.product.title',
+  subtitleKey: 'home.figma.mobile.product.subtitle',
+  price: 1200,
+  oldPrice: 1200,
 }));
 
 function MobileSectionHeader({ title }: { title: string }) {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center justify-between">
       <h2 className="text-base font-semibold leading-5 text-black">{title}</h2>
       <Link href="/products" className="text-base font-bold leading-6 text-[#f66a13]">
-        Ավելին {'>'}
+        {t('common.buttons.viewMore')} {'>'}
       </Link>
     </div>
   );
 }
 
 function MobileCategoryStrip() {
+  const { t } = useTranslation();
   return (
     <div className="space-y-3">
-      <MobileSectionHeader title="Կատեգորիաներ" />
+      <MobileSectionHeader title={t('common.navigation.categories')} />
       <div className="grid grid-cols-5 gap-2 pb-1">
         {mobileCategories.map((category) => (
           <article key={category.id} className="min-w-0">
@@ -88,9 +108,9 @@ function MobileCategoryStrip() {
               {category.framed ? (
                 <img src={mobileAssets.categoryFrame} alt="" className="absolute inset-0 h-full w-full object-contain" />
               ) : null}
-              <img src={category.image} alt={category.title} className="relative h-[42px] w-[40px] rounded-[10px] object-cover" />
+              <img src={category.image} alt={t(category.titleKey)} className="relative h-[42px] w-[40px] rounded-[10px] object-cover" />
             </div>
-            <p className="mt-[6px] text-center text-xs leading-5 text-black">{category.title}</p>
+            <p className="mt-[6px] text-center text-xs leading-5 text-black">{t(category.titleKey)}</p>
           </article>
         ))}
       </div>
@@ -102,34 +122,41 @@ function MobileCategoryStrip() {
 }
 
 function MobileDailyOffer() {
+  const { t } = useTranslation();
+  const currency = useCurrency();
   return (
     <article className="relative mx-auto h-32 w-[356px] overflow-hidden rounded-[20px]">
       <div className="absolute left-0 top-0 h-full w-[182px] bg-[#f66a13]" />
-      <img src={mobileAssets.dailyOfferPizza} alt="Daily offer pizza" className="absolute right-0 top-0 h-full w-[174px] object-cover" />
-      <h3 className="absolute left-[11px] top-[10px] text-[20px] font-bold leading-[21px] text-white">
-        Օրվա
-        <br />
-        Առաջարկ
+      <img src={mobileAssets.dailyOfferPizza} alt={t('home.figma.mobile.dailyOfferImageAlt')} className="absolute right-0 top-0 h-full w-[174px] object-cover" />
+      <h3 className="absolute left-[11px] top-[10px] whitespace-pre-line text-[20px] font-bold leading-[21px] text-white">
+        {t('home.figma.mobile.dailyOfferTitle')}
       </h3>
       <p className="absolute left-[11px] top-[57px] w-[102px] text-sm font-medium leading-[1.15] text-[rgba(255,255,255,0.89)]">
-        Double Cheeseburger
+        {t('home.figma.mobile.product.title')}
       </p>
-      <p className="absolute left-[11px] top-24 text-base font-black leading-none text-white">1200 ֏</p>
+      <p className="absolute left-[11px] top-24 text-base font-black leading-none text-white">{formatPrice(1200, currency)}</p>
       <span className="absolute left-[255px] top-[15px] inline-flex h-[25px] w-[65px] items-center justify-center rounded-[60px] bg-white text-xs font-bold text-black">
         -30%
       </span>
       <button type="button" className="absolute left-[128px] top-[76px] inline-flex h-[41.669px] w-[41.096px] items-center justify-center">
-        <img src={mobileAssets.dailyOfferAddToCart} alt="Add to cart" className="h-[41.7px] w-[41.1px] object-contain" />
+        <img src={mobileAssets.dailyOfferAddToCart} alt={t('common.buttons.addToCart')} className="h-[41.7px] w-[41.1px] object-contain" />
       </button>
     </article>
   );
 }
 
 function MobileProductCard({ product }: { product: MobileProduct }) {
+  const { t } = useTranslation();
+  const currency = useCurrency();
+  const formattedPrice = formatPrice(product.price, currency);
+  const formattedOldPrice = formatPrice(product.oldPrice, currency);
+  const priceSizeClass = getMobilePriceSizeClass(formattedPrice);
+  const oldPriceSizeClass = getMobilePriceSizeClass(formattedOldPrice);
+
   return (
     <article className="relative h-[248px] rounded-[20px] bg-[#ffeacc]">
       <div className="absolute left-1 right-1 top-[5px] h-[143px] overflow-hidden rounded-[18px]">
-        <img src={mobileAssets.productImage} alt={product.title} className="h-full w-full object-cover" />
+        <img src={mobileAssets.productImage} alt={t(product.titleKey)} className="h-full w-full object-cover" />
       </div>
       <div className="absolute left-[9px] top-[11px] flex h-[22px] w-[22px] items-center justify-center rounded-full bg-[#ff2b2e]">
         <img src={mobileAssets.productHot} alt="" className="h-[13px] w-[13px] -rotate-[13deg] object-contain" />
@@ -141,17 +168,23 @@ function MobileProductCard({ product }: { product: MobileProduct }) {
         <p className="text-sm font-medium leading-none text-[rgba(60,47,47,0.62)]">4.7</p>
       </div>
 
-      <h3 className="absolute left-[9px] top-[172px] w-[118px] text-sm font-bold leading-[1.15] text-[#3c2f2f]">{product.title}</h3>
-      <p className="absolute left-[9px] top-[209px] text-sm font-medium leading-none text-[#a1a1a1]">{product.subtitle}</p>
+      <div className="absolute left-[9px] top-[172px] w-[118px]">
+        <h3 className="text-sm font-bold leading-[1.15] text-[#3c2f2f]">{t(product.titleKey)}</h3>
+        <p className="mt-[2px] text-sm font-medium leading-none text-[#a1a1a1]">{t(product.subtitleKey)}</p>
+      </div>
 
       <span className="absolute right-0 top-[112px] inline-flex h-[25px] w-[65px] items-center justify-center rounded-[60px] bg-[#ff7f20] text-xs font-bold leading-none text-black">
         -30%
       </span>
-      <p className="absolute right-2 top-[210px] text-base font-black leading-none text-[#3c2f2f]">{product.price}</p>
-      <p className="absolute right-2 top-[226px] text-xs font-medium leading-none text-[#3c2f2f] line-through">{product.oldPrice}</p>
+      <div className="absolute right-2 top-[192px] flex max-w-[76px] flex-col items-end text-right">
+        <p className={`w-full break-words font-black leading-tight tabular-nums text-[#3c2f2f] ${priceSizeClass}`}>{formattedPrice}</p>
+        <p className={`w-full break-words font-medium leading-tight tabular-nums text-[#3c2f2f] line-through ${oldPriceSizeClass}`}>
+          {formattedOldPrice}
+        </p>
+      </div>
 
-      <button type="button" className="absolute -bottom-[10px] left-1/2 inline-flex h-[42px] w-[42px] -translate-x-1/2 items-center justify-center">
-        <img src={mobileAssets.productAddToCart} alt="Add to cart" className="h-[42px] w-[42px] object-contain" />
+      <button type="button" className="absolute -bottom-[14px] left-1/2 inline-flex h-[42px] w-[42px] -translate-x-1/2 items-center justify-center">
+        <img src={mobileAssets.productAddToCart} alt={t('common.buttons.addToCart')} className="h-[42px] w-[42px] object-contain" />
       </button>
     </article>
   );
@@ -182,6 +215,7 @@ function MobileCategorySliderIndicator() {
 export function FigmaHomePageMobile() {
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
+  const { t } = useTranslation();
 
   const handleOpenShopPicker = () => {
     router.push('/shop');
@@ -200,11 +234,11 @@ export function FigmaHomePageMobile() {
               <img src={mobileAssets.callCircle} alt="" className="absolute inset-0 h-12 w-12 object-contain" />
               <img src={mobileAssets.callIcon} alt="Call" className="relative h-[23px] w-[23px] object-contain" />
             </button>
-            <button type="button" className="relative inline-flex h-12 w-[159px] items-center rounded-[70px] bg-white px-[19px]">
-              <img src={mobileAssets.switcherIcon} alt="" className="h-[19px] w-[19px] object-contain" />
-              <span className="ml-[2px] text-base font-bold leading-[18px] text-[#ff7f20]">EN / AMD</span>
-              <img src={mobileAssets.switcherArrow} alt="" className="absolute right-[20px] h-[10px] w-[4px] rotate-90 object-contain" />
-            </button>
+            <LanguageCurrencySwitcher
+              variant="mobile"
+              iconSrc={mobileAssets.switcherIcon}
+              arrowSrc={mobileAssets.switcherArrow}
+            />
           </div>
         </div>
 
@@ -216,11 +250,11 @@ export function FigmaHomePageMobile() {
             onChange={(event) => {
               setSearchQuery(event.target.value);
             }}
-            placeholder="Որոնել"
+            placeholder={t('common.buttons.search')}
             className="h-full w-full rounded-[30px] bg-transparent pl-[39px] pr-[58px] text-[15px] leading-6 text-black outline-none placeholder:text-[#abb7c2]"
           />
           <button type="button" className="absolute right-[7px] top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center">
-            <img src={mobileAssets.searchFilterButton} alt="Filters" className="h-10 w-10 object-contain" />
+            <img src={mobileAssets.searchFilterButton} alt={t('products.header.filters')} className="h-10 w-10 object-contain" />
           </button>
         </div>
       </header>
@@ -235,7 +269,7 @@ export function FigmaHomePageMobile() {
         </div>
 
         <div className="mt-[30px] space-y-[22px]">
-          <MobileSectionHeader title="Նորույթներ" />
+          <MobileSectionHeader title={t('products.categoryNavigation.newArrivals')} />
           <div className="grid grid-cols-2 gap-x-[14px] gap-y-[22px]">
             {mobileProducts.slice(0, 4).map((product) => (
               <MobileProductCard key={`new-${product.id}`} product={product} />
@@ -244,7 +278,7 @@ export function FigmaHomePageMobile() {
         </div>
 
         <div className="mt-[30px] space-y-[22px]">
-          <MobileSectionHeader title="Կատեգորիա" />
+          <MobileSectionHeader title={t('common.navigation.categories')} />
           <div className="grid grid-cols-2 gap-x-[14px] gap-y-[22px]">
             {mobileProducts.slice(4, 8).map((product) => (
               <MobileProductCard key={`cat-a-${product.id}`} product={product} />
@@ -253,7 +287,7 @@ export function FigmaHomePageMobile() {
         </div>
 
         <div className="mt-[30px] space-y-[22px]">
-          <MobileSectionHeader title="Կատեգորիա" />
+          <MobileSectionHeader title={t('common.navigation.categories')} />
           <div className="grid grid-cols-2 gap-x-[14px] gap-y-[22px]">
             {mobileProducts.slice(8, 12).map((product) => (
               <MobileProductCard key={`cat-b-${product.id}`} product={product} />

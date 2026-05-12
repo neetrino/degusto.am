@@ -23,6 +23,12 @@ export function resolveStorefrontLocale(
   return isStorefrontLocale(normalized) ? normalized : PRIMARY_LOCALE;
 }
 
+export function resolveStorefrontLocaleFromCookie(
+  cookieValue: string | null | undefined
+): StorefrontLocale {
+  return resolveStorefrontLocale(cookieValue);
+}
+
 export function resolveStorefrontLocaleFromSearchParams(
   searchParams: URLSearchParams,
   key: string = "lang"

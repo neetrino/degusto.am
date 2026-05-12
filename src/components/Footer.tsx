@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useTranslation } from '../lib/i18n-client';
 
 const assets = {
   footerBrandLogo: '/api/r2/footer/20260512-5UxUa-QBsL.png',
@@ -30,17 +31,19 @@ const socialLinks = {
 };
 
 export function Footer() {
+  const { t } = useTranslation();
+
   return (
     <footer className="bg-white">
       <div className="lg:hidden rounded-t-[28px] bg-[#121212] px-4 pb-8 pt-8 text-white">
         <div className="space-y-6">
           <div>
-            <h3 className="mb-3 text-lg font-black text-[#ff7f20]">Կոնտակտներ</h3>
+            <h3 className="mb-3 text-lg font-black text-[#ff7f20]">{t('common.footer.contactInfo')}</h3>
             <a href="mailto:info@degusto.am" className="block text-sm leading-7">
               info@degusto.am
             </a>
             <a href="tel:+37460388080" className="block text-sm leading-7">
-              Հեռ. (060) 38-80-80 / (033)-80-80-80 / (010)-38-80-80
+              {t('contact.phone')}
             </a>
           </div>
 
@@ -63,10 +66,10 @@ export function Footer() {
           </div>
 
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <Link href="/privacy">Գաղտնիության քաղաքականություն</Link>
-            <Link href="/delivery-policy">Առաքման քաղաքականություն</Link>
-            <Link href="/refund-policy">Վերադարձի քաղաքականություն</Link>
-            <Link href="/terms">Պայմաններ և դրույթներ</Link>
+            <Link href="/privacy">{t('common.footer.privacyPolicy')}</Link>
+            <Link href="/delivery-policy">{t('common.footer.deliveryTerms')}</Link>
+            <Link href="/refund-policy">{t('common.footer.refundPolicy')}</Link>
+            <Link href="/terms">{t('common.footer.termsOfService')}</Link>
           </div>
         </div>
       </div>
@@ -83,7 +86,7 @@ export function Footer() {
             <div>
               <h3 className="mb-4 flex items-center gap-[6px] text-[20px] font-black leading-6 text-[#ff7f20]">
                 <img src={assets.footerAddressPinIcon} alt="" className="h-6 w-[18px] object-contain" />
-                <span>Հասցեներ</span>
+                <span>{t('profile.tabs.addresses')}</span>
               </h3>
               <p className="text-sm leading-[27px]">Պարույր Սևակի 92</p>
               <p className="text-sm leading-[27px]">Բագրատունյաց 11Ա</p>
@@ -91,37 +94,37 @@ export function Footer() {
             </div>
 
             <div>
-              <h3 className="mb-4 text-[20px] font-black uppercase tracking-[0.55px] text-[#ff7f20]">Պայմաններ</h3>
+              <h3 className="mb-4 text-[20px] font-black uppercase tracking-[0.55px] text-[#ff7f20]">{t('common.footer.legal')}</h3>
               <div className="space-y-2 text-sm text-white">
                 <Link href="/privacy" className="block leading-5 hover:text-[#ff7f20]">
-                  Գաղտնիության քաղաքականություն
+                  {t('common.footer.privacyPolicy')}
                 </Link>
                 <Link href="/delivery-policy" className="block leading-7 hover:text-[#ff7f20]">
-                  Առաքման քաղաքականություն
+                  {t('common.footer.deliveryTerms')}
                 </Link>
                 <Link href="/refund-policy" className="block leading-5 hover:text-[#ff7f20]">
-                  Վերադարձի քաղաքականություն
+                  {t('common.footer.refundPolicy')}
                 </Link>
                 <Link href="/terms" className="block leading-5 hover:text-[#ff7f20]">
-                  Պայմաններ և դրույթներ
+                  {t('common.footer.termsOfService')}
                 </Link>
               </div>
             </div>
 
             <div>
-              <h3 className="mb-2 text-[20px] font-black leading-6 text-[#ff7f20]">Հղումներ</h3>
+              <h3 className="mb-2 text-[20px] font-black leading-6 text-[#ff7f20]">{t('common.footer.quickLinks')}</h3>
               <div className="space-y-0 text-sm leading-[30px]">
                 <Link href="/" className="block hover:text-[#ff7f20]">
-                  Գլխավոր
+                  {t('common.navigation.home')}
                 </Link>
                 <Link href="/shop" className="block hover:text-[#ff7f20]">
-                  Խոհանոց
+                  {t('common.navigation.delivery')}
                 </Link>
                 <Link href="/products" className="block hover:text-[#ff7f20]">
-                  Կոմբոներ
+                  {t('common.navigation.products')}
                 </Link>
                 <Link href="/about" className="block hover:text-[#ff7f20]">
-                  Մեր մասին
+                  {t('common.navigation.about')}
                 </Link>
               </div>
             </div>
@@ -130,7 +133,7 @@ export function Footer() {
           </div>
 
           <div className="relative z-10 mt-[18px] flex flex-col gap-3 lg:mt-8 lg:w-[472px]">
-            <h3 className="text-[20px] font-black leading-6 text-[#ff7f20]">Կոնտակտներ</h3>
+            <h3 className="text-[20px] font-black leading-6 text-[#ff7f20]">{t('common.footer.contactInfo')}</h3>
 
             <div className="flex items-center gap-3">
               <img src={assets.footerMailIcon} alt="" className="h-[25px] w-6 object-contain" />
@@ -142,7 +145,7 @@ export function Footer() {
             <div className="flex items-start gap-[11px]">
               <img src={assets.footerPhoneIcon} alt="" className="mt-[1px] h-[25px] w-6 object-contain" />
               <a href="tel:+37460388080" className="text-sm leading-[27px] hover:text-[#ff7f20]">
-                Հեռ. (060) 38-80-80 / (033)-80-80-80 / (010)-38-80-80
+                {t('contact.phone')}
               </a>
             </div>
 
@@ -173,9 +176,9 @@ export function Footer() {
           <div className="relative z-10 mt-8 border-t border-white/20 pt-4 lg:absolute lg:bottom-[52px] lg:left-0 lg:right-0 lg:mt-0 lg:pt-[18px]">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <img src={assets.footerBrandLogo} alt="Degusto" className="h-[42px] w-[117px] object-contain" />
-              <p className="text-sm leading-[23px] text-white lg:pr-[24px]">
-                Copyright © 2026 | Բոլոր իրավունքները պաշտպանված են | Ստեղծվել է{' '}
-                <span className="font-black text-[#ff7f20]">Neetrino IT Company</span> կողմից
+              <p className="text-[14px] leading-[23px] text-white lg:pr-[24px]">
+                Copyright © 2026 | All rights reserved | Created by{' '}
+                <span className="font-black text-[#ff7f20]">Neetrino IT Company</span>
               </p>
               <div className="flex items-center gap-[11px]">
                 <span className="inline-flex h-[30px] w-[73px] items-center justify-center rounded-lg bg-white px-1">

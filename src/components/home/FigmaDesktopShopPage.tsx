@@ -1,5 +1,9 @@
 'use client';
 
+import { useTranslation } from '../../lib/i18n-client';
+import { useCurrency } from '../hooks/useCurrency';
+import { formatPrice } from '../../lib/currency';
+
 const assets = {
   productCardImage: '/api/r2/product/20260512-D3w_teddze.png',
   productCardAddToCart: '/api/r2/product/20260512-g67zkm13ZH.svg',
@@ -12,30 +16,30 @@ const assets = {
 
 type MenuCard = {
   id: string;
-  title: string;
-  subtitle: string;
-  price: string;
-  oldPrice: string;
+  titleKey: string;
+  subtitleKey: string;
+  price: number;
+  oldPrice: number;
   discount: string;
 };
 
 const categories = [
-  'Բոլորը',
-  'Ապուրներ եւ տաք ուտեստներ',
-  'Աղցաններ',
-  'Շաուրմա',
-  'Պիցցա',
-  'Լահմաջո',
-  'Վրացական Խաչապուրի',
-  'Խորոված',
-  'Խինկալի',
-  'Լցոնած կարտոֆիլ',
-  'Բուրգերներ եւ սենդվիչներ',
-  'Կարկանդակներ եւ նրբաբլիթներ',
-  'Կոմբո փաթեթներ',
-  'Լանչ Բոքսեր',
-  'Գրիլ եւ ապխտած արտադրանքներ',
-];
+  'home.figma.desktop.categories.all',
+  'home.figma.desktop.categories.soupsAndHotDishes',
+  'home.figma.desktop.categories.salads',
+  'home.figma.desktop.categories.shawarma',
+  'home.figma.desktop.categories.pizza',
+  'home.figma.desktop.categories.lahmajo',
+  'home.figma.desktop.categories.georgianKhachapuri',
+  'home.figma.desktop.categories.bbq',
+  'home.figma.desktop.categories.khinkali',
+  'home.figma.desktop.categories.stuffedPotato',
+  'home.figma.desktop.categories.burgersAndSandwiches',
+  'home.figma.desktop.categories.piesAndPancakes',
+  'home.figma.desktop.categories.comboSets',
+  'home.figma.desktop.categories.lunchBoxes',
+  'home.figma.desktop.categories.grillAndSmokedProducts',
+] as const;
 
 const categoryIconUrls: readonly string[] = [
   'https://www.figma.com/api/mcp/asset/8de80153-582c-4bef-9266-5891b9fbdab3',
@@ -57,18 +61,23 @@ const categoryIconUrls: readonly string[] = [
 
 const cards: MenuCard[] = Array.from({ length: 12 }, (_, index) => ({
   id: `menu-card-${index + 1}`,
-  title: 'Double Cheeseburger',
-  subtitle: 'Բուրգեր',
-  price: '1200 ֏',
-  oldPrice: '1200 Դ',
+  titleKey: 'home.figma.mobile.product.title',
+  subtitleKey: 'home.figma.mobile.product.subtitle',
+  price: 1200,
+  oldPrice: 1200,
   discount: '-30%',
 }));
 
 function MenuCardItem({ card }: { card: MenuCard }) {
+  const { t } = useTranslation();
+  const currency = useCurrency();
+  const title = t(card.titleKey);
+  const subtitle = t(card.subtitleKey);
+
   return (
     <article className="relative h-[284px] w-[236px] shrink-0 rounded-[20px] border-[1.5px] border-[#dedede] bg-white">
       <div className="absolute left-1/2 top-1 h-[147px] w-[227px] -translate-x-1/2">
-        <img src={assets.productCardImage} alt={card.title} className="h-full w-full rounded-[18px] object-cover" />
+        <img src={assets.productCardImage} alt={title} className="h-full w-full rounded-[18px] object-cover" />
       </div>
       <div className="absolute left-4 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-[#ff2b2e] p-1">
         <img src={assets.productCardHot} alt="" className="h-[19px] w-[19px] -rotate-[13deg] object-contain" />
@@ -80,19 +89,18 @@ function MenuCardItem({ card }: { card: MenuCard }) {
         <img src={assets.productCardStar} alt="" className="h-5 w-5 object-contain" />
         <p className="text-base font-medium leading-[1.35] text-[rgba(60,47,47,0.62)]">4.7</p>
       </div>
-      <h3 className="absolute left-[14px] top-[194px] text-base font-bold leading-[1.05] text-[#3c2f2f]">
-        <span className="block">Double</span>
-        <span className="block">Cheeseburger</span>
+      <h3 className="absolute left-[14px] top-[194px] w-[130px] text-base font-bold leading-[1.05] text-[#3c2f2f]">
+        <span className="block max-h-[34px] overflow-hidden break-words">{title}</span>
       </h3>
-      <p className="absolute left-[14px] top-[230px] text-base font-medium leading-none text-[#a1a1a1]">{card.subtitle}</p>
+      <p className="absolute left-[14px] top-[236px] w-[130px] overflow-visible text-base font-medium leading-[1.2] text-[#a1a1a1]">{subtitle}</p>
       <span className="absolute right-px top-[170px] inline-flex h-[30px] items-center rounded-[60px] bg-[#ff7f20] px-[17px] text-sm font-bold leading-none text-black">
         {card.discount}
       </span>
-      <p className="absolute right-[14px] top-[236px] text-[20px] font-black leading-none text-[#3c2f2f]">{card.price}</p>
-      <p className="absolute right-[14px] top-[262px] text-sm font-light leading-none text-[#3c2f2f] line-through">{card.oldPrice}</p>
+      <p className="absolute right-[14px] top-[236px] text-[20px] font-black leading-none text-[#3c2f2f]">{formatPrice(card.price, currency)}</p>
+      <p className="absolute right-[14px] top-[262px] text-sm font-light leading-none text-[#3c2f2f] line-through">{formatPrice(card.oldPrice, currency)}</p>
       <button
         type="button"
-        aria-label="Add to cart"
+        aria-label={t('common.buttons.addToCart')}
         className="absolute -bottom-[25px] left-1/2 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center"
       >
         <img src={assets.productCardAddToCart} alt="" className="h-[52px] w-[51px] object-contain" />
@@ -102,10 +110,12 @@ function MenuCardItem({ card }: { card: MenuCard }) {
 }
 
 function FoodAttributeSwitcher() {
+  const { t } = useTranslation();
+
   return (
     <button
       type="button"
-      aria-label="Food attributes switcher"
+      aria-label={t('home.figma.desktop.shop.foodAttributeSwitcherAria')}
       className="relative flex h-[46px] w-[120px] items-center gap-[6px] rounded-[40px] bg-[#f3f3f5] px-[4px]"
     >
       <span className="inline-flex h-[32px] w-[32px] items-center justify-center rounded-full">
@@ -122,10 +132,12 @@ function FoodAttributeSwitcher() {
 }
 
 export function FigmaDesktopShopPage() {
+  const { t } = useTranslation();
+
   return (
     <div className="hidden bg-white pb-20 pt-5 lg:block">
       <div className="mx-auto flex w-full max-w-[1470px] gap-8 px-3">
-        <aside className="w-[320px] shrink-0 overflow-hidden rounded-[20px] bg-black pb-5 text-white">
+        <aside className="sticky top-5 flex h-[calc(100vh-40px)] w-[320px] shrink-0 flex-col overflow-hidden rounded-[20px] bg-black pb-5 text-white">
           <div className="border-b border-white/10 p-6">
             <div className="relative flex h-[46px] items-center rounded-[40px] bg-[#f3f3f5] pl-10 pr-4 text-[16px] text-black/50">
               <span className="absolute left-4 text-[#7f7f80]" aria-hidden="true">
@@ -134,18 +146,18 @@ export function FigmaDesktopShopPage() {
                   <path d="M13.5 13.5L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                 </svg>
               </span>
-              <span>Փնտրել...</span>
+              <span>{t('common.buttons.search')}...</span>
             </div>
           </div>
-          <div className="px-6 pt-[10px]">
-            <p className="pb-[12px] text-[14px] font-medium uppercase tracking-[0.2px] text-[#717182]">Կատեգորիաներ</p>
-            <div className="max-h-[1220px] space-y-1 overflow-y-auto pr-1 scrollbar-hide">
-              {categories.map((category, index) => {
+          <div className="flex min-h-0 flex-1 flex-col px-6 pt-[10px]">
+            <p className="pb-[12px] text-[14px] font-medium uppercase tracking-[0.2px] text-[#717182]">{t('common.navigation.categories')}</p>
+            <div className="min-h-0 flex-1 space-y-1 overflow-y-auto pr-1 scrollbar-hide">
+              {categories.map((categoryKey, index) => {
                 const isActive = index === 0;
                 const iconUrl = categoryIconUrls[index];
                 return (
                   <button
-                    key={category}
+                    key={categoryKey}
                     type="button"
                     className={`flex h-10 w-full items-center rounded-[10px] px-3 py-[10px] text-left text-[14px] font-medium leading-5 tracking-[-0.15px] ${
                       isActive ? 'rounded-[30px] bg-[#ff7f20] text-white' : 'text-white hover:bg-white/10'
@@ -154,7 +166,7 @@ export function FigmaDesktopShopPage() {
                     <span className="mr-3 inline-flex h-6 w-6 shrink-0 items-center justify-center" aria-hidden="true">
                       {iconUrl ? <img src={iconUrl} alt="" className="h-6 w-6 object-contain" /> : null}
                     </span>
-                    <span>{category}</span>
+                    <span>{t(categoryKey)}</span>
                   </button>
                 );
               })}
@@ -165,24 +177,24 @@ export function FigmaDesktopShopPage() {
         <section className="flex-1">
           <div className="mb-[42px] mt-10 flex items-start justify-between">
             <div className="pt-1">
-              <h1 className="text-[60px] leading-[51px] text-[#f66913]">Մենյու</h1>
+              <h1 className="text-[60px] leading-[51px] text-[#f66913]">{t('home.figma.desktop.shop.menuTitle')}</h1>
               <p className="mt-2.5 text-base tracking-[-0.31px] text-[#717182]">
-                Ընտրեք ձեր նախընտրած ուտեստները մեր լայն տեսականուց
+                {t('home.figma.desktop.shop.menuSubtitle')}
               </p>
             </div>
             <div className="flex items-center gap-2 pt-[37px] text-sm text-[#717182]">
-              <span className="px-1 text-base">Գին</span>
+              <span className="px-1 text-base">{t('home.figma.desktop.shop.priceLabel')}</span>
               <button
                 type="button"
                 className="h-[46px] w-[109px] rounded-[40px] bg-[#f3f3f5] px-4 text-left text-base text-[#7f7f80]"
               >
-                | Սկսած
+                | {t('home.figma.desktop.shop.priceFrom')}
               </button>
               <button
                 type="button"
                 className="h-[46px] w-[109px] rounded-[40px] bg-[#f3f3f5] px-4 text-left text-base text-[#7f7f80]"
               >
-                | Մինչև
+                | {t('home.figma.desktop.shop.priceTo')}
               </button>
               <FoodAttributeSwitcher />
             </div>
@@ -196,7 +208,7 @@ export function FigmaDesktopShopPage() {
 
           <div className="mt-16 flex justify-center">
             <button type="button" className="rounded-[40px] bg-[#ff7f20] px-8 py-4 text-base font-bold text-white">
-              Ավելին →
+              {t('home.figma.desktop.shop.moreButton')} →
             </button>
           </div>
         </section>

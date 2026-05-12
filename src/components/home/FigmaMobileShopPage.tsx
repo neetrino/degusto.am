@@ -3,10 +3,12 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { MobileBottomNavigation } from './MobileBottomNavigation';
+import { LanguageCurrencySwitcher } from '../LanguageCurrencySwitcher';
+import { useTranslation } from '../../lib/i18n-client';
 
 type ShopCategoryCard = {
   id: string;
-  title: string;
+  titleKey: string;
   image: string;
   categorySlug: string;
 };
@@ -32,9 +34,9 @@ const mobileShopAssets = {
 };
 
 const shopCategories: ShopCategoryCard[] = [
-  { id: 'cat-soup', title: 'Ապուրներ և տաք ուտեստներ', image: mobileShopAssets.soup, categorySlug: 'soup' },
-  { id: 'cat-salad', title: 'Աղցաններ', image: mobileShopAssets.salad, categorySlug: 'salad' },
-  { id: 'cat-shawarma', title: 'Շաուրմա', image: mobileShopAssets.shawarma, categorySlug: 'shawarma' },
+  { id: 'cat-soup', titleKey: 'home.figma.mobile.shopCategory.soup', image: mobileShopAssets.soup, categorySlug: 'soup' },
+  { id: 'cat-salad', titleKey: 'home.figma.mobile.shopCategory.salad', image: mobileShopAssets.salad, categorySlug: 'salad' },
+  { id: 'cat-shawarma', titleKey: 'home.figma.mobile.shopCategory.shawarma', image: mobileShopAssets.shawarma, categorySlug: 'shawarma' },
 ];
 
 const repeatedShopCards: ShopCategoryCard[] = Array.from({ length: 4 }, (_, index) =>
@@ -47,6 +49,7 @@ const repeatedShopCards: ShopCategoryCard[] = Array.from({ length: 4 }, (_, inde
 export function FigmaMobileShopPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const { t } = useTranslation();
 
   const handleOpenProducts = (categorySlug: string) => {
     router.push(`/products?category=${encodeURIComponent(categorySlug)}`);
@@ -63,13 +66,13 @@ export function FigmaMobileShopPage() {
           <div className="flex items-center gap-1">
             <button type="button" className="relative inline-flex h-12 w-12 items-center justify-center">
               <img src={mobileShopAssets.callCircle} alt="" className="absolute inset-0 h-12 w-12 object-contain" />
-              <img src={mobileShopAssets.callIcon} alt="Call" className="relative h-[23px] w-[23px] object-contain" />
+              <img src={mobileShopAssets.callIcon} alt={t('home.figma.mobile.callButtonAria')} className="relative h-[23px] w-[23px] object-contain" />
             </button>
-            <button type="button" className="relative inline-flex h-12 w-[159px] items-center rounded-[70px] bg-white px-[19px]">
-              <img src={mobileShopAssets.switcherIcon} alt="" className="h-[19px] w-[19px] object-contain" />
-              <span className="ml-[2px] text-base font-bold leading-[18px] text-[#ff7f20]">EN / AMD</span>
-              <img src={mobileShopAssets.switcherArrow} alt="" className="absolute right-[20px] h-[10px] w-[4px] rotate-90 object-contain" />
-            </button>
+            <LanguageCurrencySwitcher
+              variant="mobile"
+              iconSrc={mobileShopAssets.switcherIcon}
+              arrowSrc={mobileShopAssets.switcherArrow}
+            />
           </div>
         </div>
         <div className="relative mt-[8px] h-12 translate-y-[20px] rounded-[30px] bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.05)]">
@@ -80,17 +83,17 @@ export function FigmaMobileShopPage() {
             onChange={(event) => {
               setSearchQuery(event.target.value);
             }}
-            placeholder="Որոնել"
+            placeholder={t('common.buttons.search')}
             className="h-full w-full rounded-[30px] bg-transparent pl-[39px] pr-[58px] text-[15px] leading-6 text-black outline-none placeholder:text-[#abb7c2]"
           />
           <button type="button" className="absolute right-[7px] top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center">
-            <img src={mobileShopAssets.searchFilterButton} alt="Filters" className="h-10 w-10 object-contain" />
+            <img src={mobileShopAssets.searchFilterButton} alt={t('products.header.filters')} className="h-10 w-10 object-contain" />
           </button>
         </div>
       </header>
 
       <main className="relative z-10 mt-[87px] rounded-t-[30px] bg-[#e7e7e7] px-[15px] pb-[130px] pt-[22px]">
-        <h1 className="text-base font-semibold leading-5 text-black">Կատեգորիաներ</h1>
+        <h1 className="text-base font-semibold leading-5 text-black">{t('common.navigation.categories')}</h1>
 
         <div className="mt-4 grid grid-cols-2 gap-x-[12px] gap-y-[14px]">
           {repeatedShopCards.map((category) => (
@@ -102,8 +105,8 @@ export function FigmaMobileShopPage() {
               }}
               className="relative h-[183px] overflow-hidden rounded-[28px] bg-[#090909] text-left"
             >
-              <p className="absolute left-[13px] top-[20px] right-[10px] text-xs font-medium leading-[18px] text-white">{category.title}</p>
-              <img src={category.image} alt={category.title} className="absolute bottom-0 right-0 h-[130px] w-[132px] object-contain" />
+              <p className="absolute left-[13px] top-[20px] right-[10px] text-xs font-medium leading-[18px] text-white">{t(category.titleKey)}</p>
+              <img src={category.image} alt={t(category.titleKey)} className="absolute bottom-0 right-0 h-[130px] w-[132px] object-contain" />
             </button>
           ))}
         </div>

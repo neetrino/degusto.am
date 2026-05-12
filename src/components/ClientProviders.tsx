@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { AuthProvider } from '../lib/auth/AuthContext';
 import { ToastContainer } from './Toast';
+import { LanguageHtmlUpdater } from './LanguageHtmlUpdater';
 
 /**
  * ClientProviders component
@@ -11,6 +12,7 @@ import { ToastContainer } from './Toast';
 export function ClientProviders({ children }: { children: ReactNode }) {
   return (
     <AuthProvider>
+      <LanguageHtmlUpdater />
       {children}
       <ToastContainer />
     </AuthProvider>

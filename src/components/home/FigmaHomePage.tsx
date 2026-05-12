@@ -4,6 +4,9 @@ import Link from 'next/link';
 import { FigmaHomePageMobile } from './FigmaHomePageMobile';
 import { UniversalHeader } from '../UniversalHeader';
 import { Footer } from '../Footer';
+import { useTranslation } from '../../lib/i18n-client';
+import { useCurrency } from '../hooks/useCurrency';
+import { formatPrice } from '../../lib/currency';
 
 const assets = {
   heroBg: '/api/r2/hero/20260512-tOKhBzyB6u.png',
@@ -56,22 +59,24 @@ const fallbackCategories: HomeCategoryItem[] = [
   { id: 'cat-fallback-4', title: 'Պիցցա', count: 44, image: assets.categoryPizza },
 ];
 
-function formatPrice(value: number | null): string {
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    return '—';
-  }
-  return `${Math.round(value).toLocaleString('en-US')} ֏`;
-}
-
 function NewsCard({ item }: { item: HomeFeaturedProduct }) {
+  const { t } = useTranslation();
+  const currency = useCurrency();
+  const keepCurrencySymbolAttached = (value: string): string => value.replace(/\s+(\S+)$/u, '\u00A0$1');
   const hasDiscount = typeof item.discountPercent === 'number' && item.discountPercent > 0;
   const discountPercent = typeof item.discountPercent === 'number' ? Math.round(item.discountPercent) : null;
   const imageSrc = item.image || assets.product;
+  const title =
+    item.title === 'Double Cheeseburger' ? t('home.figma.mobile.product.title') : (item.title || t('home.figma.mobile.product.title'));
+  const subtitle = item.subtitle || t('home.figma.mobile.product.subtitle');
+  const formattedPrice = keepCurrencySymbolAttached(formatPrice(item.price || 0, currency));
+  const formattedOldPrice = item.oldPrice ? keepCurrencySymbolAttached(formatPrice(item.oldPrice, currency)) : null;
+  const mainPriceClassName = formattedPrice.length > 12 ? 'text-[18px]' : 'text-[20px]';
 
   return (
     <article className="relative h-[284px] w-[236px] shrink-0 rounded-[20px] border-[1.5px] border-[#dedede] bg-white">
       <div className="absolute left-1/2 top-1 h-[147px] w-[227px] -translate-x-1/2">
-        <img src={imageSrc} alt={item.title} className="h-full w-full rounded-[18px] object-cover" />
+        <img src={imageSrc} alt={title} className="h-full w-full rounded-[18px] object-cover" />
       </div>
       <div className="absolute left-4 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-[#ff2b2e] p-1">
         <img src={assets.productCardHot} alt="" className="h-[19px] w-[19px] -rotate-[13deg] object-contain" />
@@ -83,26 +88,32 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
         <img src={assets.productCardStar} alt="" className="h-5 w-5 object-contain" />
         <p className="text-base font-medium leading-[1.35] text-[rgba(60,47,47,0.62)]">4.7</p>
       </div>
-      <h3 className="absolute left-[14px] top-[194px] text-base font-bold leading-[1.05] text-[#3c2f2f]">
-        <span className="block">{item.title}</span>
-      </h3>
-      <p className="absolute left-[14px] top-[230px] text-base font-medium leading-none text-[#a1a1a1]">{item.subtitle}</p>
+      <div className="absolute left-[14px] top-[194px] w-[130px]">
+        <h3 className="text-base font-bold leading-[1.05] text-[#3c2f2f]">
+          <span className="block max-h-[34px] overflow-hidden break-words">{title}</span>
+        </h3>
+        <p className="mt-1 overflow-hidden truncate text-base font-medium leading-none text-[#a1a1a1]">{subtitle}</p>
+      </div>
       {hasDiscount ? (
         <span className="absolute right-px top-[170px] inline-flex h-[30px] items-center rounded-[60px] bg-[#ff7f20] px-[17px] text-sm font-bold leading-none text-black">
           -{discountPercent}%
         </span>
       ) : null}
-      <p className="absolute right-[14px] top-[236px] text-[20px] font-black leading-none text-[#3c2f2f]">{formatPrice(item.price)}</p>
-      {item.oldPrice ? (
-        <p className="absolute right-[14px] top-[262px] text-sm font-light leading-none text-[#3c2f2f] line-through">
-          {formatPrice(item.oldPrice)}
+      <div className="absolute right-[14px] top-[228px] flex max-w-[112px] flex-col items-end text-right">
+        <p className={`w-full whitespace-nowrap font-black leading-none tabular-nums text-[#3c2f2f] ${mainPriceClassName}`}>
+          {formattedPrice}
         </p>
-      ) : null}
+        {formattedOldPrice ? (
+          <p className="mt-2 w-full translate-x-[8px] whitespace-nowrap text-sm font-light leading-none tabular-nums text-[#3c2f2f] line-through">
+            {formattedOldPrice}
+          </p>
+        ) : null}
+      </div>
       <button
         type="button"
         className="absolute -bottom-[25px] left-1/2 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center"
       >
-        <img src={assets.productCardAddToCart} alt="Add to cart" className="h-[52px] w-[51px] object-contain" />
+        <img src={assets.productCardAddToCart} alt={t('common.buttons.addToCart')} className="h-[52px] w-[51px] object-contain" />
       </button>
     </article>
   );
@@ -125,9 +136,16 @@ export function FigmaHomePage({
   featuredProducts: HomeFeaturedProduct[];
   categories: HomeCategoryItem[];
 }) {
+  const { t, lang } = useTranslation();
+  const currency = useCurrency();
   const homeFeaturedProducts = featuredProducts.length > 0 ? featuredProducts : fallbackFeaturedProducts;
   const homeCategories = categories.length > 0 ? categories : fallbackCategories;
   const heroProduct = homeFeaturedProducts[0];
+  const heroProductTitle =
+    heroProduct?.title === 'Double Cheeseburger'
+      ? t('home.figma.mobile.product.title')
+      : (heroProduct?.title || t('home.figma.mobile.product.title'));
+  const heroProductSubtitle = heroProduct?.subtitle || t('home.figma.mobile.product.subtitle');
 
   return (
     <>
@@ -195,7 +213,7 @@ export function FigmaHomePage({
           <div className="relative h-[284px] w-[236px] sm:ml-[45px]">
             <div className="absolute inset-0 rounded-[20px] bg-white shadow-xl" />
             <div className="absolute left-1/2 top-[5px] h-[147px] w-[227px] -translate-x-1/2">
-              <img src={heroProduct?.image || assets.productCardImage} alt="Daily offer" className="h-full w-full rounded-[18px] object-cover" />
+              <img src={heroProduct?.image || assets.productCardImage} alt={t('home.figma.mobile.dailyOfferImageAlt')} className="h-full w-full rounded-[18px] object-cover" />
               <div className="absolute left-[11px] top-[8px] flex flex-col gap-[6px]">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ff2b2e]">
                   <img src={assets.productCardHot} alt="" className="h-[19px] w-[19px] -rotate-[13deg] object-contain" />
@@ -209,15 +227,17 @@ export function FigmaHomePage({
               <img src={assets.productCardStar} alt="" className="h-5 w-5 object-contain" />
               <p className="text-base font-medium leading-none text-[rgba(60,47,47,0.62)]">4.7</p>
             </div>
-            <h2 className="absolute left-[14px] top-[194px] text-base font-bold leading-none text-[#3c2f2f]">
-              <span className="block">{heroProduct?.title || 'Double Cheeseburger'}</span>
-            </h2>
-            <p className="absolute left-[14px] top-[230px] text-base font-medium leading-none text-[#a1a1a1]">{heroProduct?.subtitle || 'Բուրգեր'}</p>
+            <div className="absolute left-[14px] top-[194px] w-[130px]">
+              <h2 className="text-base font-bold leading-none text-[#3c2f2f]">
+                <span className="block">{heroProductTitle}</span>
+              </h2>
+              <p className="mt-1 text-base font-medium leading-none text-[#a1a1a1]">{heroProductSubtitle}</p>
+            </div>
             <span className="absolute right-[12px] top-[165px] inline-flex items-center rounded-[60px] bg-[#ff7f20] px-[17px] py-[8px] text-sm font-bold leading-none text-black">
               -{Math.round(heroProduct?.discountPercent || 30)}%
             </span>
-            <span className="absolute right-[14px] top-[242px] font-['Montserrat_arm','Montserrat',sans-serif] text-[22px] font-[1000] leading-none tracking-[-0.3px] text-[#3c2f2f]">
-              {formatPrice(heroProduct?.price || 1200)}
+            <span className="absolute right-[14px] top-[228px] font-['Montserrat_arm','Montserrat',sans-serif] text-[22px] font-[1000] leading-none tracking-[-0.3px] text-[#3c2f2f]">
+              {formatPrice(heroProduct?.price || 1200, currency)}
             </span>
             <button
               type="button"
@@ -227,11 +247,13 @@ export function FigmaHomePage({
             </button>
             <div className="absolute -right-[88px] -top-[46px] h-[132px] w-[132px]">
               <img src={assets.offerBadge} alt="" className="absolute inset-0 h-full w-full object-contain" />
-              <div className="absolute inset-0 flex items-center justify-center text-center text-[16px] font-black leading-[1.1] text-white">
-                <span>
-                  Օրվա
-                  <br />
-                  Առաջարկ
+              <div
+                className={`absolute inset-0 flex items-center justify-center text-center font-black text-white ${
+                  lang === 'ru' ? 'text-[11px] leading-[1.05]' : 'text-[16px] leading-[1.1]'
+                }`}
+              >
+                <span className={`whitespace-pre-line ${lang === 'ru' ? '-translate-x-[4px] max-w-[72px]' : ''}`}>
+                  {t('home.figma.mobile.dailyOfferTitle')}
                 </span>
               </div>
             </div>
@@ -243,10 +265,11 @@ export function FigmaHomePage({
         <div className="w-full px-4 md:px-8 ">
           <div className="flex items-center justify-between">
             <h2 className="translate-x-[70px] translate-y-[70px] text-4xl font-black text-white md:text-6xl">
-              <span className="text-[#f66913]">Ակցիաներ և </span>հատուկ առաջարկներ
+              <span className="text-[#f66913]">{t('home.figma.desktop.specialOffersTitleAccent')}</span>
+              {t('home.figma.desktop.specialOffersTitleMain')}
             </h2>
             <Link href="/products" className="translate-x-[-115px] translate-y-[70px] inline-block rounded-full bg-[#ff7f20] px-6 py-4 text-lg font-bold text-white">
-              Ավելին →
+              {t('home.figma.desktop.moreButton')} →
             </Link>
           </div>
           <div className="mt-[150px] flex flex-wrap justify-center gap-[10px] pb-8">
@@ -260,7 +283,7 @@ export function FigmaHomePage({
       <div className="bg-black">
         <section className="rounded-t-[40px] bg-[#e6e6e8] px-4 pb-20 pt-10 md:px-8 lg:px-12">
           <div className="mx-auto max-w-[1280px]">
-            <h2 className="mb-8 text-5xl font-black text-black md:text-6xl">Կատեգորիաներ</h2>
+            <h2 className="mb-8 text-5xl font-black text-black md:text-6xl">{t('home.figma.desktop.categoriesTitle')}</h2>
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {homeCategories.map((item) => (
                 <CategoryCard key={item.id} item={item} />
