@@ -19,8 +19,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="h-full">
-      <body className={`${inter.className} bg-gray-50 text-gray-900 antialiased min-h-full`}>
+    <html lang="en" className="h-full" style={{ backgroundColor: '#f56814' }}>
+      <head>
+        <link rel="preload" as="image" href="/api/r2/hero/20260512-tOKhBzyB6u.png" />
+      </head>
+      <body
+        className={`${inter.className} text-gray-900 antialiased min-h-full`}
+        style={{ backgroundColor: '#f56814' }}
+      >
         <Suspense fallback={null}>
           <ClientProviders>
             <div className="flex min-h-screen flex-col pb-16 lg:pb-0">

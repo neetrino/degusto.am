@@ -3,17 +3,10 @@
 import Link from 'next/link';
 import { FigmaHomePageMobile } from './FigmaHomePageMobile';
 import { UniversalHeader } from '../UniversalHeader';
+import { Footer } from '../Footer';
 
 const assets = {
   heroBg: '/api/r2/hero/20260512-tOKhBzyB6u.png',
-  logo: 'https://www.figma.com/api/mcp/asset/b684f5ca-5543-4689-be84-ac53b6c5d14c',
-  cartIcon: '/api/r2/icons/20260512-CLx-Yzoyei.svg',
-  cartCounterBubble: '/api/r2/assets/20260512-ChISV2lVAD.svg',
-  switcherIcon: '/api/r2/icons/20260512-xeczfIhYOU.svg',
-  switcherArrow: '/api/r2/assets/20260512-VBEgtyKnvE.svg',
-  loginIcon: '/api/r2/icons/20260512-NjI9x2XSfd.svg',
-  searchBadge: '/api/r2/search/20260512-mMWl6jZCyO.svg',
-  searchIcon: '/api/r2/icons/20260512-HFF6wbm4b5.svg',
   offerBadge: '/api/r2/assets/20260512-3dEN1cAZhG.svg',
   product: '/api/r2/product/20260512-5XM6tLjCRv.png',
   productCardImage: '/api/r2/product/20260512-D3w_teddze.png',
@@ -25,64 +18,59 @@ const assets = {
   categorySalad: '/api/r2/category/20260512-Np6RG2GuNi.png',
   categoryShawarma: '/api/r2/category/20260512-UOlekxqQyh.png',
   categoryPizza: '/api/r2/category/20260512-j5QKmShMEM.png',
-  footerBrandLogo: '/api/r2/footer/20260512-5UxUa-QBsL.png',
-  footerMailIcon: '/api/r2/footer/20260512-jlVRdFnMTr.png',
-  footerPhoneIcon: '/api/r2/footer/20260512-twjLMqUm3Y.svg',
-  footerInstagramIcon: '/api/r2/footer/20260512-HjrdY7iX1q.svg',
-  footerTikTokIcon: '/api/r2/footer/20260512-07liy4Px-P.svg',
-  footerTelegramIcon: '/api/r2/footer/20260512-qN7ozBdLsp.svg',
-  footerWhatsappIcon: '/api/r2/footer/20260512-JrBQyAbN2Y.svg',
-  footerViberIcon: '/api/r2/footer/20260512-WH7iCNEGQ0.svg',
-  footerAppStoreBadge: '/api/r2/footer/20260512-7Y0hstI5iZ.png',
-  footerGooglePlayBadge: '/api/r2/footer/20260512-5Bpvj-I9_s.png',
-  footerIdramLogo: '/api/r2/footer/20260512-ub3JHF7EFG.png',
-  footerFastshiftLogo: '/api/r2/footer/20260512-qDCxMfAZhD.png',
-  footerArcaLogo: '/api/r2/footer/20260512-x5wZihjF6c.png',
-  footerVisaLogo: '/api/r2/footer/20260512-gnkwj-t2Os.png',
-  footerPastaVisual: '/api/r2/footer/20260512-HvrYIiCklw.png',
-  footerAddressPinIcon: '/api/r2/footer/20260512--BIDvUK4Se.png',
 };
 
-type CardItem = {
+export type HomeFeaturedProduct = {
   id: string;
   title: string;
   subtitle: string;
-  price: string;
-  image: string;
+  price: number | null;
+  oldPrice: number | null;
+  image: string | null;
+  discountPercent: number | null;
 };
 
-type CategoryItem = {
+export type HomeCategoryItem = {
   id: string;
   title: string;
-  count: string;
+  count: number;
   image: string;
 };
 
-const newsCards: CardItem[] = Array.from({ length: 5 }, (_, index) => ({
-  id: `news-${index + 1}`,
-  title: 'Double Cheeseburger',
-  subtitle: 'Բուրգեր',
-  price: '1200 ֏',
-  image: assets.product,
-}));
-
-const categoryBase: CategoryItem[] = [
-  { id: 'cat-1', title: 'Ապուրներ եւ տաք ուտեստներ', count: '(78 ապրանք)', image: assets.categorySoup },
-  { id: 'cat-2', title: 'Աղցաններ', count: '(41 ապրանք)', image: assets.categorySalad },
-  { id: 'cat-3', title: 'Շաուրմա', count: '(18 ապրանք)', image: assets.categoryShawarma },
-  { id: 'cat-4', title: 'Պիցցա', count: '(44 ապրանք)', image: assets.categoryPizza },
+const fallbackFeaturedProducts: HomeFeaturedProduct[] = [
+  {
+    id: 'featured-fallback-1',
+    title: 'Double Cheeseburger',
+    subtitle: 'Բուրգեր',
+    price: 1200,
+    oldPrice: 1500,
+    image: assets.product,
+    discountPercent: 30,
+  },
 ];
 
-const categories: CategoryItem[] = [...categoryBase, ...categoryBase, ...categoryBase, ...categoryBase].map((item, index) => ({
-  ...item,
-  id: `${item.id}-${index}`,
-}));
+const fallbackCategories: HomeCategoryItem[] = [
+  { id: 'cat-fallback-1', title: 'Ապուրներ եւ տաք ուտեստներ', count: 78, image: assets.categorySoup },
+  { id: 'cat-fallback-2', title: 'Աղցաններ', count: 41, image: assets.categorySalad },
+  { id: 'cat-fallback-3', title: 'Շաուրմա', count: 18, image: assets.categoryShawarma },
+  { id: 'cat-fallback-4', title: 'Պիցցա', count: 44, image: assets.categoryPizza },
+];
 
-function NewsCard({ item }: { item: CardItem }) {
+function formatPrice(value: number | null): string {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return '—';
+  }
+  return `${Math.round(value).toLocaleString('en-US')} ֏`;
+}
+
+function NewsCard({ item }: { item: HomeFeaturedProduct }) {
+  const hasDiscount = typeof item.discountPercent === 'number' && item.discountPercent > 0;
+  const imageSrc = item.image || assets.product;
+
   return (
     <article className="relative h-[284px] w-[236px] shrink-0 rounded-[20px] border-[1.5px] border-[#dedede] bg-white">
       <div className="absolute left-1/2 top-1 h-[147px] w-[227px] -translate-x-1/2">
-        <img src={item.image} alt={item.title} className="h-full w-full rounded-[18px] object-cover" />
+        <img src={imageSrc} alt={item.title} className="h-full w-full rounded-[18px] object-cover" />
       </div>
       <div className="absolute left-4 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-[#ff2b2e] p-1">
         <img src={assets.productCardHot} alt="" className="h-[19px] w-[19px] -rotate-[13deg] object-contain" />
@@ -95,15 +83,20 @@ function NewsCard({ item }: { item: CardItem }) {
         <p className="text-base font-medium leading-[1.35] text-[rgba(60,47,47,0.62)]">4.7</p>
       </div>
       <h3 className="absolute left-[14px] top-[194px] text-base font-bold leading-[1.05] text-[#3c2f2f]">
-        <span className="block">Double</span>
-        <span className="block">Cheeseburger</span>
+        <span className="block">{item.title}</span>
       </h3>
       <p className="absolute left-[14px] top-[230px] text-base font-medium leading-none text-[#a1a1a1]">{item.subtitle}</p>
-      <span className="absolute right-px top-[170px] inline-flex h-[30px] items-center rounded-[60px] bg-[#ff7f20] px-[17px] text-sm font-bold leading-none text-black">
-        -30%
-      </span>
-      <p className="absolute right-[14px] top-[236px] text-[20px] font-black leading-none text-[#3c2f2f]">{item.price}</p>
-      <p className="absolute right-[14px] top-[262px] text-sm font-light leading-none text-[#3c2f2f] line-through">1200 Դ</p>
+      {hasDiscount ? (
+        <span className="absolute right-px top-[170px] inline-flex h-[30px] items-center rounded-[60px] bg-[#ff7f20] px-[17px] text-sm font-bold leading-none text-black">
+          -{Math.round(item.discountPercent)}%
+        </span>
+      ) : null}
+      <p className="absolute right-[14px] top-[236px] text-[20px] font-black leading-none text-[#3c2f2f]">{formatPrice(item.price)}</p>
+      {item.oldPrice ? (
+        <p className="absolute right-[14px] top-[262px] text-sm font-light leading-none text-[#3c2f2f] line-through">
+          {formatPrice(item.oldPrice)}
+        </p>
+      ) : null}
       <button
         type="button"
         className="absolute -bottom-[25px] left-1/2 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center"
@@ -114,17 +107,27 @@ function NewsCard({ item }: { item: CardItem }) {
   );
 }
 
-function CategoryCard({ item }: { item: CategoryItem }) {
+function CategoryCard({ item }: { item: HomeCategoryItem }) {
   return (
     <article className="rounded-[22px] bg-[#0c0d12] p-4">
       <h3 className="min-h-[56px] text-2xl font-black leading-tight text-white">{item.title}</h3>
-      <p className="mb-2 mt-1 text-sm text-white/80">{item.count}</p>
+      <p className="mb-2 mt-1 text-sm text-white/80">({item.count} ապրանք)</p>
       <img src={item.image} alt={item.title} className="mx-auto h-[190px] w-full max-w-[240px] object-contain" />
     </article>
   );
 }
 
-export function FigmaHomePage() {
+export function FigmaHomePage({
+  featuredProducts,
+  categories,
+}: {
+  featuredProducts: HomeFeaturedProduct[];
+  categories: HomeCategoryItem[];
+}) {
+  const homeFeaturedProducts = featuredProducts.length > 0 ? featuredProducts : fallbackFeaturedProducts;
+  const homeCategories = categories.length > 0 ? categories : fallbackCategories;
+  const heroProduct = homeFeaturedProducts[0];
+
   return (
     <>
       <div className="lg:hidden">
@@ -136,6 +139,9 @@ export function FigmaHomePage() {
           src={assets.heroBg}
           alt="Degusto hero"
           className="absolute inset-x-0 top-[92px] h-[900px] w-full object-contain object-top lg:h-full"
+          loading="eager"
+          fetchPriority="high"
+          decoding="sync"
         />
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -188,7 +194,7 @@ export function FigmaHomePage() {
           <div className="relative h-[284px] w-[236px] sm:ml-[45px]">
             <div className="absolute inset-0 rounded-[20px] bg-white shadow-xl" />
             <div className="absolute left-1/2 top-[5px] h-[147px] w-[227px] -translate-x-1/2">
-              <img src={assets.productCardImage} alt="Daily offer" className="h-full w-full rounded-[18px] object-cover" />
+              <img src={heroProduct?.image || assets.productCardImage} alt="Daily offer" className="h-full w-full rounded-[18px] object-cover" />
               <div className="absolute left-[11px] top-[8px] flex flex-col gap-[6px]">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ff2b2e]">
                   <img src={assets.productCardHot} alt="" className="h-[19px] w-[19px] -rotate-[13deg] object-contain" />
@@ -203,15 +209,14 @@ export function FigmaHomePage() {
               <p className="text-base font-medium leading-none text-[rgba(60,47,47,0.62)]">4.7</p>
             </div>
             <h2 className="absolute left-[14px] top-[194px] text-base font-bold leading-none text-[#3c2f2f]">
-              <span className="block">Double</span>
-              <span className="block">Cheeseburger</span>
+              <span className="block">{heroProduct?.title || 'Double Cheeseburger'}</span>
             </h2>
-            <p className="absolute left-[14px] top-[230px] text-base font-medium leading-none text-[#a1a1a1]">Բուրգեր</p>
+            <p className="absolute left-[14px] top-[230px] text-base font-medium leading-none text-[#a1a1a1]">{heroProduct?.subtitle || 'Բուրգեր'}</p>
             <span className="absolute right-[12px] top-[165px] inline-flex items-center rounded-[60px] bg-[#ff7f20] px-[17px] py-[8px] text-sm font-bold leading-none text-black">
-              -30%
+              -{Math.round(heroProduct?.discountPercent || 30)}%
             </span>
             <span className="absolute right-[14px] top-[242px] font-['Montserrat_arm','Montserrat',sans-serif] text-[22px] font-[1000] leading-none tracking-[-0.3px] text-[#3c2f2f]">
-              1200 Դ
+              {formatPrice(heroProduct?.price || 1200)}
             </span>
             <button
               type="button"
@@ -237,14 +242,14 @@ export function FigmaHomePage() {
         <div className="w-full px-4 md:px-8 ">
           <div className="flex items-center justify-between">
             <h2 className="translate-x-[70px] translate-y-[70px] text-4xl font-black text-white md:text-6xl">
-              <span className="text-[#f66913]">Մենք ունենք </span>նորույթներ
+              <span className="text-[#f66913]">Ակցիաներ և </span>հատուկ առաջարկներ
             </h2>
             <Link href="/products" className="translate-x-[-115px] translate-y-[70px] inline-block rounded-full bg-[#ff7f20] px-6 py-4 text-lg font-bold text-white">
               Ավելին →
             </Link>
           </div>
           <div className="mt-[150px] flex flex-wrap justify-center gap-[10px] pb-8">
-            {newsCards.map((item) => (
+            {homeFeaturedProducts.map((item) => (
               <NewsCard key={item.id} item={item} />
             ))}
           </div>
@@ -256,112 +261,14 @@ export function FigmaHomePage() {
           <div className="mx-auto max-w-[1280px]">
             <h2 className="mb-8 text-5xl font-black text-black md:text-6xl">Կատեգորիաներ</h2>
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {categories.map((item) => (
+              {homeCategories.map((item) => (
                 <CategoryCard key={item.id} item={item} />
               ))}
             </div>
           </div>
         </section>
       </div>
-
-      <div className="bg-[#e6e6e8]">
-        <footer className="overflow-hidden rounded-t-[40px] bg-[#121212] px-4 pb-10 pt-14 text-white md:px-8 lg:px-12 lg:pb-0 lg:pt-0">
-          <div className="relative mx-auto max-w-[1280px] lg:h-[576px]">
-            <img
-              src={assets.footerPastaVisual}
-              alt="Degusto footer visual"
-              className="pointer-events-none absolute -right-[10px] top-[-115px] hidden h-[800px] w-[512px] -rotate-90 -scale-x-100 [aspect-ratio:90/173] object-contain lg:block"
-            />
-
-            <div className="relative z-10 grid gap-10 lg:grid-cols-[244px_283px_120px_1fr] lg:pt-[73px]">
-              <div>
-                <h3 className="mb-4 flex items-center gap-[6px] text-[20px] font-black leading-6 text-[#ff7f20]">
-                  <img src={assets.footerAddressPinIcon} alt="" className="h-6 w-[18px] object-contain" />
-                  <span>Հասցեներ</span>
-                </h3>
-                <p className="text-sm leading-[27px]">Պարույր Սևակի 92</p>
-                <p className="text-sm leading-[27px]">Բագրատունյաց 11Ա</p>
-                <p className="max-w-[246px] text-sm leading-[27px]">Ազատության 24/19, Coffee Studio by Degusto</p>
-              </div>
-
-              <div>
-                <h3 className="mb-4 text-[20px] font-black uppercase tracking-[0.55px] text-[#ff7f20]">Պայմաններ</h3>
-                <div className="space-y-2 text-sm text-white">
-                  <p className="leading-5">Գաղտնիության քաղաքականություն</p>
-                  <p className="leading-7">Առաքման քաղաքականություն</p>
-                  <p className="leading-5">Վերադարձի քաղաքականություն</p>
-                  <p className="leading-5">Պայմաններ և դրույթներ</p>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="mb-2 text-[20px] font-black leading-6 text-[#ff7f20]">Հղումներ</h3>
-                <div className="space-y-0 text-sm leading-[30px]">
-                  <p>Գլխավոր</p>
-                  <p>Խոհանոց</p>
-                  <p>Կոմբոներ</p>
-                  <p>Մեր մասին</p>
-                </div>
-              </div>
-
-              <div className="hidden lg:block" />
-            </div>
-
-            <div className="relative z-10 mt-[18px] flex flex-col gap-3 lg:mt-8 lg:w-[472px]">
-              <h3 className="text-[20px] font-black leading-6 text-[#ff7f20]">Կոնտակտներ</h3>
-
-              <div className="flex items-center gap-3">
-                <img src={assets.footerMailIcon} alt="" className="h-[25px] w-6 object-contain" />
-                <p className="text-sm leading-[27px]">info@degusto.am</p>
-              </div>
-
-              <div className="flex items-start gap-[11px]">
-                <img src={assets.footerPhoneIcon} alt="" className="mt-[1px] h-[25px] w-6 object-contain" />
-                <p className="text-sm leading-[27px]">Հեռ. (060) 38-80-80 / (033)-80-80-80 / (010)-38-80-80</p>
-              </div>
-
-              <div className="mt-1 flex h-[41px] items-center gap-4">
-                <img src={assets.footerInstagramIcon} alt="Instagram" className="h-10 w-10 object-contain" />
-                <img src={assets.footerTikTokIcon} alt="TikTok" className="h-10 w-10 object-contain" />
-                <img src={assets.footerTelegramIcon} alt="Telegram" className="h-10 w-10 object-contain" />
-                <img src={assets.footerWhatsappIcon} alt="WhatsApp" className="h-10 w-10 object-contain" />
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#ff7c1d]">
-                  <img src={assets.footerViberIcon} alt="Viber" className="h-[22px] w-[22px] object-contain" />
-                </span>
-              </div>
-            </div>
-
-            <div className="relative z-10 mt-6 flex flex-wrap justify-start gap-[5px] lg:absolute lg:bottom-[164px] lg:right-0 lg:mt-0">
-              <img src={assets.footerAppStoreBadge} alt="Download on the App Store" className="h-10 w-auto object-contain" />
-              <img src={assets.footerGooglePlayBadge} alt="Get it on Google Play" className="h-10 w-auto object-contain" />
-            </div>
-
-            <div className="relative z-10 mt-8 border-t border-white/20 pt-4 lg:absolute lg:bottom-[52px] lg:left-0 lg:right-0 lg:mt-0 lg:pt-[18px]">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <img src={assets.footerBrandLogo} alt="Degusto" className="h-[42px] w-[117px] object-contain" />
-                <p className="text-sm leading-[23px] text-white lg:pr-[24px]">
-                  Copyright © 2026 | Բոլոր իրավունքները պաշտպանված են | Ստեղծվել է{' '}
-                  <span className="font-black text-[#ff7f20]">Neetrino IT Company</span> կողմից
-                </p>
-                <div className="flex items-center gap-[11px]">
-                  <span className="inline-flex h-[30px] w-[73px] items-center justify-center rounded-lg bg-white px-1">
-                    <img src={assets.footerIdramLogo} alt="Idram" className="h-[17px] w-[66px] object-contain" />
-                  </span>
-                  <span className="inline-flex h-[30px] w-[73px] items-center justify-center rounded-lg bg-white px-1">
-                    <img src={assets.footerFastshiftLogo} alt="Fastshift" className="h-4 w-[61px] object-contain" />
-                  </span>
-                  <span className="inline-flex h-[30px] w-[74px] items-center justify-center rounded-lg bg-white px-1">
-                    <img src={assets.footerArcaLogo} alt="Arca" className="h-[13px] w-[50px] object-contain" />
-                  </span>
-                  <span className="inline-flex h-[30px] w-[73px] items-center justify-center rounded-lg bg-white px-1">
-                    <img src={assets.footerVisaLogo} alt="Visa" className="h-[22px] w-12 object-contain" />
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </footer>
-      </div>
+      <Footer />
       </div>
     </>
   );

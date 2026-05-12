@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+
 const assets = {
   footerBrandLogo: '/api/r2/footer/20260512-5UxUa-QBsL.png',
   footerMailIcon: '/api/r2/footer/20260512-jlVRdFnMTr.png',
@@ -20,10 +21,57 @@ const assets = {
   footerAddressPinIcon: '/api/r2/footer/20260512--BIDvUK4Se.png',
 };
 
+const socialLinks = {
+  instagram: 'https://www.instagram.com/degusto.am/',
+  tiktok: 'https://www.tiktok.com/@degusto.am',
+  telegram: 'https://t.me/degustoam',
+  whatsapp: 'https://wa.me/37460388080',
+  viber: 'viber://chat?number=%2B37460388080',
+};
+
 export function Footer() {
   return (
-    <footer className="hidden bg-white lg:block">
-      <div className="overflow-hidden rounded-t-[40px] bg-[#121212] px-4 pb-10 pt-14 text-white md:px-8 lg:px-12 lg:pb-0 lg:pt-0">
+    <footer className="bg-white">
+      <div className="lg:hidden rounded-t-[28px] bg-[#121212] px-4 pb-8 pt-8 text-white">
+        <div className="space-y-6">
+          <div>
+            <h3 className="mb-3 text-lg font-black text-[#ff7f20]">Կոնտակտներ</h3>
+            <a href="mailto:info@degusto.am" className="block text-sm leading-7">
+              info@degusto.am
+            </a>
+            <a href="tel:+37460388080" className="block text-sm leading-7">
+              Հեռ. (060) 38-80-80 / (033)-80-80-80 / (010)-38-80-80
+            </a>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <a href={socialLinks.instagram} aria-label="Instagram" target="_blank" rel="noreferrer" className="inline-flex h-10 w-10 items-center justify-center">
+              <img src={assets.footerInstagramIcon} alt="Instagram" className="h-10 w-10 object-contain" />
+            </a>
+            <a href={socialLinks.tiktok} aria-label="TikTok" target="_blank" rel="noreferrer" className="inline-flex h-10 w-10 items-center justify-center">
+              <img src={assets.footerTikTokIcon} alt="TikTok" className="h-10 w-10 object-contain" />
+            </a>
+            <a href={socialLinks.telegram} aria-label="Telegram" target="_blank" rel="noreferrer" className="inline-flex h-10 w-10 items-center justify-center">
+              <img src={assets.footerTelegramIcon} alt="Telegram" className="h-10 w-10 object-contain" />
+            </a>
+            <a href={socialLinks.whatsapp} aria-label="WhatsApp" target="_blank" rel="noreferrer" className="inline-flex h-10 w-10 items-center justify-center">
+              <img src={assets.footerWhatsappIcon} alt="WhatsApp" className="h-10 w-10 object-contain" />
+            </a>
+            <a href={socialLinks.viber} aria-label="Viber" target="_blank" rel="noreferrer" className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#ff7c1d]">
+              <img src={assets.footerViberIcon} alt="Viber" className="h-[22px] w-[22px] object-contain" />
+            </a>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <Link href="/privacy">Գաղտնիության քաղաքականություն</Link>
+            <Link href="/delivery-terms">Առաքման քաղաքականություն</Link>
+            <Link href="/refund-policy">Վերադարձի քաղաքականություն</Link>
+            <Link href="/terms">Պայմաններ և դրույթներ</Link>
+          </div>
+        </div>
+      </div>
+
+      <div className="hidden overflow-hidden rounded-t-[40px] bg-[#121212] px-4 pb-10 pt-14 text-white md:px-8 lg:block lg:px-12 lg:pb-0 lg:pt-0">
         <div className="relative mx-auto max-w-[1280px] lg:h-[576px]">
           <img
             src={assets.footerPastaVisual}
@@ -99,13 +147,21 @@ export function Footer() {
             </div>
 
             <div className="mt-1 flex h-[41px] items-center gap-4">
-              <img src={assets.footerInstagramIcon} alt="Instagram" className="h-10 w-10 object-contain" />
-              <img src={assets.footerTikTokIcon} alt="TikTok" className="h-10 w-10 object-contain" />
-              <img src={assets.footerTelegramIcon} alt="Telegram" className="h-10 w-10 object-contain" />
-              <img src={assets.footerWhatsappIcon} alt="WhatsApp" className="h-10 w-10 object-contain" />
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#ff7c1d]">
+              <a href={socialLinks.instagram} aria-label="Instagram" target="_blank" rel="noreferrer" className="inline-flex h-10 w-10 items-center justify-center">
+                <img src={assets.footerInstagramIcon} alt="Instagram" className="h-10 w-10 object-contain" />
+              </a>
+              <a href={socialLinks.tiktok} aria-label="TikTok" target="_blank" rel="noreferrer" className="inline-flex h-10 w-10 items-center justify-center">
+                <img src={assets.footerTikTokIcon} alt="TikTok" className="h-10 w-10 object-contain" />
+              </a>
+              <a href={socialLinks.telegram} aria-label="Telegram" target="_blank" rel="noreferrer" className="inline-flex h-10 w-10 items-center justify-center">
+                <img src={assets.footerTelegramIcon} alt="Telegram" className="h-10 w-10 object-contain" />
+              </a>
+              <a href={socialLinks.whatsapp} aria-label="WhatsApp" target="_blank" rel="noreferrer" className="inline-flex h-10 w-10 items-center justify-center">
+                <img src={assets.footerWhatsappIcon} alt="WhatsApp" className="h-10 w-10 object-contain" />
+              </a>
+              <a href={socialLinks.viber} aria-label="Viber" target="_blank" rel="noreferrer" className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#ff7c1d]">
                 <img src={assets.footerViberIcon} alt="Viber" className="h-[22px] w-[22px] object-contain" />
-              </span>
+              </a>
             </div>
           </div>
 
