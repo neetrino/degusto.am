@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useAuth } from '../../lib/auth/AuthContext';
 
 type MobileBottomNavigationAssets = {
   bottomNavBackground: string;
@@ -19,6 +20,9 @@ export function MobileBottomNavigation({
   assets: MobileBottomNavigationAssets;
   onShopClick: () => void;
 }) {
+  const { isLoggedIn } = useAuth();
+  const profileHref = isLoggedIn ? '/profile' : '/login';
+
   return (
     <div className="pointer-events-none fixed bottom-0 left-1/2 z-40 h-[159px] w-[375px] -translate-x-1/2">
       <img src={assets.bottomNavBackground} alt="" className="absolute bottom-0 left-0 h-20 w-[375px] object-cover" />
@@ -47,8 +51,12 @@ export function MobileBottomNavigation({
         <Link href="/favorites" className="inline-flex h-[30px] w-[71px] items-start">
           <img src={assets.bottomNavFavorite} alt="Favorites" className="h-[30px] w-[71px] object-contain" />
         </Link>
-        <Link href="/profile" className="inline-flex h-[30px] w-[71px] items-center justify-center">
-          <img src={assets.bottomNavProfile} alt="Profile" className="h-[30px] w-[30px] object-contain" />
+        <Link href={profileHref} className="inline-flex h-[30px] w-[71px] items-center justify-center">
+          <img
+            src={assets.bottomNavProfile}
+            alt={isLoggedIn ? 'Profile' : 'Login'}
+            className="h-[30px] w-[30px] object-contain"
+          />
         </Link>
       </nav>
     </div>

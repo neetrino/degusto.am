@@ -21,7 +21,7 @@
   },
   "dashboard": {
     "title": "Ադմին էջ",
-    "welcome": "Բարի վերադարձ, {name}!",
+    "welcome": "Login, {name}!",
     "totalUsers": "օգտատերեր",
     "totalProducts": " ապրանքներ",
     "lowStock": "{count} ցածր պաշար",

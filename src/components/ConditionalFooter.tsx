@@ -11,5 +11,5 @@ export function ConditionalFooter() {
   if (pathname?.startsWith('/profile')) {
     return null;
   }
-  return <Footer />;
+  return <Footer outerBackgroundClassName={pathname === '/login' ? 'bg-[#F66812]' : 'bg-white'} />;
 }

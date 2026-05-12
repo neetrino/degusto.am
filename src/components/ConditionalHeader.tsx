@@ -17,7 +17,7 @@ export function ConditionalHeader() {
   return (
     <>
       <div className="hidden lg:block">
-        <UniversalHeader />
+        <UniversalHeader spacerBackgroundClassName={pathname === '/login' ? 'bg-[#F66812]' : 'bg-white'} />
       </div>
       <div className="lg:hidden">
         <Header />

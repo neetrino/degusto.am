@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { LanguageCurrencySwitcher } from './LanguageCurrencySwitcher';
 import { useTranslation } from '../lib/i18n-client';
+import { useAuth } from '../lib/auth/AuthContext';
 
 const assets = {
   logo: 'https://www.figma.com/api/mcp/asset/b684f5ca-5543-4689-be84-ac53b6c5d14c',
@@ -23,6 +24,8 @@ interface UniversalHeaderProps {
 export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: UniversalHeaderProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const { t } = useTranslation();
+  const { isLoggedIn } = useAuth();
+  const userNavHref = isLoggedIn ? '/profile' : '/login';
 
   return (
     <>
@@ -70,9 +73,9 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
               arrowSrc={assets.switcherArrow}
             />
           </div>
-          <button type="button" className="inline-flex h-12 w-12 items-center justify-center">
-            <img src={assets.loginIcon} alt="Log in" className="h-12 w-12 object-contain" />
-          </button>
+          <Link href={userNavHref} className="inline-flex h-12 w-12 items-center justify-center">
+            <img src={assets.loginIcon} alt={isLoggedIn ? 'Profile' : 'Log in'} className="h-12 w-12 object-contain" />
+          </Link>
         </div>
       </header>
     </>

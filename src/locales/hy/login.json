@@ -2,8 +2,8 @@
   "title": "Բարի վերադարձ",
   "subtitle": "Մուտք գործեք ձեր հաշիվ՝ շարունակելու համար",
   "form": {
-    "emailOrPhone": "Էլ. փոստ կամ հեռախոս",
-    "emailOrPhonePlaceholder": "your@email.com կամ +374xxxxxxxx",
+    "emailOrPhone": "Էլ. փոստ",
+    "emailOrPhonePlaceholder": "your@email.com",
     "password": "Գաղտնաբառ",
     "passwordPlaceholder": "••••••••",
     "rememberMe": "Հիշել ինձ",
@@ -14,7 +14,8 @@
     "signUp": "Գրանցվել"
   },
   "errors": {
-    "identifierRequired": "Խնդրում ենք մուտքագրել ձեր էլ. փոստը կամ հեռախոսահամարը",
+    "identifierRequired": "Խնդրում ենք մուտքագրել ձեր էլ. փոստը",
+    "emailInvalid": "Խնդրում ենք մուտքագրել վավեր էլ. փոստի հասցե",
     "passwordRequired": "Խնդրում ենք մուտքագրել ձեր գաղտնաբառը",
     "invalidCredentials": "Սխալ էլ. փոստ/հեռախոս կամ գաղտնաբառ։",
     "accountBlocked": "Ձեր հաշիվը արգելափակված է։",

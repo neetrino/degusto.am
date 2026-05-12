@@ -30,11 +30,15 @@ const socialLinks = {
   viber: 'viber://chat?number=%2B37460388080',
 };
 
-export function Footer() {
+interface FooterProps {
+  outerBackgroundClassName?: string;
+}
+
+export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
   const { t } = useTranslation();
 
   return (
-    <footer className="bg-white">
+    <footer className={outerBackgroundClassName}>
       <div className="lg:hidden rounded-t-[28px] bg-[#121212] px-4 pb-8 pt-8 text-white">
         <div className="space-y-6">
           <div>
