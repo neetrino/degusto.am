@@ -267,6 +267,23 @@ export async function getAnalytics(period: string = 'week', startDate?: string, 
   // Calculate orders by day
   const ordersByDay = calculateOrdersByDay(orders);
 
+  const [totalProducts, totalVariants, lowStockVariants, outOfStockVariants] = await Promise.all([
+    db.product.count({ where: { deletedAt: null } }),
+    db.productVariant.count({ where: { published: true } }),
+    db.productVariant.count({
+      where: {
+        published: true,
+        stock: { gt: 0, lt: 10 },
+      },
+    }),
+    db.productVariant.count({
+      where: {
+        published: true,
+        stock: { lte: 0 },
+      },
+    }),
+  ]);
+
   return {
     period,
     dateRange: {
@@ -283,6 +300,12 @@ export async function getAnalytics(period: string = 'week', startDate?: string, 
     topProducts,
     topCategories,
     ordersByDay,
+    inventory: {
+      totalProducts,
+      totalVariants,
+      lowStockVariants,
+      outOfStockVariants,
+    },
   };
 }
 

@@ -12,6 +12,7 @@ import { adminBrandsService } from "./admin/admin-brands.service";
 import { adminCategoriesService } from "./admin/admin-categories.service";
 import { adminProductsService } from "./admin/admin-products.service";
 import { adminAttributesService } from "./admin/admin-attributes.service";
+import { adminCouponsService } from "./admin/admin-coupons.service";
 
 class AdminService {
   // Delegate to specialized services
@@ -76,6 +77,12 @@ class AdminService {
   updateAttributeValue = adminAttributesService.updateAttributeValue.bind(adminAttributesService);
   deleteAttribute = adminAttributesService.deleteAttribute.bind(adminAttributesService);
   deleteAttributeValue = adminAttributesService.deleteAttributeValue.bind(adminAttributesService);
+
+  // Coupons methods
+  listCoupons = adminCouponsService.listCoupons.bind(adminCouponsService);
+  createCoupon = adminCouponsService.createCoupon.bind(adminCouponsService);
+  updateCoupon = adminCouponsService.updateCoupon.bind(adminCouponsService);
+  deleteCoupon = adminCouponsService.deleteCoupon.bind(adminCouponsService);
 }
 
 export const adminService = new AdminService();

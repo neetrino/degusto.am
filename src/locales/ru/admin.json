@@ -98,7 +98,10 @@
     "clickToViewAllOrders": "Нажмите, чтобы просмотреть все заказы",
     "clickToViewPaidOrders": "Нажмите, чтобы просмотреть оплаченные заказы",
     "totalRegisteredUsers": "Всего зарегистрированных пользователей",
-    "skuLabel": "SKU"
+    "skuLabel": "SKU",
+    "inventoryRisk": "Варианты без остатка",
+    "lowStockVariants": "{count} вариантов с низким остатком",
+    "clickToViewInventory": "Нажмите, чтобы проверить запасы"
   },
   "attributes": {
     "title": "Атрибуты",

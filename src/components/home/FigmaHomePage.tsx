@@ -65,6 +65,7 @@ function formatPrice(value: number | null): string {
 
 function NewsCard({ item }: { item: HomeFeaturedProduct }) {
   const hasDiscount = typeof item.discountPercent === 'number' && item.discountPercent > 0;
+  const discountPercent = typeof item.discountPercent === 'number' ? Math.round(item.discountPercent) : null;
   const imageSrc = item.image || assets.product;
 
   return (
@@ -88,7 +89,7 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
       <p className="absolute left-[14px] top-[230px] text-base font-medium leading-none text-[#a1a1a1]">{item.subtitle}</p>
       {hasDiscount ? (
         <span className="absolute right-px top-[170px] inline-flex h-[30px] items-center rounded-[60px] bg-[#ff7f20] px-[17px] text-sm font-bold leading-none text-black">
-          -{Math.round(item.discountPercent)}%
+          -{discountPercent}%
         </span>
       ) : null}
       <p className="absolute right-[14px] top-[236px] text-[20px] font-black leading-none text-[#3c2f2f]">{formatPrice(item.price)}</p>

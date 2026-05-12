@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateToken, requireAdmin } from "@/lib/middleware/auth";
 import { adminService } from "@/lib/services/admin.service";
+import { toApiError } from "@/lib/types/errors";
 import { logger } from "@/lib/utils/logger";
 
 /**
@@ -28,8 +29,36 @@ export async function PATCH(
 
     const { id: attributeId, valueId } = await params;
     const body = await req.json();
+    if (!body || typeof body !== "object") {
+      return NextResponse.json(
+        {
+          type: "https://api.shop.am/problems/validation-error",
+          title: "Validation Error",
+          status: 400,
+          detail: "Request body must be a valid JSON object",
+          instance: req.url,
+        },
+        { status: 400 }
+      );
+    }
 
     logger.debug('✏️ [ADMIN ATTRIBUTE VALUES] PATCH request:', { attributeId, valueId, body });
+
+    if (
+      body.label !== undefined &&
+      (typeof body.label !== "string" || body.label.trim().length === 0)
+    ) {
+      return NextResponse.json(
+        {
+          type: "https://api.shop.am/problems/validation-error",
+          title: "Validation Error",
+          status: 400,
+          detail: "Field 'label' must be a non-empty string when provided",
+          instance: req.url,
+        },
+        { status: 400 }
+      );
+    }
 
     const result = await adminService.updateAttributeValue(attributeId, valueId, {
       label: body.label,
@@ -39,18 +68,10 @@ export async function PATCH(
     });
 
     return NextResponse.json({ data: result }, { status: 200 });
-  } catch (error: any) {
-    console.error("❌ [ADMIN ATTRIBUTE VALUES] PATCH Error:", error);
-    return NextResponse.json(
-      {
-        type: error.type || "https://api.shop.am/problems/internal-error",
-        title: error.title || "Internal Server Error",
-        status: error.status || 500,
-        detail: error.detail || error.message || "An error occurred",
-        instance: req.url,
-      },
-      { status: error.status || 500 }
-    );
+  } catch (error: unknown) {
+    logger.error("Admin attribute values PATCH failed", { error });
+    const apiError = toApiError(error, req.url);
+    return NextResponse.json(apiError, { status: apiError.status || 500 });
   }
 }
 
@@ -80,18 +101,10 @@ export async function DELETE(
     const { valueId } = await params;
     const result = await adminService.deleteAttributeValue(valueId);
     return NextResponse.json({ data: result }, { status: 200 });
-  } catch (error: any) {
-    console.error("❌ [ADMIN ATTRIBUTE VALUES] DELETE Error:", error);
-    return NextResponse.json(
-      {
-        type: error.type || "https://api.shop.am/problems/internal-error",
-        title: error.title || "Internal Server Error",
-        status: error.status || 500,
-        detail: error.detail || error.message || "An error occurred",
-        instance: req.url,
-      },
-      { status: error.status || 500 }
-    );
+  } catch (error: unknown) {
+    logger.error("Admin attribute values DELETE failed", { error });
+    const apiError = toApiError(error, req.url);
+    return NextResponse.json(apiError, { status: apiError.status || 500 });
   }
 }
 

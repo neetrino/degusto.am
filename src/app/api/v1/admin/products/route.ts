@@ -343,7 +343,8 @@ export async function POST(req: NextRequest) {
     });
 
     const serviceStartTime = Date.now();
-    const product = await adminService.createProduct(body);
+    const createPayload = body as Parameters<typeof adminService.createProduct>[0];
+    const product = await adminService.createProduct(createPayload);
     const serviceTime = Date.now() - serviceStartTime;
     
     const totalTime = Date.now() - requestStartTime;

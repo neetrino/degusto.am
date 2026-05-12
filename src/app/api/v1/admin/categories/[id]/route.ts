@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { invalidateStorefrontCategoryCaches } from "@/lib/cache/storefront-cache";
 import { authenticateToken, requireAdmin } from "@/lib/middleware/auth";
 import { adminService } from "@/lib/services/admin.service";
+import { toApiError } from "@/lib/types/errors";
 import { logger } from "@/lib/utils/logger";
 
 /**
@@ -44,18 +45,10 @@ export async function GET(
     }
 
     return NextResponse.json({ data: category });
-  } catch (error: any) {
-    console.error("❌ [ADMIN CATEGORIES] GET Error:", error);
-    return NextResponse.json(
-      {
-        type: error.type || "https://api.shop.am/problems/internal-error",
-        title: error.title || "Internal Server Error",
-        status: error.status || 500,
-        detail: error.detail || error.message || "An error occurred",
-        instance: req.url,
-      },
-      { status: error.status || 500 }
-    );
+  } catch (error: unknown) {
+    logger.error("Admin categories [id] GET failed", { error });
+    const apiError = toApiError(error, req.url);
+    return NextResponse.json(apiError, { status: apiError.status || 500 });
   }
 }
 
@@ -84,6 +77,32 @@ export async function PUT(
 
     const { id } = await params;
     const body = await req.json();
+    if (!body || typeof body !== "object") {
+      return NextResponse.json(
+        {
+          type: "https://api.shop.am/problems/validation-error",
+          title: "Validation Error",
+          status: 400,
+          detail: "Request body must be a valid JSON object",
+          instance: req.url,
+        },
+        { status: 400 }
+      );
+    }
+
+    if (body.title !== undefined && (typeof body.title !== "string" || body.title.trim().length === 0)) {
+      return NextResponse.json(
+        {
+          type: "https://api.shop.am/problems/validation-error",
+          title: "Validation Error",
+          status: 400,
+          detail: "Field 'title' must be a non-empty string when provided",
+          instance: req.url,
+        },
+        { status: 400 }
+      );
+    }
+
     logger.debug("📝 [ADMIN CATEGORIES] PUT request:", { id, body });
 
     const result = await adminService.updateCategory(id, body);
@@ -92,18 +111,10 @@ export async function PUT(
     await invalidateStorefrontCategoryCaches();
 
     return NextResponse.json(result);
-  } catch (error: any) {
-    console.error("❌ [ADMIN CATEGORIES] PUT Error:", error);
-    return NextResponse.json(
-      {
-        type: error.type || "https://api.shop.am/problems/internal-error",
-        title: error.title || "Internal Server Error",
-        status: error.status || 500,
-        detail: error.detail || error.message || "An error occurred",
-        instance: req.url,
-      },
-      { status: error.status || 500 }
-    );
+  } catch (error: unknown) {
+    logger.error("Admin categories [id] PUT failed", { error });
+    const apiError = toApiError(error, req.url);
+    return NextResponse.json(apiError, { status: apiError.status || 500 });
   }
 }
 
@@ -139,18 +150,10 @@ export async function DELETE(
     await invalidateStorefrontCategoryCaches();
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    console.error("❌ [ADMIN CATEGORIES] DELETE Error:", error);
-    return NextResponse.json(
-      {
-        type: error.type || "https://api.shop.am/problems/internal-error",
-        title: error.title || "Internal Server Error",
-        status: error.status || 500,
-        detail: error.detail || error.message || "An error occurred",
-        instance: req.url,
-      },
-      { status: error.status || 500 }
-    );
+  } catch (error: unknown) {
+    logger.error("Admin categories [id] DELETE failed", { error });
+    const apiError = toApiError(error, req.url);
+    return NextResponse.json(apiError, { status: apiError.status || 500 });
   }
 }
 

@@ -45,7 +45,10 @@ export async function GET(
       return new NextResponse("File not found", { status: 404 });
     }
 
-    return new NextResponse(bytes, {
+    const normalizedBytes = Uint8Array.from(bytes);
+    const body = new Blob([normalizedBytes]);
+
+    return new NextResponse(body, {
       status: 200,
       headers: {
         "Content-Type": response.ContentType ?? "application/octet-stream",

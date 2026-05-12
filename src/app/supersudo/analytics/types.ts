@@ -33,6 +33,12 @@ export interface AnalyticsData {
     count: number;
     revenue: number;
   }>;
+  inventory: {
+    totalProducts: number;
+    totalVariants: number;
+    lowStockVariants: number;
+    outOfStockVariants: number;
+  };
 }
 
 export interface AdminStatsSummary {

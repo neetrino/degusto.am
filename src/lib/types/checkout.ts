@@ -30,6 +30,7 @@ export interface CheckoutData {
   /** Ignored at checkout — server computes from shippingMethod + shippingAddress.city */
   shippingAmount?: number;
   paymentMethod?: string;
+  couponCode?: string;
   cashChangeFrom?: number;
   notes?: string;
   billingAddress?: {

@@ -95,7 +95,8 @@ export async function PUT(
       variantsCount: body.variants?.length || 0
     });
 
-    const product = await adminService.updateProduct(id, body);
+    const updatePayload = body as Parameters<typeof adminService.updateProduct>[1];
+    const product = await adminService.updateProduct(id, updatePayload);
     logger.debug("✅ [ADMIN PRODUCTS] Product updated:", { id, productId: product?.id });
 
     return NextResponse.json(product);

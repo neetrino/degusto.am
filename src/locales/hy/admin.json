@@ -98,7 +98,10 @@
     "clickToViewAllOrders": "Սեղմեք բոլոր պատվերները դիտելու համար",
     "clickToViewPaidOrders": "Սեղմեք վճարված պատվերները դիտելու համար",
     "totalRegisteredUsers": "Ընդամենը գրանցված օգտատերեր",
-    "skuLabel": "SKU"
+    "skuLabel": "SKU",
+    "inventoryRisk": "Պահեստում չեղած տարբերակներ",
+    "lowStockVariants": "{count} ցածր մնացորդով տարբերակ",
+    "clickToViewInventory": "Սեղմեք պահեստի ռիսկերը դիտելու համար"
   },
   "attributes": {
     "title": "Ատրիբուտներ",

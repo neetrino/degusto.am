@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateToken, requireAdmin } from "@/lib/middleware/auth";
 import { adminService } from "@/lib/services/admin.service";
+import { toApiError } from "@/lib/types/errors";
 import { logger } from "@/lib/utils/logger";
 
 /**
@@ -28,6 +29,31 @@ export async function PATCH(
 
     const { id: attributeId } = await params;
     const body = await req.json();
+    if (!body || typeof body !== "object") {
+      return NextResponse.json(
+        {
+          type: "https://api.shop.am/problems/validation-error",
+          title: "Validation Error",
+          status: 400,
+          detail: "Request body must be a valid JSON object",
+          instance: req.url,
+        },
+        { status: 400 }
+      );
+    }
+
+    if (typeof body.name !== "string" || body.name.trim().length === 0) {
+      return NextResponse.json(
+        {
+          type: "https://api.shop.am/problems/validation-error",
+          title: "Validation Error",
+          status: 400,
+          detail: "Field 'name' is required and must be a non-empty string",
+          instance: req.url,
+        },
+        { status: 400 }
+      );
+    }
 
     logger.debug('✏️ [ADMIN ATTRIBUTE TRANSLATIONS] PATCH request:', { attributeId, body });
 
@@ -37,18 +63,10 @@ export async function PATCH(
     });
 
     return NextResponse.json({ data: result }, { status: 200 });
-  } catch (error: any) {
-    console.error("❌ [ADMIN ATTRIBUTE TRANSLATIONS] PATCH Error:", error);
-    return NextResponse.json(
-      {
-        type: error.type || "https://api.shop.am/problems/internal-error",
-        title: error.title || "Internal Server Error",
-        status: error.status || 500,
-        detail: error.detail || error.message || "An error occurred",
-        instance: req.url,
-      },
-      { status: error.status || 500 }
-    );
+  } catch (error: unknown) {
+    logger.error("Admin attribute translations PATCH failed", { error });
+    const apiError = toApiError(error, req.url);
+    return NextResponse.json(apiError, { status: apiError.status || 500 });
   }
 }
 

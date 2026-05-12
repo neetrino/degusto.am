@@ -101,6 +101,53 @@ type OrderItemWithVariant = Prisma.OrderItemGetPayload<{
   };
 }>;
 
+interface StoredCoupon {
+  code: string;
+  description?: string;
+  discountType?: "percent" | "fixed";
+  discountValue?: number;
+  isActive?: boolean;
+  startsAt?: string;
+  expiresAt?: string;
+  minOrderAmount?: number;
+}
+
+interface AppliedCouponResult {
+  code: string;
+  discountAmount: number;
+}
+
+function toDateOrNull(input: string | undefined): Date | null {
+  if (!input) {
+    return null;
+  }
+
+  const date = new Date(input);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function normalizeCouponCode(input: unknown): string | null {
+  if (typeof input !== "string") {
+    return null;
+  }
+
+  const normalized = input.trim().toUpperCase();
+  if (!normalized) {
+    return null;
+  }
+
+  if (!/^[A-Z0-9_-]{3,32}$/.test(normalized)) {
+    throw {
+      status: 400,
+      type: "https://api.shop.am/problems/validation-error",
+      title: "Validation Error",
+      detail: "couponCode format is invalid",
+    };
+  }
+
+  return normalized;
+}
+
 class OrdersService {
   /**
    * Create order (checkout)
@@ -115,6 +162,7 @@ class OrdersService {
         shippingMethod = 'pickup',
         shippingAddress,
         paymentMethod = 'idram',
+        couponCode,
         cashChangeFrom,
         notes,
       } = data;
@@ -350,7 +398,9 @@ class OrdersService {
 
       // Calculate totals
       const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      const discountAmount = 0; // TODO: Implement discount/coupon logic
+      const normalizedCouponCode = normalizeCouponCode(couponCode);
+      const appliedCoupon = await this.resolveCouponDiscount(subtotal, normalizedCouponCode);
+      const discountAmount = appliedCoupon?.discountAmount ?? 0;
       // Shipping: computed server-side only (never trust client-provided amount)
       let shippingAmount = 0;
       if (shippingMethod === 'delivery' && shippingAddress?.city?.trim()) {
@@ -382,6 +432,9 @@ class OrdersService {
       const notesParts: string[] = [];
       if (typeof notes === "string" && notes.trim()) {
         notesParts.push(notes.trim().slice(0, 500));
+      }
+      if (appliedCoupon) {
+        notesParts.push(`Coupon code: ${appliedCoupon.code}`);
       }
       if (typeof normalizedCashChangeFrom === "number") {
         notesParts.push(`Cash change requested from: ${normalizedCashChangeFrom} AMD`);
@@ -435,6 +488,8 @@ class OrdersService {
                   source: userId ? 'user' : 'guest',
                   paymentMethod,
                   shippingMethod,
+                  couponCode: appliedCoupon?.code ?? null,
+                  discountAmount,
                   cashChangeFrom: normalizedCashChangeFrom ?? null,
                 },
               },
@@ -542,6 +597,14 @@ class OrdersService {
         nextAction: paymentMethod === 'idram' || paymentMethod === 'arca' 
           ? 'redirect_to_payment' 
           : 'view_order',
+        ...(appliedCoupon
+          ? {
+              coupon: {
+                code: appliedCoupon.code,
+                discountAmount: appliedCoupon.discountAmount,
+              },
+            }
+          : {}),
       };
     } catch (error: unknown) {
       // Type guard for custom error
@@ -581,6 +644,80 @@ class OrdersService {
         detail: customError?.message || "An error occurred during checkout",
       };
     }
+  }
+
+  private async resolveCouponDiscount(
+    subtotal: number,
+    couponCode: string | null
+  ): Promise<AppliedCouponResult | null> {
+    if (!couponCode) {
+      return null;
+    }
+
+    const couponSettings = await db.settings.findUnique({
+      where: { key: "couponsCatalog" },
+      select: { value: true },
+    });
+    const rawCoupons = Array.isArray(couponSettings?.value)
+      ? (couponSettings.value as unknown[])
+      : [];
+    const now = new Date();
+    const coupon = rawCoupons.find((item) => {
+      if (!item || typeof item !== "object") {
+        return false;
+      }
+      const raw = item as StoredCoupon;
+      return (raw.code ?? "").trim().toUpperCase() === couponCode;
+    }) as StoredCoupon | undefined;
+
+    if (!coupon) {
+      throw {
+        status: 400,
+        type: "https://api.shop.am/problems/validation-error",
+        title: "Validation Error",
+        detail: "Coupon code is invalid",
+      };
+    }
+
+    const startsAt = toDateOrNull(coupon.startsAt);
+    const expiresAt = toDateOrNull(coupon.expiresAt);
+    const isEnabledByWindow = (!startsAt || startsAt <= now) && (!expiresAt || expiresAt >= now);
+    if ((coupon.isActive ?? true) !== true || !isEnabledByWindow) {
+      throw {
+        status: 400,
+        type: "https://api.shop.am/problems/validation-error",
+        title: "Validation Error",
+        detail: "Coupon is inactive or expired",
+      };
+    }
+
+    const minOrderAmount =
+      typeof coupon.minOrderAmount === "number" && Number.isFinite(coupon.minOrderAmount)
+        ? coupon.minOrderAmount
+        : 0;
+    if (subtotal < minOrderAmount) {
+      throw {
+        status: 400,
+        type: "https://api.shop.am/problems/validation-error",
+        title: "Validation Error",
+        detail: `Coupon requires minimum order amount of ${minOrderAmount}`,
+      };
+    }
+
+    const discountType = coupon.discountType === "fixed" ? "fixed" : "percent";
+    const discountValue =
+      typeof coupon.discountValue === "number" && Number.isFinite(coupon.discountValue)
+        ? coupon.discountValue
+        : 0;
+    const calculatedDiscount =
+      discountType === "percent" ? subtotal * (Math.min(100, Math.max(0, discountValue)) / 100) : discountValue;
+    const safeDiscount = Math.min(subtotal, Math.max(0, calculatedDiscount));
+    const roundedDiscount = Math.round(safeDiscount * 100) / 100;
+
+    return {
+      code: couponCode,
+      discountAmount: roundedDiscount,
+    };
   }
 
   /**
