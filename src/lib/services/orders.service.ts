@@ -5,6 +5,11 @@ import type { CheckoutData } from "../types/checkout";
 import { logger } from "../utils/logger";
 import { adminDeliveryService } from "./admin/admin-delivery.service";
 import { extractMediaUrl } from "../utils/extractMediaUrl";
+import {
+  formatCustomizationsForVariantTitle,
+  normalizeProductCustomizations,
+  type ProductCustomizations,
+} from "../cart/customizations";
 
 const orderNumberId = customAlphabet("0123456789ABCDEFGHJKLMNPQRSTUVWXYZ", 10);
 
@@ -15,6 +20,40 @@ function generateOrderNumber(): string {
     String(now.getMonth() + 1).padStart(2, "0") +
     String(now.getDate()).padStart(2, "0");
   return `${ymd}-${orderNumberId()}`;
+}
+
+function buildPaymentUrl(params: {
+  provider: string;
+  orderNumber: string;
+  total: number;
+  currency: string;
+  isGuest: boolean;
+}): string | null {
+  if (params.provider !== "idram" && params.provider !== "arca") {
+    return null;
+  }
+
+  const externalBase =
+    params.provider === "idram"
+      ? process.env.IDRAM_CHECKOUT_URL
+      : process.env.ARCA_CHECKOUT_URL;
+
+  if (externalBase) {
+    const url = new URL(externalBase);
+    url.searchParams.set("orderNumber", params.orderNumber);
+    url.searchParams.set("amount", String(params.total));
+    url.searchParams.set("currency", params.currency);
+    return url.toString();
+  }
+
+  const localPath = `/checkout/payment-gateway?provider=${encodeURIComponent(
+    params.provider
+  )}&order=${encodeURIComponent(params.orderNumber)}&guest=${params.isGuest ? "1" : "0"}`;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL;
+  if (!appUrl) {
+    return localPath;
+  }
+  return new URL(localPath, appUrl).toString();
 }
 type CartItemWithRelations = Prisma.CartItemGetPayload<{
   include: {
@@ -75,6 +114,8 @@ class OrdersService {
         shippingMethod = 'pickup',
         shippingAddress,
         paymentMethod = 'idram',
+        cashChangeFrom,
+        notes,
       } = data;
       // shippingAmount is ignored — computed server-side from shippingMethod and address
 
@@ -98,6 +139,7 @@ class OrdersService {
         variantTitle?: string;
         sku: string;
         imageUrl?: string;
+        customizations?: ProductCustomizations;
       }> = [];
 
       if (userId && cartId && cartId !== 'guest-cart') {
@@ -173,6 +215,8 @@ class OrdersService {
             const variantTitle = variant.options
               ?.map((opt) => `${opt.attributeKey || ''}: ${opt.value || ''}`)
               .join(', ') || undefined;
+            const customizations = normalizeProductCustomizations(item.customizations);
+            const customizationsSuffix = formatCustomizationsForVariantTitle(customizations);
 
             // Get image URL
             const imageUrl = extractMediaUrl(product.media) ?? undefined;
@@ -195,9 +239,12 @@ class OrdersService {
               quantity: item.quantity,
               price: currentPrice,
               productTitle: translation?.title || 'Unknown Product',
-              variantTitle,
+              variantTitle: customizationsSuffix
+                ? `${variantTitle || ""}${variantTitle ? " | " : ""}${customizationsSuffix}`
+                : variantTitle,
               sku: variant.sku || '',
               imageUrl,
+              customizations,
             };
             
             logger.debug('Cart item formatted', {
@@ -238,7 +285,12 @@ class OrdersService {
         });
         const variantMap = new Map(variants.map((v) => [v.id, v]));
 
-        cartItems = guestItems.map((item: { productId: string; variantId: string; quantity: number }) => {
+        cartItems = guestItems.map((item: {
+          productId: string;
+          variantId: string;
+          quantity: number;
+          customizations?: ProductCustomizations;
+        }) => {
           const variant = variantMap.get(item.variantId);
           if (!variant || variant.productId !== item.productId) {
             throw {
@@ -260,6 +312,8 @@ class OrdersService {
           const variantTitle = variant.options
             ?.map((opt: { attributeKey?: string | null; value?: string | null }) => `${opt.attributeKey ?? ""}: ${opt.value ?? ""}`)
             .join(", ") ?? undefined;
+          const customizations = normalizeProductCustomizations(item.customizations);
+          const customizationsSuffix = formatCustomizationsForVariantTitle(customizations);
           const imageUrl = extractMediaUrl(variant.product.media) ?? undefined;
           return {
             variantId: variant.id,
@@ -267,9 +321,12 @@ class OrdersService {
             quantity: item.quantity,
             price: Number(variant.price),
             productTitle: translation?.title ?? "Unknown Product",
-            variantTitle,
+            variantTitle: customizationsSuffix
+              ? `${variantTitle || ""}${variantTitle ? " | " : ""}${customizationsSuffix}`
+              : variantTitle,
             sku: variant.sku ?? "",
             imageUrl,
+            customizations,
           };
         });
       } else {
@@ -305,6 +362,30 @@ class OrdersService {
       }
       const taxAmount = 0; // TODO: Calculate tax if needed
       const total = subtotal - discountAmount + shippingAmount + taxAmount;
+      const normalizedCashChangeFrom =
+        typeof cashChangeFrom === "number" && Number.isFinite(cashChangeFrom) && cashChangeFrom > 0
+          ? Math.round(cashChangeFrom)
+          : undefined;
+      if (
+        paymentMethod === "cash_on_delivery" &&
+        typeof normalizedCashChangeFrom === "number" &&
+        normalizedCashChangeFrom < total
+      ) {
+        throw {
+          status: 400,
+          type: "https://api.shop.am/problems/validation-error",
+          title: "Validation Error",
+          detail: "Cash change amount must be greater than or equal to order total",
+        };
+      }
+      const notesParts: string[] = [];
+      if (typeof notes === "string" && notes.trim()) {
+        notesParts.push(notes.trim().slice(0, 500));
+      }
+      if (typeof normalizedCashChangeFrom === "number") {
+        notesParts.push(`Cash change requested from: ${normalizedCashChangeFrom} AMD`);
+      }
+      const mergedNotes = notesParts.join("\n");
 
       // Generate order number
       const orderNumber = generateOrderNumber();
@@ -332,6 +413,7 @@ class OrdersService {
             shippingMethod,
             shippingAddress: shippingAddress ? JSON.parse(JSON.stringify(shippingAddress)) : null,
             billingAddress: shippingAddress ? JSON.parse(JSON.stringify(shippingAddress)) : null,
+            notes: mergedNotes || null,
             items: {
               create: cartItems.map((item) => ({
                 variantId: item.variantId,
@@ -342,6 +424,7 @@ class OrdersService {
                 price: item.price,
                 total: item.price * item.quantity,
                 imageUrl: item.imageUrl,
+                customizations: item.customizations as Prisma.InputJsonValue | undefined,
               })),
             },
             events: {
@@ -351,6 +434,7 @@ class OrdersService {
                   source: userId ? 'user' : 'guest',
                   paymentMethod,
                   shippingMethod,
+                  cashChangeFrom: normalizedCashChangeFrom ?? null,
                 },
               },
             },
@@ -433,6 +517,13 @@ class OrdersService {
       );
 
       // Return order and payment info
+      const paymentUrl = buildPaymentUrl({
+        provider: order.payment.provider,
+        orderNumber: order.order.number,
+        total: order.order.total,
+        currency: order.order.currency,
+        isGuest: !userId,
+      });
       return {
         order: {
           id: order.order.id,
@@ -444,7 +535,7 @@ class OrdersService {
         },
         payment: {
           provider: order.payment.provider,
-          paymentUrl: null, // TODO: Generate payment URL for Idram/ArCa
+          paymentUrl,
           expiresAt: null, // TODO: Set expiration if needed
         },
         nextAction: paymentMethod === 'idram' || paymentMethod === 'arca' 

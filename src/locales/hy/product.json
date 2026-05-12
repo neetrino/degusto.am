@@ -23,7 +23,11 @@
   "errorAddingToCart": "Սխալ ավելացնելիս",
   "pcs": "հատ",
   "outOfStockLabel": "Արտադրված",
-  "noRelatedProducts": "Նմանատիպ ապրանքներ չգտնվեցին"
+  "noRelatedProducts": "Նմանատիպ ապրանքներ չգտնվեցին",
+  "additionsLabel": "Հավելումներ",
+  "additionsPlaceholder": "Լրացուցիչ բաղադրիչներ կամ նշումներ",
+  "exclusionsLabel": "Բացառություններ",
+  "exclusionsPlaceholder": "Ինչ բաղադրիչներ հանել"
 }
 
 

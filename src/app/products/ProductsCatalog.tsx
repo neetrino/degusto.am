@@ -65,7 +65,8 @@ const getProductsCached = unstable_cache(
     maxPrice?: number,
     colors?: string,
     sizes?: string,
-    brand?: string
+    brand?: string,
+    sort?: string
   ): Promise<ProductsResponse> =>
     productsService.findAll({
       page,
@@ -78,6 +79,7 @@ const getProductsCached = unstable_cache(
       colors,
       sizes,
       brand,
+      sort,
     }) as Promise<ProductsResponse>,
   ['products-catalog-db-v1'],
   { revalidate: PRODUCTS_LIST_REVALIDATE_SECONDS }
@@ -100,6 +102,7 @@ async function getProducts(
   colors?: string,
   sizes?: string,
   brand?: string,
+  sort?: string,
   limit: number = 12
 ): Promise<ProductsResponse> {
   try {
@@ -114,7 +117,8 @@ async function getProducts(
       parseOptionalPrice(maxPrice),
       colors?.trim() || undefined,
       sizes?.trim() || undefined,
-      brand?.trim() || undefined
+      brand?.trim() || undefined,
+      sort?.trim() || undefined
     );
     if (!Array.isArray(response.data)) {
       return {
@@ -157,6 +161,7 @@ export async function ProductsCatalog({
     typeof params.colors === 'string' ? params.colors : undefined,
     typeof params.sizes === 'string' ? params.sizes : undefined,
     typeof params.brand === 'string' ? params.brand : undefined,
+    typeof params.sort === 'string' ? params.sort : undefined,
     perPage
   );
 
@@ -209,7 +214,7 @@ export async function ProductsCatalog({
   };
 
   const language = getStoredLanguage();
-  const sortParam = typeof params.sort === 'string' ? params.sort : 'default';
+  const sortParam = typeof params.sort === 'string' ? params.sort : 'newest';
 
   return (
     <>

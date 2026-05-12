@@ -3,6 +3,10 @@
  */
 export interface CartItem {
   id: string;
+  customizations?: {
+    additions?: string;
+    exclusions?: string;
+  };
   variant: {
     id: string;
     sku: string;
@@ -41,10 +45,15 @@ export interface Cart {
  * Guest cart item interface
  */
 export interface GuestCartItem {
+  lineId?: string;
   productId: string;
   productSlug?: string;
   variantId: string;
   quantity: number;
+  customizations?: {
+    additions?: string;
+    exclusions?: string;
+  };
 }
 
 

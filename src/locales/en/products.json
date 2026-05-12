@@ -28,6 +28,8 @@
     "all": "All",
     "sort": {
       "default": "Default Sort",
+      "newest": "Newest",
+      "popular": "Popular",
       "priceAsc": "Price: Low to High",
       "priceDesc": "Price: High to Low",
       "nameAsc": "Name: A-Z",

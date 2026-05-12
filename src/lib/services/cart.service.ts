@@ -1,6 +1,12 @@
 import { db } from "@white-shop/db";
+import { Prisma } from "@prisma/client";
 import { logger } from "../utils/logger";
 import { extractMediaUrl } from "../utils/extractMediaUrl";
+import {
+  buildCustomizationLineKey,
+  normalizeProductCustomizations,
+  type ProductCustomizations,
+} from "../cart/customizations";
 
 class CartService {
   /**
@@ -86,28 +92,7 @@ class CartService {
     }
 
     // Format items using already-loaded cart data (no N+1: no extra DB calls per item)
-    const itemsWithDetails = cart.items.map(
-      (item: {
-        id: string;
-        productId: string;
-        variantId: string;
-        quantity: number;
-        product: {
-          id: string;
-          media: unknown;
-          discountPercent?: number;
-          primaryCategoryId?: string | null;
-          brandId?: string | null;
-          translations: Array<{ locale: string; title?: string; slug?: string }>;
-        };
-        variant: {
-          id: string;
-          sku: string | null;
-          stock: number;
-          price: number;
-          compareAtPrice?: number | null;
-        };
-      }) => {
+    const itemsWithDetails = cart.items.map((item) => {
         const product = item.product;
         const variant = item.variant;
         const translation =
@@ -158,12 +143,12 @@ class CartService {
             },
           },
           quantity: item.quantity,
+          customizations: normalizeProductCustomizations(item.customizations),
           price: finalPrice,
           originalPrice,
           total: finalPrice * item.quantity,
         };
-      }
-    );
+      });
 
     const subtotal = itemsWithDetails.reduce((sum, item) => sum + item.total, 0);
 
@@ -189,10 +174,16 @@ class CartService {
    */
   async addItem(
     userId: string,
-    data: { variantId: string; productId: string; quantity?: number },
+    data: {
+      variantId: string;
+      productId: string;
+      quantity?: number;
+      customizations?: ProductCustomizations;
+    },
     locale: string = "en"
   ) {
     const { variantId, productId, quantity = 1 } = data;
+    const normalizedCustomizations = normalizeProductCustomizations(data.customizations);
 
     if (!variantId || !productId) {
       throw {
@@ -235,7 +226,14 @@ class CartService {
       };
     }
 
-    const existingItem = resolvedCart.items.find((item: { variantId: string }) => item.variantId === variantId);
+    const requestedLineKey = buildCustomizationLineKey(variantId, normalizedCustomizations);
+    const existingItem = resolvedCart.items.find(
+      (item) =>
+        buildCustomizationLineKey(
+          item.variantId,
+          normalizeProductCustomizations(item.customizations)
+        ) === requestedLineKey
+    );
 
     // Calculate total quantity that will be in cart after adding
     const totalQuantity = existingItem ? existingItem.quantity + quantity : quantity;
@@ -263,6 +261,7 @@ class CartService {
         itemId: existingItem.id,
         oldQuantity: existingItem.quantity,
         newQuantity: totalQuantity,
+        customizations: normalizedCustomizations,
       });
       item = await db.cartItem.update({
         where: { id: existingItem.id },
@@ -279,17 +278,28 @@ class CartService {
       const itemsCount = itemsForSum.reduce((sum, i) => sum + i.q, 0);
       const total = itemsForSum.reduce((sum, i) => sum + i.q * i.p, 0);
       return {
-        item: { id: item.id, variantId, quantity: item.quantity, price: Number(item.priceSnapshot) },
+        item: {
+          id: item.id,
+          variantId,
+          quantity: item.quantity,
+          price: Number(item.priceSnapshot),
+          customizations: normalizeProductCustomizations(item.customizations),
+        },
         cartSummary: { itemsCount, total },
       };
     } else {
-      logger.debug("Cart: creating new item", { variantId, quantity });
+      logger.debug("Cart: creating new item", {
+        variantId,
+        quantity,
+        customizations: normalizedCustomizations,
+      });
       item = await db.cartItem.create({
         data: {
           cartId: resolvedCart.id,
           variantId,
           productId,
           quantity,
+          customizations: normalizedCustomizations as Prisma.InputJsonValue | undefined,
           priceSnapshot: variant.price,
         },
       });
@@ -300,7 +310,13 @@ class CartService {
       const itemsCount = itemsForSum.reduce((sum, i) => sum + i.q, 0);
       const total = itemsForSum.reduce((sum, i) => sum + i.q * i.p, 0);
       return {
-        item: { id: item.id, variantId, quantity: item.quantity, price: Number(item.priceSnapshot) },
+        item: {
+          id: item.id,
+          variantId,
+          quantity: item.quantity,
+          price: Number(item.priceSnapshot),
+          customizations: normalizeProductCustomizations(item.customizations),
+        },
         cartSummary: { itemsCount, total },
       };
     }

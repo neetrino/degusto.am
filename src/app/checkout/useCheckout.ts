@@ -46,6 +46,8 @@ export function useCheckout() {
       paymentMethod: 'cash_on_delivery',
       shippingAddress: '',
       shippingCity: '',
+      cashChangeFrom: '',
+      orderNotes: '',
       cardNumber: '',
       cardExpiry: '',
       cardCvv: '',

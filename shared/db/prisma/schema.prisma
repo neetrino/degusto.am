@@ -355,6 +355,7 @@ model CartItem {
   variantId     String
   productId     String
   quantity      Int
+  customizations Json?
   priceSnapshot Float
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -421,6 +422,7 @@ model OrderItem {
   variantId    String?
   productTitle String
   variantTitle String?
+  customizations Json?
   sku          String
   quantity     Int
   price        Float

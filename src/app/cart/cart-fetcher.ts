@@ -3,6 +3,11 @@ import { logger } from '../../lib/utils/logger';
 import { getStoredLanguage } from '../../lib/language';
 import type { Cart, CartItem } from './types';
 import { CART_KEY } from './constants';
+import {
+  buildCustomizationLineKey,
+  normalizeProductCustomizations,
+  type ProductCustomizations,
+} from '../../lib/cart/customizations';
 
 /**
  * Product data from API
@@ -26,11 +31,13 @@ interface ProductData {
  * Guest cart item
  */
 interface GuestCartItem {
+  lineId?: string;
   productId: string;
   productSlug?: string;
   variantId: string;
   quantity: number;
   price?: number;
+  customizations?: ProductCustomizations;
 }
 
 interface GuestCartBatchResponse {
@@ -46,7 +53,7 @@ async function fetchGuestCartItems(
   t: (key: string) => string
 ): Promise<Array<{ item: CartItem | null; shouldRemove: boolean }>> {
   return Promise.all(
-    guestCart.map(async (item, index) => {
+    guestCart.map(async (item) => {
       try {
         // If productSlug is missing, product cannot be fetched (API expects slug)
         if (!item.productSlug) {
@@ -75,7 +82,8 @@ async function fetchGuestCartItems(
 
         return {
           item: {
-            id: `${item.productId}-${item.variantId}-${index}`,
+            id: `${item.productId}:${item.lineId || buildCustomizationLineKey(item.variantId, normalizeProductCustomizations(item.customizations))}`,
+            customizations: normalizeProductCustomizations(item.customizations),
             variant: {
               id: variant._id?.toString() || variant.id,
               sku: variant.sku || '',
@@ -142,7 +150,16 @@ export async function fetchGuestCart(
 
   try {
     const stored = localStorage.getItem(CART_KEY);
-    const guestCart: GuestCartItem[] = stored ? JSON.parse(stored) : [];
+    const rawGuestCart: GuestCartItem[] = stored ? JSON.parse(stored) : [];
+    const guestCart = rawGuestCart.map((item) => {
+      const customizations = normalizeProductCustomizations(item.customizations);
+      const lineId = item.lineId || buildCustomizationLineKey(item.variantId, customizations);
+      return {
+        ...item,
+        lineId,
+        customizations,
+      };
+    });
     
     if (guestCart.length === 0) {
       return null;

@@ -8,6 +8,10 @@ export interface CheckoutData {
     variantId: string;
     productId: string;
     quantity: number;
+    customizations?: {
+      additions?: string;
+      exclusions?: string;
+    };
   }>;
   email: string;
   phone: string;
@@ -26,6 +30,8 @@ export interface CheckoutData {
   /** Ignored at checkout — server computes from shippingMethod + shippingAddress.city */
   shippingAmount?: number;
   paymentMethod?: string;
+  cashChangeFrom?: number;
+  notes?: string;
   billingAddress?: {
     firstName?: string;
     lastName?: string;

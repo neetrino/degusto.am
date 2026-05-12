@@ -12,6 +12,10 @@ import { ProductInfoAndActions } from './ProductInfoAndActions';
 import { ProductPageShell } from './ProductPageShell';
 import { useProductPage } from './useProductPage';
 import { playCartFlyAnimation } from '../../../lib/cart-fly-animation';
+import {
+  buildCustomizationLineKey,
+  normalizeProductCustomizations,
+} from '../../../lib/cart/customizations';
 import type { ProductPageProps } from './types';
 
 export default function ProductPage({ params }: ProductPageProps) {
@@ -34,6 +38,10 @@ export default function ProductPage({ params }: ProductPageProps) {
     setIsAddingToCart,
     showMessage,
     setShowMessage,
+    additions,
+    exclusions,
+    setAdditions,
+    setExclusions,
     isInWishlist,
     isInCompare,
     quantity,
@@ -75,6 +83,7 @@ export default function ProductPage({ params }: ProductPageProps) {
 
   const handleAddToCart = async () => {
     if (!canAddToCart || !product || !currentVariant) return;
+    const customizations = normalizeProductCustomizations({ additions, exclusions });
     const flyOrigin = document.querySelector('[data-product-fly-origin]');
     const imageUrl = images[currentImageIndex] ?? images[0] ?? null;
     playCartFlyAnimation({
@@ -86,15 +95,43 @@ export default function ProductPage({ params }: ProductPageProps) {
       if (!isLoggedIn) {
         const stored = localStorage.getItem('shop_cart_guest');
         const cart = stored ? JSON.parse(stored) : [];
+        const lineId = buildCustomizationLineKey(currentVariant.id, customizations);
         const existing = cart.find(
-          (i: unknown): i is { variantId: string; quantity: number; productId?: string; productSlug?: string } =>
-            typeof i === 'object' && i !== null && 'variantId' in i && i.variantId === currentVariant.id
+          (
+            i: unknown
+          ): i is {
+            variantId: string;
+            quantity: number;
+            lineId?: string;
+            productId?: string;
+            productSlug?: string;
+          } =>
+            typeof i === 'object' &&
+            i !== null &&
+            'variantId' in i &&
+            'lineId' in i &&
+            i.variantId === currentVariant.id &&
+            i.lineId === lineId
         );
         if (existing) existing.quantity += quantity;
-        else cart.push({ productId: product.id, productSlug: product.slug, variantId: currentVariant.id, quantity });
+        else {
+          cart.push({
+            lineId,
+            productId: product.id,
+            productSlug: product.slug,
+            variantId: currentVariant.id,
+            quantity,
+            customizations,
+          });
+        }
         localStorage.setItem('shop_cart_guest', JSON.stringify(cart));
       } else {
-        await apiClient.post('/api/v1/cart/items', { productId: product.id, variantId: currentVariant.id, quantity });
+        await apiClient.post('/api/v1/cart/items', {
+          productId: product.id,
+          variantId: currentVariant.id,
+          quantity,
+          customizations,
+        });
       }
       setShowMessage(`${t(language, 'product.addedToCart')} ${quantity} ${t(language, 'product.pcs')}`);
       window.dispatchEvent(new Event('cart-updated'));
@@ -181,6 +218,10 @@ export default function ProductPage({ params }: ProductPageProps) {
           onAddToWishlist={handleAddToWishlist}
           onCompareToggle={handleCompareToggle}
           onScrollToReviews={scrollToReviews}
+          additions={additions}
+          exclusions={exclusions}
+          onAdditionsChange={setAdditions}
+          onExclusionsChange={setExclusions}
           onColorSelect={handleColorSelect}
           onSizeSelect={handleSizeSelect}
           onAttributeValueSelect={handleAttributeValueSelect}

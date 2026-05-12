@@ -36,6 +36,7 @@ export function useOrderSubmission({
           productId: item.variant.product.id,
           variantId: item.variant.id,
           quantity: item.quantity,
+          customizations: item.customizations,
         }));
         cartId = 'guest-cart';
       }
@@ -50,6 +51,9 @@ export function useOrderSubmission({
         : undefined;
 
       const shippingAmount = data.shippingMethod === 'delivery' && deliveryPrice !== null ? deliveryPrice : 0;
+      const cashChangeFromValue = data.cashChangeFrom?.trim()
+        ? Number(data.cashChangeFrom.replace(',', '.'))
+        : undefined;
 
       const response = await apiClient.post<{
         order: {
@@ -77,6 +81,10 @@ export function useOrderSubmission({
         ...(shippingAddress ? { shippingAddress } : {}),
         shippingAmount: shippingAmount,
         paymentMethod: data.paymentMethod,
+        ...(typeof cashChangeFromValue === 'number' && Number.isFinite(cashChangeFromValue)
+          ? { cashChangeFrom: cashChangeFromValue }
+          : {}),
+        ...(data.orderNotes?.trim() ? { notes: data.orderNotes.trim() } : {}),
       });
 
       if (!isLoggedIn) {
@@ -85,6 +93,11 @@ export function useOrderSubmission({
 
       if (response.payment?.paymentUrl) {
         window.location.href = response.payment.paymentUrl;
+        return;
+      }
+
+      if (!isLoggedIn) {
+        router.push(`/checkout/success?order=${encodeURIComponent(response.order.number)}`);
         return;
       }
 

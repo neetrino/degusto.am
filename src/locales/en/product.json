@@ -23,7 +23,11 @@
   "errorAddingToCart": "Error adding to cart",
   "pcs": "pcs",
   "outOfStockLabel": "Out of Stock",
-  "noRelatedProducts": "Related products not found"
+  "noRelatedProducts": "Related products not found",
+  "additionsLabel": "Additions",
+  "additionsPlaceholder": "Extra ingredients or requests",
+  "exclusionsLabel": "Exclusions",
+  "exclusionsPlaceholder": "Ingredients to remove"
 }
 
 

@@ -2,29 +2,38 @@ import { apiClient } from '../../lib/api-client';
 import { logger } from '../../lib/utils/logger';
 import type { Cart, CartItem } from './types';
 import { CART_KEY } from './constants';
+import {
+  buildCustomizationLineKey,
+  normalizeProductCustomizations,
+} from '../../lib/cart/customizations';
 
 /**
  * Guest cart item
  */
 interface GuestCartItem {
+  lineId?: string;
   productId: string;
   productSlug?: string;
   variantId: string;
   quantity: number;
+  customizations?: {
+    additions?: string;
+    exclusions?: string;
+  };
 }
 
 /**
- * Parse item ID to extract productId and variantId
+ * Parse item ID to extract productId and lineId
  */
-function parseItemId(itemId: string): { productId: string; variantId: string } | null {
-  // itemId format: `${productId}-${variantId}-${index}`
-  const parts = itemId.split('-');
-  if (parts.length >= 2) {
-    const productId = parts[0];
-    const variantId = parts.slice(1, -1).join('-'); // variantId-ն կարող է պարունակել '-'
-    return { productId, variantId };
+function parseItemId(itemId: string): { productId: string; lineId: string } | null {
+  const separatorIndex = itemId.indexOf(':');
+  if (separatorIndex <= 0 || separatorIndex >= itemId.length - 1) {
+    return null;
   }
-  return null;
+  return {
+    productId: itemId.slice(0, separatorIndex),
+    lineId: itemId.slice(separatorIndex + 1),
+  };
 }
 
 /**
@@ -52,7 +61,13 @@ function removeFromGuestCart(itemId: string): void {
   const guestCart: GuestCartItem[] = stored ? JSON.parse(stored) : [];
   
   const updatedCart = guestCart.filter(
-    item => !(item.productId === parsed.productId && item.variantId === parsed.variantId)
+    (item) => {
+      const lineId = item.lineId || buildCustomizationLineKey(
+        item.variantId,
+        normalizeProductCustomizations(item.customizations)
+      );
+      return !(item.productId === parsed.productId && lineId === parsed.lineId);
+    }
   );
   
   localStorage.setItem(CART_KEY, JSON.stringify(updatedCart));
@@ -72,7 +87,13 @@ function updateGuestCartQuantity(itemId: string, quantity: number): void {
   const guestCart: GuestCartItem[] = stored ? JSON.parse(stored) : [];
   
   const item = guestCart.find(
-    item => item.productId === parsed.productId && item.variantId === parsed.variantId
+    (entry) => {
+      const lineId = entry.lineId || buildCustomizationLineKey(
+        entry.variantId,
+        normalizeProductCustomizations(entry.customizations)
+      );
+      return entry.productId === parsed.productId && lineId === parsed.lineId;
+    }
   );
   
   if (item) {
