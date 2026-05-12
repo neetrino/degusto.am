@@ -5,6 +5,11 @@ import {
   readJsonCache,
   writeJsonCache,
 } from "@/lib/cache/storefront-cache";
+import {
+  getStorefrontLocaleFallbackChain,
+  resolveStorefrontLocaleFromSearchParams,
+} from "@/lib/i18n/locale";
+import { buildLocalizedProblem } from "@/lib/i18n/api-problem";
 import { productsService } from "@/lib/services/products.service";
 import { logger } from "@/lib/utils/logger";
 
@@ -16,7 +21,7 @@ export async function GET(
 ) {
   try {
     const { searchParams } = new URL(req.url);
-    const lang = searchParams.get("lang") || "en";
+    const lang = resolveStorefrontLocaleFromSearchParams(searchParams);
     const { slug } = await params;
     const cacheKey = STOREFRONT_CACHE_KEYS.productDetails(lang, slug);
     const cached = await readJsonCache<unknown>(cacheKey);
@@ -25,14 +30,18 @@ export async function GET(
     }
 
     let result: unknown;
-    try {
-      result = await productsService.findBySlug(slug, lang);
-    } catch (first: unknown) {
-      const err = first as { status?: number };
-      if (err?.status === 404 && lang !== "en") {
-        result = await productsService.findBySlug(slug, "en");
-      } else {
-        throw first;
+    const fallbacks = getStorefrontLocaleFallbackChain(lang);
+    for (let index = 0; index < fallbacks.length; index += 1) {
+      const candidateLocale = fallbacks[index];
+      try {
+        result = await productsService.findBySlug(slug, candidateLocale);
+        break;
+      } catch (error: unknown) {
+        const err = error as { status?: number };
+        const isLastLocale = index === fallbacks.length - 1;
+        if (err?.status !== 404 || isLastLocale) {
+          throw error;
+        }
       }
     }
 
@@ -41,15 +50,18 @@ export async function GET(
   } catch (error: unknown) {
     const err = error as { type?: string; title?: string; status?: number; detail?: string; message?: string };
     logger.error("GET product by slug failed", { error: err?.message ?? String(error) });
+    const status = err.status || 500;
     return NextResponse.json(
-      {
+      buildLocalizedProblem(req, {
         type: err.type || "https://api.shop.am/problems/internal-error",
-        title: err.title || "Internal Server Error",
-        status: err.status || 500,
-        detail: err.detail || err.message || "An error occurred",
+        status,
+        titleKey: "internalErrorTitle",
+        detailKey: "internalErrorDetail",
+        detailOverride: err.detail || err.message,
+        titleOverride: err.title,
         instance: req.url,
-      },
-      { status: err.status || 500 }
+      }),
+      { status }
     );
   }
 }

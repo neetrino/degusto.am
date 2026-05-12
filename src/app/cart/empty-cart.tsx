@@ -24,7 +24,7 @@ export function EmptyCart({ t }: EmptyCartProps) {
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             {t('common.cart.empty')}
           </h2>
-          <Link href="/products">
+          <Link href="/shop">
             <Button variant="primary" size="lg" className="mt-6">
               {t('common.buttons.browseProducts')}
             </Button>

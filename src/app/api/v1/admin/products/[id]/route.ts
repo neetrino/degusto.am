@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateToken, requireAdmin } from "@/lib/middleware/auth";
 import { adminService } from "@/lib/services/admin.service";
+import {
+  canUploadProductImagesToR2,
+  payloadContainsBase64Images,
+  uploadProductPayloadBase64ImagesToR2,
+  type ProductImagesPayload,
+} from "@/lib/services/admin/admin-products-image-upload.service";
 import { toApiError } from "@/lib/types/errors";
 import { logger } from "@/lib/utils/logger";
 
@@ -62,7 +68,26 @@ export async function PUT(
     }
 
     const { id } = await params;
-    const body = await req.json();
+    let body: ProductImagesPayload = await req.json();
+
+    if (payloadContainsBase64Images(body) && !canUploadProductImagesToR2()) {
+      return NextResponse.json(
+        {
+          type: "https://api.shop.am/problems/config-error",
+          title: "Storage not configured",
+          status: 503,
+          detail:
+            "R2 is not configured. Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME, R2_PUBLIC_URL in .env",
+          instance: req.url,
+        },
+        { status: 503 }
+      );
+    }
+
+    if (payloadContainsBase64Images(body)) {
+      body = await uploadProductPayloadBase64ImagesToR2(body);
+    }
+
     logger.debug("📤 [ADMIN PRODUCTS] PUT request:", { 
       id, 
       bodyKeys: Object.keys(body),
@@ -70,7 +95,8 @@ export async function PUT(
       variantsCount: body.variants?.length || 0
     });
 
-    const product = await adminService.updateProduct(id, body);
+    const updatePayload = body as Parameters<typeof adminService.updateProduct>[1];
+    const product = await adminService.updateProduct(id, updatePayload);
     logger.debug("✅ [ADMIN PRODUCTS] Product updated:", { id, productId: product?.id });
 
     return NextResponse.json(product);

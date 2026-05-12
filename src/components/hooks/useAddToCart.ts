@@ -74,6 +74,7 @@ export function useAddToCart({ productId, productSlug, inStock, defaultVariantId
         const cart: Array<{ productId: string; productSlug: string; variantId?: string; quantity: number; price?: number }> = stored ? JSON.parse(stored) : [];
 
         let variantId: string;
+        let resolvedProductId = productId;
         let variantStock: number | undefined;
         let variantPrice: number | undefined = propPrice || undefined;
         if (defaultVariantId) {
@@ -81,6 +82,7 @@ export function useAddToCart({ productId, productSlug, inStock, defaultVariantId
         } else {
           const encodedSlug = encodeURIComponent(productSlug.trim());
           const productDetails = await apiClient.get<ProductDetails>(`/api/v1/products/${encodedSlug}`);
+          resolvedProductId = productDetails.id;
           if (!productDetails.variants || productDetails.variants.length === 0) {
             alert(t('common.alerts.noVariantsAvailable'));
             setIsAddingToCart(false);
@@ -91,7 +93,9 @@ export function useAddToCart({ productId, productSlug, inStock, defaultVariantId
           if (!variantPrice) variantPrice = productDetails.variants[0].price;
         }
 
-        const existingItem = cart.find(item => item.productId === productId && item.variantId === variantId);
+        const existingItem = cart.find(
+          item => item.productId === resolvedProductId && item.variantId === variantId
+        );
         const currentQuantityInCart = existingItem?.quantity || 0;
         const totalQuantity = currentQuantityInCart + 1;
 
@@ -107,7 +111,7 @@ export function useAddToCart({ productId, productSlug, inStock, defaultVariantId
           if (variantPrice) existingItem.price = variantPrice;
         } else {
           cart.push({
-            productId,
+            productId: resolvedProductId,
             productSlug,
             variantId,
             quantity: 1,

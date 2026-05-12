@@ -1,9 +1,19 @@
 import { z } from "zod";
 
-const loginSchema = z.object({
-  email: z.string().email("Valid email is required"),
-  password: z.string().min(1, "Password is required"),
-});
+const loginSchema = z
+  .object({
+    identifier: z.string().min(1, "Email or phone is required").optional(),
+    email: z.string().min(1, "Email or phone is required").optional(),
+    password: z.string().min(1, "Password is required"),
+  })
+  .refine((data) => Boolean(data.identifier?.trim() || data.email?.trim()), {
+    message: "Email or phone is required",
+    path: ["identifier"],
+  })
+  .transform((data) => ({
+    identifier: (data.identifier ?? data.email ?? "").trim(),
+    password: data.password,
+  }));
 
 const registerSchema = z.object({
   email: z.string().email().optional(),

@@ -23,7 +23,11 @@
   "errorAddingToCart": "Ошибка при добавлении в корзину",
   "pcs": "шт",
   "outOfStockLabel": "Нет в наличии",
-  "noRelatedProducts": "Похожие товары не найдены"
+  "noRelatedProducts": "Похожие товары не найдены",
+  "additionsLabel": "Добавки",
+  "additionsPlaceholder": "Дополнительные ингредиенты или комментарий",
+  "exclusionsLabel": "Исключить",
+  "exclusionsPlaceholder": "Ингредиенты, которые нужно убрать"
 }
 
 

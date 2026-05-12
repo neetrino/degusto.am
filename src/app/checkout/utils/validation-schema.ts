@@ -18,6 +18,8 @@ export function useCheckoutSchema() {
     }),
     shippingAddress: z.string().optional(),
     shippingCity: z.string().optional(),
+    cashChangeFrom: z.string().optional(),
+    orderNotes: z.string().max(500, t('checkout.errors.notesTooLong')).optional(),
     cardNumber: z.string().optional(),
     cardExpiry: z.string().optional(),
     cardCvv: z.string().optional(),
@@ -70,6 +72,18 @@ export function useCheckoutSchema() {
   }, {
     message: t('checkout.errors.cardHolderNameRequired'),
     path: ['cardHolderName'],
+  }).refine((data) => {
+    if (data.paymentMethod !== 'cash_on_delivery') {
+      return true;
+    }
+    if (!data.cashChangeFrom || !data.cashChangeFrom.trim()) {
+      return true;
+    }
+    const normalized = Number(data.cashChangeFrom.replace(',', '.'));
+    return Number.isFinite(normalized) && normalized > 0;
+  }, {
+    message: t('checkout.errors.invalidCashChangeAmount'),
+    path: ['cashChangeFrom'],
   });
 }
 

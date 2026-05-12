@@ -23,6 +23,7 @@ interface OrderSummaryProps {
   orderSummary: {
     subtotalDisplay: number;
     taxDisplay: number;
+    bagFeeDisplay: number;
     shippingDisplay: number;
     totalDisplay: number;
   };
@@ -31,6 +32,8 @@ interface OrderSummaryProps {
   shippingCity: string | undefined;
   loadingDeliveryPrice: boolean;
   deliveryPrice: number | null;
+  bagFee: number;
+  deliveryUnavailable: boolean;
   error: string | null;
   isSubmitting: boolean;
   onPlaceOrder: (e?: React.FormEvent) => void;
@@ -44,6 +47,8 @@ export function OrderSummary({
   shippingCity,
   loadingDeliveryPrice,
   deliveryPrice,
+  bagFee,
+  deliveryUnavailable,
   error,
   isSubmitting,
   onPlaceOrder,
@@ -66,9 +71,19 @@ export function OrderSummary({
                 ? t('checkout.shipping.freePickup')
                 : loadingDeliveryPrice
                   ? t('checkout.shipping.loading')
-                  : deliveryPrice !== null
+                  : deliveryUnavailable
+                    ? t('checkout.errors.deliveryOnlyYerevan')
+                    : deliveryPrice !== null
                     ? formatPriceInCurrency(orderSummary.shippingDisplay, currency) + (shippingCity ? ` (${shippingCity})` : ` (${t('checkout.shipping.delivery')})`)
                     : t('checkout.shipping.enterCity')}
+            </span>
+          </div>
+          <div className="flex justify-between text-gray-600">
+            <span>{t('checkout.summary.bagFee')}</span>
+            <span>
+              {shippingMethod === 'delivery'
+                ? formatPriceInCurrency(orderSummary.bagFeeDisplay, currency)
+                : formatPriceInCurrency(0, currency)}
             </span>
           </div>
           <div className="flex justify-between text-gray-600">

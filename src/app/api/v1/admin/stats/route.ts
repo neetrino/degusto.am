@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateToken, requireAdmin } from "@/lib/middleware/auth";
 import { adminService } from "@/lib/services/admin.service";
+import { toApiError } from "@/lib/types/errors";
 import { logger } from "@/lib/utils/logger";
 
 /**
@@ -37,25 +38,10 @@ export async function GET(req: NextRequest) {
     logger.debug("✅ [ADMIN STATS] Stats data retrieved successfully");
     
     return NextResponse.json(result);
-  } catch (error: any) {
-    console.error("❌ [ADMIN STATS] Error:", {
-      message: error.message,
-      stack: error.stack,
-      type: error.type,
-      status: error.status,
-      detail: error.detail,
-      url: req.url,
-    });
-    return NextResponse.json(
-      {
-        type: error.type || "https://api.shop.am/problems/internal-error",
-        title: error.title || "Internal Server Error",
-        status: error.status || 500,
-        detail: error.detail || error.message || "An error occurred",
-        instance: req.url,
-      },
-      { status: error.status || 500 }
-    );
+  } catch (error: unknown) {
+    logger.error("Admin stats GET failed", { error });
+    const apiError = toApiError(error, req.url);
+    return NextResponse.json(apiError, { status: apiError.status || 500 });
   }
 }
 

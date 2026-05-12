@@ -46,6 +46,10 @@ interface ProductInfoAndActionsProps {
   onAddToWishlist: (e: MouseEvent) => void;
   onCompareToggle: (e: MouseEvent) => void;
   onScrollToReviews: () => void;
+  additions: string;
+  exclusions: string;
+  onAdditionsChange: (value: string) => void;
+  onExclusionsChange: (value: string) => void;
   onColorSelect: (color: string) => void;
   onSizeSelect: (size: string) => void;
   onAttributeValueSelect: (attrKey: string, value: string) => void;
@@ -87,6 +91,10 @@ export function ProductInfoAndActions({
   onAddToWishlist,
   onCompareToggle,
   onScrollToReviews,
+  additions,
+  exclusions,
+  onAdditionsChange,
+  onExclusionsChange,
   onColorSelect,
   onSizeSelect,
   onAttributeValueSelect,
@@ -171,6 +179,35 @@ export function ProductInfoAndActions({
             getOptionValue={getOptionValue}
             getRequiredAttributesMessage={getRequiredAttributesMessage}
           />
+        </div>
+
+        <div className="mb-8 space-y-4">
+          <div>
+            <label htmlFor="product-additions" className="mb-2 block text-sm font-medium text-gray-700">
+              {t(language, 'product.additionsLabel')}
+            </label>
+            <textarea
+              id="product-additions"
+              value={additions}
+              maxLength={200}
+              onChange={(event) => onAdditionsChange(event.target.value)}
+              placeholder={t(language, 'product.additionsPlaceholder')}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label htmlFor="product-exclusions" className="mb-2 block text-sm font-medium text-gray-700">
+              {t(language, 'product.exclusionsLabel')}
+            </label>
+            <textarea
+              id="product-exclusions"
+              value={exclusions}
+              maxLength={200}
+              onChange={(event) => onExclusionsChange(event.target.value)}
+              placeholder={t(language, 'product.exclusionsPlaceholder')}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
+            />
+          </div>
         </div>
       </div>
       

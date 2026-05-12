@@ -14,6 +14,7 @@ import { useVisibleCards } from './hooks/useVisibleCards';
 import { RelatedProductCard } from './RelatedProducts/RelatedProductCard';
 import { CarouselNavigation } from './RelatedProducts/CarouselNavigation';
 import { CarouselDots } from './RelatedProducts/CarouselDots';
+import Link from 'next/link';
 
 interface RelatedProductsProps {
   categorySlug?: string;
@@ -151,18 +152,24 @@ export function RelatedProducts({ categorySlug, currentProductId, productSlug }:
 
   // Always show the section, even if no products (will show loading or empty state)
   return (
-    <section className="py-12 mt-20 border-t border-gray-200">
+    <section className="pt-12 pb-20 mt-20 rounded-t-[40px] bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-10">{t(language, 'product.related_products_title')}</h2>
+        <div className="mb-10 flex items-center justify-between">
+          <h2 className="text-3xl font-black text-black">
+            <span className="text-[#f66913]">{t(language, 'common.navigation.products')}</span>{' '}
+            {t(language, 'product.related_products_title')}
+          </h2>
+          <Link href="/shop" className="inline-block rounded-full bg-[#ff7f20] px-6 py-3 text-base font-bold text-white">
+            {t(language, 'home.figma.desktop.moreButton')} →
+          </Link>
+        </div>
         
         {loading ? (
           // Loading state
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[30px]">
+            {[1, 2, 3, 4].map((i) => (
               <div key={i} className="animate-pulse">
-                <div className="aspect-square bg-gray-200 rounded-lg mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-[284px] rounded-[20px] bg-white/10"></div>
               </div>
             ))}
           </div>
@@ -173,7 +180,7 @@ export function RelatedProducts({ categorySlug, currentProductId, productSlug }:
           </div>
         ) : (
           // Products Carousel
-          <div className="relative">
+          <div className="relative pb-4">
             {/* Carousel Container */}
             <div 
               ref={carouselRef}

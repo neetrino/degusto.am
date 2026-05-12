@@ -28,14 +28,24 @@ function extractImageFromMedia(media: unknown[] | undefined): string | null {
 export async function getTopProducts(limit: number = 5) {
   // Get all order items with their variants
   const orderItems = await db.orderItem.findMany({
-    include: {
+    select: {
+      variantId: true,
+      quantity: true,
+      total: true,
       variant: {
-        include: {
+        select: {
+          id: true,
+          productId: true,
+          sku: true,
           product: {
-            include: {
+            select: {
+              media: true,
               translations: {
                 where: { locale: "en" },
                 take: 1,
+                select: {
+                  title: true,
+                },
               },
             },
           },

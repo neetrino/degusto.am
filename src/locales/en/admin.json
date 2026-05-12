@@ -98,7 +98,10 @@
     "clickToViewAllOrders": "Click to view all orders",
     "clickToViewPaidOrders": "Click to view paid orders",
     "totalRegisteredUsers": "Total Registered Users",
-    "skuLabel": "SKU"
+    "skuLabel": "SKU",
+    "inventoryRisk": "Out of Stock Variants",
+    "lowStockVariants": "{count} low-stock variants",
+    "clickToViewInventory": "Click to inspect inventory"
   },
   "attributes": {
     "title": "Attributes",

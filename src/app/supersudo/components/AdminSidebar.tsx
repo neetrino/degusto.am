@@ -50,7 +50,7 @@ export function AdminSidebar() {
   const { collapsed } = useAdminSidebarCollapse();
   const [productsNestedExpanded, toggleProductsNested] = useAdminProductsSubnavExpanded(pathname);
 
-  const asideWidthClass = collapsed ? 'lg:w-16' : 'lg:w-64';
+  const asideWidthClass = collapsed ? 'lg:w-16' : 'lg:w-[300px]';
 
   return (
     <>
@@ -71,12 +71,12 @@ export function AdminSidebar() {
             }
 
             const isActive = isTabPathActive(tab.path, pathname);
-            const rowClasses = `flex w-full items-center rounded-md text-sm font-medium transition-all ${
+            const rowClasses = `flex w-full items-center rounded-md text-sm font-semibold transition-all ${
               collapsed ? 'justify-center px-0 py-3' : 'gap-3 px-4 py-3'
             } ${tab.isSubCategory && !collapsed ? 'pl-12' : ''} ${
               isActive
-                ? 'bg-gray-900 text-white'
-                : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                ? 'bg-white text-[#f66812] shadow-sm'
+                : 'text-white/95 hover:bg-black/10 hover:text-white'
             }`;
 
             if (tab.id === 'products' && !collapsed) {
@@ -84,7 +84,7 @@ export function AdminSidebar() {
                 <div
                   key={tab.id}
                   className={`flex w-full min-w-0 overflow-hidden rounded-md ${
-                    isActive ? 'bg-gray-900 text-white' : 'bg-transparent'
+                    isActive ? 'bg-white text-[#f66812] shadow-sm' : 'bg-transparent'
                   }`}
                 >
                   <button
@@ -93,13 +93,13 @@ export function AdminSidebar() {
                     onClick={() => {
                       router.push(tab.path);
                     }}
-                    className={`flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left text-sm font-medium transition-all ${
+                    className={`flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left text-sm font-semibold transition-all ${
                       isActive
-                        ? 'text-white hover:bg-gray-800'
-                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                        ? 'text-[#f66812] hover:bg-[#fff4eb]'
+                        : 'text-white/95 hover:bg-black/10 hover:text-white'
                     }`}
                   >
-                    <span className={`shrink-0 ${isActive ? 'text-white' : 'text-gray-500'}`}>{tab.icon}</span>
+                    <span className={`shrink-0 ${isActive ? 'text-[#f66812]' : 'text-white/85'}`}>{tab.icon}</span>
                     <span className="min-w-0 truncate">{tab.label}</span>
                   </button>
                   <button
@@ -113,8 +113,8 @@ export function AdminSidebar() {
                     }}
                     className={`shrink-0 border-l px-2 py-3 transition-colors ${
                       isActive
-                        ? 'border-white/25 text-white hover:bg-white/10'
-                        : 'border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                        ? 'border-[#ffd9c0] text-[#f66812] hover:bg-[#fff4eb]'
+                        : 'border-white/20 text-white/85 hover:bg-black/10 hover:text-white'
                     }`}
                   >
                     <svg
@@ -141,7 +141,7 @@ export function AdminSidebar() {
                 }}
                 className={rowClasses}
               >
-                <span className={`flex-shrink-0 ${isActive ? 'text-white' : 'text-gray-500'}`}>
+                <span className={`flex-shrink-0 ${isActive ? 'text-[#f66812]' : 'text-white/85'}`}>
                   {tab.icon}
                 </span>
                 {!collapsed ? <span className="min-w-0 text-left">{tab.label}</span> : null}

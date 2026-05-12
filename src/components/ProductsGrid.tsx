@@ -26,7 +26,7 @@ interface ProductsGridProps {
   sortBy?: string;
 }
 
-export function ProductsGrid({ products, sortBy = 'default' }: ProductsGridProps) {
+export function ProductsGrid({ products, sortBy = 'newest' }: ProductsGridProps) {
   const { t } = useTranslation();
   const [viewMode, setViewMode] = useState<ViewMode>('grid-2');
   const [sortedProducts, setSortedProducts] = useState<Product[]>(products);
@@ -66,14 +66,10 @@ export function ProductsGrid({ products, sortBy = 'default' }: ProductsGridProps
       case 'price-desc':
         sorted.sort((a, b) => b.price - a.price);
         break;
-      case 'name-asc':
-        sorted.sort((a, b) => a.title.localeCompare(b.title));
-        break;
-      case 'name-desc':
-        sorted.sort((a, b) => b.title.localeCompare(a.title));
-        break;
+      case 'newest':
+      case 'popular':
       default:
-        // Keep original order
+        // Keep server-provided order for newest/popular and unknown options.
         break;
     }
 

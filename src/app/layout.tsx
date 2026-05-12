@@ -1,18 +1,23 @@
 import React, { Suspense } from 'react';
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import './globals.css';
 import { ClientProviders } from '../components/ClientProviders';
 import { ConditionalHeader } from '../components/ConditionalHeader';
 import { ConditionalFooter } from '../components/ConditionalFooter';
-import { MobileBottomNav } from '../components/MobileBottomNav';
+import { cookies } from 'next/headers';
+import { resolveStorefrontLocaleFromCookie } from '@/lib/i18n/locale';
+import { getSiteMetadataCopy } from '@/lib/i18n/metadata';
 
-const inter = Inter({ subsets: ['latin'] });
+export async function generateMetadata(): Promise<Metadata> {
+  const cookieStore = await cookies();
+  const locale = resolveStorefrontLocaleFromCookie(cookieStore.get('shop_language')?.value);
+  const copy = getSiteMetadataCopy(locale);
 
-export const metadata: Metadata = {
-  title: 'Shop - Professional E-commerce',
-  description: 'Modern e-commerce platform',
-};
+  return {
+    title: copy.title,
+    description: copy.description,
+  };
+}
 
 export default function RootLayout({
   children,
@@ -20,8 +25,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="h-full">
-      <body className={`${inter.className} bg-gray-50 text-gray-900 antialiased min-h-full`}>
+    <html lang="en" className="h-full" style={{ backgroundColor: '#f56814' }}>
+      <head>
+        <link rel="preload" as="image" href="/api/r2/hero/20260512-tOKhBzyB6u.png" />
+      </head>
+      <body
+        className="font-sans text-gray-900 antialiased min-h-full"
+        style={{ backgroundColor: '#f56814' }}
+      >
         <Suspense fallback={null}>
           <ClientProviders>
             <div className="flex min-h-screen flex-col pb-16 lg:pb-0">
@@ -30,7 +41,6 @@ export default function RootLayout({
                 {children}
               </main>
               <ConditionalFooter />
-              <MobileBottomNav />
             </div>
           </ClientProviders>
         </Suspense>

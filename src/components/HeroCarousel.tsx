@@ -6,9 +6,9 @@ import { useRouter } from 'next/navigation';
 import { useTranslation } from '../lib/i18n-client';
 
 const heroImages = [
-  'https://images.pexels.com/photos/67102/pexels-photo-67102.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
-  'https://images.pexels.com/photos/266688/pexels-photo-266688.jpeg',
-  'https://images.pexels.com/photos/3217852/pexels-photo-3217852.jpeg',
+  '/api/r2/hero/20260512-VuuWwC0Evw.webp',
+  '/api/r2/hero/20260512-lckVIAjHRF.webp',
+  '/api/r2/hero/20260512-UdHlyA-WJY.webp',
 ];
 
 export function HeroCarousel() {
@@ -41,11 +41,11 @@ export function HeroCarousel() {
   };
 
   const handleShopNow = () => {
-    router.push('/products');
+    router.push('/shop');
   };
 
   const handleBrowseCategories = () => {
-    router.push('/products');
+    router.push('/shop');
   };
 
   return (

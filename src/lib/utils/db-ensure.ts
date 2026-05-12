@@ -13,6 +13,10 @@ let reviewsTableExists = false;
 let attributesColumnChecked = false;
 let attributesColumnExists = false;
 
+// Cache for cart_items.customizations column
+let cartCustomizationsColumnChecked = false;
+let cartCustomizationsColumnExists = false;
+
 /**
  * Ensures the product_attributes table exists in the database
  * This is a fallback mechanism for Vercel deployments where migrations might not run automatically
@@ -375,6 +379,66 @@ export async function ensureProductVariantAttributesColumn(): Promise<boolean> {
     });
     attributesColumnChecked = true;
     attributesColumnExists = false;
+    return false;
+  }
+}
+
+/**
+ * Ensures the customizations column exists in the cart_items table
+ * This is a fallback mechanism for deployments where migrations might not run automatically
+ * Uses lazy initialization - checks only once per process
+ *
+ * @returns Promise<boolean> - true if column exists or was created, false if creation failed
+ */
+export async function ensureCartItemCustomizationsColumn(): Promise<boolean> {
+  if (cartCustomizationsColumnChecked && cartCustomizationsColumnExists) {
+    return true;
+  }
+
+  try {
+    await db.$queryRaw`SELECT "customizations" FROM "cart_items" LIMIT 1`;
+    cartCustomizationsColumnChecked = true;
+    cartCustomizationsColumnExists = true;
+    return true;
+  } catch (error: unknown) {
+    const prismaError = error as { code?: string; message?: string };
+    if (
+      prismaError?.code === "P2022" ||
+      prismaError?.message?.includes("does not exist") ||
+      prismaError?.message?.includes("cart_items.customizations") ||
+      (prismaError?.message?.includes("column") &&
+        prismaError?.message?.includes("customizations"))
+    ) {
+      logger.info("cart_items.customizations column not found, creating...");
+
+      try {
+        await db.$executeRaw`
+          ALTER TABLE "cart_items"
+          ADD COLUMN IF NOT EXISTS "customizations" JSONB
+        `;
+
+        logger.info("cart_items.customizations column created successfully");
+        cartCustomizationsColumnChecked = true;
+        cartCustomizationsColumnExists = true;
+        return true;
+      } catch (createError: unknown) {
+        const prismaCreateError = createError as { message?: string; code?: string };
+        logger.error("Failed to create cart_items.customizations column", {
+          message: prismaCreateError?.message,
+          code: prismaCreateError?.code,
+        });
+        cartCustomizationsColumnChecked = true;
+        cartCustomizationsColumnExists = false;
+        return false;
+      }
+    }
+
+    logger.error("Unexpected error checking cart_items.customizations column", {
+      message: prismaError?.message,
+      code: prismaError?.code,
+    });
+    cartCustomizationsColumnChecked = true;
+    cartCustomizationsColumnExists = false;
     return false;
   }
 }

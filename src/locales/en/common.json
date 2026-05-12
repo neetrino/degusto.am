@@ -18,6 +18,8 @@
   },
   "navigation": {
     "home": "Home",
+    "shop": "Shop",
+    "combo": "Combo",
     "products": "Products",
     "categories": "Categories",
     "cart": "Cart",
@@ -178,10 +180,14 @@
     "shoppingCart": "Shopping cart"
   },
   "placeholders": {
-    "search": "Search products"
+    "search": "Search"
   },
   "search": {
     "seeAll": "See all"
+  },
+  "switcher": {
+    "language": "Language",
+    "currency": "Currency"
   },
   "defaults": {
     "category": "Grocery"

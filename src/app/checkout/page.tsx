@@ -25,6 +25,8 @@ export default function CheckoutPage() {
     showCardModal,
     setShowCardModal,
     deliveryPrice,
+    bagFee,
+    deliveryUnavailable,
     loadingDeliveryPrice,
     register,
     handleSubmit,
@@ -63,7 +65,7 @@ export default function CheckoutPage() {
         <h1 className="text-3xl font-bold text-gray-900 mb-8">{t('checkout.title')}</h1>
         <Card className="p-6 text-center">
           <p className="text-gray-600 mb-4">{t('checkout.errors.cartEmpty')}</p>
-          <Button variant="primary" onClick={() => router.push('/products')}>
+          <Button variant="primary" onClick={() => router.push('/shop')}>
             {t('checkout.buttons.continueShopping')}
           </Button>
         </Card>
@@ -101,6 +103,8 @@ export default function CheckoutPage() {
             shippingCity={shippingCity}
             loadingDeliveryPrice={loadingDeliveryPrice}
             deliveryPrice={deliveryPrice}
+            bagFee={bagFee}
+            deliveryUnavailable={deliveryUnavailable}
             error={error}
             isSubmitting={isSubmitting}
             onPlaceOrder={(e) => {
@@ -132,6 +136,8 @@ export default function CheckoutPage() {
         currency={currency}
         loadingDeliveryPrice={loadingDeliveryPrice}
         deliveryPrice={deliveryPrice}
+        bagFee={bagFee}
+        deliveryUnavailable={deliveryUnavailable}
         logoErrors={logoErrors}
         setLogoErrors={setLogoErrors}
         isLoggedIn={isLoggedIn}

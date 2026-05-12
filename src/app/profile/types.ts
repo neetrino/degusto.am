@@ -125,12 +125,30 @@ export interface OrderListItem {
   createdAt: string;
 }
 
+export interface UserCoupon {
+  code: string;
+  description: string | null;
+  discountType: "percent" | "fixed";
+  discountValue: number;
+  minOrderAmount: number | null;
+  expiresAt: string | null;
+  isActive: boolean;
+}
+
+export interface CouponHistoryItem {
+  orderNumber: string;
+  usedAt: string;
+  discountAmount: number;
+  code: string | null;
+}
+
 export type ProfileTab =
   | 'dashboard'
   | 'personal'
   | 'addresses'
   | 'password'
   | 'orders'
+  | 'coupons'
   | 'deleteAccount';
 
 export interface ProfileTabConfig {

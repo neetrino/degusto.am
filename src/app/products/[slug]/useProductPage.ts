@@ -22,6 +22,8 @@ export function useProductPage(params: Promise<{ slug?: string }>) {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [showMessage, setShowMessage] = useState<string | null>(null);
   const [thumbnailStartIndex, setThumbnailStartIndex] = useState(0);
+  const [additions, setAdditions] = useState('');
+  const [exclusions, setExclusions] = useState('');
 
   const resolvedParams = use(params);
   const rawSlug = resolvedParams?.slug ?? '';
@@ -179,6 +181,10 @@ export function useProductPage(params: Promise<{ slug?: string }>) {
     setIsAddingToCart,
     showMessage,
     setShowMessage,
+    additions,
+    exclusions,
+    setAdditions,
+    setExclusions,
     isInWishlist,
     isInCompare,
     quantity,

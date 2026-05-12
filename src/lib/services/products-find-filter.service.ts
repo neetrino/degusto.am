@@ -144,7 +144,7 @@ class ProductsFindFilterService {
     }
 
     // Sort
-    const { filter, sort = "createdAt" } = filters;
+    const { filter, sort = "newest" } = filters;
     if (filter === "bestseller" && bestsellerProductIds.length > 0) {
       const rank = new Map<string, number>();
       bestsellerProductIds.forEach((id, index) => rank.set(id, index));
@@ -153,7 +153,7 @@ class ProductsFindFilterService {
         const bRank = rank.get(b.id) ?? Number.MAX_SAFE_INTEGER;
         return aRank - bRank;
       });
-    } else if (sort === "price") {
+    } else if (sort === "price-desc" || sort === "price") {
       products.sort((a: ProductWithRelations, b: ProductWithRelations) => {
         const aVariants = Array.isArray(a.variants) ? a.variants : [];
         const bVariants = Array.isArray(b.variants) ? b.variants : [];
@@ -161,10 +161,26 @@ class ProductsFindFilterService {
         const bPrice = bVariants.length > 0 ? Math.min(...bVariants.map((v: { price: number }) => v.price)) : 0;
         return bPrice - aPrice;
       });
+    } else if (sort === "price-asc") {
+      products.sort((a: ProductWithRelations, b: ProductWithRelations) => {
+        const aVariants = Array.isArray(a.variants) ? a.variants : [];
+        const bVariants = Array.isArray(b.variants) ? b.variants : [];
+        const aPrice = aVariants.length > 0 ? Math.min(...aVariants.map((v: { price: number }) => v.price)) : 0;
+        const bPrice = bVariants.length > 0 ? Math.min(...bVariants.map((v: { price: number }) => v.price)) : 0;
+        return aPrice - bPrice;
+      });
+    } else if (sort === "popular" && bestsellerProductIds.length > 0) {
+      const rank = new Map<string, number>();
+      bestsellerProductIds.forEach((id, index) => rank.set(id, index));
+      products.sort((a: ProductWithRelations, b: ProductWithRelations) => {
+        const aRank = rank.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+        const bRank = rank.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+        return aRank - bRank;
+      });
     } else {
       products.sort((a: ProductWithRelations, b: ProductWithRelations) => {
-        const aValue = a[sort as keyof typeof a] as Date;
-        const bValue = b[sort as keyof typeof b] as Date;
+        const aValue = a.createdAt as Date;
+        const bValue = b.createdAt as Date;
         return new Date(bValue).getTime() - new Date(aValue).getTime();
       });
     }

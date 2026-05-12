@@ -39,6 +39,30 @@ export function isQuietCartStockValidationError(status: number, errorData: unkno
 }
 
 /**
+ * Cart read is non-critical for page rendering.
+ * When backend is temporarily unstable, avoid noisy console errors for this endpoint.
+ */
+export function isQuietCartReadServerError(status: number, url: string): boolean {
+  const isServerError = status >= 500 && status < 600;
+  const isCartEndpoint = /\/api\/v1\/cart(?:\?|$)/.test(url);
+  return isServerError && isCartEndpoint;
+}
+
+/**
+ * Some admin dashboard widgets are non-critical read-only panels.
+ * On transient 5xx responses, UI falls back to empty state, so avoid noisy console errors.
+ */
+export function isQuietAdminDashboardReadServerError(status: number, url: string): boolean {
+  const isServerError = status >= 500 && status < 600;
+  const isDashboardEndpoint =
+    /\/api\/v1\/admin\/dashboard\/top-products(?:\?|$)/.test(url) ||
+    /\/api\/v1\/admin\/dashboard\/recent-orders(?:\?|$)/.test(url) ||
+    /\/api\/v1\/admin\/dashboard\/user-activity(?:\?|$)/.test(url);
+
+  return isServerError && isDashboardEndpoint;
+}
+
+/**
  * Parse error response from API
  */
 export async function parseErrorResponse(response: Response): Promise<{

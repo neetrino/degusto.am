@@ -1,7 +1,7 @@
 'use client';
 
 import { Button, Input } from '@shop/ui';
-import { useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import type { FormEvent, ChangeEvent } from 'react';
 import { useTranslation } from '../../lib/i18n-client';
 import { apiClient } from '../../lib/api-client';
@@ -26,43 +26,87 @@ const MapPinIcon = () => (
   </svg>
 );
 
+const MAP_EMBED_URL =
+  'https://maps.google.com/maps?q=10%20Abovyan%20St%2C%20Yerevan%2C%20Armenia&t=&z=15&ie=UTF8&iwloc=&output=embed';
+
+type ContactFormData = {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+};
+
+type SubmissionState = {
+  type: 'idle' | 'success' | 'error';
+  message: string;
+};
+
+const INITIAL_FORM_DATA: ContactFormData = {
+  name: '',
+  email: '',
+  subject: '',
+  message: '',
+};
+
 export default function ContactPage() {
   const { t } = useTranslation();
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
+  const [formData, setFormData] = useState<ContactFormData>(INITIAL_FORM_DATA);
+  const [submitting, setSubmitting] = useState(false);
+  const [submissionState, setSubmissionState] = useState<SubmissionState>({
+    type: 'idle',
     message: '',
   });
-  const [submitting, setSubmitting] = useState(false);
+
+  const socialLinks = useMemo(
+    () => [
+      {
+        key: 'instagram',
+        href: t('contact.social.instagram'),
+        label: t('contact.social.instagramLabel'),
+      },
+      {
+        key: 'facebook',
+        href: t('contact.social.facebook'),
+        label: t('contact.social.facebookLabel'),
+      },
+      {
+        key: 'linkedin',
+        href: t('contact.social.linkedin'),
+        label: t('contact.social.linkedinLabel'),
+      },
+    ].filter((item) => item.href),
+    [t]
+  );
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setSubmissionState({ type: 'idle', message: '' });
     setSubmitting(true);
-    
+
     try {
-      await apiClient.post('/api/v1/contact', {
-        name: formData.name,
-        email: formData.email,
-        subject: formData.subject,
-        message: formData.message,
-      }, {
-        skipAuth: true, // Contact form doesn't require authentication
+      await apiClient.post(
+        '/api/v1/contact',
+        {
+          name: formData.name,
+          email: formData.email,
+          subject: formData.subject,
+          message: formData.message,
+        },
+        { skipAuth: true }
+      );
+
+      setFormData(INITIAL_FORM_DATA);
+      setSubmissionState({
+        type: 'success',
+        message: t('contact.form.submitSuccess'),
       });
-      
-      // Reset form
-      setFormData({
-        name: '',
-        email: '',
-        subject: '',
-        message: '',
-      });
-      
-      alert(t('contact.form.submitSuccess') || 'Ձեր հաղորդագրությունը հաջողությամբ ուղարկվեց');
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Չհաջողվեց ուղարկել հաղորդագրությունը';
-      console.error('Error submitting contact form:', error);
-      alert(t('contact.form.submitError') || 'Սխալ: ' + errorMessage);
+      const fallbackError = t('contact.form.submitError');
+      const errorMessage = error instanceof Error ? error.message : fallbackError;
+      setSubmissionState({
+        type: 'error',
+        message: `${fallbackError}: ${errorMessage}`,
+      });
     } finally {
       setSubmitting(false);
     }
@@ -126,6 +170,25 @@ export default function ContactPage() {
                 {t('contact.address')}
               </p>
             </div>
+
+            {socialLinks.length > 0 ? (
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900">{t('contact.social.title')}</h3>
+                <div className="mt-3 flex flex-wrap gap-3">
+                  {socialLinks.map((item) => (
+                    <a
+                      key={item.key}
+                      href={item.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-gray-900 hover:text-gray-900"
+                    >
+                      {item.label}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
 
           {/* Right Side: Contact Form */}
@@ -196,8 +259,19 @@ export default function ContactPage() {
                 className="w-full bg-gray-900 text-white hover:bg-gray-800 rounded-md py-3 font-semibold uppercase tracking-wide"
                 disabled={submitting}
               >
-                {submitting ? (t('contact.form.submitting') || 'Ուղարկվում է...') : t('contact.form.submit')}
+                {submitting ? t('contact.form.submitting') : t('contact.form.submit')}
               </Button>
+              {submissionState.type !== 'idle' ? (
+                <p
+                  className={
+                    submissionState.type === 'success'
+                      ? 'text-sm text-green-700'
+                      : 'text-sm text-red-700'
+                  }
+                >
+                  {submissionState.message}
+                </p>
+              ) : null}
             </form>
           </div>
         </div>
@@ -206,14 +280,14 @@ export default function ContactPage() {
       {/* Bottom Section: Map */}
       <div className="w-full h-[500px] bg-gray-100">
         <iframe
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3048.1234567890123!2d44.5150!3d40.1812!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x406aa2dab8fc8b5b%3A0x3d1479ab4e9b8c5e!2sAbovyan%20St%2C%20Yerevan%2C%20Armenia!5e0!3m2!1sen!2sam!4v1234567890123!5m2!1sen!2sam"
+          src={MAP_EMBED_URL}
+          title={t('contact.mapTitle')}
           width="100%"
           height="100%"
-          style={{ border: 0 }}
           allowFullScreen
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
-          className="w-full h-full"
+          className="h-full w-full border-0"
         />
       </div>
     </div>

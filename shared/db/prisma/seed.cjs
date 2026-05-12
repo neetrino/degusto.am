@@ -134,32 +134,100 @@ async function seedBrands() {
 
 async function seedProducts(categoryIds, brandIds) {
   const titles = [
-    "Wireless Earbuds", "Running Shoes", "Cotton T-Shirt", "Desk Lamp", "Yoga Mat",
-    "Water Bottle", "Backpack", "Smart Watch", "Sunglasses", "Notebook Set",
-    "Bluetooth Speaker", "Winter Jacket", "Canvas Sneakers", "Throw Pillow", "Dumbbells",
-    "Novel - The Journey", "Leather Belt", "Phone Stand", "Coffee Mug", "Garden Seeds",
-    "Hiking Boots", "Polo Shirt", "Desk Organizer", "Resistance Bands", "Cookbook",
-    "Wallet", "USB Hub", "Blanket", "Jump Rope", "Short Story Collection",
-    "Cap", "Keyboard", "Curtains", "Kettlebell", "Poetry Book",
-    "Scarf", "Mouse Pad", "Rug", "Foam Roller", "Essay Collection",
-    "Socks Pack", "Monitor Stand", "Vase", "Pull-Up Bar", "Biography",
-    "Gloves", "Cable Organizer", "Cushion", "Running Belt", "Art Book",
+    "Apple iPhone 15 128GB",
+    "Samsung Galaxy A55 5G 128GB",
+    "Xiaomi Redmi Note 13 256GB",
+    "Apple AirPods Pro 2",
+    "Sony WH-1000XM5 Headphones",
+    "Logitech MX Master 3S Mouse",
+    "Dell 27-inch QHD Monitor",
+    "HP LaserJet Pro Printer",
+    "Lenovo IdeaPad Slim 5 Laptop",
+    "Canon EOS R50 Mirrorless Camera",
+    "Nike Air Zoom Pegasus 40",
+    "Adidas Ultraboost Light",
+    "Puma Essentials Hoodie",
+    "Levi's 501 Original Jeans",
+    "New Balance 574 Sneakers",
+    "Under Armour Training T-Shirt",
+    "KitchenAid Artisan Stand Mixer",
+    "Tefal Non-Stick Frying Pan 28cm",
+    "Philips Air Fryer XXL",
+    "Bosch Cordless Vacuum Cleaner",
+    "IKEA MALM Bedside Table",
+    "Dyson Cool Tower Fan",
+    "Xiaomi Mi Smart Kettle Pro",
+    "Panasonic Microwave Oven 23L",
+    "Decathlon Yoga Mat 8mm",
+    "Wilson US Open Tennis Racket",
+    "Spalding Basketball Size 7",
+    "Reebok Adjustable Dumbbell 10kg",
+    "Garmin Forerunner 255",
+    "Hydro Flask 32oz Water Bottle",
+    "The Psychology of Money",
+    "Atomic Habits",
+    "The Lean Startup",
+    "Deep Work",
+    "Sapiens: A Brief History of Humankind",
+    "Anker 65W USB-C Charger",
+    "Belkin MagSafe Power Bank 10000mAh",
+    "UGREEN USB-C Hub 7-in-1",
+    "Samsonite Travel Backpack 25L",
+    "Fjallraven Kanken Classic Bag",
   ];
+  // Product prices are stored in USD and converted to AMD in UI.
+  // Keep displayed AMD range between 5000 and 25000.
+  const AMD_PER_USD = 400;
+  const MIN_DISPLAY_PRICE_AMD = 5000;
+  const MAX_DISPLAY_PRICE_AMD = 25000;
+  const START_PRICE = MIN_DISPLAY_PRICE_AMD / AMD_PER_USD; // 12.5 USD
+  const END_PRICE = MAX_DISPLAY_PRICE_AMD / AMD_PER_USD; // 62.5 USD
+  const PRICE_STEP = titles.length > 1 ? (END_PRICE - START_PRICE) / (titles.length - 1) : 0;
+  const STOCK_BASE = 15;
+
+  // Reuse the currently existing product image so all new products share it.
+  const productsForImage = await prisma.product.findMany({
+    select: { media: true },
+    take: 100,
+  });
+  const existingImageEntry = productsForImage
+    .map((item) => (Array.isArray(item.media) ? item.media[0] : null))
+    .find((entry) => {
+      if (!entry) return false;
+      if (typeof entry === "string") return entry.trim().length > 0;
+      if (typeof entry === "object" && !Array.isArray(entry)) {
+        return Boolean(entry.url || entry.src || entry.value);
+      }
+      return false;
+    });
+  const sharedMedia = existingImageEntry ? [existingImageEntry] : [];
+
+  // Remove old incorrect seeded products before creating the new catalog.
+  await prisma.product.deleteMany({
+    where: {
+      OR: [
+        { translations: { some: { slug: { startsWith: "seed-" } } } },
+        { translations: { some: { title: { startsWith: "Product " } } } },
+      ],
+    },
+  });
+
   const created = [];
-  for (let i = 0; i < 50; i++) {
+  for (let i = 0; i < titles.length; i++) {
     const title = titles[i] || `Product ${i + 1}`;
     const slug = `seed-${slugify(title)}-${i + 1}`;
     const catIndex = i % categoryIds.length;
     const primaryCategoryId = categoryIds[catIndex];
     const categoryIdsList = [primaryCategoryId];
     const brandId = i % 3 === 0 ? brandIds[i % brandIds.length] : null;
-    const price = 1999 + (i % 50) * 500;
-    const stock = 10 + (i % 91);
-    const featured = i < 10;
+    const price = Number((START_PRICE + PRICE_STEP * i).toFixed(2));
+    const stock = STOCK_BASE + (i % 61);
+    const featured = i < 8;
+    const compareAtPrice = Number((price * 1.2).toFixed(2));
     const product = await prisma.product.create({
       data: {
         brandId,
-        media: [],
+        media: sharedMedia,
         published: true,
         featured,
         publishedAt: new Date(),
@@ -179,7 +247,7 @@ async function seedProducts(categoryIds, brandIds) {
         variants: {
           create: {
             price,
-            compareAtPrice: price * 1.2,
+            compareAtPrice,
             stock,
             sku: `SKU-${1000 + i}`,
             position: 0,

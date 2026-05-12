@@ -93,14 +93,72 @@ async function buildCategoryFilter(
 /**
  * Build filter for new, featured, bestseller
  */
+async function loadBestsellerProductIds(): Promise<string[]> {
+  const bestsellerProductIds: string[] = [];
+  type BestsellerVariant = { variantId: string | null; _sum: { quantity: number | null } };
+  const raw = await db.orderItem.groupBy({
+    by: ["variantId"],
+    _sum: { quantity: true },
+    where: {
+      variantId: {
+        not: null,
+      },
+    },
+    orderBy: {
+      _sum: {
+        quantity: "desc" as const,
+      },
+    },
+    take: 200,
+  });
+  const bestsellerVariants: BestsellerVariant[] = raw as BestsellerVariant[];
+
+  const variantIds = bestsellerVariants
+    .map((item) => item.variantId)
+    .filter((id): id is string => Boolean(id));
+
+  if (variantIds.length === 0) {
+    return [];
+  }
+
+  const variantProductMap = await db.productVariant.findMany({
+    where: { id: { in: variantIds } },
+    select: { id: true, productId: true },
+  });
+
+  const variantToProduct = new Map<string, string>();
+  variantProductMap.forEach(({ id, productId }: { id: string; productId: string }) => {
+    variantToProduct.set(id, productId);
+  });
+
+  const productSales = new Map<string, number>();
+  bestsellerVariants.forEach((item: BestsellerVariant) => {
+    const variantId = item.variantId;
+    if (!variantId) return;
+    const productId = variantToProduct.get(variantId);
+    if (!productId) return;
+    const qty = item._sum?.quantity || 0;
+    productSales.set(productId, (productSales.get(productId) || 0) + qty);
+  });
+
+  bestsellerProductIds.push(
+    ...Array.from(productSales.entries())
+      .sort((a, b) => (b[1] || 0) - (a[1] || 0))
+      .map(([productId]) => productId)
+  );
+
+  return bestsellerProductIds;
+}
+
 async function buildFilterFilter(
   filter: string,
+  sort: string | undefined,
   existingWhere: Prisma.ProductWhereInput
 ): Promise<{
   where: Prisma.ProductWhereInput;
   bestsellerProductIds: string[];
 }> {
-  const bestsellerProductIds: string[] = [];
+  let bestsellerProductIds: string[] = [];
 
   if (filter === "new") {
     const thirtyDaysAgo = new Date();
@@ -124,68 +182,20 @@ async function buildFilterFilter(
     };
   }
 
-  if (filter === "bestseller") {
-    type BestsellerVariant = { variantId: string | null; _sum: { quantity: number | null } };
-    const raw = await db.orderItem.groupBy({
-      by: ["variantId"],
-      _sum: { quantity: true },
+  if (filter === "bestseller" || sort === "popular") {
+    bestsellerProductIds = await loadBestsellerProductIds();
+  }
+
+  if (filter === "bestseller" && bestsellerProductIds.length > 0) {
+    return {
       where: {
-        variantId: {
-          not: null,
+        ...existingWhere,
+        id: {
+          in: bestsellerProductIds,
         },
       },
-      orderBy: {
-        _sum: {
-          quantity: "desc" as const,
-        },
-      },
-      take: 200,
-    });
-    const bestsellerVariants: BestsellerVariant[] = raw as BestsellerVariant[];
-
-    const variantIds = bestsellerVariants
-      .map((item) => item.variantId)
-      .filter((id): id is string => Boolean(id));
-
-    if (variantIds.length > 0) {
-      const variantProductMap = await db.productVariant.findMany({
-        where: { id: { in: variantIds } },
-        select: { id: true, productId: true },
-      });
-
-      const variantToProduct = new Map<string, string>();
-      variantProductMap.forEach(({ id, productId }: { id: string; productId: string }) => {
-        variantToProduct.set(id, productId);
-      });
-
-      const productSales = new Map<string, number>();
-      bestsellerVariants.forEach((item: BestsellerVariant) => {
-        const variantId = item.variantId;
-        if (!variantId) return;
-        const productId = variantToProduct.get(variantId);
-        if (!productId) return;
-        const qty = item._sum?.quantity || 0;
-        productSales.set(productId, (productSales.get(productId) || 0) + qty);
-      });
-
-      bestsellerProductIds.push(
-        ...Array.from(productSales.entries())
-          .sort((a, b) => (b[1] || 0) - (a[1] || 0))
-          .map(([productId]) => productId)
-      );
-
-      if (bestsellerProductIds.length > 0) {
-        return {
-          where: {
-            ...existingWhere,
-            id: {
-              in: bestsellerProductIds,
-            },
-          },
-          bestsellerProductIds,
-        };
-      }
-    }
+      bestsellerProductIds,
+    };
   }
 
   return {
@@ -208,6 +218,7 @@ export async function buildWhereClause(
     search,
     ids,
     filter,
+    sort,
     lang = "en",
   } = filters;
 
@@ -245,7 +256,7 @@ export async function buildWhereClause(
   }
 
   // Add filter for new, featured, bestseller
-  const filterResult = await buildFilterFilter(filter || "", where);
+  const filterResult = await buildFilterFilter(filter || "", sort, where);
   where = filterResult.where;
   bestsellerProductIds.push(...filterResult.bestsellerProductIds);
 

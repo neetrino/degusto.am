@@ -129,7 +129,7 @@ export function SearchDropdown({
       {!loading && !error && query.trim().length >= 1 && (
         <div className="border-t border-gray-100 px-4 py-2 bg-gray-50">
           <Link
-            href={`/products?search=${encodeURIComponent(query.trim())}`}
+            href={`/shop?search=${encodeURIComponent(query.trim())}`}
             onClick={() => {
               onClose();
               onSeeAllClick?.();

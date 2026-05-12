@@ -119,42 +119,27 @@ export function TeamCarousel() {
     const maxIndex = Math.max(0, teamMembers.length - visibleCards);
     setCurrentIndex((prevIndex) => {
       if (prevIndex > maxIndex) {
-        console.info('[TeamCarousel] Adjusting index due to visibleCards change:', { 
-          oldIndex: prevIndex, 
-          newIndex: maxIndex 
-        });
         return maxIndex;
       }
       return prevIndex;
     });
   }, [visibleCards]);
 
-  // Визуальное логирование для отладки
-  useEffect(() => {
-    console.info('[TeamCarousel] Current index changed:', currentIndex);
-    console.info('[TeamCarousel] Visible cards:', visibleCards);
-  }, [currentIndex, visibleCards]);
-
   const maxIndex = Math.max(0, teamMembers.length - visibleCards);
 
   const goToPrevious = () => {
     setCurrentIndex((prevIndex) => {
-      const newIndex = prevIndex === 0 ? maxIndex : prevIndex - 1;
-      console.info('[TeamCarousel] Navigate previous:', { from: prevIndex, to: newIndex });
-      return newIndex;
+      return prevIndex === 0 ? maxIndex : prevIndex - 1;
     });
   };
 
   const goToNext = () => {
     setCurrentIndex((prevIndex) => {
-      const newIndex = prevIndex >= maxIndex ? 0 : prevIndex + 1;
-      console.info('[TeamCarousel] Navigate next:', { from: prevIndex, to: newIndex });
-      return newIndex;
+      return prevIndex >= maxIndex ? 0 : prevIndex + 1;
     });
   };
 
   const goToSlide = (index: number) => {
-    console.info('[TeamCarousel] Go to slide:', index);
     setCurrentIndex(index);
   };
 

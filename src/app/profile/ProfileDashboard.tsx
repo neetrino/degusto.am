@@ -43,7 +43,7 @@ export function ProfileDashboard({
   if (dashboardLoading) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-16 sm:py-20">
-        <div className="h-11 w-11 animate-spin rounded-full border-2 border-gray-200 border-t-gray-800" />
+        <div className="h-11 w-11 animate-spin rounded-full border-2 border-[#F66812]/20 border-t-[#F66812]" />
         <p className="text-sm text-gray-600">{t('profile.dashboard.loading')}</p>
       </div>
     );
@@ -51,7 +51,7 @@ export function ProfileDashboard({
 
   if (!dashboardData) {
     return (
-      <Card className="rounded-2xl border border-gray-200/80 p-8 sm:p-10">
+      <Card className="rounded-2xl border border-[#F66812]/20 p-8 sm:p-10">
         <p className="text-center text-sm text-gray-600">{t('profile.dashboard.failedToLoad')}</p>
       </Card>
     );
@@ -104,9 +104,9 @@ export function ProfileDashboard({
         {statItems.map((item) => (
           <Card
             key={item.label}
-            className="relative overflow-hidden rounded-2xl border border-gray-200/80 p-5 shadow-none sm:p-6"
+            className="relative overflow-hidden rounded-2xl border border-[#F66812]/20 p-5 shadow-none sm:p-6"
           >
-            <div className="absolute right-3 top-3 text-gray-300 sm:right-4 sm:top-4">{item.icon}</div>
+            <div className="absolute right-3 top-3 text-[#F66812]/35 sm:right-4 sm:top-4">{item.icon}</div>
             <p className="pr-14 text-[11px] font-semibold uppercase tracking-wider text-gray-500 sm:text-xs">{item.label}</p>
             <p
               className={`mt-2 font-bold tracking-tight text-gray-900 sm:mt-3 ${'valueClass' in item && item.valueClass ? item.valueClass : 'text-2xl sm:text-3xl'}`}
@@ -117,18 +117,25 @@ export function ProfileDashboard({
         ))}
       </div>
 
-      <Card className="rounded-2xl border border-gray-200/80 p-5 shadow-none sm:p-7 lg:p-8">
-        <div className="mb-6 flex flex-col gap-4 border-b border-gray-100 pb-5 sm:mb-8 sm:flex-row sm:items-end sm:justify-between sm:pb-6">
+      <Card className="rounded-2xl border border-[#F66812]/20 p-5 shadow-none sm:p-7 lg:p-8">
+        <div className="mb-6 flex flex-col gap-4 border-b border-[#F66812]/15 pb-5 sm:mb-8 sm:flex-row sm:items-end sm:justify-between sm:pb-6">
           <h2 className="text-lg font-bold tracking-tight text-gray-900 sm:text-xl">{t('profile.dashboard.recentOrders')}</h2>
-          <Button variant="ghost" size="sm" className="self-start sm:self-auto" onClick={() => onTabChange('orders')}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="self-start text-[#F66812] hover:bg-[#F66812]/10 hover:text-[#F66812] sm:self-auto"
+            onClick={() => onTabChange('orders')}
+          >
             {t('profile.dashboard.viewAll')}
           </Button>
         </div>
         {dashboardData.recentOrders.length === 0 ? (
           <div className="flex flex-col items-center gap-5 py-12 sm:py-16">
             <p className="max-w-sm text-center text-sm text-gray-600">{t('profile.dashboard.noOrders')}</p>
-            <Link href="/products">
-              <Button variant="primary">{t('profile.dashboard.startShopping')}</Button>
+            <Link href="/shop">
+              <Button variant="primary" className="!bg-[#F66812] hover:!bg-[#e45f10] focus:!ring-[#F66812]">
+                {t('profile.dashboard.startShopping')}
+              </Button>
             </Link>
           </div>
         ) : (
@@ -138,7 +145,7 @@ export function ProfileDashboard({
                 <Link
                   href={`/orders/${order.number}`}
                   onClick={(e) => onOrderClick(order.number, e)}
-                  className="block rounded-2xl border border-gray-200 bg-gray-50/40 p-4 transition hover:border-gray-300 hover:bg-white sm:p-5"
+                  className="block rounded-2xl border border-[#F66812]/20 bg-[#F66812]/[0.04] p-4 transition hover:border-[#F66812]/35 hover:bg-white sm:p-5"
                 >
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
                     <div className="min-w-0 flex-1 space-y-3">
@@ -169,10 +176,10 @@ export function ProfileDashboard({
                         {new Date(order.createdAt).toLocaleDateString()}
                       </p>
                     </div>
-                    <div className="flex flex-row items-end justify-between gap-3 border-t border-gray-200/80 pt-3 sm:items-center lg:flex-col lg:items-end lg:border-0 lg:pt-0">
+                    <div className="flex flex-row items-end justify-between gap-3 border-t border-[#F66812]/15 pt-3 sm:items-center lg:flex-col lg:items-end lg:border-0 lg:pt-0">
                       <div className="text-left lg:text-right">
                         <p className="text-lg font-bold text-gray-900 sm:text-xl">{orderTotalDisplay(order, currency)}</p>
-                        <p className="mt-0.5 text-xs text-gray-500">{t('profile.dashboard.viewDetails')}</p>
+                        <p className="mt-0.5 text-xs text-[#F66812]">{t('profile.dashboard.viewDetails')}</p>
                       </div>
                     </div>
                   </div>
@@ -183,13 +190,13 @@ export function ProfileDashboard({
         )}
       </Card>
 
-      <Card className="rounded-2xl border border-gray-200/80 p-5 shadow-none sm:p-7 lg:p-8">
+      <Card className="rounded-2xl border border-[#F66812]/20 p-5 shadow-none sm:p-7 lg:p-8">
         <h2 className="mb-5 text-lg font-bold tracking-tight text-gray-900 sm:mb-6 sm:text-xl">{t('profile.dashboard.quickActions')}</h2>
         <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:flex-wrap">
           <Button
             variant="outline"
             onClick={() => onTabChange('orders')}
-            className="flex min-h-12 w-full items-center justify-between rounded-xl px-4 sm:justify-start lg:min-w-[200px] lg:flex-1"
+            className="flex min-h-12 w-full items-center justify-between rounded-xl border-[#F66812]/40 text-[#F66812] hover:border-[#F66812] hover:bg-[#F66812]/10 sm:justify-start lg:min-w-[200px] lg:flex-1"
           >
             <span className="flex min-w-0 items-center gap-3 text-left leading-snug">
               <svg className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -201,7 +208,7 @@ export function ProfileDashboard({
           <Button
             variant="outline"
             onClick={() => onTabChange('addresses')}
-            className="flex min-h-12 w-full items-center justify-between rounded-xl px-4 sm:justify-start lg:min-w-[200px] lg:flex-1"
+            className="flex min-h-12 w-full items-center justify-between rounded-xl border-[#F66812]/40 text-[#F66812] hover:border-[#F66812] hover:bg-[#F66812]/10 sm:justify-start lg:min-w-[200px] lg:flex-1"
           >
             <span className="flex min-w-0 items-center gap-3 text-left leading-snug">
               <svg className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -211,8 +218,11 @@ export function ProfileDashboard({
               {t('profile.dashboard.manageAddresses')}
             </span>
           </Button>
-          <Link href="/products" className="block w-full lg:min-w-[200px] lg:flex-1">
-            <Button variant="outline" className="flex min-h-12 w-full items-center justify-between rounded-xl px-4 sm:justify-start">
+          <Link href="/shop" className="block w-full lg:min-w-[200px] lg:flex-1">
+            <Button
+              variant="outline"
+              className="flex min-h-12 w-full items-center justify-between rounded-xl border-[#F66812]/40 text-[#F66812] hover:border-[#F66812] hover:bg-[#F66812]/10 sm:justify-start"
+            >
               <span className="flex min-w-0 items-center gap-3 text-left leading-snug">
                 <svg className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />

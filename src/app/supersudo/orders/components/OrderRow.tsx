@@ -55,7 +55,7 @@ export function OrderRow({
 
   return (
     <tr
-      className="cursor-pointer hover:bg-gray-50"
+      className="cursor-pointer transition-colors hover:bg-gradient-to-r hover:from-[#fff4ea] hover:to-[#eef9f1]"
       onClick={onViewDetails}
       aria-label={rowDetailsLabel}
     >

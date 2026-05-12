@@ -75,10 +75,10 @@ export function TopCategories() {
           {topCategories.map((item) => (
             <Link
               key={item.id}
-              href={`/products?category=${item.slug}`}
+              href={`/shop?category=${item.slug}`}
               onClick={(e) => {
                 e.preventDefault();
-                router.push(`/products?category=${item.slug}`);
+                router.push(`/shop?category=${item.slug}`);
               }}
               className="flex flex-col items-center gap-3 group cursor-pointer transition-all duration-300 hover:scale-105 min-w-[120px] outline-none focus:outline-none hover:outline-none focus-visible:outline-none ring-0 focus:ring-0 hover:ring-0"
             >

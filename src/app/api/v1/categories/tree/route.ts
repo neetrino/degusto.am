@@ -6,12 +6,13 @@ import {
   writeJsonCache,
 } from "@/lib/cache/storefront-cache";
 import { apiRouteErrorResponse } from "@/lib/http/api-route-errors";
+import { resolveStorefrontLocaleFromSearchParams } from "@/lib/i18n/locale";
 import { categoriesService } from "@/lib/services/categories.service";
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const lang = searchParams.get("lang") || "en";
+    const lang = resolveStorefrontLocaleFromSearchParams(searchParams);
     const cacheKey = STOREFRONT_CACHE_KEYS.categoriesTree(lang);
 
     const cached = await readJsonCache<unknown>(cacheKey);

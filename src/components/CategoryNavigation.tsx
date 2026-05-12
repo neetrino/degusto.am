@@ -39,7 +39,7 @@ function CategoryNavigationContent() {
     // Reset to page 1 when changing category
     params.delete('page');
     
-    router.push(`/products?${params.toString()}`);
+    router.push(`/shop?${params.toString()}`);
   };
 
   useEffect(() => {

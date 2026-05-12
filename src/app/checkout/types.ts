@@ -7,6 +7,8 @@ export type CheckoutFormData = {
   paymentMethod: 'idram' | 'arca' | 'cash_on_delivery';
   shippingAddress?: string;
   shippingCity?: string;
+  cashChangeFrom?: string;
+  orderNotes?: string;
   cardNumber?: string;
   cardExpiry?: string;
   cardCvv?: string;
@@ -15,6 +17,10 @@ export type CheckoutFormData = {
 
 export interface CartItem {
   id: string;
+  customizations?: {
+    additions?: string;
+    exclusions?: string;
+  };
   variant: {
     id: string;
     sku: string;

@@ -81,7 +81,7 @@ export function AdminMenuDrawer({ tabs, currentPath }: AdminMenuDrawerProps) {
         aria-expanded={open}
         aria-controls="admin-menu-drawer-panel"
         onClick={() => setOpen((prev) => !prev)}
-        className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold uppercase tracking-wide text-gray-800 shadow-sm"
+        className="inline-flex items-center gap-2 rounded-full border border-[#e85c0a] bg-[#f66812] px-4 py-2 text-sm font-semibold uppercase tracking-wide text-white shadow-sm"
       >
         <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M4 6H20M4 12H16M4 18H12" />
@@ -96,17 +96,17 @@ export function AdminMenuDrawer({ tabs, currentPath }: AdminMenuDrawerProps) {
         >
           <div
             id="admin-menu-drawer-panel"
-            className="h-full min-h-screen w-1/2 min-w-[16rem] max-w-full bg-white flex flex-col shadow-2xl"
+            className="admin-sidebar-home-bg flex h-full min-h-screen w-1/2 min-w-[16rem] max-w-full flex-col bg-[#f66812] text-white shadow-2xl"
             role="dialog"
             aria-modal="true"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-center justify-between gap-3 border-b border-gray-200 px-4 py-4">
-              <BrandLogoLink className="min-w-0" />
+            <div className="flex items-center justify-between gap-3 border-b border-[#e85c0a] px-4 py-4">
+              <BrandLogoLink onDark className="min-w-0" />
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="h-10 w-10 rounded-full border border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-900"
+                className="h-10 w-10 rounded-full border border-white/30 text-white/90 hover:border-white/50 hover:bg-black/10 hover:text-white"
                 aria-label="Close admin menu"
               >
                 <svg className="mx-auto h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -115,7 +115,7 @@ export function AdminMenuDrawer({ tabs, currentPath }: AdminMenuDrawerProps) {
               </button>
             </div>
 
-            <div className="flex-1 divide-y divide-gray-100 overflow-y-auto">
+            <div className="flex-1 divide-y divide-black/10 overflow-y-auto">
               {tabs.map((tab) => {
                 if (!isDrawerNestedProductTabVisible(tab, pathname, productsNestedExpanded)) {
                   return null;
@@ -127,21 +127,21 @@ export function AdminMenuDrawer({ tabs, currentPath }: AdminMenuDrawerProps) {
                   return (
                     <div
                       key={tab.id}
-                      className={`flex w-full min-w-0 items-stretch ${isActive ? 'bg-gray-900 text-white' : ''}`}
+                      className={`flex w-full min-w-0 items-stretch ${isActive ? 'bg-white text-[#f66812] shadow-sm' : ''}`}
                     >
                       <button
                         type="button"
                         onClick={() => handleNavigate(tab.path)}
                         className={`flex min-w-0 flex-1 items-center justify-between gap-3 px-4 py-3 text-left text-sm font-medium ${
-                          isActive ? 'text-white hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-50'
+                          isActive ? 'text-[#f66812] hover:bg-[#fff4eb]' : 'text-white/95 hover:bg-black/10 hover:text-white'
                         }`}
                       >
                         <span className="flex min-w-0 items-center gap-3">
-                          <span className={isActive ? 'text-white' : 'text-gray-500'}>{tab.icon}</span>
+                          <span className={isActive ? 'text-[#f66812]' : 'text-white/85'}>{tab.icon}</span>
                           <span className="min-w-0 truncate">{tab.label}</span>
                         </span>
                         <svg
-                          className={`h-4 w-4 shrink-0 ${isActive ? 'text-white' : 'text-gray-400'}`}
+                          className={`h-4 w-4 shrink-0 ${isActive ? 'text-[#f66812]' : 'text-white/75'}`}
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -161,8 +161,8 @@ export function AdminMenuDrawer({ tabs, currentPath }: AdminMenuDrawerProps) {
                         }}
                         className={`shrink-0 border-l px-3 py-3 ${
                           isActive
-                            ? 'border-white/25 text-white hover:bg-white/10'
-                            : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                            ? 'border-[#ffd9c0] text-[#f66812] hover:bg-[#fff4eb]'
+                            : 'border-white/20 text-white/85 hover:bg-black/10 hover:text-white'
                         }`}
                       >
                         <svg
@@ -186,14 +186,14 @@ export function AdminMenuDrawer({ tabs, currentPath }: AdminMenuDrawerProps) {
                     onClick={() => handleNavigate(tab.path)}
                     className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium ${
                       tab.isSubCategory ? 'pl-8' : ''
-                    } ${isActive ? 'bg-gray-900 text-white' : 'text-gray-700 hover:bg-gray-50'}`}
+                    } ${isActive ? 'bg-white text-[#f66812] shadow-sm' : 'text-white/95 hover:bg-black/10 hover:text-white'}`}
                   >
                     <span className="flex items-center gap-3">
-                      <span className={isActive ? 'text-white' : 'text-gray-500'}>{tab.icon}</span>
+                      <span className={isActive ? 'text-[#f66812]' : 'text-white/85'}>{tab.icon}</span>
                       {tab.label}
                     </span>
                     <svg
-                      className={`h-4 w-4 shrink-0 ${isActive ? 'text-white' : 'text-gray-400'}`}
+                      className={`h-4 w-4 shrink-0 ${isActive ? 'text-[#f66812]' : 'text-white/75'}`}
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"

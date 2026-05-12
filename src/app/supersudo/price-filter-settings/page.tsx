@@ -252,10 +252,10 @@ export default function PriceFilterSettingsPage() {
   return (
     <>
       <div className="mb-8">
-        <p className="text-gray-600">{t('admin.priceFilter.subtitle')}</p>
+        <p className="text-[#4f5f56]">{t('admin.priceFilter.subtitle')}</p>
       </div>
 
-            <Card className="p-6">
+            <Card className="rounded-xl border border-[#f2d8c6] bg-gradient-to-br from-[#fff8f2] via-white to-[#eef8f1] p-6 shadow-[0_8px_24px_rgba(245,104,20,0.08)]">
               <div className="mb-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('admin.priceFilter.priceFilterDefaultRange')}</h2>
                 <p className="text-sm text-gray-600">
@@ -329,14 +329,14 @@ export default function PriceFilterSettingsPage() {
                     </div>
                   </div>
 
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="rounded-lg border border-[#f1d7c6] bg-gradient-to-r from-[#fff3e8] to-[#edf8f1] p-4">
                     <div className="flex items-start gap-3">
-                      <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="mt-0.5 h-5 w-5 shrink-0 text-[#2f7d4a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      <div className="text-sm text-blue-800">
+                      <div className="text-sm text-[#2d4f3e]">
                         <p className="font-medium mb-1">{t('admin.priceFilter.howItWorks')}</p>
-                        <ul className="list-disc list-inside space-y-1 text-blue-700">
+                        <ul className="list-inside list-disc space-y-1 text-[#3e5c4d]">
                           <li>{t('admin.priceFilter.stepSizeControls')}</li>
                           <li>{t('admin.priceFilter.differentStepSizes')}</li>
                           <li>{t('admin.priceFilter.defaultRange')}</li>
@@ -352,7 +352,7 @@ export default function PriceFilterSettingsPage() {
                       variant="primary"
                       onClick={handleSave}
                       disabled={saving}
-                      className="px-6"
+                      className="bg-gradient-to-r from-[#f66812] to-[#2f7d4a] px-6 hover:from-[#e85d0b] hover:to-[#25653c]"
                     >
                       {saving ? (
                         <div className="flex items-center gap-2">
@@ -365,6 +365,7 @@ export default function PriceFilterSettingsPage() {
                     </Button>
                     <Button
                       variant="ghost"
+                      className="text-[#1f5f44] hover:bg-[#fff3ea] hover:text-[#d7590e]"
                       onClick={() => {
                         setMinPrice('');
                         setMaxPrice('');

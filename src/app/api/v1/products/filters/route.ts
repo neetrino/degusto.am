@@ -6,6 +6,8 @@ import {
   stableSearchParamsKey,
   writeJsonCache,
 } from "@/lib/cache/storefront-cache";
+import { buildLocalizedProblem } from "@/lib/i18n/api-problem";
+import { resolveStorefrontLocaleFromSearchParams } from "@/lib/i18n/locale";
 import { productsService } from "@/lib/services/products.service";
 import { logger } from "@/lib/utils/logger";
 
@@ -18,17 +20,19 @@ export async function GET(req: NextRequest) {
     } catch (urlError) {
       logger.error("[PRODUCTS FILTERS] Invalid request URL", urlError);
       return NextResponse.json(
-        {
+        buildLocalizedProblem(req, {
           type: "https://api.shop.am/problems/internal-error",
-          title: "Internal Server Error",
           status: 500,
-          detail: "Invalid request URL",
+          titleKey: "internalErrorTitle",
+          detailKey: "internalErrorDetail",
+          detailOverride: "Invalid request URL",
           instance: req.url || "",
-        },
+        }),
         { status: 500 }
       );
     }
 
+    const lang = resolveStorefrontLocaleFromSearchParams(searchParams);
     const filters = {
       category: searchParams.get("category") || undefined,
       search: searchParams.get("search") || undefined,
@@ -38,7 +42,7 @@ export async function GET(req: NextRequest) {
       maxPrice: searchParams.get("maxPrice")
         ? parseFloat(searchParams.get("maxPrice")!)
         : undefined,
-      lang: searchParams.get("lang") || "en",
+      lang,
     };
 
     const cacheKey = STOREFRONT_CACHE_KEYS.productsFilters(stableSearchParamsKey(searchParams));
@@ -54,15 +58,18 @@ export async function GET(req: NextRequest) {
   } catch (error: unknown) {
     const err = error as { type?: string; title?: string; status?: number; message?: string };
     logger.error("[PRODUCTS FILTERS] Error", error);
+    const status = err.status || 500;
     return NextResponse.json(
-      {
+      buildLocalizedProblem(req, {
         type: err.type || "https://api.shop.am/problems/internal-error",
-        title: err.title || "Internal Server Error",
-        status: err.status || 500,
-        detail: err.message || "An error occurred",
+        status,
+        titleKey: "internalErrorTitle",
+        detailKey: "internalErrorDetail",
+        detailOverride: err.message,
+        titleOverride: err.title,
         instance: req.url || "",
-      },
-      { status: err.status || 500 }
+      }),
+      { status }
     );
   }
 }

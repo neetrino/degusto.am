@@ -1,13 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@white-shop/db";
+import { buildLocalizedProblem } from "@/lib/i18n/api-problem";
+import { resolveStorefrontLocale } from "@/lib/i18n/locale";
 import { logger } from "@/lib/utils/logger";
+import {
+  buildCustomizationLineKey,
+  normalizeProductCustomizations,
+  type ProductCustomizations,
+} from "@/lib/cart/customizations";
 
 interface GuestCartItemInput {
+  lineId?: string;
   productId: string;
   productSlug?: string;
   variantId: string;
   quantity: number;
   price?: number;
+  customizations?: ProductCustomizations;
 }
 
 interface GuestCartRequestBody {
@@ -32,6 +41,7 @@ interface GuestCartProduct {
 
 interface GuestCartLine {
   id: string;
+  customizations?: ProductCustomizations;
   variant: GuestCartVariant & {
     product: GuestCartProduct;
   };
@@ -86,11 +96,13 @@ function sanitizeItems(items: GuestCartItemInput[] | undefined): GuestCartItemIn
   return items
     .filter((item) => typeof item?.productId === "string" && typeof item?.variantId === "string")
     .map((item) => ({
+      lineId: typeof item.lineId === "string" && item.lineId.trim() ? item.lineId : undefined,
       productId: item.productId,
       productSlug: typeof item.productSlug === "string" ? item.productSlug : undefined,
       variantId: item.variantId,
       quantity: Number.isFinite(item.quantity) && item.quantity > 0 ? Math.floor(item.quantity) : 1,
       price: typeof item.price === "number" ? item.price : undefined,
+      customizations: normalizeProductCustomizations(item.customizations),
     }));
 }
 
@@ -98,7 +110,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as GuestCartRequestBody;
     const items = sanitizeItems(body.items);
-    const lang = typeof body.lang === "string" && body.lang.trim() ? body.lang : "en";
+    const lang = resolveStorefrontLocale(body.lang);
 
     if (items.length === 0) {
       const empty: GuestCartResponse = {
@@ -141,7 +153,7 @@ export async function POST(req: NextRequest) {
     const normalizedItems: GuestCartItemInput[] = [];
     const cartItems: GuestCartLine[] = [];
 
-    items.forEach((item, index) => {
+    items.forEach((item) => {
       const product = productMap.get(item.productId);
       if (!product) {
         return;
@@ -163,15 +175,17 @@ export async function POST(req: NextRequest) {
         "";
 
       normalizedItems.push({
+        lineId: item.lineId || buildCustomizationLineKey(selectedVariant.id, item.customizations),
         productId: item.productId,
         productSlug: productSlug || undefined,
         variantId: selectedVariant.id,
         quantity: item.quantity,
         price: selectedVariant.price,
+        customizations: item.customizations,
       });
 
       cartItems.push({
-        id: `${item.productId}-${selectedVariant.id}-${index}`,
+        id: `${item.productId}:${item.lineId || buildCustomizationLineKey(selectedVariant.id, item.customizations)}`,
         variant: {
           id: selectedVariant.id,
           sku: selectedVariant.sku,
@@ -186,6 +200,7 @@ export async function POST(req: NextRequest) {
           },
         },
         quantity: item.quantity,
+        customizations: item.customizations,
         price: selectedVariant.price,
         originalPrice: selectedVariant.compareAtPrice,
         total: selectedVariant.price * item.quantity,
@@ -224,12 +239,13 @@ export async function POST(req: NextRequest) {
   } catch (error: unknown) {
     logger.error("[CART][GUEST] Failed to build guest cart", { error });
     return NextResponse.json(
-      {
+      buildLocalizedProblem(req, {
         type: "https://api.shop.am/problems/internal-error",
-        title: "Internal Server Error",
         status: 500,
-        detail: "Failed to load guest cart",
-      },
+        titleKey: "internalErrorTitle",
+        detailKey: "internalErrorDetail",
+        detailOverride: "Failed to load guest cart",
+      }),
       { status: 500 }
     );
   }

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { productsService } from "@/lib/services/products.service";
+import { resolveStorefrontLocaleFromCookie } from "@/lib/i18n/locale";
+import { getProductMetadataFallbackCopy } from "@/lib/i18n/metadata";
 
-const DEFAULT_TITLE = "Product";
 const SITE_NAME = "WhiteShop.am";
 
 type Props = {
@@ -10,9 +12,12 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
+  const cookieStore = await cookies();
+  const locale = resolveStorefrontLocaleFromCookie(cookieStore.get("shop_language")?.value);
+  const fallback = getProductMetadataFallbackCopy(locale);
   try {
-    const product = await productsService.findBySlug(slug, "en");
-    const title = product.seo?.title || product.title || DEFAULT_TITLE;
+    const product = await productsService.findBySlug(slug, locale);
+    const title = product.seo?.title || product.title || fallback.title;
     const description = product.seo?.description || product.description || null;
     const firstImage =
       Array.isArray(product.media) && product.media.length > 0
@@ -37,7 +42,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   } catch {
     return {
-      title: `${DEFAULT_TITLE} | ${SITE_NAME}`,
+      title: `${fallback.notFound} | ${SITE_NAME}`,
     };
   }
 }

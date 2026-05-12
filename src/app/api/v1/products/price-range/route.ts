@@ -6,15 +6,17 @@ import {
   stableSearchParamsKey,
   writeJsonCache,
 } from "@/lib/cache/storefront-cache";
+import { resolveStorefrontLocaleFromSearchParams } from "@/lib/i18n/locale";
 import { productsService } from "@/lib/services/products.service";
 import { logger } from "@/lib/utils/logger";
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
+    const lang = resolveStorefrontLocaleFromSearchParams(searchParams);
     const filters = {
       category: searchParams.get("category") || undefined,
-      lang: searchParams.get("lang") || "en",
+      lang,
     };
 
     const cacheKey = STOREFRONT_CACHE_KEYS.productsPriceRange(stableSearchParamsKey(searchParams));

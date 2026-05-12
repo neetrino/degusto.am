@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateToken, requireAdmin } from "@/lib/middleware/auth";
 import { adminService } from "@/lib/services/admin.service";
+import { toApiError } from "@/lib/types/errors";
 import { logger } from "@/lib/utils/logger";
 
 /**
@@ -25,18 +26,10 @@ export async function GET(req: NextRequest) {
 
     const result = await adminService.getBrands();
     return NextResponse.json(result);
-  } catch (error: any) {
-    console.error("❌ [ADMIN BRANDS] GET Error:", error);
-    return NextResponse.json(
-      {
-        type: error.type || "https://api.shop.am/problems/internal-error",
-        title: error.title || "Internal Server Error",
-        status: error.status || 500,
-        detail: error.detail || error.message || "An error occurred",
-        instance: req.url,
-      },
-      { status: error.status || 500 }
-    );
+  } catch (error: unknown) {
+    logger.error("Admin brands GET failed", { error });
+    const apiError = toApiError(error, req.url);
+    return NextResponse.json(apiError, { status: apiError.status || 500 });
   }
 }
 
@@ -61,24 +54,42 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
+    if (!body || typeof body !== "object") {
+      return NextResponse.json(
+        {
+          type: "https://api.shop.am/problems/validation-error",
+          title: "Validation Error",
+          status: 400,
+          detail: "Request body must be a valid JSON object",
+          instance: req.url,
+        },
+        { status: 400 }
+      );
+    }
+
+    if (typeof body.name !== "string" || body.name.trim().length === 0) {
+      return NextResponse.json(
+        {
+          type: "https://api.shop.am/problems/validation-error",
+          title: "Validation Error",
+          status: 400,
+          detail: "Field 'name' is required and must be a non-empty string",
+          instance: req.url,
+        },
+        { status: 400 }
+      );
+    }
+
     logger.debug("📤 [ADMIN BRANDS] POST request:", body);
 
     const result = await adminService.createBrand(body);
     logger.debug("✅ [ADMIN BRANDS] Brand created:", result.data.id);
 
     return NextResponse.json(result, { status: 201 });
-  } catch (error: any) {
-    console.error("❌ [ADMIN BRANDS] POST Error:", error);
-    return NextResponse.json(
-      {
-        type: error.type || "https://api.shop.am/problems/internal-error",
-        title: error.title || "Internal Server Error",
-        status: error.status || 500,
-        detail: error.detail || error.message || "An error occurred",
-        instance: req.url,
-      },
-      { status: error.status || 500 }
-    );
+  } catch (error: unknown) {
+    logger.error("Admin brands POST failed", { error });
+    const apiError = toApiError(error, req.url);
+    return NextResponse.json(apiError, { status: apiError.status || 500 });
   }
 }
 

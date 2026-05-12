@@ -36,20 +36,29 @@ export function useInstantSearch(options: UseInstantSearchOptions = {}) {
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const requestIdRef = useRef(0);
 
   const performSearch = useCallback(
     async (searchQuery: string) => {
       if (searchQuery.length < minQueryLength) {
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort();
+          abortControllerRef.current = null;
+        }
         setResults([]);
         setError(null);
+        setLoading(false);
         return;
       }
 
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
-      abortControllerRef.current = new AbortController();
-      const signal = abortControllerRef.current.signal;
+      const requestId = requestIdRef.current + 1;
+      requestIdRef.current = requestId;
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+      const signal = controller.signal;
 
       setLoading(true);
       setError(null);
@@ -72,16 +81,24 @@ export function useInstantSearch(options: UseInstantSearchOptions = {}) {
         }
 
         const data = await res.json();
-        setResults(Array.isArray(data.results) ? data.results : []);
+        if (requestIdRef.current === requestId) {
+          setResults(Array.isArray(data.results) ? data.results : []);
+        }
       } catch (err) {
         if (err instanceof Error && err.name === 'AbortError') {
           return;
         }
-        setResults([]);
-        setError(err instanceof Error ? err.message : 'Search failed');
+        if (requestIdRef.current === requestId) {
+          setResults([]);
+          setError(err instanceof Error ? err.message : 'Search failed');
+        }
       } finally {
-        setLoading(false);
-        abortControllerRef.current = null;
+        if (requestIdRef.current === requestId) {
+          setLoading(false);
+          if (abortControllerRef.current === controller) {
+            abortControllerRef.current = null;
+          }
+        }
       }
     },
     [minQueryLength, maxResults, lang]

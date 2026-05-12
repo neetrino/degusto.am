@@ -26,9 +26,9 @@ import { CartIcon } from './icons/CartIcon';
 // Navigation links will be translated dynamically using useTranslation hook
 const primaryNavLinks = [
   { href: '/', translationKey: 'common.navigation.home' },
-  { href: '/products', translationKey: 'common.navigation.products' },
+  { href: '/shop', translationKey: 'common.navigation.shop' },
+  { href: '/shop', translationKey: 'common.navigation.combo' },
   { href: '/about', translationKey: 'common.navigation.about' },
-  { href: '/contact', translationKey: 'common.navigation.contact' },
 ];
 
 /** Same transform timing as top bar so the nav lifts in lockstep while the strip hides. */
@@ -48,7 +48,7 @@ function isHeaderNavActive(pathname: string | null, href: string): boolean {
 const HEADER_NAV_LINK_BASE =
   'px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium whitespace-nowrap';
 
-const HEADER_FAST_NAV_ROUTES = ['/', '/products', '/about', '/contact', '/wishlist', '/compare', '/cart'] as const;
+const HEADER_FAST_NAV_ROUTES = ['/', '/shop', '/about', '/wishlist', '/compare', '/cart'] as const;
 
 function headerTextNavClassName(active: boolean): string {
   return active
@@ -209,7 +209,7 @@ function HeaderSearchSync({
 export function Header() {
   const router = useRouter();
   const pathname = usePathname();
-  const { isLoggedIn, logout, isAdmin } = useAuth();
+  const { isLoggedIn, isAdmin } = useAuth();
   const { t } = useTranslation();
   const [compareCount, setCompareCount] = useState(0);
   const [wishlistCount, setWishlistCount] = useState(0);
@@ -217,7 +217,6 @@ export function Header() {
   const [cartTotal, setCartTotal] = useState(0);
   const [showCurrency, setShowCurrency] = useState(false);
   const [showMobileCurrency, setShowMobileCurrency] = useState(false);
-  const [showUserMenu, setShowUserMenu] = useState(false);
   const [searchHoverExpanded, setSearchHoverExpanded] = useState(false);
   const [searchFocusExpanded, setSearchFocusExpanded] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -228,7 +227,6 @@ export function Header() {
 
   const currencyRef = useRef<HTMLDivElement>(null);
   const mobileCurrencyRef = useRef<HTMLDivElement>(null);
-  const userMenuRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const topBarRef = useRef<HTMLDivElement>(null);
   const mainNavRef = useRef<HTMLElement>(null);
@@ -240,7 +238,6 @@ export function Header() {
   // join `suppressScrollHide` or the scroll hook would force the top bar open again.
   const suppressScrollHide =
     mobileMenuOpen ||
-    showUserMenu ||
     showMobileCurrency;
 
   const headerScrollVisible = useHeaderScrollVisibility(suppressScrollHide);
@@ -347,7 +344,10 @@ export function Header() {
       setCartTotal(response.cart?.totals?.total || 0);
     } catch (error: unknown) {
       const err = error as { status?: number; statusCode?: number };
-      if (err?.status !== 401 && err?.statusCode !== 401) {
+      const status = err?.status ?? err?.statusCode;
+      const isUnauthorized = status === 401;
+      const isServerError = typeof status === 'number' && status >= 500;
+      if (!isUnauthorized && !isServerError) {
         console.error('Error fetching cart:', error);
       }
       setCartCount(0);
@@ -506,9 +506,6 @@ export function Header() {
       if (mobileCurrencyRef.current && !mobileCurrencyRef.current.contains(event.target as Node)) {
         setShowMobileCurrency(false);
       }
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
-        setShowUserMenu(false);
-      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -564,7 +561,7 @@ export function Header() {
     }
     clearSearch();
     const queryString = params.toString();
-    router.push(queryString ? `/products?${queryString}` : '/products');
+    router.push(queryString ? `/shop?${queryString}` : '/shop');
   };
 
   /**
@@ -786,10 +783,10 @@ export function Header() {
               {t('common.navigation.home')}
             </Link>
             <Link
-              href="/products"
-              {...getFastNavHandlers('/products')}
-              className={headerTextNavClassName(isHeaderNavActive(pathname, '/products'))}
-              aria-current={isHeaderNavActive(pathname, '/products') ? 'page' : undefined}
+              href="/shop"
+              {...getFastNavHandlers('/shop')}
+              className={headerTextNavClassName(isHeaderNavActive(pathname, '/shop'))}
+              aria-current={isHeaderNavActive(pathname, '/shop') ? 'page' : undefined}
             >
               {t('common.navigation.products')}
             </Link>
@@ -887,70 +884,17 @@ export function Header() {
 
             {/* Icons */}
               {/* Profile / User Menu */}
-              <div className="relative" ref={userMenuRef}>
+              <div className="relative">
                 {isLoggedIn ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => setShowUserMenu(!showUserMenu)}
-                      className={`w-11 h-11 flex items-center justify-center transition-all duration-200 group rounded-lg ${
-                        isHeaderNavActive(pathname, '/profile')
-                          ? 'bg-gray-100 ring-1 ring-gray-200/90'
-                          : ''
-                      }`}
-                      aria-expanded={showUserMenu}
-                      aria-haspopup="true"
-                    >
-                      <ProfileIconFilled />
-                    </button>
-                    {showUserMenu && (
-                      <div className="absolute top-full right-0 mt-2 w-52 bg-white rounded-xl shadow-2xl border border-gray-200/80 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                        <Link
-                          href="/profile"
-                          {...getFastNavHandlers('/profile')}
-                          className={`block px-5 py-3 text-sm transition-all duration-150 font-medium border-b border-gray-100 ${
-                            isHeaderNavActive(pathname, '/profile')
-                              ? 'bg-gray-100 text-gray-900'
-                              : 'text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-white'
-                          }`}
-                          aria-current={isHeaderNavActive(pathname, '/profile') ? 'page' : undefined}
-                          onClick={() => setShowUserMenu(false)}
-                        >
-                          {t('common.navigation.profile')}
-                        </Link>
-                        {isAdmin && (
-                          <Link
-                            href="/supersudo"
-                            {...getFastNavHandlers('/supersudo')}
-                            className={`block px-5 py-3 text-sm transition-all duration-150 font-medium border-b border-gray-100 ${
-                              isHeaderNavActive(pathname, '/supersudo')
-                                ? 'bg-gray-100 text-gray-900'
-                                : 'text-gray-800 hover:bg-gradient-to-r hover:from-gray-50 hover:to-white'
-                            }`}
-                            aria-current={isHeaderNavActive(pathname, '/supersudo') ? 'page' : undefined}
-                            onClick={() => setShowUserMenu(false)}
-                          >
-                            <div className="flex items-center">
-                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              </svg>
-                              {t('common.navigation.adminPanel')}
-                            </div>
-                          </Link>
-                        )}
-                        <button
-                          onClick={() => {
-                            setShowUserMenu(false);
-                            logout();
-                          }}
-                          className="block w-full text-left px-5 py-3 text-sm text-red-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-white transition-all duration-150 font-medium"
-                        >
-                          {t('common.navigation.logout')}
-                        </button>
-                      </div>
-                    )}
-                  </>
+                  <Link
+                    href="/profile"
+                    {...getFastNavHandlers('/profile')}
+                    className={headerIconNavClassName(isHeaderNavActive(pathname, '/profile'))}
+                    aria-current={isHeaderNavActive(pathname, '/profile') ? 'page' : undefined}
+                    aria-label={t('common.navigation.profile')}
+                  >
+                    <ProfileIconFilled />
+                  </Link>
                 ) : (
                   <Link
                     href="/login"
@@ -1164,7 +1108,7 @@ export function Header() {
                 </div>
 
                 <div className="border-t border-gray-200 px-4 py-4 text-xs font-medium tracking-wide text-gray-500 normal-case">
-                  © {currentYear} White-Shop
+                  © {currentYear} Degusto
                 </div>
               </nav>
             </div>

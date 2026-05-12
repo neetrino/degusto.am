@@ -35,12 +35,12 @@ export function ProfileAddresses({
 }: ProfileAddressesProps) {
   return (
     <div className="space-y-6 sm:space-y-8">
-      <Card className="rounded-2xl border border-gray-200/80 p-5 shadow-none sm:p-7 lg:p-8">
-        <div className="mb-6 flex flex-col gap-4 border-b border-gray-100 pb-5 sm:mb-8 sm:flex-row sm:items-center sm:justify-between sm:pb-6">
+      <Card className="rounded-2xl border border-[#F66812]/20 p-5 shadow-none sm:p-7 lg:p-8">
+        <div className="mb-6 flex flex-col gap-4 border-b border-[#F66812]/15 pb-5 sm:mb-8 sm:flex-row sm:items-center sm:justify-between sm:pb-6">
           <h2 className="text-lg font-bold tracking-tight text-gray-900 sm:text-xl">{t('profile.addresses.title')}</h2>
           <Button
             variant="primary"
-            className="h-11 w-full shrink-0 rounded-xl sm:w-auto"
+            className="h-11 w-full shrink-0 rounded-xl !bg-[#F66812] hover:!bg-[#e45f10] focus:!ring-[#F66812] sm:w-auto"
             onClick={() => {
               onResetForm();
               setShowAddressForm(!showAddressForm);
@@ -51,7 +51,7 @@ export function ProfileAddresses({
         </div>
 
         {showAddressForm && (
-          <form onSubmit={onSave} className="mb-8 space-y-5 rounded-2xl border border-dashed border-gray-300 bg-gray-50/50 p-4 sm:mb-10 sm:p-6">
+          <form onSubmit={onSave} className="mb-8 space-y-5 rounded-2xl border border-dashed border-[#F66812]/35 bg-[#F66812]/[0.04] p-4 sm:mb-10 sm:p-6">
             <h3 className="text-base font-semibold text-gray-900">
               {editingAddress ? t('profile.addresses.form.editTitle') : t('profile.addresses.form.addTitle')}
             </h3>
@@ -74,7 +74,7 @@ export function ProfileAddresses({
                 type="checkbox"
                 checked={addressForm.isDefault || false}
                 onChange={(e) => setAddressForm({ ...addressForm, isDefault: e.target.checked })}
-                className="h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-900"
+                className="h-4 w-4 rounded border-[#F66812]/40 text-[#F66812] focus:ring-[#F66812]"
               />
               <span className="text-sm text-gray-700">{t('profile.addresses.form.isDefault')}</span>
             </label>
@@ -82,7 +82,7 @@ export function ProfileAddresses({
               <Button
                 type="button"
                 variant="outline"
-                className="h-11 w-full rounded-xl sm:w-auto"
+                className="h-11 w-full rounded-xl border-[#F66812]/40 text-[#F66812] hover:border-[#F66812] hover:bg-[#F66812]/10 sm:w-auto"
                 onClick={() => {
                   setShowAddressForm(false);
                   onResetForm();
@@ -90,7 +90,12 @@ export function ProfileAddresses({
               >
                 {t('profile.addresses.form.cancel')}
               </Button>
-              <Button type="submit" variant="primary" className="h-11 w-full rounded-xl sm:w-auto" disabled={savingAddress}>
+              <Button
+                type="submit"
+                variant="primary"
+                className="h-11 w-full rounded-xl !bg-[#F66812] hover:!bg-[#e45f10] focus:!ring-[#F66812] sm:w-auto"
+                disabled={savingAddress}
+              >
                 {savingAddress ? t('profile.addresses.form.saving') : editingAddress ? t('profile.addresses.form.update') : t('profile.addresses.form.add')}
               </Button>
             </div>
@@ -102,13 +107,13 @@ export function ProfileAddresses({
             profile.addresses.map((address, index) => (
               <div
                 key={address.id || address._id || index}
-                className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 lg:p-6"
+                className="rounded-2xl border border-[#F66812]/20 bg-white p-4 sm:p-5 lg:p-6"
               >
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
                   <div className="min-w-0 flex-1 space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
                       {address.isDefault && (
-                        <span className="rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
+                        <span className="rounded-md bg-[#F66812]/15 px-2 py-1 text-xs font-medium text-[#F66812]">
                           {t('profile.addresses.default')}
                         </span>
                       )}
@@ -116,13 +121,23 @@ export function ProfileAddresses({
                     <p className="text-sm text-gray-800 sm:text-base">{address.addressLine1}</p>
                     <p className="text-sm text-gray-800 sm:text-base">{address.city}</p>
                   </div>
-                  <div className="flex flex-wrap gap-2 border-t border-gray-100 pt-4 lg:border-0 lg:pt-0">
+                  <div className="flex flex-wrap gap-2 border-t border-[#F66812]/15 pt-4 lg:border-0 lg:pt-0">
                     {!address.isDefault && (
-                      <Button variant="outline" size="sm" className="min-h-9 flex-1 rounded-xl sm:flex-initial" onClick={() => onSetDefault((address.id || address._id)!)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="min-h-9 flex-1 rounded-xl border-[#F66812]/40 text-[#F66812] hover:border-[#F66812] hover:bg-[#F66812]/10 sm:flex-initial"
+                        onClick={() => onSetDefault((address.id || address._id)!)}
+                      >
                         {t('profile.addresses.setDefault')}
                       </Button>
                     )}
-                    <Button variant="outline" size="sm" className="min-h-9 flex-1 rounded-xl sm:flex-initial" onClick={() => onEdit(address)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="min-h-9 flex-1 rounded-xl border-[#F66812]/40 text-[#F66812] hover:border-[#F66812] hover:bg-[#F66812]/10 sm:flex-initial"
+                      onClick={() => onEdit(address)}
+                    >
                       {t('profile.addresses.edit')}
                     </Button>
                     <Button

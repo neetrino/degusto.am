@@ -48,7 +48,7 @@ export function ProductFilters({
   const { t } = useTranslation();
 
   return (
-    <div className="space-y-4 mb-6">
+    <div className="mb-6 space-y-4 rounded-xl border border-[#f2d8c6] bg-gradient-to-br from-[#fff8f2] via-white to-[#eef8f1] p-4 shadow-[0_8px_24px_rgba(245,104,20,0.08)]">
       {/* Search Fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
@@ -66,7 +66,7 @@ export function ProductFilters({
               }
             }}
             placeholder={t('admin.products.searchPlaceholder')}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+            className="w-full rounded-md border border-[#edd6c5] bg-white px-4 py-2.5 text-sm focus:border-[#f66812] focus:outline-none focus:ring-2 focus:ring-[#f7bc95]"
           />
         </div>
         
@@ -82,7 +82,7 @@ export function ProductFilters({
               setPage(1);
             }}
             placeholder={t('admin.products.skuPlaceholder')}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+            className="w-full rounded-md border border-[#edd6c5] bg-white px-4 py-2.5 text-sm focus:border-[#f66812] focus:outline-none focus:ring-2 focus:ring-[#f7bc95]"
           />
         </div>
       </div>
@@ -98,9 +98,9 @@ export function ProductFilters({
             <button
               type="button"
               onClick={() => setCategoriesExpanded(!categoriesExpanded)}
-              className="w-full px-4 py-2.5 text-left border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm flex items-center justify-between"
+              className="flex w-full items-center justify-between rounded-md border border-[#edd6c5] bg-white px-4 py-2.5 text-left text-sm focus:border-[#f66812] focus:outline-none focus:ring-2 focus:ring-[#f7bc95]"
             >
-              <span className="text-gray-700">
+              <span className="text-[#3f4e46]">
                 {selectedCategories.size === 0
                   ? t('admin.products.allCategories')
                   : selectedCategories.size === 1
@@ -108,7 +108,7 @@ export function ProductFilters({
                   : `${selectedCategories.size} categories`}
               </span>
               <svg
-                className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
+                className={`h-4 w-4 text-[#6f7e75] transition-transform duration-200 ${
                   categoriesExpanded ? 'transform rotate-180' : ''
                 }`}
                 fill="none"
@@ -119,7 +119,7 @@ export function ProductFilters({
               </svg>
             </button>
             {categoriesExpanded && (
-              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+              <div className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-md border border-[#edd6c5] bg-white shadow-lg">
                 {categoriesLoading ? (
                   <div className="p-3 text-sm text-gray-500 text-center">{t('admin.products.loadingCategories')}</div>
                 ) : categories.length === 0 ? (
@@ -130,7 +130,7 @@ export function ProductFilters({
                       {categories.map((category) => (
                         <label
                           key={category.id}
-                          className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+                          className="flex cursor-pointer items-center space-x-2 rounded p-2 hover:bg-gradient-to-r hover:from-[#fff4ea] hover:to-[#edf8f1]"
                         >
                           <input
                             type="checkbox"
@@ -145,9 +145,9 @@ export function ProductFilters({
                               setSelectedCategories(newSelected);
                               setPage(1);
                             }}
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            className="h-4 w-4 rounded border-[#cfb7a5] text-[#f66812] focus:ring-[#f7bc95]"
                           />
-                          <span className="text-sm text-gray-700">{category.title}</span>
+                          <span className="text-sm text-[#3f4e46]">{category.title}</span>
                         </label>
                       ))}
                     </div>
@@ -169,7 +169,7 @@ export function ProductFilters({
               setStockFilter(e.target.value as 'all' | 'inStock' | 'outOfStock');
               setPage(1);
             }}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
+            className="w-full rounded-md border border-[#edd6c5] bg-white px-4 py-2.5 text-sm focus:border-[#f66812] focus:outline-none focus:ring-2 focus:ring-[#f7bc95]"
           >
             <option value="all">{t('admin.products.allProducts')}</option>
             <option value="inStock">{t('admin.products.inStock')}</option>

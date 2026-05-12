@@ -2,8 +2,8 @@
   "title": "Добро пожаловать",
   "subtitle": "Войдите в свой аккаунт, чтобы продолжить",
   "form": {
-    "email": "Email",
-    "emailPlaceholder": "your@email.com",
+    "emailOrPhone": "Email",
+    "emailOrPhonePlaceholder": "your@email.com",
     "password": "Пароль",
     "passwordPlaceholder": "••••••••",
     "rememberMe": "Запомнить меня",
@@ -14,9 +14,10 @@
     "signUp": "Зарегистрироваться"
   },
   "errors": {
-    "emailRequired": "Пожалуйста, введите ваш email",
+    "identifierRequired": "Пожалуйста, введите ваш email",
+    "emailInvalid": "Пожалуйста, введите корректный email",
     "passwordRequired": "Пожалуйста, введите ваш пароль",
-    "invalidCredentials": "Неверный email или пароль.",
+    "invalidCredentials": "Неверный email/телефон или пароль.",
     "accountBlocked": "Ваш аккаунт заблокирован.",
     "loginFailed": "Ошибка входа. Пожалуйста, попробуйте снова."
   }

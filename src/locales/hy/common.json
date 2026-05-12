@@ -18,6 +18,8 @@
   },
   "navigation": {
     "home": "Գլխավոր",
+    "shop": "Խանութ",
+    "combo": "Կոմբո",
     "products": "Ապրանքներ",
     "categories": "Կատեգորիաներ",
     "cart": "Զամբյուղ",
@@ -96,6 +98,7 @@
     "comment": "Ձեր կարծիքը",
     "commentPlaceholder": "Կիսվեք ձեր մտքերով այս ապրանքի մասին...",
     "submitReview": "Ուղարկել կարծիք",
+    "submit": "Ուղարկել կարծիք",
     "submitting": "Ուղարկվում է...",
     "loginRequired": "Խնդրում ենք մուտք գործել կարծիք գրելու համար",
     "ratingRequired": "Խնդրում ենք ընտրել գնահատական",
@@ -104,7 +107,8 @@
     "alreadyReviewed": "Դուք արդեն գրել եք կարծիք այս ապրանքի մասին",
     "noReviews": "Կարծիքներ դեռ չկան: Դարձեք առաջինը, ով կգրի կարծիք:",
     "review": "կարծիք",
-    "reviews": "կարծիք"
+    "reviews": "կարծիք",
+    "cancel": "Չեղարկել"
   },
   "messages": {
     "addedToCart": "Ավելացվեց զամբյուղ",
@@ -176,10 +180,14 @@
     "shoppingCart": "Գնումների զամբյուղ"
   },
   "placeholders": {
-    "search": "Որոնել ապրանքներ"
+    "search": "Որոնել"
   },
   "search": {
     "seeAll": "Տեսնել բոլորը"
+  },
+  "switcher": {
+    "language": "Լեզու",
+    "currency": "Արժույթ"
   },
   "defaults": {
     "category": "Մթերք"

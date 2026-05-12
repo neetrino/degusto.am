@@ -5,7 +5,7 @@ import { useState, useEffect, useRef, Suspense } from 'react';
 import { useTranslation } from '../lib/i18n-client';
 
 type ViewMode = 'list' | 'grid-2' | 'grid-3';
-type SortOption = 'default' | 'price-asc' | 'price-desc' | 'name-asc' | 'name-desc';
+type SortOption = 'newest' | 'popular' | 'price-asc' | 'price-desc';
 
 interface ProductsHeaderProps {
   /**
@@ -23,17 +23,16 @@ function ProductsHeaderContent({ total, perPage }: ProductsHeaderProps) {
   const searchParams = useSearchParams();
   const { t } = useTranslation();
   const [viewMode, setViewMode] = useState<ViewMode>('grid-2');
-  const [sortBy, setSortBy] = useState<SortOption>('default');
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const sortDropdownRef = useRef<HTMLDivElement>(null);
   const mobileSortDropdownRef = useRef<HTMLDivElement>(null);
 
   const sortOptions: { value: SortOption; label: string }[] = [
-    { value: 'default', label: t('products.header.sort.default') },
+    { value: 'newest', label: t('products.header.sort.newest') },
+    { value: 'popular', label: t('products.header.sort.popular') },
     { value: 'price-asc', label: t('products.header.sort.priceAsc') },
     { value: 'price-desc', label: t('products.header.sort.priceDesc') },
-    { value: 'name-asc', label: t('products.header.sort.nameAsc') },
-    { value: 'name-desc', label: t('products.header.sort.nameDesc') },
   ];
 
   // Per page: default 12 when not in URL (proper pagination)
@@ -65,6 +64,8 @@ function ProductsHeaderContent({ total, perPage }: ProductsHeaderProps) {
     const sortParam = searchParams.get('sort') as SortOption;
     if (sortParam && sortOptions.some(opt => opt.value === sortParam)) {
       setSortBy(sortParam);
+    } else {
+      setSortBy('newest');
     }
   }, [searchParams]);
 
@@ -99,7 +100,7 @@ function ProductsHeaderContent({ total, perPage }: ProductsHeaderProps) {
     
     // Update URL with sort parameter
     const params = new URLSearchParams(searchParams.toString());
-    if (option === 'default') {
+    if (option === 'newest') {
       params.delete('sort');
     } else {
       params.set('sort', option);
@@ -107,7 +108,7 @@ function ProductsHeaderContent({ total, perPage }: ProductsHeaderProps) {
     // Reset to page 1 when sorting changes
     params.delete('page');
     
-    router.push(`/products?${params.toString()}`);
+    router.push(`/shop?${params.toString()}`);
   };
 
   const handleClearFilters = () => {
@@ -119,7 +120,7 @@ function ProductsHeaderContent({ total, perPage }: ProductsHeaderProps) {
     params.delete('page');
 
     const queryString = params.toString();
-    router.push(queryString ? `/products?${queryString}` : '/products');
+    router.push(queryString ? `/shop?${queryString}` : '/shop');
   };
 
   const handleLimitChange = (value: string | number) => {
@@ -131,7 +132,7 @@ function ProductsHeaderContent({ total, perPage }: ProductsHeaderProps) {
       params.set('limit', '12');
     }
     params.delete('page');
-    router.replace(`/products?${params.toString()}`, { scroll: false });
+    router.replace(`/shop?${params.toString()}`, { scroll: false });
   };
 
   return (

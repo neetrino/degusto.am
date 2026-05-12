@@ -175,9 +175,9 @@ export function HomeCategoriesSidebar() {
   // Handle category click
   const handleCategoryClick = (categorySlug: string | null) => {
     if (categorySlug) {
-      router.push(`/products?category=${categorySlug}`);
+      router.push(`/shop?category=${categorySlug}`);
     } else {
-      router.push('/products');
+      router.push('/shop');
     }
   };
 

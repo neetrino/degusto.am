@@ -6,6 +6,8 @@ export function useDeliveryPrice(
   shippingCity: string | undefined
 ) {
   const [deliveryPrice, setDeliveryPrice] = useState<number | null>(null);
+  const [bagFee, setBagFee] = useState<number>(0);
+  const [deliveryUnavailable, setDeliveryUnavailable] = useState(false);
   const [loadingDeliveryPrice, setLoadingDeliveryPrice] = useState(false);
 
   useEffect(() => {
@@ -13,20 +15,26 @@ export function useDeliveryPrice(
       if (shippingMethod === 'delivery' && shippingCity && shippingCity.trim().length > 0) {
         setLoadingDeliveryPrice(true);
         try {
-          const response = await apiClient.get<{ price: number }>('/api/v1/delivery/price', {
+          const response = await apiClient.get<{ price: number; bagFee?: number }>('/api/v1/delivery/price', {
             params: {
               city: shippingCity.trim(),
               country: 'Armenia',
             },
           });
           setDeliveryPrice(response.price);
+          setBagFee(typeof response.bagFee === 'number' ? response.bagFee : 0);
+          setDeliveryUnavailable(false);
         } catch {
           setDeliveryPrice(0);
+          setBagFee(0);
+          setDeliveryUnavailable(true);
         } finally {
           setLoadingDeliveryPrice(false);
         }
       } else {
         setDeliveryPrice(null);
+        setBagFee(0);
+        setDeliveryUnavailable(false);
       }
     };
 
@@ -37,7 +45,7 @@ export function useDeliveryPrice(
     return () => clearTimeout(timeoutId);
   }, [shippingCity, shippingMethod]);
 
-  return { deliveryPrice, loadingDeliveryPrice };
+  return { deliveryPrice, bagFee, deliveryUnavailable, loadingDeliveryPrice };
 }
 
 

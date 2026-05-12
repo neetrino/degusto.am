@@ -34,6 +34,7 @@ model User {
   carts  Cart[]
   orders Order[]
   reviews ProductReview[]
+  wishlistItems WishlistItem[]
 
   @@index([deletedAt])
   @@map("users")
@@ -223,12 +224,28 @@ model Product {
   categories Category[]     @relation("ProductCategories")
   cartItems  CartItem[]
   reviews    ProductReview[]
+  wishlistItems WishlistItem[]
 
   @@index([brandId])
   @@index([published, publishedAt])
   @@index([featured])
   @@index([deletedAt])
   @@map("products")
+}
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([productId])
+  @@map("wishlist_items")
 }
 
 model ProductTranslation {
@@ -355,6 +372,7 @@ model CartItem {
   variantId     String
   productId     String
   quantity      Int
+  customizations Json?
   priceSnapshot Float
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -421,6 +439,7 @@ model OrderItem {
   variantId    String?
   productTitle String
   variantTitle String?
+  customizations Json?
   sku          String
   quantity     Int
   price        Float

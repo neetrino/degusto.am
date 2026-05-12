@@ -16,7 +16,7 @@ export function StatsCards({ analytics, totalUsers }: StatsCardsProps) {
   const router = useRouter();
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+    <div className="grid grid-cols-1 gap-4 mb-8 md:grid-cols-2 xl:grid-cols-4">
       <Card 
         className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 hover:shadow-lg hover:scale-105 hover:border-blue-400 transition-all duration-200 group cursor-pointer relative"
         onClick={() => router.push('/supersudo/orders')}
@@ -73,6 +73,30 @@ export function StatsCards({ analytics, totalUsers }: StatsCardsProps) {
         <p className="text-sm font-medium text-indigo-700 mb-1">{t('admin.analytics.totalUsers')}</p>
         <p className="text-3xl font-bold text-indigo-900">
           {totalUsers !== null ? totalUsers : '—'}
+        </p>
+      </Card>
+
+      <Card
+        className="p-6 bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200 hover:shadow-lg hover:scale-105 hover:border-amber-400 transition-all duration-200 group cursor-pointer relative"
+        onClick={() => router.push('/supersudo/products?stock=outOfStock')}
+        title={t('admin.analytics.clickToViewInventory')}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+          </div>
+          <svg className="w-4 h-4 text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+        <p className="text-sm font-medium text-amber-800 mb-1">{t('admin.analytics.inventoryRisk')}</p>
+        <p className="text-3xl font-bold text-amber-900">
+          {analytics.inventory.outOfStockVariants}
+        </p>
+        <p className="text-xs text-amber-700 mt-2">
+          {t('admin.analytics.lowStockVariants').replace('{count}', analytics.inventory.lowStockVariants.toString())}
         </p>
       </Card>
     </div>

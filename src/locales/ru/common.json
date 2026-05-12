@@ -18,6 +18,8 @@
   },
   "navigation": {
     "home": "Главная",
+    "shop": "Магазин",
+    "combo": "Комбо",
     "products": "Товары",
     "categories": "Категории",
     "cart": "Корзина",
@@ -169,16 +171,23 @@
     "previousImage": "Предыдущее изображение",
     "nextImage": "Следующее изображение",
     "goToSlide": "Перейти к слайду {number}",
+    "removeItem": "Удалить товар",
+    "decreaseQuantity": "Уменьшить количество",
+    "increaseQuantity": "Увеличить количество",
     "previousThumbnail": "Предыдущая миниатюра",
     "nextThumbnail": "Следующая миниатюра",
     "fullscreenImage": "Полноэкранное изображение",
     "shoppingCart": "Корзина"
   },
   "placeholders": {
-    "search": "Поиск товаров"
+    "search": "Поиск"
   },
   "search": {
     "seeAll": "Показать все"
+  },
+  "switcher": {
+    "language": "Язык",
+    "currency": "Валюта"
   },
   "defaults": {
     "category": "Бакалея"

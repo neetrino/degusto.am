@@ -21,7 +21,7 @@
   },
   "dashboard": {
     "title": "Ադմին էջ",
-    "welcome": "Բարի վերադարձ, {name}!",
+    "welcome": "Login, {name}!",
     "totalUsers": "օգտատերեր",
     "totalProducts": " ապրանքներ",
     "lowStock": "{count} ցածր պաշար",
@@ -98,7 +98,10 @@
     "clickToViewAllOrders": "Սեղմեք բոլոր պատվերները դիտելու համար",
     "clickToViewPaidOrders": "Սեղմեք վճարված պատվերները դիտելու համար",
     "totalRegisteredUsers": "Ընդամենը գրանցված օգտատերեր",
-    "skuLabel": "SKU"
+    "skuLabel": "SKU",
+    "inventoryRisk": "Պահեստում չեղած տարբերակներ",
+    "lowStockVariants": "{count} ցածր մնացորդով տարբերակ",
+    "clickToViewInventory": "Սեղմեք պահեստի ռիսկերը դիտելու համար"
   },
   "attributes": {
     "title": "Ատրիբուտներ",
@@ -199,7 +202,7 @@
     "updating": "Թարմացվում է...",
     "createdSuccess": "Կատեգորիան հաջողությամբ ստեղծվեց",
     "updatedSuccess": "Կատեգորիան հաջողությամբ թարմացվեց",
-
+    "errorCreating": "Սխալ կատեգորիա ստեղծելիս",
     "errorUpdating": "Սխալ կատեգորիա թարմացնելիս",
     "deleteConfirm": "Վստահ ե՞ք, որ ցանկանում եք ջնջել կատեգորիա \"{name}\": Այս գործողությունը չի կարող հետարկվել:",
     "deletedSuccess": "Կատեգորիան հաջողությամբ ջնջվեց",
@@ -353,6 +356,10 @@
       "editProduct": "Խմբագրել ապրանք",
       "addNewProduct": "Ավելացնել նոր ապրանք",
       "basicInformation": "Հիմնական տեղեկություն",
+      "productType": "Ապրանքի տեսակ",
+      "productTypeDescription": "Ընտրեք՝ սա պարզ ապրանք է մեկ գնով և պաշարով, թե տարբերակային ապրանք՝ մի քանի տարբերակներով (օր.՝ տարբեր չափեր, գույներ)",
+      "productTypeSimple": "Պարզ",
+      "productTypeVariable": "Տարբերակային",
       "title": "Վերնագիր",
       "slug": "Slug",
       "description": "Նկարագրություն",

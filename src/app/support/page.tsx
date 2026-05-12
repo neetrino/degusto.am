@@ -23,10 +23,10 @@ export default function SupportPage() {
             <div>
               <p className="text-sm font-medium text-gray-700 mb-1">{t('support.contactUs.email')}</p>
               <a
-                href="mailto:support@whiteshop.com"
+                href="mailto:info@degusto.am"
                 className="text-blue-600 hover:underline"
               >
-                support@whiteshop.com
+                info@degusto.am
               </a>
             </div>
             <div>

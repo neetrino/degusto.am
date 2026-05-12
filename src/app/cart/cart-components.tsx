@@ -75,6 +75,16 @@ export function CartItemRow({
           {item.variant.sku && (
             <p className="text-xs text-gray-500 mt-1">{t('common.messages.sku')}: {item.variant.sku}</p>
           )}
+          {item.customizations?.additions && (
+            <p className="text-xs text-gray-600 mt-2">
+              {t('product.additionsLabel')}: {item.customizations.additions}
+            </p>
+          )}
+          {item.customizations?.exclusions && (
+            <p className="text-xs text-gray-600">
+              {t('product.exclusionsLabel')}: {item.customizations.exclusions}
+            </p>
+          )}
         </div>
       </div>
 
@@ -251,7 +261,7 @@ export function OrderSummary({ cart, currency, t }: OrderSummaryProps) {
           className="w-full mt-3"
           size="md"
           onClick={() => {
-            window.location.href = '/products';
+            window.location.href = '/shop';
           }}
         >
           {t('common.buttons.browseProducts')}

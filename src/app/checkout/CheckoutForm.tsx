@@ -240,6 +240,37 @@ export function CheckoutForm({
           ))}
         </div>
       </Card>
+
+      {paymentMethod === 'cash_on_delivery' && (
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('checkout.form.cashChangeFrom')}</h2>
+          <Input
+            label={t('checkout.form.cashChangeFrom')}
+            type="number"
+            min="0"
+            step="1"
+            placeholder={t('checkout.placeholders.cashChangeFrom')}
+            {...register('cashChangeFrom')}
+            error={errors.cashChangeFrom?.message}
+            disabled={isSubmitting}
+          />
+        </Card>
+      )}
+
+      <Card className="p-6">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('checkout.form.orderNotes')}</h2>
+        <textarea
+          {...register('orderNotes')}
+          rows={4}
+          maxLength={500}
+          placeholder={t('checkout.placeholders.orderNotes')}
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-purple-600 focus:outline-none"
+          disabled={isSubmitting}
+        />
+        {errors.orderNotes?.message && (
+          <p className="mt-2 text-sm text-red-600">{errors.orderNotes.message}</p>
+        )}
+      </Card>
     </div>
   );
 }

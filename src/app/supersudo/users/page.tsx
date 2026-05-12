@@ -212,7 +212,7 @@ export default function UsersPage() {
   return (
     <>
         <Card className="mb-6 p-4">
-          <form onSubmit={handleSearch} className="flex flex-col gap-4">
+          <form onSubmit={handleSearch} className="flex flex-col gap-4 rounded-xl border border-[#f2d8c6] bg-gradient-to-br from-[#fff8f2] via-white to-[#eef8f1] p-4 shadow-[0_8px_24px_rgba(245,104,20,0.08)]">
             <div className="flex gap-4">
               <Input
                 type="text"
@@ -221,7 +221,7 @@ export default function UsersPage() {
                 placeholder={t('admin.users.searchPlaceholder')}
                 className="flex-1"
               />
-              <Button type="submit" variant="primary">
+              <Button type="submit" variant="primary" className="bg-gradient-to-r from-[#f66812] to-[#2f7d4a] hover:from-[#e85d0b] hover:to-[#25653c]">
                 {t('admin.users.search')}
               </Button>
             </div>
@@ -286,7 +286,7 @@ export default function UsersPage() {
         </Card>
 
         {!loading && filteredUsers.length > 0 && (
-          <Card className="mb-6 w-full min-w-0 p-4">
+          <Card className="mb-6 w-full min-w-0 rounded-xl border border-[#f2d8c6] bg-gradient-to-r from-[#fff4ea] to-[#edf8f1] p-4 shadow-[0_8px_24px_rgba(245,104,20,0.08)]">
             <div className="flex w-full min-w-0 flex-wrap items-center justify-between gap-4">
               <div className="min-w-0 flex-1 text-sm text-gray-700">
                 {t('admin.users.selectedUsers').replace('{count}', selectedIds.size.toString())}

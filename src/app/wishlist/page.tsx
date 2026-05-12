@@ -10,6 +10,11 @@ import { formatPrice, getStoredCurrency } from '../../lib/currency';
 import { getStoredLanguage } from '../../lib/language';
 import { useTranslation } from '../../lib/i18n-client';
 import { useAuth } from '../../lib/auth/AuthContext';
+import {
+  emitWishlistUpdated,
+  getLocalWishlistIds,
+  setLocalWishlistIds,
+} from '../../lib/wishlist';
 
 interface Product {
   id: string;
@@ -25,18 +30,6 @@ interface Product {
     id: string;
     name: string;
   } | null;
-}
-
-const WISHLIST_KEY = 'shop_wishlist';
-
-function getWishlist(): string[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const stored = localStorage.getItem(WISHLIST_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
 }
 
 /**
@@ -93,7 +86,7 @@ export default function WishlistPage() {
 
       const normalizedIds = wishlistProducts.map((product) => product.id);
       if (normalizedIds.length !== idsToLoad.length) {
-        localStorage.setItem(WISHLIST_KEY, JSON.stringify(normalizedIds));
+        setLocalWishlistIds(normalizedIds);
         setWishlistIds(normalizedIds);
         window.dispatchEvent(new Event('wishlist-updated'));
       }
@@ -105,10 +98,32 @@ export default function WishlistPage() {
   }, []);
 
   useEffect(() => {
-    // Get wishlist IDs from localStorage
-    const ids = getWishlist();
-    setWishlistIds(ids);
-    fetchWishlistProducts(ids);
+    const hydrateWishlist = async () => {
+      const localIds = getLocalWishlistIds();
+
+      if (!isLoggedIn) {
+        setWishlistIds(localIds);
+        fetchWishlistProducts(localIds);
+        return;
+      }
+
+      try {
+        const syncResponse = await apiClient.patch<{ ids?: string[] }>('/api/v1/users/wishlist', {
+          ids: localIds,
+        });
+        const syncedIds = Array.isArray(syncResponse.ids) ? syncResponse.ids : [];
+        const normalizedIds = setLocalWishlistIds(syncedIds);
+        setWishlistIds(normalizedIds);
+        fetchWishlistProducts(normalizedIds);
+        emitWishlistUpdated();
+      } catch (error) {
+        console.error('[Wishlist] Failed to sync server wishlist, fallback to local cache:', error);
+        setWishlistIds(localIds);
+        fetchWishlistProducts(localIds);
+      }
+    };
+
+    hydrateWishlist();
 
     // Listen for wishlist updates from other components (header, etc.)
     // But don't re-fetch if we already updated locally
@@ -120,7 +135,7 @@ export default function WishlistPage() {
       }
       
       // Only re-fetch if update came from external source (another component)
-      const updatedIds = getWishlist();
+      const updatedIds = getLocalWishlistIds();
       setWishlistIds(updatedIds);
       fetchWishlistProducts(updatedIds);
     };
@@ -135,9 +150,9 @@ export default function WishlistPage() {
       window.removeEventListener('wishlist-updated', handleWishlistUpdate);
       window.removeEventListener('currency-updated', handleCurrencyUpdate);
     };
-  }, [fetchWishlistProducts]);
+  }, [fetchWishlistProducts, isLoggedIn]);
 
-  const handleRemove = (productId: string) => {
+  const handleRemove = async (productId: string) => {
     console.info(`[Wishlist] Removing product ${productId} from wishlist UI`);
     
     // Mark as local update to prevent re-fetch in event handler
@@ -148,7 +163,7 @@ export default function WishlistPage() {
     const updatedProducts = products.filter((p) => p.id !== productId);
     
     // Update localStorage first
-    localStorage.setItem(WISHLIST_KEY, JSON.stringify(updatedIds));
+    setLocalWishlistIds(updatedIds);
     
     // Update state immediately (no page reload, no loading spinner)
     setWishlistIds(updatedIds);
@@ -156,7 +171,20 @@ export default function WishlistPage() {
     
     // Dispatch event for other components (header, etc.) - but our handler won't re-fetch
     // because isLocalUpdateRef.current is true
-    window.dispatchEvent(new Event('wishlist-updated'));
+    emitWishlistUpdated();
+
+    if (isLoggedIn) {
+      try {
+        await apiClient.delete(`/api/v1/users/wishlist/${productId}`);
+      } catch (error) {
+        console.error('[Wishlist] Failed to remove item from server wishlist:', error);
+        const rollbackIds = [...wishlistIds];
+        setLocalWishlistIds(rollbackIds);
+        setWishlistIds(rollbackIds);
+        setProducts(products);
+        emitWishlistUpdated();
+      }
+    }
   };
 
   const handleAddToCart = async (product: Product) => {
@@ -366,7 +394,7 @@ export default function WishlistPage() {
             <p className="text-gray-600 mb-6">
               {t('common.wishlist.emptyDescription')}
             </p>
-            <Link href="/products">
+            <Link href="/shop">
               <Button variant="primary" size="lg">
                 {t('common.buttons.browseProducts')}
               </Button>

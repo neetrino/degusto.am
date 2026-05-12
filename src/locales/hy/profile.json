@@ -8,6 +8,7 @@
     "addresses": "Հասցեներ",
     "password": "Փոխել գաղտնաբառը",
     "orders": "Պատվերներ",
+    "coupons": "Կուպոններ",
     "deleteAccount": "Ջնջել հաշիվը"
   },
   "dashboard": {
@@ -145,6 +146,20 @@
     "next": "Հաջորդ",
     "item": "ապրանք",
     "items": "ապրանք"
+  },
+  "coupons": {
+    "title": "Կուպոններ",
+    "loading": "Կուպոնները բեռնվում են...",
+    "availableTitle": "Հասանելի կուպոններ",
+    "historyTitle": "Կուպոնի օգտագործման պատմություն",
+    "noAvailable": "Այս պահին հասանելի կուպոններ չկան",
+    "noHistory": "Կուպոնի օգտագործման պատմություն դեռ չկա",
+    "active": "Ակտիվ",
+    "inactive": "Ոչ ակտիվ",
+    "discount": "զեղչ",
+    "order": "Պատվեր",
+    "discountUsed": "Կիրառված զեղչ",
+    "code": "Կոդ"
   },
   "orderDetails": {
     "title": "Պատվեր #",

@@ -4,6 +4,11 @@ import { Card } from '@shop/ui';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '../../../lib/i18n-client';
 import { formatCurrency } from '../utils/dashboardUtils';
+import {
+  ADMIN_PANEL_CARD,
+  ADMIN_PANEL_MUTED_TEXT,
+  ADMIN_PANEL_VALUE,
+} from './dashboardStyles';
 
 interface Stats {
   users: { total: number };
@@ -24,16 +29,16 @@ export function StatsGrid({ stats, statsLoading }: StatsGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <Card
-        className="p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105"
+        className={`${ADMIN_PANEL_CARD} cursor-pointer bg-gradient-to-br from-[#fff0e4] via-[#fff8f3] to-[#e6f7ed] p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#eea478]`}
         onClick={() => router.push('/supersudo/users')}
       >
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-600">{t('admin.dashboard.totalUsers')}</p>
+            <p className={ADMIN_PANEL_MUTED_TEXT}>{t('admin.dashboard.totalUsers')}</p>
             {statsLoading ? (
               <div className="animate-pulse h-8 w-16 bg-gray-200 rounded mt-1"></div>
             ) : (
-              <p className="text-2xl font-bold text-gray-900 mt-1">
+              <p className={`${ADMIN_PANEL_VALUE} mt-1`}>
                 {stats?.users.total ?? 0}
               </p>
             )}
@@ -47,16 +52,16 @@ export function StatsGrid({ stats, statsLoading }: StatsGridProps) {
       </Card>
 
       <Card
-        className="p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105"
+        className={`${ADMIN_PANEL_CARD} cursor-pointer bg-gradient-to-br from-[#fff0e4] via-[#fff8f3] to-[#e6f7ed] p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#eea478]`}
         onClick={() => router.push('/supersudo/products')}
       >
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-600">{t('admin.dashboard.totalProducts')}</p>
+            <p className={ADMIN_PANEL_MUTED_TEXT}>{t('admin.dashboard.totalProducts')}</p>
             {statsLoading ? (
               <div className="animate-pulse h-8 w-16 bg-gray-200 rounded mt-1"></div>
             ) : (
-              <p className="text-2xl font-bold text-gray-900 mt-1">
+              <p className={`${ADMIN_PANEL_VALUE} mt-1`}>
                 {stats?.products.total ?? 0}
               </p>
             )}
@@ -70,16 +75,16 @@ export function StatsGrid({ stats, statsLoading }: StatsGridProps) {
       </Card>
 
       <Card
-        className="p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105"
+        className={`${ADMIN_PANEL_CARD} cursor-pointer bg-gradient-to-br from-[#fff0e4] via-[#fff8f3] to-[#e6f7ed] p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#eea478]`}
         onClick={() => router.push('/supersudo/orders')}
       >
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-600">{t('admin.dashboard.totalOrders')}</p>
+            <p className={ADMIN_PANEL_MUTED_TEXT}>{t('admin.dashboard.totalOrders')}</p>
             {statsLoading ? (
               <div className="animate-pulse h-8 w-16 bg-gray-200 rounded mt-1"></div>
             ) : (
-              <p className="text-2xl font-bold text-gray-900 mt-1">
+              <p className={`${ADMIN_PANEL_VALUE} mt-1`}>
                 {stats?.orders.total ?? 0}
               </p>
             )}
@@ -93,16 +98,16 @@ export function StatsGrid({ stats, statsLoading }: StatsGridProps) {
       </Card>
 
       <Card
-        className="p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105"
+        className={`${ADMIN_PANEL_CARD} cursor-pointer bg-gradient-to-br from-[#fff0e4] via-[#fff8f3] to-[#e6f7ed] p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#eea478]`}
         onClick={() => router.push('/supersudo/orders?filter=paid')}
       >
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-600">{t('admin.dashboard.revenue')}</p>
+            <p className={ADMIN_PANEL_MUTED_TEXT}>{t('admin.dashboard.revenue')}</p>
             {statsLoading ? (
               <div className="animate-pulse h-8 w-24 bg-gray-200 rounded mt-1"></div>
             ) : (
-              <p className="text-2xl font-bold text-gray-900 mt-1">
+              <p className={`${ADMIN_PANEL_VALUE} mt-1`}>
                 {stats ? formatCurrency(stats.revenue.total, stats.revenue.currency) : '0 USD'}
               </p>
             )}

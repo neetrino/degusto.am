@@ -18,6 +18,32 @@ const r2 =
       })
     : null;
 
+function isR2StorageEndpoint(urlValue: string): boolean {
+  try {
+    const parsed = new URL(urlValue);
+    return parsed.protocol === "https:" && /\.r2\.cloudflarestorage\.com$/i.test(parsed.hostname);
+  } catch {
+    return false;
+  }
+}
+
+function buildPublicAssetUrl(key: string): string | null {
+  if (!publicUrl) {
+    return null;
+  }
+
+  const path = key.startsWith("/") ? key.slice(1) : key;
+  const normalizedBase = publicUrl.replace(/\/$/, "");
+
+  // R2 S3 endpoint is not directly public for browser image access.
+  // Use internal proxy route to serve files from private bucket safely.
+  if (isR2StorageEndpoint(normalizedBase)) {
+    return `/api/r2/${path}`;
+  }
+
+  return `${normalizedBase}/${path}`;
+}
+
 /**
  * Upload a buffer to R2 and return the public URL.
  * Key will be prefixed with "products/" and get a unique suffix.
@@ -38,9 +64,7 @@ export async function uploadToR2(
       ContentType: contentType,
     })
   );
-  const base = publicUrl.replace(/\/$/, "");
-  const path = key.startsWith("/") ? key.slice(1) : key;
-  return `${base}/${path}`;
+  return buildPublicAssetUrl(key);
 }
 
 export function isR2Configured(): boolean {

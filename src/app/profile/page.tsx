@@ -10,6 +10,7 @@ import { ProfileDashboard } from './ProfileDashboard';
 import { ProfilePersonalInfo } from './ProfilePersonalInfo';
 import { ProfileAddresses } from './ProfileAddresses';
 import { ProfileOrders } from './ProfileOrders';
+import { ProfileCoupons } from './ProfileCoupons';
 import { ProfilePassword } from './ProfilePassword';
 import { ProfileDeleteAccount } from './ProfileDeleteAccount';
 import { OrderDetailsModal } from './OrderDetailsModal';
@@ -54,6 +55,9 @@ function ProfilePageContent() {
     ordersPage,
     setOrdersPage,
     ordersMeta,
+    couponsLoading,
+    availableCoupons,
+    couponHistory,
     selectedOrder,
     setSelectedOrder,
     orderDetailsLoading,
@@ -75,9 +79,19 @@ function ProfilePageContent() {
 
   if (authLoading || loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center">
-          <p className="text-gray-600">{t('profile.common.loadingProfile')}</p>
+      <div className="min-h-full bg-white">
+        <div className="mx-auto hidden max-w-7xl px-4 py-10 md:block md:px-6 lg:px-8">
+          <div className="grid grid-cols-12 items-start gap-6 lg:gap-8">
+            <aside className="col-span-12 lg:col-span-4 xl:col-span-3">
+              <div className="h-[560px] animate-pulse rounded-2xl border border-[#F66812]/20 bg-white" />
+            </aside>
+            <main className="col-span-12 lg:col-span-8 xl:col-span-9">
+              <div className="h-[560px] animate-pulse rounded-2xl border border-[#F66812]/20 bg-white" />
+            </main>
+          </div>
+        </div>
+        <div className="mx-auto w-full max-w-md px-4 pb-8 pt-6 md:hidden">
+          <div className="h-[420px] animate-pulse rounded-[2rem] bg-white ring-1 ring-[#F66812]/20" />
         </div>
       </div>
     );
@@ -132,6 +146,15 @@ function ProfilePageContent() {
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+      ),
+    },
+    {
+      id: 'coupons',
+      label: t('profile.tabs.coupons'),
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 14l6-6m-6 0h.01M15 14h.01M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
         </svg>
       ),
     },
@@ -204,6 +227,14 @@ function ProfilePageContent() {
           t={t}
         />
       )}
+      {activeTab === 'coupons' && (
+        <ProfileCoupons
+          couponsLoading={couponsLoading}
+          availableCoupons={availableCoupons}
+          couponHistory={couponHistory}
+          t={t}
+        />
+      )}
       {activeTab === 'password' && (
         <ProfilePassword
           passwordForm={passwordForm}
@@ -231,7 +262,7 @@ function ProfilePageContent() {
   );
 
   return (
-    <>
+    <div className="min-h-full bg-white">
       <ProfileMobilePage
         profile={profile}
         tabs={tabs}
@@ -247,13 +278,13 @@ function ProfilePageContent() {
       >
         {tabContent}
       </ProfileMobilePage>
-      <div className="mx-auto hidden max-w-7xl px-4 py-8 md:block md:px-6 lg:px-8">
-        <div className="flex flex-col gap-8 md:flex-row md:items-start md:gap-10 lg:gap-12">
-          <aside className="w-full shrink-0 md:sticky md:top-24 md:w-64 md:self-start md:border-r md:border-gray-200/90 md:pr-8 lg:w-72">
+      <div className="mx-auto hidden max-w-7xl px-4 py-10 md:block md:px-6 lg:px-8">
+        <div className="grid grid-cols-12 items-start gap-6 lg:gap-8">
+          <aside className="col-span-12 self-start lg:col-span-4 lg:sticky lg:top-28 xl:col-span-3">
             <ProfileHeader profile={profile} tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} onLogout={logout} t={t} />
           </aside>
-          <main className="min-w-0 flex-1">
-            <div className="space-y-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-200/80 md:space-y-8 md:p-6 lg:rounded-3xl lg:p-8">
+          <main className="col-span-12 min-w-0 lg:col-span-8 xl:col-span-9">
+            <div className="space-y-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm md:space-y-8 md:p-6 lg:p-8">
               {tabContent}
             </div>
           </main>
@@ -271,16 +302,26 @@ function ProfilePageContent() {
           t={t}
         />
       )}
-    </>
+    </div>
   );
 }
 
 export default function ProfilePage() {
   return (
     <Suspense fallback={
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center">
-          <p className="text-gray-600">Loading profile...</p>
+      <div className="min-h-full bg-white">
+        <div className="mx-auto hidden max-w-7xl px-4 py-10 md:block md:px-6 lg:px-8">
+          <div className="grid grid-cols-12 items-start gap-6 lg:gap-8">
+            <aside className="col-span-12 lg:col-span-4 xl:col-span-3">
+              <div className="h-[560px] animate-pulse rounded-2xl border border-[#F66812]/20 bg-white" />
+            </aside>
+            <main className="col-span-12 lg:col-span-8 xl:col-span-9">
+              <div className="h-[560px] animate-pulse rounded-2xl border border-[#F66812]/20 bg-white" />
+            </main>
+          </div>
+        </div>
+        <div className="mx-auto w-full max-w-md px-4 pb-8 pt-6 md:hidden">
+          <div className="h-[420px] animate-pulse rounded-[2rem] bg-white ring-1 ring-[#F66812]/20" />
         </div>
       </div>
     }>

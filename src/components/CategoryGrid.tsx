@@ -267,7 +267,7 @@ export function CategoryGrid() {
   };
 
   const handleCategoryClick = (categorySlug: string) => {
-    router.push(`/products?category=${categorySlug}`);
+    router.push(`/shop?category=${categorySlug}`);
   };
 
   if (loading) {
@@ -308,7 +308,7 @@ export function CategoryGrid() {
             return (
               <Link
                 key={category.id}
-                href={`/products?category=${category.slug}`}
+                href={`/shop?category=${category.slug}`}
                 onClick={(e) => {
                   e.preventDefault();
                   handleCategoryClick(category.slug);

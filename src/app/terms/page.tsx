@@ -129,8 +129,8 @@ export default function TermsPage() {
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('terms.contactInformation.title')}</h2>
           <p className="text-gray-600">
             {t('terms.contactInformation.description')}{' '}
-            <a href="mailto:legal@whiteshop.com" className="text-blue-600 hover:underline">
-              legal@whiteshop.com
+            <a href="mailto:info@degusto.am" className="text-blue-600 hover:underline">
+              info@degusto.am
             </a>
           </p>
         </Card>

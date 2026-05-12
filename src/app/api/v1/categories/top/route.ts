@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@white-shop/db";
 import { apiRouteErrorResponse } from "@/lib/http/api-route-errors";
+import { resolveStorefrontLocaleFromSearchParams } from "@/lib/i18n/locale";
 import { cacheService } from "@/lib/services/cache.service";
 import { processImageUrl } from "@/lib/utils/image-utils";
 
@@ -9,7 +10,7 @@ const CACHE_TTL = 300; // 5 minutes
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const lang = searchParams.get("lang") || "en";
+    const lang = resolveStorefrontLocaleFromSearchParams(searchParams);
     const limitParam = parseInt(searchParams.get("limit") || "5", 10);
     const limit = Math.min(limitParam, 20);
 

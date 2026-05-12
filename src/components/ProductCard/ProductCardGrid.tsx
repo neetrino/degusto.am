@@ -1,6 +1,6 @@
 'use client';
 
-import type { MouseEvent } from 'react';
+import type { KeyboardEvent, MouseEvent } from 'react';
 import { ProductCardImage } from './ProductCardImage';
 import { ProductCardInfo } from './ProductCardInfo';
 import { ProductCardActions } from './ProductCardActions';
@@ -34,6 +34,7 @@ interface ProductCardGridProps {
   onWishlistToggle: (e: MouseEvent) => void;
   onCompareToggle: (e: MouseEvent) => void;
   onAddToCart: (e: MouseEvent) => void;
+  onProductClick: () => void;
 }
 
 /**
@@ -51,13 +52,25 @@ export function ProductCardGrid({
   onWishlistToggle,
   onCompareToggle,
   onAddToCart,
+  onProductClick,
 }: ProductCardGridProps) {
   const { t } = useTranslation();
+  const handleCardKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return;
+    }
+    event.preventDefault();
+    onProductClick();
+  };
 
   return (
     <div
       data-product-card
-      className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow relative group"
+      className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow relative group cursor-pointer"
+      onClick={onProductClick}
+      onKeyDown={handleCardKeyDown}
+      role="link"
+      tabIndex={0}
     >
       {/* Product Image */}
       <div className="aspect-square bg-gray-100 relative overflow-hidden">

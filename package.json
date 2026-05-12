@@ -24,7 +24,11 @@
     "db:migrate": "pnpm --filter @white-shop/db db:migrate",
     "db:studio": "pnpm --filter @white-shop/db db:studio",
     "db:seed": "node shared/db/prisma/seed.cjs",
-    "db:migrate:deploy": "node src/scripts/run-migrations.js"
+    "db:migrate:deploy": "node src/scripts/run-migrations.js",
+    "images:migrate:r2": "node src/scripts/migrate-images-to-r2.js",
+    "images:migrate:homepage": "node src/scripts/migrate-homepage-assets-to-r2.js",
+    "images:migrate:figma": "node src/scripts/migrate-figma-assets-to-r2.js",
+    "i18n:check": "node src/scripts/check-locales-coverage.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.995.0",
@@ -37,6 +41,7 @@
     "@white-shop/db": "workspace:*",
     "bcryptjs": "^2.4.3",
     "browser-image-compression": "^2.0.2",
+    "framer-motion": "^12.38.0",
     "ioredis": "^5.3.2",
     "isomorphic-dompurify": "^3.0.0",
     "jose": "^6.1.3",
@@ -47,6 +52,7 @@
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "react-hook-form": "^7.66.0",
+    "react-icons": "^5.6.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {

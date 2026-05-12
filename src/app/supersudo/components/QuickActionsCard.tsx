@@ -3,19 +3,20 @@
 import { Card, Button } from '@shop/ui';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '../../../lib/i18n-client';
+import { ADMIN_PANEL_CARD, ADMIN_PANEL_TITLE } from './dashboardStyles';
 
 export function QuickActionsCard() {
   const { t } = useTranslation();
   const router = useRouter();
 
   return (
-    <Card className="p-6 mb-8">
-      <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('admin.dashboard.quickActions')}</h2>
+    <Card className={`${ADMIN_PANEL_CARD} mb-8 p-6`}>
+      <h2 className={`${ADMIN_PANEL_TITLE} mb-4`}>{t('admin.dashboard.quickActions')}</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Button
           variant="outline"
           onClick={() => router.push('/supersudo/products/add')}
-          className="justify-start h-auto py-4"
+          className="h-auto justify-start rounded-xl border-[#f2d8c6] bg-gradient-to-br from-[#fff0e4] via-[#fff8f3] to-[#e6f7ed] py-4 hover:border-[#efaa82] hover:from-[#ffe5d1] hover:to-[#d9f3e4]"
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
@@ -32,7 +33,7 @@ export function QuickActionsCard() {
         <Button
           variant="outline"
           onClick={() => router.push('/supersudo/orders')}
-          className="justify-start h-auto py-4"
+          className="h-auto justify-start rounded-xl border-[#f2d8c6] bg-gradient-to-br from-[#fff0e4] via-[#fff8f3] to-[#e6f7ed] py-4 hover:border-[#efaa82] hover:from-[#ffe5d1] hover:to-[#d9f3e4]"
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -49,7 +50,7 @@ export function QuickActionsCard() {
         <Button
           variant="outline"
           onClick={() => router.push('/supersudo/users')}
-          className="justify-start h-auto py-4"
+          className="h-auto justify-start rounded-xl border-[#f2d8c6] bg-gradient-to-br from-[#fff0e4] via-[#fff8f3] to-[#e6f7ed] py-4 hover:border-[#efaa82] hover:from-[#ffe5d1] hover:to-[#d9f3e4]"
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
@@ -66,7 +67,7 @@ export function QuickActionsCard() {
         <Button
           variant="outline"
           onClick={() => router.push('/supersudo/settings')}
-          className="justify-start h-auto py-4"
+          className="h-auto justify-start rounded-xl border-[#f2d8c6] bg-gradient-to-br from-[#fff0e4] via-[#fff8f3] to-[#e6f7ed] py-4 hover:border-[#efaa82] hover:from-[#ffe5d1] hover:to-[#d9f3e4]"
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">

@@ -9,12 +9,26 @@ import {
 describe("auth.schema", () => {
   describe("login", () => {
     it("parses valid login with email", () => {
-      const body = { email: "u@x.com", password: "secret" };
+      const body = { identifier: "u@x.com", password: "secret" };
       expect(parseLoginBody(body)).toEqual(body);
       expect(safeParseLogin(body).success).toBe(true);
     });
 
-    it("rejects missing email", () => {
+    it("parses valid login with phone", () => {
+      const body = { identifier: "+37499111222", password: "secret" };
+      expect(parseLoginBody(body)).toEqual(body);
+      expect(safeParseLogin(body).success).toBe(true);
+    });
+
+    it("accepts legacy email field for compatibility", () => {
+      const body = { email: "u@x.com", password: "secret" };
+      expect(parseLoginBody(body)).toEqual({
+        identifier: "u@x.com",
+        password: "secret",
+      });
+    });
+
+    it("rejects missing identifier", () => {
       const body = { password: "secret" };
       expect(() => parseLoginBody(body)).toThrow();
       const result = safeParseLogin(body);
@@ -22,7 +36,7 @@ describe("auth.schema", () => {
     });
 
     it("rejects missing password", () => {
-      const body = { email: "u@x.com" };
+      const body = { identifier: "u@x.com" };
       expect(() => parseLoginBody(body)).toThrow();
     });
   });

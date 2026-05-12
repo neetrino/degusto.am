@@ -8,11 +8,33 @@ export const CURRENCIES = {
 } as const;
 
 export type CurrencyCode = keyof typeof CURRENCIES;
+type CurrencySymbolPlacement = 'prefix' | 'suffix';
+
+const CURRENCY_SYMBOL_PLACEMENT: Record<CurrencyCode, CurrencySymbolPlacement> = {
+  USD: 'prefix',
+  AMD: 'suffix',
+  EUR: 'prefix',
+  RUB: 'prefix',
+  GEL: 'prefix',
+};
 
 // Cache for currency rates from API
 let currencyRatesCache: Record<string, number> | null = null;
 let currencyRatesCacheTime: number = 0;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+function formatAmountWithCurrencySymbol(amount: number, currency: CurrencyCode): string {
+  const roundedAmount = Math.round(amount);
+  const formattedAmount = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(roundedAmount);
+
+  const symbol = CURRENCIES[currency].symbol;
+  const placement = CURRENCY_SYMBOL_PLACEMENT[currency];
+
+  return placement === 'suffix' ? `${formattedAmount} ${symbol}` : `${symbol}${formattedAmount}`;
+}
 
 /**
  * Get currency rates from API with caching
@@ -92,31 +114,18 @@ export function setStoredCurrency(currency: CurrencyCode): void {
  * Works both on client and server side
  */
 export function formatPrice(price: number, currency: CurrencyCode = 'USD'): string {
-  const currencyInfo = CURRENCIES[currency];
-  
   // Use cached rates if available (client-side only), otherwise use default rates
   // On server-side, currencyRatesCache will be null, so it will use default rates
   let rate: number;
   if (typeof window !== 'undefined' && currencyRatesCache && currencyRatesCache[currency] !== undefined) {
     rate = currencyRatesCache[currency];
   } else {
-    rate = currencyInfo.rate;
+    rate = CURRENCIES[currency].rate;
   }
   
   const convertedPrice = price * rate;
-  
-  // Show all currencies without decimals (remove .00)
-  const minimumFractionDigits = 0;
-  const maximumFractionDigits = 0;
-  
-  const formatted = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currencyInfo.code,
-    minimumFractionDigits,
-    maximumFractionDigits,
-  }).format(convertedPrice);
-  
-  return formatted;
+
+  return formatAmountWithCurrencySymbol(convertedPrice, currency);
 }
 
 /**
@@ -151,20 +160,7 @@ export function convertPrice(price: number, fromCurrency: CurrencyCode, toCurren
  * Use this for prices that are already in AMD (like shipping costs)
  */
 export function formatPriceInCurrency(price: number, currency: CurrencyCode = 'AMD'): string {
-  const currencyInfo = CURRENCIES[currency];
-  
-  // Show all currencies without decimals (remove .00)
-  const minimumFractionDigits = 0;
-  const maximumFractionDigits = 0;
-  
-  const formatted = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currencyInfo.code,
-    minimumFractionDigits,
-    maximumFractionDigits,
-  }).format(price);
-  
-  return formatted;
+  return formatAmountWithCurrencySymbol(price, currency);
 }
 
 

@@ -1,7 +1,405 @@
 import { db } from "@white-shop/db";
+import { Prisma } from "@prisma/client";
 import * as bcrypt from "bcryptjs";
 
+interface AddressMutationInput {
+  firstName?: string | null;
+  lastName?: string | null;
+  company?: string | null;
+  addressLine1?: string | null;
+  addressLine2?: string | null;
+  city?: string | null;
+  state?: string | null;
+  postalCode?: string | null;
+  countryCode?: string;
+  phone?: string | null;
+  isDefault?: boolean;
+}
+
+interface ProfileMutationInput {
+  firstName?: string | null;
+  lastName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  locale?: string;
+}
+
+interface StoredCoupon {
+  code: string;
+  description?: string;
+  discountType?: "percent" | "fixed";
+  discountValue?: number;
+  isActive?: boolean;
+  startsAt?: string;
+  expiresAt?: string;
+  minOrderAmount?: number;
+}
+
+interface UserCouponListItem {
+  code: string;
+  description: string | null;
+  discountType: "percent" | "fixed";
+  discountValue: number;
+  minOrderAmount: number | null;
+  expiresAt: string | null;
+  isActive: boolean;
+}
+
+interface UserCouponHistoryItem {
+  orderNumber: string;
+  usedAt: string;
+  discountAmount: number;
+  code: string | null;
+}
+
+const MAX_WISHLIST_ITEMS = 200;
+
+function generateWishlistItemId(): string {
+  const randomPart = Math.random().toString(36).slice(2, 12);
+  return `wish_${Date.now().toString(36)}_${randomPart}`;
+}
+
+function normalizeOptionalString(value: unknown): string | null | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (value === null) {
+    return null;
+  }
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function isSimpleValidEmail(value: string): boolean {
+  if (!value || value.includes(" ")) {
+    return false;
+  }
+
+  const atIndex = value.indexOf("@");
+  if (atIndex <= 0 || atIndex !== value.lastIndexOf("@") || atIndex >= value.length - 1) {
+    return false;
+  }
+
+  const local = value.slice(0, atIndex);
+  const domain = value.slice(atIndex + 1);
+  if (!local || !domain || domain.startsWith(".") || domain.endsWith(".")) {
+    return false;
+  }
+
+  const dotIndex = domain.indexOf(".");
+  if (dotIndex <= 0 || dotIndex === domain.length - 1) {
+    return false;
+  }
+
+  return true;
+}
+
+function normalizeAddressInput(data: unknown): AddressMutationInput {
+  if (!data || typeof data !== "object") {
+    throw {
+      status: 400,
+      type: "https://api.shop.am/problems/validation-error",
+      title: "Validation Error",
+      detail: "Address payload must be an object",
+    };
+  }
+
+  const input = data as Record<string, unknown>;
+  const addressLine1 = normalizeOptionalString(input.addressLine1);
+  const city = normalizeOptionalString(input.city);
+  const countryCodeRaw = normalizeOptionalString(input.countryCode);
+
+  if (!addressLine1) {
+    throw {
+      status: 400,
+      type: "https://api.shop.am/problems/validation-error",
+      title: "Validation Error",
+      detail: "addressLine1 is required",
+    };
+  }
+
+  if (!city) {
+    throw {
+      status: 400,
+      type: "https://api.shop.am/problems/validation-error",
+      title: "Validation Error",
+      detail: "city is required",
+    };
+  }
+
+  const countryCode = (countryCodeRaw ?? "AM").toUpperCase();
+  if (!/^[A-Z]{2,3}$/.test(countryCode)) {
+    throw {
+      status: 400,
+      type: "https://api.shop.am/problems/validation-error",
+      title: "Validation Error",
+      detail: "countryCode must be a valid 2-3 letter code",
+    };
+  }
+
+  return {
+    firstName: normalizeOptionalString(input.firstName),
+    lastName: normalizeOptionalString(input.lastName),
+    company: normalizeOptionalString(input.company),
+    addressLine1,
+    addressLine2: normalizeOptionalString(input.addressLine2),
+    city,
+    state: normalizeOptionalString(input.state),
+    postalCode: normalizeOptionalString(input.postalCode),
+    countryCode,
+    phone: normalizeOptionalString(input.phone),
+    isDefault: input.isDefault === true,
+  };
+}
+
+function normalizeProfileInput(data: unknown): ProfileMutationInput {
+  if (!data || typeof data !== "object") {
+    throw {
+      status: 400,
+      type: "https://api.shop.am/problems/validation-error",
+      title: "Validation Error",
+      detail: "Profile payload must be an object",
+    };
+  }
+
+  const input = data as Record<string, unknown>;
+  const emailRaw = normalizeOptionalString(input.email);
+  const phoneRaw = normalizeOptionalString(input.phone);
+  const localeRaw = normalizeOptionalString(input.locale);
+  const email = typeof emailRaw === "string" ? emailRaw.toLowerCase() : emailRaw;
+
+  if (email && !isSimpleValidEmail(email)) {
+    throw {
+      status: 400,
+      type: "https://api.shop.am/problems/validation-error",
+      title: "Validation Error",
+      detail: "Email format is invalid",
+    };
+  }
+
+  if (typeof phoneRaw === "string") {
+    const digits = phoneRaw.replace(/\D/g, "");
+    if (digits.length < 6) {
+      throw {
+        status: 400,
+        type: "https://api.shop.am/problems/validation-error",
+        title: "Validation Error",
+        detail: "Phone format is invalid",
+      };
+    }
+  }
+
+  if (localeRaw && !/^[a-z]{2}(?:-[A-Z]{2})?$/.test(localeRaw)) {
+    throw {
+      status: 400,
+      type: "https://api.shop.am/problems/validation-error",
+      title: "Validation Error",
+      detail: "Locale format is invalid",
+    };
+  }
+
+  return {
+    firstName: normalizeOptionalString(input.firstName),
+    lastName: normalizeOptionalString(input.lastName),
+    email,
+    phone: phoneRaw,
+    locale: localeRaw ?? undefined,
+  };
+}
+
+function toDateOrNull(input: string | undefined): Date | null {
+  if (!input) {
+    return null;
+  }
+  const date = new Date(input);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+  return date;
+}
+
+function extractCouponCodeFromNotes(notes: string | null): string | null {
+  if (!notes) {
+    return null;
+  }
+  const match = notes.match(/(?:coupon|promo)\s*(?:code)?\s*[:=-]\s*([A-Z0-9_-]{3,32})/i);
+  return match?.[1]?.toUpperCase() ?? null;
+}
+
+function normalizeWishlistIds(input: unknown): string[] {
+  if (!Array.isArray(input)) {
+    throw {
+      status: 400,
+      type: "https://api.shop.am/problems/validation-error",
+      title: "Validation Error",
+      detail: "ids must be an array of product ids",
+    };
+  }
+
+  const unique = new Set<string>();
+  for (const raw of input) {
+    if (typeof raw !== "string") {
+      continue;
+    }
+    const id = raw.trim();
+    if (!id) {
+      continue;
+    }
+    unique.add(id);
+    if (unique.size >= MAX_WISHLIST_ITEMS) {
+      break;
+    }
+  }
+
+  return Array.from(unique);
+}
+
 class UsersService {
+  async getWishlistIds(userId: string): Promise<{ ids: string[] }> {
+    const items = await db.$queryRaw<
+      Array<{ productId: string; published: boolean; deletedAt: Date | null }>
+    >(
+      Prisma.sql`
+        SELECT wi."productId", p."published", p."deletedAt"
+        FROM "wishlist_items" wi
+        INNER JOIN "products" p ON p."id" = wi."productId"
+        WHERE wi."userId" = ${userId}
+        ORDER BY wi."createdAt" DESC
+      `
+    );
+
+    const staleProductIds = items
+      .filter((item) => !item.published || item.deletedAt)
+      .map((item) => item.productId);
+
+    if (staleProductIds.length > 0) {
+      await db.$executeRaw(
+        Prisma.sql`
+          DELETE FROM "wishlist_items"
+          WHERE "userId" = ${userId}
+            AND "productId" IN (${Prisma.join(staleProductIds)})
+        `
+      );
+    }
+
+    const ids = items
+      .filter((item) => item.published && !item.deletedAt)
+      .map((item) => item.productId);
+
+    return { ids };
+  }
+
+  async replaceWishlistIds(userId: string, input: unknown): Promise<{ ids: string[] }> {
+    const ids = normalizeWishlistIds(input);
+    if (ids.length === 0) {
+      await db.$executeRaw(
+        Prisma.sql`DELETE FROM "wishlist_items" WHERE "userId" = ${userId}`
+      );
+      return { ids: [] };
+    }
+
+    const allowedProducts = await db.product.findMany({
+      where: {
+        id: { in: ids },
+        published: true,
+        deletedAt: null,
+      },
+      select: { id: true },
+    });
+    const allowedIdSet = new Set(allowedProducts.map((product) => product.id));
+    const sanitizedIds = ids.filter((id) => allowedIdSet.has(id));
+
+    await db.$transaction(async (tx) => {
+      await tx.$executeRaw(
+        Prisma.sql`DELETE FROM "wishlist_items" WHERE "userId" = ${userId}`
+      );
+
+      if (sanitizedIds.length > 0) {
+        for (const productId of sanitizedIds) {
+          await tx.$executeRaw(
+            Prisma.sql`
+              INSERT INTO "wishlist_items" ("id", "userId", "productId", "createdAt")
+              VALUES (${generateWishlistItemId()}, ${userId}, ${productId}, NOW())
+              ON CONFLICT ("userId", "productId") DO NOTHING
+            `
+          );
+        }
+      }
+    });
+
+    return { ids: sanitizedIds };
+  }
+
+  async syncWishlist(userId: string, localIdsInput: unknown): Promise<{ ids: string[] }> {
+    const localIds = normalizeWishlistIds(localIdsInput);
+    const server = await this.getWishlistIds(userId);
+    const merged = Array.from(new Set([...localIds, ...server.ids])).slice(0, MAX_WISHLIST_ITEMS);
+    return this.replaceWishlistIds(userId, merged);
+  }
+
+  async addWishlistItem(userId: string, productId: string): Promise<{ ids: string[] }> {
+    const normalizedProductId = typeof productId === "string" ? productId.trim() : "";
+    if (!normalizedProductId) {
+      throw {
+        status: 400,
+        type: "https://api.shop.am/problems/validation-error",
+        title: "Validation Error",
+        detail: "productId is required",
+      };
+    }
+
+    const product = await db.product.findFirst({
+      where: {
+        id: normalizedProductId,
+        published: true,
+        deletedAt: null,
+      },
+      select: { id: true },
+    });
+    if (!product) {
+      throw {
+        status: 404,
+        type: "https://api.shop.am/problems/not-found",
+        title: "Product not found",
+      };
+    }
+
+    await db.$executeRaw(
+      Prisma.sql`
+        INSERT INTO "wishlist_items" ("id", "userId", "productId", "createdAt")
+        VALUES (${generateWishlistItemId()}, ${userId}, ${normalizedProductId}, NOW())
+        ON CONFLICT ("userId", "productId") DO NOTHING
+      `
+    );
+
+    return this.getWishlistIds(userId);
+  }
+
+  async removeWishlistItem(userId: string, productId: string): Promise<{ ids: string[] }> {
+    const normalizedProductId = typeof productId === "string" ? productId.trim() : "";
+    if (!normalizedProductId) {
+      throw {
+        status: 400,
+        type: "https://api.shop.am/problems/validation-error",
+        title: "Validation Error",
+        detail: "productId is required",
+      };
+    }
+
+    await db.$executeRaw(
+      Prisma.sql`
+        DELETE FROM "wishlist_items"
+        WHERE "userId" = ${userId}
+          AND "productId" = ${normalizedProductId}
+      `
+    );
+
+    return this.getWishlistIds(userId);
+  }
+
   /**
    * Get user profile
    */
@@ -46,13 +444,55 @@ class UsersService {
   /**
    * Update user profile
    */
-  async updateProfile(userId: string, data: any) {
+  async updateProfile(userId: string, data: unknown) {
+    const payload = normalizeProfileInput(data);
+    const current = await db.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, phone: true, deletedAt: true },
+    });
+
+    if (!current || current.deletedAt) {
+      throw {
+        status: 404,
+        type: "https://api.shop.am/problems/not-found",
+        title: "User not found",
+      };
+    }
+
+    const conflictWhere = [];
+    if (payload.email && payload.email !== current.email) {
+      conflictWhere.push({ email: payload.email });
+    }
+    if (payload.phone && payload.phone !== current.phone) {
+      conflictWhere.push({ phone: payload.phone });
+    }
+    if (conflictWhere.length > 0) {
+      const existing = await db.user.findFirst({
+        where: {
+          id: { not: userId },
+          deletedAt: null,
+          OR: conflictWhere,
+        },
+        select: { id: true },
+      });
+      if (existing) {
+        throw {
+          status: 409,
+          type: "https://api.shop.am/problems/conflict",
+          title: "Conflict",
+          detail: "User with this email or phone already exists",
+        };
+      }
+    }
+
     const user = await db.user.update({
       where: { id: userId },
       data: {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        locale: data.locale,
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+        email: payload.email,
+        phone: payload.phone,
+        locale: payload.locale,
       },
       select: {
         id: true,
@@ -94,6 +534,15 @@ class UsersService {
         type: "https://api.shop.am/problems/validation-error",
         title: "Validation Error",
         detail: "New password is required and must be a non-empty string",
+      };
+    }
+
+    if (oldPassword.trim() === newPassword.trim()) {
+      throw {
+        status: 400,
+        type: "https://api.shop.am/problems/validation-error",
+        title: "Validation Error",
+        detail: "New password must be different from current password",
       };
     }
 
@@ -293,27 +742,42 @@ class UsersService {
   /**
    * Add address
    */
-  async addAddress(userId: string, data: any) {
-    // If this is the first address, set it as default
-    const existingAddresses = await db.address.findMany({
-      where: { userId },
-    });
+  async addAddress(userId: string, data: unknown) {
+    const payload = normalizeAddressInput(data);
+    const existingCount = await db.address.count({ where: { userId } });
+    const shouldBeDefault = payload.isDefault || existingCount === 0;
 
-    const address = await db.address.create({
-      data: {
-        ...data,
-        userId,
-        isDefault: existingAddresses.length === 0,
-      },
-    });
+    return await db.$transaction(async (tx) => {
+      if (shouldBeDefault) {
+        await tx.address.updateMany({
+          where: { userId, isDefault: true },
+          data: { isDefault: false },
+        });
+      }
 
-    return address;
+      return tx.address.create({
+        data: {
+          userId,
+          firstName: payload.firstName,
+          lastName: payload.lastName,
+          company: payload.company,
+          addressLine1: payload.addressLine1,
+          addressLine2: payload.addressLine2,
+          city: payload.city,
+          state: payload.state,
+          postalCode: payload.postalCode,
+          countryCode: payload.countryCode || "AM",
+          phone: payload.phone,
+          isDefault: shouldBeDefault,
+        },
+      });
+    });
   }
 
   /**
    * Update address
    */
-  async updateAddress(userId: string, addressId: string, data: any) {
+  async updateAddress(userId: string, addressId: string, data: unknown) {
     const address = await db.address.findFirst({
       where: { id: addressId, userId },
     });
@@ -326,9 +790,48 @@ class UsersService {
       };
     }
 
-    return await db.address.update({
-      where: { id: addressId },
-      data,
+    const payload = normalizeAddressInput(data);
+    const shouldBeDefault = payload.isDefault === true;
+
+    return await db.$transaction(async (tx) => {
+      if (shouldBeDefault) {
+        await tx.address.updateMany({
+          where: { userId, isDefault: true, id: { not: addressId } },
+          data: { isDefault: false },
+        });
+      }
+
+      const updated = await tx.address.update({
+        where: { id: addressId },
+        data: {
+          firstName: payload.firstName,
+          lastName: payload.lastName,
+          company: payload.company,
+          addressLine1: payload.addressLine1,
+          addressLine2: payload.addressLine2,
+          city: payload.city,
+          state: payload.state,
+          postalCode: payload.postalCode,
+          countryCode: payload.countryCode || "AM",
+          phone: payload.phone,
+          isDefault: shouldBeDefault ? true : address.isDefault,
+        },
+      });
+
+      if (!updated.isDefault) {
+        const defaultCount = await tx.address.count({
+          where: { userId, isDefault: true },
+        });
+        if (defaultCount === 0) {
+          await tx.address.update({
+            where: { id: updated.id },
+            data: { isDefault: true },
+          });
+          return { ...updated, isDefault: true };
+        }
+      }
+
+      return updated;
     });
   }
 
@@ -348,8 +851,23 @@ class UsersService {
       };
     }
 
-    await db.address.delete({
-      where: { id: addressId },
+    await db.$transaction(async (tx) => {
+      await tx.address.delete({
+        where: { id: addressId },
+      });
+
+      if (address.isDefault) {
+        const nextAddress = await tx.address.findFirst({
+          where: { userId },
+          orderBy: { id: "asc" },
+        });
+        if (nextAddress) {
+          await tx.address.update({
+            where: { id: nextAddress.id },
+            data: { isDefault: true },
+          });
+        }
+      }
     });
 
     return null;
@@ -359,16 +877,28 @@ class UsersService {
    * Set default address
    */
   async setDefaultAddress(userId: string, addressId: string) {
-    // Unset all other default addresses
-    await db.address.updateMany({
-      where: { userId, isDefault: true },
-      data: { isDefault: false },
+    const target = await db.address.findFirst({
+      where: { id: addressId, userId },
     });
 
-    // Set this one as default
-    return await db.address.update({
-      where: { id: addressId },
-      data: { isDefault: true },
+    if (!target) {
+      throw {
+        status: 404,
+        type: "https://api.shop.am/problems/not-found",
+        title: "Address not found",
+      };
+    }
+
+    return await db.$transaction(async (tx) => {
+      await tx.address.updateMany({
+        where: { userId, isDefault: true },
+        data: { isDefault: false },
+      });
+
+      return tx.address.update({
+        where: { id: addressId },
+        data: { isDefault: true },
+      });
     });
   }
 
@@ -432,6 +962,82 @@ class UsersService {
       },
       recentOrders,
     };
+  }
+
+  /**
+   * Get available coupons and coupon usage history for profile page.
+   */
+  async getCoupons(userId: string): Promise<{
+    availableCoupons: UserCouponListItem[];
+    history: UserCouponHistoryItem[];
+  }> {
+    const [couponSettings, discountedOrders] = await Promise.all([
+      db.settings.findUnique({
+        where: { key: "couponsCatalog" },
+        select: { value: true },
+      }),
+      db.order.findMany({
+        where: {
+          userId,
+          discountAmount: { gt: 0 },
+        },
+        select: {
+          number: true,
+          discountAmount: true,
+          createdAt: true,
+          notes: true,
+        },
+        orderBy: { createdAt: "desc" },
+        take: 50,
+      }),
+    ]);
+
+    const now = new Date();
+    const rawCoupons = Array.isArray(couponSettings?.value)
+      ? (couponSettings?.value as unknown[])
+      : [];
+    const availableCoupons = rawCoupons
+      .map((item): UserCouponListItem | null => {
+        if (!item || typeof item !== "object") {
+          return null;
+        }
+        const raw = item as StoredCoupon;
+        const code = (raw.code ?? "").trim().toUpperCase();
+        if (!code) {
+          return null;
+        }
+        const startsAt = toDateOrNull(raw.startsAt);
+        const expiresAt = toDateOrNull(raw.expiresAt);
+        const enabledByWindow =
+          (!startsAt || startsAt <= now) && (!expiresAt || expiresAt >= now);
+        const isActive = (raw.isActive ?? true) && enabledByWindow;
+        return {
+          code,
+          description: raw.description?.trim() || null,
+          discountType: raw.discountType === "fixed" ? "fixed" : "percent",
+          discountValue:
+            typeof raw.discountValue === "number" && Number.isFinite(raw.discountValue)
+              ? raw.discountValue
+              : 0,
+          minOrderAmount:
+            typeof raw.minOrderAmount === "number" && Number.isFinite(raw.minOrderAmount)
+              ? raw.minOrderAmount
+              : null,
+          expiresAt: expiresAt ? expiresAt.toISOString() : null,
+          isActive,
+        };
+      })
+      .filter((coupon): coupon is UserCouponListItem => Boolean(coupon))
+      .sort((a, b) => Number(b.isActive) - Number(a.isActive));
+
+    const history = discountedOrders.map((order) => ({
+      orderNumber: order.number,
+      usedAt: order.createdAt.toISOString(),
+      discountAmount: Number(order.discountAmount),
+      code: extractCouponCodeFromNotes(order.notes),
+    }));
+
+    return { availableCoupons, history };
   }
 }
 

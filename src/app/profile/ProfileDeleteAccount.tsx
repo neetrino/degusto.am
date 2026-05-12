@@ -29,7 +29,7 @@ export function ProfileDeleteAccount({
 }: ProfileDeleteAccountProps) {
   if (!profile) {
     return (
-      <Card className="rounded-2xl border border-gray-200/80 p-6 sm:p-8">
+      <Card className="rounded-2xl border border-[#F66812]/20 p-6 sm:p-8">
         <p className="text-sm text-gray-600">{t('profile.common.loadingProfile')}</p>
       </Card>
     );
