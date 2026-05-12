@@ -2,20 +2,26 @@
 
 import { usePathname } from 'next/navigation';
 import { Header } from './Header';
+import { UniversalHeader } from './UniversalHeader';
 
 export function ConditionalHeader() {
   const pathname = usePathname();
-  if (pathname === '/') {
-    return null;
-  }
   if (pathname?.startsWith('/supersudo')) {
     return null;
   }
-  if (pathname?.startsWith('/profile')) {
-    return <div className="hidden md:block"><Header /></div>;
+
+  if (pathname === '/') {
+    return null;
   }
-  if (pathname?.startsWith('/shop')) {
-    return <div className="hidden md:block"><Header /></div>;
-  }
-  return <Header />;
+
+  return (
+    <>
+      <div className="hidden lg:block">
+        <UniversalHeader />
+      </div>
+      <div className="lg:hidden">
+        <Header />
+      </div>
+    </>
+  );
 }

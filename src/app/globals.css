@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --project-color: #f56814;
+}
+
 @layer base {
   body {
     @apply bg-white text-gray-900;
@@ -47,6 +51,10 @@
 }
 
 @layer utilities {
+  .project-stroke {
+    stroke: var(--project-color);
+  }
+
   @keyframes fade-in {
     from {
       opacity: 0;
