@@ -18,6 +18,15 @@ const r2 =
       })
     : null;
 
+function isR2StorageEndpoint(urlValue: string): boolean {
+  try {
+    const parsed = new URL(urlValue);
+    return parsed.protocol === "https:" && /\.r2\.cloudflarestorage\.com$/i.test(parsed.hostname);
+  } catch {
+    return false;
+  }
+}
+
 function buildPublicAssetUrl(key: string): string | null {
   if (!publicUrl) {
     return null;
@@ -28,7 +37,7 @@ function buildPublicAssetUrl(key: string): string | null {
 
   // R2 S3 endpoint is not directly public for browser image access.
   // Use internal proxy route to serve files from private bucket safely.
-  if (normalizedBase.includes(".r2.cloudflarestorage.com")) {
+  if (isR2StorageEndpoint(normalizedBase)) {
     return `/api/r2/${path}`;
   }
 

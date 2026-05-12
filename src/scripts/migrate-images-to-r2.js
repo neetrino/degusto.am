@@ -20,6 +20,18 @@ const IMAGE_MIME_TO_EXTENSION = {
   "image/svg+xml": "svg",
 };
 
+function isR2StorageEndpoint(urlValue) {
+  try {
+    const parsed = new URL(urlValue);
+    return (
+      parsed.protocol === "https:" &&
+      /\.r2\.cloudflarestorage\.com$/i.test(parsed.hostname)
+    );
+  } catch {
+    return false;
+  }
+}
+
 function loadEnvFile(filePath) {
   if (!fs.existsSync(filePath)) {
     return;
@@ -114,7 +126,7 @@ async function uploadToR2(r2Client, bucketName, publicUrl, key, body, contentTyp
       ContentType: contentType,
     })
   );
-  if (publicUrl.includes(".r2.cloudflarestorage.com")) {
+  if (isR2StorageEndpoint(publicUrl)) {
     return `/api/r2/${key}`;
   }
   return `${publicUrl}/${key}`;

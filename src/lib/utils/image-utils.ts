@@ -5,6 +5,18 @@
 import imageCompression from 'browser-image-compression';
 import { logger } from './logger';
 
+function isR2StorageAssetUrl(urlValue: string): boolean {
+  try {
+    const parsed = new URL(urlValue);
+    return (
+      parsed.protocol === 'https:' &&
+      /\.r2\.cloudflarestorage\.com$/i.test(parsed.hostname)
+    );
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Type for image URL input - can be string or object with url/src/value properties
  */
@@ -51,7 +63,7 @@ export function processImageUrl(url: ImageUrlInput): string | null {
   
   if (!finalUrl) return null;
 
-  if (finalUrl.includes(".r2.cloudflarestorage.com/")) {
+  if (isR2StorageAssetUrl(finalUrl)) {
     try {
       const parsedUrl = new URL(finalUrl);
       const objectPath = parsedUrl.pathname.replace(/^\/+/, "");

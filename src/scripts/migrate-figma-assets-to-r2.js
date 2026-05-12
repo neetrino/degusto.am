@@ -9,6 +9,18 @@ const FIGMA_ASSET_REGEX =
   /([A-Za-z0-9_]+)\s*:\s*['"](https:\/\/www\.figma\.com\/api\/mcp\/asset\/[A-Za-z0-9-]+)['"]/g;
 const ALLOWED_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx"]);
 
+function isR2StorageEndpoint(urlValue) {
+  try {
+    const parsed = new URL(urlValue);
+    return (
+      parsed.protocol === "https:" &&
+      /\.r2\.cloudflarestorage\.com$/i.test(parsed.hostname)
+    );
+  } catch {
+    return false;
+  }
+}
+
 function loadEnvFile(filePath) {
   if (!fs.existsSync(filePath)) {
     return;
@@ -180,7 +192,7 @@ async function uploadAsset(r2Client, bucketName, publicUrl, folder, sourceUrl, c
     })
   );
 
-  const nextUrl = publicUrl.includes(".r2.cloudflarestorage.com") ? `/api/r2/${key}` : `${publicUrl}/${key}`;
+  const nextUrl = isR2StorageEndpoint(publicUrl) ? `/api/r2/${key}` : `${publicUrl}/${key}`;
   cache.set(sourceUrl, nextUrl);
   return nextUrl;
 }

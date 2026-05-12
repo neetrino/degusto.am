@@ -73,6 +73,30 @@ function normalizeOptionalString(value: unknown): string | null | undefined {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+function isSimpleValidEmail(value: string): boolean {
+  if (!value || value.includes(" ")) {
+    return false;
+  }
+
+  const atIndex = value.indexOf("@");
+  if (atIndex <= 0 || atIndex !== value.lastIndexOf("@") || atIndex >= value.length - 1) {
+    return false;
+  }
+
+  const local = value.slice(0, atIndex);
+  const domain = value.slice(atIndex + 1);
+  if (!local || !domain || domain.startsWith(".") || domain.endsWith(".")) {
+    return false;
+  }
+
+  const dotIndex = domain.indexOf(".");
+  if (dotIndex <= 0 || dotIndex === domain.length - 1) {
+    return false;
+  }
+
+  return true;
+}
+
 function normalizeAddressInput(data: unknown): AddressMutationInput {
   if (!data || typeof data !== "object") {
     throw {
@@ -147,7 +171,7 @@ function normalizeProfileInput(data: unknown): ProfileMutationInput {
   const localeRaw = normalizeOptionalString(input.locale);
   const email = typeof emailRaw === "string" ? emailRaw.toLowerCase() : emailRaw;
 
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (email && !isSimpleValidEmail(email)) {
     throw {
       status: 400,
       type: "https://api.shop.am/problems/validation-error",
