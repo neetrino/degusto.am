@@ -24,7 +24,10 @@
     "db:migrate": "pnpm --filter @white-shop/db db:migrate",
     "db:studio": "pnpm --filter @white-shop/db db:studio",
     "db:seed": "node shared/db/prisma/seed.cjs",
-    "db:migrate:deploy": "node src/scripts/run-migrations.js"
+    "db:migrate:deploy": "node src/scripts/run-migrations.js",
+    "images:migrate:r2": "node src/scripts/migrate-images-to-r2.js",
+    "images:migrate:homepage": "node src/scripts/migrate-homepage-assets-to-r2.js",
+    "images:migrate:figma": "node src/scripts/migrate-figma-assets-to-r2.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.995.0",

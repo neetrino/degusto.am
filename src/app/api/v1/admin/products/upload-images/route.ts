@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
-      const ext = MIME_TO_EXT[parsed.mime] ?? "jpg";
+      const ext = MIME_TO_EXT[parsed.mime] ?? "webp";
       const key = `products/${date}-${nanoid(10)}.${ext}`;
       const url = await uploadToR2(key, parsed.buffer, parsed.mime);
       if (!url) {

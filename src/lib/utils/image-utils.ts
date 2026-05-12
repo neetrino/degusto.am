@@ -50,6 +50,18 @@ export function processImageUrl(url: ImageUrlInput): string | null {
   }
   
   if (!finalUrl) return null;
+
+  if (finalUrl.includes(".r2.cloudflarestorage.com/")) {
+    try {
+      const parsedUrl = new URL(finalUrl);
+      const objectPath = parsedUrl.pathname.replace(/^\/+/, "");
+      if (objectPath) {
+        finalUrl = `/api/r2/${objectPath}`;
+      }
+    } catch {
+      // Keep original URL when parsing fails
+    }
+  }
   
   // Validate
   if (!isValidImageUrl(finalUrl)) {
@@ -331,7 +343,7 @@ export async function processImageFile(
     maxSizeMB?: number; // Maximum file size in MB (default: 2)
     maxWidthOrHeight?: number; // Maximum width or height in pixels (default: 1920)
     useWebWorker?: boolean; // Use web worker for processing (default: true)
-    fileType?: string; // Output file type (default: 'image/jpeg')
+    fileType?: string; // Output file type (default: 'image/webp')
     initialQuality?: number; // Initial quality 0-1 (default: 0.8)
   }
 ): Promise<string> {
@@ -346,7 +358,7 @@ export async function processImageFile(
       maxSizeMB = 2,
       maxWidthOrHeight = 1920,
       useWebWorker = true,
-      fileType = 'image/jpeg',
+      fileType = 'image/webp',
       initialQuality = 0.8
     } = options || {};
 
