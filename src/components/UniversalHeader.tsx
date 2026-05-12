@@ -24,7 +24,7 @@ interface UniversalHeaderProps {
 export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: UniversalHeaderProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const { t } = useTranslation();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, isAdmin, logout } = useAuth();
   const userNavHref = isLoggedIn ? '/profile' : '/login';
 
   return (
@@ -73,9 +73,47 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
               arrowSrc={assets.switcherArrow}
             />
           </div>
-          <Link href={userNavHref} className="inline-flex h-12 w-12 items-center justify-center">
-            <img src={assets.loginIcon} alt={isLoggedIn ? 'Profile' : 'Log in'} className="h-12 w-12 object-contain" />
-          </Link>
+          <div className="group relative">
+            <Link href={userNavHref} className="inline-flex h-12 w-12 items-center justify-center">
+              <img src={assets.loginIcon} alt={isLoggedIn ? 'Profile' : 'Log in'} className="h-12 w-12 object-contain" />
+            </Link>
+            <div className="pointer-events-none absolute right-0 top-full z-50 min-w-[180px] pt-2 opacity-0 transition-opacity duration-150 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
+              <div className="rounded-xl border border-[#e4e6eb] bg-white p-2 shadow-lg">
+              {!isLoggedIn ? (
+                <Link
+                  href="/login"
+                  className="block rounded-lg px-3 py-2 text-sm font-medium text-[#252525] transition-colors hover:bg-[#f1f2f4]"
+                >
+                  {t('common.navigation.login')}
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/profile"
+                    className="block rounded-lg px-3 py-2 text-sm font-medium text-[#252525] transition-colors hover:bg-[#f1f2f4]"
+                  >
+                    {t('common.navigation.profile')}
+                  </Link>
+                  {isAdmin ? (
+                    <Link
+                      href="/supersudo"
+                      className="block rounded-lg px-3 py-2 text-sm font-medium text-[#252525] transition-colors hover:bg-[#f1f2f4]"
+                    >
+                      {t('common.navigation.adminPanel')}
+                    </Link>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={logout}
+                    className="block w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-[#252525] transition-colors hover:bg-[#f1f2f4]"
+                  >
+                    {t('common.navigation.logout')}
+                  </button>
+                </>
+              )}
+              </div>
+            </div>
+          </div>
         </div>
       </header>
     </>
