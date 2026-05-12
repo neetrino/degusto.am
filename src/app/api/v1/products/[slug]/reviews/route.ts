@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { resolveStorefrontLocaleFromSearchParams } from "@/lib/i18n/locale";
 import { reviewsService } from "@/lib/services/reviews.service";
 import { authenticateToken } from "@/lib/middleware/auth";
 import { productsService } from "@/lib/services/products.service";
@@ -19,7 +20,7 @@ export async function GET(
   try {
     const { slug } = await params;
     const { searchParams } = new URL(req.url);
-    const lang = searchParams.get("lang") || "en";
+    const lang = resolveStorefrontLocaleFromSearchParams(searchParams);
     const myReview = searchParams.get("my") === "true";
     
     logger.debug('📝 [REVIEWS API] GET request for product slug:', slug, { myReview });
@@ -106,7 +107,7 @@ export async function POST(
 
     const { slug } = await params;
     const { searchParams } = new URL(req.url);
-    const lang = searchParams.get("lang") || "en";
+    const lang = resolveStorefrontLocaleFromSearchParams(searchParams);
     const body = await req.json();
 
     logger.debug('📝 [REVIEWS API] POST request:', { slug, userId: user.id, rating: body.rating });

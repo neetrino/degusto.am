@@ -5,6 +5,7 @@ import {
   readJsonCache,
   writeJsonCache,
 } from "@/lib/cache/storefront-cache";
+import { resolveStorefrontLocaleFromSearchParams } from "@/lib/i18n/locale";
 import { findRelatedByProductSlug } from "@/lib/services/products-slug/product-related.service";
 import { logger } from "@/lib/utils/logger";
 
@@ -16,7 +17,7 @@ export async function GET(
 ) {
   try {
     const { searchParams } = new URL(req.url);
-    const lang = searchParams.get("lang") || "en";
+    const lang = resolveStorefrontLocaleFromSearchParams(searchParams);
     const { slug } = await params;
     const cacheKey = STOREFRONT_CACHE_KEYS.productRelated(lang, slug);
     const cached = await readJsonCache<unknown>(cacheKey);

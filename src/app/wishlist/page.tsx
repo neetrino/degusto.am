@@ -86,7 +86,7 @@ export default function WishlistPage() {
 
       const normalizedIds = wishlistProducts.map((product) => product.id);
       if (normalizedIds.length !== idsToLoad.length) {
-        localStorage.setItem(WISHLIST_KEY, JSON.stringify(normalizedIds));
+        setLocalWishlistIds(normalizedIds);
         setWishlistIds(normalizedIds);
         window.dispatchEvent(new Event('wishlist-updated'));
       }

@@ -5,6 +5,10 @@ import {
   readJsonCache,
   writeJsonCache,
 } from "@/lib/cache/storefront-cache";
+import {
+  getStorefrontLocaleFallbackChain,
+  resolveStorefrontLocaleFromSearchParams,
+} from "@/lib/i18n/locale";
 import { productsService } from "@/lib/services/products.service";
 import { logger } from "@/lib/utils/logger";
 
@@ -16,7 +20,7 @@ export async function GET(
 ) {
   try {
     const { searchParams } = new URL(req.url);
-    const lang = searchParams.get("lang") || "en";
+    const lang = resolveStorefrontLocaleFromSearchParams(searchParams);
     const { slug } = await params;
     const cacheKey = STOREFRONT_CACHE_KEYS.productDetails(lang, slug);
     const cached = await readJsonCache<unknown>(cacheKey);
@@ -25,14 +29,18 @@ export async function GET(
     }
 
     let result: unknown;
-    try {
-      result = await productsService.findBySlug(slug, lang);
-    } catch (first: unknown) {
-      const err = first as { status?: number };
-      if (err?.status === 404 && lang !== "en") {
-        result = await productsService.findBySlug(slug, "en");
-      } else {
-        throw first;
+    const fallbacks = getStorefrontLocaleFallbackChain(lang);
+    for (let index = 0; index < fallbacks.length; index += 1) {
+      const candidateLocale = fallbacks[index];
+      try {
+        result = await productsService.findBySlug(slug, candidateLocale);
+        break;
+      } catch (error: unknown) {
+        const err = error as { status?: number };
+        const isLastLocale = index === fallbacks.length - 1;
+        if (err?.status !== 404 || isLastLocale) {
+          throw error;
+        }
       }
     }
 

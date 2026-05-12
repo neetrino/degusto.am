@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@white-shop/db";
+import { resolveStorefrontLocale } from "@/lib/i18n/locale";
 import { logger } from "@/lib/utils/logger";
 import {
   buildCustomizationLineKey,
@@ -108,7 +109,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as GuestCartRequestBody;
     const items = sanitizeItems(body.items);
-    const lang = typeof body.lang === "string" && body.lang.trim() ? body.lang : "en";
+    const lang = resolveStorefrontLocale(body.lang);
 
     if (items.length === 0) {
       const empty: GuestCartResponse = {

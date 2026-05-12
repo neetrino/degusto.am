@@ -16,7 +16,6 @@ const getLanguageColor = (code: LanguageCode, isActive: boolean): string => {
       en: 'bg-blue-50 border-blue-200',
       hy: 'bg-orange-50 border-orange-200',
       ru: 'bg-red-50 border-red-200',
-      ka: 'bg-gray-100 border-gray-200', // Georgian - fallback color since it's not displayed in header
     };
     return colors[code] || 'bg-gray-100 border-gray-200';
   }
@@ -29,26 +28,21 @@ const getLanguageColor = (code: LanguageCode, isActive: boolean): string => {
  */
 export function LanguageSwitcherHeader() {
   const [showMenu, setShowMenu] = useState(false);
-  // Start with 'en' to avoid hydration mismatch, then update in useEffect
-  const [currentLang, setCurrentLang] = useState<LanguageCode>('en');
+  const [currentLang, setCurrentLang] = useState<LanguageCode>('hy');
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Update current language on mount and when it changes
   useEffect(() => {
     // Update on mount to ensure we have the latest language from localStorage
     const storedLang = getStoredLanguage();
-    // If stored language is 'ka' (Georgian), fallback to 'en' for header display
-    const displayLang = storedLang === 'ka' ? 'en' : storedLang;
     // Only update if different to avoid unnecessary re-renders
-    if (displayLang !== currentLang) {
-      setCurrentLang(displayLang);
+    if (storedLang !== currentLang) {
+      setCurrentLang(storedLang);
     }
 
     const handleLanguageUpdate = () => {
       const newLang = getStoredLanguage();
-      // If new language is 'ka' (Georgian), fallback to 'en' for header display
-      const displayLang = newLang === 'ka' ? 'en' : newLang;
-      setCurrentLang(displayLang);
+      setCurrentLang(newLang);
     };
 
     window.addEventListener('language-updated', handleLanguageUpdate);
@@ -84,9 +78,8 @@ export function LanguageSwitcherHeader() {
       // Close menu first
       setShowMenu(false);
       
-      // Immediately update the UI state to prevent showing 'en' during reload
-      const displayLang = langCode === 'ka' ? 'en' : langCode;
-      setCurrentLang(displayLang);
+      // Immediately update UI state before page reload.
+      setCurrentLang(langCode);
       
       // Update language - this will reload the page after a small delay
       // The delay ensures the UI state is updated before reload
@@ -109,9 +102,7 @@ export function LanguageSwitcherHeader() {
       </button>
       {showMenu && (
         <div className="absolute top-full right-0 mt-2 w-48 bg-white shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-          {Object.values(LANGUAGES)
-            .filter((lang) => lang.code !== 'ka') // Exclude Georgian (ka) from header
-            .map((lang) => {
+          {Object.values(LANGUAGES).map((lang) => {
             const isActive = currentLang === lang.code;
             const colorClass = getLanguageColor(lang.code, isActive);
 

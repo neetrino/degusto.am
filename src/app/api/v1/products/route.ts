@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { apiRouteErrorResponse } from "@/lib/http/api-route-errors";
+import { resolveStorefrontLocaleFromSearchParams } from "@/lib/i18n/locale";
 import { productsService } from "@/lib/services/products.service";
 import { cacheService } from "@/lib/services/cache.service";
 
@@ -20,6 +21,7 @@ function buildProductsCacheKey(searchParams: URLSearchParams): string {
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
+    const lang = resolveStorefrontLocaleFromSearchParams(searchParams);
     const idsParam = searchParams.get("ids");
     const ids = idsParam
       ? idsParam
@@ -50,7 +52,7 @@ export async function GET(req: NextRequest) {
         searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : 12,
         200
       ),
-      lang: searchParams.get("lang") || "en",
+      lang,
     };
 
     const cacheKey = buildProductsCacheKey(searchParams);

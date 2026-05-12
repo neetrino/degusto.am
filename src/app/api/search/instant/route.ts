@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { db } from '@white-shop/db';
+import { resolveStorefrontLocaleFromSearchParams } from '@/lib/i18n/locale';
 import { extractMediaUrl } from '@/lib/utils/extractMediaUrl';
 import { processImageUrl } from '@/lib/utils/image-utils';
 
@@ -60,7 +61,7 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const q = searchParams.get('q')?.trim();
-    const lang = searchParams.get('lang') || 'en';
+    const lang = resolveStorefrontLocaleFromSearchParams(searchParams);
     const rawLimit = parseInt(searchParams.get('limit') || String(DEFAULT_LIMIT), 10);
     const normalizedLimit = Number.isNaN(rawLimit) ? DEFAULT_LIMIT : rawLimit;
     const limit = Math.min(Math.max(normalizedLimit, MIN_LIMIT), MAX_LIMIT);
