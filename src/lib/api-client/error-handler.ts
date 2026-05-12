@@ -49,6 +49,20 @@ export function isQuietCartReadServerError(status: number, url: string): boolean
 }
 
 /**
+ * Some admin dashboard widgets are non-critical read-only panels.
+ * On transient 5xx responses, UI falls back to empty state, so avoid noisy console errors.
+ */
+export function isQuietAdminDashboardReadServerError(status: number, url: string): boolean {
+  const isServerError = status >= 500 && status < 600;
+  const isDashboardEndpoint =
+    /\/api\/v1\/admin\/dashboard\/top-products(?:\?|$)/.test(url) ||
+    /\/api\/v1\/admin\/dashboard\/recent-orders(?:\?|$)/.test(url) ||
+    /\/api\/v1\/admin\/dashboard\/user-activity(?:\?|$)/.test(url);
+
+  return isServerError && isDashboardEndpoint;
+}
+
+/**
  * Parse error response from API
  */
 export async function parseErrorResponse(response: Response): Promise<{
