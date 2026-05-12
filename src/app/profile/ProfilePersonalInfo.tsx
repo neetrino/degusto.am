@@ -25,8 +25,8 @@ export function ProfilePersonalInfo({
   t,
 }: ProfilePersonalInfoProps) {
   return (
-    <Card className="rounded-2xl border border-gray-200/80 p-5 shadow-none sm:p-7 lg:p-8">
-      <div className="mb-8 border-b border-gray-100 pb-5 sm:mb-10 sm:pb-6">
+    <Card className="rounded-2xl border border-[#F66812]/20 p-5 shadow-none sm:p-7 lg:p-8">
+      <div className="mb-8 border-b border-[#F66812]/15 pb-5 sm:mb-10 sm:pb-6">
         <h2 className="text-lg font-bold tracking-tight text-gray-900 sm:text-xl">{t('profile.personal.title')}</h2>
       </div>
       <form onSubmit={onSave} className="mx-auto max-w-xl space-y-6 lg:mx-0 lg:max-w-2xl">
@@ -62,7 +62,7 @@ export function ProfilePersonalInfo({
           <Button
             type="button"
             variant="outline"
-            className="h-11 w-full rounded-xl sm:w-auto"
+            className="h-11 w-full rounded-xl border-[#F66812]/40 text-[#F66812] hover:border-[#F66812] hover:bg-[#F66812]/10 sm:w-auto"
             onClick={() => {
               setPersonalInfo({
                 firstName: profile?.firstName || '',
@@ -74,7 +74,12 @@ export function ProfilePersonalInfo({
           >
             {t('profile.personal.cancel')}
           </Button>
-          <Button type="submit" variant="primary" className="h-11 w-full rounded-xl sm:w-auto" disabled={savingPersonal}>
+          <Button
+            type="submit"
+            variant="primary"
+            className="h-11 w-full rounded-xl !bg-[#F66812] hover:!bg-[#e45f10] focus:!ring-[#F66812] sm:w-auto"
+            disabled={savingPersonal}
+          >
             {savingPersonal ? t('profile.personal.saving') : t('profile.personal.save')}
           </Button>
         </div>

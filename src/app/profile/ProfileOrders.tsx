@@ -50,11 +50,11 @@ export function ProfileOrders({
 
   if (ordersLoading) {
     return (
-      <Card className="rounded-2xl border border-gray-200/80 p-5 shadow-none sm:p-7 lg:p-8">
+      <Card className="rounded-2xl border border-[#F66812]/20 p-5 shadow-none sm:p-7 lg:p-8">
         <h2 className={`${titleClass} mb-6 sm:mb-8`}>{t('profile.orders.title')}</h2>
         <div className="space-y-3 sm:space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-28 animate-pulse rounded-2xl bg-gray-100 sm:h-32" />
+            <div key={i} className="h-28 animate-pulse rounded-2xl bg-[#F66812]/10 sm:h-32" />
           ))}
         </div>
       </Card>
@@ -63,12 +63,14 @@ export function ProfileOrders({
 
   if (orders.length === 0) {
     return (
-      <Card className="rounded-2xl border border-gray-200/80 p-5 shadow-none sm:p-7 lg:p-8">
+      <Card className="rounded-2xl border border-[#F66812]/20 p-5 shadow-none sm:p-7 lg:p-8">
         <h2 className={`${titleClass} mb-6 sm:mb-8`}>{t('profile.orders.title')}</h2>
         <div className="flex flex-col items-center gap-5 py-12 sm:py-16">
           <p className="max-w-sm text-center text-sm text-gray-600">{t('profile.orders.noOrders')}</p>
           <Link href="/products">
-            <Button variant="primary">{t('profile.dashboard.startShopping')}</Button>
+            <Button variant="primary" className="!bg-[#F66812] hover:!bg-[#e45f10] focus:!ring-[#F66812]">
+              {t('profile.dashboard.startShopping')}
+            </Button>
           </Link>
         </div>
       </Card>
@@ -76,7 +78,7 @@ export function ProfileOrders({
   }
 
   return (
-    <Card className="rounded-2xl border border-gray-200/80 p-5 shadow-none sm:p-7 lg:p-8">
+    <Card className="rounded-2xl border border-[#F66812]/20 p-5 shadow-none sm:p-7 lg:p-8">
       <h2 className={`${titleClass} mb-6 sm:mb-8`}>{t('profile.orders.title')}</h2>
       <ul className="space-y-3 sm:space-y-4">
         {orders.map((order) => (
@@ -84,7 +86,7 @@ export function ProfileOrders({
             <Link
               href={`/orders/${order.number}`}
               onClick={(e) => onOrderClick(order.number, e)}
-              className="block rounded-2xl border border-gray-200 bg-gray-50/40 p-4 transition hover:border-gray-300 hover:bg-white sm:p-5"
+              className="block rounded-2xl border border-[#F66812]/20 bg-[#F66812]/[0.04] p-4 transition hover:border-[#F66812]/35 hover:bg-white sm:p-5"
             >
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
                 <div className="min-w-0 flex-1 space-y-3">
@@ -115,10 +117,10 @@ export function ProfileOrders({
                     {new Date(order.createdAt).toLocaleDateString()}
                   </p>
                 </div>
-                <div className="flex flex-row items-end justify-between gap-3 border-t border-gray-200/80 pt-3 sm:items-center lg:flex-col lg:items-end lg:border-0 lg:pt-0">
+                <div className="flex flex-row items-end justify-between gap-3 border-t border-[#F66812]/15 pt-3 sm:items-center lg:flex-col lg:items-end lg:border-0 lg:pt-0">
                   <div className="text-left lg:text-right">
                     <p className="text-lg font-bold text-gray-900 sm:text-xl">{orderRowTotal(order, currency)}</p>
-                    <p className="mt-0.5 text-xs text-gray-500">{t('profile.dashboard.viewDetails')}</p>
+                    <p className="mt-0.5 text-xs text-[#F66812]">{t('profile.dashboard.viewDetails')}</p>
                   </div>
                 </div>
               </div>
@@ -128,7 +130,7 @@ export function ProfileOrders({
       </ul>
 
       {ordersMeta && ordersMeta.totalPages > 1 && (
-        <div className="mt-8 flex flex-col gap-4 border-t border-gray-100 pt-6 sm:mt-10 sm:flex-row sm:items-center sm:justify-between sm:pt-8">
+        <div className="mt-8 flex flex-col gap-4 border-t border-[#F66812]/15 pt-6 sm:mt-10 sm:flex-row sm:items-center sm:justify-between sm:pt-8">
           <p className="text-center text-xs text-gray-600 sm:text-left sm:text-sm">
             {t('profile.orders.page')} {ordersMeta.page} {t('profile.orders.of')} {ordersMeta.totalPages} • {ordersMeta.total} {t('profile.orders.totalOrders')}
           </p>
@@ -136,7 +138,7 @@ export function ProfileOrders({
             <Button
               variant="outline"
               size="sm"
-              className="min-w-[100px] rounded-xl"
+              className="min-w-[100px] rounded-xl border-[#F66812]/40 text-[#F66812] hover:border-[#F66812] hover:bg-[#F66812]/10"
               onClick={() => setOrdersPage((prev) => Math.max(1, prev - 1))}
               disabled={ordersPage === 1 || ordersLoading}
             >
@@ -145,7 +147,7 @@ export function ProfileOrders({
             <Button
               variant="outline"
               size="sm"
-              className="min-w-[100px] rounded-xl"
+              className="min-w-[100px] rounded-xl border-[#F66812]/40 text-[#F66812] hover:border-[#F66812] hover:bg-[#F66812]/10"
               onClick={() => setOrdersPage((prev) => Math.min(ordersMeta.totalPages, prev + 1))}
               disabled={ordersPage === ordersMeta.totalPages || ordersLoading}
             >

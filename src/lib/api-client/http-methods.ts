@@ -9,6 +9,7 @@ import {
   parseErrorResponse,
   createApiError,
   isQuietCartStockValidationError,
+  isQuietCartReadServerError,
 } from "./error-handler";
 import { logger } from "@/lib/utils/logger";
 
@@ -67,11 +68,12 @@ async function handleErrorResponse(
 
   const { errorText, errorData } = await parseErrorResponse(response);
   const quietStock422 = isQuietCartStockValidationError(response.status, errorData);
+  const quietCartReadServerError = isQuietCartReadServerError(response.status, url);
 
   // Log 404 as warning (expected situation - resource doesn't exist)
   if (shouldLogWarning(response.status)) {
     console.warn(`⚠️ [API CLIENT] Not Found (404): ${url}`);
-  } else if (!isUnauthorized && !quietStock422 && shouldLogError(response.status)) {
+  } else if (!isUnauthorized && !quietStock422 && !quietCartReadServerError && shouldLogError(response.status)) {
     console.error(`❌ [API CLIENT] Error: ${response.status} ${response.statusText}`, {
       url,
       status: response.status,
@@ -80,6 +82,11 @@ async function handleErrorResponse(
     });
   } else if (quietStock422) {
     logger.debug("[API CLIENT] Cart stock limit (422)", { url, errorData });
+  } else if (quietCartReadServerError) {
+    logger.warn("[API CLIENT] Cart read failed with server error; using fallback cart state", {
+      url,
+      status: response.status,
+    });
   }
 
   // Handle 401 Unauthorized - clear token and redirect
@@ -90,7 +97,7 @@ async function handleErrorResponse(
   // Log error details
   if (isNotFound) {
     console.warn("⚠️ [API CLIENT] Not Found response:", errorData || errorText);
-  } else if (!isUnauthorized && !quietStock422 && shouldLogError(response.status)) {
+  } else if (!isUnauthorized && !quietStock422 && !quietCartReadServerError && shouldLogError(response.status)) {
     console.error("❌ [API CLIENT] Error response:", errorData || errorText);
   }
 

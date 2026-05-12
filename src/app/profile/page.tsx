@@ -252,7 +252,7 @@ function ProfilePageContent() {
   );
 
   return (
-    <>
+    <div className="min-h-full bg-white">
       <ProfileMobilePage
         profile={profile}
         tabs={tabs}
@@ -268,13 +268,13 @@ function ProfilePageContent() {
       >
         {tabContent}
       </ProfileMobilePage>
-      <div className="mx-auto hidden max-w-7xl px-4 py-8 md:block md:px-6 lg:px-8">
-        <div className="flex flex-col gap-8 md:flex-row md:items-start md:gap-10 lg:gap-12">
-          <aside className="w-full shrink-0 md:sticky md:top-24 md:w-64 md:self-start md:border-r md:border-gray-200/90 md:pr-8 lg:w-72">
+      <div className="mx-auto hidden max-w-7xl px-4 py-10 md:block md:px-6 lg:px-8">
+        <div className="grid grid-cols-12 items-start gap-6 lg:gap-8">
+          <aside className="col-span-12 self-start lg:col-span-4 lg:sticky lg:top-28 xl:col-span-3">
             <ProfileHeader profile={profile} tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} onLogout={logout} t={t} />
           </aside>
-          <main className="min-w-0 flex-1">
-            <div className="space-y-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-200/80 md:space-y-8 md:p-6 lg:rounded-3xl lg:p-8">
+          <main className="col-span-12 min-w-0 lg:col-span-8 xl:col-span-9">
+            <div className="space-y-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm md:space-y-8 md:p-6 lg:p-8">
               {tabContent}
             </div>
           </main>
@@ -292,7 +292,7 @@ function ProfilePageContent() {
           t={t}
         />
       )}
-    </>
+    </div>
   );
 }
 

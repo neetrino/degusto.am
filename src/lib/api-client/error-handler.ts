@@ -39,6 +39,16 @@ export function isQuietCartStockValidationError(status: number, errorData: unkno
 }
 
 /**
+ * Cart read is non-critical for page rendering.
+ * When backend is temporarily unstable, avoid noisy console errors for this endpoint.
+ */
+export function isQuietCartReadServerError(status: number, url: string): boolean {
+  const isServerError = status >= 500 && status < 600;
+  const isCartEndpoint = /\/api\/v1\/cart(?:\?|$)/.test(url);
+  return isServerError && isCartEndpoint;
+}
+
+/**
  * Parse error response from API
  */
 export async function parseErrorResponse(response: Response): Promise<{

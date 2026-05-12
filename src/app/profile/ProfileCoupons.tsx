@@ -16,7 +16,7 @@ export function ProfileCoupons({
 }: ProfileCouponsProps) {
   if (couponsLoading) {
     return (
-      <Card className="rounded-2xl border border-gray-200/80 p-5 shadow-none sm:p-7 lg:p-8">
+      <Card className="rounded-2xl border border-[#F66812]/20 p-5 shadow-none sm:p-7 lg:p-8">
         <h2 className="mb-6 text-lg font-bold tracking-tight text-gray-900 sm:text-xl">
           {t("profile.coupons.title")}
         </h2>
@@ -27,7 +27,7 @@ export function ProfileCoupons({
 
   return (
     <div className="space-y-6 sm:space-y-8">
-      <Card className="rounded-2xl border border-gray-200/80 p-5 shadow-none sm:p-7 lg:p-8">
+      <Card className="rounded-2xl border border-[#F66812]/20 p-5 shadow-none sm:p-7 lg:p-8">
         <h2 className="mb-6 text-lg font-bold tracking-tight text-gray-900 sm:text-xl">
           {t("profile.coupons.availableTitle")}
         </h2>
@@ -36,7 +36,7 @@ export function ProfileCoupons({
         ) : (
           <ul className="space-y-3">
             {availableCoupons.map((coupon) => (
-              <li key={coupon.code} className="rounded-xl border border-gray-200 p-4">
+              <li key={coupon.code} className="rounded-xl border border-[#F66812]/20 bg-[#F66812]/[0.03] p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="font-semibold text-gray-900">{coupon.code}</p>
@@ -47,7 +47,7 @@ export function ProfileCoupons({
                   <span
                     className={`rounded-full px-3 py-1 text-xs font-medium ${
                       coupon.isActive
-                        ? "bg-green-100 text-green-700"
+                        ? "bg-[#F66812]/15 text-[#F66812]"
                         : "bg-gray-100 text-gray-600"
                     }`}
                   >
@@ -68,7 +68,7 @@ export function ProfileCoupons({
         )}
       </Card>
 
-      <Card className="rounded-2xl border border-gray-200/80 p-5 shadow-none sm:p-7 lg:p-8">
+      <Card className="rounded-2xl border border-[#F66812]/20 p-5 shadow-none sm:p-7 lg:p-8">
         <h2 className="mb-6 text-lg font-bold tracking-tight text-gray-900 sm:text-xl">
           {t("profile.coupons.historyTitle")}
         </h2>
@@ -79,7 +79,7 @@ export function ProfileCoupons({
             {couponHistory.map((item) => (
               <li
                 key={`${item.orderNumber}-${item.usedAt}`}
-                className="rounded-xl border border-gray-200 p-4"
+                className="rounded-xl border border-[#F66812]/20 bg-[#F66812]/[0.03] p-4"
               >
                 <p className="text-sm font-semibold text-gray-900">
                   {t("profile.coupons.order")} #{item.orderNumber}

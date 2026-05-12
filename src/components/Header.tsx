@@ -344,7 +344,10 @@ export function Header() {
       setCartTotal(response.cart?.totals?.total || 0);
     } catch (error: unknown) {
       const err = error as { status?: number; statusCode?: number };
-      if (err?.status !== 401 && err?.statusCode !== 401) {
+      const status = err?.status ?? err?.statusCode;
+      const isUnauthorized = status === 401;
+      const isServerError = typeof status === 'number' && status >= 500;
+      if (!isUnauthorized && !isServerError) {
         console.error('Error fetching cart:', error);
       }
       setCartCount(0);

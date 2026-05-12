@@ -37,28 +37,28 @@ function ProfileUserIdentity({
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-col items-center gap-4 text-center sm:gap-4">
+      <div className="flex flex-col items-center gap-4 text-center">
         <div className="flex shrink-0 justify-center">
           <UserAvatar
             firstName={profile?.firstName}
             lastName={profile?.lastName}
             avatarUrl={profile?.avatarUrl || profile?.avatar || profile?.imageUrl || profile?.image || null}
             size="md"
-            className="shadow-md sm:h-[4.5rem] sm:w-[4.5rem] sm:text-xl"
+            className="h-[4.5rem] w-[4.5rem] text-xl shadow-md"
           />
         </div>
         <div className="min-w-0 max-w-full space-y-0.5 px-1">
           {hasSplitName ? (
             <div className="space-y-0.5">
-              <p className="text-[1.0625rem] font-semibold leading-snug tracking-tight text-gray-900 sm:text-lg">
+              <p className="text-lg font-semibold leading-snug tracking-tight text-gray-900">
                 {profile?.firstName}
               </p>
-              <p className="text-xs font-semibold tracking-wide text-gray-600 sm:text-[0.8125rem]">
+              <p className="text-xs font-semibold tracking-wide text-gray-600">
                 {profile?.lastName}
               </p>
             </div>
           ) : (
-            <h1 className="text-lg font-semibold leading-snug tracking-tight text-gray-900 break-words sm:text-xl">
+            <h1 className="break-words text-xl font-semibold leading-snug tracking-tight text-gray-900">
               {displayName}
             </h1>
           )}
@@ -66,15 +66,15 @@ function ProfileUserIdentity({
       </div>
       <div className="flex w-full flex-col gap-2">
           {profile?.email && (
-            <div className="flex items-start gap-2.5 rounded-xl border border-gray-200/60 bg-white/70 px-3.5 py-2.5 shadow-sm backdrop-blur-sm">
-              <MailIcon className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
-              <p className="min-w-0 text-xs font-medium leading-relaxed text-gray-700 break-words sm:text-sm">{profile.email}</p>
+            <div className="flex items-start gap-2.5 rounded-xl border border-[#F66812]/20 bg-white px-3.5 py-2.5">
+              <MailIcon className="mt-0.5 h-4 w-4 shrink-0 text-[#F66812]" />
+              <p className="min-w-0 break-words text-sm font-medium leading-relaxed text-gray-700">{profile.email}</p>
             </div>
           )}
           {profile?.phone && (
-            <div className="flex items-center gap-2.5 rounded-xl border border-gray-200/60 bg-white/70 px-3 py-2.5 shadow-sm backdrop-blur-sm">
-              <PhoneIcon className="h-4 w-4 shrink-0 text-gray-400" />
-              <p className="min-w-0 text-xs font-medium tabular-nums tracking-wide text-gray-700 sm:text-sm">{profile.phone}</p>
+            <div className="flex items-center gap-2.5 rounded-xl border border-[#F66812]/20 bg-white px-3 py-2.5">
+              <PhoneIcon className="h-4 w-4 shrink-0 text-[#F66812]" />
+              <p className="min-w-0 text-sm font-medium tabular-nums tracking-wide text-gray-700">{profile.phone}</p>
             </div>
           )}
       </div>
@@ -93,22 +93,17 @@ function ProfileTabNav({
 }) {
   return (
     <nav
-      className="grid grid-cols-2 gap-2 sm:flex sm:flex-col sm:gap-0.5"
+      className="flex flex-col gap-1"
       role="tablist"
       aria-label="Profile sections"
     >
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
-        const base =
-          'flex w-full rounded-md font-medium transition-colors max-sm:min-h-[5.5rem] max-sm:flex-col max-sm:items-center max-sm:justify-center max-sm:gap-1.5 max-sm:px-2 max-sm:py-2.5 max-sm:text-center max-sm:text-[11px] max-sm:leading-snug sm:flex-row sm:items-center sm:gap-3 sm:px-3 sm:py-2 sm:text-left sm:text-sm';
-        const activeMobile =
-          'max-sm:border-2 max-sm:border-gray-900 max-sm:bg-white max-sm:text-gray-900 max-sm:shadow-sm';
-        const inactiveMobile =
-          'max-sm:border max-sm:border-gray-300/80 max-sm:bg-white/50 max-sm:text-gray-700 max-sm:hover:border-gray-400 max-sm:hover:bg-white/80';
-        const activeDesktop =
-          'sm:border-l-[3px] sm:border-gray-900 sm:bg-white/85 sm:pl-[calc(0.75rem-3px)] sm:text-gray-900 sm:shadow-sm';
-        const inactiveDesktop =
-          'sm:border-l-[3px] sm:border-transparent sm:text-gray-600 sm:hover:bg-white/50 sm:hover:text-gray-900';
+        const base = 'flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left text-sm font-medium transition-colors';
+        const stateClasses = isActive
+          ? 'border-[#F66812]/30 bg-[#F66812]/10 text-gray-900 shadow-sm'
+          : 'border-transparent text-gray-600 hover:border-[#F66812]/20 hover:bg-[#F66812]/[0.06] hover:text-gray-900';
+
         return (
           <button
             key={tab.id}
@@ -116,16 +111,16 @@ function ProfileTabNav({
             role="tab"
             aria-selected={isActive}
             onClick={() => onTabChange(tab.id)}
-            className={`${base} ${isActive ? `${activeMobile} ${activeDesktop}` : `${inactiveMobile} ${inactiveDesktop}`}`}
+            className={`${base} ${stateClasses}`}
           >
             <span
-              className={`flex shrink-0 items-center justify-center rounded-md max-sm:h-9 max-sm:w-9 sm:h-8 sm:w-8 ${
-                isActive ? 'bg-white text-gray-900 shadow-sm max-sm:bg-gray-100' : 'bg-gray-100/80 text-gray-500'
+              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${
+                isActive ? 'bg-[#F66812] text-white shadow-sm' : 'bg-gray-100 text-gray-500'
               }`}
             >
-              <span className="[&>svg]:h-[18px] [&>svg]:w-[18px] sm:[&>svg]:h-4 sm:[&>svg]:w-4">{tab.icon}</span>
+              <span className="[&>svg]:h-4 [&>svg]:w-4">{tab.icon}</span>
             </span>
-            <span className="min-w-0 max-sm:line-clamp-3 sm:flex-1 sm:leading-snug">{tab.label}</span>
+            <span className="min-w-0 flex-1 leading-snug">{tab.label}</span>
           </button>
         );
       })}
@@ -145,19 +140,19 @@ export function ProfileHeader({ profile, tabs, activeTab, onTabChange, onLogout,
 
   return (
     <div
-      className="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-300/60 bg-gradient-to-b from-gray-100/95 to-gray-50/90 shadow-inner ring-1 ring-gray-900/[0.04] sm:rounded-xl"
+      className="flex w-full flex-col overflow-hidden rounded-2xl border border-[#F66812]/20 bg-white shadow-sm"
       aria-label="Profile navigation"
     >
-      <div className="border-b border-gray-300/50 bg-gray-50/50 p-4 sm:p-5">
+      <div className="border-b border-[#F66812]/15 p-5 lg:p-6">
         <ProfileUserIdentity profile={profile} displayName={displayName} />
       </div>
-      <div className="p-2 sm:bg-gray-50/30 sm:p-3">
+      <div className="p-3">
         <ProfileTabNav tabs={tabs} activeTab={activeTab} onTabChange={onTabChange} />
-        <div className="mt-2 border-t border-gray-200/70 pt-2">
+        <div className="mt-2 border-t border-[#F66812]/15 pt-2">
           <button
             type="button"
             onClick={onLogout}
-            className="flex w-full items-center gap-3 rounded-md border-l-[3px] border-transparent px-3 py-2 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
+            className="flex w-full items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-left text-sm font-medium text-red-600 transition-colors hover:border-red-100 hover:bg-red-50 hover:text-red-700"
           >
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-red-50 text-red-500">
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
