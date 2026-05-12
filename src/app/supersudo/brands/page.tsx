@@ -288,7 +288,10 @@ function BrandsSection() {
             </thead>
             <tbody>
               {filteredBrands.map((brand) => (
-                <tr key={brand.id} className="border-b border-gray-100 bg-gray-50 transition-colors hover:bg-gray-100">
+                <tr
+                  key={brand.id}
+                  className="border-b border-[#f2d8c6] bg-gradient-to-r from-[#fff4ea] to-[#eef9f1] transition-colors hover:from-[#ffe8d6] hover:to-[#e1f4e8]"
+                >
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       {brand.logoUrl ? (

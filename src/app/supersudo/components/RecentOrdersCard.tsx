@@ -4,6 +4,7 @@ import { Card, Button } from '@shop/ui';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '../../../lib/i18n-client';
 import { formatCurrency, formatDate } from '../utils/dashboardUtils';
+import { ADMIN_PANEL_CARD, ADMIN_PANEL_ITEM, ADMIN_PANEL_TITLE } from './dashboardStyles';
 
 interface RecentOrder {
   id: string;
@@ -28,12 +29,13 @@ export function RecentOrdersCard({ recentOrders, recentOrdersLoading }: RecentOr
   const router = useRouter();
 
   return (
-    <Card className="p-6">
+    <Card className={`${ADMIN_PANEL_CARD} p-6`}>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-gray-900">{t('admin.dashboard.recentOrders')}</h2>
+        <h2 className={ADMIN_PANEL_TITLE}>{t('admin.dashboard.recentOrders')}</h2>
         <Button
           variant="ghost"
           size="sm"
+          className="text-[#1f5f44] transition-all hover:bg-gradient-to-r hover:from-[#f66812] hover:to-[#2f7d4a] hover:text-white"
           onClick={() => router.push('/supersudo/orders')}
         >
           {t('admin.dashboard.viewAll')}
@@ -56,7 +58,7 @@ export function RecentOrdersCard({ recentOrders, recentOrdersLoading }: RecentOr
           recentOrders.map((order) => (
             <div
               key={order.id}
-              className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+              className={`${ADMIN_PANEL_ITEM} cursor-pointer p-4`}
               onClick={() => router.push(`/supersudo/orders?search=${order.number}`)}
             >
               <div className="flex items-start justify-between">

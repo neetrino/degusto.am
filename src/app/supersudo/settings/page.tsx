@@ -145,7 +145,7 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto w-full max-w-4xl">
-        <Card className="mb-6 p-6">
+        <Card className="mb-6 rounded-xl border border-[#f2d8c6] bg-gradient-to-br from-[#fff8f2] via-white to-[#eef8f1] p-6 shadow-[0_8px_24px_rgba(245,104,20,0.08)]">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('admin.settings.generalSettings')}</h2>
           <div className="space-y-4">
             <div>
@@ -154,7 +154,7 @@ export default function SettingsPage() {
               </label>
               <input
                 type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-md border border-[#ebd3c1] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#f7bc95]"
                 defaultValue={t('admin.settings.siteNamePlaceholder')}
               />
             </div>
@@ -163,7 +163,7 @@ export default function SettingsPage() {
                 {t('admin.settings.siteDescription')}
               </label>
               <textarea
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-md border border-[#ebd3c1] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#f7bc95]"
                 rows={3}
                 defaultValue={t('admin.settings.siteDescriptionPlaceholder')}
               />
@@ -172,7 +172,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* Payment Settings */}
-        <Card className="p-6 mb-6">
+        <Card className="mb-6 rounded-xl border border-[#f2d8c6] bg-gradient-to-br from-[#fff8f2] via-white to-[#eef8f1] p-6 shadow-[0_8px_24px_rgba(245,104,20,0.08)]">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('admin.settings.paymentSettings')}</h2>
           <div className="space-y-4">
             <div>
@@ -182,7 +182,7 @@ export default function SettingsPage() {
               <select 
                 value={settings.defaultCurrency || 'AMD'}
                 onChange={(e) => setSettings({ ...settings, defaultCurrency: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-md border border-[#ebd3c1] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#f7bc95]"
               >
                 <option value="AMD">{t('admin.settings.amd')}</option>
                 <option value="USD">{t('admin.settings.usd')}</option>
@@ -203,7 +203,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* Currency Exchange Rates */}
-        <Card className="p-6 mb-6">
+        <Card className="mb-6 rounded-xl border border-[#f2d8c6] bg-gradient-to-br from-[#fff8f2] via-white to-[#eef8f1] p-6 shadow-[0_8px_24px_rgba(245,104,20,0.08)]">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('admin.settings.currencyRates')}</h2>
           <p className="text-sm text-gray-600 mb-4">{t('admin.settings.currencyRatesDescription')}</p>
           <div className="space-y-4">
@@ -223,7 +223,7 @@ export default function SettingsPage() {
                       USD: parseFloat(e.target.value) || 1,
                     },
                   })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-md border border-[#ebd3c1] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#f7bc95]"
                   disabled
                 />
                 <p className="text-xs text-gray-500 mt-1">{t('admin.settings.baseCurrency')}</p>
@@ -270,7 +270,7 @@ export default function SettingsPage() {
                       });
                     }
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-md border border-[#ebd3c1] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#f7bc95]"
                   placeholder="400"
                 />
                 <p className="text-xs text-gray-500 mt-1">{t('admin.settings.rateToUSD')}</p>
@@ -317,7 +317,7 @@ export default function SettingsPage() {
                       });
                     }
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-md border border-[#ebd3c1] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#f7bc95]"
                   placeholder="0.92"
                 />
                 <p className="text-xs text-gray-500 mt-1">{t('admin.settings.rateToUSD')}</p>
@@ -364,7 +364,7 @@ export default function SettingsPage() {
                       });
                     }
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-md border border-[#ebd3c1] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#f7bc95]"
                   placeholder="90"
                 />
                 <p className="text-xs text-gray-500 mt-1">{t('admin.settings.rateToUSD')}</p>
@@ -411,7 +411,7 @@ export default function SettingsPage() {
                       });
                     }
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-md border border-[#ebd3c1] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#f7bc95]"
                   placeholder="2.7"
                 />
                 <p className="text-xs text-gray-500 mt-1">{t('admin.settings.rateToUSD')}</p>
@@ -424,6 +424,7 @@ export default function SettingsPage() {
         <div className="flex gap-4">
           <Button
             variant="primary"
+            className="bg-gradient-to-r from-[#f66812] to-[#2f7d4a] hover:from-[#e85d0b] hover:to-[#25653c]"
             onClick={handleSave}
             disabled={saving}
           >
@@ -431,6 +432,7 @@ export default function SettingsPage() {
           </Button>
           <Button
             variant="ghost"
+            className="text-[#1f5f44] hover:bg-[#fff3ea] hover:text-[#d7590e]"
             onClick={() => router.push('/supersudo')}
             disabled={saving}
           >

@@ -64,12 +64,6 @@ export default function AdminPanel() {
 
   return (
     <>
-      <div className="mb-8">
-        <p className="text-gray-600">
-          {t('admin.dashboard.welcome').replace('{name}', user?.firstName || t('admin.dashboard.title'))}
-        </p>
-      </div>
-
       <StatsGrid stats={stats} statsLoading={statsLoading} />
 
       <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">

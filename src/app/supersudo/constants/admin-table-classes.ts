@@ -2,10 +2,12 @@
  * Shared admin data-table visuals (aligned with `OrdersTable`).
  * Use these for list tables in the admin sidebar area.
  */
-export const ADMIN_TABLE_CARD = 'overflow-hidden p-0';
+export const ADMIN_TABLE_CARD =
+  'overflow-hidden rounded-xl border border-[#f2d8c6] bg-white p-0 shadow-[0_8px_24px_rgba(245,104,20,0.08)]';
 
 /** Padding for loading / empty states inside a table card */
-export const ADMIN_TABLE_STATE_INSET = 'p-4 sm:p-5';
+export const ADMIN_TABLE_STATE_INSET =
+  'rounded-xl border border-[#f2d8c6] bg-gradient-to-br from-[#fff8f2] via-white to-[#eef8f1] p-4 shadow-[0_8px_24px_rgba(245,104,20,0.08)] sm:p-5';
 
 /** Wrapper when the table should not scroll horizontally (orders list). */
 export const ADMIN_TABLE_OUTER_CLIP =
@@ -18,7 +20,8 @@ export const ADMIN_TABLE_OUTER_SCROLL =
 export const ADMIN_TABLE =
   'w-full min-w-full table-auto border-collapse text-left text-sm';
 
-export const ADMIN_TABLE_THEAD = 'border-b border-gray-200 bg-gray-50';
+export const ADMIN_TABLE_THEAD =
+  'border-b border-[#f0dccd] bg-gradient-to-r from-[#fff2e8] to-[#edf8f1]';
 
 export const ADMIN_TABLE_TH_CHECK =
   'w-px whitespace-nowrap px-2 py-2.5 align-middle text-center';
@@ -30,12 +33,13 @@ export const ADMIN_TABLE_TH_CENTER =
   'min-w-0 whitespace-nowrap px-3 py-2.5 text-center align-middle text-[11px] font-semibold uppercase leading-snug tracking-wide text-gray-500 sm:text-xs';
 
 export const ADMIN_TABLE_TH_SORTABLE =
-  'min-w-0 whitespace-nowrap cursor-pointer select-none px-3 py-2.5 text-left align-middle text-[11px] font-semibold uppercase leading-snug tracking-wide text-gray-500 hover:bg-gray-100 sm:text-xs';
+  'min-w-0 whitespace-nowrap cursor-pointer select-none px-3 py-2.5 text-left align-middle text-[11px] font-semibold uppercase leading-snug tracking-wide text-gray-500 hover:bg-gradient-to-r hover:from-[#fff4ea] hover:to-[#eef9f1] sm:text-xs';
 
 export const ADMIN_TABLE_TBODY =
-  'divide-y divide-gray-200 bg-white [&_td]:align-middle';
+  'divide-y divide-[#f3e3d7] bg-white [&_td]:align-middle';
 
-export const ADMIN_TABLE_ROW = 'hover:bg-gray-50';
+export const ADMIN_TABLE_ROW =
+  'transition-colors hover:bg-gradient-to-r hover:from-[#fff4ea] hover:to-[#eef9f1]';
 
 export const ADMIN_TABLE_TD_CHECK =
   'w-px whitespace-nowrap px-3 py-2.5 align-middle';

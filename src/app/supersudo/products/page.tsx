@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { Button } from '@shop/ui';
 import { useAuth } from '../../../lib/auth/AuthContext';
 import { apiClient } from '../../../lib/api-client';
 import { useTranslation } from '../../../lib/i18n-client';
@@ -335,13 +336,13 @@ export default function ProductsPage() {
           <button
             type="button"
             onClick={handleClearFilters}
-            className="text-sm text-gray-600 underline hover:text-gray-900"
+            className="text-sm text-[#1f5f44] underline hover:text-[#d7590e]"
           >
             {t('admin.products.clearAll')}
           </button>
         </div>
       )}
-            <div className="mb-4 text-sm text-gray-700">
+            <div className="mb-4 text-sm text-[#4f5f56]">
               {t('admin.products.totalProductsCount').replace('{count}', totalProductsCount.toString())}
             </div>
 
@@ -368,15 +369,16 @@ export default function ProductsPage() {
 
             {/* Add New Product Button */}
             <div className="mb-6">
-              <button
+              <Button
+                type="button"
                 onClick={() => router.push('/supersudo/products/add')}
-                className="w-full px-4 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 font-medium text-sm"
+                className="relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-lg border border-[#e7a97e] bg-gradient-to-r from-[#f66812] to-[#2f7d4a] px-4 py-3 text-sm font-medium text-white transition-colors hover:from-[#e85d0b] hover:to-[#25653c]"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
                 {t('admin.products.addNewProduct')}
-              </button>
+              </Button>
             </div>
 
             <ProductBulkSelectionBar

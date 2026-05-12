@@ -7,7 +7,11 @@ export function ConditionalFooter() {
   const pathname = usePathname();
   const isAuthPage = pathname === '/login' || pathname === '/register';
   const isProfilePage = pathname?.startsWith('/profile');
+  const isAdminPage = pathname?.startsWith('/supersudo');
   if (pathname === '/') {
+    return null;
+  }
+  if (isAdminPage) {
     return null;
   }
   if (isProfilePage) {

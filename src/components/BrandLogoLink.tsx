@@ -1,21 +1,30 @@
 import Link from 'next/link';
 import type { ComponentProps } from 'react';
 
+const DEGUSTO_LOGO_SRC = 'https://www.figma.com/api/mcp/asset/b684f5ca-5543-4689-be84-ac53b6c5d14c';
+
 export type BrandLogoLinkProps = Omit<ComponentProps<typeof Link>, 'href' | 'children'> & {
   /** Icon-sized mark for narrow sidebars (e.g. admin rail). */
   compact?: boolean;
+  /** Use high-contrast styling on dark backgrounds. */
+  onDark?: boolean;
 };
 
-export function BrandLogoLink({ className = '', compact = false, ...rest }: BrandLogoLinkProps) {
+export function BrandLogoLink({ className = '', compact = false, onDark = false, ...rest }: BrandLogoLinkProps) {
   if (compact) {
     return (
       <Link
         href="/"
         title="Degusto"
-        className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-gray-900 text-[0.65rem] font-bold leading-none tracking-tight text-white transition-colors hover:bg-gray-800 ${className}`}
+        className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md font-bold leading-none transition-colors ${
+          onDark
+            ? 'bg-white text-lg font-extrabold !text-[#f66812] hover:bg-[#fff2e8]'
+            : 'bg-gray-900 text-[0.65rem] tracking-tight text-white hover:bg-gray-800'
+        } ${className}`}
+        style={onDark ? { color: '#f66812' } : undefined}
         {...rest}
       >
-        DG
+        {onDark ? 'D' : 'DG'}
       </Link>
     );
   }
@@ -26,9 +35,17 @@ export function BrandLogoLink({ className = '', compact = false, ...rest }: Bran
       className={`group flex flex-shrink-0 items-center ${className}`}
       {...rest}
     >
-      <span className="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-xl font-bold text-transparent transition-all duration-300 group-hover:from-gray-800 group-hover:to-gray-600 sm:text-2xl">
-        Degusto
-      </span>
+      {onDark ? (
+        <img
+          src={DEGUSTO_LOGO_SRC}
+          alt="Degusto"
+          className="h-12 w-[134px] max-w-full object-contain brightness-0 invert drop-shadow-[0_1px_2px_rgba(0,0,0,0.28)]"
+        />
+      ) : (
+        <span className="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-xl font-bold text-transparent transition-all duration-300 group-hover:from-gray-800 group-hover:to-gray-600 sm:text-2xl">
+          Degusto
+        </span>
+      )}
     </Link>
   );
 }

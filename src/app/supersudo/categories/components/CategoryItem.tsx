@@ -16,7 +16,7 @@ export function CategoryItem({ category, parentCategory, onEdit, onDelete }: Cat
 
   return (
     <div
-      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+      className="flex items-center justify-between rounded-lg border border-[#f2d8c6] bg-gradient-to-r from-[#fff4ea] to-[#eef9f1] p-3 transition-colors hover:from-[#ffe8d6] hover:to-[#e1f4e8]"
       style={{ paddingLeft: `${16 + category.level * 24}px` }}
     >
       <div className="flex-1">

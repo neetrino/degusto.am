@@ -4,6 +4,7 @@ import { Card, Button } from '@shop/ui';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '../../../lib/i18n-client';
 import { formatCurrency } from '../utils/dashboardUtils';
+import { ADMIN_PANEL_CARD, ADMIN_PANEL_ITEM, ADMIN_PANEL_TITLE } from './dashboardStyles';
 
 interface TopProduct {
   variantId: string;
@@ -26,12 +27,13 @@ export function TopProductsCard({ topProducts, topProductsLoading }: TopProducts
   const router = useRouter();
 
   return (
-    <Card className="p-6">
+    <Card className={`${ADMIN_PANEL_CARD} p-6`}>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-gray-900">{t('admin.dashboard.topSellingProducts')}</h2>
+        <h2 className={ADMIN_PANEL_TITLE}>{t('admin.dashboard.topSellingProducts')}</h2>
         <Button
           variant="ghost"
           size="sm"
+          className="text-[#1f5f44] transition-all hover:bg-gradient-to-r hover:from-[#f66812] hover:to-[#2f7d4a] hover:text-white"
           onClick={() => router.push('/supersudo/products')}
         >
           {t('admin.dashboard.viewAll')}
@@ -54,7 +56,7 @@ export function TopProductsCard({ topProducts, topProductsLoading }: TopProducts
           topProducts.map((product, index) => (
             <div
               key={product.variantId}
-              className="flex items-center gap-4 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+              className={`${ADMIN_PANEL_ITEM} flex cursor-pointer items-center gap-4`}
               onClick={() => router.push(`/supersudo/products/${product.productId}`)}
             >
               <div className="flex-shrink-0">

@@ -4,7 +4,7 @@ export const ADMIN_SIDEBAR_MOBILE_DRAWER_WRAP =
 
 /** Width is set in `AdminSidebar` (expanded vs collapsed). */
 export const ADMIN_SIDEBAR_ASIDE =
-  'hidden lg:flex lg:h-full lg:shrink-0 lg:flex-col border-r border-gray-200 bg-white transition-[width] duration-200 ease-out';
+  'admin-sidebar-home-bg hidden lg:flex lg:h-full lg:shrink-0 lg:flex-col border-r border-[#e85c0a] bg-[#f66812] text-white transition-[width] duration-200 ease-out';
 
 export const ADMIN_SIDEBAR_NAV =
   'flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain py-6 px-2 space-y-1';
