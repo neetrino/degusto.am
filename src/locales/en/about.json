@@ -6,6 +6,25 @@
     "paragraph2": "Our mission is to make online shopping simple, convenient and enjoyable. We carefully select each product to ensure high quality and customer satisfaction.",
     "paragraph3": "We are proud to offer not only excellent products but also excellent customer service. Our team is always ready to help you find exactly what you are looking for."
   },
+  "trust": {
+    "subtitle": "TRUST FOUNDATION",
+    "title": "Why customers trust Degusto",
+    "description": "We combine quality products, fast delivery, and transparent communication so every order feels reliable and convenient.",
+    "items": {
+      "years": {
+        "value": "8+",
+        "label": "years of customer-focused experience"
+      },
+      "customers": {
+        "value": "15k+",
+        "label": "satisfied customers"
+      },
+      "delivery": {
+        "value": "98%",
+        "label": "orders delivered on time"
+      }
+    }
+  },
   "team": {
     "subtitle": "ABOUT US",
     "title": "Our team",

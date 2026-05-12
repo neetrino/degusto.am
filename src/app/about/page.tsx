@@ -15,6 +15,21 @@ export const dynamicParams = true;
  */
 export default function AboutPage() {
   const { t } = useTranslation();
+  const trustHighlights = [
+    {
+      value: t('about.trust.items.years.value'),
+      label: t('about.trust.items.years.label'),
+    },
+    {
+      value: t('about.trust.items.customers.value'),
+      label: t('about.trust.items.customers.label'),
+    },
+    {
+      value: t('about.trust.items.delivery.value'),
+      label: t('about.trust.items.delivery.label'),
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-white">
       {/* Секция: About our online store */}
@@ -57,6 +72,36 @@ export default function AboutPage() {
                   {t('about.description.paragraph3')}
                 </p>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="pb-16 md:pb-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="rounded-2xl border border-gray-100 bg-gray-50 px-6 py-10 md:px-10 md:py-12">
+            <div className="max-w-3xl">
+              <p className="text-sm md:text-base font-semibold uppercase tracking-wider text-[#7CB342]">
+                {t('about.trust.subtitle')}
+              </p>
+              <h2 className="mt-3 text-3xl md:text-4xl font-bold text-gray-900">
+                {t('about.trust.title')}
+              </h2>
+              <p className="mt-4 text-gray-600 text-base md:text-lg leading-relaxed">
+                {t('about.trust.description')}
+              </p>
+            </div>
+
+            <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+              {trustHighlights.map((item) => (
+                <article
+                  key={item.label}
+                  className="rounded-xl bg-white border border-gray-100 px-6 py-7 shadow-sm"
+                >
+                  <p className="text-3xl md:text-4xl font-bold text-gray-900">{item.value}</p>
+                  <p className="mt-2 text-sm md:text-base text-gray-600">{item.label}</p>
+                </article>
+              ))}
             </div>
           </div>
         </div>
