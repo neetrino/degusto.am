@@ -32,7 +32,7 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
         <nav className="ml-8 mr-auto hidden items-center gap-[30px] whitespace-nowrap px-4 text-[18px] font-semibold leading-[30px] text-white lg:flex">
           <Link href="/" className="shrink-0">{t('common.navigation.home')}</Link>
           <Link href="/shop" className="shrink-0">{t('common.navigation.shop')}</Link>
-          <Link href="/products" className="shrink-0">{t('common.navigation.combo')}</Link>
+          <Link href="/combo" className="shrink-0">{t('common.navigation.combo')}</Link>
           <Link href="/about" className="shrink-0">{t('common.navigation.about')}</Link>
         </nav>
         <div className="relative ml-auto hidden h-12 w-[237px] items-center rounded-[90px] bg-white p-1 transition-all duration-300 ease-out hover:w-[380px] focus-within:w-[380px] md:flex">

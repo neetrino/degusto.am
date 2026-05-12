@@ -37,6 +37,9 @@
         "foodAttributeSwitcherAria": "Սննդային հատկանիշների փոխարկիչ",
         "moreButton": "Ավելին"
       },
+      "combo": {
+        "subtitle": "Ընտրեք ձեր նախընտրած կոմբո փաթեթները մեր լայն տեսականուց"
+      },
       "categories": {
         "all": "Բոլորը",
         "soupsAndHotDishes": "Ապուրներ եւ տաք ուտեստներ",

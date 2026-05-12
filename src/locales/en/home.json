@@ -37,6 +37,9 @@
         "foodAttributeSwitcherAria": "Food attributes switcher",
         "moreButton": "More"
       },
+      "combo": {
+        "subtitle": "Choose your favorite combo sets from our wide assortment"
+      },
       "categories": {
         "all": "All",
         "soupsAndHotDishes": "Soups and hot dishes",

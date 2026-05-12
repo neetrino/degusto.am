@@ -37,6 +37,9 @@
         "foodAttributeSwitcherAria": "Переключатель пищевых атрибутов",
         "moreButton": "Подробнее"
       },
+      "combo": {
+        "subtitle": "Выберите любимые комбо-наборы из нашего широкого ассортимента"
+      },
       "categories": {
         "all": "Все",
         "soupsAndHotDishes": "Супы и горячие блюда",

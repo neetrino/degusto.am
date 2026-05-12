@@ -23,6 +23,12 @@ type MenuCard = {
   discount: string;
 };
 
+type DesktopMenuPageProps = {
+  titleKey: string;
+  subtitleKey: string;
+  activeCategoryIndex: number;
+};
+
 const categories = [
   'home.figma.desktop.categories.all',
   'home.figma.desktop.categories.soupsAndHotDishes',
@@ -131,7 +137,7 @@ function FoodAttributeSwitcher() {
   );
 }
 
-export function FigmaDesktopShopPage() {
+export function FigmaDesktopMenuPage({ titleKey, subtitleKey, activeCategoryIndex }: DesktopMenuPageProps) {
   const { t } = useTranslation();
 
   return (
@@ -153,7 +159,7 @@ export function FigmaDesktopShopPage() {
             <p className="pb-[12px] text-[14px] font-medium uppercase tracking-[0.2px] text-[#717182]">{t('common.navigation.categories')}</p>
             <div className="min-h-0 flex-1 space-y-1 overflow-y-auto pr-1 scrollbar-hide">
               {categories.map((categoryKey, index) => {
-                const isActive = index === 0;
+                const isActive = index === activeCategoryIndex;
                 const iconUrl = categoryIconUrls[index];
                 return (
                   <button
@@ -177,9 +183,9 @@ export function FigmaDesktopShopPage() {
         <section className="flex-1">
           <div className="mb-[42px] mt-10 flex items-start justify-between">
             <div className="pt-1">
-              <h1 className="text-[60px] leading-[51px] text-[#f66913]">{t('home.figma.desktop.shop.menuTitle')}</h1>
+              <h1 className="text-[60px] leading-[51px] text-[#f66913]">{t(titleKey)}</h1>
               <p className="mt-2.5 text-base tracking-[-0.31px] text-[#717182]">
-                {t('home.figma.desktop.shop.menuSubtitle')}
+                {t(subtitleKey)}
               </p>
             </div>
             <div className="flex items-center gap-2 pt-[37px] text-sm text-[#717182]">
@@ -214,5 +220,15 @@ export function FigmaDesktopShopPage() {
         </section>
       </div>
     </div>
+  );
+}
+
+export function FigmaDesktopShopPage() {
+  return (
+    <FigmaDesktopMenuPage
+      titleKey="home.figma.desktop.shop.menuTitle"
+      subtitleKey="home.figma.desktop.shop.menuSubtitle"
+      activeCategoryIndex={0}
+    />
   );
 }
