@@ -14,17 +14,21 @@ const assets = {
   switcherArrow: 'https://www.figma.com/api/mcp/asset/7eb0464d-351a-4497-9966-932e83d0dc1c',
 };
 
-export function UniversalHeader() {
+interface UniversalHeaderProps {
+  spacerBackgroundClassName?: string;
+}
+
+export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: UniversalHeaderProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
   return (
     <>
-      <div aria-hidden="true" className="h-[104px]" />
+      <div aria-hidden="true" className={`h-[104px] ${spacerBackgroundClassName}`} />
       <header className="fixed left-0 right-0 top-6 z-50 mx-auto flex h-20 w-full max-w-[1450px] items-center rounded-[120px] bg-black px-4 md:px-6 lg:px-7">
         <img src={assets.logo} alt="Degusto" className="h-12 w-[134px] shrink-0 object-contain" />
         <nav className="ml-8 mr-auto hidden items-center gap-[30px] whitespace-nowrap px-4 text-[18px] font-semibold leading-[30px] text-white lg:flex">
           <Link href="/" className="shrink-0">Գլխավոր</Link>
-          <Link href="/products" className="shrink-0">Խոհանոց</Link>
+          <Link href="/shop" className="shrink-0">Խոհանոց</Link>
           <Link href="/products" className="shrink-0">Կոմբոներ</Link>
           <Link href="/about" className="shrink-0">Մեր մասին</Link>
         </nav>

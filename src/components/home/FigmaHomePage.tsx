@@ -182,7 +182,7 @@ export function FigmaHomePage() {
           />
         </svg>
 
-        <UniversalHeader />
+        <UniversalHeader spacerBackgroundClassName="bg-[#F66812]" />
 
         <div className="relative z-10 mx-auto mt-14 w-full max-w-[1450px] px-4 lg:mt-16 lg:px-6">
           <div className="relative h-[284px] w-[236px] sm:ml-[45px]">
