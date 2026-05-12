@@ -13,7 +13,7 @@ import { logger } from "@/lib/utils/logger";
 
 function LoginPageContent() {
   const { t } = useTranslation();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -33,8 +33,8 @@ function LoginPageContent() {
     logger.debug('🔐 [LOGIN PAGE] Form submitted');
 
     // Validation
-    if (!email.trim()) {
-      setError(t('login.errors.emailRequired'));
+    if (!identifier.trim()) {
+      setError(t('login.errors.identifierRequired'));
       setIsSubmitting(false);
       return;
     }
@@ -47,7 +47,7 @@ function LoginPageContent() {
 
     try {
       logger.debug('📤 [LOGIN PAGE] Calling login function...');
-      const loggedInUser = await login(email.trim(), password);
+      const loggedInUser = await login(identifier.trim(), password);
       const isUserAdmin =
         Array.isArray(loggedInUser.roles) && loggedInUser.roles.includes('admin');
       const destination = isUserAdmin ? '/supersudo' : redirectTo;
@@ -82,16 +82,16 @@ function LoginPageContent() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              {t('login.form.email')}
+            <label htmlFor="identifier" className="block text-sm font-medium text-gray-700 mb-2">
+              {t('login.form.emailOrPhone')}
             </label>
             <Input
-              id="email"
-              type="email"
-              placeholder={t('login.form.emailPlaceholder')}
+              id="identifier"
+              type="text"
+              placeholder={t('login.form.emailOrPhonePlaceholder')}
               className="w-full"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
               disabled={isSubmitting || isLoading}
               required
             />

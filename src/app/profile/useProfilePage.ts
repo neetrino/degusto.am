@@ -5,6 +5,7 @@ import { usePassword } from './hooks/usePassword';
 import { useDeleteAccount } from './hooks/useDeleteAccount';
 import { useDashboard } from './hooks/useDashboard';
 import { useOrders } from './hooks/useOrders';
+import { useCoupons } from './hooks/useCoupons';
 import { useProfileTabs } from './hooks/useProfileTabs';
 import { useCurrency } from './hooks/useCurrency';
 import { useTranslation } from '../../lib/i18n-client';
@@ -89,6 +90,13 @@ export function useProfilePage() {
     onSuccess: setSuccess,
   });
 
+  const coupons = useCoupons({
+    isLoggedIn,
+    authLoading,
+    activeTab,
+    onError: setError,
+  });
+
   // Currency hook
   const { currency } = useCurrency();
 
@@ -154,6 +162,9 @@ export function useProfilePage() {
     ordersPage: orders.ordersPage,
     setOrdersPage: orders.setOrdersPage,
     ordersMeta: orders.ordersMeta,
+    couponsLoading: coupons.couponsLoading,
+    availableCoupons: coupons.availableCoupons,
+    couponHistory: coupons.couponHistory,
     
     // Order details
     selectedOrder: orders.selectedOrder,

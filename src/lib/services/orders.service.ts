@@ -5,6 +5,7 @@ import type { CheckoutData } from "../types/checkout";
 import { logger } from "../utils/logger";
 import { adminDeliveryService } from "./admin/admin-delivery.service";
 import { extractMediaUrl } from "../utils/extractMediaUrl";
+import { cartService } from "./cart.service";
 import {
   formatCustomizationsForVariantTitle,
   normalizeProductCustomizations,
@@ -790,6 +791,97 @@ class OrdersService {
       trackingNumber: order.trackingNumber || undefined,
       createdAt: order.createdAt.toISOString(),
       updatedAt: order.updatedAt.toISOString(),
+    };
+  }
+
+  /**
+   * Reorder by order number (adds available items to user's cart).
+   */
+  async reorderByNumber(orderNumber: string, userId: string) {
+    const order = await db.order.findFirst({
+      where: {
+        number: orderNumber,
+        userId,
+      },
+      include: {
+        items: {
+          include: {
+            variant: {
+              select: {
+                id: true,
+                productId: true,
+                published: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      throw {
+        status: 404,
+        type: "https://api.shop.am/problems/not-found",
+        title: "Order not found",
+        detail: `Order with number '${orderNumber}' not found`,
+      };
+    }
+
+    if (order.items.length === 0) {
+      throw {
+        status: 400,
+        type: "https://api.shop.am/problems/validation-error",
+        title: "Order has no items",
+        detail: "Cannot reorder an empty order",
+      };
+    }
+
+    let addedCount = 0;
+    let skippedCount = 0;
+
+    for (const item of order.items) {
+      const variant = item.variant;
+      if (!variant || !variant.published || !item.variantId || !variant.productId) {
+        skippedCount += 1;
+        continue;
+      }
+
+      try {
+        await cartService.addItem(
+          userId,
+          {
+            variantId: item.variantId,
+            productId: variant.productId,
+            quantity: Math.max(1, item.quantity),
+            customizations: normalizeProductCustomizations(item.customizations),
+          },
+          "en"
+        );
+        addedCount += 1;
+      } catch (error: unknown) {
+        logger.warn("Reorder item skipped", {
+          orderNumber,
+          variantId: item.variantId,
+          error,
+        });
+        skippedCount += 1;
+      }
+    }
+
+    if (addedCount === 0) {
+      throw {
+        status: 422,
+        type: "https://api.shop.am/problems/validation-error",
+        title: "Reorder failed",
+        detail: "No items from this order are currently available",
+      };
+    }
+
+    return {
+      orderNumber,
+      addedCount,
+      skippedCount,
+      totalItems: order.items.length,
     };
   }
 }

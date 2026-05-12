@@ -2,8 +2,8 @@
   "title": "Welcome Back",
   "subtitle": "Sign in to your account to continue",
   "form": {
-    "email": "Email",
-    "emailPlaceholder": "your@email.com",
+    "emailOrPhone": "Email or Phone",
+    "emailOrPhonePlaceholder": "your@email.com or +374xxxxxxxx",
     "password": "Password",
     "passwordPlaceholder": "••••••••",
     "rememberMe": "Remember me",
@@ -14,9 +14,9 @@
     "signUp": "Sign Up"
   },
   "errors": {
-    "emailRequired": "Please enter your email",
+    "identifierRequired": "Please enter your email or phone number",
     "passwordRequired": "Please enter your password",
-    "invalidCredentials": "Invalid email or password.",
+    "invalidCredentials": "Invalid email/phone or password.",
     "accountBlocked": "Your account has been blocked.",
     "loginFailed": "Login failed. Please try again."
   }

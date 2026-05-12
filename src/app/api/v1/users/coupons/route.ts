@@ -4,10 +4,7 @@ import { usersService } from "@/lib/services/users.service";
 import { toApiError } from "@/lib/types/errors";
 import { logger } from "@/lib/utils/logger";
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ addressId: string }> }
-) {
+export async function GET(req: NextRequest) {
   try {
     const user = await authenticateToken(req);
     if (!user) {
@@ -23,13 +20,11 @@ export async function PATCH(
       );
     }
 
-    const { addressId } = await params;
-    const result = await usersService.setDefaultAddress(user.id, addressId);
+    const result = await usersService.getCoupons(user.id);
     return NextResponse.json(result);
   } catch (error: unknown) {
-    logger.error("Users set default address error", { error });
+    logger.error("Users coupons list error", { error });
     const apiError = toApiError(error, req.url);
     return NextResponse.json(apiError, { status: apiError.status || 500 });
   }
 }
-

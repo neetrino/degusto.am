@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateToken } from "@/lib/middleware/auth";
-import { usersService } from "@/lib/services/users.service";
+import { ordersService } from "@/lib/services/orders.service";
 import { toApiError } from "@/lib/types/errors";
 import { logger } from "@/lib/utils/logger";
 
-export async function PATCH(
+export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ addressId: string }> }
+  { params }: { params: Promise<{ number: string }> }
 ) {
   try {
     const user = await authenticateToken(req);
@@ -23,13 +23,12 @@ export async function PATCH(
       );
     }
 
-    const { addressId } = await params;
-    const result = await usersService.setDefaultAddress(user.id, addressId);
-    return NextResponse.json(result);
+    const { number } = await params;
+    const result = await ordersService.reorderByNumber(number, user.id);
+    return NextResponse.json(result, { status: 200 });
   } catch (error: unknown) {
-    logger.error("Users set default address error", { error });
+    logger.error("Reorder error", { error });
     const apiError = toApiError(error, req.url);
-    return NextResponse.json(apiError, { status: apiError.status || 500 });
+    return NextResponse.json(apiError, { status: apiError.status ?? 500 });
   }
 }
-

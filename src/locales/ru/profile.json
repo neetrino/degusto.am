@@ -8,6 +8,7 @@
     "addresses": "Адреса",
     "password": "Изменить пароль",
     "orders": "Заказы",
+    "coupons": "Купоны",
     "deleteAccount": "Удалить аккаунт"
   },
   "dashboard": {
@@ -145,6 +146,20 @@
     "next": "Следующая",
     "item": "товар",
     "items": "товаров"
+  },
+  "coupons": {
+    "title": "Купоны",
+    "loading": "Загрузка купонов...",
+    "availableTitle": "Доступные купоны",
+    "historyTitle": "История использования купонов",
+    "noAvailable": "Сейчас нет доступных купонов",
+    "noHistory": "История использования купонов пока отсутствует",
+    "active": "Активен",
+    "inactive": "Неактивен",
+    "discount": "скидка",
+    "order": "Заказ",
+    "discountUsed": "Примененная скидка",
+    "code": "Код"
   },
   "orderDetails": {
     "title": "Заказ #",

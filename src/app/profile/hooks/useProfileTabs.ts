@@ -14,7 +14,7 @@ export function useProfileTabs() {
     const tab = searchParams.get('tab');
     if (
       tab &&
-      ['dashboard', 'personal', 'addresses', 'password', 'orders', 'deleteAccount'].includes(tab)
+      ['dashboard', 'personal', 'addresses', 'password', 'orders', 'coupons', 'deleteAccount'].includes(tab)
     ) {
       setActiveTab(tab as ProfileTab);
     }

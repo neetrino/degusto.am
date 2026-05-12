@@ -8,6 +8,7 @@
     "addresses": "Addresses",
     "password": "Change Password",
     "orders": "Orders",
+    "coupons": "Coupons",
     "deleteAccount": "Delete account"
   },
   "dashboard": {
@@ -145,6 +146,20 @@
     "next": "Next",
     "item": "item",
     "items": "items"
+  },
+  "coupons": {
+    "title": "Coupons",
+    "loading": "Loading coupons...",
+    "availableTitle": "Available Coupons",
+    "historyTitle": "Coupon Usage History",
+    "noAvailable": "No available coupons right now",
+    "noHistory": "No coupon usage history yet",
+    "active": "Active",
+    "inactive": "Inactive",
+    "discount": "discount",
+    "order": "Order",
+    "discountUsed": "Discount used",
+    "code": "Code"
   },
   "orderDetails": {
     "title": "Order #",
