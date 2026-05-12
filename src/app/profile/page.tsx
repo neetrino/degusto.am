@@ -79,9 +79,19 @@ function ProfilePageContent() {
 
   if (authLoading || loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center">
-          <p className="text-gray-600">{t('profile.common.loadingProfile')}</p>
+      <div className="min-h-full bg-white">
+        <div className="mx-auto hidden max-w-7xl px-4 py-10 md:block md:px-6 lg:px-8">
+          <div className="grid grid-cols-12 items-start gap-6 lg:gap-8">
+            <aside className="col-span-12 lg:col-span-4 xl:col-span-3">
+              <div className="h-[560px] animate-pulse rounded-2xl border border-[#F66812]/20 bg-white" />
+            </aside>
+            <main className="col-span-12 lg:col-span-8 xl:col-span-9">
+              <div className="h-[560px] animate-pulse rounded-2xl border border-[#F66812]/20 bg-white" />
+            </main>
+          </div>
+        </div>
+        <div className="mx-auto w-full max-w-md px-4 pb-8 pt-6 md:hidden">
+          <div className="h-[420px] animate-pulse rounded-[2rem] bg-white ring-1 ring-[#F66812]/20" />
         </div>
       </div>
     );
@@ -299,9 +309,19 @@ function ProfilePageContent() {
 export default function ProfilePage() {
   return (
     <Suspense fallback={
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center">
-          <p className="text-gray-600">Loading profile...</p>
+      <div className="min-h-full bg-white">
+        <div className="mx-auto hidden max-w-7xl px-4 py-10 md:block md:px-6 lg:px-8">
+          <div className="grid grid-cols-12 items-start gap-6 lg:gap-8">
+            <aside className="col-span-12 lg:col-span-4 xl:col-span-3">
+              <div className="h-[560px] animate-pulse rounded-2xl border border-[#F66812]/20 bg-white" />
+            </aside>
+            <main className="col-span-12 lg:col-span-8 xl:col-span-9">
+              <div className="h-[560px] animate-pulse rounded-2xl border border-[#F66812]/20 bg-white" />
+            </main>
+          </div>
+        </div>
+        <div className="mx-auto w-full max-w-md px-4 pb-8 pt-6 md:hidden">
+          <div className="h-[420px] animate-pulse rounded-[2rem] bg-white ring-1 ring-[#F66812]/20" />
         </div>
       </div>
     }>
