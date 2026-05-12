@@ -6,6 +6,8 @@ import { useState } from 'react';
 const assets = {
   logo: 'https://www.figma.com/api/mcp/asset/b684f5ca-5543-4689-be84-ac53b6c5d14c',
   loginIcon: 'https://www.figma.com/api/mcp/asset/78b21874-ca2c-4a82-ad97-53f6d15d758a',
+  cartIcon: 'https://www.figma.com/api/mcp/asset/6af1086c-a9ef-4e40-a198-a1dc8ae19a1b',
+  cartCounterBubble: 'https://www.figma.com/api/mcp/asset/92cf106e-719d-418a-9062-442c2c704c3a',
   searchBadge: 'https://www.figma.com/api/mcp/asset/717cf64a-7dc5-44fd-8730-e63c2abe5677',
   searchIcon: 'https://www.figma.com/api/mcp/asset/79afe4c8-e7f4-44f9-8a3e-d76365facd5a',
   switcherIcon: 'https://www.figma.com/api/mcp/asset/7e774d0a-9c34-437c-b6a6-eb0f02674821',
@@ -44,16 +46,28 @@ export function UniversalHeader() {
           </span>
         </div>
         <div className="ml-3 flex items-center gap-[11px]">
-          <button
-            type="button"
-            className="relative hidden h-12 w-[159px] shrink-0 items-center justify-center overflow-hidden rounded-[70px] bg-[#f55c0a] px-[18px] text-base font-bold leading-[18px] text-white md:inline-flex"
-          >
-            <span className="inline-flex -translate-x-[6px] items-center justify-center gap-[2px]">
-              <img src={assets.switcherIcon} alt="" className="h-[19px] w-[19px] shrink-0 object-contain" />
-              <span className="shrink-0">EN / AMD</span>
-            </span>
-            <img src={assets.switcherArrow} alt="" className="absolute right-[18px] h-3 w-2 shrink-0 rotate-90 object-contain" />
-          </button>
+          <div className="hidden items-center gap-[7px] md:flex">
+            <button type="button" className="relative h-12 w-[117px] shrink-0">
+              <span className="absolute right-0 top-0 inline-flex h-12 w-[88px] items-center justify-center rounded-[70px] bg-[#f1f2f4] text-base font-bold text-black">
+                0Դ
+              </span>
+              <img src={assets.cartIcon} alt="" className="absolute bottom-[1px] left-2 h-[34px] w-[37px] object-contain" />
+              <span className="absolute left-[35px] top-[2px] inline-flex h-6 w-6 items-center justify-center">
+                <img src={assets.cartCounterBubble} alt="" className="absolute h-6 w-6 object-contain" />
+                <span className="relative text-sm font-bold leading-6 text-white">0</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              className="relative inline-flex h-12 w-[159px] shrink-0 items-center justify-center overflow-hidden rounded-[70px] bg-[#f55c0a] px-[18px] text-base font-bold leading-[18px] text-white"
+            >
+              <span className="inline-flex -translate-x-[6px] items-center justify-center gap-[2px]">
+                <img src={assets.switcherIcon} alt="" className="h-[19px] w-[19px] shrink-0 object-contain" />
+                <span className="shrink-0">EN / AMD</span>
+              </span>
+              <img src={assets.switcherArrow} alt="" className="absolute right-[18px] h-3 w-2 shrink-0 rotate-90 object-contain" />
+            </button>
+          </div>
           <button type="button" className="inline-flex h-12 w-12 items-center justify-center">
             <img src={assets.loginIcon} alt="Log in" className="h-12 w-12 object-contain" />
           </button>
