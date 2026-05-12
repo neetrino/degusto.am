@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { getStoredCurrency } from '../../lib/currency';
 import { useTranslation } from '../../lib/i18n-client';
 import { useAuth } from '../../lib/auth/AuthContext';
+import { BodyBackground } from '../../components/BodyBackground';
 import type { Cart } from './types';
 import { fetchCart } from './cart-fetcher';
 import { handleRemoveItem, handleUpdateQuantity } from './cart-handlers';
@@ -92,28 +93,41 @@ export default function CartPage() {
   }
 
   if (loading) {
-    return <LoadingState />;
+    return (
+      <>
+        <BodyBackground color="#ffffff" />
+        <LoadingState />
+      </>
+    );
   }
 
   if (!cart || cart.items.length === 0) {
-    return <EmptyCart t={t} />;
+    return (
+      <>
+        <BodyBackground color="#ffffff" />
+        <EmptyCart t={t} />
+      </>
+    );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">{t('common.cart.title')}</h1>
+    <>
+      <BodyBackground color="#ffffff" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">{t('common.cart.title')}</h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <CartTable
-          cart={cart}
-          currency={currency}
-          updatingItems={updatingItems}
-          onRemove={onRemoveItem}
-          onUpdateQuantity={onUpdateQuantity}
-          t={t}
-        />
-        <OrderSummary cart={cart} currency={currency} t={t} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <CartTable
+            cart={cart}
+            currency={currency}
+            updatingItems={updatingItems}
+            onRemove={onRemoveItem}
+            onUpdateQuantity={onUpdateQuantity}
+            t={t}
+          />
+          <OrderSummary cart={cart} currency={currency} t={t} />
+        </div>
       </div>
-    </div>
+    </>
   );
 }

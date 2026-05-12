@@ -260,12 +260,7 @@ function BrandsSection() {
         />
       </div>
 
-      {loading ? (
-        <div className="text-center py-4">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900 mx-auto mb-2"></div>
-          <p className="text-sm text-gray-600">{t('admin.brands.loading')}</p>
-        </div>
-      ) : filteredBrands.length === 0 ? (
+      {filteredBrands.length === 0 ? (
         <p className="text-sm text-gray-500 py-2">{t('admin.brands.noBrands')}</p>
       ) : (
         <div className="max-h-96 overflow-y-auto rounded-lg border border-gray-200">

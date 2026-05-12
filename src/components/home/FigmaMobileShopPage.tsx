@@ -52,7 +52,7 @@ export function FigmaMobileShopPage() {
   const { t } = useTranslation();
 
   const handleOpenProducts = (categorySlug: string) => {
-    router.push(`/products?category=${encodeURIComponent(categorySlug)}`);
+    router.push(`/shop?category=${encodeURIComponent(categorySlug)}`);
   };
 
   return (

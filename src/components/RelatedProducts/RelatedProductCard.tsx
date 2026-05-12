@@ -4,11 +4,15 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { MouseEvent } from 'react';
 import { formatPrice } from '../../lib/currency';
-import { CartIcon as CartPngIcon } from '../icons/CartIcon';
 import type { CurrencyCode } from '../../lib/currency';
 import type { LanguageCode } from '../../lib/language';
-import { t } from '../../lib/i18n';
 import { logger } from "@/lib/utils/logger";
+
+const FIGMA_CARD_IMAGE = '/api/r2/product/20260512-D3w_teddze.png';
+const FIGMA_HOT_ICON = '/api/r2/product/20260512-dWv7-ZfxP1.svg';
+const FIGMA_RIBBON_ICON = '/api/r2/product/20260512-lmzrYlGD39.svg';
+const FIGMA_STAR_ICON = '/api/r2/product/20260512-7jf6Wihrew.svg';
+const FIGMA_ADD_TO_CART_ICON = '/api/r2/product/20260512-g67zkm13ZH.svg';
 
 interface RelatedProduct {
   id: string;
@@ -58,19 +62,18 @@ export function RelatedProductCard({
   width,
 }: RelatedProductCardProps) {
   const hasImage = product.image && !imageError;
-  const categoryName = product.categories && product.categories.length > 0 
-    ? product.categories.map(c => c.title).join(', ')
-    : product.brand?.name || 'Product';
+  const hasDiscount = typeof product.discountPercent === 'number' && product.discountPercent > 0;
+  const discountText = hasDiscount ? `-${Math.round(product.discountPercent!)}%` : '';
 
   return (
     <div
-      className="flex-shrink-0 px-3 h-full"
+      className="flex-shrink-0 px-[15px] pb-[30px]"
       style={{ width }}
     >
-      <div className="group relative h-full flex flex-col">
+      <div className="group relative h-full flex flex-col items-center">
         <Link
           href={`/products/${product.slug}`}
-          className="block cursor-pointer flex-1 flex flex-col"
+          className="block cursor-pointer flex-1 flex flex-col w-[236px]"
           onClick={(e) => {
             // Prevent navigation only if we actually dragged (moved more than threshold)
             if (hasMoved) {
@@ -81,62 +84,57 @@ export function RelatedProductCard({
             logger.debug('[RelatedProducts] Navigating to product:', product.slug);
           }}
         >
-          <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col h-full">
-            {/* Product Image */}
-            <div className="relative aspect-square bg-gray-100 overflow-hidden flex-shrink-0">
-              {hasImage ? (
-                <Image
-                  src={product.image!}
-                  alt={product.title}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                  unoptimized
-                  onError={() => onImageError(product.id)}
-                />
-              ) : (
-                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                  <span className="text-gray-400 text-sm">{t(language, 'common.messages.noImage')}</span>
-                </div>
-              )}
+          <div className="relative h-[284px] w-[236px] rounded-[20px] border-[1.5px] border-[#dedede] bg-white">
+            <div className="absolute left-1/2 top-1 h-[147px] w-[227px] -translate-x-1/2 overflow-hidden rounded-[18px] bg-gray-100">
+              <Image
+                src={hasImage ? product.image! : FIGMA_CARD_IMAGE}
+                alt={product.title}
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                sizes="227px"
+                unoptimized
+                onError={() => onImageError(product.id)}
+              />
             </div>
 
-            {/* Product Info */}
-            <div className="p-4 flex flex-col flex-1">
-              {/* Title */}
-              <h3 className="text-sm font-semibold text-gray-900 mb-1 line-clamp-2 group-hover:text-gray-600 transition-colors">
-                {product.title}
+            <div className="absolute left-4 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-[#ff2b2e] p-1">
+              <img src={FIGMA_HOT_ICON} alt="" className="h-[19px] w-[19px] -rotate-[13deg] object-contain" />
+            </div>
+            <div className="absolute left-4 top-[58px] flex h-8 w-8 items-center justify-center overflow-hidden rounded-full">
+              <img src={FIGMA_RIBBON_ICON} alt="" className="h-8 w-8 scale-110 object-cover" />
+            </div>
+
+            <div className="absolute left-[14px] top-[170px] flex items-center gap-[6px]">
+              <img src={FIGMA_STAR_ICON} alt="" className="h-5 w-5 object-contain" />
+              <p className="text-base font-medium leading-[1.35] text-[rgba(60,47,47,0.62)]">4.7</p>
+            </div>
+            <div className="absolute left-[14px] top-[194px] w-[130px]">
+              <h3 className="text-base font-bold leading-[1.05] text-[#3c2f2f]">
+                <span className="block max-h-[34px] overflow-hidden break-words">{product.title}</span>
               </h3>
+            </div>
 
-              {/* Category */}
-              <p className="text-xs text-gray-500 mb-3">
-                {categoryName}
+            {hasDiscount ? (
+              <span className="absolute right-px top-[170px] inline-flex h-[30px] items-center rounded-[60px] bg-[#ff7f20] px-[17px] text-sm font-bold leading-none text-black">
+                {discountText}
+              </span>
+            ) : null}
+
+            <div className="absolute right-[14px] top-[228px] flex max-w-[112px] flex-col items-end text-right">
+              <p className="w-full whitespace-nowrap text-[20px] font-black leading-none tabular-nums text-[#3c2f2f]">
+                {formatPrice(product.price, currency)}
               </p>
-
-              {/* Price */}
-              <div className="flex flex-col gap-1 mt-auto">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg font-bold text-gray-900">
-                    {formatPrice(product.price, currency)}
-                  </span>
-                  {product.discountPercent && product.discountPercent > 0 && (
-                    <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
-                      -{product.discountPercent}%
-                    </span>
+              {(product.originalPrice && product.originalPrice > product.price) || 
+              (product.compareAtPrice && product.compareAtPrice > product.price) ? (
+                <p className="mt-2 w-full translate-x-[8px] whitespace-nowrap text-sm font-light leading-none tabular-nums text-[#3c2f2f] line-through">
+                  {formatPrice(
+                    (product.originalPrice && product.originalPrice > product.price) 
+                      ? product.originalPrice 
+                      : (product.compareAtPrice || 0),
+                    currency
                   )}
-                </div>
-                {(product.originalPrice && product.originalPrice > product.price) || 
-                 (product.compareAtPrice && product.compareAtPrice > product.price) ? (
-                  <span className="text-sm text-gray-500 line-through decoration-gray-400">
-                    {formatPrice(
-                      (product.originalPrice && product.originalPrice > product.price) 
-                        ? product.originalPrice 
-                        : (product.compareAtPrice || 0),
-                      currency
-                    )}
-                  </span>
-                ) : null}
-              </div>
+                </p>
+              ) : null}
             </div>
           </div>
         </Link>
@@ -145,7 +143,7 @@ export function RelatedProductCard({
         <button
           onClick={(e) => onAddToCart(e, product)}
           disabled={!product.inStock || isAddingToCart}
-          className="absolute bottom-3 right-3 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 bg-white/90 backdrop-blur-sm shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed z-20 group/cart"
+          className="absolute -bottom-[18px] left-1/2 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed z-20"
           title={product.inStock ? 'Add to cart' : 'Out of stock'}
           aria-label={product.inStock ? 'Add to cart' : 'Out of stock'}
         >
@@ -155,9 +153,7 @@ export function RelatedProductCard({
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
           ) : (
-            <div className={`transition-colors duration-200 ${product.inStock ? 'text-gray-600 group-hover/cart:text-green-600' : 'text-gray-400'}`}>
-              <CartPngIcon size={24} />
-            </div>
+            <img src={FIGMA_ADD_TO_CART_ICON} alt="" className="h-[52px] w-[51px] object-contain" />
           )}
         </button>
       </div>

@@ -1,6 +1,5 @@
 import React, { Suspense } from 'react';
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import './globals.css';
 import { ClientProviders } from '../components/ClientProviders';
 import { ConditionalHeader } from '../components/ConditionalHeader';
@@ -8,8 +7,6 @@ import { ConditionalFooter } from '../components/ConditionalFooter';
 import { cookies } from 'next/headers';
 import { resolveStorefrontLocaleFromCookie } from '@/lib/i18n/locale';
 import { getSiteMetadataCopy } from '@/lib/i18n/metadata';
-
-const inter = Inter({ subsets: ['latin'] });
 
 export async function generateMetadata(): Promise<Metadata> {
   const cookieStore = await cookies();
@@ -33,7 +30,7 @@ export default function RootLayout({
         <link rel="preload" as="image" href="/api/r2/hero/20260512-tOKhBzyB6u.png" />
       </head>
       <body
-        className={`${inter.className} text-gray-900 antialiased min-h-full`}
+        className="font-sans text-gray-900 antialiased min-h-full"
         style={{ backgroundColor: '#f56814' }}
       >
         <Suspense fallback={null}>

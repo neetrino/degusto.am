@@ -7,8 +7,27 @@ import {
   normalizeProductCustomizations,
   type ProductCustomizations,
 } from "../cart/customizations";
+import { ensureCartItemCustomizationsColumn } from "../utils/db-ensure";
 
 class CartService {
+  private isCartCustomizationsMissingError(error: unknown): boolean {
+    const errorObj = error as { code?: string; message?: string };
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return (
+      errorObj?.code === "P2022" ||
+      errorMessage.includes("cart_items.customizations") ||
+      (errorMessage.includes("column") && errorMessage.includes("customizations"))
+    );
+  }
+
+  private async ensureCartCustomizationsColumnIfMissing(error: unknown): Promise<boolean> {
+    if (!this.isCartCustomizationsMissingError(error)) {
+      return false;
+    }
+    logger.warn("cart_items.customizations column missing; attempting runtime creation");
+    return ensureCartItemCustomizationsColumn();
+  }
+
   /**
    * Get or create user's cart
    */
@@ -32,41 +51,10 @@ class CartService {
     
     const brandDiscountsSetting = discountSettings.find((s: { key: string; value: unknown }) => s.key === "brandDiscounts");
     const brandDiscounts = brandDiscountsSetting ? (brandDiscountsSetting.value as Record<string, number>) || {} : {};
-    let cart = await db.cart.findFirst({
-      where: {
-        userId,
-      },
-      include: {
-        items: {
-          include: {
-            variant: {
-              include: {
-                product: {
-                  include: {
-                    translations: true,
-                  },
-                },
-              },
-            },
-            product: {
-              include: {
-                translations: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (!cart) {
-      cart = await db.cart.create({
-        data: {
+    const findCart = async () =>
+      db.cart.findFirst({
+        where: {
           userId,
-          locale,
-          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-          items: {
-            create: [],
-          },
         },
         include: {
           items: {
@@ -89,6 +77,60 @@ class CartService {
           },
         },
       });
+
+    let cart: Awaited<ReturnType<typeof findCart>>;
+    try {
+      cart = await findCart();
+    } catch (error: unknown) {
+      const recovered = await this.ensureCartCustomizationsColumnIfMissing(error);
+      if (!recovered) {
+        throw error;
+      }
+      cart = await findCart();
+    }
+
+    if (!cart) {
+      const createCart = async () =>
+        db.cart.create({
+          data: {
+            userId,
+            locale,
+            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+            items: {
+              create: [],
+            },
+          },
+          include: {
+            items: {
+              include: {
+                variant: {
+                  include: {
+                    product: {
+                      include: {
+                        translations: true,
+                      },
+                    },
+                  },
+                },
+                product: {
+                  include: {
+                    translations: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+
+      try {
+        cart = await createCart();
+      } catch (error: unknown) {
+        const recovered = await this.ensureCartCustomizationsColumnIfMissing(error);
+        if (!recovered) {
+          throw error;
+        }
+        cart = await createCart();
+      }
     }
 
     // Format items using already-loaded cart data (no N+1: no extra DB calls per item)
@@ -194,28 +236,52 @@ class CartService {
       };
     }
 
-    const [cart, variant] = await Promise.all([
-      db.cart.findFirst({
-        where: { userId },
-        include: { items: true },
-      }),
-      db.productVariant.findUnique({
-        where: { id: variantId },
-        select: { id: true, published: true, productId: true, stock: true, price: true },
-      }),
-    ]);
+    const findCartAndVariant = async () =>
+      Promise.all([
+        db.cart.findFirst({
+          where: { userId },
+          include: { items: true },
+        }),
+        db.productVariant.findUnique({
+          where: { id: variantId },
+          select: { id: true, published: true, productId: true, stock: true, price: true },
+        }),
+      ]);
+
+    type CartAndVariantTuple = Awaited<ReturnType<typeof findCartAndVariant>>;
+    let cart: CartAndVariantTuple[0];
+    let variant: CartAndVariantTuple[1];
+    try {
+      [cart, variant] = await findCartAndVariant();
+    } catch (error: unknown) {
+      const recovered = await this.ensureCartCustomizationsColumnIfMissing(error);
+      if (!recovered) {
+        throw error;
+      }
+      [cart, variant] = await findCartAndVariant();
+    }
 
     let resolvedCart = cart;
     if (!resolvedCart) {
-      resolvedCart = await db.cart.create({
-        data: {
-          userId,
-          locale,
-          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-          items: { create: [] },
-        },
-        include: { items: true },
-      });
+      const createCart = async () =>
+        db.cart.create({
+          data: {
+            userId,
+            locale,
+            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            items: { create: [] },
+          },
+          include: { items: true },
+        });
+      try {
+        resolvedCart = await createCart();
+      } catch (error: unknown) {
+        const recovered = await this.ensureCartCustomizationsColumnIfMissing(error);
+        if (!recovered) {
+          throw error;
+        }
+        resolvedCart = await createCart();
+      }
     }
 
     if (!variant || !variant.published || variant.productId !== productId) {
@@ -263,12 +329,22 @@ class CartService {
         newQuantity: totalQuantity,
         customizations: normalizedCustomizations,
       });
-      item = await db.cartItem.update({
-        where: { id: existingItem.id },
-        data: {
-          quantity: totalQuantity,
-        },
-      });
+      const updateItem = async () =>
+        db.cartItem.update({
+          where: { id: existingItem.id },
+          data: {
+            quantity: totalQuantity,
+          },
+        });
+      try {
+        item = await updateItem();
+      } catch (error: unknown) {
+        const recovered = await this.ensureCartCustomizationsColumnIfMissing(error);
+        if (!recovered) {
+          throw error;
+        }
+        item = await updateItem();
+      }
       // Summary from current state: other items + this updated item (no extra DB query)
       const otherItems = resolvedCart.items.filter((i: { id: string }) => i.id !== existingItem.id);
       const itemsForSum = [
@@ -293,16 +369,26 @@ class CartService {
         quantity,
         customizations: normalizedCustomizations,
       });
-      item = await db.cartItem.create({
-        data: {
-          cartId: resolvedCart.id,
-          variantId,
-          productId,
-          quantity,
-          customizations: normalizedCustomizations as Prisma.InputJsonValue | undefined,
-          priceSnapshot: variant.price,
-        },
-      });
+      const createItem = async () =>
+        db.cartItem.create({
+          data: {
+            cartId: resolvedCart.id,
+            variantId,
+            productId,
+            quantity,
+            customizations: normalizedCustomizations as Prisma.InputJsonValue | undefined,
+            priceSnapshot: variant.price,
+          },
+        });
+      try {
+        item = await createItem();
+      } catch (error: unknown) {
+        const recovered = await this.ensureCartCustomizationsColumnIfMissing(error);
+        if (!recovered) {
+          throw error;
+        }
+        item = await createItem();
+      }
       const itemsForSum = [
         ...resolvedCart.items.map((i: { quantity: number; priceSnapshot: unknown }) => ({ q: i.quantity, p: Number(i.priceSnapshot) })),
         { q: quantity, p: Number(variant.price) },

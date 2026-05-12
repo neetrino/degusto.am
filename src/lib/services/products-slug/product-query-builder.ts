@@ -74,14 +74,16 @@ const getProductAttributesInclude = () => ({
 });
 
 /**
- * Base where clause for product queries (published, locale slug match).
+ * Base where clause for product queries.
+ * Slug lookup is locale-agnostic so links remain valid when a product
+ * has translation in one locale only (e.g. freshly seeded data).
  */
 export function getBaseWhere(slug: string, lang: string) {
+  void lang;
   return {
     translations: {
       some: {
         slug,
-        locale: lang,
       },
     },
     published: true,

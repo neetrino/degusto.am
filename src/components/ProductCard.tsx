@@ -90,6 +90,10 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
     addToCart({ origin, imageUrl: product.image });
   };
 
+  const handleProductClick = () => {
+    router.push(`/products/${product.slug}`);
+  };
+
   // List view layout
   if (viewMode === 'list') {
     return (
@@ -104,6 +108,7 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
         onWishlistToggle={handleWishlistToggle}
         onCompareToggle={handleCompareToggle}
         onAddToCart={handleAddToCart}
+        onProductClick={handleProductClick}
       />
     );
   }
@@ -122,6 +127,7 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
       onWishlistToggle={handleWishlistToggle}
       onCompareToggle={handleCompareToggle}
       onAddToCart={handleAddToCart}
+      onProductClick={handleProductClick}
     />
   );
 }

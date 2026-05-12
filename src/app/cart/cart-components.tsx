@@ -261,7 +261,7 @@ export function OrderSummary({ cart, currency, t }: OrderSummaryProps) {
           className="w-full mt-3"
           size="md"
           onClick={() => {
-            window.location.href = '/products';
+            window.location.href = '/shop';
           }}
         >
           {t('common.buttons.browseProducts')}

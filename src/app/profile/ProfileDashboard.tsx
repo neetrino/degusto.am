@@ -132,7 +132,7 @@ export function ProfileDashboard({
         {dashboardData.recentOrders.length === 0 ? (
           <div className="flex flex-col items-center gap-5 py-12 sm:py-16">
             <p className="max-w-sm text-center text-sm text-gray-600">{t('profile.dashboard.noOrders')}</p>
-            <Link href="/products">
+            <Link href="/shop">
               <Button variant="primary" className="!bg-[#F66812] hover:!bg-[#e45f10] focus:!ring-[#F66812]">
                 {t('profile.dashboard.startShopping')}
               </Button>
@@ -218,7 +218,7 @@ export function ProfileDashboard({
               {t('profile.dashboard.manageAddresses')}
             </span>
           </Button>
-          <Link href="/products" className="block w-full lg:min-w-[200px] lg:flex-1">
+          <Link href="/shop" className="block w-full lg:min-w-[200px] lg:flex-1">
             <Button
               variant="outline"
               className="flex min-h-12 w-full items-center justify-between rounded-xl border-[#F66812]/40 text-[#F66812] hover:border-[#F66812] hover:bg-[#F66812]/10 sm:justify-start"

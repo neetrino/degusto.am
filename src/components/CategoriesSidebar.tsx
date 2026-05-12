@@ -59,7 +59,7 @@ function CategoriesSidebarContent() {
     // Reset to page 1 when changing category
     params.delete('page');
     
-    router.push(`/products?${params.toString()}`);
+    router.push(`/shop?${params.toString()}`);
   };
 
   // Flatten categories tree to show all categories

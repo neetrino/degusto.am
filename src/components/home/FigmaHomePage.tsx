@@ -1,12 +1,15 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import type { KeyboardEvent, MouseEvent } from 'react';
 import { FigmaHomePageMobile } from './FigmaHomePageMobile';
 import { UniversalHeader } from '../UniversalHeader';
 import { Footer } from '../Footer';
 import { useTranslation } from '../../lib/i18n-client';
 import { useCurrency } from '../hooks/useCurrency';
 import { formatPrice } from '../../lib/currency';
+import { useAddToCart } from '../hooks/useAddToCart';
 
 const assets = {
   heroBg: '/api/r2/hero/20260512-tOKhBzyB6u.png',
@@ -25,12 +28,15 @@ const assets = {
 
 export type HomeFeaturedProduct = {
   id: string;
+  slug: string;
   title: string;
   subtitle: string;
   price: number | null;
   oldPrice: number | null;
   image: string | null;
   discountPercent: number | null;
+  inStock?: boolean;
+  defaultVariantId?: string | null;
 };
 
 export type HomeCategoryItem = {
@@ -43,6 +49,7 @@ export type HomeCategoryItem = {
 const fallbackFeaturedProducts: HomeFeaturedProduct[] = [
   {
     id: 'featured-fallback-1',
+    slug: 'products',
     title: 'Double Cheeseburger',
     subtitle: 'Բուրգեր',
     price: 1200,
@@ -62,6 +69,7 @@ const fallbackCategories: HomeCategoryItem[] = [
 function NewsCard({ item }: { item: HomeFeaturedProduct }) {
   const { t } = useTranslation();
   const currency = useCurrency();
+  const router = useRouter();
   const keepCurrencySymbolAttached = (value: string): string => value.replace(/\s+(\S+)$/u, '\u00A0$1');
   const hasDiscount = typeof item.discountPercent === 'number' && item.discountPercent > 0;
   const discountPercent = typeof item.discountPercent === 'number' ? Math.round(item.discountPercent) : null;
@@ -72,10 +80,46 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
   const formattedPrice = keepCurrencySymbolAttached(formatPrice(item.price || 0, currency));
   const formattedOldPrice = item.oldPrice ? keepCurrencySymbolAttached(formatPrice(item.oldPrice, currency)) : null;
   const mainPriceClassName = formattedPrice.length > 12 ? 'text-[18px]' : 'text-[20px]';
+  const productHref = `/products/${item.slug}`;
+  const { isAddingToCart, addToCart } = useAddToCart({
+    productId: item.id,
+    productSlug: item.slug,
+    inStock: item.inStock ?? true,
+    defaultVariantId: item.defaultVariantId ?? undefined,
+    price: item.price ?? undefined,
+  });
+  const openProduct = () => {
+    router.push(productHref);
+  };
+  const handleCardKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return;
+    }
+    event.preventDefault();
+    openProduct();
+  };
+
+  const handleAddToCart = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const button = event.currentTarget as HTMLElement;
+    const card = button.closest('[data-home-product-card]');
+    const origin =
+      (card?.querySelector('[data-product-fly-origin]') as HTMLElement | null) ?? button;
+    void addToCart({ origin, imageUrl: item.image });
+  };
 
   return (
-    <article className="relative h-[284px] w-[236px] shrink-0 rounded-[20px] border-[1.5px] border-[#dedede] bg-white">
-      <div className="absolute left-1/2 top-1 h-[147px] w-[227px] -translate-x-1/2">
+    <article
+      data-home-product-card
+      className="relative h-[284px] w-[236px] shrink-0 rounded-[20px] border-[1.5px] border-[#dedede] bg-white cursor-pointer transition-shadow hover:shadow-md"
+      onClick={openProduct}
+      onKeyDown={handleCardKeyDown}
+      role="link"
+      tabIndex={0}
+      aria-label={title}
+    >
+      <div data-product-fly-origin className="absolute left-1/2 top-1 h-[147px] w-[227px] -translate-x-1/2">
         <img src={imageSrc} alt={title} className="h-full w-full rounded-[18px] object-cover" />
       </div>
       <div className="absolute left-4 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-[#ff2b2e] p-1">
@@ -111,6 +155,8 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
       </div>
       <button
         type="button"
+        onClick={handleAddToCart}
+        disabled={isAddingToCart || (item.inStock === false)}
         className="absolute -bottom-[25px] left-1/2 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center"
       >
         <img src={assets.productCardAddToCart} alt={t('common.buttons.addToCart')} className="h-[52px] w-[51px] object-contain" />
@@ -138,6 +184,7 @@ export function FigmaHomePage({
 }) {
   const { t, lang } = useTranslation();
   const currency = useCurrency();
+  const router = useRouter();
   const homeFeaturedProducts = featuredProducts.length > 0 ? featuredProducts : fallbackFeaturedProducts;
   const homeCategories = categories.length > 0 ? categories : fallbackCategories;
   const heroProduct = homeFeaturedProducts[0];
@@ -146,6 +193,17 @@ export function FigmaHomePage({
       ? t('home.figma.mobile.product.title')
       : (heroProduct?.title || t('home.figma.mobile.product.title'));
   const heroProductSubtitle = heroProduct?.subtitle || t('home.figma.mobile.product.subtitle');
+  const heroProductHref = `/products/${heroProduct?.slug || 'products'}`;
+  const openHeroProduct = () => {
+    router.push(heroProductHref);
+  };
+  const handleHeroProductKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return;
+    }
+    event.preventDefault();
+    openHeroProduct();
+  };
 
   return (
     <>
@@ -210,7 +268,14 @@ export function FigmaHomePage({
         <UniversalHeader spacerBackgroundClassName="bg-[#F66812]" />
 
         <div className="relative z-10 mx-auto mt-14 w-full max-w-[1450px] px-4 lg:mt-16 lg:px-6">
-          <div className="relative h-[284px] w-[236px] sm:ml-[45px]">
+          <article
+            className="relative h-[284px] w-[236px] cursor-pointer sm:ml-[45px]"
+            onClick={openHeroProduct}
+            onKeyDown={handleHeroProductKeyDown}
+            role="link"
+            tabIndex={0}
+            aria-label={heroProductTitle}
+          >
             <div className="absolute inset-0 rounded-[20px] bg-white shadow-xl" />
             <div className="absolute left-1/2 top-[5px] h-[147px] w-[227px] -translate-x-1/2">
               <img src={heroProduct?.image || assets.productCardImage} alt={t('home.figma.mobile.dailyOfferImageAlt')} className="h-full w-full rounded-[18px] object-cover" />
@@ -241,6 +306,10 @@ export function FigmaHomePage({
             </span>
             <button
               type="button"
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+              }}
               className="absolute bottom-[-25px] left-1/2 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center"
             >
               <img src={assets.productCardAddToCart} alt="Add to cart" className="h-[52px] w-[51px] object-contain" />
@@ -257,7 +326,7 @@ export function FigmaHomePage({
                 </span>
               </div>
             </div>
-          </div>
+          </article>
         </div>
       </section>
 
@@ -268,7 +337,7 @@ export function FigmaHomePage({
               <span className="text-[#f66913]">{t('home.figma.desktop.specialOffersTitleAccent')}</span>
               {t('home.figma.desktop.specialOffersTitleMain')}
             </h2>
-            <Link href="/products" className="translate-x-[-115px] translate-y-[70px] inline-block rounded-full bg-[#ff7f20] px-6 py-4 text-lg font-bold text-white">
+            <Link href="/shop" className="translate-x-[-115px] translate-y-[70px] inline-block rounded-full bg-[#ff7f20] px-6 py-4 text-lg font-bold text-white">
               {t('home.figma.desktop.moreButton')} →
             </Link>
           </div>

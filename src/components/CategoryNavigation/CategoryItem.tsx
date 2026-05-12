@@ -46,7 +46,7 @@ export function CategoryItem({
 
   return (
     <Link
-      href={category.slug === 'all' ? '/products' : `/products?category=${category.slug}`}
+      href={category.slug === 'all' ? '/shop' : `/shop?category=${category.slug}`}
       onClick={(e) => {
         e.preventDefault();
         onCategoryClick(category.slug === 'all' ? null : category.slug);

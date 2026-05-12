@@ -28,7 +28,7 @@ export default function NotFound() {
             {t('common.notFound.goHome')}
           </Link>
           <Link
-            href="/products"
+            href="/shop"
             className="px-6 py-3 bg-white text-gray-900 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
           >
             {t('common.buttons.browseProducts')}

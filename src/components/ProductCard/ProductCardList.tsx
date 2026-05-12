@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import type { MouseEvent } from 'react';
+import type { KeyboardEvent, MouseEvent } from 'react';
 import { formatPrice } from '../../lib/currency';
 import { useTranslation } from '../../lib/i18n-client';
 import { CompareIcon } from '../icons/CompareIcon';
@@ -52,6 +52,7 @@ interface ProductCardListProps {
   onWishlistToggle: (e: MouseEvent) => void;
   onCompareToggle: (e: MouseEvent) => void;
   onAddToCart: (e: MouseEvent) => void;
+  onProductClick: () => void;
 }
 
 /**
@@ -68,11 +69,26 @@ export function ProductCardList({
   onWishlistToggle,
   onCompareToggle,
   onAddToCart,
+  onProductClick,
 }: ProductCardListProps) {
   const { t } = useTranslation();
+  const handleCardKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return;
+    }
+    event.preventDefault();
+    onProductClick();
+  };
 
   return (
-    <div data-product-card className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:bg-gray-50 transition-colors">
+    <div
+      data-product-card
+      className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:bg-gray-50 transition-colors cursor-pointer"
+      onClick={onProductClick}
+      onKeyDown={handleCardKeyDown}
+      role="link"
+      tabIndex={0}
+    >
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 px-4 sm:px-6 py-4">
         {/* Product Image */}
         <Link

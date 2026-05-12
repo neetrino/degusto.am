@@ -394,7 +394,7 @@ export default function WishlistPage() {
             <p className="text-gray-600 mb-6">
               {t('common.wishlist.emptyDescription')}
             </p>
-            <Link href="/products">
+            <Link href="/shop">
               <Button variant="primary" size="lg">
                 {t('common.buttons.browseProducts')}
               </Button>

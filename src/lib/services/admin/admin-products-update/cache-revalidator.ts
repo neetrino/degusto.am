@@ -19,7 +19,7 @@ export async function revalidateProductCache(
       revalidatePath(`/products/${productSlug}`);
     }
     revalidatePath('/');
-    revalidatePath('/products');
+    revalidatePath('/shop');
     // @ts-expect-error - revalidateTag type issue in Next.js
     revalidateTag('products');
     // @ts-expect-error - revalidateTag type issue in Next.js

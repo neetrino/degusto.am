@@ -4,6 +4,7 @@ import { db } from '@white-shop/db';
 import { Prisma } from '@prisma/client';
 import { cookies } from 'next/headers';
 import { resolveStorefrontLocaleFromCookie, type StorefrontLocale } from '@/lib/i18n/locale';
+import { logger } from '@/lib/utils/logger';
 
 type CategoryTreeItem = {
   id: string;
@@ -14,7 +15,37 @@ type CategoryTreeItem = {
 
 const HOME_FEATURED_PRODUCTS_LIMIT = 5;
 const HOME_CATEGORIES_LIMIT = 8;
+const HOME_DB_RETRY_ATTEMPTS = 2;
+const HOME_DB_RETRY_DELAY_MS = 150;
 export const revalidate = 1800;
+
+function isPrismaPoolTimeout(error: unknown): boolean {
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2024';
+}
+
+async function withPrismaPoolRetry<T>(operation: () => Promise<T>, fallback: T, operationName: string): Promise<T> {
+  for (let attempt = 0; attempt <= HOME_DB_RETRY_ATTEMPTS; attempt += 1) {
+    try {
+      return await operation();
+    } catch (error: unknown) {
+      if (!isPrismaPoolTimeout(error)) {
+        throw error;
+      }
+      const isLastAttempt = attempt === HOME_DB_RETRY_ATTEMPTS;
+      logger.warn(`[HOME] Prisma connection pool timeout in ${operationName}`, {
+        attempt: attempt + 1,
+        maxAttempts: HOME_DB_RETRY_ATTEMPTS + 1,
+      });
+      if (isLastAttempt) {
+        logger.error(`[HOME] Falling back after repeated pool timeouts in ${operationName}`, { error });
+        return fallback;
+      }
+      await new Promise((resolve) => setTimeout(resolve, HOME_DB_RETRY_DELAY_MS * (attempt + 1)));
+    }
+  }
+
+  return fallback;
+}
 
 function getHomeProductSelect(homeLang: StorefrontLocale) {
   return {
@@ -29,6 +60,7 @@ function getHomeProductSelect(homeLang: StorefrontLocale) {
       },
       select: {
         locale: true,
+        slug: true,
         title: true,
       },
     },
@@ -101,8 +133,9 @@ export default async function HomePage() {
   const homeLang = resolveStorefrontLocaleFromCookie(cookieStore.get('shop_language')?.value);
   const homeProductSelect = getHomeProductSelect(homeLang);
 
-  const [selectedRows, promoRows, categoriesTreeResult] = await Promise.all([
-    db.product.findMany({
+  const selectedRows = await withPrismaPoolRetry(
+    () =>
+      db.product.findMany({
       where: {
         published: true,
         deletedAt: null,
@@ -114,7 +147,13 @@ export default async function HomePage() {
       take: HOME_FEATURED_PRODUCTS_LIMIT,
       select: homeProductSelect,
     }),
-    db.product.findMany({
+    [],
+    'home featured products'
+  );
+
+  const promoRows = await withPrismaPoolRetry(
+    () =>
+      db.product.findMany({
       where: {
         published: true,
         deletedAt: null,
@@ -128,8 +167,15 @@ export default async function HomePage() {
       take: HOME_FEATURED_PRODUCTS_LIMIT * 2,
       select: homeProductSelect,
     }),
-    categoriesService.getTree(homeLang),
-  ]);
+    [],
+    'home promo products'
+  );
+
+  const categoriesTreeResult = await withPrismaPoolRetry(
+    () => categoriesService.getTree(homeLang),
+    { data: [] as CategoryTreeItem[] },
+    'home categories tree'
+  );
 
   const selectedProductIds = new Set(selectedRows.map((product) => product.id));
   const selectedPromoRows = promoRows.filter((product) => !selectedProductIds.has(product.id));
@@ -153,6 +199,7 @@ export default async function HomePage() {
 
     return {
       id: product.id,
+      slug: preferredTranslation?.slug || 'products',
       title: preferredTranslation?.title || 'Product',
       subtitle: preferredCategoryTranslation?.title || 'Կատեգորիա',
       price: toPositiveNumber(mainVariant?.price),
@@ -169,15 +216,20 @@ export default async function HomePage() {
   const categoryTotals =
     selectedCategoryIds.length === 0
       ? []
-      : await db.$queryRaw<Array<{ primaryCategoryId: string; total: unknown }>>(
-          Prisma.sql`
-            SELECT "primaryCategoryId", COUNT(*) AS total
-            FROM products
-            WHERE published = true
-              AND "deletedAt" IS NULL
-              AND "primaryCategoryId" IN (${Prisma.join(selectedCategoryIds)})
-            GROUP BY "primaryCategoryId"
-          `
+      : await withPrismaPoolRetry(
+          () =>
+            db.$queryRaw<Array<{ primaryCategoryId: string; total: unknown }>>(
+              Prisma.sql`
+                SELECT "primaryCategoryId", COUNT(*) AS total
+                FROM products
+                WHERE published = true
+                  AND "deletedAt" IS NULL
+                  AND "primaryCategoryId" IN (${Prisma.join(selectedCategoryIds)})
+                GROUP BY "primaryCategoryId"
+              `
+            ),
+          [],
+          'home category totals'
         );
 
   const categoryTotalMap = new Map(categoryTotals.map((item) => [item.primaryCategoryId, toCountNumber(item.total)]));

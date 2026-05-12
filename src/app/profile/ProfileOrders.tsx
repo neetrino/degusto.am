@@ -67,7 +67,7 @@ export function ProfileOrders({
         <h2 className={`${titleClass} mb-6 sm:mb-8`}>{t('profile.orders.title')}</h2>
         <div className="flex flex-col items-center gap-5 py-12 sm:py-16">
           <p className="max-w-sm text-center text-sm text-gray-600">{t('profile.orders.noOrders')}</p>
-          <Link href="/products">
+          <Link href="/shop">
             <Button variant="primary" className="!bg-[#F66812] hover:!bg-[#e45f10] focus:!ring-[#F66812]">
               {t('profile.dashboard.startShopping')}
             </Button>

@@ -12,6 +12,7 @@ import { ProductInfoAndActions } from './ProductInfoAndActions';
 import { ProductPageShell } from './ProductPageShell';
 import { useProductPage } from './useProductPage';
 import { playCartFlyAnimation } from '../../../lib/cart-fly-animation';
+import { BodyBackground } from '../../../components/BodyBackground';
 import {
   buildCustomizationLineKey,
   normalizeProductCustomizations,
@@ -144,102 +145,118 @@ export default function ProductPage({ params }: ProductPageProps) {
   };
 
   if (loading && !product) {
-    return <ProductPageShell />;
+    return (
+      <>
+        <BodyBackground color="#ffffff" />
+        <ProductPageShell />
+      </>
+    );
   }
 
   if (notFound && !product) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-16 text-center space-y-4">
-        <p className="text-lg text-neutral-600">{t(language, 'common.messages.noProductsFound')}</p>
-        <Link href="/products" className="inline-block text-blue-600 font-medium hover:underline">
-          {t(language, 'common.navigation.products')}
-        </Link>
-      </div>
+      <>
+        <BodyBackground color="#ffffff" />
+        <div className="max-w-7xl mx-auto px-4 py-16 text-center space-y-4">
+          <p className="text-lg text-neutral-600">{t(language, 'common.messages.noProductsFound')}</p>
+          <Link href="/shop" className="inline-block text-blue-600 font-medium hover:underline">
+            {t(language, 'common.navigation.products')}
+          </Link>
+        </div>
+      </>
     );
   }
 
   if (!product) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-16 text-center space-y-4">
-        <p className="text-lg text-neutral-600">{t(language, 'common.messages.invalidProduct')}</p>
-        <Link href="/products" className="inline-block text-blue-600 font-medium hover:underline">
-          {t(language, 'common.navigation.products')}
-        </Link>
-      </div>
+      <>
+        <BodyBackground color="#ffffff" />
+        <div className="max-w-7xl mx-auto px-4 py-16 text-center space-y-4">
+          <p className="text-lg text-neutral-600">{t(language, 'common.messages.invalidProduct')}</p>
+          <Link href="/shop" className="inline-block text-blue-600 font-medium hover:underline">
+            {t(language, 'common.navigation.products')}
+          </Link>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="grid grid-cols-1 lg:grid-cols-[55%_45%] gap-12 items-start">
-        <ProductImageGallery
-          images={images}
-          product={product}
-          discountPercent={discountPercent}
-          language={language}
-          currentImageIndex={currentImageIndex}
-          onImageIndexChange={setCurrentImageIndex}
-          thumbnailStartIndex={thumbnailStartIndex}
-          onThumbnailStartIndexChange={setThumbnailStartIndex}
-          mainImagePriority={currentImageIndex === 0}
-        />
+    <>
+      <BodyBackground color="#ffffff" />
+      <div className="bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid grid-cols-1 lg:grid-cols-[55%_45%] gap-12 items-start">
+            <ProductImageGallery
+              images={images}
+              product={product}
+              discountPercent={discountPercent}
+              language={language}
+              currentImageIndex={currentImageIndex}
+              onImageIndexChange={setCurrentImageIndex}
+              thumbnailStartIndex={thumbnailStartIndex}
+              onThumbnailStartIndexChange={setThumbnailStartIndex}
+              mainImagePriority={currentImageIndex === 0}
+            />
 
-        <ProductInfoAndActions
-          product={product}
-          price={price}
-          originalPrice={originalPrice}
-          compareAtPrice={compareAtPrice}
-          discountPercent={discountPercent}
-          currency={currency}
-          language={language}
-          averageRating={averageRating}
-          reviewsCount={reviews.length}
-          quantity={quantity}
-          maxQuantity={maxQuantity}
-          isOutOfStock={isOutOfStock}
-          isVariationRequired={isVariationRequired}
-          hasUnavailableAttributes={hasUnavailableAttributes}
-          unavailableAttributes={unavailableAttributes}
-          canAddToCart={canAddToCart}
-          isAddingToCart={isAddingToCart}
-          isInWishlist={isInWishlist}
-          isInCompare={isInCompare}
-          showMessage={showMessage}
-          isLoggedIn={isLoggedIn}
-          currentVariant={currentVariant}
-          attributeGroups={attributeGroups}
-          selectedColor={selectedColor}
-          selectedSize={selectedSize}
-          selectedAttributeValues={selectedAttributeValues}
-          colorGroups={colorGroups}
-          sizeGroups={sizeGroups}
-          onQuantityAdjust={adjustQuantity}
-          onAddToCart={handleAddToCart}
-          onAddToWishlist={handleAddToWishlist}
-          onCompareToggle={handleCompareToggle}
-          onScrollToReviews={scrollToReviews}
-          additions={additions}
-          exclusions={exclusions}
-          onAdditionsChange={setAdditions}
-          onExclusionsChange={setExclusions}
-          onColorSelect={handleColorSelect}
-          onSizeSelect={handleSizeSelect}
-          onAttributeValueSelect={handleAttributeValueSelect}
-          getOptionValue={getOptionValue}
-          getRequiredAttributesMessage={getRequiredAttributesMessage}
-        />
-      </div>
+            <ProductInfoAndActions
+              product={product}
+              price={price}
+              originalPrice={originalPrice}
+              compareAtPrice={compareAtPrice}
+              discountPercent={discountPercent}
+              currency={currency}
+              language={language}
+              averageRating={averageRating}
+              reviewsCount={reviews.length}
+              quantity={quantity}
+              maxQuantity={maxQuantity}
+              isOutOfStock={isOutOfStock}
+              isVariationRequired={isVariationRequired}
+              hasUnavailableAttributes={hasUnavailableAttributes}
+              unavailableAttributes={unavailableAttributes}
+              canAddToCart={canAddToCart}
+              isAddingToCart={isAddingToCart}
+              isInWishlist={isInWishlist}
+              isInCompare={isInCompare}
+              showMessage={showMessage}
+              isLoggedIn={isLoggedIn}
+              currentVariant={currentVariant}
+              attributeGroups={attributeGroups}
+              selectedColor={selectedColor}
+              selectedSize={selectedSize}
+              selectedAttributeValues={selectedAttributeValues}
+              colorGroups={colorGroups}
+              sizeGroups={sizeGroups}
+              onQuantityAdjust={adjustQuantity}
+              onAddToCart={handleAddToCart}
+              onAddToWishlist={handleAddToWishlist}
+              onCompareToggle={handleCompareToggle}
+              onScrollToReviews={scrollToReviews}
+              additions={additions}
+              exclusions={exclusions}
+              onAdditionsChange={setAdditions}
+              onExclusionsChange={setExclusions}
+              onColorSelect={handleColorSelect}
+              onSizeSelect={handleSizeSelect}
+              onAttributeValueSelect={handleAttributeValueSelect}
+              getOptionValue={getOptionValue}
+              getRequiredAttributesMessage={getRequiredAttributesMessage}
+            />
+          </div>
 
-      <div className="mt-24">
-        <RelatedProducts
-          productSlug={slug}
-          categorySlug={product.categories?.[0]?.slug}
-          currentProductId={product.id}
-        />
+          <div className="mt-24">
+            <RelatedProducts
+              productSlug={slug}
+              categorySlug={product.categories?.[0]?.slug}
+              currentProductId={product.id}
+            />
+          </div>
+          <div id="product-reviews" className="mt-16 scroll-mt-24">
+            <ProductReviews productSlug={slug} productId={product.id} />
+          </div>
+        </div>
       </div>
-      <div id="product-reviews" className="mt-16 scroll-mt-24">
-        <ProductReviews productSlug={slug} productId={product.id} />
-      </div>
-    </div>
+    </>
   );
 }

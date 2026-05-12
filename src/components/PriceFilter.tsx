@@ -206,7 +206,7 @@ export function PriceFilter({ currentMinPrice, currentMaxPrice, category }: Pric
         
         // Use a small delay to debounce rapid changes
         const timeoutId = setTimeout(() => {
-          router.push(`/products?${params.toString()}`);
+          router.push(`/shop?${params.toString()}`);
         }, 300);
         
         return () => clearTimeout(timeoutId);

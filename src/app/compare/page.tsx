@@ -330,7 +330,7 @@ export default function ComparePage() {
             <p className="text-sm text-gray-600 mb-4">
               {t('common.compare.emptyDescription')}
             </p>
-            <Link href="/products">
+            <Link href="/shop">
               <Button variant="primary" size="md">
                 {t('common.compare.browseProducts')}
               </Button>

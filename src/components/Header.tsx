@@ -27,7 +27,7 @@ import { CartIcon } from './icons/CartIcon';
 const primaryNavLinks = [
   { href: '/', translationKey: 'common.navigation.home' },
   { href: '/shop', translationKey: 'common.navigation.shop' },
-  { href: '/products', translationKey: 'common.navigation.combo' },
+  { href: '/shop', translationKey: 'common.navigation.combo' },
   { href: '/about', translationKey: 'common.navigation.about' },
 ];
 
@@ -48,7 +48,7 @@ function isHeaderNavActive(pathname: string | null, href: string): boolean {
 const HEADER_NAV_LINK_BASE =
   'px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium whitespace-nowrap';
 
-const HEADER_FAST_NAV_ROUTES = ['/', '/shop', '/products', '/about', '/wishlist', '/compare', '/cart'] as const;
+const HEADER_FAST_NAV_ROUTES = ['/', '/shop', '/about', '/wishlist', '/compare', '/cart'] as const;
 
 function headerTextNavClassName(active: boolean): string {
   return active
@@ -561,7 +561,7 @@ export function Header() {
     }
     clearSearch();
     const queryString = params.toString();
-    router.push(queryString ? `/products?${queryString}` : '/products');
+    router.push(queryString ? `/shop?${queryString}` : '/shop');
   };
 
   /**
@@ -783,10 +783,10 @@ export function Header() {
               {t('common.navigation.home')}
             </Link>
             <Link
-              href="/products"
-              {...getFastNavHandlers('/products')}
-              className={headerTextNavClassName(isHeaderNavActive(pathname, '/products'))}
-              aria-current={isHeaderNavActive(pathname, '/products') ? 'page' : undefined}
+              href="/shop"
+              {...getFastNavHandlers('/shop')}
+              className={headerTextNavClassName(isHeaderNavActive(pathname, '/shop'))}
+              aria-current={isHeaderNavActive(pathname, '/shop') ? 'page' : undefined}
             >
               {t('common.navigation.products')}
             </Link>

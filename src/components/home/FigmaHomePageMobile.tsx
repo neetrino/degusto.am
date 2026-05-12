@@ -89,7 +89,7 @@ function MobileSectionHeader({ title }: { title: string }) {
   return (
     <div className="flex items-center justify-between">
       <h2 className="text-base font-semibold leading-5 text-black">{title}</h2>
-      <Link href="/products" className="text-base font-bold leading-6 text-[#f66a13]">
+      <Link href="/shop" className="text-base font-bold leading-6 text-[#f66a13]">
         {t('common.buttons.viewMore')} {'>'}
       </Link>
     </div>

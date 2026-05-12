@@ -3,6 +3,9 @@
 import { useTranslation } from '../../lib/i18n-client';
 import { useCurrency } from '../hooks/useCurrency';
 import { formatPrice } from '../../lib/currency';
+import { useRouter } from 'next/navigation';
+import type { KeyboardEvent, MouseEvent } from 'react';
+import { useAddToCart } from '../hooks/useAddToCart';
 
 const assets = {
   productCardImage: '/api/r2/product/20260512-D3w_teddze.png',
@@ -16,20 +19,39 @@ const assets = {
 
 type MenuCard = {
   id: string;
+  slug: string;
   titleKey: string;
   subtitleKey: string;
+  title?: string;
+  subtitle?: string;
+  category?: string;
+  categoryKey?: string;
+  image?: string | null;
   price: number;
   oldPrice: number;
   discount: string;
+  discountPercent?: number | null;
+  inStock?: boolean;
+  defaultVariantId?: string | null;
+};
+
+type MenuCategory = {
+  id: string;
+  slug: string;
+  title: string;
+  iconUrl?: string | null;
 };
 
 type DesktopMenuPageProps = {
   titleKey: string;
   subtitleKey: string;
   activeCategoryIndex: number;
+  cards?: MenuCard[];
+  categories?: MenuCategory[];
+  activeCategorySlug?: string;
 };
 
-const categories = [
+const fallbackCategoryKeys = [
   'home.figma.desktop.categories.all',
   'home.figma.desktop.categories.soupsAndHotDishes',
   'home.figma.desktop.categories.salads',
@@ -65,10 +87,12 @@ const categoryIconUrls: readonly string[] = [
   'https://www.figma.com/api/mcp/asset/f753dcb8-0d13-4c01-a132-9640f1282ad7',
 ];
 
-const cards: MenuCard[] = Array.from({ length: 12 }, (_, index) => ({
+const fallbackCards: MenuCard[] = Array.from({ length: 12 }, (_, index) => ({
   id: `menu-card-${index + 1}`,
+  slug: 'double-cheeseburger',
   titleKey: 'home.figma.mobile.product.title',
   subtitleKey: 'home.figma.mobile.product.subtitle',
+  categoryKey: 'home.figma.mobile.product.subtitle',
   price: 1200,
   oldPrice: 1200,
   discount: '-30%',
@@ -77,13 +101,62 @@ const cards: MenuCard[] = Array.from({ length: 12 }, (_, index) => ({
 function MenuCardItem({ card }: { card: MenuCard }) {
   const { t } = useTranslation();
   const currency = useCurrency();
-  const title = t(card.titleKey);
-  const subtitle = t(card.subtitleKey);
+  const router = useRouter();
+  const title = card.title || t(card.titleKey);
+  const category = card.category || (card.categoryKey ? t(card.categoryKey) : '');
+  const imageSrc = card.image || assets.productCardImage;
+  const calculatedDiscountPercent =
+    card.oldPrice > card.price && card.oldPrice > 0
+      ? Math.round(((card.oldPrice - card.price) / card.oldPrice) * 100)
+      : 0;
+  const fallbackDiscountPercent =
+    typeof card.discountPercent === 'number' && card.discountPercent > 0
+      ? Math.round(card.discountPercent)
+      : 0;
+  const effectiveDiscountPercent = calculatedDiscountPercent || fallbackDiscountPercent;
+  const hasDiscount = effectiveDiscountPercent > 0;
+  const discountText = hasDiscount ? `-${effectiveDiscountPercent}%` : '';
+  const productHref = `/products/${card.slug}`;
+  const { isAddingToCart, addToCart } = useAddToCart({
+    productId: card.id,
+    productSlug: card.slug,
+    inStock: card.inStock ?? true,
+    defaultVariantId: card.defaultVariantId ?? undefined,
+    price: card.price,
+  });
+  const handleOpenProduct = () => {
+    router.push(productHref);
+  };
+  const handleCardKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return;
+    }
+    event.preventDefault();
+    handleOpenProduct();
+  };
+
+  const handleAddToCart = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const button = event.currentTarget as HTMLElement;
+    const cardRoot = button.closest('[data-home-product-card]');
+    const origin =
+      (cardRoot?.querySelector('[data-product-fly-origin]') as HTMLElement | null) ?? button;
+    void addToCart({ origin, imageUrl: card.image || null });
+  };
 
   return (
-    <article className="relative h-[284px] w-[236px] shrink-0 rounded-[20px] border-[1.5px] border-[#dedede] bg-white">
-      <div className="absolute left-1/2 top-1 h-[147px] w-[227px] -translate-x-1/2">
-        <img src={assets.productCardImage} alt={title} className="h-full w-full rounded-[18px] object-cover" />
+    <article
+      data-home-product-card
+      className="relative h-[284px] w-[236px] shrink-0 rounded-[20px] border-[1.5px] border-[#dedede] bg-white cursor-pointer transition-shadow hover:shadow-md"
+      onClick={handleOpenProduct}
+      onKeyDown={handleCardKeyDown}
+      role="link"
+      tabIndex={0}
+      aria-label={title}
+    >
+      <div data-product-fly-origin className="absolute left-1/2 top-1 h-[147px] w-[227px] -translate-x-1/2">
+        <img src={imageSrc} alt={title} className="h-full w-full rounded-[18px] object-cover" />
       </div>
       <div className="absolute left-4 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-[#ff2b2e] p-1">
         <img src={assets.productCardHot} alt="" className="h-[19px] w-[19px] -rotate-[13deg] object-contain" />
@@ -98,14 +171,22 @@ function MenuCardItem({ card }: { card: MenuCard }) {
       <h3 className="absolute left-[14px] top-[194px] w-[130px] text-base font-bold leading-[1.05] text-[#3c2f2f]">
         <span className="block max-h-[34px] overflow-hidden break-words">{title}</span>
       </h3>
-      <p className="absolute left-[14px] top-[236px] w-[130px] overflow-visible text-base font-medium leading-[1.2] text-[#a1a1a1]">{subtitle}</p>
-      <span className="absolute right-px top-[170px] inline-flex h-[30px] items-center rounded-[60px] bg-[#ff7f20] px-[17px] text-sm font-bold leading-none text-black">
-        {card.discount}
-      </span>
+      {category ? (
+        <p className="absolute left-[14px] top-[236px] w-[130px] overflow-visible text-base font-medium leading-[1.2] text-[#a1a1a1]">
+          {category}
+        </p>
+      ) : null}
+      {hasDiscount ? (
+        <span className="absolute right-px top-[170px] inline-flex h-[30px] items-center rounded-[60px] bg-[#ff7f20] px-[17px] text-sm font-bold leading-none text-black">
+          {discountText}
+        </span>
+      ) : null}
       <p className="absolute right-[14px] top-[236px] text-[20px] font-black leading-none text-[#3c2f2f]">{formatPrice(card.price, currency)}</p>
       <p className="absolute right-[14px] top-[262px] text-sm font-light leading-none text-[#3c2f2f] line-through">{formatPrice(card.oldPrice, currency)}</p>
       <button
         type="button"
+        onClick={handleAddToCart}
+        disabled={isAddingToCart || (card.inStock === false)}
         aria-label={t('common.buttons.addToCart')}
         className="absolute -bottom-[25px] left-1/2 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center"
       >
@@ -137,8 +218,18 @@ function FoodAttributeSwitcher() {
   );
 }
 
-export function FigmaDesktopMenuPage({ titleKey, subtitleKey, activeCategoryIndex }: DesktopMenuPageProps) {
+export function FigmaDesktopMenuPage({
+  titleKey,
+  subtitleKey,
+  activeCategoryIndex,
+  cards,
+  categories: dbCategories,
+  activeCategorySlug = '',
+}: DesktopMenuPageProps) {
   const { t } = useTranslation();
+  const router = useRouter();
+  const menuCards = cards && cards.length > 0 ? cards : fallbackCards;
+  const hasDbCategories = Array.isArray(dbCategories) && dbCategories.length > 0;
 
   return (
     <div className="hidden bg-white pb-20 pt-5 lg:block">
@@ -158,24 +249,49 @@ export function FigmaDesktopMenuPage({ titleKey, subtitleKey, activeCategoryInde
           <div className="flex min-h-0 flex-1 flex-col px-6 pt-[10px]">
             <p className="pb-[12px] text-[14px] font-medium uppercase tracking-[0.2px] text-[#717182]">{t('common.navigation.categories')}</p>
             <div className="min-h-0 flex-1 space-y-1 overflow-y-auto pr-1 scrollbar-hide">
-              {categories.map((categoryKey, index) => {
-                const isActive = index === activeCategoryIndex;
-                const iconUrl = categoryIconUrls[index];
-                return (
-                  <button
-                    key={categoryKey}
-                    type="button"
-                    className={`flex h-10 w-full items-center rounded-[10px] px-3 py-[10px] text-left text-[14px] font-medium leading-5 tracking-[-0.15px] ${
-                      isActive ? 'rounded-[30px] bg-[#ff7f20] text-white' : 'text-white hover:bg-white/10'
-                    }`}
-                  >
-                    <span className="mr-3 inline-flex h-6 w-6 shrink-0 items-center justify-center" aria-hidden="true">
-                      {iconUrl ? <img src={iconUrl} alt="" className="h-6 w-6 object-contain" /> : null}
-                    </span>
-                    <span>{t(categoryKey)}</span>
-                  </button>
-                );
-              })}
+              {hasDbCategories
+                ? dbCategories.map((category) => {
+                    const isActive = activeCategorySlug === category.slug;
+                    return (
+                      <button
+                        key={category.id}
+                        type="button"
+                        onClick={() => {
+                          const targetPath = category.slug
+                            ? `/shop?category=${encodeURIComponent(category.slug)}`
+                            : '/shop';
+                          router.push(targetPath);
+                        }}
+                        aria-pressed={isActive}
+                        className={`flex h-10 w-full items-center rounded-[10px] px-3 py-[10px] text-left text-[14px] font-medium leading-5 tracking-[-0.15px] ${
+                          isActive ? 'rounded-[30px] bg-[#ff7f20] text-white' : 'text-white hover:bg-white/10'
+                        }`}
+                      >
+                        <span className="mr-3 inline-flex h-6 w-6 shrink-0 items-center justify-center" aria-hidden="true">
+                          {category.iconUrl ? <img src={category.iconUrl} alt="" className="h-6 w-6 object-contain" /> : null}
+                        </span>
+                        <span>{category.title}</span>
+                      </button>
+                    );
+                  })
+                : fallbackCategoryKeys.map((categoryKey, index) => {
+                    const isActive = index === activeCategoryIndex;
+                    const iconUrl = categoryIconUrls[index];
+                    return (
+                      <button
+                        key={categoryKey}
+                        type="button"
+                        className={`flex h-10 w-full items-center rounded-[10px] px-3 py-[10px] text-left text-[14px] font-medium leading-5 tracking-[-0.15px] ${
+                          isActive ? 'rounded-[30px] bg-[#ff7f20] text-white' : 'text-white hover:bg-white/10'
+                        }`}
+                      >
+                        <span className="mr-3 inline-flex h-6 w-6 shrink-0 items-center justify-center" aria-hidden="true">
+                          {iconUrl ? <img src={iconUrl} alt="" className="h-6 w-6 object-contain" /> : null}
+                        </span>
+                        <span>{t(categoryKey)}</span>
+                      </button>
+                    );
+                  })}
             </div>
           </div>
         </aside>
@@ -207,7 +323,7 @@ export function FigmaDesktopMenuPage({ titleKey, subtitleKey, activeCategoryInde
           </div>
 
           <div className="grid grid-cols-4 gap-x-[30px] gap-y-[34px]">
-            {cards.map((card) => (
+            {menuCards.map((card) => (
               <MenuCardItem key={card.id} card={card} />
             ))}
           </div>
@@ -232,3 +348,5 @@ export function FigmaDesktopShopPage() {
     />
   );
 }
+
+export type { MenuCard, MenuCategory };

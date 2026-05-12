@@ -108,7 +108,7 @@ function ProductsHeaderContent({ total, perPage }: ProductsHeaderProps) {
     // Reset to page 1 when sorting changes
     params.delete('page');
     
-    router.push(`/products?${params.toString()}`);
+    router.push(`/shop?${params.toString()}`);
   };
 
   const handleClearFilters = () => {
@@ -120,7 +120,7 @@ function ProductsHeaderContent({ total, perPage }: ProductsHeaderProps) {
     params.delete('page');
 
     const queryString = params.toString();
-    router.push(queryString ? `/products?${queryString}` : '/products');
+    router.push(queryString ? `/shop?${queryString}` : '/shop');
   };
 
   const handleLimitChange = (value: string | number) => {
@@ -132,7 +132,7 @@ function ProductsHeaderContent({ total, perPage }: ProductsHeaderProps) {
       params.set('limit', '12');
     }
     params.delete('page');
-    router.replace(`/products?${params.toString()}`, { scroll: false });
+    router.replace(`/shop?${params.toString()}`, { scroll: false });
   };
 
   return (

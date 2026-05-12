@@ -1,4 +1,6 @@
 import { apiClient } from '../../lib/api-client';
+import { ApiError } from '../../lib/api-client/types';
+import { isQuietCartReadServerError } from '../../lib/api-client/error-handler';
 import { logger } from '../../lib/utils/logger';
 import { getStoredLanguage } from '../../lib/language';
 import type { Cart, CartItem } from './types';
@@ -221,6 +223,12 @@ export async function fetchLoggedInCart(): Promise<Cart | null> {
     const response = await apiClient.get<{ cart: Cart }>('/api/v1/cart');
     return response.cart;
   } catch (error: unknown) {
+    if (error instanceof ApiError && isQuietCartReadServerError(error.status, '/api/v1/cart')) {
+      logger.warn('[CART] Logged-in cart read failed with server error; using empty state', {
+        status: error.status,
+      });
+      return null;
+    }
     logger.error('Error fetching cart', { error });
     return null;
   }

@@ -1,10 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { LanguageCurrencySwitcher } from './LanguageCurrencySwitcher';
 import { useTranslation } from '../lib/i18n-client';
 import { useAuth } from '../lib/auth/AuthContext';
+import { apiClient } from '../lib/api-client';
+import { CART_KEY } from '../lib/storageCounts';
+import { formatPrice } from '../lib/currency';
+import { useCurrency } from './hooks/useCurrency';
 
 const assets = {
   logo: 'https://www.figma.com/api/mcp/asset/b684f5ca-5543-4689-be84-ac53b6c5d14c',
@@ -21,11 +25,92 @@ interface UniversalHeaderProps {
   spacerBackgroundClassName?: string;
 }
 
+interface GuestCartItem {
+  quantity: number;
+  price?: number;
+}
+
+interface CartResponse {
+  cart?: {
+    itemsCount?: number;
+    totals?: {
+      total?: number;
+    };
+  };
+}
+
 export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: UniversalHeaderProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [cartCount, setCartCount] = useState(0);
+  const [cartTotal, setCartTotal] = useState(0);
   const { t } = useTranslation();
   const { isLoggedIn, isAdmin, logout } = useAuth();
+  const currency = useCurrency();
   const userNavHref = isLoggedIn ? '/profile' : '/login';
+
+  useEffect(() => {
+    const readGuestCart = () => {
+      try {
+        const stored = localStorage.getItem(CART_KEY);
+        const parsed: unknown = stored ? JSON.parse(stored) : [];
+        const items = Array.isArray(parsed) ? (parsed as GuestCartItem[]) : [];
+        const itemsCount = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
+        const total = items.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
+        setCartCount(itemsCount);
+        setCartTotal(total);
+      } catch {
+        setCartCount(0);
+        setCartTotal(0);
+      }
+    };
+
+    const fetchCart = async () => {
+      if (!isLoggedIn) {
+        readGuestCart();
+        return;
+      }
+
+      try {
+        const response = await apiClient.get<CartResponse>('/api/v1/cart');
+        setCartCount(response.cart?.itemsCount || 0);
+        setCartTotal(response.cart?.totals?.total || 0);
+      } catch {
+        setCartCount(0);
+        setCartTotal(0);
+      }
+    };
+
+    const handleCartUpdated = (event: Event) => {
+      const detail = (event as CustomEvent)?.detail as
+        | { optimisticAdd?: { quantity?: number; price?: number }; itemsCount?: number; total?: number }
+        | undefined;
+
+      if (detail?.optimisticAdd) {
+        const nextQuantity = detail.optimisticAdd.quantity ?? 1;
+        const nextPrice = detail.optimisticAdd.price ?? 0;
+        setCartCount((prev) => prev + nextQuantity);
+        setCartTotal((prev) => prev + nextPrice * nextQuantity);
+        return;
+      }
+
+      if (detail?.itemsCount !== undefined && detail?.total !== undefined) {
+        setCartCount(detail.itemsCount);
+        setCartTotal(detail.total);
+        return;
+      }
+
+      void fetchCart();
+    };
+
+    void fetchCart();
+    window.addEventListener('cart-updated', handleCartUpdated);
+    window.addEventListener('auth-updated', fetchCart);
+
+    return () => {
+      window.removeEventListener('cart-updated', handleCartUpdated);
+      window.removeEventListener('auth-updated', fetchCart);
+    };
+  }, [isLoggedIn]);
 
   return (
     <>
@@ -57,16 +142,20 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
         </div>
         <div className="ml-3 flex items-center gap-[11px]">
           <div className="hidden items-center gap-[7px] md:flex">
-            <button type="button" className="relative h-12 w-[117px] shrink-0">
-              <span className="absolute right-0 top-0 inline-flex h-12 w-[88px] items-center justify-center rounded-[70px] bg-[#f1f2f4] text-base font-bold text-black">
-                0Դ
+            <Link href="/cart" className="relative h-12 w-[117px] shrink-0">
+              <span className="absolute right-0 top-0 inline-flex h-12 w-[88px] items-center justify-center rounded-[70px] bg-white text-base font-bold text-black">
+                {formatPrice(cartTotal, currency)}
               </span>
-              <img src={assets.cartIcon} alt="" className="absolute bottom-[1px] left-2 h-[34px] w-[37px] object-contain" />
+              <span data-cart-fly-target className="absolute bottom-[1px] left-2 inline-flex h-[34px] w-[37px] items-center justify-center">
+                <img src={assets.cartIcon} alt="" className="h-[34px] w-[37px] object-contain" />
+              </span>
               <span className="absolute left-[35px] top-[2px] inline-flex h-6 w-6 items-center justify-center">
                 <img src={assets.cartCounterBubble} alt="" className="absolute h-6 w-6 object-contain" />
-                <span className="relative text-sm font-bold leading-6 text-white">0</span>
+                <span className="relative text-sm font-bold leading-6 text-white">
+                  {cartCount > 99 ? '99+' : cartCount}
+                </span>
               </span>
-            </button>
+            </Link>
             <LanguageCurrencySwitcher
               variant="desktop"
               iconSrc={assets.switcherIcon}

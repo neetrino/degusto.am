@@ -194,7 +194,7 @@ export async function ProductsCatalog({
     Object.entries(params).forEach(([k, v]) => {
       if (k !== 'page' && k !== 'limit' && v && typeof v === 'string') q.set(k, v);
     });
-    return `/products?${q.toString()}`;
+    return `/shop?${q.toString()}`;
   };
 
   const getPaginationPages = (): (number | 'ellipsis')[] => {

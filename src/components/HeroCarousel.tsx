@@ -41,11 +41,11 @@ export function HeroCarousel() {
   };
 
   const handleShopNow = () => {
-    router.push('/products');
+    router.push('/shop');
   };
 
   const handleBrowseCategories = () => {
-    router.push('/products');
+    router.push('/shop');
   };
 
   return (

@@ -421,7 +421,7 @@ class AdminProductsCreateService {
       try {
         logger.debug('🧹 [ADMIN PRODUCTS CREATE SERVICE] Revalidating paths for new product');
         revalidatePath('/');
-        revalidatePath('/products');
+        revalidatePath('/shop');
         // @ts-expect-error - revalidateTag type issue in Next.js
         revalidateTag('products');
       } catch (e) {
