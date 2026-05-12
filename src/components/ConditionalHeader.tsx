@@ -6,6 +6,7 @@ import { UniversalHeader } from './UniversalHeader';
 
 export function ConditionalHeader() {
   const pathname = usePathname();
+  const isAuthPage = pathname === '/login' || pathname === '/register';
   if (pathname?.startsWith('/supersudo')) {
     return null;
   }
@@ -17,7 +18,7 @@ export function ConditionalHeader() {
   return (
     <>
       <div className="hidden lg:block">
-        <UniversalHeader spacerBackgroundClassName={pathname === '/login' ? 'bg-[#F66812]' : 'bg-white'} />
+        <UniversalHeader spacerBackgroundClassName={isAuthPage ? 'bg-[#F66812]' : 'bg-white'} />
       </div>
       <div className="lg:hidden">
         <Header />
