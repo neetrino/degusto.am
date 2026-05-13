@@ -92,9 +92,9 @@ export function ProductInfoAndActions({
   getRequiredAttributesMessage,
 }: ProductInfoAndActionsProps) {
   return (
-    <div className="flex h-full flex-col p-4 sm:p-5 lg:p-6">
-      <div className="-translate-x-[20px] -translate-y-[20px] flex min-h-0 flex-1 flex-col">
-        <div className="flex-1">
+    <div className="flex w-full max-w-full flex-col self-start p-4 sm:p-5 lg:p-6">
+      <div className="-translate-x-[30px] flex min-h-0 flex-col">
+        <div>
           {product.brand && (
             <div className="mb-3 flex items-center gap-2">
               {(product.brand.logo || product.brand.logoUrl) ? (
@@ -137,13 +137,13 @@ export function ProductInfoAndActions({
             )}
           </div>
           <div
-            className="mb-8 prose prose-sm text-gray-600"
+            className="mb-4 prose prose-sm text-gray-600"
             dangerouslySetInnerHTML={{
               __html: sanitizeHtml(getProductText(language, product.id, 'longDescription') || product.description || ''),
             }}
           />
 
-          <div className="mb-8">
+          <div className="mb-4">
             <ProductAttributesSelector
               product={product}
               currentVariant={currentVariant}
@@ -173,7 +173,7 @@ export function ProductInfoAndActions({
           </div>
         </div>
 
-        <div className="pt-6">
+        <div className="mt-[50px] pt-4">
         {isVariationRequired && (
           <div className="mb-3 rounded-lg bg-yellow-50 p-3">
             <p className="text-sm text-yellow-800 font-medium">
@@ -200,7 +200,7 @@ export function ProductInfoAndActions({
             </p>
           </div>
         )}
-        <div className="flex items-center gap-3 pt-4">
+        <div className="flex items-center gap-3">
           <div
             className="inline-flex h-12 shrink-0 items-center gap-0.5 rounded-[15px] border border-neutral-200 bg-white px-1.5"
             role="group"

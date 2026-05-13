@@ -15,10 +15,12 @@ export function ConditionalHeader() {
     return null;
   }
 
+  const universalSpacerClass = isAuthPage ? 'bg-[#F66812]' : 'bg-white';
+
   return (
     <>
       <div className="hidden lg:block">
-        <UniversalHeader spacerBackgroundClassName={isAuthPage ? 'bg-[#F66812]' : 'bg-white'} />
+        <UniversalHeader spacerBackgroundClassName={universalSpacerClass} />
       </div>
       <div className="lg:hidden">
         <Header />

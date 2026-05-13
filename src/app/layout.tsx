@@ -25,13 +25,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="h-full" style={{ backgroundColor: '#f56814' }}>
+    <html lang="en" className="h-full" style={{ backgroundColor: '#ffffff' }}>
       <head>
         <link rel="preload" as="image" href="/api/r2/hero/20260512-tOKhBzyB6u.png" />
       </head>
       <body
         className="font-sans text-gray-900 antialiased min-h-full"
-        style={{ backgroundColor: '#f56814' }}
+        style={{ backgroundColor: '#ffffff' }}
       >
         <Suspense fallback={null}>
           <ClientProviders>

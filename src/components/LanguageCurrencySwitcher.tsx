@@ -4,11 +4,13 @@ import { useEffect, useRef, useState } from 'react';
 import {
   CURRENCIES,
   getStoredCurrency,
+  HYDRATION_SAFE_CURRENCY,
   setStoredCurrency,
   type CurrencyCode,
 } from '../lib/currency';
 import {
   getStoredLanguage,
+  HYDRATION_SAFE_LANGUAGE,
   LANGUAGES,
   setStoredLanguage,
   type LanguageCode,
@@ -33,10 +35,15 @@ export function LanguageCurrencySwitcher({
 }: LanguageCurrencySwitcherProps) {
   const { t, lang } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
-  const [language, setLanguage] = useState<LanguageCode>(() => getStoredLanguage());
-  const [currency, setCurrency] = useState<CurrencyCode>(() => getStoredCurrency());
+  const [language, setLanguage] = useState<LanguageCode>(HYDRATION_SAFE_LANGUAGE);
+  const [currency, setCurrency] = useState<CurrencyCode>(HYDRATION_SAFE_CURRENCY);
   const switcherRef = useRef<HTMLDivElement>(null);
   const currentCurrencyInfo = CURRENCIES[currency];
+
+  useEffect(() => {
+    setLanguage(getStoredLanguage());
+    setCurrency(getStoredCurrency());
+  }, []);
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {

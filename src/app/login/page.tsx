@@ -101,7 +101,7 @@ function LoginPageContent() {
   }, [isLoggedIn, isLoading, isAdmin, redirectTo, router]);
 
   return (
-    <div className="relative z-20 -mt-[104px] overflow-hidden pt-[104px]">
+    <div className="relative z-20 -mt-[104px] min-h-dvh overflow-hidden bg-[#F66812] pt-[104px]">
       <svg
         aria-hidden="true"
         viewBox="0 0 1200 800"
