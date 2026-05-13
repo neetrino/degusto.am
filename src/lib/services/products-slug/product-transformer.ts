@@ -231,10 +231,13 @@ function transformVariants(
             const attrValue = opt.attributeValue;
             const attr = attrValue.attribute;
             const translation = attrValue.translations?.find((t: { locale: string }) => t.locale === lang) || attrValue.translations?.[0];
+            // Store canonical slug in `value` so PDP logic and getAttributeLabel() match attributes.json keys.
+            const displayLabel = translation?.label || attrValue.value || "";
             return {
               attribute: attr?.key || "",
-              value: translation?.label || attrValue.value || "",
               key: attr?.key || "",
+              value: attrValue.value || "",
+              label: displayLabel,
               valueId: attrValue.id,
               attributeId: attr?.id,
             };

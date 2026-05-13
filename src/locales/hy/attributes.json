@@ -34,11 +34,20 @@
   },
   "spicy": {
     "spicy": "Կծու",
-    "not-spicy": "Չկծու"
+    "not-spicy": "Առանց կծու"
   },
   "greens": {
     "with-greens": "Կանաչիով",
     "without-greens": "Առանց կանաչի"
+  },
+  "sauce": {
+    "ketchup": "Կետչուպ",
+    "mayonnaise": "Մայոնեզ",
+    "no-sauce": "Առանց սոուսի"
+  },
+  "garlic": {
+    "with-garlic": "Սխտորով",
+    "without-garlic": "Առանց սխտորի"
   }
 }
 

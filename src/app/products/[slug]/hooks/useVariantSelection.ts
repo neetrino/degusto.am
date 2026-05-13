@@ -94,11 +94,17 @@ export function useVariantSelection({
 
   const handleAttributeValueSelect = useCallback((attrKey: string, value: string) => {
     const newMap = new Map(selectedAttributeValues);
+    const trimmed = value.trim();
+    if (trimmed === '') {
+      newMap.delete(attrKey);
+      setSelectedAttributeValues(newMap);
+      return;
+    }
     const currentValue = selectedAttributeValues.get(attrKey);
-    if (currentValue === value) {
+    if (currentValue === trimmed) {
       newMap.delete(attrKey);
     } else {
-      newMap.set(attrKey, value);
+      newMap.set(attrKey, trimmed);
     }
     setSelectedAttributeValues(newMap);
   }, [selectedAttributeValues]);

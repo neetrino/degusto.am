@@ -27,7 +27,14 @@
   "additionsLabel": "Additions",
   "additionsPlaceholder": "Extra ingredients or requests",
   "exclusionsLabel": "Exclusions",
-  "exclusionsPlaceholder": "Ingredients to remove"
+  "exclusionsPlaceholder": "Ingredients to remove",
+  "preferencePlaceholder": "Select preference",
+  "preferenceAria": {
+    "spicy": "Spiciness",
+    "greens": "Greens",
+    "sauce": "Sauce",
+    "garlic": "Garlic"
+  }
 }
 
 

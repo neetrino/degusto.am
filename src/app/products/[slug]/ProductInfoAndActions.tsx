@@ -146,6 +146,7 @@ export function ProductInfoAndActions({
           <div className="mb-8">
             <ProductAttributesSelector
               product={product}
+              currentVariant={currentVariant}
               attributeGroups={attributeGroups}
               selectedColor={selectedColor}
               selectedSize={selectedSize}
@@ -238,7 +239,7 @@ export function ProductInfoAndActions({
           <button
             onClick={onCompareToggle}
             type="button"
-            className={`flex h-12 w-12 items-center justify-center rounded-xl transition-colors duration-200 ${isInCompare ? 'bg-orange-500 text-white hover:bg-orange-600' : 'bg-neutral-100 text-gray-700 hover:bg-neutral-200'}`}
+            className={`flex h-12 w-12 items-center justify-center rounded-xl transition-colors duration-200 ${isInCompare ? 'bg-neutral-200 text-gray-900' : 'bg-neutral-100 hover:bg-neutral-200'}`}
           >
             <CompareIcon isActive={isInCompare} />
           </button>
