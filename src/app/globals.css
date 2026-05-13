@@ -8,7 +8,7 @@
 
 @layer base {
   body {
-    background-color: var(--project-color);
+    background-color: #ffffff;
     @apply text-gray-900;
   }
 
