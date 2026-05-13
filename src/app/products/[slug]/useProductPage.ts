@@ -20,7 +20,6 @@ export function useProductPage(params: Promise<{ slug?: string }>) {
   const [currency, setCurrency] = useState(getStoredCurrency());
   const [language, setLanguage] = useState<LanguageCode>('en');
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const [showMessage, setShowMessage] = useState<string | null>(null);
   const [thumbnailStartIndex, setThumbnailStartIndex] = useState(0);
   const [additions, setAdditions] = useState('');
   const [exclusions, setExclusions] = useState('');
@@ -107,8 +106,6 @@ export function useProductPage(params: Promise<{ slug?: string }>) {
     setIsInWishlist,
     isInCompare,
     setIsInCompare,
-    setShowMessage,
-    language,
   });
 
   useEffect(() => {
@@ -179,8 +176,6 @@ export function useProductPage(params: Promise<{ slug?: string }>) {
     selectedAttributeValues,
     isAddingToCart,
     setIsAddingToCart,
-    showMessage,
-    setShowMessage,
     additions,
     exclusions,
     setAdditions,

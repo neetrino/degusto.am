@@ -1,7 +1,5 @@
 import type { MouseEvent } from 'react';
 import { COMPARE_KEY } from '../types';
-import { t } from '../../../../lib/i18n';
-import type { LanguageCode } from '../../../../lib/language';
 import { useAuth } from '../../../../lib/auth/AuthContext';
 import { apiClient } from '../../../../lib/api-client';
 import {
@@ -16,8 +14,6 @@ interface UseProductActionsProps {
   setIsInWishlist: (value: boolean) => void;
   isInCompare: boolean;
   setIsInCompare: (value: boolean) => void;
-  setShowMessage: (message: string | null) => void;
-  language: LanguageCode;
 }
 
 export function useProductActions({
@@ -26,8 +22,6 @@ export function useProductActions({
   setIsInWishlist,
   isInCompare,
   setIsInCompare,
-  setShowMessage,
-  language,
 }: UseProductActionsProps) {
   const { isLoggedIn } = useAuth();
 
@@ -42,7 +36,6 @@ export function useProductActions({
       if (isInWishlist) {
         const updated = setLocalWishlistIds(wishlist.filter(id => id !== productId));
         setIsInWishlist(false);
-        setShowMessage(t(language, 'product.removedFromWishlist'));
         emitWishlistUpdated();
         if (isLoggedIn) {
           await apiClient.delete(`/api/v1/users/wishlist/${productId}`);
@@ -51,16 +44,12 @@ export function useProductActions({
       } else {
         const updated = setLocalWishlistIds([...wishlist, productId]);
         setIsInWishlist(true);
-        setShowMessage(t(language, 'product.addedToWishlist'));
         emitWishlistUpdated();
         if (isLoggedIn) {
           await apiClient.post('/api/v1/users/wishlist', { productId });
           setLocalWishlistIds(updated);
         }
       }
-      
-      setTimeout(() => setShowMessage(null), 2000);
-      emitWishlistUpdated();
     } catch {
       // Silently fail
     }
@@ -78,19 +67,14 @@ export function useProductActions({
       if (isInCompare) {
         localStorage.setItem(COMPARE_KEY, JSON.stringify(compare.filter(id => id !== productId)));
         setIsInCompare(false);
-        setShowMessage(t(language, 'product.removedFromCompare'));
+      } else if (compare.length >= 4) {
+        // List full; no UI toast — state unchanged
       } else {
-        if (compare.length >= 4) {
-          setShowMessage(t(language, 'product.compareListFull'));
-        } else {
-          compare.push(productId);
-          localStorage.setItem(COMPARE_KEY, JSON.stringify(compare));
-          setIsInCompare(true);
-          setShowMessage(t(language, 'product.addedToCompare'));
-        }
+        compare.push(productId);
+        localStorage.setItem(COMPARE_KEY, JSON.stringify(compare));
+        setIsInCompare(true);
       }
-      
-      setTimeout(() => setShowMessage(null), 2000);
+
       window.dispatchEvent(new Event('compare-updated'));
     } catch {
       // Silently fail

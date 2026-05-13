@@ -19,6 +19,8 @@ const nextConfig = {
   reactStrictMode: true,
   // Скрыть индикатор "Compiling..." в углу в dev — не мешает на экране
   devIndicators: false,
+  // Prisma: avoid Turbopack/webpack inlining `env("DATABASE_URL")` inside bundled `@prisma/client` (empty URL at runtime).
+  serverExternalPackages: ['@prisma/client', 'prisma'],
   transpilePackages: ['@shop/ui', '@shop/design-tokens'],
   // Standalone output - prevents prerendering of 404 page
   output: 'standalone',

@@ -1,6 +1,7 @@
 import { FigmaDesktopMenuPage, type MenuCard, type MenuCategory } from '../../components/home/FigmaDesktopShopPage';
 import { FigmaMobileShopPage } from '../../components/home/FigmaMobileShopPage';
 import { BodyBackground } from '../../components/BodyBackground';
+import { HIDDEN_STOREFRONT_CATEGORY_SLUGS } from '@/constants/hidden-storefront-category-slugs';
 import { db } from '@white-shop/db';
 import { cookies } from 'next/headers';
 import { resolveStorefrontLocaleFromCookie } from '@/lib/i18n/locale';
@@ -264,6 +265,9 @@ export default async function ShopPage({
     const translation =
       row.translations.find((item) => item.locale === locale) ?? row.translations[0];
     if (!translation?.slug || !translation.title) {
+      continue;
+    }
+    if (HIDDEN_STOREFRONT_CATEGORY_SLUGS.has(translation.slug.toLowerCase())) {
       continue;
     }
 
