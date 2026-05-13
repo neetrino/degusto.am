@@ -44,7 +44,7 @@ interface CartResponse {
   };
 }
 
-export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: UniversalHeaderProps) {
+export function UniversalHeader({ spacerBackgroundClassName = 'bg-[var(--project-color)]' }: UniversalHeaderProps) {
   const [cartCount, setCartCount] = useState(0);
   const [cartTotal, setCartTotal] = useState(0);
   const { t } = useTranslation();

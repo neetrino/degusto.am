@@ -10,8 +10,11 @@ export type LanguageCode = keyof typeof LANGUAGES;
 const LANGUAGE_STORAGE_KEY = 'shop_language';
 const LANGUAGE_COOKIE_KEY = 'shop_language';
 
+/** Matches `getStoredLanguage()` when `window` is undefined (SSR / first paint). */
+export const HYDRATION_SAFE_LANGUAGE: LanguageCode = 'hy';
+
 export function getStoredLanguage(): LanguageCode {
-  if (typeof window === 'undefined') return 'hy';
+  if (typeof window === 'undefined') return HYDRATION_SAFE_LANGUAGE;
   try {
     const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
     if (stored && stored in LANGUAGES) {
@@ -20,7 +23,7 @@ export function getStoredLanguage(): LanguageCode {
   } catch {
     // Ignore errors
   }
-  return 'hy';
+  return HYDRATION_SAFE_LANGUAGE;
 }
 
 export function setStoredLanguage(language: LanguageCode, options?: { forceReload?: boolean }): void {

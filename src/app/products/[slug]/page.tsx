@@ -13,12 +13,16 @@ import { ProductPageShell } from './ProductPageShell';
 import { useProductPage } from './useProductPage';
 import { playCartFlyAnimation } from '../../../lib/cart-fly-animation';
 import { BodyBackground } from '../../../components/BodyBackground';
+import { ProjectGreenStripes } from '../../../components/decor/ProjectGreenStripes';
 import { logger } from '@/lib/utils/logger';
 import {
   buildCustomizationLineKey,
   normalizeProductCustomizations,
 } from '../../../lib/cart/customizations';
 import type { ProductPageProps } from './types';
+
+/** Same orange as home (`globals.css` `--project-color`, e.g. hero `bg-[var(--project-color)]`). */
+const PDP_PAGE_BACKGROUND = 'var(--project-color)';
 
 export default function ProductPage({ params }: ProductPageProps) {
   const { isLoggedIn } = useAuth();
@@ -146,7 +150,7 @@ export default function ProductPage({ params }: ProductPageProps) {
   if (loading && !product) {
     return (
       <>
-        <BodyBackground color="#ffffff" />
+        <BodyBackground color={PDP_PAGE_BACKGROUND} />
         <ProductPageShell />
       </>
     );
@@ -155,7 +159,7 @@ export default function ProductPage({ params }: ProductPageProps) {
   if (notFound && !product) {
     return (
       <>
-        <BodyBackground color="#ffffff" />
+        <BodyBackground color={PDP_PAGE_BACKGROUND} />
         <div className="max-w-7xl mx-auto px-4 py-16 text-center space-y-4">
           <p className="text-lg text-neutral-600">{t(language, 'common.messages.noProductsFound')}</p>
           <Link
@@ -172,7 +176,7 @@ export default function ProductPage({ params }: ProductPageProps) {
   if (!product) {
     return (
       <>
-        <BodyBackground color="#ffffff" />
+        <BodyBackground color={PDP_PAGE_BACKGROUND} />
         <div className="max-w-7xl mx-auto px-4 py-16 text-center space-y-4">
           <p className="text-lg text-neutral-600">{t(language, 'common.messages.invalidProduct')}</p>
           <Link
@@ -188,15 +192,18 @@ export default function ProductPage({ params }: ProductPageProps) {
 
   return (
     <>
-      <BodyBackground color="#ffffff" />
-      <div className="bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 lg:py-12">
-          <nav className="mb-6 flex flex-wrap items-center gap-2 text-sm text-neutral-500">
-            <Link href="/shop" className="hover:text-neutral-800 transition-colors">
+      <BodyBackground color={PDP_PAGE_BACKGROUND} />
+      <div className="relative min-h-dvh overflow-x-hidden bg-[var(--project-color)]">
+        <ProjectGreenStripes extendFirstStrokeUp />
+        <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
+          <nav className="mb-6 flex flex-wrap items-center gap-2 text-sm text-white">
+            <Link href="/shop" className="text-white/90 transition-colors hover:text-white">
               {t(language, 'common.navigation.products')}
             </Link>
-            <span aria-hidden>/</span>
-            <span className="text-neutral-700 line-clamp-1">
+            <span aria-hidden className="text-white/70">
+              /
+            </span>
+            <span className="line-clamp-1 font-medium text-white">
               {product.title}
             </span>
           </nav>

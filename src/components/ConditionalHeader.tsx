@@ -18,7 +18,7 @@ export function ConditionalHeader() {
   return (
     <>
       <div className="hidden lg:block">
-        <UniversalHeader spacerBackgroundClassName={isAuthPage ? 'bg-[#F66812]' : 'bg-white'} />
+        <UniversalHeader spacerBackgroundClassName={isAuthPage ? 'bg-[#F66812]' : 'bg-[var(--project-color)]'} />
       </div>
       <div className="lg:hidden">
         <Header />

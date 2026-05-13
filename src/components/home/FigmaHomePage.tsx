@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import type { KeyboardEvent, MouseEvent } from 'react';
 import { FigmaHomePageMobile } from './FigmaHomePageMobile';
 import { UniversalHeader } from '../UniversalHeader';
+import { ProjectGreenStripes } from '../decor/ProjectGreenStripes';
 import { Footer } from '../Footer';
 import { useTranslation } from '../../lib/i18n-client';
 import { useCurrency } from '../hooks/useCurrency';
@@ -221,51 +222,7 @@ export function FigmaHomePage({
           fetchPriority="high"
           decoding="sync"
         />
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="725"
-          height="450"
-          viewBox="0 0 725 450"
-          fill="none"
-          aria-hidden="true"
-          className="pointer-events-none absolute left-[-120px] top-[-450px] opacity-100"
-          style={{
-            width: '678.855px',
-            height: '1512.29px',
-            transform: 'rotate(20deg)',
-            transformOrigin: 'center',
-          }}
-        >
-          <path
-            d="M-387.936 202.028C-387.936 202.028 119.69 546.315 464.803 275C809.917 3.68502 577.568 -962.001 577.568 -962.001"
-            stroke="#3E573D"
-            strokeWidth="141"
-            strokeLinecap="square"
-          />
-        </svg>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="211"
-          height="985"
-          viewBox="0 0 211 985"
-          fill="none"
-          aria-hidden="true"
-          className="pointer-events-none absolute right-[-170px] top-[-1px] opacity-100"
-          style={{
-            width: '611.208px',
-            height: '979.275px',
-            transform: 'rotate(2deg)',
-            transformOrigin: 'center',
-          }}
-        >
-          <path
-            d="M537.749 -25.8738C537.749 -25.8738 56.6915 174.312 70.8068 462.466C84.9222 750.619 850.632 902.127 850.632 902.127"
-            stroke="#3E573D"
-            strokeWidth="141"
-            strokeLinecap="square"
-          />
-        </svg>
-
+        <ProjectGreenStripes />
         <UniversalHeader spacerBackgroundClassName="bg-[#F66812]" />
 
         <div className="relative z-10 mx-auto mt-14 w-full max-w-[1450px] px-4 lg:mt-16 lg:px-6">
