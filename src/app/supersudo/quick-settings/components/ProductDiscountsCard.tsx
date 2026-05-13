@@ -3,7 +3,8 @@
 import { useMemo } from 'react';
 import { Card, Button, Input } from '@shop/ui';
 import { useTranslation } from '../../../../lib/i18n-client';
-import { logger } from "@/lib/utils/logger";
+import { logger } from '@/lib/utils/logger';
+import { QUICK_SETTINGS_PRODUCT_ROW, QUICK_SETTINGS_SECTION_CARD } from '../quick-settings-ui-classes';
 
 interface Product {
   id: string;
@@ -82,7 +83,7 @@ export function ProductDiscountsCard({
   };
 
   return (
-    <Card className="p-6 bg-white border-gray-200">
+    <Card className={QUICK_SETTINGS_SECTION_CARD}>
       <div className="mb-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('admin.quickSettings.productDiscounts')}</h2>
         <p className="text-sm text-gray-600">{t('admin.quickSettings.productDiscountsSubtitle')}</p>
@@ -119,7 +120,7 @@ export function ProductDiscountsCard({
             return (
               <div
                 key={product.id}
-                className="flex items-center gap-4 p-4 border-2 border-blue-300 rounded-lg hover:bg-blue-50 transition-colors bg-blue-50/30"
+                className={QUICK_SETTINGS_PRODUCT_ROW}
               >
                 {product.image && (
                   <div className="flex-shrink-0">
@@ -135,13 +136,13 @@ export function ProductDiscountsCard({
                   <div className="flex items-center gap-2 mt-1">
                     {currentDiscount > 0 && originalPrice > 0 ? (
                       <>
-                        <span className="text-xs font-semibold text-blue-600 select-none">
+                        <span className="select-none text-xs font-semibold text-[#2f7d4a]">
                           {formatPrice(discountedPrice)}
                         </span>
-                        <span className="text-xs text-gray-400 line-through select-none">
+                        <span className="select-none text-xs text-gray-400 line-through">
                           {formatPrice(originalPrice)}
                         </span>
-                        <span className="text-xs text-red-600 font-medium">
+                        <span className="text-xs font-medium text-[#f66812]">
                           -{currentDiscount}%
                         </span>
                       </>
@@ -152,7 +153,7 @@ export function ProductDiscountsCard({
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex shrink-0 items-center gap-2">
                   <Input
                     type="number"
                     min="0"
@@ -181,7 +182,7 @@ export function ProductDiscountsCard({
                     size="sm"
                     onClick={() => handleProductDiscountSave(product.id)}
                     disabled={savingProductId === product.id}
-                    className="px-4"
+                    className="min-w-[5.5rem] shrink-0 whitespace-nowrap bg-gradient-to-r from-[#f66812] to-[#2f7d4a] px-4 hover:from-[#e85d0b] hover:to-[#25653c]"
                   >
                     {savingProductId === product.id ? (
                       <div className="flex items-center gap-2">

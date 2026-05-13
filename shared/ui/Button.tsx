@@ -95,13 +95,15 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       }
     };
     
+    const showFoodDecoration = showFoodIcons && iconCount > 0;
+
     return (
       <button
         ref={handleButtonRef}
-        className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${showFoodIcons ? 'relative overflow-hidden' : ''} ${className}`}
+        className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} inline-flex items-center justify-center ${showFoodDecoration ? 'relative overflow-hidden' : ''} ${className}`}
         {...props}
       >
-        {showFoodIcons && iconCount > 0 ? (
+        {showFoodDecoration ? (
           <span className="admin-food-icon-wrap" aria-hidden>{foodIcons}</span>
         ) : null}
         <span className="relative z-10 inline-flex items-center justify-center gap-2">{children}</span>
