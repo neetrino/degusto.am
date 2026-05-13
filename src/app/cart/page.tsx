@@ -116,9 +116,6 @@ export default function CartPage() {
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3 lg:mb-8">
           <h1 className="text-3xl font-bold text-gray-900">{t('common.cart.title')}</h1>
-          <span className="inline-flex items-center rounded-full bg-[#F66812]/10 px-3 py-1 text-sm font-semibold text-[#F66812]">
-            {cart.itemsCount} {t('common.messages.quantity')}
-          </span>
         </div>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
