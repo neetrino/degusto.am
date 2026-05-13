@@ -31,6 +31,14 @@
     "xl": "XL",
     "xxl": "XXL",
     "xxxl": "XXXL"
+  },
+  "spicy": {
+    "spicy": "Կծու",
+    "not-spicy": "Չկծու"
+  },
+  "greens": {
+    "with-greens": "Կանաչիով",
+    "without-greens": "Առանց կանաչի"
   }
 }
 

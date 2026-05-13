@@ -46,10 +46,6 @@ interface ProductInfoAndActionsProps {
   onAddToWishlist: (e: MouseEvent) => void;
   onCompareToggle: (e: MouseEvent) => void;
   onScrollToReviews: () => void;
-  additions: string;
-  exclusions: string;
-  onAdditionsChange: (value: string) => void;
-  onExclusionsChange: (value: string) => void;
   onColorSelect: (color: string) => void;
   onSizeSelect: (size: string) => void;
   onAttributeValueSelect: (attrKey: string, value: string) => void;
@@ -91,10 +87,6 @@ export function ProductInfoAndActions({
   onAddToWishlist,
   onCompareToggle,
   onScrollToReviews,
-  additions,
-  exclusions,
-  onAdditionsChange,
-  onExclusionsChange,
   onColorSelect,
   onSizeSelect,
   onAttributeValueSelect,
@@ -102,10 +94,10 @@ export function ProductInfoAndActions({
   getRequiredAttributesMessage,
 }: ProductInfoAndActionsProps) {
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-white p-4 sm:p-5 lg:p-6">
       <div className="flex-1">
         {product.brand && (
-          <div className="mb-2 flex items-center gap-2">
+          <div className="mb-3 flex items-center gap-2">
             {(product.brand.logo || product.brand.logoUrl) ? (
               <div className="relative h-5 w-5 overflow-hidden rounded-full border border-gray-200">
                 <Image
@@ -121,7 +113,7 @@ export function ProductInfoAndActions({
             <p className="text-sm text-gray-500">{product.brand.name}</p>
           </div>
         )}
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">
+        <h1 className="mb-2 text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl">
           {getProductText(language, product.id, 'title') || product.title}
         </h1>
         <ProductRatingSummary
@@ -130,9 +122,8 @@ export function ProductInfoAndActions({
           onReviewsClick={onScrollToReviews}
           language={language}
         />
-        <div className="mb-6">
+        <div className="mb-6 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
           <div className="flex flex-col gap-1">
-            {/* Discounted price with discount percentage */}
             <div className="flex items-center gap-2">
               <p className="text-3xl font-bold text-gray-900">{formatPrice(price, currency as CurrencyCode)}</p>
               {discountPercent && discountPercent > 0 && (
@@ -141,7 +132,6 @@ export function ProductInfoAndActions({
                 </span>
               )}
             </div>
-            {/* Original price below discounted price - full width, not inline */}
             {(originalPrice || (compareAtPrice && compareAtPrice > price)) && (
               <p className="text-xl text-gray-500 line-through decoration-gray-400 mt-1">
                 {formatPrice(originalPrice || compareAtPrice || 0, currency as CurrencyCode)}
@@ -149,9 +139,13 @@ export function ProductInfoAndActions({
             )}
           </div>
         </div>
-        <div className="text-gray-600 mb-8 prose prose-sm" dangerouslySetInnerHTML={{ __html: sanitizeHtml(getProductText(language, product.id, 'longDescription') || product.description || '') }} />
+        <div
+          className="mb-8 prose prose-sm text-gray-600"
+          dangerouslySetInnerHTML={{
+            __html: sanitizeHtml(getProductText(language, product.id, 'longDescription') || product.description || ''),
+          }}
+        />
 
-        {/* Attributes Section */}
         <div className="mb-8">
           <ProductAttributesSelector
             product={product}
@@ -181,39 +175,9 @@ export function ProductInfoAndActions({
           />
         </div>
 
-        <div className="mb-8 space-y-4">
-          <div>
-            <label htmlFor="product-additions" className="mb-2 block text-sm font-medium text-gray-700">
-              {t(language, 'product.additionsLabel')}
-            </label>
-            <textarea
-              id="product-additions"
-              value={additions}
-              maxLength={200}
-              onChange={(event) => onAdditionsChange(event.target.value)}
-              placeholder={t(language, 'product.additionsPlaceholder')}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
-            />
-          </div>
-          <div>
-            <label htmlFor="product-exclusions" className="mb-2 block text-sm font-medium text-gray-700">
-              {t(language, 'product.exclusionsLabel')}
-            </label>
-            <textarea
-              id="product-exclusions"
-              value={exclusions}
-              maxLength={200}
-              onChange={(event) => onExclusionsChange(event.target.value)}
-              placeholder={t(language, 'product.exclusionsPlaceholder')}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
-            />
-          </div>
-        </div>
       </div>
       
-      {/* Action Buttons - Aligned with bottom of image */}
-      <div className="mt-auto pt-6">
-        {/* Show required attributes message if needed */}
+      <div className="rounded-2xl border border-neutral-200 bg-white pt-6">
         {isVariationRequired && (
           <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
             <p className="text-sm text-yellow-800 font-medium">
@@ -221,12 +185,17 @@ export function ProductInfoAndActions({
             </p>
           </div>
         )}
-        {/* Show unavailable attributes message if needed */}
         {hasUnavailableAttributes && !isVariationRequired && (
           <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-sm text-red-800 font-medium">
               {Array.from(unavailableAttributes.entries()).map(([attrKey]) => {
-                const productAttr = product?.productAttributes?.find((pa: any) => pa.attribute?.key === attrKey);
+                const productAttr = product?.productAttributes?.find((pa: unknown) => {
+                  if (typeof pa !== 'object' || pa === null) {
+                    return false;
+                  }
+                  const candidate = pa as { attribute?: { key?: string } };
+                  return candidate.attribute?.key === attrKey;
+                });
                 const attributeName = productAttr?.attribute?.name || attrKey.charAt(0).toUpperCase() + attrKey.slice(1);
                 return attrKey === 'color' ? t(language, 'product.color') : 
                        attrKey === 'size' ? t(language, 'product.size') : 
@@ -235,8 +204,8 @@ export function ProductInfoAndActions({
             </p>
           </div>
         )}
-        <div className="flex items-center gap-3 pt-4 border-t">
-          <div className="flex items-center border rounded-xl overflow-hidden bg-gray-50">
+        <div className="flex items-center gap-3 border-t border-neutral-200 pt-4">
+          <div className="flex items-center overflow-hidden rounded-xl border border-neutral-300 bg-gray-50">
             <button 
               onClick={() => onQuantityAdjust(-1)} 
               disabled={quantity <= 1}
@@ -255,7 +224,7 @@ export function ProductInfoAndActions({
           </div>
           <button 
             disabled={!canAddToCart || isAddingToCart} 
-            className="flex-1 h-12 bg-gray-900 text-white rounded-xl uppercase font-bold disabled:bg-gray-300 disabled:cursor-not-allowed"
+            className="h-12 flex-1 rounded-xl bg-gray-900 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-black disabled:cursor-not-allowed disabled:bg-gray-300"
             onClick={onAddToCart}
           >
             {isAddingToCart ? t(language, 'product.adding') : (isOutOfStock ? t(language, 'product.outOfStock') : (isVariationRequired ? getRequiredAttributesMessage() : (hasUnavailableAttributes ? t(language, 'product.outOfStock') : t(language, 'product.addToCart'))))}

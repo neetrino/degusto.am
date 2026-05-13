@@ -3,8 +3,9 @@
 import { useTranslation } from '../../lib/i18n-client';
 import { useCurrency } from '../hooks/useCurrency';
 import { formatPrice } from '../../lib/currency';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { KeyboardEvent, MouseEvent } from 'react';
+import { useMemo, useState } from 'react';
 import { useAddToCart } from '../hooks/useAddToCart';
 
 const assets = {
@@ -49,6 +50,10 @@ type DesktopMenuPageProps = {
   cards?: MenuCard[];
   categories?: MenuCategory[];
   activeCategorySlug?: string;
+  initialSearch?: string;
+  initialMinPrice?: string;
+  initialMaxPrice?: string;
+  initialFoodFilter?: 'leaf' | 'neutral' | 'pepper';
 };
 
 const fallbackCategoryKeys = [
@@ -86,17 +91,6 @@ const categoryIconUrls: readonly string[] = [
   'https://www.figma.com/api/mcp/asset/9abad853-0a02-45c4-bfad-b2db812cf47e',
   'https://www.figma.com/api/mcp/asset/f753dcb8-0d13-4c01-a132-9640f1282ad7',
 ];
-
-const fallbackCards: MenuCard[] = Array.from({ length: 12 }, (_, index) => ({
-  id: `menu-card-${index + 1}`,
-  slug: 'double-cheeseburger',
-  titleKey: 'home.figma.mobile.product.title',
-  subtitleKey: 'home.figma.mobile.product.subtitle',
-  categoryKey: 'home.figma.mobile.product.subtitle',
-  price: 1200,
-  oldPrice: 1200,
-  discount: '-30%',
-}));
 
 function MenuCardItem({ card }: { card: MenuCard }) {
   const { t } = useTranslation();
@@ -196,25 +190,80 @@ function MenuCardItem({ card }: { card: MenuCard }) {
   );
 }
 
-function FoodAttributeSwitcher() {
+function FoodAttributeSwitcher({
+  selectedOption,
+  onChange,
+}: {
+  selectedOption: 'leaf' | 'neutral' | 'pepper';
+  onChange: (_next: 'leaf' | 'neutral' | 'pepper') => void;
+}) {
   const { t } = useTranslation();
+  const optionOrder: Array<'leaf' | 'neutral' | 'pepper'> = ['leaf', 'neutral', 'pepper'];
+  const selectedIndex = optionOrder.indexOf(selectedOption);
+  const switcherBackgroundClassName =
+    selectedOption === 'leaf'
+      ? 'bg-[#7fb24a]'
+      : selectedOption === 'pepper'
+        ? 'bg-[#dc3f3a]'
+        : 'bg-[#aeb1ba]';
 
   return (
-    <button
-      type="button"
+    <div
+      role="radiogroup"
       aria-label={t('home.figma.desktop.shop.foodAttributeSwitcherAria')}
-      className="relative flex h-[46px] w-[120px] items-center gap-[6px] rounded-[40px] bg-[#f3f3f5] px-[4px]"
+      className={`relative flex h-[46px] w-[120px] items-center gap-[6px] rounded-[40px] px-[4px] transition-colors duration-200 ${switcherBackgroundClassName}`}
     >
-      <span className="inline-flex h-[32px] w-[32px] items-center justify-center rounded-full">
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute left-[6px] top-1/2 z-20 h-[28px] w-[28px] -translate-y-1/2 rounded-full border-2 border-white bg-white shadow-sm transition-transform duration-200"
+        style={{ transform: `translate(${selectedIndex * 38}px, -50%)` }}
+      />
+
+      <button
+        type="button"
+        role="radio"
+        aria-checked={selectedOption === 'leaf'}
+        onClick={() => onChange('leaf')}
+        className={`relative z-10 inline-flex h-[32px] w-[32px] items-center justify-center rounded-full transition-opacity ${
+          selectedOption === 'leaf' ? 'opacity-100' : 'opacity-70'
+        }`}
+      >
         <img src={assets.switcherLeafRibbon} alt="" className="h-[32px] w-[32px] object-contain" />
-      </span>
-      <span className="inline-flex h-[32px] w-[32px] items-center justify-center rounded-full bg-[#ececef] text-[22px] font-bold text-[#b5b5b8]">
-        ×
-      </span>
-      <span className="inline-flex h-[32px] w-[32px] items-center justify-center rounded-full bg-[#ff2b2e]">
+      </button>
+
+      <button
+        type="button"
+        role="radio"
+        aria-checked={selectedOption === 'neutral'}
+        onClick={() => onChange('neutral')}
+        className={`relative z-10 inline-flex h-[32px] w-[32px] items-center justify-center rounded-full bg-[#ececef] text-[#b5b5b8] transition-opacity ${
+          selectedOption === 'neutral' ? 'opacity-100' : 'opacity-70'
+        }`}
+      >
+        <svg
+          aria-hidden="true"
+          className="h-[15px] w-[15px]"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path d="M6 6L18 18" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+          <path d="M18 6L6 18" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+        </svg>
+      </button>
+
+      <button
+        type="button"
+        role="radio"
+        aria-checked={selectedOption === 'pepper'}
+        onClick={() => onChange('pepper')}
+        className={`relative z-10 inline-flex h-[32px] w-[32px] items-center justify-center rounded-full bg-[#ff2b2e] transition-opacity ${
+          selectedOption === 'pepper' ? 'opacity-100' : 'opacity-70'
+        }`}
+      >
         <img src={assets.switcherPepper} alt="" className="h-[19px] w-[19px] -rotate-[13deg] object-contain" />
-      </span>
-    </button>
+      </button>
+    </div>
   );
 }
 
@@ -225,26 +274,112 @@ export function FigmaDesktopMenuPage({
   cards,
   categories: dbCategories,
   activeCategorySlug = '',
+  initialSearch = '',
+  initialMinPrice = '',
+  initialMaxPrice = '',
+  initialFoodFilter = 'neutral',
 }: DesktopMenuPageProps) {
   const { t } = useTranslation();
   const router = useRouter();
-  const menuCards = cards && cards.length > 0 ? cards : fallbackCards;
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const menuCards = cards ?? [];
   const hasDbCategories = Array.isArray(dbCategories) && dbCategories.length > 0;
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
+  const [minPrice, setMinPrice] = useState(initialMinPrice);
+  const [maxPrice, setMaxPrice] = useState(initialMaxPrice);
+  const [foodFilter, setFoodFilter] = useState<'leaf' | 'neutral' | 'pepper'>(initialFoodFilter);
+  const routeBasePath = pathname?.startsWith('/combo') ? '/combo' : '/shop';
+
+  const buildTargetPath = useMemo(() => {
+    return (
+      categorySlug: string,
+      overrides?: {
+        search?: string;
+        minPrice?: string;
+        maxPrice?: string;
+        taste?: 'leaf' | 'neutral' | 'pepper';
+      }
+    ) => {
+      const params = new URLSearchParams(searchParams.toString());
+      const nextSearch = (overrides?.search ?? searchTerm).trim();
+      const nextMinPrice = (overrides?.minPrice ?? minPrice).trim();
+      const nextMaxPrice = (overrides?.maxPrice ?? maxPrice).trim();
+      const nextTaste = overrides?.taste ?? foodFilter;
+
+      if (categorySlug) {
+        params.set('category', categorySlug);
+      } else {
+        params.delete('category');
+      }
+
+      if (nextSearch) {
+        params.set('search', nextSearch);
+      } else {
+        params.delete('search');
+      }
+
+      if (nextMinPrice) {
+        params.set('minPrice', nextMinPrice);
+      } else {
+        params.delete('minPrice');
+      }
+
+      if (nextMaxPrice) {
+        params.set('maxPrice', nextMaxPrice);
+      } else {
+        params.delete('maxPrice');
+      }
+
+      if (nextTaste !== 'neutral') {
+        params.set('taste', nextTaste);
+      } else {
+        params.delete('taste');
+      }
+
+      const queryString = params.toString();
+      return queryString ? `${routeBasePath}?${queryString}` : routeBasePath;
+    };
+  }, [searchParams, searchTerm, minPrice, maxPrice, foodFilter, routeBasePath]);
+
+  const applyFilters = () => {
+    router.push(
+      buildTargetPath(activeCategorySlug, {
+        search: searchTerm,
+        minPrice,
+        maxPrice,
+        taste: foodFilter,
+      })
+    );
+  };
 
   return (
     <div className="hidden bg-white pb-20 pt-5 lg:block">
       <div className="mx-auto flex w-full max-w-[1470px] gap-8 px-3">
-        <aside className="sticky top-5 flex h-[calc(100vh-40px)] w-[320px] shrink-0 flex-col overflow-hidden rounded-[20px] bg-black pb-5 text-white">
+        <aside className="sticky top-[116px] flex h-[calc(100vh-132px)] w-[320px] shrink-0 flex-col overflow-hidden rounded-[20px] bg-black pb-5 text-white">
           <div className="border-b border-white/10 p-6">
-            <div className="relative flex h-[46px] items-center rounded-[40px] bg-[#f3f3f5] pl-10 pr-4 text-[16px] text-black/50">
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                applyFilters();
+              }}
+              className="relative flex h-[46px] items-center rounded-[40px] bg-[#f3f3f5] pl-10 pr-4 text-[16px] text-black/50"
+            >
               <span className="absolute left-4 text-[#7f7f80]" aria-hidden="true">
                 <svg className="h-5 w-5" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <circle cx="9" cy="9" r="6.5" stroke="currentColor" strokeWidth="2" />
                   <path d="M13.5 13.5L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                 </svg>
               </span>
-              <span>{t('common.buttons.search')}...</span>
-            </div>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder={`${t('common.buttons.search')}...`}
+                className="h-full w-full bg-transparent text-[16px] text-black outline-none placeholder:text-black/50"
+                aria-label={t('common.ariaLabels.search')}
+              />
+            </form>
           </div>
           <div className="flex min-h-0 flex-1 flex-col px-6 pt-[10px]">
             <p className="pb-[12px] text-[14px] font-medium uppercase tracking-[0.2px] text-[#717182]">{t('common.navigation.categories')}</p>
@@ -257,10 +392,7 @@ export function FigmaDesktopMenuPage({
                         key={category.id}
                         type="button"
                         onClick={() => {
-                          const targetPath = category.slug
-                            ? `/shop?category=${encodeURIComponent(category.slug)}`
-                            : '/shop';
-                          router.push(targetPath);
+                          router.push(buildTargetPath(category.slug));
                         }}
                         aria-pressed={isActive}
                         className={`flex h-10 w-full items-center rounded-[10px] px-3 py-[10px] text-left text-[14px] font-medium leading-5 tracking-[-0.15px] ${
@@ -306,27 +438,72 @@ export function FigmaDesktopMenuPage({
             </div>
             <div className="flex items-center gap-2 pt-[37px] text-sm text-[#717182]">
               <span className="px-1 text-base">{t('home.figma.desktop.shop.priceLabel')}</span>
-              <button
-                type="button"
+              <input
+                type="number"
+                min={0}
+                inputMode="numeric"
+                value={minPrice}
+                onChange={(event) => {
+                  const nextMinPrice = event.target.value;
+                  setMinPrice(nextMinPrice);
+                  router.replace(
+                    buildTargetPath(activeCategorySlug, {
+                      search: searchTerm,
+                      minPrice: nextMinPrice,
+                      maxPrice,
+                    })
+                  );
+                }}
+                placeholder={t('home.figma.desktop.shop.priceFrom')}
                 className="h-[46px] w-[109px] rounded-[40px] bg-[#f3f3f5] px-4 text-left text-base text-[#7f7f80]"
-              >
-                | {t('home.figma.desktop.shop.priceFrom')}
-              </button>
-              <button
-                type="button"
+              />
+              <input
+                type="number"
+                min={0}
+                inputMode="numeric"
+                value={maxPrice}
+                onChange={(event) => {
+                  const nextMaxPrice = event.target.value;
+                  setMaxPrice(nextMaxPrice);
+                  router.replace(
+                    buildTargetPath(activeCategorySlug, {
+                      search: searchTerm,
+                      minPrice,
+                      maxPrice: nextMaxPrice,
+                    })
+                  );
+                }}
+                placeholder={t('home.figma.desktop.shop.priceTo')}
                 className="h-[46px] w-[109px] rounded-[40px] bg-[#f3f3f5] px-4 text-left text-base text-[#7f7f80]"
-              >
-                | {t('home.figma.desktop.shop.priceTo')}
-              </button>
-              <FoodAttributeSwitcher />
+              />
+              <FoodAttributeSwitcher
+                selectedOption={foodFilter}
+                onChange={(nextTaste) => {
+                  setFoodFilter(nextTaste);
+                  router.replace(
+                    buildTargetPath(activeCategorySlug, {
+                      search: searchTerm,
+                      minPrice,
+                      maxPrice,
+                      taste: nextTaste,
+                    })
+                  );
+                }}
+              />
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-x-[30px] gap-y-[34px]">
-            {menuCards.map((card) => (
-              <MenuCardItem key={card.id} card={card} />
-            ))}
-          </div>
+          {menuCards.length > 0 ? (
+            <div className="grid grid-cols-4 gap-x-[30px] gap-y-[34px]">
+              {menuCards.map((card) => (
+                <MenuCardItem key={card.id} card={card} />
+              ))}
+            </div>
+          ) : (
+            <div className="flex min-h-[280px] items-center justify-center rounded-[20px] border border-dashed border-[#d4d4d8] bg-[#fafafc] px-6 text-center text-[18px] font-medium text-[#717182]">
+              {t('common.messages.noProductsFound')}
+            </div>
+          )}
 
           <div className="mt-16 flex justify-center">
             <button type="button" className="rounded-[40px] bg-[#ff7f20] px-8 py-4 text-base font-bold text-white">
