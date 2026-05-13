@@ -85,8 +85,11 @@ export function clearCurrencyRatesCache(): void {
 
 const CURRENCY_STORAGE_KEY = 'shop_currency';
 
+/** Matches `getStoredCurrency()` when `window` is undefined (SSR / first paint). */
+export const HYDRATION_SAFE_CURRENCY: CurrencyCode = 'AMD';
+
 export function getStoredCurrency(): CurrencyCode {
-  if (typeof window === 'undefined') return 'AMD';
+  if (typeof window === 'undefined') return HYDRATION_SAFE_CURRENCY;
   try {
     const stored = localStorage.getItem(CURRENCY_STORAGE_KEY);
     if (stored && stored in CURRENCIES) {
