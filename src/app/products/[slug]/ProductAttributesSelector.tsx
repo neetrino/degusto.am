@@ -33,7 +33,6 @@ interface ProductAttributesSelectorProps {
   hasUnavailableAttributes: boolean;
   canAddToCart: boolean;
   isAddingToCart: boolean;
-  showMessage: string | null;
   onColorSelect: (color: string) => void;
   onSizeSelect: (size: string) => void;
   onAttributeValueSelect: (attrKey: string, value: string) => void;
@@ -85,7 +84,7 @@ export function ProductAttributesSelector({
   }
 
   return (
-    <div className="mt-8 p-4 bg-white border border-gray-200 rounded-2xl space-y-4">
+    <div className="space-y-4">
       {/* Attribute Selectors - Support both new (productAttributes) and old (colorGroups) format */}
       {/* Display all attributes from attributeGroups, not just from productAttributes */}
       {useNewFormat ? (

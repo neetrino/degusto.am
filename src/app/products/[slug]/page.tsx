@@ -13,6 +13,7 @@ import { ProductPageShell } from './ProductPageShell';
 import { useProductPage } from './useProductPage';
 import { playCartFlyAnimation } from '../../../lib/cart-fly-animation';
 import { BodyBackground } from '../../../components/BodyBackground';
+import { logger } from '@/lib/utils/logger';
 import {
   buildCustomizationLineKey,
   normalizeProductCustomizations,
@@ -37,8 +38,6 @@ export default function ProductPage({ params }: ProductPageProps) {
     selectedAttributeValues,
     isAddingToCart,
     setIsAddingToCart,
-    showMessage,
-    setShowMessage,
     additions,
     exclusions,
     setAdditions,
@@ -134,13 +133,13 @@ export default function ProductPage({ params }: ProductPageProps) {
           customizations,
         });
       }
-      setShowMessage(`${t(language, 'product.addedToCart')} ${quantity} ${t(language, 'product.pcs')}`);
       window.dispatchEvent(new Event('cart-updated'));
-    } catch {
-      setShowMessage(t(language, 'product.errorAddingToCart'));
+    } catch (error: unknown) {
+      logger.warn('Add to cart failed', {
+        error: error instanceof Error ? error.message : String(error),
+      });
     } finally {
       setIsAddingToCart(false);
-      setTimeout(() => setShowMessage(null), 2000);
     }
   };
 
@@ -236,7 +235,6 @@ export default function ProductPage({ params }: ProductPageProps) {
               isAddingToCart={isAddingToCart}
               isInWishlist={isInWishlist}
               isInCompare={isInCompare}
-              showMessage={showMessage}
               isLoggedIn={isLoggedIn}
               currentVariant={currentVariant}
               attributeGroups={attributeGroups}
