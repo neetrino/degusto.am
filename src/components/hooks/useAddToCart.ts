@@ -9,6 +9,7 @@ import { logger } from '../../lib/utils/logger';
 import { useAuth } from '../../lib/auth/AuthContext';
 import { useTranslation } from '../../lib/i18n-client';
 import { playCartFlyAnimation } from '../../lib/cart-fly-animation';
+import { writeCartSummaryCache } from '../../lib/cartSummaryCache';
 
 interface ProductDetails {
   id: string;
@@ -119,8 +120,13 @@ export function useAddToCart({ productId, productSlug, inStock, defaultVariantId
           });
         }
 
+        const itemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+        const total = cart.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
         localStorage.setItem(CART_KEY, JSON.stringify(cart));
-        window.dispatchEvent(new Event('cart-updated'));
+        writeCartSummaryCache(itemsCount, total);
+        window.dispatchEvent(new CustomEvent('cart-updated', {
+          detail: { itemsCount, total },
+        }));
       } catch (error: unknown) {
         logger.error('[PRODUCT CARD] Error adding to guest cart', { error });
         const err = error as { message?: string; status?: number };
@@ -137,11 +143,6 @@ export function useAddToCart({ productId, productSlug, inStock, defaultVariantId
 
     setIsAddingToCart(true);
 
-    const unitPrice = propPrice ?? 0;
-    window.dispatchEvent(new CustomEvent('cart-updated', {
-      detail: { optimisticAdd: { quantity: 1, price: unitPrice } },
-    }));
-
     try {
       let variantId: string;
       if (defaultVariantId) {
@@ -153,7 +154,8 @@ export function useAddToCart({ productId, productSlug, inStock, defaultVariantId
           alert(t('common.alerts.noVariantsAvailable'));
           return;
         }
-        variantId = productDetails.variants[0].id;
+        const firstVariant = productDetails.variants[0];
+        variantId = firstVariant.id;
       }
 
       const response = await apiClient.post<{

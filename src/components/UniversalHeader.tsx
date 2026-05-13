@@ -9,6 +9,7 @@ import { apiClient } from '../lib/api-client';
 import { CART_KEY } from '../lib/storageCounts';
 import { formatPrice } from '../lib/currency';
 import { useCurrency } from './hooks/useCurrency';
+import { readCartSummaryCache, writeCartSummaryCache } from '../lib/cartSummaryCache';
 
 const assets = {
   logo: 'https://www.figma.com/api/mcp/asset/b684f5ca-5543-4689-be84-ac53b6c5d14c',
@@ -49,6 +50,12 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
   const userNavHref = isLoggedIn ? '/profile' : '/login';
 
   useEffect(() => {
+    const cached = readCartSummaryCache();
+    if (cached) {
+      setCartCount(cached.itemsCount);
+      setCartTotal(cached.total);
+    }
+
     const readGuestCart = () => {
       try {
         const stored = localStorage.getItem(CART_KEY);
@@ -58,9 +65,11 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
         const total = items.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
         setCartCount(itemsCount);
         setCartTotal(total);
+        writeCartSummaryCache(itemsCount, total);
       } catch {
         setCartCount(0);
         setCartTotal(0);
+        writeCartSummaryCache(0, 0);
       }
     };
 
@@ -74,9 +83,11 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
         const response = await apiClient.get<CartResponse>('/api/v1/cart');
         setCartCount(response.cart?.itemsCount || 0);
         setCartTotal(response.cart?.totals?.total || 0);
+        writeCartSummaryCache(response.cart?.itemsCount || 0, response.cart?.totals?.total || 0);
       } catch {
         setCartCount(0);
         setCartTotal(0);
+        writeCartSummaryCache(0, 0);
       }
     };
 
@@ -88,14 +99,22 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
       if (detail?.optimisticAdd) {
         const nextQuantity = detail.optimisticAdd.quantity ?? 1;
         const nextPrice = detail.optimisticAdd.price ?? 0;
-        setCartCount((prev) => prev + nextQuantity);
-        setCartTotal((prev) => prev + nextPrice * nextQuantity);
+        setCartCount((prevCount) => {
+          const nextCount = prevCount + nextQuantity;
+          setCartTotal((prevTotal) => {
+            const nextTotal = prevTotal + nextPrice * nextQuantity;
+            writeCartSummaryCache(nextCount, nextTotal);
+            return nextTotal;
+          });
+          return nextCount;
+        });
         return;
       }
 
       if (detail?.itemsCount !== undefined && detail?.total !== undefined) {
         setCartCount(detail.itemsCount);
         setCartTotal(detail.total);
+        writeCartSummaryCache(detail.itemsCount, detail.total);
         return;
       }
 
@@ -142,8 +161,8 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
         </div>
         <div className="ml-3 flex items-center gap-[11px]">
           <div className="hidden items-center gap-[7px] md:flex">
-            <Link href="/cart" className="relative h-12 w-[117px] shrink-0">
-              <span className="absolute right-0 top-0 inline-flex h-12 w-[88px] items-center justify-center rounded-[70px] bg-white text-base font-bold text-black">
+            <Link href="/cart" className="relative inline-flex h-12 min-w-[117px] shrink-0 items-center justify-end pl-10">
+              <span className="inline-flex h-12 min-w-[88px] items-center justify-center whitespace-nowrap rounded-[70px] bg-white px-4 text-base font-bold tabular-nums text-black">
                 {formatPrice(cartTotal, currency)}
               </span>
               <span data-cart-fly-target className="absolute bottom-[1px] left-2 inline-flex h-[34px] w-[37px] items-center justify-center">

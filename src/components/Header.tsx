@@ -22,6 +22,7 @@ import { Instagram, Facebook, Linkedin, Globe } from 'lucide-react';
 import { CompareIcon } from './icons/CompareIcon';
 import { BrandLogoLink } from './BrandLogoLink';
 import { CartIcon } from './icons/CartIcon';
+import { readCartSummaryCache, writeCartSummaryCache } from '../lib/cartSummaryCache';
 
 // Navigation links will be translated dynamically using useTranslation hook
 const primaryNavLinks = [
@@ -313,10 +314,12 @@ export function Header() {
         const total = guestCart.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
         setCartCount(itemsCount);
         setCartTotal(total);
+        writeCartSummaryCache(itemsCount, total);
       } catch (error) {
         console.error('Error loading guest cart:', error);
         setCartCount(0);
         setCartTotal(0);
+        writeCartSummaryCache(0, 0);
       }
       return;
     }
@@ -342,6 +345,7 @@ export function Header() {
 
       setCartCount(response.cart?.itemsCount || 0);
       setCartTotal(response.cart?.totals?.total || 0);
+      writeCartSummaryCache(response.cart?.itemsCount || 0, response.cart?.totals?.total || 0);
     } catch (error: unknown) {
       const err = error as { status?: number; statusCode?: number };
       const status = err?.status ?? err?.statusCode;
@@ -352,11 +356,18 @@ export function Header() {
       }
       setCartCount(0);
       setCartTotal(0);
+      writeCartSummaryCache(0, 0);
     }
   };
 
   // Load wishlist and compare counts from localStorage
   useEffect(() => {
+    const cached = readCartSummaryCache();
+    if (cached) {
+      setCartCount(cached.itemsCount);
+      setCartTotal(cached.total);
+    }
+
     const updateCounts = () => {
       setWishlistCount(getWishlistCount());
       setCompareCount(getCompareCount());
@@ -383,13 +394,23 @@ export function Header() {
     const handleCartUpdate = (e: Event) => {
       const detail = (e as CustomEvent)?.detail;
       if (detail?.optimisticAdd) {
-        setCartCount((c) => c + (detail.optimisticAdd.quantity ?? 1));
-        setCartTotal((t) => t + (detail.optimisticAdd.price ?? 0) * (detail.optimisticAdd.quantity ?? 1));
+        const nextQuantity = detail.optimisticAdd.quantity ?? 1;
+        const nextPrice = detail.optimisticAdd.price ?? 0;
+        setCartCount((c) => {
+          const nextCount = c + nextQuantity;
+          setCartTotal((t) => {
+            const nextTotal = t + nextPrice * nextQuantity;
+            writeCartSummaryCache(nextCount, nextTotal);
+            return nextTotal;
+          });
+          return nextCount;
+        });
         return;
       }
       if (detail?.itemsCount !== undefined && detail?.total !== undefined) {
         setCartCount(detail.itemsCount);
         setCartTotal(detail.total);
+        writeCartSummaryCache(detail.itemsCount, detail.total);
         return;
       }
       fetchCart();
