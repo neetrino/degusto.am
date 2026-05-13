@@ -8,6 +8,7 @@ import { LanguageCurrencySwitcher } from '../LanguageCurrencySwitcher';
 import { useTranslation } from '../../lib/i18n-client';
 import { formatPrice } from '../../lib/currency';
 import { useCurrency } from '../hooks/useCurrency';
+import { getHomeCategoryHref } from './homeCategoryLinks';
 
 const mobileAssets = {
   logo: '/api/r2/logo/20260512-SkrFbnskhy.png',
@@ -41,6 +42,8 @@ const mobileAssets = {
 
 type MobileCategory = {
   id: string;
+  slug: string;
+  title?: string;
   titleKey: string;
   image: string;
   framed?: boolean;
@@ -69,11 +72,11 @@ function getMobilePriceSizeClass(formattedPrice: string): string {
 }
 
 const mobileCategories: MobileCategory[] = [
-  { id: 'pizza', titleKey: 'home.figma.mobile.category.pizza', image: mobileAssets.categoryPizza, framed: true },
-  { id: 'burger', titleKey: 'home.figma.mobile.category.burger', image: mobileAssets.categoryBurger },
-  { id: 'sushi', titleKey: 'home.figma.mobile.category.sushi', image: mobileAssets.categorySushi },
-  { id: 'salad', titleKey: 'home.figma.mobile.category.salad', image: mobileAssets.categorySalad },
-  { id: 'soup', titleKey: 'home.figma.mobile.category.soup', image: mobileAssets.categorySoup },
+  { id: 'pizza', slug: 'pizza', titleKey: 'home.figma.mobile.category.pizza', image: mobileAssets.categoryPizza, framed: true },
+  { id: 'burger', slug: 'burger', titleKey: 'home.figma.mobile.category.burger', image: mobileAssets.categoryBurger },
+  { id: 'sushi', slug: 'sushi', titleKey: 'home.figma.mobile.category.sushi', image: mobileAssets.categorySushi },
+  { id: 'salad', slug: 'salads', titleKey: 'home.figma.mobile.category.salad', image: mobileAssets.categorySalad },
+  { id: 'soup', slug: 'soups', titleKey: 'home.figma.mobile.category.soup', image: mobileAssets.categorySoup },
 ];
 
 const mobileProducts: MobileProduct[] = Array.from({ length: 12 }, (_, index) => ({
@@ -96,23 +99,32 @@ function MobileSectionHeader({ title }: { title: string }) {
   );
 }
 
-function MobileCategoryStrip() {
+function MobileCategoryStrip({ categories }: { categories: MobileCategory[] }) {
   const { t } = useTranslation();
   return (
     <div className="space-y-3">
       <MobileSectionHeader title={t('common.navigation.categories')} />
       <div className="grid grid-cols-5 gap-2 pb-1">
-        {mobileCategories.map((category) => (
-          <article key={category.id} className="min-w-0">
+        {categories.map((category) => {
+          const title = category.title ?? t(category.titleKey);
+
+          return (
+          <Link
+            key={category.id}
+            href={getHomeCategoryHref({ slug: category.slug, title })}
+            className="min-w-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f66a13]"
+            aria-label={title}
+          >
             <div className="relative mx-auto flex h-[72px] w-[48px] items-center justify-center rounded-[24px] bg-[#090909]">
               {category.framed ? (
                 <img src={mobileAssets.categoryFrame} alt="" className="absolute inset-0 h-full w-full object-contain" />
               ) : null}
-              <img src={category.image} alt={t(category.titleKey)} className="relative h-[42px] w-[40px] rounded-[10px] object-cover" />
+              <img src={category.image} alt={title} className="relative h-[42px] w-[40px] rounded-[10px] object-cover" />
             </div>
-            <p className="mt-[6px] text-center text-xs leading-5 text-black">{t(category.titleKey)}</p>
-          </article>
-        ))}
+            <p className="mt-[6px] text-center text-xs leading-5 text-black">{title}</p>
+          </Link>
+          );
+        })}
       </div>
       <div className="pt-1">
         <MobileSliderIndicator />
@@ -212,10 +224,27 @@ function MobileCategorySliderIndicator() {
   );
 }
 
-export function FigmaHomePageMobile() {
+type FigmaHomePageMobileProps = {
+  categories?: Array<{
+    id: string;
+    slug: string;
+    title: string;
+    image: string;
+  }>;
+};
+
+export function FigmaHomePageMobile({ categories = [] }: FigmaHomePageMobileProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
   const { t } = useTranslation();
+  const displayCategories =
+    categories.length > 0
+      ? categories.slice(0, mobileCategories.length).map((category, index) => ({
+          ...category,
+          titleKey: mobileCategories[index]?.titleKey ?? 'common.navigation.categories',
+          framed: index === 0,
+        }))
+      : mobileCategories;
 
   const handleOpenShopPicker = () => {
     router.push('/shop');
@@ -260,7 +289,7 @@ export function FigmaHomePageMobile() {
       </header>
 
       <main className="relative z-10 mt-[87px] rounded-t-[30px] bg-white px-[19px] pb-[110px] pt-8">
-        <MobileCategoryStrip />
+        <MobileCategoryStrip categories={displayCategories} />
         <div className="mt-[22px]">
           <MobileDailyOffer />
         </div>

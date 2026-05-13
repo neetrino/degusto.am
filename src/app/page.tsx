@@ -235,6 +235,7 @@ export default async function HomePage() {
   const categoryTotalMap = new Map(categoryTotals.map((item) => [item.primaryCategoryId, toCountNumber(item.total)]));
   const homeCategories: HomeCategoryItem[] = selectedCategories.map((category, index) => ({
     id: category.id,
+    slug: category.slug,
     title: category.title,
     count: categoryTotalMap.get(category.id) ?? 0,
     image:

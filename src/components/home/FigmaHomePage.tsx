@@ -10,6 +10,7 @@ import { useTranslation } from '../../lib/i18n-client';
 import { useCurrency } from '../hooks/useCurrency';
 import { formatPrice } from '../../lib/currency';
 import { useAddToCart } from '../hooks/useAddToCart';
+import { getHomeCategoryHref } from './homeCategoryLinks';
 
 const assets = {
   heroBg: '/api/r2/hero/20260512-tOKhBzyB6u.png',
@@ -41,6 +42,7 @@ export type HomeFeaturedProduct = {
 
 export type HomeCategoryItem = {
   id: string;
+  slug: string;
   title: string;
   count: number;
   image: string;
@@ -60,10 +62,10 @@ const fallbackFeaturedProducts: HomeFeaturedProduct[] = [
 ];
 
 const fallbackCategories: HomeCategoryItem[] = [
-  { id: 'cat-fallback-1', title: 'Ապուրներ եւ տաք ուտեստներ', count: 78, image: assets.categorySoup },
-  { id: 'cat-fallback-2', title: 'Աղցաններ', count: 41, image: assets.categorySalad },
-  { id: 'cat-fallback-3', title: 'Շաուրմա', count: 18, image: assets.categoryShawarma },
-  { id: 'cat-fallback-4', title: 'Պիցցա', count: 44, image: assets.categoryPizza },
+  { id: 'cat-fallback-1', slug: 'soups', title: 'Ապուրներ եւ տաք ուտեստներ', count: 78, image: assets.categorySoup },
+  { id: 'cat-fallback-2', slug: 'salads', title: 'Աղցաններ', count: 41, image: assets.categorySalad },
+  { id: 'cat-fallback-3', slug: 'shawarma', title: 'Շաուրմա', count: 18, image: assets.categoryShawarma },
+  { id: 'cat-fallback-4', slug: 'pizza', title: 'Պիցցա', count: 44, image: assets.categoryPizza },
 ];
 
 function NewsCard({ item }: { item: HomeFeaturedProduct }) {
@@ -167,11 +169,15 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
 
 function CategoryCard({ item }: { item: HomeCategoryItem }) {
   return (
-    <article className="rounded-[22px] bg-[#0c0d12] p-4">
+    <Link
+      href={getHomeCategoryHref(item)}
+      className="block rounded-[22px] bg-[#0c0d12] p-4 transition-transform hover:-translate-y-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#f66913]"
+      aria-label={item.title}
+    >
       <h3 className="min-h-[56px] text-2xl font-black leading-tight text-white">{item.title}</h3>
       <p className="mb-2 mt-1 text-sm text-white/80">({item.count} ապրանք)</p>
       <img src={item.image} alt={item.title} className="mx-auto h-[190px] w-full max-w-[240px] object-contain" />
-    </article>
+    </Link>
   );
 }
 
@@ -208,7 +214,7 @@ export function FigmaHomePage({
   return (
     <>
       <div className="lg:hidden">
-        <FigmaHomePageMobile />
+        <FigmaHomePageMobile categories={homeCategories} />
       </div>
       <div className="hidden min-h-screen overflow-x-hidden bg-[var(--project-color)] lg:block">
       <section className="relative w-full overflow-hidden bg-[var(--project-color)] pb-56 pt-8 lg:h-[930px] lg:pb-0 lg:[aspect-ratio:231/130]">
