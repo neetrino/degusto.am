@@ -34,6 +34,7 @@ interface StoredCoupon {
   startsAt?: string;
   expiresAt?: string;
   minOrderAmount?: number;
+  maxUsesPerUser?: number;
 }
 
 interface AppliedCouponResult {
@@ -59,14 +60,62 @@ class OrdersService {
       data,
       userId,
       resolveCouponDiscount: (subtotal, couponCode) => {
-        return this.resolveCouponDiscount(subtotal, couponCode);
+        return this.resolveCouponDiscount(subtotal, couponCode, {
+          userId,
+          customerEmail: data.email,
+        });
       },
     });
   }
 
+  async previewCouponDiscount(subtotal: number, couponCode: string) {
+    if (!Number.isFinite(subtotal) || subtotal < 0) {
+      throw {
+        status: 400,
+        type: "https://api.shop.am/problems/validation-error",
+        title: "Validation Error",
+        detail: "subtotal must be a valid non-negative number",
+      };
+    }
+
+    const normalizedCouponCode = couponCode.trim().toUpperCase();
+    if (!/^[A-Z0-9_-]{3,32}$/.test(normalizedCouponCode)) {
+      throw {
+        status: 400,
+        type: "https://api.shop.am/problems/validation-error",
+        title: "Validation Error",
+        detail: "couponCode format is invalid",
+      };
+    }
+
+    const appliedCoupon = await this.resolveCouponDiscount(subtotal, normalizedCouponCode);
+    if (!appliedCoupon) {
+      throw {
+        status: 400,
+        type: "https://api.shop.am/problems/validation-error",
+        title: "Validation Error",
+        detail: "Coupon code is invalid",
+      };
+    }
+
+    const totalAfterDiscount = Math.max(
+      0,
+      Math.round((subtotal - appliedCoupon.discountAmount) * 100) / 100
+    );
+
+    return {
+      data: {
+        code: appliedCoupon.code,
+        discountAmount: appliedCoupon.discountAmount,
+        totalAfterDiscount,
+      },
+    };
+  }
+
   private async resolveCouponDiscount(
     subtotal: number,
-    couponCode: string | null
+    couponCode: string | null,
+    options?: { userId?: string; customerEmail?: string }
   ): Promise<AppliedCouponResult | null> {
     if (!couponCode) {
       return null;
@@ -120,6 +169,40 @@ class OrdersService {
         title: "Validation Error",
         detail: `Coupon requires minimum order amount of ${minOrderAmount}`,
       };
+    }
+
+    const maxUsesPerUser =
+      typeof coupon.maxUsesPerUser === "number" &&
+      Number.isFinite(coupon.maxUsesPerUser) &&
+      Number.isInteger(coupon.maxUsesPerUser) &&
+      coupon.maxUsesPerUser > 0
+        ? coupon.maxUsesPerUser
+        : null;
+    if (maxUsesPerUser !== null) {
+      const hasUserIdentity = Boolean(options?.userId || options?.customerEmail);
+      if (hasUserIdentity) {
+        const usageFilter: Prisma.OrderWhereInput = {
+          notes: {
+            contains: `Coupon code: ${couponCode}`,
+          },
+        };
+
+        if (options?.userId) {
+          usageFilter.userId = options.userId;
+        } else if (options?.customerEmail) {
+          usageFilter.customerEmail = options.customerEmail;
+        }
+
+        const usedCount = await db.order.count({ where: usageFilter });
+        if (usedCount >= maxUsesPerUser) {
+          throw {
+            status: 400,
+            type: "https://api.shop.am/problems/validation-error",
+            title: "Validation Error",
+            detail: `Coupon usage limit reached for this user (${maxUsesPerUser})`,
+          };
+        }
+      }
     }
 
     const discountType = coupon.discountType === "fixed" ? "fixed" : "percent";

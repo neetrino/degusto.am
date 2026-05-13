@@ -125,6 +125,21 @@ export function getAdminMenuTABS(t: (path: string) => string): AdminMenuItem[] {
     ),
   },
   {
+    id: 'promocode',
+    label: t('admin.menu.promocode'),
+    path: '/supersudo/promocode',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M8 9l3 3-3 3m5 0h3m-9 6h10a2 2 0 002-2V7a2 2 0 00-2-2h-3l-1-2H9L8 5H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+        />
+      </svg>
+    ),
+  },
+  {
     id: 'users',
     label: t('admin.menu.users'),
     path: '/supersudo/users',
