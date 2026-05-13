@@ -10,6 +10,7 @@ import { useTranslation } from '../../lib/i18n-client';
 import { useCurrency } from '../hooks/useCurrency';
 import { formatPrice } from '../../lib/currency';
 import { useAddToCart } from '../hooks/useAddToCart';
+import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
 
 const assets = {
   heroBg: '/api/r2/hero/20260512-tOKhBzyB6u.png',
@@ -333,7 +334,11 @@ export function FigmaHomePage({
       <section className="h-[700px] w-full rounded-t-[40px] bg-[#0c0d12] pb-14 pt-6">
         <div className="w-full px-4 md:px-8 ">
           <div className="flex items-center justify-between">
-            <h2 className="translate-x-[70px] translate-y-[70px] text-4xl font-black text-white md:text-6xl">
+            <h2
+              className={`translate-x-[70px] translate-y-[70px] text-4xl font-black text-white md:text-6xl${
+                lang === 'hy' ? ` ${mirageExpandedFont.className}` : ''
+              }`}
+            >
               <span className="text-[#f66913]">{t('home.figma.desktop.specialOffersTitleAccent')}</span>
               {t('home.figma.desktop.specialOffersTitleMain')}
             </h2>
@@ -352,7 +357,13 @@ export function FigmaHomePage({
       <div className="bg-black">
         <section className="rounded-t-[40px] bg-[#e6e6e8] px-4 pb-20 pt-10 md:px-8 lg:px-12">
           <div className="mx-auto max-w-[1280px]">
-            <h2 className="mb-8 text-5xl font-black text-black md:text-6xl">{t('home.figma.desktop.categoriesTitle')}</h2>
+            <h2
+              className={`mb-8 text-5xl font-black text-black md:text-6xl${
+                lang === 'hy' ? ` ${mirageExpandedFont.className}` : ''
+              }`}
+            >
+              {t('home.figma.desktop.categoriesTitle')}
+            </h2>
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {homeCategories.map((item) => (
                 <CategoryCard key={item.id} item={item} />

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { MobileBottomNavigation } from './MobileBottomNavigation';
 import { LanguageCurrencySwitcher } from '../LanguageCurrencySwitcher';
 import { useTranslation } from '../../lib/i18n-client';
+import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
 import { formatPrice } from '../../lib/currency';
 import { useCurrency } from '../hooks/useCurrency';
 
@@ -84,11 +85,15 @@ const mobileProducts: MobileProduct[] = Array.from({ length: 12 }, (_, index) =>
   oldPrice: 1200,
 }));
 
-function MobileSectionHeader({ title }: { title: string }) {
+function MobileSectionHeader({ title, titleClassName }: { title: string; titleClassName?: string }) {
   const { t } = useTranslation();
   return (
     <div className="flex items-center justify-between">
-      <h2 className="text-base font-semibold leading-5 text-black">{title}</h2>
+      <h2
+        className={`text-base font-semibold leading-5 text-black${titleClassName ? ` ${titleClassName}` : ''}`}
+      >
+        {title}
+      </h2>
       <Link href="/shop" className="text-base font-bold leading-6 text-[#f66a13]">
         {t('common.buttons.viewMore')} {'>'}
       </Link>
@@ -96,11 +101,14 @@ function MobileSectionHeader({ title }: { title: string }) {
   );
 }
 
-function MobileCategoryStrip() {
+function MobileCategoryStrip({ categoriesTitleClassName }: { categoriesTitleClassName?: string }) {
   const { t } = useTranslation();
   return (
     <div className="space-y-3">
-      <MobileSectionHeader title={t('common.navigation.categories')} />
+      <MobileSectionHeader
+        title={t('common.navigation.categories')}
+        titleClassName={categoriesTitleClassName}
+      />
       <div className="grid grid-cols-5 gap-2 pb-1">
         {mobileCategories.map((category) => (
           <article key={category.id} className="min-w-0">
@@ -215,7 +223,8 @@ function MobileCategorySliderIndicator() {
 export function FigmaHomePageMobile() {
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
+  const categoriesTitleClassName = lang === 'hy' ? mirageExpandedFont.className : undefined;
 
   const handleOpenShopPicker = () => {
     router.push('/shop');
@@ -260,7 +269,7 @@ export function FigmaHomePageMobile() {
       </header>
 
       <main className="relative z-10 mt-[87px] rounded-t-[30px] bg-white px-[19px] pb-[110px] pt-8">
-        <MobileCategoryStrip />
+        <MobileCategoryStrip categoriesTitleClassName={categoriesTitleClassName} />
         <div className="mt-[22px]">
           <MobileDailyOffer />
         </div>
@@ -278,7 +287,10 @@ export function FigmaHomePageMobile() {
         </div>
 
         <div className="mt-[30px] space-y-[22px]">
-          <MobileSectionHeader title={t('common.navigation.categories')} />
+          <MobileSectionHeader
+            title={t('common.navigation.categories')}
+            titleClassName={categoriesTitleClassName}
+          />
           <div className="grid grid-cols-2 gap-x-[14px] gap-y-[22px]">
             {mobileProducts.slice(4, 8).map((product) => (
               <MobileProductCard key={`cat-a-${product.id}`} product={product} />
@@ -287,7 +299,10 @@ export function FigmaHomePageMobile() {
         </div>
 
         <div className="mt-[30px] space-y-[22px]">
-          <MobileSectionHeader title={t('common.navigation.categories')} />
+          <MobileSectionHeader
+            title={t('common.navigation.categories')}
+            titleClassName={categoriesTitleClassName}
+          />
           <div className="grid grid-cols-2 gap-x-[14px] gap-y-[22px]">
             {mobileProducts.slice(8, 12).map((product) => (
               <MobileProductCard key={`cat-b-${product.id}`} product={product} />

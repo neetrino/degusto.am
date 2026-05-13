@@ -3,6 +3,7 @@ import { FigmaHomePage, type HomeCategoryItem, type HomeFeaturedProduct } from '
 import { db } from '@white-shop/db';
 import { Prisma } from '@prisma/client';
 import { cookies } from 'next/headers';
+import { isPrismaConnectionError } from '@/lib/http/api-route-errors';
 import { resolveStorefrontLocaleFromCookie, type StorefrontLocale } from '@/lib/i18n/locale';
 import { logger } from '@/lib/utils/logger';
 
@@ -23,11 +24,21 @@ function isPrismaPoolTimeout(error: unknown): boolean {
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2024';
 }
 
+/**
+ * Retries pool timeouts; in development, returns fallback when PostgreSQL is unreachable
+ * so the home layout still renders (FigmaHomePage uses built-in demo data when arrays are empty).
+ */
 async function withPrismaPoolRetry<T>(operation: () => Promise<T>, fallback: T, operationName: string): Promise<T> {
   for (let attempt = 0; attempt <= HOME_DB_RETRY_ATTEMPTS; attempt += 1) {
     try {
       return await operation();
     } catch (error: unknown) {
+      if (process.env.NODE_ENV === 'development' && isPrismaConnectionError(error)) {
+        const code =
+          error instanceof Prisma.PrismaClientKnownRequestError ? error.code : 'initialization';
+        logger.warn(`[HOME] Database unreachable in development; empty ${operationName}`, { code });
+        return fallback;
+      }
       if (!isPrismaPoolTimeout(error)) {
         throw error;
       }
