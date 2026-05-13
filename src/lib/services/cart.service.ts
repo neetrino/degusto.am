@@ -10,6 +10,19 @@ import {
 import { ensureCartItemCustomizationsColumn } from "../utils/db-ensure";
 
 class CartService {
+  private extractVariantImageUrl(imageUrl: string | null | undefined): string | null {
+    if (!imageUrl) {
+      return null;
+    }
+
+    const first = imageUrl
+      .split(",")
+      .map((part) => part.trim())
+      .find((part) => part.length > 0);
+
+    return first || null;
+  }
+
   private isCartCustomizationsMissingError(error: unknown): boolean {
     const errorObj = error as { code?: string; message?: string };
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -141,7 +154,7 @@ class CartService {
           product?.translations?.find((t: { locale: string }) => t.locale === locale) ||
           product?.translations?.[0];
 
-        const imageUrl = extractMediaUrl(product?.media);
+        const imageUrl = this.extractVariantImageUrl(variant?.imageUrl) ?? extractMediaUrl(product?.media);
 
         const productDiscount = product?.discountPercent ?? 0;
         let appliedDiscount = 0;

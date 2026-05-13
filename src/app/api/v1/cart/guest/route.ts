@@ -30,6 +30,7 @@ interface GuestCartVariant {
   price: number;
   compareAtPrice: number | null;
   stock: number;
+  imageUrl: string | null;
 }
 
 interface GuestCartProduct {
@@ -88,6 +89,19 @@ function pickFirstImage(media: unknown): string | null {
   return null;
 }
 
+function pickVariantImage(imageUrl: string | null | undefined): string | null {
+  if (!imageUrl || typeof imageUrl !== "string") {
+    return null;
+  }
+
+  const first = imageUrl
+    .split(",")
+    .map((part) => part.trim())
+    .find((part) => part.length > 0);
+
+  return first || null;
+}
+
 function sanitizeItems(items: GuestCartItemInput[] | undefined): GuestCartItemInput[] {
   if (!Array.isArray(items)) {
     return [];
@@ -144,6 +158,7 @@ export async function POST(req: NextRequest) {
             price: true,
             compareAtPrice: true,
             stock: true,
+            imageUrl: true,
           },
         },
       },
@@ -192,11 +207,12 @@ export async function POST(req: NextRequest) {
           price: selectedVariant.price,
           compareAtPrice: selectedVariant.compareAtPrice,
           stock: selectedVariant.stock,
+          imageUrl: selectedVariant.imageUrl,
           product: {
             id: product.id,
             title: preferredTranslation?.title || "Product",
             slug: productSlug,
-            image: pickFirstImage(product.media),
+            image: pickVariantImage(selectedVariant.imageUrl) ?? pickFirstImage(product.media),
           },
         },
         quantity: item.quantity,

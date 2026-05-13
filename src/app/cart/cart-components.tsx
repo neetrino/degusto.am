@@ -28,25 +28,24 @@ export function CartItemRow({
   t,
 }: CartItemRowProps) {
   const currencyCode = currency as CurrencyCode;
+
   return (
-    <div
-      className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 px-4 sm:px-6 py-6 hover:bg-gray-50 transition-colors relative"
-    >
+    <div className="relative grid grid-cols-1 gap-5 px-4 py-5 transition-colors hover:bg-[#F66812]/[0.04] sm:px-6 md:grid-cols-9 md:gap-6">
       <button
+        type="button"
         onClick={() => onRemove(item.id)}
-        className="absolute top-2 right-2 md:top-4 md:right-4 w-7 h-7 rounded-full bg-white hover:bg-red-50 flex items-center justify-center text-gray-500 hover:text-red-600 transition-colors shadow-md border border-gray-200 hover:border-red-300 z-10"
+        className="absolute top-4 right-4 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-sm transition-colors hover:border-[#F66812]/40 hover:bg-[#F66812]/10 hover:text-[#F66812]"
         aria-label={t('common.buttons.remove')}
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
-      
-      {/* Product */}
-      <div className="md:col-span-6 flex items-start gap-4">
+
+      <div className="flex items-start gap-4 md:col-span-3">
         <Link
           href={`/products/${item.variant.product.slug}`}
-          className="w-24 h-24 sm:w-28 sm:h-28 bg-gray-100 rounded-lg flex-shrink-0 relative overflow-hidden"
+          className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-xl border border-gray-100 bg-gray-100 sm:h-28 sm:w-28"
         >
           {item.variant.product.image ? (
             <Image
@@ -54,7 +53,7 @@ export function CartItemRow({
               alt={item.variant.product.title}
               fill
               className="object-cover"
-              sizes="80px"
+              sizes="112px"
               unoptimized
             />
           ) : (
@@ -68,15 +67,15 @@ export function CartItemRow({
         <div className="flex-1 min-w-0">
           <Link
             href={`/products/${item.variant.product.slug}`}
-            className="text-base font-medium text-gray-900 hover:text-blue-600 transition-colors line-clamp-2"
+            className="line-clamp-2 text-base font-semibold text-gray-900 transition-colors hover:text-[#F66812]"
           >
             {item.variant.product.title}
           </Link>
           {item.variant.sku && (
-            <p className="text-xs text-gray-500 mt-1">{t('common.messages.sku')}: {item.variant.sku}</p>
+            <p className="mt-1 text-xs text-gray-500">{t('common.messages.sku')}: {item.variant.sku}</p>
           )}
           {item.customizations?.additions && (
-            <p className="text-xs text-gray-600 mt-2">
+            <p className="mt-2 text-xs text-gray-600">
               {t('product.additionsLabel')}: {item.customizations.additions}
             </p>
           )}
@@ -88,16 +87,16 @@ export function CartItemRow({
         </div>
       </div>
 
-      {/* Quantity */}
-      <div className="md:col-span-2 flex flex-col items-start md:items-center justify-center">
+      <div className="flex flex-col items-start justify-center md:col-span-3 md:items-center">
         <p className="mb-2 text-xs font-semibold tracking-wide text-gray-500 uppercase md:hidden">
           {t('common.messages.quantity')}
         </p>
-        <div className="flex items-center justify-center gap-2 w-full md:w-auto">
+        <div className="flex w-full items-center justify-center gap-2 md:w-auto">
           <button
+            type="button"
             onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
             disabled={updatingItems.has(item.id)}
-            className="w-9 h-9 flex-shrink-0 rounded border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-[#F66812]/25 bg-[#F66812]/[0.06] text-[#F66812] transition-colors hover:bg-[#F66812]/[0.14] disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={t('common.ariaLabels.decreaseQuantity')}
           >
             <svg className="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -114,13 +113,14 @@ export function CartItemRow({
               onUpdateQuantity(item.id, newQuantity);
             }}
             disabled={updatingItems.has(item.id)}
-            className="w-20 h-9 text-right border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 font-medium pl-2 pr-5"
+            className="h-9 w-20 rounded-lg border border-[#F66812]/25 bg-white pl-2 pr-5 text-right font-semibold text-gray-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#F66812] disabled:opacity-50"
             title={item.variant.stock !== undefined ? t('common.messages.availableQuantity').replace('{stock}', item.variant.stock.toString()) : ''}
           />
           <button
+            type="button"
             onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
             disabled={updatingItems.has(item.id) || (item.variant.stock !== undefined && item.quantity >= item.variant.stock)}
-            className="w-9 h-9 flex-shrink-0 rounded border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-[#F66812]/25 bg-[#F66812]/[0.06] text-[#F66812] transition-colors hover:bg-[#F66812]/[0.14] disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={t('common.ariaLabels.increaseQuantity')}
             title={item.variant.stock !== undefined && item.quantity >= item.variant.stock ? t('common.messages.availableQuantity').replace('{stock}', item.variant.stock.toString()) : t('common.messages.addQuantity')}
           >
@@ -131,13 +131,12 @@ export function CartItemRow({
         </div>
       </div>
 
-      {/* Subtotal */}
-      <div className="md:col-span-3 flex flex-col md:flex-row md:items-center md:justify-start md:ml-4">
+      <div className="flex flex-col md:col-span-3 md:items-end md:justify-center">
         <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 md:hidden">
           {t('common.messages.subtotal')}
         </p>
-        <div className="flex flex-col gap-1 mt-1 md:mt-0">
-          <span className="text-lg font-semibold text-blue-600">
+        <div className="mt-1 flex flex-col gap-1 md:mt-0 md:items-end">
+          <span className="text-lg font-bold text-[#F66812]">
             {formatPrice(item.total, currencyCode)}
           </span>
           {item.originalPrice && item.originalPrice > item.price && (
@@ -173,23 +172,20 @@ export function CartTable({
 }: CartTableProps) {
   return (
     <div className="lg:col-span-2">
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        {/* Table Header */}
-        <div className="hidden md:grid md:grid-cols-12 gap-4 px-6 py-4 bg-gray-50 border-b border-gray-200">
-          <div className="md:col-span-6">
-            <span className="text-sm font-semibold text-gray-900 uppercase tracking-wide">{t('common.messages.product')}</span>
+      <div className="overflow-hidden rounded-2xl border border-[#F66812]/20 bg-white shadow-sm">
+        <div className="hidden border-b border-[#F66812]/15 bg-[#F66812]/[0.05] px-6 py-4 md:grid md:grid-cols-9 md:gap-6">
+          <div className="md:col-span-3">
+            <span className="text-sm font-semibold uppercase tracking-wide text-[#1F2E1F]">{t('common.messages.product')}</span>
           </div>
-          <div className="md:col-span-2 text-center">
-            <span className="text-sm font-semibold text-gray-900 uppercase tracking-wide">{t('common.messages.quantity')}</span>
+          <div className="text-center md:col-span-3">
+            <span className="text-sm font-semibold uppercase tracking-wide text-[#1F2E1F]">{t('common.messages.quantity')}</span>
           </div>
-          <div className="md:col-span-3 text-center">
-            <span className="text-sm font-semibold text-gray-900 uppercase tracking-wide">{t('common.messages.subtotal')}</span>
+          <div className="text-right md:col-span-3">
+            <span className="text-sm font-semibold uppercase tracking-wide text-[#1F2E1F]">{t('common.messages.subtotal')}</span>
           </div>
-          <div className="md:col-span-1"></div>
         </div>
 
-        {/* Table Body */}
-        <div className="divide-y divide-gray-200">
+        <div className="divide-y divide-[#F66812]/10">
           {cart.items.map((item) => (
             <CartItemRow
               key={item.id}
@@ -218,39 +214,38 @@ interface OrderSummaryProps {
 
 export function OrderSummary({ cart, currency, t }: OrderSummaryProps) {
   const currencyCode = currency as CurrencyCode;
-  
+
   return (
     <div className="lg:col-span-1">
-      <div className="bg-white rounded-lg border border-gray-200 p-6 lg:sticky lg:top-24">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">
+      <div className="rounded-2xl border border-[#F66812]/20 bg-white p-6 shadow-sm lg:sticky lg:top-24">
+        <h2 className="mb-6 text-2xl font-bold text-[#1F2E1F]">
           {t('common.cart.orderSummary')}
         </h2>
-        <div className="space-y-4 mb-6">
+        <div className="mb-6 space-y-4">
+          <div className="flex justify-between text-gray-600">
+            <span>{t('common.messages.quantity')}</span>
+            <span className="font-semibold text-gray-900">{cart.itemsCount}</span>
+          </div>
           <div className="flex justify-between text-gray-600">
             <span>{t('common.cart.subtotal')}</span>
-            <span>{formatPrice(cart.totals.subtotal, currencyCode)}</span>
+            <span className="font-semibold text-gray-900">{formatPrice(cart.totals.subtotal, currencyCode)}</span>
           </div>
           <div className="flex justify-between text-gray-600">
             <span>{t('common.cart.shipping')}</span>
-            <span>{t('common.cart.free')}</span>
+            <span className="font-semibold text-gray-900">{t('common.cart.calculated')}</span>
           </div>
-          <div className="flex justify-between text-gray-600">
-            <span>{t('common.cart.tax')}</span>
-            <span>{formatPrice(cart.totals.tax, currencyCode)}</span>
-          </div>
-          <div className="border-t border-gray-200 pt-4">
-            <div className="flex justify-between text-lg font-bold text-gray-900">
+          <div className="border-t border-[#F66812]/15 pt-4">
+            <div className="flex justify-between text-xl font-bold text-[#1F2E1F]">
               <span>{t('common.cart.total')}</span>
               <span>{formatPrice(cart.totals.total, currencyCode)}</span>
             </div>
           </div>
         </div>
-        <Button 
-          variant="primary" 
-          className="w-full" 
+        <Button
+          variant="primary"
+          className="w-full !bg-[#F66812] hover:!bg-[#e45f10] focus:!ring-[#F66812]"
           size="lg"
           onClick={() => {
-            // Allow guest checkout - no redirect to login
             window.location.href = '/checkout';
           }}
         >
@@ -258,7 +253,7 @@ export function OrderSummary({ cart, currency, t }: OrderSummaryProps) {
         </Button>
         <Button
           variant="outline"
-          className="w-full mt-3"
+          className="mt-3 w-full border-[#F66812]/40 text-[#F66812] hover:border-[#F66812] hover:bg-[#F66812]/10"
           size="md"
           onClick={() => {
             window.location.href = '/shop';

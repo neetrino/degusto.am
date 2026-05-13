@@ -54,6 +54,7 @@
     "orderSummary": "Order Summary",
     "subtotal": "Subtotal",
     "shipping": "Shipping",
+    "calculated": "Calculated",
     "tax": "Tax",
     "total": "Total",
     "free": "Free",

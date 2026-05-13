@@ -5,15 +5,18 @@ import type { MenuCard, MenuCategory } from '../../components/home/FigmaDesktopS
 import { db } from '@white-shop/db';
 import { cookies } from 'next/headers';
 import { resolveStorefrontLocaleFromCookie } from '@/lib/i18n/locale';
+import type { Prisma } from '@prisma/client';
 
 const HY_CATEGORY_TITLE_BY_SLUG: Record<string, string> = {
-  electronics: 'Էլեկտրոնիկա',
-  clothing: 'Հագուստ',
-  shoes: 'Կոշիկներ',
-  'home-garden': 'Տուն և այգի',
-  sports: 'Սպորտ',
-  books: 'Գրքեր',
-  accessories: 'Աքսեսուարներ',
+  shawarma: 'Շաուրմա',
+  burger: 'Բուրգեր',
+  kebab: 'Քեբաբ',
+  wraps: 'Ռոլլեր',
+  plates: 'Ափսեներ',
+  snacks: 'Խորտիկներ',
+  sandwiches: 'Սենդվիչներ',
+  pasta: 'Պաստա',
+  combo: 'Կոմբո',
 };
 
 function toImageUrl(media: unknown): string | null {
@@ -58,10 +61,85 @@ export default async function ComboPage({
   const locale = resolveStorefrontLocaleFromCookie(cookieStore.get('shop_language')?.value);
   const selectedCategorySlug =
     typeof params?.category === 'string' ? params.category.trim() : '';
+  const selectedSearchQuery =
+    typeof params?.search === 'string' ? params.search.trim() : '';
+  const tasteFilter =
+    params?.taste === 'leaf' || params?.taste === 'pepper' ? params.taste : null;
+  const minPriceParam =
+    typeof params?.minPrice === 'string' ? Number(params.minPrice) : null;
+  const maxPriceParam =
+    typeof params?.maxPrice === 'string' ? Number(params.maxPrice) : null;
+  const minPrice =
+    typeof minPriceParam === 'number' && Number.isFinite(minPriceParam) && minPriceParam >= 0
+      ? minPriceParam
+      : null;
+  const maxPrice =
+    typeof maxPriceParam === 'number' && Number.isFinite(maxPriceParam) && maxPriceParam >= 0
+      ? maxPriceParam
+      : null;
   const allCategoriesLabel = locale === 'hy' ? 'Բոլորը' : 'All';
-  const productWhere = {
+  const comboOnlyCategoryFilter = {
+    categories: {
+      some: {
+        translations: {
+          some: {
+            locale: 'en',
+            slug: 'combo',
+          },
+        },
+      },
+    },
+  } as const;
+  const productWhere: Prisma.ProductWhereInput = {
     published: true,
     deletedAt: null,
+    ...comboOnlyCategoryFilter,
+    ...(selectedSearchQuery
+      ? {
+          translations: {
+            some: {
+              locale: { in: [locale, 'en'] },
+              OR: [
+                {
+                  title: {
+                    contains: selectedSearchQuery,
+                    mode: 'insensitive' as const,
+                  },
+                },
+                {
+                  subtitle: {
+                    contains: selectedSearchQuery,
+                    mode: 'insensitive' as const,
+                  },
+                },
+              ],
+            },
+          },
+        }
+      : {}),
+    ...((minPrice !== null || maxPrice !== null)
+      ? {
+          variants: {
+            some: {
+              published: true,
+              ...(minPrice !== null ? { price: { gte: minPrice } } : {}),
+              ...(maxPrice !== null ? { price: { lte: maxPrice } } : {}),
+            },
+          },
+        }
+      : {}),
+    ...(tasteFilter
+      ? {
+          labels: {
+            some: {
+              value: {
+                contains: tasteFilter === 'leaf' ? 'new' : 'hot',
+                mode: 'insensitive' as const,
+              },
+            },
+          },
+        }
+      : {}),
     ...(selectedCategorySlug
       ? {
           categories: {
@@ -147,6 +225,12 @@ export default async function ComboPage({
     where: {
       published: true,
       deletedAt: null,
+      translations: {
+        some: {
+          locale: 'en',
+          slug: 'combo',
+        },
+      },
     },
     orderBy: {
       position: 'asc',
@@ -227,6 +311,10 @@ export default async function ComboPage({
         cards={cards}
         categories={categories}
         activeCategorySlug={selectedCategorySlug}
+        initialSearch={selectedSearchQuery}
+        initialMinPrice={minPrice !== null ? String(minPrice) : ''}
+        initialMaxPrice={maxPrice !== null ? String(maxPrice) : ''}
+        initialFoodFilter={tasteFilter ?? 'neutral'}
       />
     </div>
   );

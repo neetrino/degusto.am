@@ -159,7 +159,10 @@ export default function ProductPage({ params }: ProductPageProps) {
         <BodyBackground color="#ffffff" />
         <div className="max-w-7xl mx-auto px-4 py-16 text-center space-y-4">
           <p className="text-lg text-neutral-600">{t(language, 'common.messages.noProductsFound')}</p>
-          <Link href="/shop" className="inline-block text-blue-600 font-medium hover:underline">
+          <Link
+            href="/shop"
+            className="inline-flex h-10 items-center rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-50"
+          >
             {t(language, 'common.navigation.products')}
           </Link>
         </div>
@@ -173,7 +176,10 @@ export default function ProductPage({ params }: ProductPageProps) {
         <BodyBackground color="#ffffff" />
         <div className="max-w-7xl mx-auto px-4 py-16 text-center space-y-4">
           <p className="text-lg text-neutral-600">{t(language, 'common.messages.invalidProduct')}</p>
-          <Link href="/shop" className="inline-block text-blue-600 font-medium hover:underline">
+          <Link
+            href="/shop"
+            className="inline-flex h-10 items-center rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-50"
+          >
             {t(language, 'common.navigation.products')}
           </Link>
         </div>
@@ -185,8 +191,19 @@ export default function ProductPage({ params }: ProductPageProps) {
     <>
       <BodyBackground color="#ffffff" />
       <div className="bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 lg:grid-cols-[55%_45%] gap-12 items-start">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 lg:py-12">
+          <nav className="mb-6 flex flex-wrap items-center gap-2 text-sm text-neutral-500">
+            <Link href="/shop" className="hover:text-neutral-800 transition-colors">
+              {t(language, 'common.navigation.products')}
+            </Link>
+            <span aria-hidden>/</span>
+            <span className="text-neutral-700 line-clamp-1">
+              {product.title}
+            </span>
+          </nav>
+
+          <section className="rounded-3xl border border-neutral-200 bg-white p-4 sm:p-6 lg:p-8 shadow-[0_8px_28px_rgba(0,0,0,0.06)]">
+            <div className="grid grid-cols-1 lg:grid-cols-[55%_45%] gap-10 lg:gap-12 items-start">
             <ProductImageGallery
               images={images}
               product={product}
@@ -233,10 +250,6 @@ export default function ProductPage({ params }: ProductPageProps) {
               onAddToWishlist={handleAddToWishlist}
               onCompareToggle={handleCompareToggle}
               onScrollToReviews={scrollToReviews}
-              additions={additions}
-              exclusions={exclusions}
-              onAdditionsChange={setAdditions}
-              onExclusionsChange={setExclusions}
               onColorSelect={handleColorSelect}
               onSizeSelect={handleSizeSelect}
               onAttributeValueSelect={handleAttributeValueSelect}
@@ -244,15 +257,20 @@ export default function ProductPage({ params }: ProductPageProps) {
               getRequiredAttributesMessage={getRequiredAttributesMessage}
             />
           </div>
+          </section>
 
-          <div className="mt-24">
+          <div className="mt-16 rounded-3xl border border-neutral-200 bg-white p-4 sm:p-6 lg:p-8 shadow-[0_6px_22px_rgba(0,0,0,0.04)]">
             <RelatedProducts
               productSlug={slug}
               categorySlug={product.categories?.[0]?.slug}
               currentProductId={product.id}
             />
           </div>
-          <div id="product-reviews" className="mt-16 scroll-mt-24">
+
+          <div
+            id="product-reviews"
+            className="mt-10 rounded-3xl border border-neutral-200 bg-white p-4 sm:p-6 lg:p-8 scroll-mt-24 shadow-[0_6px_22px_rgba(0,0,0,0.04)]"
+          >
             <ProductReviews productSlug={slug} productId={product.id} />
           </div>
         </div>

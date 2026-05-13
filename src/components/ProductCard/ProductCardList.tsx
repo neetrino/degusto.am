@@ -6,7 +6,6 @@ import type { KeyboardEvent, MouseEvent } from 'react';
 import { formatPrice } from '../../lib/currency';
 import { useTranslation } from '../../lib/i18n-client';
 import { CompareIcon } from '../icons/CompareIcon';
-import { CartIcon as CartPngIcon } from '../icons/CartIcon';
 import { ProductColors } from './ProductColors';
 import type { CurrencyCode } from '../../lib/currency';
 import type { ProductLabel } from '../ProductLabels';
@@ -47,11 +46,14 @@ interface ProductCardListProps {
   isInWishlist: boolean;
   isInCompare: boolean;
   isAddingToCart: boolean;
+  isUpdatingQuantity: boolean;
+  cartQuantity: number;
   imageError: boolean;
   onImageError: () => void;
   onWishlistToggle: (e: MouseEvent) => void;
   onCompareToggle: (e: MouseEvent) => void;
   onAddToCart: (e: MouseEvent) => void;
+  onDecreaseCart: (e: MouseEvent) => void;
   onProductClick: () => void;
 }
 
@@ -64,11 +66,14 @@ export function ProductCardList({
   isInWishlist,
   isInCompare,
   isAddingToCart,
+  isUpdatingQuantity,
+  cartQuantity,
   imageError,
   onImageError,
   onWishlistToggle,
   onCompareToggle,
   onAddToCart,
+  onDecreaseCart,
   onProductClick,
 }: ProductCardListProps) {
   const { t } = useTranslation();
@@ -201,27 +206,30 @@ export function ProductCardList({
               <WishlistIcon filled={isInWishlist} />
             </button>
 
-            {/* Cart Icon */}
-            <button
-              onClick={onAddToCart}
-              disabled={!product.inStock || isAddingToCart}
-              className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-200 ${
-                product.inStock && !isAddingToCart
-                  ? 'bg-gray-100 text-gray-700 hover:bg-green-600 hover:text-white'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              }`}
-              title={product.inStock ? t('common.buttons.addToCart') : t('common.stock.outOfStock')}
-              aria-label={product.inStock ? t('common.buttons.addToCart') : t('common.stock.outOfStock')}
-            >
-              {isAddingToCart ? (
-                <svg className="animate-spin h-4 w-4 sm:h-5 sm:w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-              ) : (
-                <CartPngIcon size={20} />
-              )}
-            </button>
+            {/* Cart Quantity Controls */}
+            <div className="inline-flex items-center gap-2">
+              <button
+                onClick={onDecreaseCart}
+                disabled={cartQuantity <= 0 || isUpdatingQuantity || isAddingToCart}
+                className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+                title={t('common.ariaLabels.decreaseQuantity')}
+                aria-label={t('common.ariaLabels.decreaseQuantity')}
+              >
+                -
+              </button>
+              <span className="inline-flex h-10 min-w-[3rem] items-center justify-center rounded-lg border border-gray-300 px-3 text-sm font-semibold text-gray-900">
+                {cartQuantity}
+              </span>
+              <button
+                onClick={onAddToCart}
+                disabled={!product.inStock || isAddingToCart || isUpdatingQuantity}
+                className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+                title={product.inStock ? t('common.ariaLabels.increaseQuantity') : t('common.ariaLabels.outOfStock')}
+                aria-label={product.inStock ? t('common.ariaLabels.increaseQuantity') : t('common.ariaLabels.outOfStock')}
+              >
+                +
+              </button>
+            </div>
           </div>
         </div>
       </div>

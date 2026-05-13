@@ -9,12 +9,20 @@ interface FigmaDesktopComboPageProps {
   cards?: MenuCard[];
   categories?: MenuCategory[];
   activeCategorySlug?: string;
+  initialSearch?: string;
+  initialMinPrice?: string;
+  initialMaxPrice?: string;
+  initialFoodFilter?: 'leaf' | 'neutral' | 'pepper';
 }
 
 export function FigmaDesktopComboPage({
   cards,
   categories,
   activeCategorySlug = '',
+  initialSearch = '',
+  initialMinPrice = '',
+  initialMaxPrice = '',
+  initialFoodFilter = 'neutral',
 }: FigmaDesktopComboPageProps) {
   return (
     <FigmaDesktopMenuPage
@@ -24,6 +32,10 @@ export function FigmaDesktopComboPage({
       cards={cards}
       categories={categories}
       activeCategorySlug={activeCategorySlug}
+      initialSearch={initialSearch}
+      initialMinPrice={initialMinPrice}
+      initialMaxPrice={initialMaxPrice}
+      initialFoodFilter={initialFoodFilter}
     />
   );
 }

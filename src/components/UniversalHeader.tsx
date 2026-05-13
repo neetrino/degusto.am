@@ -1,7 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import type { FormEvent } from 'react';
 import { LanguageCurrencySwitcher } from './LanguageCurrencySwitcher';
 import { useTranslation } from '../lib/i18n-client';
 import { useAuth } from '../lib/auth/AuthContext';
@@ -9,6 +11,9 @@ import { apiClient } from '../lib/api-client';
 import { CART_KEY } from '../lib/storageCounts';
 import { formatPrice } from '../lib/currency';
 import { useCurrency } from './hooks/useCurrency';
+import { readCartSummaryCache, writeCartSummaryCache } from '../lib/cartSummaryCache';
+import { useInstantSearch } from './hooks/useInstantSearch';
+import { SearchDropdown } from './SearchDropdown';
 
 const assets = {
   logo: 'https://www.figma.com/api/mcp/asset/b684f5ca-5543-4689-be84-ac53b6c5d14c',
@@ -40,15 +45,66 @@ interface CartResponse {
 }
 
 export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: UniversalHeaderProps) {
-  const [searchQuery, setSearchQuery] = useState('');
   const [cartCount, setCartCount] = useState(0);
   const [cartTotal, setCartTotal] = useState(0);
   const { t } = useTranslation();
   const { isLoggedIn, isAdmin, logout } = useAuth();
   const currency = useCurrency();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const userNavHref = isLoggedIn ? '/profile' : '/login';
+  const searchTargetBasePath = pathname?.startsWith('/combo') ? '/combo' : '/shop';
+  const isActivePath = (href: string) => pathname === href || pathname?.startsWith(`${href}/`);
+  const {
+    query: searchQuery,
+    setQuery: setSearchQuery,
+    results: searchResults,
+    loading: searchLoading,
+    error: searchError,
+    isOpen: searchDropdownOpen,
+    setIsOpen: setSearchDropdownOpen,
+    selectedIndex: searchSelectedIndex,
+    handleKeyDown: searchHandleKeyDown,
+    clearSearch,
+  } = useInstantSearch({
+    debounceMs: 200,
+    minQueryLength: 1,
+    maxResults: 6,
+  });
 
   useEffect(() => {
+    const searchValue = searchParams.get('search')?.trim() || '';
+    setSearchQuery(searchValue);
+    setSearchDropdownOpen(false);
+  }, [searchParams, setSearchQuery, setSearchDropdownOpen]);
+
+  const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const selected = searchSelectedIndex >= 0 ? searchResults[searchSelectedIndex] : null;
+    if (selected) {
+      router.push(`/products/${selected.slug}`);
+      clearSearch();
+      return;
+    }
+
+    const query = searchQuery.trim();
+    const params = new URLSearchParams();
+    if (query) {
+      params.set('search', query);
+    }
+    setSearchDropdownOpen(false);
+    const queryString = params.toString();
+    router.push(queryString ? `${searchTargetBasePath}?${queryString}` : searchTargetBasePath);
+  };
+
+  useEffect(() => {
+    const cached = readCartSummaryCache();
+    if (cached) {
+      setCartCount(cached.itemsCount);
+      setCartTotal(cached.total);
+    }
+
     const readGuestCart = () => {
       try {
         const stored = localStorage.getItem(CART_KEY);
@@ -58,9 +114,11 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
         const total = items.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
         setCartCount(itemsCount);
         setCartTotal(total);
+        writeCartSummaryCache(itemsCount, total);
       } catch {
         setCartCount(0);
         setCartTotal(0);
+        writeCartSummaryCache(0, 0);
       }
     };
 
@@ -74,9 +132,11 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
         const response = await apiClient.get<CartResponse>('/api/v1/cart');
         setCartCount(response.cart?.itemsCount || 0);
         setCartTotal(response.cart?.totals?.total || 0);
+        writeCartSummaryCache(response.cart?.itemsCount || 0, response.cart?.totals?.total || 0);
       } catch {
         setCartCount(0);
         setCartTotal(0);
+        writeCartSummaryCache(0, 0);
       }
     };
 
@@ -88,14 +148,22 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
       if (detail?.optimisticAdd) {
         const nextQuantity = detail.optimisticAdd.quantity ?? 1;
         const nextPrice = detail.optimisticAdd.price ?? 0;
-        setCartCount((prev) => prev + nextQuantity);
-        setCartTotal((prev) => prev + nextPrice * nextQuantity);
+        setCartCount((prevCount) => {
+          const nextCount = prevCount + nextQuantity;
+          setCartTotal((prevTotal) => {
+            const nextTotal = prevTotal + nextPrice * nextQuantity;
+            writeCartSummaryCache(nextCount, nextTotal);
+            return nextTotal;
+          });
+          return nextCount;
+        });
         return;
       }
 
       if (detail?.itemsCount !== undefined && detail?.total !== undefined) {
         setCartCount(detail.itemsCount);
         setCartTotal(detail.total);
+        writeCartSummaryCache(detail.itemsCount, detail.total);
         return;
       }
 
@@ -115,35 +183,70 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
   return (
     <>
       <div aria-hidden="true" className={`h-[104px] ${spacerBackgroundClassName}`} />
-      <header className="fixed left-0 right-0 top-6 z-50 mx-auto flex h-20 w-full max-w-[1450px] items-center rounded-[120px] bg-black px-4 md:px-6 lg:px-7">
+      <header className="fixed left-0 right-0 top-6 z-50 mx-auto flex h-20 w-full max-w-[1450px] items-center rounded-[120px] border border-white/10 bg-gradient-to-r from-[#0f1017] to-[#13151d] px-4 shadow-2xl md:px-6 lg:px-7">
         <img src={assets.logo} alt="Degusto" className="h-12 w-[134px] shrink-0 object-contain" />
         <nav className="ml-8 mr-auto hidden items-center gap-[30px] whitespace-nowrap px-4 text-[18px] font-semibold leading-[30px] text-white lg:flex">
-          <Link href="/" className="shrink-0">{t('common.navigation.home')}</Link>
-          <Link href="/shop" className="shrink-0">{t('common.navigation.shop')}</Link>
-          <Link href="/combo" className="shrink-0">{t('common.navigation.combo')}</Link>
-          <Link href="/about" className="shrink-0">{t('common.navigation.about')}</Link>
+          <Link href="/" className={`shrink-0 transition-colors ${isActivePath('/') ? 'text-[#ff7f20]' : 'text-white hover:text-[#ffb07a]'}`}>{t('common.navigation.home')}</Link>
+          <Link href="/shop" className={`shrink-0 transition-colors ${isActivePath('/shop') ? 'text-[#ff7f20]' : 'text-white hover:text-[#ffb07a]'}`}>{t('common.navigation.shop')}</Link>
+          <Link href="/combo" className={`shrink-0 transition-colors ${isActivePath('/combo') ? 'text-[#ff7f20]' : 'text-white hover:text-[#ffb07a]'}`}>{t('common.navigation.combo')}</Link>
+          <Link href="/about" className={`shrink-0 transition-colors ${isActivePath('/about') ? 'text-[#ff7f20]' : 'text-white hover:text-[#ffb07a]'}`}>{t('common.navigation.about')}</Link>
         </nav>
-        <div className="relative ml-auto hidden h-12 w-[237px] items-center rounded-[90px] bg-white p-1 transition-all duration-300 ease-out hover:w-[380px] focus-within:w-[380px] md:flex">
+        <form
+          onSubmit={handleSearchSubmit}
+          className="relative ml-auto hidden h-12 w-[237px] items-center rounded-[90px] bg-white p-1 transition-all duration-300 ease-out hover:w-[380px] focus-within:w-[380px] md:flex"
+        >
           <input
             type="text"
             value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
+            onFocus={() => {
+              if (searchQuery.trim().length >= 1) {
+                setSearchDropdownOpen(true);
+              }
+            }}
+            onBlur={() => {
+              window.setTimeout(() => setSearchDropdownOpen(false), 120);
+            }}
+            onChange={(event) => {
+              const nextValue = event.target.value;
+              setSearchQuery(nextValue);
+              setSearchDropdownOpen(nextValue.trim().length >= 1);
+            }}
+            onKeyDown={searchHandleKeyDown}
             placeholder={t('common.placeholders.search')}
             className="h-full min-w-0 flex-1 bg-transparent pl-[14px] text-base leading-6 text-[#252525] outline-none placeholder:text-[rgba(105,105,105,0.56)]"
             aria-label={t('common.ariaLabels.search')}
+            aria-controls="search-results"
+            aria-expanded={searchDropdownOpen && searchResults.length > 0}
+            aria-autocomplete="list"
           />
-          <span className="relative ml-auto inline-flex h-10 items-center overflow-hidden rounded-[20px] bg-[#f66812] py-2 pl-10 pr-4">
+          <button type="submit" className="relative ml-auto inline-flex h-10 items-center overflow-hidden rounded-[20px] bg-[#f66812] py-2 pl-10 pr-4">
             <span className="absolute left-0 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center overflow-hidden">
               <img src={assets.searchBadge} alt="" className="h-8 w-8 object-contain" />
               <img src={assets.searchIcon} alt="" className="absolute h-6 w-6 object-contain" />
             </span>
             <span className="text-[15px] font-semibold leading-6 text-white">{t('common.buttons.search')}</span>
-          </span>
-        </div>
+          </button>
+          <SearchDropdown
+            results={searchResults}
+            loading={searchLoading}
+            error={searchError}
+            isOpen={searchDropdownOpen}
+            selectedIndex={searchSelectedIndex}
+            query={searchQuery}
+            onResultClick={(result) => {
+              router.push(`/products/${result.slug}`);
+              setSearchDropdownOpen(false);
+              clearSearch();
+            }}
+            onClose={() => setSearchDropdownOpen(false)}
+            onSeeAllClick={() => setSearchDropdownOpen(false)}
+            className="left-2 right-2 mt-2 rounded-2xl"
+          />
+        </form>
         <div className="ml-3 flex items-center gap-[11px]">
           <div className="hidden items-center gap-[7px] md:flex">
-            <Link href="/cart" className="relative h-12 w-[117px] shrink-0">
-              <span className="absolute right-0 top-0 inline-flex h-12 w-[88px] items-center justify-center rounded-[70px] bg-white text-base font-bold text-black">
+            <Link href="/cart" className="relative inline-flex h-12 min-w-[117px] shrink-0 items-center justify-end pl-10">
+              <span className="inline-flex h-12 min-w-[88px] items-center justify-center whitespace-nowrap rounded-[70px] bg-white px-4 text-base font-bold tabular-nums text-black">
                 {formatPrice(cartTotal, currency)}
               </span>
               <span data-cart-fly-target className="absolute bottom-[1px] left-2 inline-flex h-[34px] w-[37px] items-center justify-center">
