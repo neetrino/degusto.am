@@ -1,13 +1,11 @@
 'use client';
 
-import type { MouseEvent } from 'react';
-import { Heart, Minus, Plus } from 'lucide-react';
+import { Minus, Plus } from 'lucide-react';
 import Image from 'next/image';
 import { formatPrice, type CurrencyCode } from '../../../lib/currency';
 import { t, getProductText } from '../../../lib/i18n';
 import type { LanguageCode } from '../../../lib/language';
 import { sanitizeHtml } from '../../../lib/utils/sanitize';
-import { CompareIcon } from '../../../components/icons/CompareIcon';
 import { ProductAttributesSelector } from './ProductAttributesSelector';
 import { ProductRatingSummary } from './ProductRatingSummary';
 import type { Product, ProductVariant } from './types';
@@ -30,9 +28,6 @@ interface ProductInfoAndActionsProps {
   unavailableAttributes: Map<string, boolean>;
   canAddToCart: boolean;
   isAddingToCart: boolean;
-  isInWishlist: boolean;
-  isInCompare: boolean;
-  isLoggedIn: boolean;
   currentVariant: ProductVariant | null;
   attributeGroups: Map<string, any[]>;
   selectedColor: string | null;
@@ -42,8 +37,6 @@ interface ProductInfoAndActionsProps {
   sizeGroups: Array<{ size: string; stock: number; variants: ProductVariant[] }>;
   onQuantityAdjust: (delta: number) => void;
   onAddToCart: () => Promise<void>;
-  onAddToWishlist: (e: MouseEvent) => void;
-  onCompareToggle: (e: MouseEvent) => void;
   onScrollToReviews: () => void;
   onColorSelect: (color: string) => void;
   onSizeSelect: (size: string) => void;
@@ -70,9 +63,6 @@ export function ProductInfoAndActions({
   unavailableAttributes,
   canAddToCart,
   isAddingToCart,
-  isInWishlist,
-  isInCompare,
-  isLoggedIn,
   currentVariant,
   attributeGroups,
   selectedColor,
@@ -82,8 +72,6 @@ export function ProductInfoAndActions({
   sizeGroups,
   onQuantityAdjust,
   onAddToCart,
-  onAddToWishlist,
-  onCompareToggle,
   onScrollToReviews,
   onColorSelect,
   onSizeSelect,
@@ -235,20 +223,6 @@ export function ProductInfoAndActions({
             onClick={onAddToCart}
           >
             {isAddingToCart ? t(language, 'product.adding') : (isOutOfStock ? t(language, 'product.outOfStock') : (isVariationRequired ? getRequiredAttributesMessage() : (hasUnavailableAttributes ? t(language, 'product.outOfStock') : t(language, 'product.addToCart'))))}
-          </button>
-          <button
-            onClick={onCompareToggle}
-            type="button"
-            className={`flex h-12 w-12 items-center justify-center rounded-xl transition-colors duration-200 ${isInCompare ? 'bg-neutral-200 text-gray-900' : 'bg-neutral-100 hover:bg-neutral-200'}`}
-          >
-            <CompareIcon isActive={isInCompare} />
-          </button>
-          <button
-            onClick={onAddToWishlist}
-            type="button"
-            className={`flex h-12 w-12 items-center justify-center rounded-xl transition-colors ${isInWishlist ? 'bg-orange-500 text-white hover:bg-orange-600' : 'bg-neutral-100 text-gray-700 hover:bg-neutral-200'}`}
-          >
-            <Heart fill={isInWishlist ? 'currentColor' : 'none'} />
           </button>
         </div>
         </div>

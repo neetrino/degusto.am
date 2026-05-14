@@ -3,9 +3,13 @@
 import { usePathname } from 'next/navigation';
 import { Footer } from './Footer';
 
+/** Footer outer wrapper: brand orange on auth + product detail (matches PDP orange rail). */
+const FOOTER_OUTER_ORANGE_CLASS = 'bg-[#F66812]';
+
 export function ConditionalFooter() {
   const pathname = usePathname();
   const isAuthPage = pathname === '/login' || pathname === '/register';
+  const isProductDetailPage = /^\/products\/[^/]+\/?$/.test(pathname ?? '');
   const isProfilePage = pathname?.startsWith('/profile');
   const isAdminPage = pathname?.startsWith('/supersudo');
   if (pathname === '/') {
@@ -21,5 +25,9 @@ export function ConditionalFooter() {
       </div>
     );
   }
-  return <Footer outerBackgroundClassName={isAuthPage ? 'bg-[#F66812]' : 'bg-white'} />;
+  return (
+    <Footer
+      outerBackgroundClassName={isAuthPage || isProductDetailPage ? FOOTER_OUTER_ORANGE_CLASS : 'bg-white'}
+    />
+  );
 }

@@ -7,10 +7,8 @@ import { t } from '../../../lib/i18n';
 import { useAttributeGroups } from './useAttributeGroups';
 import { useProductImages } from './hooks/useProductImages';
 import { useProductFetch } from './hooks/useProductFetch';
-import { useWishlistCompare } from './hooks/useWishlistCompare';
 import { useProductReviews } from './hooks/useProductReviews';
 import { useVariantSelection } from './hooks/useVariantSelection';
-import { useProductActions } from './hooks/useProductActions';
 import { useProductQuantity } from './hooks/useProductQuantity';
 import { useProductCalculations } from './hooks/useProductCalculations';
 import type { Product } from './types';
@@ -92,21 +90,9 @@ export function useProductPage(params: Promise<{ slug?: string }>) {
     isVariationRequired,
   });
 
-  const { isInWishlist, setIsInWishlist, isInCompare, setIsInCompare } = useWishlistCompare({
-    productId: product?.id || null,
-  });
-
   const { reviews, averageRating } = useProductReviews({
     slug,
     productId: product?.id ?? null,
-  });
-
-  const { handleAddToWishlist, handleCompareToggle } = useProductActions({
-    productId: product?.id || null,
-    isInWishlist,
-    setIsInWishlist,
-    isInCompare,
-    setIsInCompare,
   });
 
   useEffect(() => {
@@ -181,8 +167,6 @@ export function useProductPage(params: Promise<{ slug?: string }>) {
     exclusions,
     setAdditions,
     setExclusions,
-    isInWishlist,
-    isInCompare,
     quantity,
     reviews,
     averageRating,
@@ -207,8 +191,6 @@ export function useProductPage(params: Promise<{ slug?: string }>) {
     handleColorSelect,
     handleSizeSelect,
     handleAttributeValueSelect,
-    handleAddToWishlist,
-    handleCompareToggle,
     getRequiredAttributesMessage,
   };
 }
