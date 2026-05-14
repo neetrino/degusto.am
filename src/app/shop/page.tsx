@@ -7,6 +7,7 @@ import { cookies } from 'next/headers';
 import { resolveStorefrontLocaleFromCookie } from '@/lib/i18n/locale';
 import type { Prisma } from '@prisma/client';
 import { buildProductWhereTasteCapability, resolveFoodAttributeFlagsFromVariants } from '@/lib/product-food-attributes';
+import { storefrontAmdPriceBoundToVariantUsd } from '@/lib/currency';
 
 /** Always read fresh data from DB on each request (no static cache for this route). */
 export const dynamic = 'force-dynamic';
@@ -74,14 +75,19 @@ export default async function ShopPage({
     typeof params?.minPrice === 'string' ? Number(params.minPrice) : null;
   const maxPriceParam =
     typeof params?.maxPrice === 'string' ? Number(params.maxPrice) : null;
-  const minPrice =
+  /** User-facing filter amounts in AMD (URL query). */
+  const minPriceAmd =
     typeof minPriceParam === 'number' && Number.isFinite(minPriceParam) && minPriceParam >= 0
       ? minPriceParam
       : null;
-  const maxPrice =
+  const maxPriceAmd =
     typeof maxPriceParam === 'number' && Number.isFinite(maxPriceParam) && maxPriceParam >= 0
       ? maxPriceParam
       : null;
+  const minPriceUsd =
+    minPriceAmd !== null ? storefrontAmdPriceBoundToVariantUsd(minPriceAmd) : null;
+  const maxPriceUsd =
+    maxPriceAmd !== null ? storefrontAmdPriceBoundToVariantUsd(maxPriceAmd) : null;
   const allCategoriesLabel = locale === 'hy' ? 'Բոլորը' : 'All';
   const comboExclusionCategoryFilter = {
     categories: {
@@ -122,13 +128,13 @@ export default async function ShopPage({
           },
         }
       : {}),
-    ...((minPrice !== null || maxPrice !== null)
+    ...((minPriceUsd !== null || maxPriceUsd !== null)
       ? {
           variants: {
             some: {
               published: true,
-              ...(minPrice !== null ? { price: { gte: minPrice } } : {}),
-              ...(maxPrice !== null ? { price: { lte: maxPrice } } : {}),
+              ...(minPriceUsd !== null ? { price: { gte: minPriceUsd } } : {}),
+              ...(maxPriceUsd !== null ? { price: { lte: maxPriceUsd } } : {}),
             },
           },
         }
@@ -332,8 +338,8 @@ export default async function ShopPage({
         categories={categories}
         activeCategorySlug={selectedCategorySlug}
         initialSearch={selectedSearchQuery}
-        initialMinPrice={minPrice !== null ? String(minPrice) : ''}
-        initialMaxPrice={maxPrice !== null ? String(maxPrice) : ''}
+        initialMinPrice={minPriceAmd !== null ? String(minPriceAmd) : ''}
+        initialMaxPrice={maxPriceAmd !== null ? String(maxPriceAmd) : ''}
         initialFoodFilter={tasteFilter ?? 'neutral'}
       />
     </div>

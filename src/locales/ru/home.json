@@ -31,7 +31,7 @@
       "shop": {
         "menuTitle": "Меню",
         "menuSubtitle": "Выберите любимые блюда из нашего широкого ассортимента",
-        "priceLabel": "Цена",
+        "priceLabel": "Цена (AMD)",
         "priceFrom": "От",
         "priceTo": "До",
         "foodAttributeSwitcherAria": "Переключатель пищевых атрибутов",
