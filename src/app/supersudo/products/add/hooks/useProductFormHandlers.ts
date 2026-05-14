@@ -339,11 +339,76 @@ export function useProductFormHandlers({
                       options: variantOptions.length > 0 ? variantOptions : undefined,
                     });
                   });
+                } else {
+                  // Loaded variable products often use a single "default" color row with no sizes;
+                  // skipping here previously produced zero API variants and wiped all DB variants on save.
+                  const stockForVariant = colorData.stock || '0';
+                  const skuSuffix = colorDataArray.length > 1 ? `-${colorIndex + 1}` : '';
+                  let finalSku =
+                    colorData.sizeLabels && Object.keys(colorData.sizeLabels).length > 0
+                      ? undefined
+                      : variant.sku
+                        ? `${variant.sku.trim()}${skuSuffix}`
+                        : undefined;
+                  if (!finalSku || finalSku === '') {
+                    finalSku = `${currentFormData.slug || 'PROD'}-${Date.now()}-${variantIndex + 1}-${colorIndex + 1}`;
+                  }
+                  let uniqueSku = finalSku;
+                  let skuCounter = 1;
+                  while (variantSkuSet.has(uniqueSku)) {
+                    uniqueSku = `${finalSku}-${skuCounter}`;
+                    skuCounter++;
+                  }
+                  variantSkuSet.add(uniqueSku);
+                  const variantImageUrl =
+                    colorData.images && colorData.images.length > 0 ? colorData.images.join(',') : undefined;
+                  const finalPriceRaw =
+                    colorData.price && colorData.price.trim() !== ''
+                      ? parseFloat(colorData.price)
+                      : baseVariantData.price;
+                  const finalPrice = convertPrice(finalPriceRaw, defaultCurrency, 'USD');
+                  const variantOptions: Array<{ attributeKey: string; value: string; valueId?: string }> = [];
+                  if (
+                    colorData.colorValue &&
+                    colorData.colorValue.trim() !== '' &&
+                    colorData.colorValue !== 'default'
+                  ) {
+                    const colorAttr = attributes.find((a) => a.key === 'color');
+                    const colorValue = colorAttr?.values.find((v) => v.value === colorData.colorValue);
+                    if (colorValue) {
+                      variantOptions.push({
+                        attributeKey: 'color',
+                        value: colorData.colorValue,
+                        valueId: colorValue.id,
+                      });
+                    } else {
+                      variantOptions.push({ attributeKey: 'color', value: colorData.colorValue });
+                    }
+                  }
+                  variants.push({
+                    ...baseVariantData,
+                    price: finalPrice,
+                    color: colorData.colorValue,
+                    size: '',
+                    stock: parseInt(stockForVariant, 10) || 0,
+                    sku: uniqueSku,
+                    imageUrl: variantImageUrl,
+                    options: variantOptions.length > 0 ? variantOptions : undefined,
+                  });
                 }
               });
             }
           });
         }
+      }
+
+      if (productType === 'variable' && variants.length === 0) {
+        logger.error('[ADMIN] Refusing save: variable product would persist zero variants (data loss).');
+        alert(
+          'Չի կարելի պահպանել․ տարբերակների ցանկը դատարկ է։ Ավելացրեք տարբերակի տողեր և արժեքներ, ապա նորից փորձեք։'
+        );
+        setLoading(false);
+        return;
       }
 
       // Final SKU validation

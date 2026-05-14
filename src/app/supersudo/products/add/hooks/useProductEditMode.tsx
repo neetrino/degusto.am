@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
 import { convertPrice, type CurrencyCode } from '@/lib/currency';
 import { cleanImageUrls, separateMainAndVariantImages } from '@/lib/utils/image-utils';
-import type { Attribute, ProductData, ColorData, Variant } from '../types';
+import type { Attribute, ProductData, ColorData, Variant, GeneratedVariant, PendingVariantHydration } from '../types';
 import { useTranslation } from '@/lib/i18n-client';
 import { extractColor, extractSize } from '../utils/variantAttributeExtraction';
 import {
@@ -19,7 +19,9 @@ import {
 } from '../utils/variantImageCollector';
 import { hasVariantsWithAttributes } from '../utils/productTypeDetector';
 import { buildFormData, getEmptyProductFormData } from '../utils/productFormDataBuilder';
-import type { GeneratedVariant } from '../types';
+
+/** Admin product detail can include many variants/options; allow slow DB / cold Turbopack. */
+const ADMIN_PRODUCT_GET_TIMEOUT_MS = 120_000;
 
 interface UseProductEditModeProps {
   productId: string | null;
@@ -45,6 +47,8 @@ interface UseProductEditModeProps {
     v: Record<string, string[]> | ((prev: Record<string, string[]>) => Record<string, string[]>)
   ) => void;
   setOpenValueModal: (v: { variantId: string; attributeId: string } | null) => void;
+  productFetchNonce: number;
+  setPendingVariantHydration: (payload: PendingVariantHydration | null) => void;
 }
 
 export function useProductEditMode({
@@ -67,6 +71,8 @@ export function useProductEditMode({
   setSelectedAttributesForVariants,
   setSelectedAttributeValueIds,
   setOpenValueModal,
+  productFetchNonce,
+  setPendingVariantHydration,
 }: UseProductEditModeProps) {
   const router = useRouter();
   const { t } = useTranslation();
@@ -85,15 +91,14 @@ export function useProductEditMode({
     }
     if (!productId) {
       lastLoadedProductIdRef.current = null;
+      setPendingVariantHydration(null);
       return;
     }
 
     const productChanged = lastLoadedProductIdRef.current !== productId;
     if (productChanged) {
       lastLoadedProductIdRef.current = productId;
-      delete (window as unknown as { __productVariantsToConvert?: unknown }).__productVariantsToConvert;
-      delete (window as unknown as { __productVariantsMeta?: unknown }).__productVariantsMeta;
-      delete (window as unknown as { __productAttributeIds?: unknown }).__productAttributeIds;
+      setPendingVariantHydration(null);
       setGeneratedVariants([]);
       setSelectedAttributesForVariants(new Set());
       setSelectedAttributeValueIds({});
@@ -113,6 +118,7 @@ export function useProductEditMode({
         const product = await apiClient.get<ProductData>(`/api/v1/admin/products/${productId}`, {
           params: { _t: String(Date.now()) },
           signal: abortController.signal,
+          timeoutMs: ADMIN_PRODUCT_GET_TIMEOUT_MS,
         });
 
         if (abortController.signal.aborted || loadId !== loadGenerationRef.current) {
@@ -258,26 +264,21 @@ export function useProductEditMode({
           setNewBrandName('');
           setNewCategoryName('');
 
-          if (product.variants && product.variants.length > 0) {
-            (window as unknown as { __productVariantsMeta?: { productId: string } }).__productVariantsMeta = {
-              productId: product.id ?? productId,
-            };
-            (window as unknown as { __productVariantsToConvert?: unknown }).__productVariantsToConvert =
-              product.variants;
-            setHasVariantsToLoad(true);
-          } else {
-            delete (window as unknown as { __productVariantsToConvert?: unknown }).__productVariantsToConvert;
-            delete (window as unknown as { __productVariantsMeta?: unknown }).__productVariantsMeta;
-          }
+          const variantList = Array.isArray(product.variants) ? product.variants : [];
+          const attributeIdList = Array.isArray(product.attributeIds) ? product.attributeIds : [];
+          setPendingVariantHydration({
+            productId: product.id ?? productId,
+            variants: variantList,
+            attributeIds: attributeIdList,
+          });
+          setHasVariantsToLoad(variantList.length > 0);
+          logger.debug('📋 [ADMIN] Queued variant hydration:', {
+            productId: product.id ?? productId,
+            variantsCount: variantList.length,
+            attributeIdsCount: attributeIdList.length,
+          });
 
-          if (product.attributeIds && product.attributeIds.length > 0) {
-            (window as any).__productAttributeIds = product.attributeIds;
-            logger.debug('📋 [ADMIN] Product attributeIds loaded:', product.attributeIds);
-          } else {
-            delete (window as unknown as { __productAttributeIds?: unknown }).__productAttributeIds;
-          }
-
-          const variants = product.variants || [];
+          const variants = variantList;
           const hasVariants = variants.length > 0;
           const hasVariantsWithAttrs = hasVariantsWithAttributes(variants);
 
@@ -399,5 +400,7 @@ export function useProductEditMode({
     setSelectedAttributesForVariants,
     setSelectedAttributeValueIds,
     setOpenValueModal,
+    setPendingVariantHydration,
+    productFetchNonce,
   ]);
 }

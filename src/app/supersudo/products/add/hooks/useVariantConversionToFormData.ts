@@ -145,8 +145,16 @@ export function useVariantConversionToFormData({
             if (variant.image) {
               colorData.images.push(variant.image);
             }
-            
-            if (colorData.images.length > 0 || variant.stock) {
+
+            const hasPrice =
+              variant.price !== undefined &&
+              variant.price !== null &&
+              String(variant.price).trim() !== '';
+            const hasStock =
+              variant.stock !== undefined &&
+              variant.stock !== null &&
+              String(variant.stock).trim() !== '';
+            if (colorData.images.length > 0 || hasStock || hasPrice) {
               colors.push(colorData);
             }
           }

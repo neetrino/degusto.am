@@ -6,7 +6,6 @@ import { useTranslation } from '../../../../../lib/i18n-client';
 import { getColorHex } from '../../../../../lib/colorMap';
 import { CURRENCIES, type CurrencyCode } from '../../../../../lib/currency';
 import type { Attribute, GeneratedVariant } from '../types';
-import { logger } from "@/lib/utils/logger";
 
 interface VariantBuilderProps {
   generatedVariants: GeneratedVariant[];
@@ -414,17 +413,9 @@ export function VariantBuilder({
               </table>
             </div>
 
-            <div className="mt-4 flex justify-end gap-2">
+            <div className="mt-4 flex justify-end">
               <Button type="button" variant="outline" onClick={onVariantAdd}>
                 {t('admin.products.add.addVariant') || 'Add'}
-              </Button>
-              <Button
-                type="button"
-                onClick={() => {
-                  logger.debug('✅ [VARIANT BUILDER] Variants ready for submission:', generatedVariants);
-                }}
-              >
-                {t('admin.products.add.variantsReady') || 'Variants Ready'}
               </Button>
             </div>
           </div>

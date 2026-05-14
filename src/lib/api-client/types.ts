@@ -4,6 +4,8 @@
 export interface RequestOptions extends globalThis.RequestInit {
   params?: Record<string, string>;
   skipAuth?: boolean; // Skip automatic token injection
+  /** GET only: max wait before abort (default 30s). Use for heavy admin reads. */
+  timeoutMs?: number;
 }
 
 /**
