@@ -38,8 +38,6 @@ export function PdpAttributePillRow({
   const minWidthClass = totalValues > 6 ? 'min-w-[40px]' : 'min-w-[50px]';
 
   return (
-<<<<<<< HEAD
-<<<<<<< HEAD
     <div className="flex w-full flex-col gap-2.5">
       <label
         className={`text-sm font-semibold tracking-tight ${isUnavailable ? 'text-red-600' : 'text-neutral-900'}`}
@@ -47,22 +45,6 @@ export function PdpAttributePillRow({
         {title}:
       </label>
       <div className="flex flex-wrap gap-2">
-=======
-    <div className="flex w-full flex-col gap-2">
-=======
-    <div className="flex w-full flex-col gap-2.5">
->>>>>>> 7aba160 (cart style and deleted /cart)
-      <label
-        className={`text-sm font-semibold tracking-tight ${isUnavailable ? 'text-red-600' : 'text-neutral-900'}`}
-      >
-        {title}:
-      </label>
-<<<<<<< HEAD
-      <div className="flex flex-wrap gap-1.5">
->>>>>>> 15e3129 (single product page & admin panel attributes some bug fixed)
-=======
-      <div className="flex flex-wrap gap-2">
->>>>>>> 7aba160 (cart style and deleted /cart)
         {attrGroups.map((g) => {
           const displayStock = g.stock;
           const selectedRaw = selectedAttributeValues.get(attrKey);
@@ -81,45 +63,19 @@ export function PdpAttributePillRow({
               type="button"
               key={g.valueId || g.value}
               onClick={() => onAttributeValueSelect(attrKey, selectPayload)}
-<<<<<<< HEAD
-<<<<<<< HEAD
               className={`${minWidthClass} ${paddingClass} flex items-center gap-1.5 rounded-xl border bg-white shadow-sm transition-all duration-200 ${
                 isSelected
                   ? 'border-[#F66812] bg-orange-50/90 ring-1 ring-[#F66812]/25'
                   : displayStock <= 0
                     ? 'border-neutral-200/80 opacity-55 hover:opacity-80'
                     : 'border-neutral-200 hover:border-neutral-300 hover:shadow-md active:scale-[0.98]'
-=======
-              className={`${minWidthClass} ${paddingClass} flex items-center gap-1.5 rounded-lg border-2 transition-all ${
-=======
-              className={`${minWidthClass} ${paddingClass} flex items-center gap-1.5 rounded-xl border bg-white shadow-sm transition-all duration-200 ${
->>>>>>> 7aba160 (cart style and deleted /cart)
-                isSelected
-                  ? 'border-[#F66812] bg-orange-50/90 ring-1 ring-[#F66812]/25'
-                  : displayStock <= 0
-<<<<<<< HEAD
-                    ? 'border-gray-200 opacity-60 hover:opacity-80'
-                    : 'border-gray-200 hover:border-gray-400'
->>>>>>> 15e3129 (single product page & admin panel attributes some bug fixed)
-=======
-                    ? 'border-neutral-200/80 opacity-55 hover:opacity-80'
-                    : 'border-neutral-200 hover:border-neutral-300 hover:shadow-md active:scale-[0.98]'
->>>>>>> 7aba160 (cart style and deleted /cart)
               }`}
             >
               {hasImage && processedImageUrl && (
                 <img
                   src={processedImageUrl}
                   alt={g.label}
-<<<<<<< HEAD
-<<<<<<< HEAD
                   className={`${imageSizeClass} shrink-0 rounded-md border border-neutral-200 object-cover`}
-=======
-                  className={`${imageSizeClass} flex-shrink-0 rounded border border-gray-300 object-cover`}
->>>>>>> 15e3129 (single product page & admin panel attributes some bug fixed)
-=======
-                  className={`${imageSizeClass} shrink-0 rounded-md border border-neutral-200 object-cover`}
->>>>>>> 7aba160 (cart style and deleted /cart)
                   onError={(e) => {
                     logger.warn('[PDP ATTR PILL] Image failed to load', {
                       attrKey,
@@ -130,27 +86,11 @@ export function PdpAttributePillRow({
                 />
               )}
               <div className="flex flex-col text-center">
-<<<<<<< HEAD
-<<<<<<< HEAD
                 <span className={`${textSizeClass} font-medium text-neutral-900`}>
                   {getAttributeLabel(language, attrKey, g.value)}
                 </span>
                 <span
                   className={`${totalValues > 10 ? 'text-[10px]' : 'text-xs'} tabular-nums ${displayStock > 0 ? 'text-neutral-500' : 'text-neutral-400'}`}
-=======
-                <span className={`${textSizeClass} font-medium`}>
-                  {getAttributeLabel(language, attrKey, g.value)}
-                </span>
-                <span
-                  className={`${totalValues > 10 ? 'text-[10px]' : 'text-xs'} ${displayStock > 0 ? 'text-gray-500' : 'text-gray-400'}`}
->>>>>>> 15e3129 (single product page & admin panel attributes some bug fixed)
-=======
-                <span className={`${textSizeClass} font-medium text-neutral-900`}>
-                  {getAttributeLabel(language, attrKey, g.value)}
-                </span>
-                <span
-                  className={`${totalValues > 10 ? 'text-[10px]' : 'text-xs'} tabular-nums ${displayStock > 0 ? 'text-neutral-500' : 'text-neutral-400'}`}
->>>>>>> 7aba160 (cart style and deleted /cart)
                 >
                   ({displayStock})
                 </span>

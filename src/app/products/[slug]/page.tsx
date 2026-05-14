@@ -273,6 +273,10 @@ export default function ProductPage({ params }: ProductPageProps) {
               onSizeSelect={handleSizeSelect}
               onAttributeValueSelect={handleAttributeValueSelect}
               getOptionValue={getOptionValue}
+              additions={additions}
+              exclusions={exclusions}
+              onAdditionsChange={setAdditions}
+              onExclusionsChange={setExclusions}
             />
           </div>
           </section>
