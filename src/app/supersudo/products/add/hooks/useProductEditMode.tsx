@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
 import { convertPrice, type CurrencyCode } from '@/lib/currency';
 import { cleanImageUrls, separateMainAndVariantImages } from '@/lib/utils/image-utils';
-import type { ProductData, ColorData, Variant } from '../types';
+import type { Attribute, ProductData, ColorData, Variant, GeneratedVariant, PendingVariantHydration } from '../types';
 import { useTranslation } from '@/lib/i18n-client';
 import { extractColor, extractSize } from '../utils/variantAttributeExtraction';
 import {
@@ -18,13 +18,17 @@ import {
   collectVariantImagesFromProductVariants,
 } from '../utils/variantImageCollector';
 import { hasVariantsWithAttributes } from '../utils/productTypeDetector';
-import { buildFormData } from '../utils/productFormDataBuilder';
+import { buildFormData, getEmptyProductFormData } from '../utils/productFormDataBuilder';
+
+/** Admin product detail can include many variants/options; allow slow DB / cold Turbopack. */
+const ADMIN_PRODUCT_GET_TIMEOUT_MS = 120_000;
 
 interface UseProductEditModeProps {
   productId: string | null;
   isLoggedIn: boolean;
   isAdmin: boolean;
-  attributes: any[];
+  referenceCatalogReady: boolean;
+  attributes: Attribute[];
   defaultCurrency: CurrencyCode;
   setLoadingProduct: (loading: boolean) => void;
   setFormData: (updater: (prev: any) => any) => void;
@@ -35,12 +39,23 @@ interface UseProductEditModeProps {
   setHasVariantsToLoad: (has: boolean) => void;
   setProductType: (type: 'simple' | 'variable') => void;
   setSimpleProductData: (data: any) => void;
+  setGeneratedVariants: (v: GeneratedVariant[] | ((prev: GeneratedVariant[]) => GeneratedVariant[])) => void;
+  setSelectedAttributesForVariants: (
+    v: Set<string> | ((prev: Set<string>) => Set<string>)
+  ) => void;
+  setSelectedAttributeValueIds: (
+    v: Record<string, string[]> | ((prev: Record<string, string[]>) => Record<string, string[]>)
+  ) => void;
+  setOpenValueModal: (v: { variantId: string; attributeId: string } | null) => void;
+  productFetchNonce: number;
+  setPendingVariantHydration: (payload: PendingVariantHydration | null) => void;
 }
 
 export function useProductEditMode({
   productId,
   isLoggedIn,
   isAdmin,
+  referenceCatalogReady,
   attributes,
   defaultCurrency,
   setLoadingProduct,
@@ -52,18 +67,67 @@ export function useProductEditMode({
   setHasVariantsToLoad,
   setProductType,
   setSimpleProductData,
+  setGeneratedVariants,
+  setSelectedAttributesForVariants,
+  setSelectedAttributeValueIds,
+  setOpenValueModal,
+  productFetchNonce,
+  setPendingVariantHydration,
 }: UseProductEditModeProps) {
   const router = useRouter();
   const { t } = useTranslation();
+  const attributesRef = useRef(attributes);
+  attributesRef.current = attributes;
+  const defaultCurrencyRef = useRef(defaultCurrency);
+  defaultCurrencyRef.current = defaultCurrency;
+  const tRef = useRef(t);
+  tRef.current = t;
+  const loadGenerationRef = useRef(0);
+  const lastLoadedProductIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (productId && isLoggedIn && isAdmin) {
-      const loadProduct = async () => {
-        try {
-          setLoadingProduct(true);
-          logger.debug('📥 [ADMIN] Loading product for edit:', productId);
-          const product = await apiClient.get<ProductData>(`/api/v1/admin/products/${productId}`);
+    if (!isLoggedIn || !isAdmin || !referenceCatalogReady) {
+      return;
+    }
+    if (!productId) {
+      lastLoadedProductIdRef.current = null;
+      setPendingVariantHydration(null);
+      return;
+    }
 
+    const productChanged = lastLoadedProductIdRef.current !== productId;
+    if (productChanged) {
+      lastLoadedProductIdRef.current = productId;
+      setPendingVariantHydration(null);
+      setGeneratedVariants([]);
+      setSelectedAttributesForVariants(new Set());
+      setSelectedAttributeValueIds({});
+      setOpenValueModal(null);
+      setFormData(() => getEmptyProductFormData());
+      setHasVariantsToLoad(false);
+    }
+
+    setLoadingProduct(true);
+
+    const abortController = new AbortController();
+    const loadId = ++loadGenerationRef.current;
+
+    const loadProduct = async () => {
+      try {
+        logger.debug('📥 [ADMIN] Loading product for edit:', productId);
+        const product = await apiClient.get<ProductData>(`/api/v1/admin/products/${productId}`, {
+          params: { _t: String(Date.now()) },
+          signal: abortController.signal,
+          timeoutMs: ADMIN_PRODUCT_GET_TIMEOUT_MS,
+        });
+
+        if (abortController.signal.aborted || loadId !== loadGenerationRef.current) {
+          return;
+        }
+
+        const catalogAttributes = attributesRef.current;
+        const currency = defaultCurrencyRef.current;
+        const defaultColorLabel = tRef.current('admin.products.add.defaultColor');
           const colorDataMap = new Map<string, ColorData>();
           let firstPrice = '';
           let firstCompareAtPrice = '';
@@ -91,12 +155,11 @@ export function useProductEditMode({
 
             if (!color) {
               const defaultColor = 'default';
-              const defaultColorLabel = t('admin.products.add.defaultColor');
 
               if (!colorDataMap.has(defaultColor)) {
                 const colorData = createDefaultColorData(
                   variant,
-                  defaultCurrency,
+                  currency,
                   defaultColorLabel,
                   size,
                   stockValue
@@ -104,15 +167,22 @@ export function useProductEditMode({
                 colorDataMap.set(defaultColor, colorData);
               } else {
                 const existingColorData = colorDataMap.get(defaultColor)!;
-                updateDefaultColorData(existingColorData, variant, defaultCurrency, size, stockValue);
+                updateDefaultColorData(existingColorData, variant, currency, size, stockValue);
               }
             } else if (color) {
               if (!colorDataMap.has(color)) {
-                const colorData = createColorData(variant, color, attributes, defaultCurrency, size, stockValue);
+                const colorData = createColorData(
+                  variant,
+                  color,
+                  catalogAttributes,
+                  currency,
+                  size,
+                  stockValue
+                );
                 colorDataMap.set(color, colorData);
               } else {
                 const existingColorData = colorDataMap.get(color)!;
-                updateColorData(existingColorData, variant, defaultCurrency, size, stockValue);
+                updateColorData(existingColorData, variant, currency, size, stockValue);
               }
             }
 
@@ -123,10 +193,10 @@ export function useProductEditMode({
                   ? variant.compareAtPrice
                   : 0;
               firstPrice =
-                firstPriceUSD > 0 ? String(convertPrice(firstPriceUSD, 'USD', defaultCurrency)) : '';
+                firstPriceUSD > 0 ? String(convertPrice(firstPriceUSD, 'USD', currency)) : '';
               firstCompareAtPrice =
                 firstCompareAtPriceUSD > 0
-                  ? String(convertPrice(firstCompareAtPriceUSD, 'USD', defaultCurrency))
+                  ? String(convertPrice(firstCompareAtPriceUSD, 'USD', currency))
                   : '';
               firstSku = variant.sku || '';
             }
@@ -172,6 +242,10 @@ export function useProductEditMode({
           const mainProductImage =
             (product as any).mainProductImage || (normalizedMedia.length > 0 ? normalizedMedia[0] : '');
 
+          if (abortController.signal.aborted || loadId !== loadGenerationRef.current) {
+            return;
+          }
+
           const formData = buildFormData(
             product,
             normalizedMedia,
@@ -180,8 +254,8 @@ export function useProductEditMode({
             mergedVariant
           );
 
-          setFormData((prev: any) => ({
-            ...prev,
+          setFormData(() => ({
+            ...getEmptyProductFormData(),
             ...formData,
           }));
 
@@ -190,17 +264,21 @@ export function useProductEditMode({
           setNewBrandName('');
           setNewCategoryName('');
 
-          if (product.variants && product.variants.length > 0) {
-            (window as any).__productVariantsToConvert = product.variants;
-            setHasVariantsToLoad(true);
-          }
+          const variantList = Array.isArray(product.variants) ? product.variants : [];
+          const attributeIdList = Array.isArray(product.attributeIds) ? product.attributeIds : [];
+          setPendingVariantHydration({
+            productId: product.id ?? productId,
+            variants: variantList,
+            attributeIds: attributeIdList,
+          });
+          setHasVariantsToLoad(variantList.length > 0);
+          logger.debug('📋 [ADMIN] Queued variant hydration:', {
+            productId: product.id ?? productId,
+            variantsCount: variantList.length,
+            attributeIdsCount: attributeIdList.length,
+          });
 
-          if (product.attributeIds && product.attributeIds.length > 0) {
-            (window as any).__productAttributeIds = product.attributeIds;
-            logger.debug('📋 [ADMIN] Product attributeIds loaded:', product.attributeIds);
-          }
-
-          const variants = product.variants || [];
+          const variants = variantList;
           const hasVariants = variants.length > 0;
           const hasVariantsWithAttrs = hasVariantsWithAttributes(variants);
 
@@ -242,7 +320,7 @@ export function useProductEditMode({
                           ? firstVariant.price
                           : parseFloat(String(firstVariant.price || '0')),
                         'USD',
-                        defaultCurrency
+                        currency
                       )
                     )
                   : '',
@@ -253,7 +331,7 @@ export function useProductEditMode({
                           ? firstVariant.compareAtPrice
                           : parseFloat(String(firstVariant.compareAtPrice || '0')),
                         'USD',
-                        defaultCurrency
+                        currency
                       )
                     )
                   : '',
@@ -273,24 +351,42 @@ export function useProductEditMode({
             setProductType('variable');
           }
 
+          if (
+            hasVariantsWithAttrs &&
+            product.attributeIds &&
+            product.attributeIds.length > 0
+          ) {
+            setSelectedAttributesForVariants(new Set(product.attributeIds));
+          }
+
           logger.debug('✅ [ADMIN] Product loaded for edit');
         } catch (err: unknown) {
+          if (err instanceof DOMException && err.name === 'AbortError') {
+            return;
+          }
+          if (err instanceof Error && err.name === 'AbortError') {
+            return;
+          }
           console.error('❌ [ADMIN] Error loading product:', err);
           router.push('/supersudo/products');
         } finally {
-          setLoadingProduct(false);
+          if (loadId === loadGenerationRef.current) {
+            setLoadingProduct(false);
+          }
         }
       };
 
-      loadProduct();
-    }
+    void loadProduct();
+
+    return () => {
+      abortController.abort();
+    };
   }, [
     productId,
     isLoggedIn,
     isAdmin,
+    referenceCatalogReady,
     router,
-    attributes,
-    defaultCurrency,
     setLoadingProduct,
     setFormData,
     setUseNewBrand,
@@ -300,6 +396,11 @@ export function useProductEditMode({
     setHasVariantsToLoad,
     setProductType,
     setSimpleProductData,
-    t,
+    setGeneratedVariants,
+    setSelectedAttributesForVariants,
+    setSelectedAttributeValueIds,
+    setOpenValueModal,
+    setPendingVariantHydration,
+    productFetchNonce,
   ]);
 }

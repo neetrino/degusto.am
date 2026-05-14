@@ -3,14 +3,11 @@
 import { useState, useEffect, use, useCallback } from 'react';
 import { getStoredCurrency } from '../../../lib/currency';
 import { getStoredLanguage, type LanguageCode } from '../../../lib/language';
-import { t } from '../../../lib/i18n';
 import { useAttributeGroups } from './useAttributeGroups';
 import { useProductImages } from './hooks/useProductImages';
 import { useProductFetch } from './hooks/useProductFetch';
-import { useWishlistCompare } from './hooks/useWishlistCompare';
 import { useProductReviews } from './hooks/useProductReviews';
-import { useVariantSelection } from './hooks/useVariantSelection';
-import { useProductActions } from './hooks/useProductActions';
+import { useVariantSelection, otherAttributeSelectionsFromVariant } from './hooks/useVariantSelection';
 import { useProductQuantity } from './hooks/useProductQuantity';
 import { useProductCalculations } from './hooks/useProductCalculations';
 import type { Product } from './types';
@@ -20,7 +17,6 @@ export function useProductPage(params: Promise<{ slug?: string }>) {
   const [currency, setCurrency] = useState(getStoredCurrency());
   const [language, setLanguage] = useState<LanguageCode>('en');
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const [showMessage, setShowMessage] = useState<string | null>(null);
   const [thumbnailStartIndex, setThumbnailStartIndex] = useState(0);
   const [additions, setAdditions] = useState('');
   const [exclusions, setExclusions] = useState('');
@@ -46,8 +42,11 @@ export function useProductPage(params: Promise<{ slug?: string }>) {
     selectedVariant,
     setSelectedVariant,
     selectedColor,
+    setSelectedColor,
     selectedSize,
+    setSelectedSize,
     selectedAttributeValues,
+    setSelectedAttributeValues,
     currentVariant,
     getOptionValue,
     handleColorSelect,
@@ -74,41 +73,23 @@ export function useProductPage(params: Promise<{ slug?: string }>) {
     isOutOfStock,
     colorGroups,
     sizeGroups,
-    isVariationRequired,
     unavailableAttributes,
-    hasUnavailableAttributes,
     canAddToCart,
   } = useProductCalculations({
     product,
     currentVariant,
     attributeGroups,
-    selectedColor,
-    selectedSize,
+    selectedAttributeValues,
   });
 
   const { quantity, setQuantity, maxQuantity, adjustQuantity } = useProductQuantity({
     currentVariant,
     isOutOfStock,
-    isVariationRequired,
-  });
-
-  const { isInWishlist, setIsInWishlist, isInCompare, setIsInCompare } = useWishlistCompare({
-    productId: product?.id || null,
   });
 
   const { reviews, averageRating } = useProductReviews({
     slug,
     productId: product?.id ?? null,
-  });
-
-  const { handleAddToWishlist, handleCompareToggle } = useProductActions({
-    productId: product?.id || null,
-    isInWishlist,
-    setIsInWishlist,
-    isInCompare,
-    setIsInCompare,
-    setShowMessage,
-    language,
   });
 
   useEffect(() => {
@@ -136,14 +117,29 @@ export function useProductPage(params: Promise<{ slug?: string }>) {
 
   useEffect(() => {
     if (product && product.variants && product.variants.length > 0 && variantIdFromUrl) {
-      const variantById = product.variants.find(v => v.id === variantIdFromUrl || v.id.endsWith(variantIdFromUrl));
-      const variantByIndex = product.variants[parseInt(variantIdFromUrl) - 1];
+      const variantById = product.variants.find((v) => v.id === variantIdFromUrl || v.id.endsWith(variantIdFromUrl ?? ''));
+      const variantByIndex = product.variants[parseInt(variantIdFromUrl ?? '', 10) - 1];
       const initialVariant = variantById || variantByIndex || product.variants[0];
       setSelectedVariant(initialVariant);
       setCurrentImageIndex(0);
       setThumbnailStartIndex(0);
+      const colorValue = getOptionValue(initialVariant.options, 'color');
+      const sizeValue = getOptionValue(initialVariant.options, 'size');
+      if (colorValue) setSelectedColor(colorValue);
+      else setSelectedColor(null);
+      if (sizeValue) setSelectedSize(sizeValue);
+      else setSelectedSize(null);
+      setSelectedAttributeValues(otherAttributeSelectionsFromVariant(initialVariant));
     }
-  }, [product, variantIdFromUrl, setSelectedVariant]);
+  }, [
+    product,
+    variantIdFromUrl,
+    setSelectedVariant,
+    setSelectedColor,
+    setSelectedSize,
+    setSelectedAttributeValues,
+    getOptionValue,
+  ]);
 
   const scrollToReviews = useCallback(() => {
     const reviewsElement = document.getElementById('product-reviews');
@@ -151,16 +147,6 @@ export function useProductPage(params: Promise<{ slug?: string }>) {
       reviewsElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, []);
-
-  const getRequiredAttributesMessage = (): string => {
-    const needsColor = colorGroups.length > 0 && colorGroups.some(g => g.stock > 0) && !selectedColor;
-    const needsSize = sizeGroups.length > 0 && sizeGroups.some(g => g.stock > 0) && !selectedSize;
-    
-    if (needsColor && needsSize) return t(language, 'product.selectColorAndSize');
-    if (needsColor) return t(language, 'product.selectColor');
-    if (needsSize) return t(language, 'product.selectSize');
-    return t(language, 'product.selectOptions');
-  };
 
   return {
     product,
@@ -179,14 +165,10 @@ export function useProductPage(params: Promise<{ slug?: string }>) {
     selectedAttributeValues,
     isAddingToCart,
     setIsAddingToCart,
-    showMessage,
-    setShowMessage,
     additions,
     exclusions,
     setAdditions,
     setExclusions,
-    isInWishlist,
-    isInCompare,
     quantity,
     reviews,
     averageRating,
@@ -201,8 +183,6 @@ export function useProductPage(params: Promise<{ slug?: string }>) {
     discountPercent,
     maxQuantity,
     isOutOfStock,
-    isVariationRequired,
-    hasUnavailableAttributes,
     unavailableAttributes,
     canAddToCart,
     scrollToReviews,
@@ -211,8 +191,5 @@ export function useProductPage(params: Promise<{ slug?: string }>) {
     handleColorSelect,
     handleSizeSelect,
     handleAttributeValueSelect,
-    handleAddToWishlist,
-    handleCompareToggle,
-    getRequiredAttributesMessage,
   };
 }
