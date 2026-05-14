@@ -75,6 +75,9 @@ const fallbackCategories: HomeCategoryItem[] = [
   { id: 'cat-fallback-4', slug: 'pizza', title: 'Պիցցա', count: 44, image: assets.categoryPizza },
 ];
 
+/** Desktop home categories block surface; footer outer wrapper uses the same for a continuous edge. */
+const HOME_DESKTOP_CATEGORY_SURFACE_CLASS = 'bg-[#e6e6e8]';
+
 function NewsCard({ item }: { item: HomeFeaturedProduct }) {
   const { t } = useTranslation();
   const currency = useCurrency();
@@ -323,7 +326,7 @@ export function FigmaHomePage({
       </section>
 
       <div className="bg-black">
-        <section className="rounded-t-[40px] bg-[#e6e6e8] px-4 pb-20 pt-10 md:px-8 lg:px-12">
+        <section className={`rounded-t-[40px] px-4 pb-20 pt-10 md:px-8 lg:px-12 ${HOME_DESKTOP_CATEGORY_SURFACE_CLASS}`}>
           <div className="mx-auto max-w-[1280px]">
             <h2
               className={`mb-8 text-5xl font-black text-black md:text-6xl${
@@ -340,7 +343,7 @@ export function FigmaHomePage({
           </div>
         </section>
       </div>
-      <Footer />
+      <Footer outerBackgroundClassName={HOME_DESKTOP_CATEGORY_SURFACE_CLASS} />
       </div>
     </>
   );
