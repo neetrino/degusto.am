@@ -5,7 +5,7 @@ import { useCurrency } from '../hooks/useCurrency';
 import { formatPrice } from '../../lib/currency';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { KeyboardEvent, MouseEvent } from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useAddToCart } from '../hooks/useAddToCart';
 import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
 import { StoreMenuPagination } from './StoreMenuPagination';
@@ -84,6 +84,97 @@ const fallbackCategoryKeys = [
   'home.figma.desktop.categories.lunchBoxes',
   'home.figma.desktop.categories.grillAndSmokedProducts',
 ] as const;
+
+type BuildMenuTargetPathFn = (
+  categorySlug: string,
+  overrides?: {
+    search?: string;
+    minPrice?: string;
+    maxPrice?: string;
+    taste?: 'leaf' | 'neutral' | 'pepper';
+    page?: number;
+  }
+) => string;
+
+type MenuFilterRouteSnapshot = {
+  buildTargetPath: BuildMenuTargetPathFn;
+  activeCategorySlug: string;
+  minPrice: string;
+  maxPrice: string;
+  foodFilter: 'leaf' | 'neutral' | 'pepper';
+};
+
+function useMenuSearchUrlSync(
+  router: { replace: (href: string) => void },
+  buildTargetPath: BuildMenuTargetPathFn,
+  activeCategorySlug: string,
+  minPrice: string,
+  maxPrice: string,
+  foodFilter: 'leaf' | 'neutral' | 'pepper'
+) {
+  const searchUrlDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const menuFilterRouteRef = useRef<MenuFilterRouteSnapshot>({
+    buildTargetPath,
+    activeCategorySlug,
+    minPrice,
+    maxPrice,
+    foodFilter,
+  });
+
+  useLayoutEffect(() => {
+    menuFilterRouteRef.current = {
+      buildTargetPath,
+      activeCategorySlug,
+      minPrice,
+      maxPrice,
+      foodFilter,
+    };
+  }, [activeCategorySlug, buildTargetPath, foodFilter, maxPrice, minPrice]);
+
+  useEffect(() => {
+    return () => {
+      if (searchUrlDebounceRef.current) {
+        clearTimeout(searchUrlDebounceRef.current);
+      }
+    };
+  }, []);
+
+  const scheduleSearchQueryUrlSync = useCallback((nextSearch: string) => {
+    if (searchUrlDebounceRef.current) {
+      clearTimeout(searchUrlDebounceRef.current);
+    }
+    searchUrlDebounceRef.current = setTimeout(() => {
+      searchUrlDebounceRef.current = null;
+      const d = menuFilterRouteRef.current;
+      router.replace(
+        d.buildTargetPath(d.activeCategorySlug, {
+          search: nextSearch,
+          minPrice: d.minPrice,
+          maxPrice: d.maxPrice,
+          taste: d.foodFilter,
+        })
+      );
+    }, SEARCH_QUERY_URL_DEBOUNCE_MS);
+  }, [router]);
+
+  const flushSearchQueryUrlSync = useCallback((nextSearch: string) => {
+    if (searchUrlDebounceRef.current) {
+      clearTimeout(searchUrlDebounceRef.current);
+      searchUrlDebounceRef.current = null;
+    }
+    const d = menuFilterRouteRef.current;
+    router.replace(
+      d.buildTargetPath(d.activeCategorySlug, {
+        search: nextSearch,
+        minPrice: d.minPrice,
+        maxPrice: d.maxPrice,
+        taste: d.foodFilter,
+      })
+    );
+  }, [router]);
+
+  return { scheduleSearchQueryUrlSync, flushSearchQueryUrlSync };
+}
 
 const categoryIconUrls: readonly string[] = [
   'https://www.figma.com/api/mcp/asset/8de80153-582c-4bef-9266-5891b9fbdab3',
@@ -363,63 +454,14 @@ export function FigmaDesktopMenuPage({
     };
   }, [searchParams, searchTerm, minPrice, maxPrice, foodFilter, routeBasePath]);
 
-  const searchUrlDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const menuFilterRouteRef = useRef({
+  const { scheduleSearchQueryUrlSync, flushSearchQueryUrlSync } = useMenuSearchUrlSync(
+    router,
     buildTargetPath,
     activeCategorySlug,
     minPrice,
     maxPrice,
-    foodFilter,
-  });
-  menuFilterRouteRef.current = {
-    buildTargetPath,
-    activeCategorySlug,
-    minPrice,
-    maxPrice,
-    foodFilter,
-  };
-
-  useEffect(() => {
-    return () => {
-      if (searchUrlDebounceRef.current) {
-        clearTimeout(searchUrlDebounceRef.current);
-      }
-    };
-  }, []);
-
-  const scheduleSearchQueryUrlSync = (nextSearch: string) => {
-    if (searchUrlDebounceRef.current) {
-      clearTimeout(searchUrlDebounceRef.current);
-    }
-    searchUrlDebounceRef.current = setTimeout(() => {
-      searchUrlDebounceRef.current = null;
-      const d = menuFilterRouteRef.current;
-      router.replace(
-        d.buildTargetPath(d.activeCategorySlug, {
-          search: nextSearch,
-          minPrice: d.minPrice,
-          maxPrice: d.maxPrice,
-          taste: d.foodFilter,
-        })
-      );
-    }, SEARCH_QUERY_URL_DEBOUNCE_MS);
-  };
-
-  const flushSearchQueryUrlSync = (nextSearch: string) => {
-    if (searchUrlDebounceRef.current) {
-      clearTimeout(searchUrlDebounceRef.current);
-      searchUrlDebounceRef.current = null;
-    }
-    const d = menuFilterRouteRef.current;
-    router.replace(
-      d.buildTargetPath(d.activeCategorySlug, {
-        search: nextSearch,
-        minPrice: d.minPrice,
-        maxPrice: d.maxPrice,
-        taste: d.foodFilter,
-      })
-    );
-  };
+    foodFilter
+  );
 
   return (
     <>
