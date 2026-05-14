@@ -84,6 +84,7 @@ export function useProductPage(params: Promise<{ slug?: string }>) {
     attributeGroups,
     selectedColor,
     selectedSize,
+    selectedAttributeValues,
   });
 
   const { quantity, setQuantity, maxQuantity, adjustQuantity } = useProductQuantity({

@@ -139,12 +139,24 @@ export function parseVariantPrices(variant: {
   compareAtPrice?: number;
 } {
   const price = typeof variant.price === 'number' ? variant.price : parseFloat(String(variant.price));
-  const stock = typeof variant.stock === 'number' ? variant.stock : parseInt(String(variant.stock), 10);
-  const compareAtPrice = variant.compareAtPrice !== undefined && variant.compareAtPrice !== null && variant.compareAtPrice !== ''
-    ? (typeof variant.compareAtPrice === 'number' ? variant.compareAtPrice : parseFloat(String(variant.compareAtPrice)))
-    : undefined;
+  let stock =
+    typeof variant.stock === 'number' ? variant.stock : parseInt(String(variant.stock), 10);
+  if (Number.isNaN(stock) || stock < 0) {
+    stock = 0;
+  }
+  let compareAtPrice: number | undefined =
+    variant.compareAtPrice !== undefined &&
+    variant.compareAtPrice !== null &&
+    variant.compareAtPrice !== ''
+      ? typeof variant.compareAtPrice === 'number'
+        ? variant.compareAtPrice
+        : parseFloat(String(variant.compareAtPrice))
+      : undefined;
+  if (compareAtPrice !== undefined && (Number.isNaN(compareAtPrice) || compareAtPrice < 0)) {
+    compareAtPrice = undefined;
+  }
 
-  if (isNaN(price) || price < 0) {
+  if (Number.isNaN(price) || price < 0) {
     throw new Error(`Invalid price value: ${variant.price}`);
   }
 

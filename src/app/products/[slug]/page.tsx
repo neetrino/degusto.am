@@ -17,7 +17,32 @@ import {
   buildCustomizationLineKey,
   normalizeProductCustomizations,
 } from '../../../lib/cart/customizations';
-import type { ProductPageProps } from './types';
+import type { ProductPageProps, Product } from './types';
+
+function collectSelectedAttributeValueIdsForCart(
+  product: Product,
+  selected: Map<string, string>
+): string[] {
+  const ids: string[] = [];
+  const attrs = product.productAttributes;
+  if (!attrs) {
+    return ids;
+  }
+  for (const [key, raw] of selected.entries()) {
+    if (key === 'color' || key === 'size') {
+      continue;
+    }
+    const pa = attrs.find((p) => p.attribute.key === key);
+    if (!pa) {
+      continue;
+    }
+    const match = pa.attribute.values.find((v) => v.id === raw || v.value === raw || v.label === raw);
+    if (match?.id) {
+      ids.push(match.id);
+    }
+  }
+  return ids;
+}
 
 export default function ProductPage({ params }: ProductPageProps) {
   const { isLoggedIn } = useAuth();
@@ -84,7 +109,12 @@ export default function ProductPage({ params }: ProductPageProps) {
 
   const handleAddToCart = async () => {
     if (!canAddToCart || !product || !currentVariant) return;
-    const customizations = normalizeProductCustomizations({ additions, exclusions });
+    const selectedIds = collectSelectedAttributeValueIdsForCart(product, selectedAttributeValues);
+    const customizations = normalizeProductCustomizations({
+      additions,
+      exclusions,
+      ...(selectedIds.length > 0 ? { selectedAttributeValueIds: selectedIds } : {}),
+    });
     const flyOrigin = document.querySelector('[data-product-fly-origin]');
     const imageUrl = images[currentImageIndex] ?? images[0] ?? null;
     playCartFlyAnimation({

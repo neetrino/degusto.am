@@ -157,6 +157,7 @@ export function ProductInfoAndActions({
             colorGroups={colorGroups}
             sizeGroups={sizeGroups}
             language={language}
+            currency={currency as CurrencyCode}
             quantity={quantity}
             maxQuantity={maxQuantity}
             isOutOfStock={isOutOfStock}

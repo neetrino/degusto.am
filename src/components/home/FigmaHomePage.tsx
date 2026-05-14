@@ -11,6 +11,7 @@ import { useCurrency } from '../hooks/useCurrency';
 import { formatPrice } from '../../lib/currency';
 import { useAddToCart } from '../hooks/useAddToCart';
 import { getHomeCategoryHref } from './homeCategoryLinks';
+import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
 
 const assets = {
   heroBg: '/api/r2/hero/20260512-tOKhBzyB6u.png',
@@ -38,6 +39,8 @@ export type HomeFeaturedProduct = {
   discountPercent: number | null;
   inStock?: boolean;
   defaultVariantId?: string | null;
+  supportsSpicy?: boolean;
+  supportsGreens?: boolean;
 };
 
 export type HomeCategoryItem = {
@@ -58,6 +61,8 @@ const fallbackFeaturedProducts: HomeFeaturedProduct[] = [
     oldPrice: 1500,
     image: assets.product,
     discountPercent: 30,
+    supportsSpicy: true,
+    supportsGreens: true,
   },
 ];
 
@@ -124,12 +129,13 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
       <div data-product-fly-origin className="absolute left-1/2 top-1 h-[147px] w-[227px] -translate-x-1/2">
         <img src={imageSrc} alt={title} className="h-full w-full rounded-[18px] object-cover" />
       </div>
-      <div className="absolute left-4 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-[#ff2b2e] p-1">
-        <img src={assets.productCardHot} alt="" className="h-[19px] w-[19px] -rotate-[13deg] object-contain" />
-      </div>
-      <div className="absolute left-4 top-[58px] flex h-8 w-8 items-center justify-center overflow-hidden rounded-full">
-        <img src={assets.productCardRibbon} alt="" className="h-8 w-8 scale-110 object-cover" />
-      </div>
+      <HomeProductFoodAttributeBadges
+        variant="desktop-card"
+        supportsSpicy={item.supportsSpicy ?? false}
+        supportsGreens={item.supportsGreens ?? false}
+        hotIconSrc={assets.productCardHot}
+        greensIconSrc={assets.productCardRibbon}
+      />
       <div className="absolute left-[14px] top-[170px] flex items-center gap-[6px]">
         <img src={assets.productCardStar} alt="" className="h-5 w-5 object-contain" />
         <p className="text-base font-medium leading-[1.35] text-[rgba(60,47,47,0.62)]">4.7</p>
@@ -285,14 +291,13 @@ export function FigmaHomePage({
             <div className="absolute inset-0 rounded-[20px] bg-white shadow-xl" />
             <div className="absolute left-1/2 top-[5px] h-[147px] w-[227px] -translate-x-1/2">
               <img src={heroProduct?.image || assets.productCardImage} alt={t('home.figma.mobile.dailyOfferImageAlt')} className="h-full w-full rounded-[18px] object-cover" />
-              <div className="absolute left-[11px] top-[8px] flex flex-col gap-[6px]">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ff2b2e]">
-                  <img src={assets.productCardHot} alt="" className="h-[19px] w-[19px] -rotate-[13deg] object-contain" />
-                </div>
-                <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full">
-                  <img src={assets.productCardRibbon} alt="" className="h-8 w-8 scale-110 object-cover" />
-                </div>
-              </div>
+              <HomeProductFoodAttributeBadges
+                variant="desktop-hero"
+                supportsSpicy={heroProduct?.supportsSpicy ?? false}
+                supportsGreens={heroProduct?.supportsGreens ?? false}
+                hotIconSrc={assets.productCardHot}
+                greensIconSrc={assets.productCardRibbon}
+              />
             </div>
             <div className="absolute left-[14px] top-[172px] flex items-center gap-1.5">
               <img src={assets.productCardStar} alt="" className="h-5 w-5 object-contain" />

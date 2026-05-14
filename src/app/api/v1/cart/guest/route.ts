@@ -8,6 +8,7 @@ import {
   normalizeProductCustomizations,
   type ProductCustomizations,
 } from "@/lib/cart/customizations";
+import { sumVerifiedAttributePriceAdjustment } from "@/lib/cart/attribute-price-adjustment";
 
 interface GuestCartItemInput {
   lineId?: string;
@@ -168,17 +169,17 @@ export async function POST(req: NextRequest) {
     const normalizedItems: GuestCartItemInput[] = [];
     const cartItems: GuestCartLine[] = [];
 
-    items.forEach((item) => {
+    for (const item of items) {
       const product = productMap.get(item.productId);
       if (!product) {
-        return;
+        continue;
       }
 
       const selectedVariant =
         product.variants.find((variant) => variant.id === item.variantId) ?? product.variants[0];
 
       if (!selectedVariant) {
-        return;
+        continue;
       }
 
       const preferredTranslation =
@@ -189,13 +190,21 @@ export async function POST(req: NextRequest) {
         (item.productSlug && item.productSlug.trim()) ||
         "";
 
+      const adj = await sumVerifiedAttributePriceAdjustment(
+        selectedVariant.id,
+        item.customizations?.selectedAttributeValueIds
+      );
+      const unitPrice = selectedVariant.price + adj;
+      const compareAt =
+        selectedVariant.compareAtPrice != null ? selectedVariant.compareAtPrice + adj : null;
+
       normalizedItems.push({
         lineId: item.lineId || buildCustomizationLineKey(selectedVariant.id, item.customizations),
         productId: item.productId,
         productSlug: productSlug || undefined,
         variantId: selectedVariant.id,
         quantity: item.quantity,
-        price: selectedVariant.price,
+        price: unitPrice,
         customizations: item.customizations,
       });
 
@@ -204,8 +213,8 @@ export async function POST(req: NextRequest) {
         variant: {
           id: selectedVariant.id,
           sku: selectedVariant.sku,
-          price: selectedVariant.price,
-          compareAtPrice: selectedVariant.compareAtPrice,
+          price: unitPrice,
+          compareAtPrice: compareAt,
           stock: selectedVariant.stock,
           imageUrl: selectedVariant.imageUrl,
           product: {
@@ -217,11 +226,11 @@ export async function POST(req: NextRequest) {
         },
         quantity: item.quantity,
         customizations: item.customizations,
-        price: selectedVariant.price,
-        originalPrice: selectedVariant.compareAtPrice,
-        total: selectedVariant.price * item.quantity,
+        price: unitPrice,
+        originalPrice: compareAt,
+        total: unitPrice * item.quantity,
       });
-    });
+    }
 
     if (cartItems.length === 0) {
       const empty: GuestCartResponse = {

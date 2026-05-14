@@ -3,18 +3,9 @@
 import { processImageUrl } from '../../../lib/utils/image-utils';
 import { t, getAttributeLabel } from '../../../lib/i18n';
 import type { LanguageCode } from '../../../lib/language';
-import type { Product, ProductVariant } from './types';
+import type { Product, ProductVariant, AttributeGroupValue } from './types';
+import { formatPrice, type CurrencyCode } from '../../../lib/currency';
 import { logger } from "@/lib/utils/logger";
-
-interface AttributeGroupValue {
-  valueId?: string;
-  value: string;
-  label: string;
-  stock: number;
-  variants: ProductVariant[];
-  imageUrl?: string | null;
-  colors?: string[] | null;
-}
 
 interface ProductAttributesSelectorProps {
   product: Product;
@@ -26,6 +17,7 @@ interface ProductAttributesSelectorProps {
   colorGroups: Array<{ color: string; stock: number; variants: ProductVariant[] }>;
   sizeGroups: Array<{ size: string; stock: number; variants: ProductVariant[] }>;
   language: LanguageCode;
+  currency: CurrencyCode;
   quantity: number;
   maxQuantity: number;
   isOutOfStock: boolean;
@@ -67,10 +59,22 @@ export function ProductAttributesSelector({
   colorGroups,
   sizeGroups,
   language,
+  currency,
+  quantity,
+  maxQuantity,
+  isOutOfStock,
+  isVariationRequired,
+  hasUnavailableAttributes,
+  canAddToCart,
+  isAddingToCart,
+  showMessage,
   onColorSelect,
   onSizeSelect,
   onAttributeValueSelect,
+  onQuantityAdjust,
+  onAddToCart,
   getOptionValue,
+  getRequiredAttributesMessage,
 }: ProductAttributesSelectorProps) {
   const attributeGroupsEntries = Array.from(attributeGroups.entries());
   logger.debug('🎨 [PRODUCT ATTRIBUTES SELECTOR] attributeGroups entries:', attributeGroupsEntries.length);
@@ -279,6 +283,7 @@ export function ProductAttributesSelector({
                     const gapClass = totalValues > 6 
                       ? 'gap-1' 
                       : 'gap-2';
+                    const priceAdj = g.priceAdjustment ?? 0;
 
                     return (
                       <button
@@ -319,6 +324,12 @@ export function ProductAttributesSelector({
                         <div className="flex flex-col text-center">
                           <span className={textSizeClass}>{getAttributeLabel(language, attrKey, g.value)}</span>
                           <span className={`${totalValues > 10 ? 'text-[10px]' : 'text-xs'} ${g.stock > 0 ? 'text-gray-500' : 'text-gray-400'}`}>({g.stock})</span>
+                          {priceAdj !== 0 ? (
+                            <span className={`${totalValues > 10 ? 'text-[10px]' : 'text-xs'} font-medium text-emerald-700`}>
+                              {priceAdj > 0 ? '+' : ''}
+                              {formatPrice(priceAdj, currency)}
+                            </span>
+                          ) : null}
                         </div>
                       </button>
                     );

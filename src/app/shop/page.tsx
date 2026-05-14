@@ -5,6 +5,11 @@ import { db } from '@white-shop/db';
 import { cookies } from 'next/headers';
 import { resolveStorefrontLocaleFromCookie } from '@/lib/i18n/locale';
 import type { Prisma } from '@prisma/client';
+import { buildProductWhereTasteCapability, resolveFoodAttributeFlagsFromVariants } from '@/lib/product-food-attributes';
+
+/** Always read fresh data from DB on each request (no static cache for this route). */
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 const HY_CATEGORY_TITLE_BY_SLUG: Record<string, string> = {
   shawarma: 'Շաուրմա',
@@ -127,18 +132,7 @@ export default async function ShopPage({
           },
         }
       : {}),
-    ...(tasteFilter
-      ? {
-          labels: {
-            some: {
-              value: {
-                contains: tasteFilter === 'leaf' ? 'new' : 'hot',
-                mode: 'insensitive' as const,
-              },
-            },
-          },
-        }
-      : {}),
+    ...(tasteFilter ? buildProductWhereTasteCapability(tasteFilter) : {}),
     ...(selectedCategorySlug
       ? {
           categories: {
@@ -210,10 +204,28 @@ export default async function ShopPage({
         orderBy: {
           price: 'asc',
         },
-        take: 1,
         select: {
+          published: true,
           price: true,
           compareAtPrice: true,
+          attributes: true,
+          options: {
+            select: {
+              attributeKey: true,
+              value: true,
+              valueId: true,
+              attributeValue: {
+                select: {
+                  value: true,
+                  attribute: {
+                    select: {
+                      key: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -284,6 +296,7 @@ export default async function ShopPage({
     const variant = row.variants[0];
     const price = variant?.price ?? 0;
     const oldPrice = variant?.compareAtPrice ?? price;
+    const foodAttrs = resolveFoodAttributeFlagsFromVariants(row.variants);
     return {
       id: row.id,
       slug: translation?.slug || 'products',
@@ -296,6 +309,8 @@ export default async function ShopPage({
       oldPrice,
       discount: '',
       discountPercent: row.discountPercent,
+      supportsSpicy: foodAttrs.supportsSpicy,
+      supportsGreens: foodAttrs.supportsGreens,
     };
   });
 

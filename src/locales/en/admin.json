@@ -153,6 +153,9 @@
       "editValue": "Edit Value",
       "label": "Label",
       "labelPlaceholder": "Enter value label",
+      "priceAdjustment": "Price add-on",
+      "priceAdjustmentHint": "Amount added to the product price when this option is selected (same currency as the store, e.g. AMD). Use 0 for no change.",
+      "invalidPriceAdjustment": "Enter a valid number for the price add-on.",
       "colors": "Colors",
       "image": "Image",
       "imagePreview": "Image Preview",
@@ -403,12 +406,16 @@
       "price": "Price",
       "stock": "Stock",
       "variantBuilder": "Variant Builder",
+      "variantBuilderEmptyHint": "No variant rows yet. Add a row to enter price, stock, and values for each selected attribute (use the cells to pick values).",
+      "addFirstVariant": "Add variant row",
       "selectAttributesForVariants": "Select Attributes",
       "selectAttributes": "Select Attributes",
       "selectAttributesDescription": "Select attributes to create product variants",
       "noAttributesAvailable": "No attributes available",
       "attributeSelected": "{count} attribute selected",
       "attributesSelected": "{count} attributes selected",
+      "valuesPlaceholder": "values",
+      "selectValues": "Select",
       "generatedVariants": "Generated Variants",
       "applyPriceToAll": "Apply Price to All",
       "applyStockToAll": "Apply Stock to All",
@@ -442,7 +449,10 @@
       "failedToProcessImage": "Failed to process selected image",
       "enterDefaultPrice": "Enter default price for all variants:",
       "enterDefaultStock": "Enter default stock for all variants:",
-      "enterSkuPrefix": "Enter SKU prefix (will auto-add -color-size if applicable):"
+      "enterSkuPrefix": "Enter SKU prefix (will auto-add -color-size if applicable):",
+      "actions": "Actions",
+      "delete": "Delete",
+      "deleteVariant": "Delete variant"
     }
   },
   "settings": {

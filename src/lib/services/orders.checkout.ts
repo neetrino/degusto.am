@@ -10,6 +10,7 @@ import {
   normalizeProductCustomizations,
   type ProductCustomizations,
 } from "../cart/customizations";
+import { sumVerifiedAttributePriceAdjustment } from "../cart/attribute-price-adjustment";
 
 const orderNumberId = customAlphabet("0123456789ABCDEFGHJKLMNPQRSTUVWXYZ", 10);
 const ALLOWED_SHIPPING_METHODS = ["pickup", "delivery"] as const;
@@ -267,11 +268,15 @@ async function getUserCartItems(cartId: string, userId: string): Promise<Checkou
       const customizationsSuffix = formatCustomizationsForVariantTitle(customizations);
       const imageUrl = extractMediaUrl(product.media) ?? undefined;
 
+      const snapshotRaw = item.priceSnapshot != null ? Number(item.priceSnapshot) : NaN;
+      const unitPrice =
+        Number.isFinite(snapshotRaw) && snapshotRaw >= 0 ? snapshotRaw : Number(variant.price);
+
       return {
         variantId: variant.id,
         productId: product.id,
         quantity: safeQuantity,
-        price: Number(variant.price),
+        price: unitPrice,
         productTitle: translation?.title || "Unknown Product",
         variantTitle: customizationsSuffix
           ? `${variantTitle || ""}${variantTitle ? " | " : ""}${customizationsSuffix}`
@@ -322,51 +327,59 @@ async function getGuestCartItems(
   });
   const variantMap = new Map(variants.map((variant) => [variant.id, variant]));
 
-  return guestItems.map((item) => {
-    const safeQuantity = normalizeQuantity(item.quantity);
-    const variant = variantMap.get(item.variantId);
-    if (!variant || variant.productId !== item.productId || !variant.published || !variant.product) {
-      throw {
-        status: 404,
-        type: "https://api.shop.am/problems/not-found",
-        title: "Product variant not found",
-        detail: `Variant ${item.variantId} not found for product ${item.productId}`,
-      };
-    }
-    if (variant.stock < safeQuantity) {
-      throw {
-        status: 422,
-        type: "https://api.shop.am/problems/validation-error",
-        title: "Insufficient stock",
-        detail: `Insufficient stock. Available: ${variant.stock}, Requested: ${safeQuantity}`,
-      };
-    }
+  return Promise.all(
+    guestItems.map(async (item) => {
+      const safeQuantity = normalizeQuantity(item.quantity);
+      const variant = variantMap.get(item.variantId);
+      if (!variant || variant.productId !== item.productId || !variant.published || !variant.product) {
+        throw {
+          status: 404,
+          type: "https://api.shop.am/problems/not-found",
+          title: "Product variant not found",
+          detail: `Variant ${item.variantId} not found for product ${item.productId}`,
+        };
+      }
+      if (variant.stock < safeQuantity) {
+        throw {
+          status: 422,
+          type: "https://api.shop.am/problems/validation-error",
+          title: "Insufficient stock",
+          detail: `Insufficient stock. Available: ${variant.stock}, Requested: ${safeQuantity}`,
+        };
+      }
 
-    const translation = variant.product.translations?.[0] || variant.product.translations?.[0];
-    const variantTitle =
-      variant.options
-        ?.map((opt: { attributeKey?: string | null; value?: string | null }) => {
-          return `${opt.attributeKey ?? ""}: ${opt.value ?? ""}`;
-        })
-        .join(", ") ?? undefined;
-    const customizations = normalizeProductCustomizations(item.customizations);
-    const customizationsSuffix = formatCustomizationsForVariantTitle(customizations);
-    const imageUrl = extractMediaUrl(variant.product.media) ?? undefined;
+      const translation = variant.product.translations?.[0] || variant.product.translations?.[0];
+      const variantTitle =
+        variant.options
+          ?.map((opt: { attributeKey?: string | null; value?: string | null }) => {
+            return `${opt.attributeKey ?? ""}: ${opt.value ?? ""}`;
+          })
+          .join(", ") ?? undefined;
+      const customizations = normalizeProductCustomizations(item.customizations);
+      const customizationsSuffix = formatCustomizationsForVariantTitle(customizations);
+      const imageUrl = extractMediaUrl(variant.product.media) ?? undefined;
 
-    return {
-      variantId: variant.id,
-      productId: variant.product.id,
-      quantity: safeQuantity,
-      price: Number(variant.price),
-      productTitle: translation?.title ?? "Unknown Product",
-      variantTitle: customizationsSuffix
-        ? `${variantTitle || ""}${variantTitle ? " | " : ""}${customizationsSuffix}`
-        : variantTitle,
-      sku: variant.sku ?? "",
-      imageUrl,
-      customizations,
-    };
-  });
+      const adj = await sumVerifiedAttributePriceAdjustment(
+        item.variantId,
+        customizations?.selectedAttributeValueIds
+      );
+      const price = Number(variant.price) + adj;
+
+      return {
+        variantId: variant.id,
+        productId: variant.product.id,
+        quantity: safeQuantity,
+        price,
+        productTitle: translation?.title ?? "Unknown Product",
+        variantTitle: customizationsSuffix
+          ? `${variantTitle || ""}${variantTitle ? " | " : ""}${customizationsSuffix}`
+          : variantTitle,
+        sku: variant.sku ?? "",
+        imageUrl,
+        customizations,
+      };
+    })
+  );
 }
 
 async function resolveCartItems(params: {
@@ -384,7 +397,7 @@ async function resolveCartItems(params: {
     return getUserCartItems(cartId, userId);
   }
   if (guestItems && Array.isArray(guestItems) && guestItems.length > 0) {
-    return getGuestCartItems(guestItems);
+    return await getGuestCartItems(guestItems);
   }
   throw {
     status: 400,

@@ -7,6 +7,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { KeyboardEvent, MouseEvent } from 'react';
 import { useMemo, useState } from 'react';
 import { useAddToCart } from '../hooks/useAddToCart';
+import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
 
 const assets = {
   productCardImage: '/api/r2/product/20260512-D3w_teddze.png',
@@ -34,6 +35,8 @@ type MenuCard = {
   discountPercent?: number | null;
   inStock?: boolean;
   defaultVariantId?: string | null;
+  supportsSpicy?: boolean;
+  supportsGreens?: boolean;
 };
 
 type MenuCategory = {
@@ -152,12 +155,13 @@ function MenuCardItem({ card }: { card: MenuCard }) {
       <div data-product-fly-origin className="absolute left-1/2 top-1 h-[147px] w-[227px] -translate-x-1/2">
         <img src={imageSrc} alt={title} className="h-full w-full rounded-[18px] object-cover" />
       </div>
-      <div className="absolute left-4 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-[#ff2b2e] p-1">
-        <img src={assets.productCardHot} alt="" className="h-[19px] w-[19px] -rotate-[13deg] object-contain" />
-      </div>
-      <div className="absolute left-4 top-[58px] flex h-8 w-8 items-center justify-center overflow-hidden rounded-full">
-        <img src={assets.productCardRibbon} alt="" className="h-8 w-8 scale-110 object-cover" />
-      </div>
+      <HomeProductFoodAttributeBadges
+        variant="desktop-card"
+        supportsSpicy={card.supportsSpicy ?? false}
+        supportsGreens={card.supportsGreens ?? false}
+        hotIconSrc={assets.productCardHot}
+        greensIconSrc={assets.productCardRibbon}
+      />
       <div className="absolute left-[14px] top-[170px] flex items-center gap-[6px]">
         <img src={assets.productCardStar} alt="" className="h-5 w-5 object-contain" />
         <p className="text-base font-medium leading-[1.35] text-[rgba(60,47,47,0.62)]">4.7</p>

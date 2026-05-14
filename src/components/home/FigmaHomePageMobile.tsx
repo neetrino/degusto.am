@@ -55,6 +55,8 @@ type MobileProduct = {
   subtitleKey: string;
   price: number;
   oldPrice: number;
+  supportsSpicy?: boolean;
+  supportsGreens?: boolean;
 };
 
 function getMobilePriceSizeClass(formattedPrice: string): string {
@@ -85,6 +87,8 @@ const mobileProducts: MobileProduct[] = Array.from({ length: 12 }, (_, index) =>
   subtitleKey: 'home.figma.mobile.product.subtitle',
   price: 1200,
   oldPrice: 1200,
+  supportsSpicy: false,
+  supportsGreens: false,
 }));
 
 function MobileSectionHeader({ title }: { title: string }) {
@@ -164,16 +168,27 @@ function MobileProductCard({ product }: { product: MobileProduct }) {
   const formattedOldPrice = formatPrice(product.oldPrice, currency);
   const priceSizeClass = getMobilePriceSizeClass(formattedPrice);
   const oldPriceSizeClass = getMobilePriceSizeClass(formattedOldPrice);
+  const supportsSpicy = product.supportsSpicy ?? false;
+  const supportsGreens = product.supportsGreens ?? false;
+  const greensTopClass = supportsSpicy ? 'top-[38px]' : 'top-[11px]';
 
   return (
     <article className="relative h-[248px] rounded-[20px] bg-[#ffeacc]">
       <div className="absolute left-1 right-1 top-[5px] h-[143px] overflow-hidden rounded-[18px]">
         <img src={mobileAssets.productImage} alt={t(product.titleKey)} className="h-full w-full object-cover" />
       </div>
-      <div className="absolute left-[9px] top-[11px] flex h-[22px] w-[22px] items-center justify-center rounded-full bg-[#ff2b2e]">
-        <img src={mobileAssets.productHot} alt="" className="h-[13px] w-[13px] -rotate-[13deg] object-contain" />
-      </div>
-      <img src={mobileAssets.productRibbon} alt="" className="absolute left-[9px] top-[38px] h-[22px] w-[22px] object-contain" />
+      {supportsSpicy ? (
+        <div className="absolute left-[9px] top-[11px] flex h-[22px] w-[22px] items-center justify-center rounded-full bg-[#ff2b2e]">
+          <img src={mobileAssets.productHot} alt="" className="h-[13px] w-[13px] -rotate-[13deg] object-contain" />
+        </div>
+      ) : null}
+      {supportsGreens ? (
+        <img
+          src={mobileAssets.productRibbon}
+          alt=""
+          className={`absolute left-[9px] h-[22px] w-[22px] object-contain ${greensTopClass}`}
+        />
+      ) : null}
 
       <div className="absolute left-[9px] top-[150px] flex items-center gap-1.5">
         <img src={mobileAssets.productStar} alt="" className="h-[19px] w-[19px] object-contain" />

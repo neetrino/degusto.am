@@ -17,6 +17,10 @@ let attributesColumnExists = false;
 let cartCustomizationsColumnChecked = false;
 let cartCustomizationsColumnExists = false;
 
+// Cache for attribute_values.priceAdjustment column
+let attributeValuePriceAdjustmentChecked = false;
+let attributeValuePriceAdjustmentExists = false;
+
 /**
  * Ensures the product_attributes table exists in the database
  * This is a fallback mechanism for Vercel deployments where migrations might not run automatically
@@ -439,6 +443,61 @@ export async function ensureCartItemCustomizationsColumn(): Promise<boolean> {
     });
     cartCustomizationsColumnChecked = true;
     cartCustomizationsColumnExists = false;
+    return false;
+  }
+}
+
+/**
+ * Ensures `priceAdjustment` exists on `attribute_values` (migration drift / partial deploys).
+ */
+export async function ensureAttributeValuePriceAdjustmentColumn(): Promise<boolean> {
+  if (attributeValuePriceAdjustmentChecked && attributeValuePriceAdjustmentExists) {
+    return true;
+  }
+
+  try {
+    await db.$queryRaw`SELECT "priceAdjustment" FROM "attribute_values" LIMIT 1`;
+    attributeValuePriceAdjustmentChecked = true;
+    attributeValuePriceAdjustmentExists = true;
+    return true;
+  } catch (error: unknown) {
+    const prismaError = error as { code?: string; message?: string };
+    const msg = (prismaError?.message ?? "").toLowerCase();
+    const isMissingPriceAdjustmentColumn =
+      prismaError?.code === "P2022" ||
+      (msg.includes("priceadjustment") && msg.includes("does not exist")) ||
+      (msg.includes("column") && msg.includes("priceadjustment"));
+
+    if (isMissingPriceAdjustmentColumn) {
+      logger.info('attribute_values."priceAdjustment" column not found, creating...');
+
+      try {
+        await db.$executeRaw`
+          ALTER TABLE "attribute_values"
+          ADD COLUMN IF NOT EXISTS "priceAdjustment" DOUBLE PRECISION NOT NULL DEFAULT 0
+        `;
+        logger.info('attribute_values."priceAdjustment" column created successfully');
+        attributeValuePriceAdjustmentChecked = true;
+        attributeValuePriceAdjustmentExists = true;
+        return true;
+      } catch (createError: unknown) {
+        const prismaCreateError = createError as { message?: string; code?: string };
+        logger.error('Failed to create attribute_values."priceAdjustment" column', {
+          message: prismaCreateError?.message,
+          code: prismaCreateError?.code,
+        });
+        attributeValuePriceAdjustmentChecked = true;
+        attributeValuePriceAdjustmentExists = false;
+        return false;
+      }
+    }
+
+    logger.error('Unexpected error checking attribute_values."priceAdjustment" column', {
+      message: prismaError?.message,
+      code: prismaError?.code,
+    });
+    attributeValuePriceAdjustmentChecked = true;
+    attributeValuePriceAdjustmentExists = false;
     return false;
   }
 }

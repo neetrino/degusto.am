@@ -72,7 +72,7 @@ const BRANDS = [
   { slug: "prime", name: "Prime" },
 ];
 
-const FOOD_PRODUCTS = [
+const FOOD_PRODUCTS_LEGACY = [
   "Classic Shawarma",
   "Spicy Chicken Shawarma",
   "Beef Shawarma Plate",
@@ -115,12 +115,51 @@ const FOOD_PRODUCTS = [
   "Family Combo Box",
 ];
 
+/** New menu items — all get ProductLabels so storefront taste badges (hot / new) appear after seed. */
+const FOOD_PRODUCTS_WITH_TASTE_OPTIONS = [
+  "Armenian Style Losh Kebab",
+  "Herb Garden Falafel Bowl",
+  "Spicy Adana Wrap XL",
+  "Grilled Veggie Mezze Plate",
+  "Citrus Tahini Chicken Bowl",
+  "Smoky BBQ Beef Skewer Plate",
+  "Garlic Yogurt Lamb Shawarma",
+  "Fresh Herb Chicken Pita",
+  "Chili Lime Shrimp Tacos",
+  "Sumac Onion Beef Wrap",
+  "Charred Eggplant & Pepper Plate",
+  "Pomegranate Molasses Chicken Plate",
+];
+
+const FOOD_PRODUCTS = [...FOOD_PRODUCTS_LEGACY, ...FOOD_PRODUCTS_WITH_TASTE_OPTIONS];
+
 const FOOD_OPTION_PRESETS = [
   { spicy: "not-spicy", greens: "without-greens", priceDelta: 0 },
   { spicy: "not-spicy", greens: "with-greens", priceDelta: 0.4 },
   { spicy: "spicy", greens: "without-greens", priceDelta: 0.7 },
   { spicy: "spicy", greens: "with-greens", priceDelta: 1.1 },
 ];
+
+/** Rotates seed behavior: full choice, spicy-only, greens-only, or fixed (no taste UI). */
+function getFoodVariantPresets(productIndex) {
+  const mode = productIndex % 4;
+  if (mode === 0) {
+    return FOOD_OPTION_PRESETS;
+  }
+  if (mode === 1) {
+    return [
+      { spicy: "not-spicy", greens: "without-greens", priceDelta: 0 },
+      { spicy: "spicy", greens: "without-greens", priceDelta: 0.7 },
+    ];
+  }
+  if (mode === 2) {
+    return [
+      { spicy: "not-spicy", greens: "without-greens", priceDelta: 0 },
+      { spicy: "not-spicy", greens: "with-greens", priceDelta: 0.4 },
+    ];
+  }
+  return [{ spicy: "not-spicy", greens: "without-greens", priceDelta: 0 }];
+}
 
 function slugify(text) {
   return text
@@ -403,6 +442,9 @@ async function seedProducts(categoryIdsBySlug, brandIds, foodAttributes) {
   });
 
   const created = [];
+  console.log(
+    "[Seed] Taste variants: index%4 → 0=spicy+greens choice, 1=spicy only, 2=greens only, 3=fixed (none)"
+  );
   for (let i = 0; i < titles.length; i++) {
     const title = titles[i] || `Product ${i + 1}`;
     const slug = `seed-food-${slugify(title)}-${i + 1}`;
@@ -417,7 +459,10 @@ async function seedProducts(categoryIdsBySlug, brandIds, foodAttributes) {
     const spicyAttributeId = foodAttributes.spicy.id;
     const greensAttributeId = foodAttributes.greens.id;
 
-    const variantRows = FOOD_OPTION_PRESETS.map((preset, variantIndex) => {
+    const presetRows = getFoodVariantPresets(i);
+    const isFixedSingleTaste = presetRows.length === 1;
+
+    const variantRows = presetRows.map((preset, variantIndex) => {
       const spicyValueId = foodAttributes.spicy.valueIds[preset.spicy];
       const greensValueId = foodAttributes.greens.valueIds[preset.greens];
       const variantPrice = Number((basePrice + preset.priceDelta).toFixed(2));
@@ -449,7 +494,7 @@ async function seedProducts(categoryIdsBySlug, brandIds, foodAttributes) {
         publishedAt: new Date(),
         categoryIds: categoryIdsList,
         primaryCategoryId,
-        attributeIds: [spicyAttributeId, greensAttributeId],
+        attributeIds: isFixedSingleTaste ? [] : [spicyAttributeId, greensAttributeId],
         categories: { connect: categoryIdsList.map((id) => ({ id })) },
         translations: {
           create: {
@@ -457,12 +502,18 @@ async function seedProducts(categoryIdsBySlug, brandIds, foodAttributes) {
             title,
             slug,
             subtitle: `Freshly prepared ${title.toLowerCase()}`,
-            descriptionHtml: `<p>${title} with customizable spicy level and greens preference.</p>`,
+            descriptionHtml: isFixedSingleTaste
+              ? `<p>${title} — fixed recipe (no spicy or greens customization).</p>`
+              : `<p>${title} with customizable spicy level and greens preference.</p>`,
           },
         },
-        productAttributes: {
-          create: [{ attributeId: spicyAttributeId }, { attributeId: greensAttributeId }],
-        },
+        ...(isFixedSingleTaste
+          ? {}
+          : {
+              productAttributes: {
+                create: [{ attributeId: spicyAttributeId }, { attributeId: greensAttributeId }],
+              },
+            }),
         variants: { create: variantRows },
       },
     });

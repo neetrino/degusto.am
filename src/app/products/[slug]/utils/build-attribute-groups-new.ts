@@ -2,6 +2,7 @@ import type { Product, ProductVariant, AttributeGroupValue } from '../types';
 import { getCurrentSelections } from './variant-compatibility';
 import { calculateStock } from './stock-calculator';
 import { findAttributeValue } from './attribute-value-finder';
+import { filterFoodAttributeGroupsWithoutRealChoice } from '@/lib/product-food-attribute-groups';
 
 interface BuildGroupsFromProductAttributesProps {
   product: Product;
@@ -109,6 +110,7 @@ export function buildGroupsFromProductAttributes({
         variants: item.variants,
         imageUrl: attrValue?.imageUrl || null,
         colors: attrValue?.colors || null,
+        priceAdjustment: attrValue?.priceAdjustment ?? 0,
       };
     });
 
@@ -201,6 +203,7 @@ export function buildGroupsFromProductAttributes({
               variants: item.variants,
               imageUrl: attrValue?.imageUrl || null,
               colors: attrValue?.colors || null,
+              priceAdjustment: attrValue?.priceAdjustment ?? 0,
             };
           });
 
@@ -210,7 +213,7 @@ export function buildGroupsFromProductAttributes({
     });
   }
 
-  return groups;
+  return filterFoodAttributeGroupsWithoutRealChoice(groups);
 }
 
 
