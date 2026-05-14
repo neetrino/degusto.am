@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@shop/ui';
@@ -384,41 +384,44 @@ export function OrderSummary({ cart, currency, t, appearance = 'page' }: OrderSu
     ? 'h-10 flex-1 rounded-lg border border-white/30 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-[#F66812]'
     : 'h-10 flex-1 rounded-lg border border-[#F66812]/25 px-3 py-2 text-sm text-gray-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#F66812]';
 
-  async function validateAndApplyPromoCode(rawCode: string, silent = false) {
-    const trimmedCode = rawCode.trim();
-    if (!COUPON_CODE_REGEX.test(trimmedCode)) {
-      setAppliedPromoCode('');
-      setPromoDiscountAmount(0);
-      localStorage.removeItem(CHECKOUT_COUPON_CODE_STORAGE_KEY);
-      if (!silent) {
-        setPromoFeedback(t('common.cart.promoInvalid'));
+  const validateAndApplyPromoCode = useCallback(
+    async (rawCode: string, silent = false) => {
+      const trimmedCode = rawCode.trim();
+      if (!COUPON_CODE_REGEX.test(trimmedCode)) {
+        setAppliedPromoCode('');
+        setPromoDiscountAmount(0);
+        localStorage.removeItem(CHECKOUT_COUPON_CODE_STORAGE_KEY);
+        if (!silent) {
+          setPromoFeedback(t('common.cart.promoInvalid'));
+        }
+        return;
       }
-      return;
-    }
 
-    try {
-      setApplyingPromo(true);
-      const responseData = await requestCheckoutCouponValidation(trimmedCode, cart.totals.subtotal);
+      try {
+        setApplyingPromo(true);
+        const responseData = await requestCheckoutCouponValidation(trimmedCode, cart.totals.subtotal);
 
-      setAppliedPromoCode(responseData.code);
-      setPromoDiscountAmount(responseData.discountAmount);
-      setPromoCodeInput(responseData.code);
-      localStorage.setItem(CHECKOUT_COUPON_CODE_STORAGE_KEY, responseData.code);
-      if (!silent) {
-        setPromoFeedback(t('common.cart.promoApplied').replace('{code}', responseData.code));
+        setAppliedPromoCode(responseData.code);
+        setPromoDiscountAmount(responseData.discountAmount);
+        setPromoCodeInput(responseData.code);
+        localStorage.setItem(CHECKOUT_COUPON_CODE_STORAGE_KEY, responseData.code);
+        if (!silent) {
+          setPromoFeedback(t('common.cart.promoApplied').replace('{code}', responseData.code));
+        }
+      } catch (error: unknown) {
+        setAppliedPromoCode('');
+        setPromoDiscountAmount(0);
+        localStorage.removeItem(CHECKOUT_COUPON_CODE_STORAGE_KEY);
+        if (!silent) {
+          const errorMessage = error instanceof Error ? error.message : '';
+          setPromoFeedback(errorMessage || t('common.cart.promoInvalid'));
+        }
+      } finally {
+        setApplyingPromo(false);
       }
-    } catch (error: unknown) {
-      setAppliedPromoCode('');
-      setPromoDiscountAmount(0);
-      localStorage.removeItem(CHECKOUT_COUPON_CODE_STORAGE_KEY);
-      if (!silent) {
-        const errorMessage = error instanceof Error ? error.message : '';
-        setPromoFeedback(errorMessage || t('common.cart.promoInvalid'));
-      }
-    } finally {
-      setApplyingPromo(false);
-    }
-  }
+    },
+    [cart.totals.subtotal, t]
+  );
 
   useEffect(() => {
     const storedCode = localStorage.getItem(CHECKOUT_COUPON_CODE_STORAGE_KEY);
@@ -431,7 +434,7 @@ export function OrderSummary({ cart, currency, t, appearance = 'page' }: OrderSu
     }
     setPromoCodeInput(trimmedStored);
     void validateAndApplyPromoCode(trimmedStored, true);
-  }, [cart.totals.subtotal]);
+  }, [validateAndApplyPromoCode]);
 
   const handleApplyPromoCode = () => {
     void validateAndApplyPromoCode(promoCodeInput);
