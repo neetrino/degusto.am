@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { resolveStorefrontLocaleFromSearchParams } from "@/lib/i18n/locale";
+import { parseRouteCatchError } from "@/lib/http/api-route-errors";
 import { reviewsService } from "@/lib/services/reviews.service";
 import { authenticateToken } from "@/lib/middleware/auth";
 import { productsService } from "@/lib/services/products.service";
@@ -66,17 +67,18 @@ export async function GET(
     });
 
     return NextResponse.json(reviews);
-  } catch (error: any) {
-    console.error("❌ [REVIEWS API] GET Error:", error);
+  } catch (error: unknown) {
+    logger.error("[REVIEWS API] GET Error", error);
+    const e = parseRouteCatchError(error);
     return NextResponse.json(
       {
-        type: error.type || "https://api.shop.am/problems/internal-error",
-        title: error.title || "Internal Server Error",
-        status: error.status || 500,
-        detail: error.detail || error.message || "An error occurred",
+        type: e.type ?? "https://api.shop.am/problems/internal-error",
+        title: e.title ?? "Internal Server Error",
+        status: e.status ?? 500,
+        detail: e.detail ?? e.message ?? "An error occurred",
         instance: req.url,
       },
-      { status: error.status || 500 }
+      { status: e.status ?? 500 }
     );
   }
 }
@@ -163,17 +165,18 @@ export async function POST(
     logger.debug('✅ [REVIEWS API] Review created:', review.id);
 
     return NextResponse.json(review, { status: 201 });
-  } catch (error: any) {
-    console.error("❌ [REVIEWS API] POST Error:", error);
+  } catch (error: unknown) {
+    logger.error("[REVIEWS API] POST Error", error);
+    const e = parseRouteCatchError(error);
     return NextResponse.json(
       {
-        type: error.type || "https://api.shop.am/problems/internal-error",
-        title: error.title || "Internal Server Error",
-        status: error.status || 500,
-        detail: error.detail || error.message || "An error occurred",
+        type: e.type ?? "https://api.shop.am/problems/internal-error",
+        title: e.title ?? "Internal Server Error",
+        status: e.status ?? 500,
+        detail: e.detail ?? e.message ?? "An error occurred",
         instance: req.url,
       },
-      { status: error.status || 500 }
+      { status: e.status ?? 500 }
     );
   }
 }

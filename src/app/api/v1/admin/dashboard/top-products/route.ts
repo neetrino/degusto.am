@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { parseRouteCatchError } from "@/lib/http/api-route-errors";
 import { authenticateToken, requireAdmin } from "@/lib/middleware/auth";
 import { adminService } from "@/lib/services/admin.service";
 import { logger } from "@/lib/utils/logger";
@@ -35,17 +36,18 @@ export async function GET(req: NextRequest) {
     logger.debug("✅ [TOP-PRODUCTS] Top products retrieved successfully");
     
     return NextResponse.json({ data: result });
-  } catch (error: any) {
-    console.error("❌ [TOP-PRODUCTS] Error:", error);
+  } catch (error: unknown) {
+    logger.error("[TOP-PRODUCTS] Error", error);
+    const e = parseRouteCatchError(error);
     return NextResponse.json(
       {
-        type: error.type || "https://api.shop.am/problems/internal-error",
-        title: error.title || "Internal Server Error",
-        status: error.status || 500,
-        detail: error.detail || error.message || "An error occurred",
+        type: e.type ?? "https://api.shop.am/problems/internal-error",
+        title: e.title ?? "Internal Server Error",
+        status: e.status ?? 500,
+        detail: e.detail ?? e.message ?? "An error occurred",
         instance: req.url,
       },
-      { status: error.status || 500 }
+      { status: e.status ?? 500 }
     );
   }
 }

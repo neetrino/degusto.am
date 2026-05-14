@@ -1,4 +1,3 @@
-import { logger } from "@/lib/utils/logger";
 /**
  * Cache Service
  *
@@ -7,8 +6,11 @@ import { logger } from "@/lib/utils/logger";
  * When Redis is not configured, uses in-memory cache (per process) for dev/local.
  */
 
+import type Redis from "ioredis";
+import { logger } from "@/lib/utils/logger";
+
 // Redis client will be initialized lazily
-let redisClient: any = null;
+let redisClient: Redis | null = null;
 /** Upstash REST client when UPSTASH_REDIS_REST_* env vars are set */
 let upstashClient: {
   get: (k: string) => Promise<string | null>;
@@ -68,10 +70,9 @@ async function initRedis() {
       connectionAttempted = true;
       return;
     } catch (error: unknown) {
-      const err = error as Error;
       connectionAttempted = true;
       redisAvailable = false;
-      console.error("❌ [CACHE] Failed to init Upstash Redis:", err?.message ?? error);
+      logger.error("[CACHE] Failed to init Upstash Redis", error);
       return;
     }
   }
@@ -84,9 +85,9 @@ async function initRedis() {
 
   try {
     // Dynamic import for serverless compatibility
-    const Redis = (await import('ioredis')).default;
-    
-    redisClient = new Redis(redisUrl, {
+    const IoRedis = (await import("ioredis")).default;
+
+    redisClient = new IoRedis(redisUrl, {
       retryStrategy: (times: number) => {
         if (times > 3) {
           return null; // Stop retrying
@@ -101,22 +102,22 @@ async function initRedis() {
       reconnectOnError: () => false, // Don't auto-reconnect
     });
 
-    redisClient.on('connect', () => {
-      logger.debug('✅ Redis connected');
+    redisClient.on("connect", () => {
+      logger.debug("✅ Redis connected");
       errorLogged = false;
       redisAvailable = true;
     });
 
-    redisClient.on('ready', () => {
+    redisClient.on("ready", () => {
       redisAvailable = true;
     });
 
-    redisClient.on('error', (error: Error) => {
+    redisClient.on("error", (error: Error) => {
       redisAvailable = false;
       const now = Date.now();
-      if (!errorLogged || (now - lastErrorTime) > ERROR_COOLDOWN) {
-        console.error('⚠️  Redis connection error:', error.message);
-        console.error('💡 Check REDIS_URL in .env or start Redis server');
+      if (!errorLogged || now - lastErrorTime > ERROR_COOLDOWN) {
+        logger.error("Redis connection error", error.message, error);
+        logger.warn("Check REDIS_URL in .env or start Redis server");
         errorLogged = true;
         lastErrorTime = now;
       }
@@ -124,10 +125,11 @@ async function initRedis() {
 
     await redisClient.connect();
     connectionAttempted = true;
-  } catch (error: any) {
+  } catch (error: unknown) {
     connectionAttempted = true;
     redisAvailable = false;
-    console.error('❌ [CACHE] Failed to initialize Redis:', error.message);
+    const msg = error instanceof Error ? error.message : String(error);
+    logger.error("[CACHE] Failed to initialize Redis", msg, error);
   }
 }
 
@@ -148,8 +150,11 @@ export async function get(key: string): Promise<string | null> {
       const v = await upstashClient.get(key);
       return v ?? null;
     }
-    return await redisClient.get(key);
-  } catch (error) {
+    if (redisClient) {
+      return await redisClient.get(key);
+    }
+    return null;
+  } catch {
     return memoryGet(key);
   }
 }
@@ -171,9 +176,12 @@ export async function set(key: string, value: string): Promise<boolean> {
       await upstashClient.set(key, value);
       return true;
     }
-    await redisClient.set(key, value);
-    return true;
-  } catch (error) {
+    if (redisClient) {
+      await redisClient.set(key, value);
+      return true;
+    }
+    return false;
+  } catch {
     return false;
   }
 }
@@ -196,9 +204,13 @@ export async function setex(key: string, seconds: number, value: string): Promis
       await upstashClient.set(key, value, { ex: seconds });
       return true;
     }
-    await redisClient.setex(key, seconds, value);
+    if (redisClient) {
+      await redisClient.setex(key, seconds, value);
+      return true;
+    }
+    memorySetex(key, seconds, value);
     return true;
-  } catch (error) {
+  } catch {
     memorySetex(key, seconds, value);
     return true;
   }
@@ -223,9 +235,12 @@ export async function del(key: string): Promise<boolean> {
       await upstashClient.del(key);
       return true;
     }
-    await redisClient.del(key);
+    if (redisClient) {
+      await redisClient.del(key);
+      return true;
+    }
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 }
@@ -246,8 +261,11 @@ export async function keys(pattern: string): Promise<string[]> {
     if (upstashClient) {
       return await upstashClient.keys(pattern);
     }
-    return await redisClient.keys(pattern);
-  } catch (error) {
+    if (redisClient) {
+      return await redisClient.keys(pattern);
+    }
+    return [];
+  } catch {
     return [];
   }
 }
@@ -282,12 +300,15 @@ export async function deletePattern(pattern: string): Promise<number> {
       }
       return matchingKeys.length + memoryDeleted;
     }
-    const matchingKeys = await redisClient.keys(pattern);
-    if (matchingKeys.length > 0) {
-      await redisClient.del(...matchingKeys);
+    if (redisClient) {
+      const matchingKeys = await redisClient.keys(pattern);
+      if (matchingKeys.length > 0) {
+        await redisClient.del(...matchingKeys);
+      }
+      return matchingKeys.length + memoryDeleted;
     }
-    return matchingKeys.length + memoryDeleted;
-  } catch (error) {
+    return memoryDeleted;
+  } catch {
     return memoryDeleted;
   }
 }
@@ -308,4 +329,3 @@ export const cacheService = {
   deletePattern,
   isAvailable,
 };
-
