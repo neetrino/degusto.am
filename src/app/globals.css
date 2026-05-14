@@ -233,6 +233,35 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  /**
+   * PDP food-preference checkbox: no border/frame, brand orange when checked, white tick (avoids browser blue accent).
+   */
+  .pdp-preference-checkbox {
+    appearance: none;
+    flex-shrink: 0;
+    width: 1rem;
+    height: 1rem;
+    border: none;
+    box-shadow: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    outline: none;
+    background-color: rgb(229 229 229);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 0.65rem 0.65rem;
+  }
+
+  .pdp-preference-checkbox:checked {
+    background-color: var(--project-color);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='M2.5 6L5 8.5L9.5 3' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+
+  .pdp-preference-checkbox:focus-visible {
+    outline: 2px solid var(--project-color);
+    outline-offset: 2px;
+  }
 }
 
 /* Policy pages typography & spacing */
