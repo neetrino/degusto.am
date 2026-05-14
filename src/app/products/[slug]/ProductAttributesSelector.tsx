@@ -348,6 +348,23 @@ export function ProductAttributesSelector({
               ))}
             </div>
           )}
+          {genericDimensionEntries.length > 0 && (
+            <div className="flex w-full flex-col gap-4">
+              {genericDimensionEntries.map(([attrKey, attrGroups]) => (
+                <PdpAttributePillRow
+                  key={attrKey}
+                  attrKey={attrKey}
+                  title={attributeNameFromProduct(product, attrKey)}
+                  attrGroups={attrGroups}
+                  language={language}
+                  selectedAttributeValues={selectedAttributeValues}
+                  currentVariant={currentVariant}
+                  unavailableAttributes={unavailableAttributes}
+                  onAttributeValueSelect={onAttributeValueSelect}
+                />
+              ))}
+            </div>
+          )}
           {foodPreferenceEntries.length > 0 && (
             <div className={PDP_ATTR_SECTION_CARD}>
               <div className="flex flex-col gap-4 sm:gap-5">

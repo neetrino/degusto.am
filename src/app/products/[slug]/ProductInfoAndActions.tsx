@@ -146,7 +146,7 @@ export function ProductInfoAndActions({
         </div>
 
         <div className="mt-[50px] pt-4">
-        <div className="flex items-center gap-2.5 sm:gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
           <div
             className="inline-flex h-9 shrink-0 items-center gap-0 rounded-full border border-neutral-200 bg-white px-0.5 sm:h-10"
             role="group"
@@ -182,7 +182,7 @@ export function ProductInfoAndActions({
           >
             {isAddingToCart ? t(language, 'product.adding') : (isOutOfStock ? t(language, 'product.outOfStock') : t(language, 'product.addToCart'))}
           </button>
-        </div>
+          </div>
         </div>
       </div>
     </div>
