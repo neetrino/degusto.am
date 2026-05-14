@@ -23,8 +23,6 @@ interface ProductInfoAndActionsProps {
   quantity: number;
   maxQuantity: number;
   isOutOfStock: boolean;
-  isVariationRequired: boolean;
-  hasUnavailableAttributes: boolean;
   unavailableAttributes: Map<string, boolean>;
   canAddToCart: boolean;
   isAddingToCart: boolean;
@@ -42,7 +40,6 @@ interface ProductInfoAndActionsProps {
   onSizeSelect: (size: string) => void;
   onAttributeValueSelect: (attrKey: string, value: string) => void;
   getOptionValue: (options: any[] | undefined, key: string) => string | null;
-  getRequiredAttributesMessage: () => string;
 }
 
 export function ProductInfoAndActions({
@@ -58,8 +55,6 @@ export function ProductInfoAndActions({
   quantity,
   maxQuantity,
   isOutOfStock,
-  isVariationRequired,
-  hasUnavailableAttributes,
   unavailableAttributes,
   canAddToCart,
   isAddingToCart,
@@ -77,7 +72,6 @@ export function ProductInfoAndActions({
   onSizeSelect,
   onAttributeValueSelect,
   getOptionValue,
-  getRequiredAttributesMessage,
 }: ProductInfoAndActionsProps) {
   return (
     <div className="flex w-full max-w-full flex-col self-start p-4 sm:p-5 lg:p-6">
@@ -143,51 +137,15 @@ export function ProductInfoAndActions({
               colorGroups={colorGroups}
               sizeGroups={sizeGroups}
               language={language}
-              quantity={quantity}
-              maxQuantity={maxQuantity}
-              isOutOfStock={isOutOfStock}
-              isVariationRequired={isVariationRequired}
-              hasUnavailableAttributes={hasUnavailableAttributes}
-              canAddToCart={canAddToCart}
-              isAddingToCart={isAddingToCart}
               onColorSelect={onColorSelect}
               onSizeSelect={onSizeSelect}
               onAttributeValueSelect={onAttributeValueSelect}
-              onQuantityAdjust={onQuantityAdjust}
-              onAddToCart={onAddToCart}
               getOptionValue={getOptionValue}
-              getRequiredAttributesMessage={getRequiredAttributesMessage}
             />
           </div>
         </div>
 
         <div className="mt-[50px] pt-4">
-        {isVariationRequired && (
-          <div className="mb-3 rounded-lg bg-yellow-50 p-3">
-            <p className="text-sm text-yellow-800 font-medium">
-              {getRequiredAttributesMessage()}
-            </p>
-          </div>
-        )}
-        {hasUnavailableAttributes && !isVariationRequired && (
-          <div className="mb-3 rounded-lg bg-red-50 p-3">
-            <p className="text-sm text-red-800 font-medium">
-              {Array.from(unavailableAttributes.entries()).map(([attrKey]) => {
-                const productAttr = product?.productAttributes?.find((pa: unknown) => {
-                  if (typeof pa !== 'object' || pa === null) {
-                    return false;
-                  }
-                  const candidate = pa as { attribute?: { key?: string } };
-                  return candidate.attribute?.key === attrKey;
-                });
-                const attributeName = productAttr?.attribute?.name || attrKey.charAt(0).toUpperCase() + attrKey.slice(1);
-                return attrKey === 'color' ? t(language, 'product.color') : 
-                       attrKey === 'size' ? t(language, 'product.size') : 
-                       attributeName;
-              }).join(', ')} {t(language, 'product.outOfStock')}
-            </p>
-          </div>
-        )}
         <div className="flex items-center gap-3">
           <div
             className="inline-flex h-12 shrink-0 items-center gap-0.5 rounded-[15px] border border-neutral-200 bg-white px-1.5"
@@ -222,7 +180,7 @@ export function ProductInfoAndActions({
             className="h-12 flex-1 rounded-xl bg-orange-500 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-500"
             onClick={onAddToCart}
           >
-            {isAddingToCart ? t(language, 'product.adding') : (isOutOfStock ? t(language, 'product.outOfStock') : (isVariationRequired ? getRequiredAttributesMessage() : (hasUnavailableAttributes ? t(language, 'product.outOfStock') : t(language, 'product.addToCart'))))}
+            {isAddingToCart ? t(language, 'product.adding') : (isOutOfStock ? t(language, 'product.outOfStock') : t(language, 'product.addToCart'))}
           </button>
         </div>
         </div>

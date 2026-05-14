@@ -87,8 +87,6 @@ export default function ProductPage({ params }: ProductPageProps) {
     discountPercent,
     maxQuantity,
     isOutOfStock,
-    isVariationRequired,
-    hasUnavailableAttributes,
     unavailableAttributes,
     canAddToCart,
     scrollToReviews,
@@ -97,7 +95,6 @@ export default function ProductPage({ params }: ProductPageProps) {
     handleColorSelect,
     handleSizeSelect,
     handleAttributeValueSelect,
-    getRequiredAttributesMessage,
   } = useProductPage(params);
 
   /**
@@ -259,8 +256,6 @@ export default function ProductPage({ params }: ProductPageProps) {
               quantity={quantity}
               maxQuantity={maxQuantity}
               isOutOfStock={isOutOfStock}
-              isVariationRequired={isVariationRequired}
-              hasUnavailableAttributes={hasUnavailableAttributes}
               unavailableAttributes={unavailableAttributes}
               canAddToCart={canAddToCart}
               isAddingToCart={isAddingToCart}
@@ -278,7 +273,6 @@ export default function ProductPage({ params }: ProductPageProps) {
               onSizeSelect={handleSizeSelect}
               onAttributeValueSelect={handleAttributeValueSelect}
               getOptionValue={getOptionValue}
-              getRequiredAttributesMessage={getRequiredAttributesMessage}
             />
           </div>
           </section>

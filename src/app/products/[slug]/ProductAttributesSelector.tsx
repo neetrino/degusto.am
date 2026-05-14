@@ -6,11 +6,9 @@ import type { LanguageCode } from '../../../lib/language';
 import type { Product, ProductVariant, AttributeGroupValue } from './types';
 import { getOptionValue as getVariantOptionValue } from './utils/variant-helpers';
 import { PDP_CARD_PREFERENCE_ORDER, PDP_PREFERENCE_ATTR_ORDER } from './constants/pdp-preference-attr-order';
-import {
-  isPdpCheckboxPreferenceKey,
-  isPdpShownNewFormatAttributeKey,
-} from './constants/pdp-checkbox-preference-keys';
+import { isPdpCheckboxPreferenceKey } from './constants/pdp-checkbox-preference-keys';
 import { resolvePreferenceBinaryToggle } from './utils/pdp-preference-binary-toggle';
+import { PdpAttributePillRow } from './PdpAttributePillRow';
 import { logger } from '@/lib/utils/logger';
 
 interface ProductAttributesSelectorProps {
@@ -24,20 +22,10 @@ interface ProductAttributesSelectorProps {
   colorGroups: Array<{ color: string; stock: number; variants: ProductVariant[] }>;
   sizeGroups: Array<{ size: string; stock: number; variants: ProductVariant[] }>;
   language: LanguageCode;
-  quantity: number;
-  maxQuantity: number;
-  isOutOfStock: boolean;
-  isVariationRequired: boolean;
-  hasUnavailableAttributes: boolean;
-  canAddToCart: boolean;
-  isAddingToCart: boolean;
   onColorSelect: (color: string) => void;
   onSizeSelect: (size: string) => void;
   onAttributeValueSelect: (attrKey: string, value: string) => void;
-  onQuantityAdjust: (delta: number) => void;
-  onAddToCart: () => Promise<void>;
   getOptionValue: (options: unknown[] | undefined, key: string) => string | null;
-  getRequiredAttributesMessage: () => string;
 }
 
 const getColorValue = (colorName: string): string => {
@@ -121,6 +109,12 @@ function preferenceAriaLabel(language: LanguageCode, attrKey: string): string {
   return label === path ? attrKey : label;
 }
 
+function attributeNameFromProduct(product: Product, attrKey: string): string {
+  return (
+    product.productAttributes?.find((pa) => pa.attribute.key === attrKey)?.attribute.name ?? attrKey
+  );
+}
+
 export function ProductAttributesSelector({
   product,
   currentVariant,
@@ -132,27 +126,16 @@ export function ProductAttributesSelector({
   colorGroups,
   sizeGroups,
   language,
-  quantity,
-  maxQuantity,
-  isOutOfStock,
-  isVariationRequired,
-  hasUnavailableAttributes,
-  canAddToCart,
-  isAddingToCart,
   onColorSelect,
   onSizeSelect,
   onAttributeValueSelect,
-  onQuantityAdjust,
-  onAddToCart,
   getOptionValue,
-  getRequiredAttributesMessage,
 }: ProductAttributesSelectorProps) {
   const attributeGroupsEntries = sortPreferenceAttributeEntries(
     Array.from(attributeGroups.entries()),
   );
   const visibleAttributeGroupsEntries = attributeGroupsEntries.filter(
-    ([attrKey, attrGroups]) =>
-      attrGroups.length > 0 && isPdpShownNewFormatAttributeKey(attrKey),
+    ([, attrGroups]) => attrGroups.length > 0,
   );
   const variantDimensionEntries = visibleAttributeGroupsEntries.filter(
     ([k]) => k === 'color' || k === 'size',
@@ -160,12 +143,17 @@ export function ProductAttributesSelector({
   const foodPreferenceEntries = sortFoodPreferenceEntriesForCard(
     visibleAttributeGroupsEntries.filter(([k]) => isPdpCheckboxPreferenceKey(k)),
   );
+  const genericDimensionEntries = visibleAttributeGroupsEntries.filter(
+    ([k]) => k !== 'color' && k !== 'size' && !isPdpCheckboxPreferenceKey(k),
+  );
   logger.debug('🎨 [PRODUCT ATTRIBUTES SELECTOR] attributeGroups entries:', attributeGroupsEntries.length);
   logger.debug('🎨 [PRODUCT ATTRIBUTES SELECTOR] attributeGroups keys:', Array.from(attributeGroups.keys()));
   logger.debug('🎨 [PRODUCT ATTRIBUTES SELECTOR] product.productAttributes:', product?.productAttributes);
 
   const useNewFormat =
-    variantDimensionEntries.length > 0 || foodPreferenceEntries.length > 0;
+    variantDimensionEntries.length > 0 ||
+    foodPreferenceEntries.length > 0 ||
+    genericDimensionEntries.length > 0;
   const hasLegacyColor = colorGroups.length > 0;
   const hasLegacySize = !product?.productAttributes && sizeGroups.length > 0;
   if (!useNewFormat && !hasLegacyColor && !hasLegacySize) {
@@ -316,6 +304,23 @@ export function ProductAttributesSelector({
               })}
             </div>
           )}
+          {genericDimensionEntries.length > 0 && (
+            <div className="flex w-full flex-col gap-4">
+              {genericDimensionEntries.map(([attrKey, attrGroups]) => (
+                <PdpAttributePillRow
+                  key={attrKey}
+                  attrKey={attrKey}
+                  title={attributeNameFromProduct(product, attrKey)}
+                  attrGroups={attrGroups}
+                  language={language}
+                  selectedAttributeValues={selectedAttributeValues}
+                  currentVariant={currentVariant}
+                  unavailableAttributes={unavailableAttributes}
+                  onAttributeValueSelect={onAttributeValueSelect}
+                />
+              ))}
+            </div>
+          )}
           {foodPreferenceEntries.length > 0 && (
             <div className="rounded-2xl border border-neutral-200 bg-white p-3 sm:p-4">
               <div className="flex flex-col gap-3 sm:gap-4">
@@ -329,7 +334,47 @@ export function ProductAttributesSelector({
                     currentVariant,
                   );
                   const toggle = resolvePreferenceBinaryToggle(attrKey, attrGroups);
-                  if (!toggle) return null;
+                  if (!toggle) {
+                    if (attrGroups.length <= 1) {
+                      const raw = selectedPrefValue;
+                      const selectedGroup =
+                        raw !== ''
+                          ? attrGroups.find(
+                              (g) =>
+                                (g.valueId !== undefined &&
+                                  g.valueId !== '' &&
+                                  g.valueId === raw) ||
+                                g.value?.toLowerCase().trim() === raw.toLowerCase().trim(),
+                            )
+                          : undefined;
+                      const display = selectedGroup ?? attrGroups[0];
+                      const attrLabel = attributeNameFromProduct(product, attrKey);
+                      return (
+                        <div
+                          key={attrKey}
+                          className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm text-neutral-800"
+                          aria-invalid={isUnavailable}
+                        >
+                          <span className="sr-only">{preferenceAriaLabel(language, attrKey)}</span>
+                          <span className="font-semibold text-neutral-700">{attrLabel}:</span>
+                          <span>{getAttributeLabel(language, attrKey, display.value)}</span>
+                        </div>
+                      );
+                    }
+                    return (
+                      <PdpAttributePillRow
+                        key={attrKey}
+                        attrKey={attrKey}
+                        title={attributeNameFromProduct(product, attrKey)}
+                        attrGroups={attrGroups}
+                        language={language}
+                        selectedAttributeValues={selectedAttributeValues}
+                        currentVariant={currentVariant}
+                        unavailableAttributes={unavailableAttributes}
+                        onAttributeValueSelect={onAttributeValueSelect}
+                      />
+                    );
+                  }
                   const inputId = `pdp-pref-${attrKey}-toggle`;
                   const isChecked = selectedPrefValue === toggle.onVal;
                   return (

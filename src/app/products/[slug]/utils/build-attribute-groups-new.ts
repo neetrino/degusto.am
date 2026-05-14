@@ -1,4 +1,4 @@
-import type { Product, ProductVariant, AttributeGroupValue } from '../types';
+import type { Product, ProductVariant, ProductAttribute, AttributeGroupValue } from '../types';
 import { getCurrentSelections } from './variant-compatibility';
 import { calculateStock } from './stock-calculator';
 import { findAttributeValue } from './attribute-value-finder';
@@ -9,6 +9,41 @@ interface BuildGroupsFromProductAttributesProps {
   selectedColor: string | null;
   selectedSize: string | null;
   selectedAttributeValues: Map<string, string>;
+}
+
+interface VariantValueMapEntry {
+  valueId?: string;
+  value: string;
+  label: string;
+  variants: ProductVariant[];
+}
+
+function mergeCatalogValuesIntoVariantValueMap(
+  productAttr: ProductAttribute,
+  valueMap: Map<string, VariantValueMapEntry>,
+): void {
+  const catalogValues = productAttr.attribute.values;
+  if (!Array.isArray(catalogValues) || catalogValues.length === 0) {
+    return;
+  }
+  for (const cv of catalogValues) {
+    const valueId = typeof cv.id === 'string' ? cv.id.trim() : '';
+    const value = typeof cv.value === 'string' ? cv.value.trim() : '';
+    const mapKey = valueId || value;
+    if (!mapKey) {
+      continue;
+    }
+    if (valueMap.has(mapKey)) {
+      continue;
+    }
+    const label = typeof cv.label === 'string' && cv.label.trim() !== '' ? cv.label : value;
+    valueMap.set(mapKey, {
+      valueId: valueId || undefined,
+      value,
+      label,
+      variants: [],
+    });
+  }
 }
 
 /**
@@ -28,10 +63,7 @@ export function buildGroupsFromProductAttributes({
 
   product.productAttributes.forEach((productAttr) => {
     const attrKey = productAttr.attribute.key;
-    const valueMap = new Map<
-      string,
-      { valueId?: string; value: string; label: string; variants: ProductVariant[] }
-    >();
+    const valueMap = new Map<string, VariantValueMapEntry>();
 
     // IMPORTANT: Show ALL attribute values, regardless of other selections
     // We don't filter variants here - we show all values that exist in any variant
@@ -81,6 +113,8 @@ export function buildGroupsFromProductAttributes({
         }
       });
     });
+
+    mergeCatalogValuesIntoVariantValueMap(productAttr, valueMap);
 
     // Get current selections for stock calculation (excluding this attribute)
     const currentSelections = getCurrentSelections(
