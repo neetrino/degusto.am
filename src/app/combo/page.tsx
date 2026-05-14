@@ -1,8 +1,8 @@
 import { BodyBackground } from '../../components/BodyBackground';
 import { FigmaDesktopComboPage } from '../../components/home/FigmaDesktopComboPage';
-import { FigmaMobileShopPage } from '../../components/home/FigmaMobileShopPage';
 import type { MenuCard, MenuCategory } from '../../components/home/FigmaDesktopShopPage';
 import { HIDDEN_STOREFRONT_CATEGORY_SLUGS } from '@/constants/hidden-storefront-category-slugs';
+import { STORE_MENU_PAGE_SIZE } from '@/constants/store-menu-page-size';
 import { db } from '@white-shop/db';
 import { cookies } from 'next/headers';
 import { resolveStorefrontLocaleFromCookie } from '@/lib/i18n/locale';
@@ -89,6 +89,10 @@ export default async function ComboPage({
     minPriceAmd !== null ? storefrontAmdPriceBoundToVariantUsd(minPriceAmd) : null;
   const maxPriceUsd =
     maxPriceAmd !== null ? storefrontAmdPriceBoundToVariantUsd(maxPriceAmd) : null;
+  const rawPage = typeof params?.page === 'string' ? params.page.trim() : '';
+  const parsedPage = parseInt(rawPage || '1', 10);
+  const requestedPage =
+    Number.isFinite(parsedPage) && parsedPage >= 1 ? parsedPage : 1;
   const allCategoriesLabel = locale === 'hy' ? 'Բոլորը' : 'All';
   const comboOnlyCategoryFilter = {
     categories: {
@@ -159,12 +163,19 @@ export default async function ComboPage({
       : {}),
   };
 
+  const productTotal = await db.product.count({ where: productWhere });
+  const totalPages =
+    productTotal === 0 ? 0 : Math.ceil(productTotal / STORE_MENU_PAGE_SIZE);
+  const effectivePage =
+    totalPages === 0 ? 1 : Math.min(requestedPage, totalPages);
+
   const productRows = await db.product.findMany({
     where: productWhere,
     orderBy: {
       updatedAt: 'desc',
     },
-    take: 12,
+    skip: (effectivePage - 1) * STORE_MENU_PAGE_SIZE,
+    take: STORE_MENU_PAGE_SIZE,
     select: {
       id: true,
       media: true,
@@ -329,9 +340,6 @@ export default async function ComboPage({
   return (
     <div className="min-h-screen bg-white">
       <BodyBackground color="#ffffff" />
-      <div className="lg:hidden">
-        <FigmaMobileShopPage />
-      </div>
       <FigmaDesktopComboPage
         cards={cards}
         categories={categories}
@@ -340,6 +348,10 @@ export default async function ComboPage({
         initialMinPrice={minPriceAmd !== null ? String(minPriceAmd) : ''}
         initialMaxPrice={maxPriceAmd !== null ? String(maxPriceAmd) : ''}
         initialFoodFilter={tasteFilter ?? 'neutral'}
+        menuPagination={{
+          currentPage: effectivePage,
+          totalPages,
+        }}
       />
     </div>
   );

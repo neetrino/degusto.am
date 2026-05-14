@@ -185,7 +185,8 @@
     "previousThumbnail": "Previous thumbnail",
     "nextThumbnail": "Next thumbnail",
     "fullscreenImage": "Fullscreen image",
-    "shoppingCart": "Shopping cart"
+    "shoppingCart": "Shopping cart",
+    "paginationNav": "Pagination"
   },
   "placeholders": {
     "search": "Search"

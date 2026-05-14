@@ -185,7 +185,8 @@
     "previousThumbnail": "Предыдущая миниатюра",
     "nextThumbnail": "Следующая миниатюра",
     "fullscreenImage": "Полноэкранное изображение",
-    "shoppingCart": "Корзина"
+    "shoppingCart": "Корзина",
+    "paginationNav": "Постраничная навигация"
   },
   "placeholders": {
     "search": "Поиск"

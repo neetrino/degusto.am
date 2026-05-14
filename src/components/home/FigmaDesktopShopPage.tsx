@@ -8,6 +8,7 @@ import type { KeyboardEvent, MouseEvent } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAddToCart } from '../hooks/useAddToCart';
 import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
+import { StoreMenuPagination } from './StoreMenuPagination';
 
 const assets = {
   productCardImage: '/api/r2/product/20260512-D3w_teddze.png',
@@ -60,6 +61,10 @@ type DesktopMenuPageProps = {
   initialMinPrice?: string;
   initialMaxPrice?: string;
   initialFoodFilter?: 'leaf' | 'neutral' | 'pepper';
+  menuPagination?: {
+    currentPage: number;
+    totalPages: number;
+  };
 };
 
 const fallbackCategoryKeys = [
@@ -285,6 +290,7 @@ export function FigmaDesktopMenuPage({
   initialMinPrice = '',
   initialMaxPrice = '',
   initialFoodFilter = 'neutral',
+  menuPagination,
 }: DesktopMenuPageProps) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -306,6 +312,7 @@ export function FigmaDesktopMenuPage({
         minPrice?: string;
         maxPrice?: string;
         taste?: 'leaf' | 'neutral' | 'pepper';
+        page?: number;
       }
     ) => {
       const params = new URLSearchParams(searchParams.toString());
@@ -342,6 +349,13 @@ export function FigmaDesktopMenuPage({
         params.set('taste', nextTaste);
       } else {
         params.delete('taste');
+      }
+
+      const nextPage = overrides?.page;
+      if (typeof nextPage === 'number' && nextPage >= 2) {
+        params.set('page', String(nextPage));
+      } else {
+        params.delete('page');
       }
 
       const queryString = params.toString();
@@ -408,8 +422,143 @@ export function FigmaDesktopMenuPage({
   };
 
   return (
-    <div className="hidden bg-white pb-20 pt-5 lg:block">
-      <div className="mx-auto flex w-full max-w-[1470px] gap-8 px-3">
+    <>
+      <div className="bg-white pb-28 pt-6 lg:hidden">
+        <div className="mx-auto max-w-[1470px] px-4">
+          <h1 className="text-[32px] font-bold leading-tight text-[#f66913]">{t(titleKey)}</h1>
+          <p className="mt-2 text-sm tracking-[-0.2px] text-[#717182]">{t(subtitleKey)}</p>
+
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              flushSearchQueryUrlSync(searchTerm);
+            }}
+            className="relative mt-6 flex h-[46px] items-center rounded-[40px] bg-[#f3f3f5] pl-10 pr-4 text-[16px] text-black/50"
+          >
+            <span className="absolute left-4 text-[#7f7f80]" aria-hidden="true">
+              <svg className="h-5 w-5" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="9" cy="9" r="6.5" stroke="currentColor" strokeWidth="2" />
+                <path d="M13.5 13.5L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </span>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(event) => {
+                const nextSearch = event.target.value;
+                setSearchTerm(nextSearch);
+                scheduleSearchQueryUrlSync(nextSearch);
+              }}
+              placeholder={`${t('common.buttons.search')}...`}
+              className="h-full w-full bg-transparent text-[16px] text-black outline-none placeholder:text-black/50"
+              aria-label={t('common.ariaLabels.search')}
+            />
+          </form>
+
+          {hasDbCategories ? (
+            <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {dbCategories.map((category) => {
+                const isActive = activeCategorySlug === category.slug;
+                return (
+                  <button
+                    key={category.id}
+                    type="button"
+                    onClick={() => {
+                      router.push(buildTargetPath(category.slug));
+                    }}
+                    aria-pressed={isActive}
+                    className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold ${
+                      isActive ? 'bg-[#ff7f20] text-white' : 'bg-[#f3f3f5] text-[#3c2f2f]'
+                    }`}
+                  >
+                    {category.title}
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
+
+          <div className="mt-6 flex flex-wrap items-center gap-2 text-sm text-[#717182]">
+            <span className="w-full shrink-0 text-base sm:w-auto">{t('home.figma.desktop.shop.priceLabel')}</span>
+            <input
+              type="number"
+              min={0}
+              inputMode="numeric"
+              value={minPrice}
+              onChange={(event) => {
+                const nextMinPrice = event.target.value;
+                setMinPrice(nextMinPrice);
+                router.replace(
+                  buildTargetPath(activeCategorySlug, {
+                    search: searchTerm,
+                    minPrice: nextMinPrice,
+                    maxPrice,
+                  })
+                );
+              }}
+              placeholder={t('home.figma.desktop.shop.priceFrom')}
+              className="h-[46px] min-w-0 flex-1 rounded-[40px] bg-[#f3f3f5] px-4 text-left text-base text-[#7f7f80] sm:flex-none sm:basis-[109px]"
+            />
+            <input
+              type="number"
+              min={0}
+              inputMode="numeric"
+              value={maxPrice}
+              onChange={(event) => {
+                const nextMaxPrice = event.target.value;
+                setMaxPrice(nextMaxPrice);
+                router.replace(
+                  buildTargetPath(activeCategorySlug, {
+                    search: searchTerm,
+                    minPrice,
+                    maxPrice: nextMaxPrice,
+                  })
+                );
+              }}
+              placeholder={t('home.figma.desktop.shop.priceTo')}
+              className="h-[46px] min-w-0 flex-1 rounded-[40px] bg-[#f3f3f5] px-4 text-left text-base text-[#7f7f80] sm:flex-none sm:basis-[109px]"
+            />
+            <FoodAttributeSwitcher
+              selectedOption={foodFilter}
+              onChange={(nextTaste) => {
+                setFoodFilter(nextTaste);
+                router.replace(
+                  buildTargetPath(activeCategorySlug, {
+                    search: searchTerm,
+                    minPrice,
+                    maxPrice,
+                    taste: nextTaste,
+                  })
+                );
+              }}
+            />
+          </div>
+
+          {menuCards.length > 0 ? (
+            <div className="mt-8 grid grid-cols-1 justify-items-center gap-x-6 gap-y-10 sm:grid-cols-2">
+              {menuCards.map((card) => (
+                <MenuCardItem key={card.id} card={card} />
+              ))}
+            </div>
+          ) : (
+            <div className="mt-8 flex min-h-[200px] items-center justify-center rounded-[20px] border border-dashed border-[#d4d4d8] bg-[#fafafc] px-6 text-center text-base font-medium text-[#717182]">
+              {t('common.messages.noProductsFound')}
+            </div>
+          )}
+
+          {menuPagination ? (
+            <StoreMenuPagination
+              navAriaLabel={t('common.ariaLabels.paginationNav')}
+              currentPage={menuPagination.currentPage}
+              totalPages={menuPagination.totalPages}
+              buildPageHref={(targetPage) => buildTargetPath(activeCategorySlug, { page: targetPage })}
+            />
+          ) : null}
+        </div>
+      </div>
+
+      <div className="hidden bg-white pb-20 pt-5 lg:block">
+        <div className="mx-auto flex w-full max-w-[1470px] gap-8 px-3">
         <aside className="sticky top-[116px] flex h-[calc(100vh-132px)] w-[320px] shrink-0 flex-col overflow-hidden rounded-[20px] bg-black pb-5 text-white">
           <div className="border-b border-white/10 p-6">
             <form
@@ -563,14 +712,18 @@ export function FigmaDesktopMenuPage({
             </div>
           )}
 
-          <div className="mt-16 flex justify-center">
-            <button type="button" className="rounded-[40px] bg-[#ff7f20] px-8 py-4 text-base font-bold text-white">
-              {t('home.figma.desktop.shop.moreButton')} →
-            </button>
-          </div>
+          {menuPagination ? (
+            <StoreMenuPagination
+              navAriaLabel={t('common.ariaLabels.paginationNav')}
+              currentPage={menuPagination.currentPage}
+              totalPages={menuPagination.totalPages}
+              buildPageHref={(targetPage) => buildTargetPath(activeCategorySlug, { page: targetPage })}
+            />
+          ) : null}
         </section>
       </div>
     </div>
+    </>
   );
 }
 

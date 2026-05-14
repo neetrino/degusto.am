@@ -13,6 +13,10 @@ interface FigmaDesktopComboPageProps {
   initialMinPrice?: string;
   initialMaxPrice?: string;
   initialFoodFilter?: 'leaf' | 'neutral' | 'pepper';
+  menuPagination?: {
+    currentPage: number;
+    totalPages: number;
+  };
 }
 
 export function FigmaDesktopComboPage({
@@ -23,6 +27,7 @@ export function FigmaDesktopComboPage({
   initialMinPrice = '',
   initialMaxPrice = '',
   initialFoodFilter = 'neutral',
+  menuPagination,
 }: FigmaDesktopComboPageProps) {
   return (
     <FigmaDesktopMenuPage
@@ -36,6 +41,7 @@ export function FigmaDesktopComboPage({
       initialMinPrice={initialMinPrice}
       initialMaxPrice={initialMaxPrice}
       initialFoodFilter={initialFoodFilter}
+      menuPagination={menuPagination}
     />
   );
 }

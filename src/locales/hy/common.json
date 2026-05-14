@@ -185,7 +185,8 @@
     "previousThumbnail": "Նախորդ մանրապատկեր",
     "nextThumbnail": "Հաջորդ մանրապատկեր",
     "fullscreenImage": "Լիաէկրան պատկեր",
-    "shoppingCart": "Գնումների զամբյուղ"
+    "shoppingCart": "Գնումների զամբյուղ",
+    "paginationNav": "Էջերի նավիգացիա"
   },
   "placeholders": {
     "search": "Որոնել"
