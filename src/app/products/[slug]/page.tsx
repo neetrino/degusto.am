@@ -13,6 +13,8 @@ import { ProductPageShell } from './ProductPageShell';
 import { useProductPage } from './useProductPage';
 import { playCartFlyAnimation } from '../../../lib/cart-fly-animation';
 import { BodyBackground } from '../../../components/BodyBackground';
+import { ProjectGreenStripes } from '../../../components/decor/ProjectGreenStripes';
+import { logger } from '@/lib/utils/logger';
 import {
   buildCustomizationLineKey,
   normalizeProductCustomizations,
@@ -44,6 +46,11 @@ function collectSelectedAttributeValueIdsForCart(
   return ids;
 }
 
+/** White behind header on PDP so the UniversalHeader spacer matches the chrome, not orange. */
+const PDP_BODY_BACKGROUND = '#ffffff';
+/** Pull orange shell under the fixed header stack (104px spacer) like login layout. */
+const PDP_HEADER_UNDERLAP_CLASS = 'relative z-10 -mt-[104px] pt-[104px]';
+
 export default function ProductPage({ params }: ProductPageProps) {
   const { isLoggedIn } = useAuth();
   const {
@@ -62,8 +69,6 @@ export default function ProductPage({ params }: ProductPageProps) {
     selectedAttributeValues,
     isAddingToCart,
     setIsAddingToCart,
-    showMessage,
-    setShowMessage,
     additions,
     exclusions,
     setAdditions,
@@ -164,21 +169,23 @@ export default function ProductPage({ params }: ProductPageProps) {
           customizations,
         });
       }
-      setShowMessage(`${t(language, 'product.addedToCart')} ${quantity} ${t(language, 'product.pcs')}`);
       window.dispatchEvent(new Event('cart-updated'));
-    } catch {
-      setShowMessage(t(language, 'product.errorAddingToCart'));
+    } catch (error: unknown) {
+      logger.warn('Add to cart failed', {
+        error: error instanceof Error ? error.message : String(error),
+      });
     } finally {
       setIsAddingToCart(false);
-      setTimeout(() => setShowMessage(null), 2000);
     }
   };
 
   if (loading && !product) {
     return (
       <>
-        <BodyBackground color="#ffffff" />
-        <ProductPageShell />
+        <BodyBackground color={PDP_BODY_BACKGROUND} />
+        <div className={PDP_HEADER_UNDERLAP_CLASS}>
+          <ProductPageShell />
+        </div>
       </>
     );
   }
@@ -186,15 +193,17 @@ export default function ProductPage({ params }: ProductPageProps) {
   if (notFound && !product) {
     return (
       <>
-        <BodyBackground color="#ffffff" />
-        <div className="max-w-7xl mx-auto px-4 py-16 text-center space-y-4">
-          <p className="text-lg text-neutral-600">{t(language, 'common.messages.noProductsFound')}</p>
-          <Link
-            href="/shop"
-            className="inline-flex h-10 items-center rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-50"
-          >
-            {t(language, 'common.navigation.products')}
-          </Link>
+        <BodyBackground color={PDP_BODY_BACKGROUND} />
+        <div className={PDP_HEADER_UNDERLAP_CLASS}>
+          <div className="max-w-7xl mx-auto px-4 py-16 text-center space-y-4">
+            <p className="text-lg text-neutral-600">{t(language, 'common.messages.noProductsFound')}</p>
+            <Link
+              href="/shop"
+              className="inline-flex h-10 items-center rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-50"
+            >
+              {t(language, 'common.navigation.products')}
+            </Link>
+          </div>
         </div>
       </>
     );
@@ -203,15 +212,17 @@ export default function ProductPage({ params }: ProductPageProps) {
   if (!product) {
     return (
       <>
-        <BodyBackground color="#ffffff" />
-        <div className="max-w-7xl mx-auto px-4 py-16 text-center space-y-4">
-          <p className="text-lg text-neutral-600">{t(language, 'common.messages.invalidProduct')}</p>
-          <Link
-            href="/shop"
-            className="inline-flex h-10 items-center rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-50"
-          >
-            {t(language, 'common.navigation.products')}
-          </Link>
+        <BodyBackground color={PDP_BODY_BACKGROUND} />
+        <div className={PDP_HEADER_UNDERLAP_CLASS}>
+          <div className="max-w-7xl mx-auto px-4 py-16 text-center space-y-4">
+            <p className="text-lg text-neutral-600">{t(language, 'common.messages.invalidProduct')}</p>
+            <Link
+              href="/shop"
+              className="inline-flex h-10 items-center rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-50"
+            >
+              {t(language, 'common.navigation.products')}
+            </Link>
+          </div>
         </div>
       </>
     );
@@ -219,15 +230,20 @@ export default function ProductPage({ params }: ProductPageProps) {
 
   return (
     <>
-      <BodyBackground color="#ffffff" />
-      <div className="bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 lg:py-12">
-          <nav className="mb-6 flex flex-wrap items-center gap-2 text-sm text-neutral-500">
-            <Link href="/shop" className="hover:text-neutral-800 transition-colors">
+      <BodyBackground color={PDP_BODY_BACKGROUND} />
+      <div
+        className={`${PDP_HEADER_UNDERLAP_CLASS} min-h-dvh overflow-x-hidden bg-[var(--project-color)]`}
+      >
+        <ProjectGreenStripes extendFirstStrokeUp />
+        <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
+          <nav className="mb-6 flex flex-wrap items-center gap-2 text-sm text-white">
+            <Link href="/shop" className="text-white/90 transition-colors hover:text-white">
               {t(language, 'common.navigation.products')}
             </Link>
-            <span aria-hidden>/</span>
-            <span className="text-neutral-700 line-clamp-1">
+            <span aria-hidden className="text-white/70">
+              /
+            </span>
+            <span className="line-clamp-1 font-medium text-white">
               {product.title}
             </span>
           </nav>
@@ -266,7 +282,6 @@ export default function ProductPage({ params }: ProductPageProps) {
               isAddingToCart={isAddingToCart}
               isInWishlist={isInWishlist}
               isInCompare={isInCompare}
-              showMessage={showMessage}
               isLoggedIn={isLoggedIn}
               currentVariant={currentVariant}
               attributeGroups={attributeGroups}

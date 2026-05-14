@@ -161,6 +161,10 @@ function getFoodVariantPresets(productIndex) {
   return [{ spicy: "not-spicy", greens: "without-greens", priceDelta: 0 }];
 }
 
+/** Per-variant-index sauce/garlic so each SKU has a unique full preference tuple. */
+const FOOD_SAUCE_BY_VARIANT_INDEX = ["ketchup", "mayonnaise", "no-sauce", "ketchup"];
+const FOOD_GARLIC_BY_VARIANT_INDEX = ["with-garlic", "without-garlic", "with-garlic", "without-garlic"];
+
 function slugify(text) {
   return text
     .toLowerCase()
@@ -288,7 +292,7 @@ async function seedFoodAttributes() {
         },
         {
           value: "not-spicy",
-          labels: { en: "Not spicy", hy: "Չկծու", ru: "Не острое" },
+          labels: { en: "Not spicy", hy: "Առանց կծու", ru: "Не острое" },
         },
       ],
     },
@@ -307,6 +311,46 @@ async function seedFoodAttributes() {
         {
           value: "without-greens",
           labels: { en: "Without greens", hy: "Առանց կանաչի", ru: "Без зелени" },
+        },
+      ],
+    },
+    {
+      key: "sauce",
+      names: {
+        en: "Sauce",
+        hy: "Սոուս",
+        ru: "Соус",
+      },
+      values: [
+        {
+          value: "ketchup",
+          labels: { en: "Ketchup", hy: "Կետչուպ", ru: "Кетчуп" },
+        },
+        {
+          value: "mayonnaise",
+          labels: { en: "Mayonnaise", hy: "Մայոնեզ", ru: "Майонез" },
+        },
+        {
+          value: "no-sauce",
+          labels: { en: "No sauce", hy: "Առանց սոուսի", ru: "Без соуса" },
+        },
+      ],
+    },
+    {
+      key: "garlic",
+      names: {
+        en: "Garlic",
+        hy: "Սխտոր",
+        ru: "Чеснок",
+      },
+      values: [
+        {
+          value: "with-garlic",
+          labels: { en: "With garlic", hy: "Սխտորով", ru: "С чесноком" },
+        },
+        {
+          value: "without-garlic",
+          labels: { en: "Without garlic", hy: "Առանց սխտորի", ru: "Без чеснока" },
         },
       ],
     },
@@ -458,6 +502,8 @@ async function seedProducts(categoryIdsBySlug, brandIds, foodAttributes) {
     const featured = i < 8;
     const spicyAttributeId = foodAttributes.spicy.id;
     const greensAttributeId = foodAttributes.greens.id;
+    const sauceAttributeId = foodAttributes.sauce.id;
+    const garlicAttributeId = foodAttributes.garlic.id;
 
     const presetRows = getFoodVariantPresets(i);
     const isFixedSingleTaste = presetRows.length === 1;
@@ -465,6 +511,10 @@ async function seedProducts(categoryIdsBySlug, brandIds, foodAttributes) {
     const variantRows = presetRows.map((preset, variantIndex) => {
       const spicyValueId = foodAttributes.spicy.valueIds[preset.spicy];
       const greensValueId = foodAttributes.greens.valueIds[preset.greens];
+      const sauceKey = FOOD_SAUCE_BY_VARIANT_INDEX[variantIndex % FOOD_SAUCE_BY_VARIANT_INDEX.length];
+      const garlicKey = FOOD_GARLIC_BY_VARIANT_INDEX[variantIndex % FOOD_GARLIC_BY_VARIANT_INDEX.length];
+      const sauceValueId = foodAttributes.sauce.valueIds[sauceKey];
+      const garlicValueId = foodAttributes.garlic.valueIds[garlicKey];
       const variantPrice = Number((basePrice + preset.priceDelta).toFixed(2));
       const compareAtPrice = Number((variantPrice * 1.18).toFixed(2));
 
@@ -478,9 +528,16 @@ async function seedProducts(categoryIdsBySlug, brandIds, foodAttributes) {
         attributes: {
           spicy: [{ valueId: spicyValueId, value: preset.spicy, attributeKey: "spicy" }],
           greens: [{ valueId: greensValueId, value: preset.greens, attributeKey: "greens" }],
+          sauce: [{ valueId: sauceValueId, value: sauceKey, attributeKey: "sauce" }],
+          garlic: [{ valueId: garlicValueId, value: garlicKey, attributeKey: "garlic" }],
         },
         options: {
-          create: [{ valueId: spicyValueId }, { valueId: greensValueId }],
+          create: [
+            { valueId: spicyValueId },
+            { valueId: greensValueId },
+            { valueId: sauceValueId },
+            { valueId: garlicValueId },
+          ],
         },
       };
     });
@@ -494,7 +551,9 @@ async function seedProducts(categoryIdsBySlug, brandIds, foodAttributes) {
         publishedAt: new Date(),
         categoryIds: categoryIdsList,
         primaryCategoryId,
-        attributeIds: isFixedSingleTaste ? [] : [spicyAttributeId, greensAttributeId],
+        attributeIds: isFixedSingleTaste
+          ? [sauceAttributeId, garlicAttributeId]
+          : [spicyAttributeId, greensAttributeId, sauceAttributeId, garlicAttributeId],
         categories: { connect: categoryIdsList.map((id) => ({ id })) },
         translations: {
           create: {
@@ -508,10 +567,22 @@ async function seedProducts(categoryIdsBySlug, brandIds, foodAttributes) {
           },
         },
         ...(isFixedSingleTaste
-          ? {}
+          ? {
+              productAttributes: {
+                create: [
+                  { attributeId: sauceAttributeId },
+                  { attributeId: garlicAttributeId },
+                ],
+              },
+            }
           : {
               productAttributes: {
-                create: [{ attributeId: spicyAttributeId }, { attributeId: greensAttributeId }],
+                create: [
+                  { attributeId: spicyAttributeId },
+                  { attributeId: greensAttributeId },
+                  { attributeId: sauceAttributeId },
+                  { attributeId: garlicAttributeId },
+                ],
               },
             }),
         variants: { create: variantRows },

@@ -1,7 +1,7 @@
 'use client';
 
 import type { MouseEvent } from 'react';
-import { Heart } from 'lucide-react';
+import { Heart, Minus, Plus } from 'lucide-react';
 import Image from 'next/image';
 import { formatPrice, type CurrencyCode } from '../../../lib/currency';
 import { t, getProductText } from '../../../lib/i18n';
@@ -32,7 +32,6 @@ interface ProductInfoAndActionsProps {
   isAddingToCart: boolean;
   isInWishlist: boolean;
   isInCompare: boolean;
-  showMessage: string | null;
   isLoggedIn: boolean;
   currentVariant: ProductVariant | null;
   attributeGroups: Map<string, any[]>;
@@ -73,7 +72,6 @@ export function ProductInfoAndActions({
   isAddingToCart,
   isInWishlist,
   isInCompare,
-  showMessage,
   isLoggedIn,
   currentVariant,
   attributeGroups,
@@ -94,36 +92,36 @@ export function ProductInfoAndActions({
   getRequiredAttributesMessage,
 }: ProductInfoAndActionsProps) {
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-white p-4 sm:p-5 lg:p-6">
-      <div className="flex-1">
-        {product.brand && (
-          <div className="mb-3 flex items-center gap-2">
-            {(product.brand.logo || product.brand.logoUrl) ? (
-              <div className="relative h-5 w-5 overflow-hidden rounded-full border border-gray-200">
-                <Image
-                  src={product.brand.logo || product.brand.logoUrl || ''}
-                  alt={product.brand.name}
-                  fill
-                  className="object-cover"
-                  sizes="20px"
-                  unoptimized
-                />
-              </div>
-            ) : null}
-            <p className="text-sm text-gray-500">{product.brand.name}</p>
-          </div>
-        )}
-        <h1 className="mb-2 text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl">
-          {getProductText(language, product.id, 'title') || product.title}
-        </h1>
-        <ProductRatingSummary
-          averageRating={averageRating}
-          reviewsCount={reviewsCount}
-          onReviewsClick={onScrollToReviews}
-          language={language}
-        />
-        <div className="mb-6 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-          <div className="flex flex-col gap-1">
+    <div className="flex w-full max-w-full flex-col self-start p-4 sm:p-5 lg:p-6">
+      <div className="-translate-x-[30px] flex min-h-0 flex-col">
+        <div>
+          {product.brand && (
+            <div className="mb-3 flex items-center gap-2">
+              {(product.brand.logo || product.brand.logoUrl) ? (
+                <div className="relative h-5 w-5 overflow-hidden rounded-full border border-gray-200">
+                  <Image
+                    src={product.brand.logo || product.brand.logoUrl || ''}
+                    alt={product.brand.name}
+                    fill
+                    className="object-cover"
+                    sizes="20px"
+                    unoptimized
+                  />
+                </div>
+              ) : null}
+              <p className="text-sm text-gray-500">{product.brand.name}</p>
+            </div>
+          )}
+          <h1 className="mb-2 text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl">
+            {getProductText(language, product.id, 'title') || product.title}
+          </h1>
+          <ProductRatingSummary
+            averageRating={averageRating}
+            reviewsCount={reviewsCount}
+            onReviewsClick={onScrollToReviews}
+            language={language}
+          />
+          <div className="mb-6 flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <p className="text-3xl font-bold text-gray-900">{formatPrice(price, currency as CurrencyCode)}</p>
               {discountPercent && discountPercent > 0 && (
@@ -133,61 +131,58 @@ export function ProductInfoAndActions({
               )}
             </div>
             {(originalPrice || (compareAtPrice && compareAtPrice > price)) && (
-              <p className="text-xl text-gray-500 line-through decoration-gray-400 mt-1">
+              <p className="mt-1 text-xl text-gray-500 line-through decoration-gray-400">
                 {formatPrice(originalPrice || compareAtPrice || 0, currency as CurrencyCode)}
               </p>
             )}
           </div>
-        </div>
-        <div
-          className="mb-8 prose prose-sm text-gray-600"
-          dangerouslySetInnerHTML={{
-            __html: sanitizeHtml(getProductText(language, product.id, 'longDescription') || product.description || ''),
-          }}
-        />
-
-        <div className="mb-8">
-          <ProductAttributesSelector
-            product={product}
-            attributeGroups={attributeGroups}
-            selectedColor={selectedColor}
-            selectedSize={selectedSize}
-            selectedAttributeValues={selectedAttributeValues}
-            unavailableAttributes={unavailableAttributes}
-            colorGroups={colorGroups}
-            sizeGroups={sizeGroups}
-            language={language}
-            currency={currency as CurrencyCode}
-            quantity={quantity}
-            maxQuantity={maxQuantity}
-            isOutOfStock={isOutOfStock}
-            isVariationRequired={isVariationRequired}
-            hasUnavailableAttributes={hasUnavailableAttributes}
-            canAddToCart={canAddToCart}
-            isAddingToCart={isAddingToCart}
-            showMessage={showMessage}
-            onColorSelect={onColorSelect}
-            onSizeSelect={onSizeSelect}
-            onAttributeValueSelect={onAttributeValueSelect}
-            onQuantityAdjust={onQuantityAdjust}
-            onAddToCart={onAddToCart}
-            getOptionValue={getOptionValue}
-            getRequiredAttributesMessage={getRequiredAttributesMessage}
+          <div
+            className="mb-4 prose prose-sm text-gray-600"
+            dangerouslySetInnerHTML={{
+              __html: sanitizeHtml(getProductText(language, product.id, 'longDescription') || product.description || ''),
+            }}
           />
+
+          <div className="mb-4">
+            <ProductAttributesSelector
+              product={product}
+              currentVariant={currentVariant}
+              attributeGroups={attributeGroups}
+              selectedColor={selectedColor}
+              selectedSize={selectedSize}
+              selectedAttributeValues={selectedAttributeValues}
+              unavailableAttributes={unavailableAttributes}
+              colorGroups={colorGroups}
+              sizeGroups={sizeGroups}
+              language={language}
+              quantity={quantity}
+              maxQuantity={maxQuantity}
+              isOutOfStock={isOutOfStock}
+              isVariationRequired={isVariationRequired}
+              hasUnavailableAttributes={hasUnavailableAttributes}
+              canAddToCart={canAddToCart}
+              isAddingToCart={isAddingToCart}
+              onColorSelect={onColorSelect}
+              onSizeSelect={onSizeSelect}
+              onAttributeValueSelect={onAttributeValueSelect}
+              onQuantityAdjust={onQuantityAdjust}
+              onAddToCart={onAddToCart}
+              getOptionValue={getOptionValue}
+              getRequiredAttributesMessage={getRequiredAttributesMessage}
+            />
+          </div>
         </div>
 
-      </div>
-      
-      <div className="rounded-2xl border border-neutral-200 bg-white pt-6">
+        <div className="mt-[50px] pt-4">
         {isVariationRequired && (
-          <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div className="mb-3 rounded-lg bg-yellow-50 p-3">
             <p className="text-sm text-yellow-800 font-medium">
               {getRequiredAttributesMessage()}
             </p>
           </div>
         )}
         {hasUnavailableAttributes && !isVariationRequired && (
-          <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <div className="mb-3 rounded-lg bg-red-50 p-3">
             <p className="text-sm text-red-800 font-medium">
               {Array.from(unavailableAttributes.entries()).map(([attrKey]) => {
                 const productAttr = product?.productAttributes?.find((pa: unknown) => {
@@ -205,46 +200,59 @@ export function ProductInfoAndActions({
             </p>
           </div>
         )}
-        <div className="flex items-center gap-3 border-t border-neutral-200 pt-4">
-          <div className="flex items-center overflow-hidden rounded-xl border border-neutral-300 bg-gray-50">
-            <button 
-              onClick={() => onQuantityAdjust(-1)} 
+        <div className="flex items-center gap-3">
+          <div
+            className="inline-flex h-12 shrink-0 items-center gap-0.5 rounded-[15px] border border-neutral-200 bg-white px-1.5"
+            role="group"
+            aria-label={t(language, 'common.messages.quantity')}
+          >
+            <button
+              type="button"
+              onClick={() => onQuantityAdjust(-1)}
               disabled={quantity <= 1}
-              className="w-12 h-12 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-35"
+              aria-label={t(language, 'common.ariaLabels.decreaseQuantity')}
             >
-              -
+              <Minus className="h-4 w-4" strokeWidth={2.25} aria-hidden />
             </button>
-            <div className="w-12 text-center font-bold">{quantity}</div>
-            <button 
-              onClick={() => onQuantityAdjust(1)} 
+            <span className="min-w-[2.25rem] select-none text-center text-sm font-semibold tabular-nums text-neutral-900">
+              {quantity}
+            </span>
+            <button
+              type="button"
+              onClick={() => onQuantityAdjust(1)}
               disabled={quantity >= maxQuantity}
-              className="w-12 h-12 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-35"
+              aria-label={t(language, 'common.ariaLabels.increaseQuantity')}
             >
-              +
+              <Plus className="h-4 w-4" strokeWidth={2.25} aria-hidden />
             </button>
           </div>
-          <button 
-            disabled={!canAddToCart || isAddingToCart} 
-            className="h-12 flex-1 rounded-xl bg-gray-900 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-black disabled:cursor-not-allowed disabled:bg-gray-300"
+          <button
+            type="button"
+            disabled={!canAddToCart || isAddingToCart}
+            className="h-12 flex-1 rounded-xl bg-orange-500 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-500"
             onClick={onAddToCart}
           >
             {isAddingToCart ? t(language, 'product.adding') : (isOutOfStock ? t(language, 'product.outOfStock') : (isVariationRequired ? getRequiredAttributesMessage() : (hasUnavailableAttributes ? t(language, 'product.outOfStock') : t(language, 'product.addToCart'))))}
           </button>
-          <button 
-            onClick={onCompareToggle} 
-            className={`w-12 h-12 rounded-xl border-2 flex items-center justify-center transition-all duration-200 ${isInCompare ? 'border-gray-900 bg-gray-50' : 'border-gray-200 hover:border-gray-300'}`}
+          <button
+            onClick={onCompareToggle}
+            type="button"
+            className={`flex h-12 w-12 items-center justify-center rounded-xl transition-colors duration-200 ${isInCompare ? 'bg-neutral-200 text-gray-900' : 'bg-neutral-100 hover:bg-neutral-200'}`}
           >
             <CompareIcon isActive={isInCompare} />
           </button>
-          <button 
-            onClick={onAddToWishlist} 
-            className={`w-12 h-12 rounded-xl border-2 flex items-center justify-center ${isInWishlist ? 'border-gray-900 bg-gray-50' : 'border-gray-200'}`}
+          <button
+            onClick={onAddToWishlist}
+            type="button"
+            className={`flex h-12 w-12 items-center justify-center rounded-xl transition-colors ${isInWishlist ? 'bg-orange-500 text-white hover:bg-orange-600' : 'bg-neutral-100 text-gray-700 hover:bg-neutral-200'}`}
           >
             <Heart fill={isInWishlist ? 'currentColor' : 'none'} />
           </button>
         </div>
+        </div>
       </div>
-      {showMessage && <div className="mt-4 p-4 bg-gray-900 text-white rounded-md shadow-lg">{showMessage}</div>}
     </div>
   );
 }

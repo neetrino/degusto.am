@@ -13,6 +13,8 @@ export interface VariantOption {
   attribute: string;
   value: string;
   key: string;
+  /** Localized display label from API when using AttributeValue (optional). */
+  label?: string;
   valueId?: string; // New format: AttributeValue ID
   attributeId?: string; // New format: Attribute ID
 }

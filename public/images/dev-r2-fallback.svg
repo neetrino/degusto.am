@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" role="img" aria-label="R2 asset placeholder for local development">
+  <rect width="800" height="600" fill="#F66812"/>
+  <rect x="40" y="40" width="720" height="520" rx="24" fill="#0c0d12" opacity="0.35"/>
+  <text x="400" y="270" text-anchor="middle" fill="#ffffff" font-family="system-ui, sans-serif" font-size="28" font-weight="700">R2 image placeholder</text>
+  <text x="400" y="320" text-anchor="middle" fill="#e6e6e8" font-family="system-ui, sans-serif" font-size="16">Configure R2 in .env or upload keys to the bucket (dev only).</text>
+</svg>
