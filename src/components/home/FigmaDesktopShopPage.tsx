@@ -5,7 +5,7 @@ import { useCurrency } from '../hooks/useCurrency';
 import { formatPrice } from '../../lib/currency';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { KeyboardEvent, MouseEvent } from 'react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAddToCart } from '../hooks/useAddToCart';
 import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
 
@@ -18,6 +18,9 @@ const assets = {
   switcherLeafRibbon: 'https://www.figma.com/api/mcp/asset/c35852c7-d37b-4ae3-bce2-6cff1c8c6763',
   switcherPepper: 'https://www.figma.com/api/mcp/asset/b55ba537-950b-4307-b788-dd50e7b74c43',
 };
+
+/** Debounce before writing search to the URL (server refetch); avoids one request per key. */
+const SEARCH_QUERY_URL_DEBOUNCE_MS = 250;
 
 type MenuCard = {
   id: string;
@@ -346,13 +349,60 @@ export function FigmaDesktopMenuPage({
     };
   }, [searchParams, searchTerm, minPrice, maxPrice, foodFilter, routeBasePath]);
 
-  const applyFilters = () => {
-    router.push(
-      buildTargetPath(activeCategorySlug, {
-        search: searchTerm,
-        minPrice,
-        maxPrice,
-        taste: foodFilter,
+  const searchUrlDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const menuFilterRouteRef = useRef({
+    buildTargetPath,
+    activeCategorySlug,
+    minPrice,
+    maxPrice,
+    foodFilter,
+  });
+  menuFilterRouteRef.current = {
+    buildTargetPath,
+    activeCategorySlug,
+    minPrice,
+    maxPrice,
+    foodFilter,
+  };
+
+  useEffect(() => {
+    return () => {
+      if (searchUrlDebounceRef.current) {
+        clearTimeout(searchUrlDebounceRef.current);
+      }
+    };
+  }, []);
+
+  const scheduleSearchQueryUrlSync = (nextSearch: string) => {
+    if (searchUrlDebounceRef.current) {
+      clearTimeout(searchUrlDebounceRef.current);
+    }
+    searchUrlDebounceRef.current = setTimeout(() => {
+      searchUrlDebounceRef.current = null;
+      const d = menuFilterRouteRef.current;
+      router.replace(
+        d.buildTargetPath(d.activeCategorySlug, {
+          search: nextSearch,
+          minPrice: d.minPrice,
+          maxPrice: d.maxPrice,
+          taste: d.foodFilter,
+        })
+      );
+    }, SEARCH_QUERY_URL_DEBOUNCE_MS);
+  };
+
+  const flushSearchQueryUrlSync = (nextSearch: string) => {
+    if (searchUrlDebounceRef.current) {
+      clearTimeout(searchUrlDebounceRef.current);
+      searchUrlDebounceRef.current = null;
+    }
+    const d = menuFilterRouteRef.current;
+    router.replace(
+      d.buildTargetPath(d.activeCategorySlug, {
+        search: nextSearch,
+        minPrice: d.minPrice,
+        maxPrice: d.maxPrice,
+        taste: d.foodFilter,
       })
     );
   };
@@ -365,7 +415,7 @@ export function FigmaDesktopMenuPage({
             <form
               onSubmit={(event) => {
                 event.preventDefault();
-                applyFilters();
+                flushSearchQueryUrlSync(searchTerm);
               }}
               className="relative flex h-[46px] items-center rounded-[40px] bg-[#f3f3f5] pl-10 pr-4 text-[16px] text-black/50"
             >
@@ -378,7 +428,11 @@ export function FigmaDesktopMenuPage({
               <input
                 type="text"
                 value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
+                onChange={(event) => {
+                  const nextSearch = event.target.value;
+                  setSearchTerm(nextSearch);
+                  scheduleSearchQueryUrlSync(nextSearch);
+                }}
                 placeholder={`${t('common.buttons.search')}...`}
                 className="h-full w-full bg-transparent text-[16px] text-black outline-none placeholder:text-black/50"
                 aria-label={t('common.ariaLabels.search')}
