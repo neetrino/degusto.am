@@ -1,10 +1,16 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@shop/ui';
 import { formatPrice } from '../../lib/currency';
 import type { CurrencyCode } from '../../lib/currency';
+import { COUPON_CODE_REGEX } from '../../lib/coupon-code-format';
+import {
+  CHECKOUT_COUPON_CODE_STORAGE_KEY,
+  requestCheckoutCouponValidation,
+} from '../checkout/checkout-coupon-client';
 import type { Cart, CartItem } from './types';
 import type { CartListAppearance } from './constants';
 
@@ -337,7 +343,7 @@ export function CartTable({
 }
 
 /**
- * Order summary — minimal totals; promocode applies on checkout only.
+ * Order summary — totals + optional promocode (persisted for checkout).
  */
 interface OrderSummaryProps {
   cart: Cart;
@@ -350,6 +356,12 @@ interface OrderSummaryProps {
 export function OrderSummary({ cart, currency, t, appearance = 'page' }: OrderSummaryProps) {
   const currencyCode = currency as CurrencyCode;
   const isDrawer = appearance === 'drawer';
+
+  const [promoCodeInput, setPromoCodeInput] = useState('');
+  const [appliedPromoCode, setAppliedPromoCode] = useState('');
+  const [promoFeedback, setPromoFeedback] = useState('');
+  const [promoDiscountAmount, setPromoDiscountAmount] = useState(0);
+  const [applyingPromo, setApplyingPromo] = useState(false);
 
   const innerClass = isDrawer
     ? 'rounded-2xl border border-white/20 bg-black/40 p-5 shadow-sm backdrop-blur-md sm:p-5'
@@ -365,6 +377,68 @@ export function OrderSummary({ cart, currency, t, appearance = 'page' }: OrderSu
     ? 'flex justify-between text-base font-semibold text-white'
     : 'flex justify-between text-base font-semibold text-gray-900';
 
+  const promoLabelClass = isDrawer
+    ? 'mb-2 block text-sm font-semibold text-white'
+    : 'mb-2 block text-sm font-semibold text-[#1F2E1F]';
+  const promoInputClass = isDrawer
+    ? 'h-10 flex-1 rounded-lg border border-white/30 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-[#F66812]'
+    : 'h-10 flex-1 rounded-lg border border-[#F66812]/25 px-3 py-2 text-sm text-gray-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#F66812]';
+
+  async function validateAndApplyPromoCode(rawCode: string, silent = false) {
+    const trimmedCode = rawCode.trim();
+    if (!COUPON_CODE_REGEX.test(trimmedCode)) {
+      setAppliedPromoCode('');
+      setPromoDiscountAmount(0);
+      localStorage.removeItem(CHECKOUT_COUPON_CODE_STORAGE_KEY);
+      if (!silent) {
+        setPromoFeedback(t('common.cart.promoInvalid'));
+      }
+      return;
+    }
+
+    try {
+      setApplyingPromo(true);
+      const responseData = await requestCheckoutCouponValidation(trimmedCode, cart.totals.subtotal);
+
+      setAppliedPromoCode(responseData.code);
+      setPromoDiscountAmount(responseData.discountAmount);
+      setPromoCodeInput(responseData.code);
+      localStorage.setItem(CHECKOUT_COUPON_CODE_STORAGE_KEY, responseData.code);
+      if (!silent) {
+        setPromoFeedback(t('common.cart.promoApplied').replace('{code}', responseData.code));
+      }
+    } catch (error: unknown) {
+      setAppliedPromoCode('');
+      setPromoDiscountAmount(0);
+      localStorage.removeItem(CHECKOUT_COUPON_CODE_STORAGE_KEY);
+      if (!silent) {
+        const errorMessage = error instanceof Error ? error.message : '';
+        setPromoFeedback(errorMessage || t('common.cart.promoInvalid'));
+      }
+    } finally {
+      setApplyingPromo(false);
+    }
+  }
+
+  useEffect(() => {
+    const storedCode = localStorage.getItem(CHECKOUT_COUPON_CODE_STORAGE_KEY);
+    if (!storedCode) {
+      return;
+    }
+    const trimmedStored = storedCode.trim();
+    if (!trimmedStored) {
+      return;
+    }
+    setPromoCodeInput(trimmedStored);
+    void validateAndApplyPromoCode(trimmedStored, true);
+  }, [cart.totals.subtotal]);
+
+  const handleApplyPromoCode = () => {
+    void validateAndApplyPromoCode(promoCodeInput);
+  };
+
+  const displayTotal = Math.max(0, cart.totals.total - promoDiscountAmount);
+
   return (
     <div className={isDrawer ? '' : 'lg:sticky lg:top-24 lg:col-span-1'}>
       <div className={innerClass}>
@@ -378,10 +452,68 @@ export function OrderSummary({ cart, currency, t, appearance = 'page' }: OrderSu
             <span>{t('common.cart.shipping')}</span>
             <span className={calcClass}>{t('common.cart.calculated')}</span>
           </div>
+          <div className={isDrawer ? 'border-t border-white/25 pt-3' : 'border-t border-[#F66812]/15 pt-4'}>
+            <label htmlFor="cart-promocode" className={promoLabelClass}>
+              {t('common.cart.promocode')}
+            </label>
+            <div className="flex gap-2">
+              <input
+                id="cart-promocode"
+                type="text"
+                value={promoCodeInput}
+                onChange={(event) => setPromoCodeInput(event.target.value)}
+                placeholder={t('common.cart.promocodePlaceholder')}
+                className={promoInputClass}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="md"
+                className={
+                  isDrawer
+                    ? 'border-white/40 text-white hover:border-white hover:bg-white/10'
+                    : 'border-[#F66812]/40 text-[#F66812] hover:border-[#F66812] hover:bg-[#F66812]/10'
+                }
+                onClick={handleApplyPromoCode}
+                disabled={applyingPromo}
+              >
+                {applyingPromo ? t('common.cart.applyingPromo') : t('common.cart.applyPromo')}
+              </Button>
+            </div>
+            {promoFeedback ? (
+              <p
+                className={`mt-2 text-xs ${
+                  appliedPromoCode && promoFeedback.includes(appliedPromoCode)
+                    ? isDrawer
+                      ? 'text-green-300'
+                      : 'text-green-600'
+                    : isDrawer
+                      ? 'text-red-300'
+                      : 'text-red-600'
+                }`}
+              >
+                {promoFeedback}
+              </p>
+            ) : null}
+          </div>
+          {promoDiscountAmount > 0 ? (
+            <div className={`flex justify-between gap-3 ${labelClass}`}>
+              <span>{t('common.cart.discount')}</span>
+              <span
+                className={
+                  isDrawer
+                    ? 'font-medium text-green-300 tabular-nums'
+                    : 'font-semibold text-green-600 tabular-nums'
+                }
+              >
+                -{formatPrice(promoDiscountAmount, currencyCode)}
+              </span>
+            </div>
+          ) : null}
           <div className={totalBorder}>
             <div className={totalRowClass}>
               <span>{t('common.cart.total')}</span>
-              <span className="tabular-nums">{formatPrice(cart.totals.total, currencyCode)}</span>
+              <span className="tabular-nums">{formatPrice(displayTotal, currencyCode)}</span>
             </div>
           </div>
         </div>
@@ -395,6 +527,18 @@ export function OrderSummary({ cart, currency, t, appearance = 'page' }: OrderSu
         >
           {t('common.buttons.proceedToCheckout')}
         </Button>
+        {!isDrawer ? (
+          <Button
+            variant="outline"
+            className="mt-3 w-full border-[#F66812]/40 text-[#F66812] hover:border-[#F66812] hover:bg-[#F66812]/10"
+            size="md"
+            onClick={() => {
+              window.location.href = '/shop';
+            }}
+          >
+            {t('common.buttons.browseProducts')}
+          </Button>
+        ) : null}
       </div>
     </div>
   );
