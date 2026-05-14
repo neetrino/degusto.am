@@ -56,6 +56,13 @@
     "shipping": "Shipping",
     "calculated": "Calculated",
     "tax": "Tax",
+    "promocode": "Promocode",
+    "promocodePlaceholder": "Enter promocode",
+    "applyPromo": "Apply",
+    "applyingPromo": "Applying...",
+    "promoApplied": "Promocode applied: {code}",
+    "promoInvalid": "Promocode format is invalid",
+    "discount": "Discount",
     "total": "Total",
     "free": "Free",
     "items": "items",
@@ -178,7 +185,8 @@
     "previousThumbnail": "Previous thumbnail",
     "nextThumbnail": "Next thumbnail",
     "fullscreenImage": "Fullscreen image",
-    "shoppingCart": "Shopping cart"
+    "shoppingCart": "Shopping cart",
+    "paginationNav": "Pagination"
   },
   "placeholders": {
     "search": "Search"

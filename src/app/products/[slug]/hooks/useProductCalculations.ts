@@ -7,6 +7,7 @@ interface UseProductCalculationsProps {
   attributeGroups: Map<string, AttributeGroupValue[]>;
   selectedColor: string | null;
   selectedSize: string | null;
+  selectedAttributeValues: Map<string, string>;
 }
 
 export function useProductCalculations({
@@ -15,10 +16,39 @@ export function useProductCalculations({
   attributeGroups,
   selectedColor,
   selectedSize,
+  selectedAttributeValues,
 }: UseProductCalculationsProps) {
-  const price = currentVariant?.price || 0;
-  const originalPrice = currentVariant?.originalPrice;
-  const compareAtPrice = currentVariant?.compareAtPrice;
+  const attributePriceAdjustment = useMemo(() => {
+    let sum = 0;
+    for (const [attrKey, raw] of selectedAttributeValues.entries()) {
+      if (attrKey === 'color' || attrKey === 'size') {
+        continue;
+      }
+      const group = attributeGroups.get(attrKey);
+      if (!group) {
+        continue;
+      }
+      const normalized = raw.toLowerCase().trim();
+      const entry = group.find(
+        (g) =>
+          (g.valueId !== undefined && g.valueId !== '' && g.valueId === raw) ||
+          g.value?.toLowerCase().trim() === normalized ||
+          g.label?.toLowerCase().trim() === normalized
+      );
+      sum += entry?.priceAdjustment ?? 0;
+    }
+    return sum;
+  }, [attributeGroups, selectedAttributeValues]);
+
+  const basePrice = currentVariant?.price || 0;
+  const price = basePrice + attributePriceAdjustment;
+  const originalPrice = currentVariant?.originalPrice != null
+    ? currentVariant.originalPrice + attributePriceAdjustment
+    : null;
+  const compareAtPrice =
+    currentVariant?.compareAtPrice != null
+      ? currentVariant.compareAtPrice + attributePriceAdjustment
+      : undefined;
   const discountPercent = currentVariant?.productDiscount || product?.productDiscount || null;
   const isOutOfStock = !currentVariant || currentVariant.stock <= 0;
 

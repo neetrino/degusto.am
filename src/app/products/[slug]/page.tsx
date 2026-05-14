@@ -19,7 +19,32 @@ import {
   buildCustomizationLineKey,
   normalizeProductCustomizations,
 } from '../../../lib/cart/customizations';
-import type { ProductPageProps } from './types';
+import type { ProductPageProps, Product } from './types';
+
+function collectSelectedAttributeValueIdsForCart(
+  product: Product,
+  selected: Map<string, string>
+): string[] {
+  const ids: string[] = [];
+  const attrs = product.productAttributes;
+  if (!attrs) {
+    return ids;
+  }
+  for (const [key, raw] of selected.entries()) {
+    if (key === 'color' || key === 'size') {
+      continue;
+    }
+    const pa = attrs.find((p) => p.attribute.key === key);
+    if (!pa) {
+      continue;
+    }
+    const match = pa.attribute.values.find((v) => v.id === raw || v.value === raw || v.label === raw);
+    if (match?.id) {
+      ids.push(match.id);
+    }
+  }
+  return ids;
+}
 
 /** White behind header on PDP so the UniversalHeader spacer matches the chrome, not orange. */
 const PDP_BODY_BACKGROUND = '#ffffff';
@@ -48,8 +73,6 @@ export default function ProductPage({ params }: ProductPageProps) {
     exclusions,
     setAdditions,
     setExclusions,
-    isInWishlist,
-    isInCompare,
     quantity,
     reviews,
     averageRating,
@@ -74,8 +97,6 @@ export default function ProductPage({ params }: ProductPageProps) {
     handleColorSelect,
     handleSizeSelect,
     handleAttributeValueSelect,
-    handleAddToWishlist,
-    handleCompareToggle,
     getRequiredAttributesMessage,
   } = useProductPage(params);
 
@@ -89,7 +110,12 @@ export default function ProductPage({ params }: ProductPageProps) {
 
   const handleAddToCart = async () => {
     if (!canAddToCart || !product || !currentVariant) return;
-    const customizations = normalizeProductCustomizations({ additions, exclusions });
+    const selectedIds = collectSelectedAttributeValueIdsForCart(product, selectedAttributeValues);
+    const customizations = normalizeProductCustomizations({
+      additions,
+      exclusions,
+      ...(selectedIds.length > 0 ? { selectedAttributeValueIds: selectedIds } : {}),
+    });
     const flyOrigin = document.querySelector('[data-product-fly-origin]');
     const imageUrl = images[currentImageIndex] ?? images[0] ?? null;
     playCartFlyAnimation({
@@ -206,18 +232,6 @@ export default function ProductPage({ params }: ProductPageProps) {
       >
         <ProjectGreenStripes extendFirstStrokeUp />
         <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
-          <nav className="mb-6 flex flex-wrap items-center gap-2 text-sm text-white">
-            <Link href="/shop" className="text-white/90 transition-colors hover:text-white">
-              {t(language, 'common.navigation.products')}
-            </Link>
-            <span aria-hidden className="text-white/70">
-              /
-            </span>
-            <span className="line-clamp-1 font-medium text-white">
-              {product.title}
-            </span>
-          </nav>
-
           <section className="rounded-3xl border border-neutral-200 bg-white p-4 sm:p-6 lg:p-8 shadow-[0_8px_28px_rgba(0,0,0,0.06)]">
             <div className="grid grid-cols-1 lg:grid-cols-[55%_45%] gap-10 lg:gap-12 items-start">
             <ProductImageGallery
@@ -250,9 +264,6 @@ export default function ProductPage({ params }: ProductPageProps) {
               unavailableAttributes={unavailableAttributes}
               canAddToCart={canAddToCart}
               isAddingToCart={isAddingToCart}
-              isInWishlist={isInWishlist}
-              isInCompare={isInCompare}
-              isLoggedIn={isLoggedIn}
               currentVariant={currentVariant}
               attributeGroups={attributeGroups}
               selectedColor={selectedColor}
@@ -262,8 +273,6 @@ export default function ProductPage({ params }: ProductPageProps) {
               sizeGroups={sizeGroups}
               onQuantityAdjust={adjustQuantity}
               onAddToCart={handleAddToCart}
-              onAddToWishlist={handleAddToWishlist}
-              onCompareToggle={handleCompareToggle}
               onScrollToReviews={scrollToReviews}
               onColorSelect={handleColorSelect}
               onSizeSelect={handleSizeSelect}

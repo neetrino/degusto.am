@@ -11,6 +11,8 @@ import { useTranslation } from '../../lib/i18n-client';
 import { useCurrency } from '../hooks/useCurrency';
 import { formatPrice } from '../../lib/currency';
 import { useAddToCart } from '../hooks/useAddToCart';
+import { getHomeCategoryHref } from './homeCategoryLinks';
+import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
 import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
 
 const assets = {
@@ -39,10 +41,13 @@ export type HomeFeaturedProduct = {
   discountPercent: number | null;
   inStock?: boolean;
   defaultVariantId?: string | null;
+  supportsSpicy?: boolean;
+  supportsGreens?: boolean;
 };
 
 export type HomeCategoryItem = {
   id: string;
+  slug: string;
   title: string;
   count: number;
   image: string;
@@ -58,15 +63,20 @@ const fallbackFeaturedProducts: HomeFeaturedProduct[] = [
     oldPrice: 1500,
     image: assets.product,
     discountPercent: 30,
+    supportsSpicy: true,
+    supportsGreens: true,
   },
 ];
 
 const fallbackCategories: HomeCategoryItem[] = [
-  { id: 'cat-fallback-1', title: 'Ապուրներ եւ տաք ուտեստներ', count: 78, image: assets.categorySoup },
-  { id: 'cat-fallback-2', title: 'Աղցաններ', count: 41, image: assets.categorySalad },
-  { id: 'cat-fallback-3', title: 'Շաուրմա', count: 18, image: assets.categoryShawarma },
-  { id: 'cat-fallback-4', title: 'Պիցցա', count: 44, image: assets.categoryPizza },
+  { id: 'cat-fallback-1', slug: 'soups', title: 'Ապուրներ եւ տաք ուտեստներ', count: 78, image: assets.categorySoup },
+  { id: 'cat-fallback-2', slug: 'salads', title: 'Աղցաններ', count: 41, image: assets.categorySalad },
+  { id: 'cat-fallback-3', slug: 'shawarma', title: 'Շաուրմա', count: 18, image: assets.categoryShawarma },
+  { id: 'cat-fallback-4', slug: 'pizza', title: 'Պիցցա', count: 44, image: assets.categoryPizza },
 ];
+
+/** Desktop home categories block surface; footer outer wrapper uses the same for a continuous edge. */
+const HOME_DESKTOP_CATEGORY_SURFACE_CLASS = 'bg-[#e6e6e8]';
 
 function NewsCard({ item }: { item: HomeFeaturedProduct }) {
   const { t } = useTranslation();
@@ -124,12 +134,13 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
       <div data-product-fly-origin className="absolute left-1/2 top-1 h-[147px] w-[227px] -translate-x-1/2">
         <img src={imageSrc} alt={title} className="h-full w-full rounded-[18px] object-cover" />
       </div>
-      <div className="absolute left-4 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-[#ff2b2e] p-1">
-        <img src={assets.productCardHot} alt="" className="h-[19px] w-[19px] -rotate-[13deg] object-contain" />
-      </div>
-      <div className="absolute left-4 top-[58px] flex h-8 w-8 items-center justify-center overflow-hidden rounded-full">
-        <img src={assets.productCardRibbon} alt="" className="h-8 w-8 scale-110 object-cover" />
-      </div>
+      <HomeProductFoodAttributeBadges
+        variant="desktop-card"
+        supportsSpicy={item.supportsSpicy ?? false}
+        supportsGreens={item.supportsGreens ?? false}
+        hotIconSrc={assets.productCardHot}
+        greensIconSrc={assets.productCardRibbon}
+      />
       <div className="absolute left-[14px] top-[170px] flex items-center gap-[6px]">
         <img src={assets.productCardStar} alt="" className="h-5 w-5 object-contain" />
         <p className="text-base font-medium leading-[1.35] text-[rgba(60,47,47,0.62)]">4.7</p>
@@ -169,11 +180,15 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
 
 function CategoryCard({ item }: { item: HomeCategoryItem }) {
   return (
-    <article className="rounded-[22px] bg-[#0c0d12] p-4">
+    <Link
+      href={getHomeCategoryHref(item)}
+      className="block rounded-[22px] bg-[#0c0d12] p-4 transition-transform hover:-translate-y-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#f66913]"
+      aria-label={item.title}
+    >
       <h3 className="min-h-[56px] text-2xl font-black leading-tight text-white">{item.title}</h3>
       <p className="mb-2 mt-1 text-sm text-white/80">({item.count} ապրանք)</p>
       <img src={item.image} alt={item.title} className="mx-auto h-[190px] w-full max-w-[240px] object-contain" />
-    </article>
+    </Link>
   );
 }
 
@@ -210,7 +225,7 @@ export function FigmaHomePage({
   return (
     <>
       <div className="lg:hidden">
-        <FigmaHomePageMobile />
+        <FigmaHomePageMobile categories={homeCategories} />
       </div>
       <div className="hidden min-h-screen overflow-x-hidden bg-[var(--project-color)] lg:block">
       <section className="relative w-full overflow-hidden bg-[var(--project-color)] pb-56 pt-8 lg:h-[930px] lg:pb-0 lg:[aspect-ratio:231/130]">
@@ -237,14 +252,13 @@ export function FigmaHomePage({
             <div className="absolute inset-0 rounded-[20px] bg-white shadow-xl" />
             <div className="absolute left-1/2 top-[5px] h-[147px] w-[227px] -translate-x-1/2">
               <img src={heroProduct?.image || assets.productCardImage} alt={t('home.figma.mobile.dailyOfferImageAlt')} className="h-full w-full rounded-[18px] object-cover" />
-              <div className="absolute left-[11px] top-[8px] flex flex-col gap-[6px]">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ff2b2e]">
-                  <img src={assets.productCardHot} alt="" className="h-[19px] w-[19px] -rotate-[13deg] object-contain" />
-                </div>
-                <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full">
-                  <img src={assets.productCardRibbon} alt="" className="h-8 w-8 scale-110 object-cover" />
-                </div>
-              </div>
+              <HomeProductFoodAttributeBadges
+                variant="desktop-hero"
+                supportsSpicy={heroProduct?.supportsSpicy ?? false}
+                supportsGreens={heroProduct?.supportsGreens ?? false}
+                hotIconSrc={assets.productCardHot}
+                greensIconSrc={assets.productCardRibbon}
+              />
             </div>
             <div className="absolute left-[14px] top-[172px] flex items-center gap-1.5">
               <img src={assets.productCardStar} alt="" className="h-5 w-5 object-contain" />
@@ -312,7 +326,7 @@ export function FigmaHomePage({
       </section>
 
       <div className="bg-black">
-        <section className="rounded-t-[40px] bg-[#e6e6e8] px-4 pb-20 pt-10 md:px-8 lg:px-12">
+        <section className={`rounded-t-[40px] px-4 pb-20 pt-10 md:px-8 lg:px-12 ${HOME_DESKTOP_CATEGORY_SURFACE_CLASS}`}>
           <div className="mx-auto max-w-[1280px]">
             <h2
               className={`mb-8 text-5xl font-black text-black md:text-6xl${
@@ -329,7 +343,7 @@ export function FigmaHomePage({
           </div>
         </section>
       </div>
-      <Footer />
+      <Footer outerBackgroundClassName={HOME_DESKTOP_CATEGORY_SURFACE_CLASS} />
       </div>
     </>
   );

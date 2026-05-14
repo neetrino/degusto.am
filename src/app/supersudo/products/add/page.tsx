@@ -33,6 +33,7 @@ function AddProductPageContent() {
     isLoggedIn,
     isAdmin,
     isLoading,
+    setReferenceCatalogReady: formState.setReferenceCatalogReady,
     setBrands: formState.setBrands,
     setCategories: formState.setCategories,
     setAttributes: formState.setAttributes,
@@ -50,6 +51,7 @@ function AddProductPageContent() {
     productId,
     isLoggedIn,
     isAdmin,
+    referenceCatalogReady: formState.referenceCatalogReady,
     attributes: formState.attributes,
     defaultCurrency: formState.defaultCurrency,
     setLoadingProduct: formState.setLoadingProduct,
@@ -61,6 +63,10 @@ function AddProductPageContent() {
     setHasVariantsToLoad: formState.setHasVariantsToLoad,
     setProductType: formState.setProductType,
     setSimpleProductData: formState.setSimpleProductData,
+    setGeneratedVariants: formState.setGeneratedVariants,
+    setSelectedAttributesForVariants: formState.setSelectedAttributesForVariants,
+    setSelectedAttributeValueIds: formState.setSelectedAttributeValueIds,
+    setOpenValueModal: formState.setOpenValueModal,
   });
 
   useProductVariantConversion({
@@ -82,6 +88,7 @@ function AddProductPageContent() {
     formDataTitle: formState.formData.title,
     isEditMode,
     productId,
+    hasVariantsToLoad: formState.hasVariantsToLoad,
     setGeneratedVariants: formState.setGeneratedVariants,
   });
 
@@ -168,7 +175,7 @@ function AddProductPageContent() {
     isClothingCategory,
   });
 
-  if (isLoading || formState.loadingProduct) {
+  if (isLoading || formState.loadingProduct || (isEditMode && !formState.referenceCatalogReady)) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center py-12">
         <div className="text-center">

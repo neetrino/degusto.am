@@ -56,6 +56,13 @@
     "shipping": "Առաքում",
     "calculated": "Հաշվարկվում է",
     "tax": "Հարկ",
+    "promocode": "Պրոմոկոդ",
+    "promocodePlaceholder": "Մուտքագրեք պրոմոկոդը",
+    "applyPromo": "Կիրառել",
+    "applyingPromo": "Կիրառվում է...",
+    "promoApplied": "Պրոմոկոդը կիրառվեց՝ {code}",
+    "promoInvalid": "Պրոմոկոդը սխալ ձևաչափ ունի",
+    "discount": "Զեղչ",
     "total": "Ընդամենը",
     "free": "Անվճար",
     "items": "ապրանք",
@@ -178,7 +185,8 @@
     "previousThumbnail": "Նախորդ մանրապատկեր",
     "nextThumbnail": "Հաջորդ մանրապատկեր",
     "fullscreenImage": "Լիաէկրան պատկեր",
-    "shoppingCart": "Գնումների զամբյուղ"
+    "shoppingCart": "Գնումների զամբյուղ",
+    "paginationNav": "Էջերի նավիգացիա"
   },
   "placeholders": {
     "search": "Որոնել"

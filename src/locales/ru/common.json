@@ -56,6 +56,13 @@
     "shipping": "Доставка",
     "calculated": "Рассчитывается",
     "tax": "Налог",
+    "promocode": "Промокод",
+    "promocodePlaceholder": "Введите промокод",
+    "applyPromo": "Применить",
+    "applyingPromo": "Применение...",
+    "promoApplied": "Промокод применен: {code}",
+    "promoInvalid": "Неверный формат промокода",
+    "discount": "Скидка",
     "total": "Итого",
     "free": "Бесплатно",
     "items": "товаров",
@@ -178,7 +185,8 @@
     "previousThumbnail": "Предыдущая миниатюра",
     "nextThumbnail": "Следующая миниатюра",
     "fullscreenImage": "Полноэкранное изображение",
-    "shoppingCart": "Корзина"
+    "shoppingCart": "Корзина",
+    "paginationNav": "Постраничная навигация"
   },
   "placeholders": {
     "search": "Поиск"

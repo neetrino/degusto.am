@@ -12,6 +12,7 @@ export interface CouponCatalogItem {
   startsAt: string | null;
   expiresAt: string | null;
   minOrderAmount: number | null;
+  maxUsesPerUser: number | null;
 }
 
 interface CouponMutationInput {
@@ -23,6 +24,7 @@ interface CouponMutationInput {
   startsAt?: string | null;
   expiresAt?: string | null;
   minOrderAmount?: number | null;
+  maxUsesPerUser?: number | null;
 }
 
 function toIsoOrNull(value: string | null | undefined): string | null {
@@ -127,6 +129,25 @@ function normalizeMutationInput(
   const description =
     typeof input.description === "string" ? input.description.trim() || null : null;
 
+  const maxUsesPerUser =
+    input.maxUsesPerUser === null || input.maxUsesPerUser === undefined
+      ? null
+      : Number(input.maxUsesPerUser);
+  if (
+    maxUsesPerUser !== null &&
+    (!Number.isFinite(maxUsesPerUser) ||
+      maxUsesPerUser < 1 ||
+      !Number.isInteger(maxUsesPerUser))
+  ) {
+    throw {
+      status: 400,
+      type: "https://api.shop.am/problems/validation-error",
+      title: "Validation Error",
+      detail:
+        "Field 'maxUsesPerUser' must be a positive integer when provided",
+    };
+  }
+
   return {
     code,
     description,
@@ -136,6 +157,7 @@ function normalizeMutationInput(
     startsAt,
     expiresAt,
     minOrderAmount,
+    maxUsesPerUser,
   };
 }
 
@@ -165,6 +187,12 @@ class AdminCouponsService {
           expiresAt: toIsoOrNull(typeof raw.expiresAt === "string" ? raw.expiresAt : undefined),
           minOrderAmount:
             typeof raw.minOrderAmount === "number" ? raw.minOrderAmount : null,
+          maxUsesPerUser:
+            typeof raw.maxUsesPerUser === "number" &&
+            Number.isInteger(raw.maxUsesPerUser) &&
+            raw.maxUsesPerUser > 0
+              ? raw.maxUsesPerUser
+              : null,
         };
       });
   }
@@ -233,6 +261,10 @@ class AdminCouponsService {
       expiresAt: data.expiresAt !== undefined ? data.expiresAt : current.expiresAt,
       minOrderAmount:
         data.minOrderAmount !== undefined ? data.minOrderAmount : current.minOrderAmount,
+      maxUsesPerUser:
+        data.maxUsesPerUser !== undefined
+          ? data.maxUsesPerUser
+          : current.maxUsesPerUser,
     };
     const updated = normalizeMutationInput(merged, { requireCode: true });
 

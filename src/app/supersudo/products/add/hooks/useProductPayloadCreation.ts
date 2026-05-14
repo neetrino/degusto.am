@@ -83,12 +83,14 @@ export async function createAndSubmitPayload({
         const baseMessage = 'Ապրանքը հաջողությամբ թարմացվեց!';
         const extra = creationMessages.length ? `\n\n${creationMessages.join('\n')}` : '';
         alert(`${baseMessage}${extra}`);
+        router.refresh();
       } else {
         const product = await apiClient.post('/api/v1/admin/products', payload);
         logger.debug('✅ [ADMIN] Product created:', product);
         const baseMessage = 'Ապրանքը հաջողությամբ ստեղծվեց!';
         const extra = creationMessages.length ? `\n\n${creationMessages.join('\n')}` : '';
         alert(`${baseMessage}${extra}`);
+        router.refresh();
       }
       
       router.push('/supersudo/products');

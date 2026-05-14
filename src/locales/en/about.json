@@ -1,39 +1,44 @@
 {
-  "subtitle": "ELEGANT DESIGN",
-  "title": "About our online store",
+  "subtitle": "DEGUSTO FOOD STUDIO",
+  "title": "About us",
+  "heroImageAlt": "Degusto Restaurant neon sign on a green living wall with pink blossoms",
+  "missionGoalImageAlt": "Degusto Food Studio dining room with warm wooden tables and brick interior",
   "description": {
-    "paragraph1": "We are delighted to welcome you to our online store. Our company strives to provide you with the best shopping experience with a wide range of quality products and excellent service.",
-    "paragraph2": "Our mission is to make online shopping simple, convenient and enjoyable. We carefully select each product to ensure high quality and customer satisfaction.",
-    "paragraph3": "We are proud to offer not only excellent products but also excellent customer service. Our team is always ready to help you find exactly what you are looking for."
+    "paragraph1": "Degusto is a public food service company.",
+    "paragraph2": "Degusto Food Studio provides services in the public food sector and was founded by Sarkis Gasparyan. Organizing public food is one of the most complex branches of the service industry and requires consistent, disciplined work.",
+    "paragraph3": "The company has been operating for about four years. It offers customers a wide selection of dishes and also provides delivery.",
+    "paragraph4": "It is a great choice for breakfast, a lunch break, or a warm evening meal with family or friends."
   },
   "trust": {
-    "subtitle": "TRUST FOUNDATION",
-    "title": "Why customers trust Degusto",
-    "description": "We combine quality products, fast delivery, and transparent communication so every order feels reliable and convenient.",
+    "subtitle": "BY THE NUMBERS",
+    "title": "Our highlights",
+    "description": "Over four years we have focused on quality, freshness, and care for every guest.",
     "items": {
-      "years": {
-        "value": "8+",
-        "label": "years of customer-focused experience"
-      },
       "customers": {
-        "value": "15k+",
-        "label": "satisfied customers"
+        "value": "1000+",
+        "label": "happy customers"
       },
-      "delivery": {
-        "value": "98%",
-        "label": "orders delivered on time"
+      "food": {
+        "value": "1000+",
+        "label": "delicious dishes"
+      },
+      "couriers": {
+        "value": "20+",
+        "label": "professional couriers"
+      },
+      "years": {
+        "value": "4",
+        "label": "years in business"
       }
     }
   },
-  "team": {
-    "subtitle": "ABOUT US",
-    "title": "Our team",
-    "description": "Our team consists of experienced professionals who are dedicated to their work and strive to provide the best service for our customers."
+  "mission": {
+    "title": "Our mission",
+    "description": "Our mission is to lighten people’s everyday kitchen worries, create a warm atmosphere, and serve quality food. We treat every customer with care. The company is built on three principles: cleanliness, freshness, and affordability."
+  },
+  "goal": {
+    "title": "Our goal",
+    "paragraph1": "One of our goals is to build a brand that is known across Armenia and accessible to every audience, age, and gender — with a strong, organized, unified team.",
+    "paragraph2": "We aim to maintain and continuously improve the high quality of our services and to offer a personal approach to every customer."
   }
 }
-
-
-
-
-
-

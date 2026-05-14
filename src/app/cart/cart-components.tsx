@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@shop/ui';
@@ -212,8 +213,117 @@ interface OrderSummaryProps {
   t: (key: string) => string;
 }
 
+const COUPON_CODE_STORAGE_KEY = 'checkout_coupon_code';
+
+interface CouponValidationResponse {
+  data: {
+    code: string;
+    discountAmount: number;
+    totalAfterDiscount?: number;
+  };
+}
+
+interface ProblemDetailsResponse {
+  detail?: string;
+}
+
+async function requestCouponValidation(
+  couponCode: string,
+  subtotal: number
+): Promise<CouponValidationResponse['data']> {
+  const response = await fetch('/api/v1/cart/coupon/validate', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      couponCode,
+      subtotal,
+    }),
+  });
+
+  const responseBody = (await response.json()) as
+    | CouponValidationResponse
+    | ProblemDetailsResponse;
+
+  if (!response.ok) {
+    const detail =
+      typeof (responseBody as ProblemDetailsResponse).detail === 'string'
+        ? (responseBody as ProblemDetailsResponse).detail
+        : 'Coupon is invalid';
+    throw new Error(detail);
+  }
+
+  return (responseBody as CouponValidationResponse).data;
+}
+
 export function OrderSummary({ cart, currency, t }: OrderSummaryProps) {
   const currencyCode = currency as CurrencyCode;
+  const [promoCodeInput, setPromoCodeInput] = useState('');
+  const [appliedPromoCode, setAppliedPromoCode] = useState('');
+  const [promoFeedback, setPromoFeedback] = useState('');
+  const [promoDiscountAmount, setPromoDiscountAmount] = useState(0);
+  const [applyingPromo, setApplyingPromo] = useState(false);
+
+  async function validateAndApplyPromoCode(rawCode: string, silent = false) {
+    const normalizedCode = rawCode.trim().toUpperCase();
+    if (!/^[A-Z0-9_-]{3,32}$/.test(normalizedCode)) {
+      setAppliedPromoCode('');
+      setPromoDiscountAmount(0);
+      localStorage.removeItem(COUPON_CODE_STORAGE_KEY);
+      if (!silent) {
+        setPromoFeedback(t('common.cart.promoInvalid'));
+      }
+      return;
+    }
+
+    try {
+      setApplyingPromo(true);
+      const responseData = await requestCouponValidation(
+        normalizedCode,
+        cart.totals.subtotal
+      );
+
+      setAppliedPromoCode(responseData.code);
+      setPromoDiscountAmount(responseData.discountAmount);
+      setPromoCodeInput(responseData.code);
+      localStorage.setItem(COUPON_CODE_STORAGE_KEY, responseData.code);
+      if (!silent) {
+        setPromoFeedback(
+          t('common.cart.promoApplied').replace('{code}', responseData.code)
+        );
+      }
+    } catch (error: unknown) {
+      setAppliedPromoCode('');
+      setPromoDiscountAmount(0);
+      localStorage.removeItem(COUPON_CODE_STORAGE_KEY);
+      if (!silent) {
+        const errorMessage = error instanceof Error ? error.message : '';
+        setPromoFeedback(errorMessage || t('common.cart.promoInvalid'));
+      }
+    } finally {
+      setApplyingPromo(false);
+    }
+  }
+
+  useEffect(() => {
+    const storedCode = localStorage.getItem(COUPON_CODE_STORAGE_KEY);
+    if (!storedCode) {
+      return;
+    }
+    const normalizedCode = storedCode.trim().toUpperCase();
+    if (!normalizedCode) {
+      return;
+    }
+    setPromoCodeInput(normalizedCode);
+    void validateAndApplyPromoCode(normalizedCode, true);
+  }, [cart.totals.subtotal]);
+
+  const handleApplyPromoCode = () => {
+    void validateAndApplyPromoCode(promoCodeInput);
+  };
+
+  const displayTotal = Math.max(0, cart.totals.total - promoDiscountAmount);
 
   return (
     <div className="lg:col-span-1">
@@ -235,9 +345,58 @@ export function OrderSummary({ cart, currency, t }: OrderSummaryProps) {
             <span className="font-semibold text-gray-900">{t('common.cart.calculated')}</span>
           </div>
           <div className="border-t border-[#F66812]/15 pt-4">
+            <label
+              htmlFor="cart-promocode"
+              className="mb-2 block text-sm font-semibold text-[#1F2E1F]"
+            >
+              {t('common.cart.promocode')}
+            </label>
+            <div className="flex gap-2">
+              <input
+                id="cart-promocode"
+                type="text"
+                value={promoCodeInput}
+                onChange={(event) => setPromoCodeInput(event.target.value)}
+                placeholder={t('common.cart.promocodePlaceholder')}
+                className="h-10 flex-1 rounded-lg border border-[#F66812]/25 px-3 py-2 text-sm text-gray-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#F66812]"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="md"
+                className="border-[#F66812]/40 text-[#F66812] hover:border-[#F66812] hover:bg-[#F66812]/10"
+                onClick={handleApplyPromoCode}
+                disabled={applyingPromo}
+              >
+                {applyingPromo
+                  ? t('common.cart.applyingPromo')
+                  : t('common.cart.applyPromo')}
+              </Button>
+            </div>
+            {promoFeedback ? (
+              <p
+                className={`mt-2 text-xs ${
+                  appliedPromoCode && promoFeedback.includes(appliedPromoCode)
+                    ? 'text-green-600'
+                    : 'text-red-600'
+                }`}
+              >
+                {promoFeedback}
+              </p>
+            ) : null}
+          </div>
+          {promoDiscountAmount > 0 ? (
+            <div className="flex justify-between text-gray-600">
+              <span>{t('common.cart.discount')}</span>
+              <span className="font-semibold text-green-600">
+                -{formatPrice(promoDiscountAmount, currencyCode)}
+              </span>
+            </div>
+          ) : null}
+          <div className="border-t border-[#F66812]/15 pt-4">
             <div className="flex justify-between text-xl font-bold text-[#1F2E1F]">
               <span>{t('common.cart.total')}</span>
-              <span>{formatPrice(cart.totals.total, currencyCode)}</span>
+              <span>{formatPrice(displayTotal, currencyCode)}</span>
             </div>
           </div>
         </div>

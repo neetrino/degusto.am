@@ -3,7 +3,7 @@
 import { processImageUrl } from '../../../lib/utils/image-utils';
 import { t, getAttributeLabel } from '../../../lib/i18n';
 import type { LanguageCode } from '../../../lib/language';
-import type { Product, ProductVariant } from './types';
+import type { Product, ProductVariant, AttributeGroupValue } from './types';
 import { getOptionValue as getVariantOptionValue } from './utils/variant-helpers';
 import { PDP_CARD_PREFERENCE_ORDER, PDP_PREFERENCE_ATTR_ORDER } from './constants/pdp-preference-attr-order';
 import {
@@ -12,16 +12,6 @@ import {
 } from './constants/pdp-checkbox-preference-keys';
 import { resolvePreferenceBinaryToggle } from './utils/pdp-preference-binary-toggle';
 import { logger } from '@/lib/utils/logger';
-
-interface AttributeGroupValue {
-  valueId?: string;
-  value: string;
-  label: string;
-  stock: number;
-  variants: ProductVariant[];
-  imageUrl?: string | null;
-  colors?: string[] | null;
-}
 
 interface ProductAttributesSelectorProps {
   product: Product;
@@ -142,10 +132,20 @@ export function ProductAttributesSelector({
   colorGroups,
   sizeGroups,
   language,
+  quantity,
+  maxQuantity,
+  isOutOfStock,
+  isVariationRequired,
+  hasUnavailableAttributes,
+  canAddToCart,
+  isAddingToCart,
   onColorSelect,
   onSizeSelect,
   onAttributeValueSelect,
+  onQuantityAdjust,
+  onAddToCart,
   getOptionValue,
+  getRequiredAttributesMessage,
 }: ProductAttributesSelectorProps) {
   const attributeGroupsEntries = sortPreferenceAttributeEntries(
     Array.from(attributeGroups.entries()),

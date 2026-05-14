@@ -25,8 +25,20 @@ export function useProductVariantConversion({
   setHasVariantsToLoad,
 }: UseProductVariantConversionProps) {
   useEffect(() => {
-    if (productId && attributes.length > 0 && (window as any).__productVariantsToConvert) {
-      const productVariants = (window as any).__productVariantsToConvert;
+    const win = window as unknown as {
+      __productVariantsToConvert?: unknown;
+      __productVariantsMeta?: { productId: string };
+    };
+    const meta = win.__productVariantsMeta;
+    const rawVariants = win.__productVariantsToConvert;
+
+    if (
+      productId &&
+      attributes.length > 0 &&
+      Array.isArray(rawVariants) &&
+      meta?.productId === productId
+    ) {
+      const productVariants = rawVariants as any[];
       logger.debug('🔄 [ADMIN] Converting product variants to generatedVariants format:', {
         variantsCount: productVariants.length,
         attributesCount: attributes.length,
@@ -293,17 +305,29 @@ export function useProductVariantConversion({
             sku: v.sku,
           })),
         });
-        delete (window as any).__productVariantsToConvert;
+        delete win.__productVariantsToConvert;
+        delete win.__productVariantsMeta;
         setHasVariantsToLoad(false);
       } else {
         console.warn('⚠️ [ADMIN] No variants converted. Check variant options structure:', {
           variantsCount: productVariants.length,
           firstVariantOptions: productVariants[0]?.options,
         });
+        delete win.__productVariantsToConvert;
+        delete win.__productVariantsMeta;
         setHasVariantsToLoad(false);
       }
     } else if (productId && attributes.length > 0) {
-      logger.debug('ℹ️ [ADMIN] Waiting for variants to convert. Attributes loaded:', attributes.length);
+      if (rawVariants != null && !Array.isArray(rawVariants)) {
+        logger.warn('[ADMIN] Invalid __productVariantsToConvert (expected array); clearing.', {
+          typeofPayload: typeof rawVariants,
+        });
+        delete win.__productVariantsToConvert;
+        delete win.__productVariantsMeta;
+        setHasVariantsToLoad(false);
+      } else {
+        logger.debug('ℹ️ [ADMIN] Waiting for variants to convert. Attributes loaded:', attributes.length);
+      }
     }
   }, [productId, attributes, defaultCurrency, setSelectedAttributesForVariants, setSelectedAttributeValueIds, setGeneratedVariants, setHasVariantsToLoad]);
 }
