@@ -11,7 +11,6 @@ import {
 import {
   getStoredLanguage,
   HYDRATION_SAFE_LANGUAGE,
-  LANGUAGES,
   setStoredLanguage,
   type LanguageCode,
 } from '../lib/language';
@@ -19,6 +18,9 @@ import { useTranslation } from '../lib/i18n-client';
 
 const LANGUAGE_CODES: LanguageCode[] = ['en', 'hy', 'ru'];
 const CURRENCY_CODES: CurrencyCode[] = ['AMD', 'USD', 'EUR', 'RUB', 'GEL'];
+
+const SWITCHER_DROPDOWN_OPTION_BUTTON_CLASS =
+  'inline-flex w-full min-h-[2rem] flex-row flex-nowrap items-center justify-center gap-0.5 whitespace-nowrap rounded-lg px-2 py-1 text-sm font-semibold transition-colors';
 
 type SwitcherVariant = 'desktop' | 'mobile';
 
@@ -33,7 +35,7 @@ export function LanguageCurrencySwitcher({
   iconSrc,
   arrowSrc,
 }: LanguageCurrencySwitcherProps) {
-  const { t, lang } = useTranslation();
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [language, setLanguage] = useState<LanguageCode>(HYDRATION_SAFE_LANGUAGE);
   const [currency, setCurrency] = useState<CurrencyCode>(HYDRATION_SAFE_CURRENCY);
@@ -95,32 +97,16 @@ export function LanguageCurrencySwitcher({
     variant === 'desktop'
       ? 'absolute right-[18px] h-3 w-2 shrink-0 rotate-90 object-contain'
       : 'absolute right-[20px] h-[10px] w-[4px] rotate-90 object-contain';
-  const currencyLabelByLanguage: Record<LanguageCode, Record<CurrencyCode, string>> = {
-    en: {
-      AMD: 'Armenian Dram',
-      USD: 'US Dollar',
-      EUR: 'Euro',
-      RUB: 'Russian Ruble',
-      GEL: 'Georgian Lari',
-    },
-    hy: {
-      AMD: 'Հայկական դրամ',
-      USD: 'ԱՄՆ դոլար',
-      EUR: 'Եվրո',
-      RUB: 'Ռուսական ռուբլի',
-      GEL: 'Վրացական լարի',
-    },
-    ru: {
-      AMD: 'Армянский драм',
-      USD: 'Доллар США',
-      EUR: 'Евро',
-      RUB: 'Российский рубль',
-      GEL: 'Грузинский лари',
-    },
-  };
+
+  const rootClassName = variant === 'mobile' ? 'relative z-[200]' : 'relative';
+
+  const dropdownPositionClassName =
+    variant === 'mobile'
+      ? 'absolute right-0 top-full z-[100] mt-2 max-h-[min(420px,calc(100vh-120px))] w-[216px] overflow-y-auto rounded-2xl border border-[#ececec] bg-white p-2 shadow-2xl'
+      : 'absolute right-0 top-full z-50 mt-2 w-[216px] rounded-2xl border border-[#ececec] bg-white p-2 shadow-xl';
 
   return (
-    <div className="relative" ref={switcherRef}>
+    <div className={rootClassName} ref={switcherRef}>
       <button
         type="button"
         onClick={() => {
@@ -140,7 +126,7 @@ export function LanguageCurrencySwitcher({
       </button>
 
       {isOpen ? (
-        <div className="absolute right-0 top-full z-50 mt-2 w-[216px] rounded-2xl border border-[#ececec] bg-white p-2 shadow-xl">
+        <div className={dropdownPositionClassName}>
           <div className="px-2 pb-1">
             <p className={dropdownLabelClassName}>{t('common.switcher.language')}</p>
             <div className="mt-1 grid grid-cols-3 gap-1">
@@ -157,7 +143,7 @@ export function LanguageCurrencySwitcher({
                       }
                       setIsOpen(false);
                     }}
-                    className={`rounded-lg px-2 py-1 text-sm font-semibold transition-colors ${
+                    className={`${SWITCHER_DROPDOWN_OPTION_BUTTON_CLASS} ${
                       isSelected
                         ? 'bg-[#ff7f20] text-white'
                         : 'bg-[#f4f4f5] text-[#2f2f2f] hover:bg-[#e9e9eb]'
@@ -186,7 +172,7 @@ export function LanguageCurrencySwitcher({
                       }
                       setIsOpen(false);
                     }}
-                    className={`rounded-lg px-2 py-1 text-xs font-semibold transition-colors ${
+                    className={`${SWITCHER_DROPDOWN_OPTION_BUTTON_CLASS} ${
                       isSelected
                         ? 'bg-[#ff7f20] text-white'
                         : 'bg-[#f4f4f5] text-[#2f2f2f] hover:bg-[#e9e9eb]'
@@ -197,9 +183,6 @@ export function LanguageCurrencySwitcher({
                 );
               })}
             </div>
-            <p className="mt-2 px-1 text-[11px] leading-4 text-[#6b7280]">
-              {currencyLabelByLanguage[lang][currency]}
-            </p>
           </div>
         </div>
       ) : null}

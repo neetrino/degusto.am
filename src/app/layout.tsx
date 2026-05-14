@@ -4,6 +4,8 @@ import './globals.css';
 import { ClientProviders } from '../components/ClientProviders';
 import { ConditionalHeader } from '../components/ConditionalHeader';
 import { ConditionalFooter } from '../components/ConditionalFooter';
+import { ConditionalMobileBottomNav } from '../components/ConditionalMobileBottomNav';
+import { LayoutShell } from '../components/LayoutShell';
 import { cookies } from 'next/headers';
 import { resolveStorefrontLocaleFromCookie } from '@/lib/i18n/locale';
 import { getSiteMetadataCopy } from '@/lib/i18n/metadata';
@@ -35,13 +37,14 @@ export default function RootLayout({
       >
         <Suspense fallback={null}>
           <ClientProviders>
-            <div className="flex min-h-screen flex-col pb-16 lg:pb-0">
+            <LayoutShell>
               <ConditionalHeader />
               <main className="flex-1 w-full">
                 {children}
               </main>
               <ConditionalFooter />
-            </div>
+              <ConditionalMobileBottomNav />
+            </LayoutShell>
           </ClientProviders>
         </Suspense>
       </body>

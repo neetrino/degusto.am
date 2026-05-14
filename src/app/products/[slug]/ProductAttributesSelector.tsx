@@ -353,7 +353,7 @@ export function ProductAttributesSelector({
                               e.target.checked ? toggle.onVal : toggle.offVal,
                             );
                           }}
-                          className="h-4 w-4 shrink-0 rounded border-neutral-300 text-orange-500 focus:ring-2 focus:ring-orange-500 focus:ring-offset-0"
+                          className="pdp-preference-checkbox"
                         />
                         <span>{getAttributeLabel(language, attrKey, toggle.onSlug)}</span>
                       </label>

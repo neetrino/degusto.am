@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { MobileBottomNavigation } from './MobileBottomNavigation';
 import { LanguageCurrencySwitcher } from '../LanguageCurrencySwitcher';
 import { useTranslation } from '../../lib/i18n-client';
 
@@ -24,13 +23,6 @@ const mobileShopAssets = {
   soup: '/api/r2/assets/20260512-AQ7ex5ejKk.png',
   shawarma: '/api/r2/assets/20260512-plUR8fm4WB.png',
   salad: '/api/r2/assets/20260512-mjMgqeHOCf.png',
-  bottomNavBackground: '/api/r2/navigation/20260512-d3glmDYnXw.svg',
-  bottomNavShop: '/api/r2/navigation/20260512-qSIccpktNL.svg',
-  bottomNavShopIcon: '/api/r2/navigation/20260512-BQZihnmfb2.svg',
-  bottomNavHome: '/api/r2/navigation/20260512-l6dbCo33w3.svg',
-  bottomNavCart: '/api/r2/navigation/20260512-W6yz-_u1_J.svg',
-  bottomNavFavorite: '/api/r2/navigation/20260512-Krr_aEiAGb.svg',
-  bottomNavProfile: '/api/r2/navigation/20260512-npk36RTIVm.svg',
 };
 
 const shopCategories: ShopCategoryCard[] = [
@@ -56,12 +48,12 @@ export function FigmaMobileShopPage() {
   };
 
   return (
-    <div className="relative mx-auto min-h-screen w-full max-w-[393px] overflow-hidden bg-[#f66a13]">
+    <div className="relative mx-auto min-h-screen w-full max-w-[393px] overflow-x-clip overflow-y-visible bg-[#f66a13]">
       <div className="absolute -left-[210px] -top-[123px] h-[434px] w-[418px] rounded-full border-[80px] border-[#3E573D]" />
       <div className="absolute -right-[160px] -top-[184px] h-[320px] w-[360px] rounded-full border-[70px] border-[#3E573D]" />
 
-      <header className="relative z-10 px-[11px] pt-[58px]">
-        <div className="flex translate-y-[20px] items-start justify-between">
+      <header className="relative z-50 px-[11px] pt-[58px]">
+        <div className="relative z-30 flex translate-y-[20px] items-start justify-between">
           <img src={mobileShopAssets.logo} alt="Degusto" className="h-[46px] w-[129px] object-contain" />
           <div className="flex items-center gap-1">
             <button type="button" className="relative inline-flex h-12 w-12 items-center justify-center">
@@ -75,7 +67,7 @@ export function FigmaMobileShopPage() {
             />
           </div>
         </div>
-        <div className="relative mt-[8px] h-12 translate-y-[20px] rounded-[30px] bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.05)]">
+        <div className="relative z-10 mt-[8px] h-12 translate-y-[20px] rounded-[30px] bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.05)]">
           <img src={mobileShopAssets.searchIcon} alt="" className="absolute left-[15px] top-1/2 h-[17px] w-[17px] -translate-y-1/2 object-contain" />
           <input
             type="text"
@@ -111,21 +103,6 @@ export function FigmaMobileShopPage() {
           ))}
         </div>
       </main>
-
-      <MobileBottomNavigation
-        assets={{
-          bottomNavBackground: mobileShopAssets.bottomNavBackground,
-          bottomNavShop: mobileShopAssets.bottomNavShop,
-          bottomNavShopIcon: mobileShopAssets.bottomNavShopIcon,
-          bottomNavHome: mobileShopAssets.bottomNavHome,
-          bottomNavCart: mobileShopAssets.bottomNavCart,
-          bottomNavFavorite: mobileShopAssets.bottomNavFavorite,
-          bottomNavProfile: mobileShopAssets.bottomNavProfile,
-        }}
-        onShopClick={() => {
-          router.push('/shop');
-        }}
-      />
     </div>
   );
 }

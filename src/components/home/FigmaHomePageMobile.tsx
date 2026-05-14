@@ -2,8 +2,6 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { MobileBottomNavigation } from './MobileBottomNavigation';
 import { LanguageCurrencySwitcher } from '../LanguageCurrencySwitcher';
 import { useTranslation } from '../../lib/i18n-client';
 import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
@@ -33,12 +31,6 @@ const mobileAssets = {
   productRibbon: '/api/r2/product/20260512-vCDQ1I3ZtJ.svg',
   productStar: '/api/r2/product/20260512-4fThctFUPS.svg',
   productAddToCart: '/api/r2/product/20260512-N6b8G5qARR.svg',
-  bottomNavBackground: '/api/r2/navigation/20260512-Dgnu58TYo3.svg',
-  bottomNavHome: '/api/r2/navigation/20260512-zomFTx64fK.svg',
-  bottomNavCart: '/api/r2/navigation/20260512-uAd4OmdwhO.svg',
-  bottomNavFavorite: '/api/r2/navigation/20260512-rq6TGa1j4e.svg',
-  bottomNavProfile: '/api/r2/navigation/20260512-0QvW2JXVIb.svg',
-  bottomNavShop: '/api/r2/navigation/20260512-NuBb07Yghg.svg',
 };
 
 type MobileCategory = {
@@ -60,18 +52,16 @@ type MobileProduct = {
   supportsGreens?: boolean;
 };
 
-function getMobilePriceSizeClass(formattedPrice: string): string {
+/** Responsive font size for product card corner prices (compact). */
+function getMobileProductCardPriceSizeClass(formattedPrice: string): string {
   const length = formattedPrice.length;
-
   if (length >= 14) {
-    return 'text-[13px]';
+    return 'text-[11px]';
   }
-
   if (length >= 11) {
-    return 'text-sm';
+    return 'text-xs';
   }
-
-  return 'text-base';
+  return 'text-sm';
 }
 
 const mobileCategories: MobileCategory[] = [
@@ -155,9 +145,13 @@ function MobileDailyOffer() {
   const { t } = useTranslation();
   const currency = useCurrency();
   return (
-    <article className="relative mx-auto h-32 w-[356px] overflow-hidden rounded-[20px]">
-      <div className="absolute left-0 top-0 h-full w-[182px] bg-[#f66a13]" />
-      <img src={mobileAssets.dailyOfferPizza} alt={t('home.figma.mobile.dailyOfferImageAlt')} className="absolute right-0 top-0 h-full w-[174px] object-cover" />
+    <article className="relative h-32 w-full max-w-full overflow-hidden rounded-[20px]">
+      <div className="absolute left-0 top-0 h-full w-[51.12%] bg-[#f66a13]" />
+      <img
+        src={mobileAssets.dailyOfferPizza}
+        alt={t('home.figma.mobile.dailyOfferImageAlt')}
+        className="absolute right-0 top-0 h-full w-[48.88%] object-cover"
+      />
       <h3 className="absolute left-[11px] top-[10px] whitespace-pre-line text-[20px] font-bold leading-[21px] text-white">
         {t('home.figma.mobile.dailyOfferTitle')}
       </h3>
@@ -165,10 +159,10 @@ function MobileDailyOffer() {
         {t('home.figma.mobile.product.title')}
       </p>
       <p className="absolute left-[11px] top-24 text-base font-black leading-none text-white">{formatPrice(1200, currency)}</p>
-      <span className="absolute left-[255px] top-[15px] inline-flex h-[25px] w-[65px] items-center justify-center rounded-[60px] bg-white text-xs font-bold text-black">
+      <span className="absolute right-[10px] top-[15px] inline-flex h-[25px] w-[65px] items-center justify-center rounded-[60px] bg-white text-xs font-bold text-black">
         -30%
       </span>
-      <button type="button" className="absolute left-[128px] top-[76px] inline-flex h-[41.669px] w-[41.096px] items-center justify-center">
+      <button type="button" className="absolute left-[35.95%] top-[76px] inline-flex h-[41.669px] w-[41.096px] items-center justify-center">
         <img src={mobileAssets.dailyOfferAddToCart} alt={t('common.buttons.addToCart')} className="h-[41.7px] w-[41.1px] object-contain" />
       </button>
     </article>
@@ -180,8 +174,8 @@ function MobileProductCard({ product }: { product: MobileProduct }) {
   const currency = useCurrency();
   const formattedPrice = formatPrice(product.price, currency);
   const formattedOldPrice = formatPrice(product.oldPrice, currency);
-  const priceSizeClass = getMobilePriceSizeClass(formattedPrice);
-  const oldPriceSizeClass = getMobilePriceSizeClass(formattedOldPrice);
+  const priceSizeClass = getMobileProductCardPriceSizeClass(formattedPrice);
+  const oldPriceSizeClass = getMobileProductCardPriceSizeClass(formattedOldPrice);
   const supportsSpicy = product.supportsSpicy ?? false;
   const supportsGreens = product.supportsGreens ?? false;
   const greensTopClass = supportsSpicy ? 'top-[38px]' : 'top-[11px]';
@@ -217,9 +211,9 @@ function MobileProductCard({ product }: { product: MobileProduct }) {
       <span className="absolute right-0 top-[112px] inline-flex h-[25px] w-[65px] items-center justify-center rounded-[60px] bg-[#ff7f20] text-xs font-bold leading-none text-black">
         -30%
       </span>
-      <div className="absolute right-2 top-[192px] flex max-w-[76px] flex-col items-end text-right">
-        <p className={`w-full break-words font-black leading-tight tabular-nums text-[#3c2f2f] ${priceSizeClass}`}>{formattedPrice}</p>
-        <p className={`w-full break-words font-medium leading-tight tabular-nums text-[#3c2f2f] line-through ${oldPriceSizeClass}`}>
+      <div className="absolute right-2 top-[158px] flex max-w-[76px] flex-col items-end gap-0.5 text-right leading-tight">
+        <p className={`w-full break-words font-black tabular-nums text-[#3c2f2f] ${priceSizeClass}`}>{formattedPrice}</p>
+        <p className={`w-full break-words font-medium tabular-nums text-[#3c2f2f] line-through ${oldPriceSizeClass}`}>
           {formattedOldPrice}
         </p>
       </div>
@@ -253,6 +247,15 @@ function MobileCategorySliderIndicator() {
   );
 }
 
+/** Inset for product grid sections (cards slightly narrower than full-bleed main). */
+const MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS = 'px-3';
+
+/** Stacking: header (incl. language dropdown) above main (`z-10`) and bottom nav (`z-40`). */
+const MOBILE_HOME_HEADER_STACKING_CLASS = 'z-[100]';
+
+/** Horizontal inset for logo row + search on mobile home (keeps controls off screen edges). */
+const MOBILE_HOME_HEADER_HORIZONTAL_INSET_CLASS = 'px-4';
+
 type FigmaHomePageMobileProps = {
   categories?: Array<{
     id: string;
@@ -264,7 +267,6 @@ type FigmaHomePageMobileProps = {
 
 export function FigmaHomePageMobile({ categories = [] }: FigmaHomePageMobileProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const router = useRouter();
   const { t, lang } = useTranslation();
   const displayCategories =
     categories.length > 0
@@ -276,17 +278,15 @@ export function FigmaHomePageMobile({ categories = [] }: FigmaHomePageMobileProp
       : mobileCategories;
   const categoriesTitleClassName = lang === 'hy' ? mirageExpandedFont.className : undefined;
 
-  const handleOpenShopPicker = () => {
-    router.push('/shop');
-  };
-
   return (
-    <div className="relative mx-auto min-h-screen w-full max-w-[393px] overflow-hidden bg-[var(--project-color)]">
+    <div className="relative min-h-screen w-full overflow-x-clip overflow-y-visible bg-[var(--project-color)]">
       <div className="absolute -left-[210px] -top-[123px] h-[434px] w-[418px] rounded-full border-[80px] border-[#3E573D]" />
       <div className="absolute -right-[160px] -top-[184px] h-[320px] w-[360px] rounded-full border-[70px] border-[#3E573D]" />
 
-      <header className="relative z-10 px-[11px] pt-[58px]">
-        <div className="flex translate-y-[20px] items-start justify-between">
+      <header
+        className={`relative ${MOBILE_HOME_HEADER_STACKING_CLASS} ${MOBILE_HOME_HEADER_HORIZONTAL_INSET_CLASS} pt-[58px]`}
+      >
+        <div className="relative z-30 flex translate-y-[20px] items-start justify-between">
           <img src={mobileAssets.logo} alt="Degusto" className="h-[46px] w-[129px] object-contain" />
           <div className="flex items-center gap-1">
             <button type="button" className="relative inline-flex h-12 w-12 items-center justify-center">
@@ -301,7 +301,7 @@ export function FigmaHomePageMobile({ categories = [] }: FigmaHomePageMobileProp
           </div>
         </div>
 
-        <div className="relative mt-[8px] h-12 translate-y-[20px] rounded-[30px] bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.05)]">
+        <div className="relative z-10 mt-[8px] h-12 translate-y-[20px] rounded-[30px] bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.05)]">
           <img src={mobileAssets.searchIcon} alt="" className="absolute left-[15px] top-1/2 h-[17px] w-[17px] -translate-y-1/2 object-contain" />
           <input
             type="text"
@@ -318,7 +318,7 @@ export function FigmaHomePageMobile({ categories = [] }: FigmaHomePageMobileProp
         </div>
       </header>
 
-      <main className="relative z-10 mt-[87px] rounded-t-[30px] bg-white px-[19px] pb-[110px] pt-8">
+      <main className="relative z-10 mt-[87px] rounded-t-[30px] bg-white px-0 pb-[110px] pt-8">
         <MobileCategoryStrip
           categories={displayCategories}
           categoriesTitleClassName={categoriesTitleClassName}
@@ -330,7 +330,7 @@ export function FigmaHomePageMobile({ categories = [] }: FigmaHomePageMobileProp
           <MobileCategorySliderIndicator />
         </div>
 
-        <div className="mt-[30px] space-y-[22px]">
+        <div className={'mt-[30px] space-y-[22px] ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
           <MobileSectionHeader title={t('products.categoryNavigation.newArrivals')} />
           <div className="grid grid-cols-2 gap-x-[14px] gap-y-[22px]">
             {mobileProducts.slice(0, 4).map((product) => (
@@ -339,7 +339,7 @@ export function FigmaHomePageMobile({ categories = [] }: FigmaHomePageMobileProp
           </div>
         </div>
 
-        <div className="mt-[30px] space-y-[22px]">
+        <div className={'mt-[30px] space-y-[22px] ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
           <MobileSectionHeader
             title={t('common.navigation.categories')}
             titleClassName={categoriesTitleClassName}
@@ -351,7 +351,7 @@ export function FigmaHomePageMobile({ categories = [] }: FigmaHomePageMobileProp
           </div>
         </div>
 
-        <div className="mt-[30px] space-y-[22px]">
+        <div className={'mt-[30px] space-y-[22px] ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
           <MobileSectionHeader
             title={t('common.navigation.categories')}
             titleClassName={categoriesTitleClassName}
@@ -363,17 +363,6 @@ export function FigmaHomePageMobile({ categories = [] }: FigmaHomePageMobileProp
           </div>
         </div>
       </main>
-      <MobileBottomNavigation
-        assets={{
-          bottomNavBackground: mobileAssets.bottomNavBackground,
-          bottomNavShop: mobileAssets.bottomNavShop,
-          bottomNavHome: mobileAssets.bottomNavHome,
-          bottomNavCart: mobileAssets.bottomNavCart,
-          bottomNavFavorite: mobileAssets.bottomNavFavorite,
-          bottomNavProfile: mobileAssets.bottomNavProfile,
-        }}
-        onShopClick={handleOpenShopPicker}
-      />
     </div>
   );
 }
