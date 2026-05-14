@@ -4,7 +4,8 @@
 
 import type { ProductData, Variant, ProductLabel } from '../types';
 
-interface FormData {
+/** Admin add/edit product form shape (single source for empty + merge-from-API). */
+export interface ProductAddFormData {
   title: string;
   slug: string;
   descriptionHtml: string;
@@ -21,6 +22,27 @@ interface FormData {
 }
 
 /**
+ * Fresh empty form — always return new array references so nothing is mutated by reference.
+ */
+export function getEmptyProductFormData(): ProductAddFormData {
+  return {
+    title: '',
+    slug: '',
+    descriptionHtml: '',
+    brandIds: [],
+    primaryCategoryId: '',
+    categoryIds: [],
+    published: false,
+    featured: false,
+    imageUrls: [],
+    featuredImageIndex: 0,
+    mainProductImage: '',
+    variants: [],
+    labels: [],
+  };
+}
+
+/**
  * Builds form data from product data
  */
 export function buildFormData(
@@ -29,7 +51,7 @@ export function buildFormData(
   featuredIndexFromApi: number,
   mainProductImage: string,
   mergedVariant: Variant
-): FormData {
+): ProductAddFormData {
   const brandIds = product.brandId ? [product.brandId] : [];
 
   return {

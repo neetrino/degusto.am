@@ -9,6 +9,7 @@ import { useTranslation } from '../../lib/i18n-client';
 import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
 import { formatPrice } from '../../lib/currency';
 import { useCurrency } from '../hooks/useCurrency';
+import { getHomeCategoryHref } from './homeCategoryLinks';
 
 const mobileAssets = {
   logo: '/api/r2/logo/20260512-SkrFbnskhy.png',
@@ -42,6 +43,8 @@ const mobileAssets = {
 
 type MobileCategory = {
   id: string;
+  slug: string;
+  title?: string;
   titleKey: string;
   image: string;
   framed?: boolean;
@@ -53,6 +56,8 @@ type MobileProduct = {
   subtitleKey: string;
   price: number;
   oldPrice: number;
+  supportsSpicy?: boolean;
+  supportsGreens?: boolean;
 };
 
 function getMobilePriceSizeClass(formattedPrice: string): string {
@@ -70,11 +75,11 @@ function getMobilePriceSizeClass(formattedPrice: string): string {
 }
 
 const mobileCategories: MobileCategory[] = [
-  { id: 'pizza', titleKey: 'home.figma.mobile.category.pizza', image: mobileAssets.categoryPizza, framed: true },
-  { id: 'burger', titleKey: 'home.figma.mobile.category.burger', image: mobileAssets.categoryBurger },
-  { id: 'sushi', titleKey: 'home.figma.mobile.category.sushi', image: mobileAssets.categorySushi },
-  { id: 'salad', titleKey: 'home.figma.mobile.category.salad', image: mobileAssets.categorySalad },
-  { id: 'soup', titleKey: 'home.figma.mobile.category.soup', image: mobileAssets.categorySoup },
+  { id: 'pizza', slug: 'pizza', titleKey: 'home.figma.mobile.category.pizza', image: mobileAssets.categoryPizza, framed: true },
+  { id: 'burger', slug: 'burger', titleKey: 'home.figma.mobile.category.burger', image: mobileAssets.categoryBurger },
+  { id: 'sushi', slug: 'sushi', titleKey: 'home.figma.mobile.category.sushi', image: mobileAssets.categorySushi },
+  { id: 'salad', slug: 'salads', titleKey: 'home.figma.mobile.category.salad', image: mobileAssets.categorySalad },
+  { id: 'soup', slug: 'soups', titleKey: 'home.figma.mobile.category.soup', image: mobileAssets.categorySoup },
 ];
 
 const mobileProducts: MobileProduct[] = Array.from({ length: 12 }, (_, index) => ({
@@ -83,6 +88,8 @@ const mobileProducts: MobileProduct[] = Array.from({ length: 12 }, (_, index) =>
   subtitleKey: 'home.figma.mobile.product.subtitle',
   price: 1200,
   oldPrice: 1200,
+  supportsSpicy: false,
+  supportsGreens: false,
 }));
 
 function MobileSectionHeader({ title, titleClassName }: { title: string; titleClassName?: string }) {
@@ -101,7 +108,13 @@ function MobileSectionHeader({ title, titleClassName }: { title: string; titleCl
   );
 }
 
-function MobileCategoryStrip({ categoriesTitleClassName }: { categoriesTitleClassName?: string }) {
+function MobileCategoryStrip({
+  categories,
+  categoriesTitleClassName,
+}: {
+  categories: MobileCategory[];
+  categoriesTitleClassName?: string;
+}) {
   const { t } = useTranslation();
   return (
     <div className="space-y-3">
@@ -110,17 +123,26 @@ function MobileCategoryStrip({ categoriesTitleClassName }: { categoriesTitleClas
         titleClassName={categoriesTitleClassName}
       />
       <div className="grid grid-cols-5 gap-2 pb-1">
-        {mobileCategories.map((category) => (
-          <article key={category.id} className="min-w-0">
+        {categories.map((category) => {
+          const title = category.title ?? t(category.titleKey);
+
+          return (
+          <Link
+            key={category.id}
+            href={getHomeCategoryHref({ slug: category.slug, title })}
+            className="min-w-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f66a13]"
+            aria-label={title}
+          >
             <div className="relative mx-auto flex h-[72px] w-[48px] items-center justify-center rounded-[24px] bg-[#090909]">
               {category.framed ? (
                 <img src={mobileAssets.categoryFrame} alt="" className="absolute inset-0 h-full w-full object-contain" />
               ) : null}
-              <img src={category.image} alt={t(category.titleKey)} className="relative h-[42px] w-[40px] rounded-[10px] object-cover" />
+              <img src={category.image} alt={title} className="relative h-[42px] w-[40px] rounded-[10px] object-cover" />
             </div>
-            <p className="mt-[6px] text-center text-xs leading-5 text-black">{t(category.titleKey)}</p>
-          </article>
-        ))}
+            <p className="mt-[6px] text-center text-xs leading-5 text-black">{title}</p>
+          </Link>
+          );
+        })}
       </div>
       <div className="pt-1">
         <MobileSliderIndicator />
@@ -160,16 +182,27 @@ function MobileProductCard({ product }: { product: MobileProduct }) {
   const formattedOldPrice = formatPrice(product.oldPrice, currency);
   const priceSizeClass = getMobilePriceSizeClass(formattedPrice);
   const oldPriceSizeClass = getMobilePriceSizeClass(formattedOldPrice);
+  const supportsSpicy = product.supportsSpicy ?? false;
+  const supportsGreens = product.supportsGreens ?? false;
+  const greensTopClass = supportsSpicy ? 'top-[38px]' : 'top-[11px]';
 
   return (
     <article className="relative h-[248px] rounded-[20px] bg-[#ffeacc]">
       <div className="absolute left-1 right-1 top-[5px] h-[143px] overflow-hidden rounded-[18px]">
         <img src={mobileAssets.productImage} alt={t(product.titleKey)} className="h-full w-full object-cover" />
       </div>
-      <div className="absolute left-[9px] top-[11px] flex h-[22px] w-[22px] items-center justify-center rounded-full bg-[#ff2b2e]">
-        <img src={mobileAssets.productHot} alt="" className="h-[13px] w-[13px] -rotate-[13deg] object-contain" />
-      </div>
-      <img src={mobileAssets.productRibbon} alt="" className="absolute left-[9px] top-[38px] h-[22px] w-[22px] object-contain" />
+      {supportsSpicy ? (
+        <div className="absolute left-[9px] top-[11px] flex h-[22px] w-[22px] items-center justify-center rounded-full bg-[#ff2b2e]">
+          <img src={mobileAssets.productHot} alt="" className="h-[13px] w-[13px] -rotate-[13deg] object-contain" />
+        </div>
+      ) : null}
+      {supportsGreens ? (
+        <img
+          src={mobileAssets.productRibbon}
+          alt=""
+          className={`absolute left-[9px] h-[22px] w-[22px] object-contain ${greensTopClass}`}
+        />
+      ) : null}
 
       <div className="absolute left-[9px] top-[150px] flex items-center gap-1.5">
         <img src={mobileAssets.productStar} alt="" className="h-[19px] w-[19px] object-contain" />
@@ -220,10 +253,27 @@ function MobileCategorySliderIndicator() {
   );
 }
 
-export function FigmaHomePageMobile() {
+type FigmaHomePageMobileProps = {
+  categories?: Array<{
+    id: string;
+    slug: string;
+    title: string;
+    image: string;
+  }>;
+};
+
+export function FigmaHomePageMobile({ categories = [] }: FigmaHomePageMobileProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
   const { t, lang } = useTranslation();
+  const displayCategories =
+    categories.length > 0
+      ? categories.slice(0, mobileCategories.length).map((category, index) => ({
+          ...category,
+          titleKey: mobileCategories[index]?.titleKey ?? 'common.navigation.categories',
+          framed: index === 0,
+        }))
+      : mobileCategories;
   const categoriesTitleClassName = lang === 'hy' ? mirageExpandedFont.className : undefined;
 
   const handleOpenShopPicker = () => {
@@ -269,7 +319,10 @@ export function FigmaHomePageMobile() {
       </header>
 
       <main className="relative z-10 mt-[87px] rounded-t-[30px] bg-white px-[19px] pb-[110px] pt-8">
-        <MobileCategoryStrip categoriesTitleClassName={categoriesTitleClassName} />
+        <MobileCategoryStrip
+          categories={displayCategories}
+          categoriesTitleClassName={categoriesTitleClassName}
+        />
         <div className="mt-[22px]">
           <MobileDailyOffer />
         </div>

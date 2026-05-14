@@ -31,7 +31,7 @@
       "shop": {
         "menuTitle": "Menu",
         "menuSubtitle": "Choose your favorite dishes from our wide assortment",
-        "priceLabel": "Price",
+        "priceLabel": "Price (AMD)",
         "priceFrom": "From",
         "priceTo": "To",
         "foodAttributeSwitcherAria": "Food attributes switcher",

@@ -36,6 +36,7 @@ export function formatAttributeValue(
     translations?: Array<{ locale: string; label: string }>;
     colors?: unknown;
     imageUrl?: string | null;
+    priceAdjustment?: number | null;
   },
   locale: string
 ): {
@@ -44,14 +45,17 @@ export function formatAttributeValue(
   label: string;
   colors: string[];
   imageUrl: string | null;
+  priceAdjustment: number;
 } {
   const valTranslation = val.translations?.find((t) => t.locale === locale) || val.translations?.[0];
+  const adj = val.priceAdjustment;
   return {
     id: val.id,
     value: val.value,
     label: valTranslation?.label || val.value,
     colors: parseColors(val.colors),
     imageUrl: val.imageUrl || null,
+    priceAdjustment: typeof adj === 'number' && Number.isFinite(adj) ? adj : 0,
   };
 }
 
@@ -71,6 +75,7 @@ export function formatAttribute(
       translations?: Array<{ locale: string; label: string }>;
       colors?: unknown;
       imageUrl?: string | null;
+      priceAdjustment?: number | null;
     }>;
   },
   locale: string
@@ -86,6 +91,7 @@ export function formatAttribute(
     label: string;
     colors: string[];
     imageUrl: string | null;
+    priceAdjustment: number;
   }>;
 } {
   const translation = attribute.translations?.find((t) => t.locale === locale) || attribute.translations?.[0];

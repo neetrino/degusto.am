@@ -27,7 +27,7 @@ export const STOREFRONT_CACHE_KEYS = {
   productsFilters: (stableQuery: string) => `products:filters:${stableQuery}`,
   productsPriceRange: (stableQuery: string) => `products:price-range:${stableQuery}`,
   productVisual: (lang: string, slug: string) => `product:visual:${lang}:${slug}`,
-  productDetails: (lang: string, slug: string) => `product:details:${lang}:${slug}`,
+  productDetails: (lang: string, slug: string) => `product:details:v2:${lang}:${slug}`,
   productRelated: (lang: string, slug: string) => `product:related:${lang}:${slug}`,
 } as const;
 

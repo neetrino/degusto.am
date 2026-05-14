@@ -7,6 +7,7 @@ import { QuickInfoCard } from './components/QuickInfoCard';
 import { CategoryDiscountsCard } from './components/CategoryDiscountsCard';
 import { BrandDiscountsCard } from './components/BrandDiscountsCard';
 import { ProductDiscountsCard } from './components/ProductDiscountsCard';
+import { QUICK_SETTINGS_SECTION_CARD } from './quick-settings-ui-classes';
 
 interface AdminCategory {
   id: string;
@@ -98,12 +99,15 @@ export function QuickSettingsContent({
   const { t } = useTranslation();
 
   return (
-    <>
-      <div className="mb-8">
+    <div className="mx-auto w-full max-w-6xl space-y-6">
+      <header className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
+          {t('admin.menu.discounts')}
+        </h1>
         <p className="text-gray-600">{t('admin.quickSettings.subtitle')}</p>
-      </div>
+      </header>
 
-      <Card className="mb-8 border-gray-200 bg-white p-6">
+      <Card className={QUICK_SETTINGS_SECTION_CARD}>
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">{t('admin.quickSettings.quickSettingsTitle')}</h2>
@@ -158,6 +162,6 @@ export function QuickSettingsContent({
         handleProductDiscountSave={handleProductDiscountSave}
         savingProductId={savingProductId}
       />
-    </>
+    </div>
   );
 }

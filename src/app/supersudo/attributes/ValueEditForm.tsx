@@ -10,11 +10,13 @@ interface ValueEditFormProps {
   editingLabel: string;
   editingColors: string[];
   editingImageUrl: string | null;
+  editingPriceAdjustment: string;
   savingValue: boolean;
   imageUploading: boolean;
   fileInputRef: React.RefObject<HTMLInputElement>;
   onLabelChange: (label: string) => void;
   onColorsChange: (colors: string[]) => void;
+  onPriceAdjustmentChange: (value: string) => void;
   onImageUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveImage: () => void;
   onSave: () => void;
@@ -27,11 +29,13 @@ export function ValueEditForm({
   editingLabel,
   editingColors,
   editingImageUrl,
+  editingPriceAdjustment,
   savingValue,
   imageUploading,
   fileInputRef,
   onLabelChange,
   onColorsChange,
+  onPriceAdjustmentChange,
   onImageUpload,
   onRemoveImage,
   onSave,
@@ -53,6 +57,21 @@ export function ValueEditForm({
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
           placeholder={t('admin.attributes.valueModal.labelPlaceholder')}
         />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor={`price-adj-${value.id}`}>
+          {t('admin.attributes.valueModal.priceAdjustment')}
+        </label>
+        <input
+          id={`price-adj-${value.id}`}
+          type="number"
+          step="any"
+          value={editingPriceAdjustment}
+          onChange={(e) => onPriceAdjustmentChange(e.target.value)}
+          className="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+        />
+        <p className="mt-1 text-xs text-gray-500">{t('admin.attributes.valueModal.priceAdjustmentHint')}</p>
       </div>
 
       {/* Colors and Image Section */}

@@ -23,6 +23,14 @@ export function formatVariantForAdmin(variant: {
     } | null;
   }>;
 }) {
+  const safeNum = (v: unknown, fallback = 0): number => {
+    if (typeof v === "number" && Number.isFinite(v)) {
+      return v;
+    }
+    const n = Number(v);
+    return Number.isFinite(n) ? n : fallback;
+  };
+
   // Безопасное получение options с проверкой на существование массива
   const options = Array.isArray(variant.options) ? variant.options : [];
   
@@ -92,11 +100,18 @@ export function formatVariantForAdmin(variant: {
   const color = colorValues.length > 0 ? colorValues[0] : (colorOption?.value || "");
   const size = sizeValues.length > 0 ? sizeValues[0] : (sizeOption?.value || "");
 
+  const price = safeNum(variant.price, 0);
+  const stock = safeNum(variant.stock, 0);
+  const compareAt =
+    variant.compareAtPrice === null || variant.compareAtPrice === undefined
+      ? null
+      : safeNum(variant.compareAtPrice, 0);
+
   return {
     id: variant.id,
-    price: variant.price.toString(),
-    compareAtPrice: variant.compareAtPrice?.toString() || "",
-    stock: variant.stock.toString(),
+    price: price.toString(),
+    compareAtPrice: compareAt === null ? "" : compareAt.toString(),
+    stock: stock.toString(),
     sku: variant.sku || "",
     color: color, // First color for backward compatibility
     size: size, // First size for backward compatibility

@@ -1,14 +1,28 @@
 import { db } from "@white-shop/db";
 import { logger } from "../../../utils/logger";
 import { ensureColorsColumnsExist } from "./migration";
-import { formatAttribute, parseColors } from "./utils";
+import { formatAttribute } from "./utils";
+
+const ATTRIBUTE_PRICE_ADJUSTMENT_MIN = -1_000_000;
+const ATTRIBUTE_PRICE_ADJUSTMENT_MAX = 1_000_000;
+
+function clampAttributePriceAdjustment(raw: unknown): number {
+  const n = typeof raw === "number" ? raw : Number(raw);
+  if (!Number.isFinite(n)) {
+    return 0;
+  }
+  return Math.min(
+    ATTRIBUTE_PRICE_ADJUSTMENT_MAX,
+    Math.max(ATTRIBUTE_PRICE_ADJUSTMENT_MIN, n)
+  );
+}
 
 /**
  * Add attribute value
  */
 export async function addAttributeValue(
   attributeId: string,
-  data: { label: string; locale?: string }
+  data: { label: string; locale?: string; priceAdjustment?: number }
 ) {
   logger.info('Adding attribute value', { attributeId, label: data.label });
 
@@ -51,6 +65,7 @@ export async function addAttributeValue(
     data: {
       attributeId,
       value,
+      priceAdjustment: clampAttributePriceAdjustment(data.priceAdjustment ?? 0),
       translations: {
         create: {
           locale,
@@ -100,6 +115,7 @@ export async function updateAttributeValue(
     label?: string;
     colors?: string[];
     imageUrl?: string | null;
+    priceAdjustment?: number;
     locale?: string;
   }
 ) {
@@ -144,6 +160,7 @@ export async function updateAttributeValue(
   const updateData: {
     colors?: string[];
     imageUrl?: string | null;
+    priceAdjustment?: number;
   } = {};
 
   // Update colors if provided
@@ -162,6 +179,10 @@ export async function updateAttributeValue(
   // Update imageUrl if provided
   if (data.imageUrl !== undefined) {
     updateData.imageUrl = data.imageUrl || null;
+  }
+
+  if (data.priceAdjustment !== undefined) {
+    updateData.priceAdjustment = clampAttributePriceAdjustment(data.priceAdjustment);
   }
 
   // Update translation label if provided
@@ -186,7 +207,7 @@ export async function updateAttributeValue(
     }
   }
 
-  // Update attribute value if colors or imageUrl changed
+  // Update attribute value if scalar fields changed
   if (Object.keys(updateData).length > 0) {
     logger.debug('Updating attribute value in database', { 
       valueId, 

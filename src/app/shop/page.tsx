@@ -1,11 +1,17 @@
 import { FigmaDesktopMenuPage, type MenuCard, type MenuCategory } from '../../components/home/FigmaDesktopShopPage';
-import { FigmaMobileShopPage } from '../../components/home/FigmaMobileShopPage';
 import { BodyBackground } from '../../components/BodyBackground';
 import { HIDDEN_STOREFRONT_CATEGORY_SLUGS } from '@/constants/hidden-storefront-category-slugs';
+import { STORE_MENU_PAGE_SIZE } from '@/constants/store-menu-page-size';
 import { db } from '@white-shop/db';
 import { cookies } from 'next/headers';
 import { resolveStorefrontLocaleFromCookie } from '@/lib/i18n/locale';
 import type { Prisma } from '@prisma/client';
+import { buildProductWhereTasteCapability, resolveFoodAttributeFlagsFromVariants } from '@/lib/product-food-attributes';
+import { storefrontAmdPriceBoundToVariantUsd } from '@/lib/currency';
+
+/** Always read fresh data from DB on each request (no static cache for this route). */
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 const HY_CATEGORY_TITLE_BY_SLUG: Record<string, string> = {
   shawarma: 'Շաուրմա',
@@ -69,14 +75,23 @@ export default async function ShopPage({
     typeof params?.minPrice === 'string' ? Number(params.minPrice) : null;
   const maxPriceParam =
     typeof params?.maxPrice === 'string' ? Number(params.maxPrice) : null;
-  const minPrice =
+  /** User-facing filter amounts in AMD (URL query). */
+  const minPriceAmd =
     typeof minPriceParam === 'number' && Number.isFinite(minPriceParam) && minPriceParam >= 0
       ? minPriceParam
       : null;
-  const maxPrice =
+  const maxPriceAmd =
     typeof maxPriceParam === 'number' && Number.isFinite(maxPriceParam) && maxPriceParam >= 0
       ? maxPriceParam
       : null;
+  const minPriceUsd =
+    minPriceAmd !== null ? storefrontAmdPriceBoundToVariantUsd(minPriceAmd) : null;
+  const maxPriceUsd =
+    maxPriceAmd !== null ? storefrontAmdPriceBoundToVariantUsd(maxPriceAmd) : null;
+  const rawPage = typeof params?.page === 'string' ? params.page.trim() : '';
+  const parsedPage = parseInt(rawPage || '1', 10);
+  const requestedPage =
+    Number.isFinite(parsedPage) && parsedPage >= 1 ? parsedPage : 1;
   const allCategoriesLabel = locale === 'hy' ? 'Բոլորը' : 'All';
   const comboExclusionCategoryFilter = {
     categories: {
@@ -117,29 +132,18 @@ export default async function ShopPage({
           },
         }
       : {}),
-    ...((minPrice !== null || maxPrice !== null)
+    ...((minPriceUsd !== null || maxPriceUsd !== null)
       ? {
           variants: {
             some: {
               published: true,
-              ...(minPrice !== null ? { price: { gte: minPrice } } : {}),
-              ...(maxPrice !== null ? { price: { lte: maxPrice } } : {}),
+              ...(minPriceUsd !== null ? { price: { gte: minPriceUsd } } : {}),
+              ...(maxPriceUsd !== null ? { price: { lte: maxPriceUsd } } : {}),
             },
           },
         }
       : {}),
-    ...(tasteFilter
-      ? {
-          labels: {
-            some: {
-              value: {
-                contains: tasteFilter === 'leaf' ? 'new' : 'hot',
-                mode: 'insensitive' as const,
-              },
-            },
-          },
-        }
-      : {}),
+    ...(tasteFilter ? buildProductWhereTasteCapability(tasteFilter) : {}),
     ...(selectedCategorySlug
       ? {
           categories: {
@@ -157,12 +161,18 @@ export default async function ShopPage({
         }
       : {}),
   };
+  const productTotal = await db.product.count({ where: productWhere });
+  const totalPages =
+    productTotal === 0 ? 0 : Math.ceil(productTotal / STORE_MENU_PAGE_SIZE);
+  const effectivePage =
+    totalPages === 0 ? 1 : Math.min(requestedPage, totalPages);
   const productRows = await db.product.findMany({
     where: productWhere,
     orderBy: {
       updatedAt: 'desc',
     },
-    take: 12,
+    skip: (effectivePage - 1) * STORE_MENU_PAGE_SIZE,
+    take: STORE_MENU_PAGE_SIZE,
     select: {
       id: true,
       media: true,
@@ -211,10 +221,28 @@ export default async function ShopPage({
         orderBy: {
           price: 'asc',
         },
-        take: 1,
         select: {
+          published: true,
           price: true,
           compareAtPrice: true,
+          attributes: true,
+          options: {
+            select: {
+              attributeKey: true,
+              value: true,
+              valueId: true,
+              attributeValue: {
+                select: {
+                  value: true,
+                  attribute: {
+                    select: {
+                      key: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -288,6 +316,7 @@ export default async function ShopPage({
     const variant = row.variants[0];
     const price = variant?.price ?? 0;
     const oldPrice = variant?.compareAtPrice ?? price;
+    const foodAttrs = resolveFoodAttributeFlagsFromVariants(row.variants);
     return {
       id: row.id,
       slug: translation?.slug || 'products',
@@ -300,15 +329,14 @@ export default async function ShopPage({
       oldPrice,
       discount: '',
       discountPercent: row.discountPercent,
+      supportsSpicy: foodAttrs.supportsSpicy,
+      supportsGreens: foodAttrs.supportsGreens,
     };
   });
 
   return (
     <div className="min-h-screen bg-white">
       <BodyBackground color="#ffffff" />
-      <div className="lg:hidden">
-        <FigmaMobileShopPage />
-      </div>
       <FigmaDesktopMenuPage
         titleKey="home.figma.desktop.shop.menuTitle"
         subtitleKey="home.figma.desktop.shop.menuSubtitle"
@@ -317,9 +345,13 @@ export default async function ShopPage({
         categories={categories}
         activeCategorySlug={selectedCategorySlug}
         initialSearch={selectedSearchQuery}
-        initialMinPrice={minPrice !== null ? String(minPrice) : ''}
-        initialMaxPrice={maxPrice !== null ? String(maxPrice) : ''}
+        initialMinPrice={minPriceAmd !== null ? String(minPriceAmd) : ''}
+        initialMaxPrice={maxPriceAmd !== null ? String(maxPriceAmd) : ''}
         initialFoodFilter={tasteFilter ?? 'neutral'}
+        menuPagination={{
+          currentPage: effectivePage,
+          totalPages,
+        }}
       />
     </div>
   );

@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { filterFoodAttributeGroupsWithoutRealChoice } from '@/lib/product-food-attribute-groups';
 import type { Product, AttributeGroupValue } from './types';
 import { buildGroupsFromProductAttributes } from './utils/build-attribute-groups-new';
 import { buildGroupsFromVariants } from './utils/build-attribute-groups-old';
@@ -51,6 +52,6 @@ export function useAttributeGroups({
       });
     }
 
-    return groups;
+    return filterFoodAttributeGroupsWithoutRealChoice(groups);
   }, [product, selectedColor, selectedSize, selectedAttributeValues]);
 }

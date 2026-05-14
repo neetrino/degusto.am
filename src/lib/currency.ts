@@ -159,6 +159,14 @@ export function convertPrice(price: number, fromCurrency: CurrencyCode, toCurren
 }
 
 /**
+ * Catalog price filter bounds from the storefront are entered in AMD; `ProductVariant.price`
+ * is stored in USD (see admin product save paths). Uses the same rates as {@link convertPrice}.
+ */
+export function storefrontAmdPriceBoundToVariantUsd(amdAmount: number): number {
+  return convertPrice(amdAmount, 'AMD', 'USD');
+}
+
+/**
  * Format price that is already in the target currency (no conversion)
  * Use this for prices that are already in AMD (like shipping costs)
  */
