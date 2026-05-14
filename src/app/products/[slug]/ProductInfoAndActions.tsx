@@ -146,7 +146,11 @@ export function ProductInfoAndActions({
         </div>
 
         <div className="mt-[50px] pt-4">
+<<<<<<< HEAD
         <div className="flex items-center gap-2.5 sm:gap-3">
+=======
+        <div className="flex items-center gap-3">
+>>>>>>> 4e29cf7 (single product page & admin panel attributes some bug fixed)
           <div
             className="inline-flex h-9 shrink-0 items-center gap-0 rounded-full border border-neutral-200 bg-white px-0.5 sm:h-10"
             role="group"
