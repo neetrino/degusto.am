@@ -1,3 +1,5 @@
+import type { CartVariantDisplayLine } from '@/lib/cart/cart-variant-display-lines';
+
 export type CheckoutFormData = {
   firstName: string;
   lastName: string;
@@ -24,6 +26,7 @@ export interface CartItem {
   variant: {
     id: string;
     sku: string;
+    displayLines?: CartVariantDisplayLine[];
     product: {
       id: string;
       title: string;

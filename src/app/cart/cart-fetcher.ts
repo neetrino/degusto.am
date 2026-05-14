@@ -10,6 +10,7 @@ import {
   normalizeProductCustomizations,
   type ProductCustomizations,
 } from '../../lib/cart/customizations';
+import { cartVariantDisplayLinesFromProductApiOptions } from '../../lib/cart/cart-variant-display-lines';
 
 /**
  * Product data from API
@@ -27,6 +28,7 @@ interface ProductData {
     originalPrice?: number | null;
     stock?: number;
     imageUrl?: string | null;
+    options?: Array<{ attribute?: string; key?: string; value?: string; label?: string }>;
   }>;
 }
 
@@ -105,6 +107,7 @@ async function fetchGuestCartItems(
               id: variant._id?.toString() || variant.id,
               sku: variant.sku || '',
               stock: variant.stock !== undefined ? variant.stock : undefined,
+              displayLines: cartVariantDisplayLinesFromProductApiOptions(variant.options),
               product: {
                 id: productData.id,
                 title: translation?.title || t('common.messages.product'),
