@@ -48,12 +48,12 @@ export function FigmaMobileShopPage() {
   };
 
   return (
-    <div className="relative mx-auto min-h-screen w-full max-w-[393px] overflow-hidden bg-[#f66a13]">
+    <div className="relative mx-auto min-h-screen w-full max-w-[393px] overflow-x-clip overflow-y-visible bg-[#f66a13]">
       <div className="absolute -left-[210px] -top-[123px] h-[434px] w-[418px] rounded-full border-[80px] border-[#3E573D]" />
       <div className="absolute -right-[160px] -top-[184px] h-[320px] w-[360px] rounded-full border-[70px] border-[#3E573D]" />
 
-      <header className="relative z-10 px-[11px] pt-[58px]">
-        <div className="flex translate-y-[20px] items-start justify-between">
+      <header className="relative z-50 px-[11px] pt-[58px]">
+        <div className="relative z-30 flex translate-y-[20px] items-start justify-between">
           <img src={mobileShopAssets.logo} alt="Degusto" className="h-[46px] w-[129px] object-contain" />
           <div className="flex items-center gap-1">
             <button type="button" className="relative inline-flex h-12 w-12 items-center justify-center">
@@ -67,7 +67,7 @@ export function FigmaMobileShopPage() {
             />
           </div>
         </div>
-        <div className="relative mt-[8px] h-12 translate-y-[20px] rounded-[30px] bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.05)]">
+        <div className="relative z-10 mt-[8px] h-12 translate-y-[20px] rounded-[30px] bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.05)]">
           <img src={mobileShopAssets.searchIcon} alt="" className="absolute left-[15px] top-1/2 h-[17px] w-[17px] -translate-y-1/2 object-contain" />
           <input
             type="text"
