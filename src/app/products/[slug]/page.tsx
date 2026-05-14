@@ -283,7 +283,7 @@ export default function ProductPage({ params }: ProductPageProps) {
           </div>
           </section>
 
-          <div className="mt-16 rounded-3xl border border-neutral-200 bg-white p-4 sm:p-6 lg:p-8 shadow-[0_6px_22px_rgba(0,0,0,0.04)]">
+          <div className="mt-10 rounded-3xl border border-neutral-200 bg-white p-3 shadow-[0_6px_22px_rgba(0,0,0,0.04)] sm:mt-12 sm:p-4 lg:p-5">
             <RelatedProducts
               productSlug={slug}
               categorySlug={product.categories?.[0]?.slug}

@@ -5,10 +5,6 @@ import {
   normalizeUrlForComparison,
   cleanImageUrls,
 } from '../../../../lib/utils/image-utils';
-import {
-  DEMO_PDP_GALLERY_TARGET_COUNT,
-  DEMO_PDP_GALLERY_URLS,
-} from '../constants/demo-pdp-gallery';
 import type { Product } from '../types';
 
 /**
@@ -58,21 +54,6 @@ export function useProductImages(product: Product | null): string[] {
         seenNormalized.add(normalized);
       }
     });
-
-    if (
-      process.env.NODE_ENV === 'development' &&
-      allImages.length < DEMO_PDP_GALLERY_TARGET_COUNT
-    ) {
-      for (const url of DEMO_PDP_GALLERY_URLS) {
-        if (allImages.length >= DEMO_PDP_GALLERY_TARGET_COUNT) break;
-        const processed = processImageUrl(url) || url;
-        const normalized = normalizeUrlForComparison(processed);
-        if (!seenNormalized.has(normalized)) {
-          allImages.push(url);
-          seenNormalized.add(normalized);
-        }
-      }
-    }
 
     return allImages;
   }, [product]);
