@@ -63,7 +63,10 @@ export function useOrderSubmission({
         : undefined;
       const couponCode =
         typeof window !== 'undefined'
-          ? localStorage.getItem(COUPON_CODE_STORAGE_KEY)?.trim().toUpperCase() || undefined
+          ? (() => {
+              const raw = localStorage.getItem(COUPON_CODE_STORAGE_KEY)?.trim();
+              return raw || undefined;
+            })()
           : undefined;
 
       const response = await apiClient.post<{
