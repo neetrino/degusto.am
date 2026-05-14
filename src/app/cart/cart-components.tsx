@@ -8,6 +8,17 @@ import { formatPrice } from '../../lib/currency';
 import type { CurrencyCode } from '../../lib/currency';
 import type { Cart, CartItem } from './types';
 
+function cartVariantGroupHeading(attributeKey: string, t: (key: string) => string): string {
+  const k = attributeKey.toLowerCase().trim();
+  if (k === 'color' || k === 'colour') {
+    return t('orders.itemDetails.color');
+  }
+  if (k === 'size') {
+    return t('orders.itemDetails.size');
+  }
+  return attributeKey.charAt(0).toUpperCase() + attributeKey.slice(1).replace(/-/g, ' ');
+}
+
 /**
  * Cart item row component
  */
@@ -72,9 +83,18 @@ export function CartItemRow({
           >
             {item.variant.product.title}
           </Link>
-          {item.variant.sku && (
-            <p className="mt-1 text-xs text-gray-500">{t('common.messages.sku')}: {item.variant.sku}</p>
-          )}
+          {item.variant.displayLines && item.variant.displayLines.length > 0 ? (
+            <ul className="mt-1 list-none space-y-0.5 pl-0 text-xs text-gray-600">
+              {item.variant.displayLines.map((line) => (
+                <li key={`${line.attributeKey}:${line.valueLabel}`}>
+                  <span className="font-medium text-gray-700">
+                    {cartVariantGroupHeading(line.attributeKey, t)}:
+                  </span>{' '}
+                  {line.valueLabel}
+                </li>
+              ))}
+            </ul>
+          ) : null}
           {item.customizations?.additions && (
             <p className="mt-2 text-xs text-gray-600">
               {t('product.additionsLabel')}: {item.customizations.additions}

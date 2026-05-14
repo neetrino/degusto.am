@@ -8,6 +8,7 @@ import {
   type ProductCustomizations,
 } from "../cart/customizations";
 import { sumVerifiedAttributePriceAdjustment } from "../cart/attribute-price-adjustment";
+import { cartVariantDisplayLinesFromPrismaOptions } from "../cart/cart-variant-display-lines";
 import { ensureCartItemCustomizationsColumn } from "../utils/db-ensure";
 
 class CartService {
@@ -75,6 +76,16 @@ class CartService {
             include: {
               variant: {
                 include: {
+                  options: {
+                    include: {
+                      attributeValue: {
+                        include: {
+                          attribute: { select: { key: true } },
+                          translations: true,
+                        },
+                      },
+                    },
+                  },
                   product: {
                     include: {
                       translations: true,
@@ -119,6 +130,16 @@ class CartService {
               include: {
                 variant: {
                   include: {
+                    options: {
+                      include: {
+                        attributeValue: {
+                          include: {
+                            attribute: { select: { key: true } },
+                            translations: true,
+                          },
+                        },
+                      },
+                    },
                     product: {
                       include: {
                         translations: true,
@@ -215,6 +236,7 @@ class CartService {
             id: variant?.id ?? item.variantId,
             sku: variant?.sku ?? "",
             stock: variant?.stock ?? 0,
+            displayLines: cartVariantDisplayLinesFromPrismaOptions(variant?.options, locale),
             product: {
               id: product?.id ?? "",
               title: translation?.title ?? "",

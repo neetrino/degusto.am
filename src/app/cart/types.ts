@@ -1,8 +1,9 @@
+import type { CartVariantDisplayLine } from '../../lib/cart/cart-variant-display-lines';
+
 /**
  * Cart item interface
  */
-export interface CartItem {
-  id: string;
+export interface CartItem {  id: string;
   customizations?: {
     additions?: string;
     exclusions?: string;
@@ -11,6 +12,8 @@ export interface CartItem {
     id: string;
     sku: string;
     stock?: number;
+    /** Variant options (e.g. color, size) for display; preferred over raw SKU. */
+    displayLines?: CartVariantDisplayLine[];
     product: {
       id: string;
       title: string;

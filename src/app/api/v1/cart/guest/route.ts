@@ -9,6 +9,7 @@ import {
   type ProductCustomizations,
 } from "@/lib/cart/customizations";
 import { sumVerifiedAttributePriceAdjustment } from "@/lib/cart/attribute-price-adjustment";
+import { cartVariantDisplayLinesFromPrismaOptions } from "@/lib/cart/cart-variant-display-lines";
 
 interface GuestCartItemInput {
   lineId?: string;
@@ -32,6 +33,7 @@ interface GuestCartVariant {
   compareAtPrice: number | null;
   stock: number;
   imageUrl: string | null;
+  displayLines: Array<{ attributeKey: string; valueLabel: string }>;
 }
 
 interface GuestCartProduct {
@@ -160,6 +162,19 @@ export async function POST(req: NextRequest) {
             compareAtPrice: true,
             stock: true,
             imageUrl: true,
+            options: {
+              select: {
+                attributeKey: true,
+                value: true,
+                attributeValue: {
+                  select: {
+                    value: true,
+                    translations: { select: { locale: true, label: true } },
+                    attribute: { select: { key: true } },
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -217,6 +232,7 @@ export async function POST(req: NextRequest) {
           compareAtPrice: compareAt,
           stock: selectedVariant.stock,
           imageUrl: selectedVariant.imageUrl,
+          displayLines: cartVariantDisplayLinesFromPrismaOptions(selectedVariant.options, lang),
           product: {
             id: product.id,
             title: preferredTranslation?.title || "Product",
