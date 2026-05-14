@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { MobileBottomNavigation } from './MobileBottomNavigation';
 import { LanguageCurrencySwitcher } from '../LanguageCurrencySwitcher';
 import { useTranslation } from '../../lib/i18n-client';
 
@@ -24,13 +23,6 @@ const mobileShopAssets = {
   soup: '/api/r2/assets/20260512-AQ7ex5ejKk.png',
   shawarma: '/api/r2/assets/20260512-plUR8fm4WB.png',
   salad: '/api/r2/assets/20260512-mjMgqeHOCf.png',
-  bottomNavBackground: '/api/r2/navigation/20260512-d3glmDYnXw.svg',
-  bottomNavShop: '/api/r2/navigation/20260512-qSIccpktNL.svg',
-  bottomNavShopIcon: '/api/r2/navigation/20260512-BQZihnmfb2.svg',
-  bottomNavHome: '/api/r2/navigation/20260512-l6dbCo33w3.svg',
-  bottomNavCart: '/api/r2/navigation/20260512-W6yz-_u1_J.svg',
-  bottomNavFavorite: '/api/r2/navigation/20260512-Krr_aEiAGb.svg',
-  bottomNavProfile: '/api/r2/navigation/20260512-npk36RTIVm.svg',
 };
 
 const shopCategories: ShopCategoryCard[] = [
@@ -111,21 +103,6 @@ export function FigmaMobileShopPage() {
           ))}
         </div>
       </main>
-
-      <MobileBottomNavigation
-        assets={{
-          bottomNavBackground: mobileShopAssets.bottomNavBackground,
-          bottomNavShop: mobileShopAssets.bottomNavShop,
-          bottomNavShopIcon: mobileShopAssets.bottomNavShopIcon,
-          bottomNavHome: mobileShopAssets.bottomNavHome,
-          bottomNavCart: mobileShopAssets.bottomNavCart,
-          bottomNavFavorite: mobileShopAssets.bottomNavFavorite,
-          bottomNavProfile: mobileShopAssets.bottomNavProfile,
-        }}
-        onShopClick={() => {
-          router.push('/shop');
-        }}
-      />
     </div>
   );
 }
