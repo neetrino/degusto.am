@@ -1,10 +1,17 @@
 import { db } from "@white-shop/db";
 import { Prisma } from "@prisma/client";
 import type { CheckoutData } from "../types/checkout";
+import { COUPON_CODE_REGEX } from "../coupon-code-format";
+import { convertPrice } from "../currency";
 import { logger } from "../utils/logger";
 import { cartService } from "./cart.service";
 import { normalizeProductCustomizations } from "../cart/customizations";
 import { performCheckout } from "./orders.checkout";
+
+/** Cart/order line subtotals use `ProductVariant.price`, stored in USD after admin save. */
+const COUPON_SUBTOTAL_CURRENCY = "USD" as const;
+/** Promocode minimum order and fixed discount amounts are entered in storefront AMD. */
+const COUPON_CATALOG_MONETARY_CURRENCY = "AMD" as const;
 
 type OrderItemWithVariant = Prisma.OrderItemGetPayload<{
   include: {
@@ -34,6 +41,7 @@ interface StoredCoupon {
   startsAt?: string;
   expiresAt?: string;
   minOrderAmount?: number;
+  maxUsesPerUser?: number;
 }
 
 interface AppliedCouponResult {
@@ -59,14 +67,62 @@ class OrdersService {
       data,
       userId,
       resolveCouponDiscount: (subtotal, couponCode) => {
-        return this.resolveCouponDiscount(subtotal, couponCode);
+        return this.resolveCouponDiscount(subtotal, couponCode, {
+          userId,
+          customerEmail: data.email,
+        });
       },
     });
   }
 
+  async previewCouponDiscount(subtotal: number, couponCode: string) {
+    if (!Number.isFinite(subtotal) || subtotal < 0) {
+      throw {
+        status: 400,
+        type: "https://api.shop.am/problems/validation-error",
+        title: "Validation Error",
+        detail: "subtotal must be a valid non-negative number",
+      };
+    }
+
+    const trimmedCouponCode = couponCode.trim();
+    if (!COUPON_CODE_REGEX.test(trimmedCouponCode)) {
+      throw {
+        status: 400,
+        type: "https://api.shop.am/problems/validation-error",
+        title: "Validation Error",
+        detail: "couponCode format is invalid",
+      };
+    }
+
+    const appliedCoupon = await this.resolveCouponDiscount(subtotal, trimmedCouponCode);
+    if (!appliedCoupon) {
+      throw {
+        status: 400,
+        type: "https://api.shop.am/problems/validation-error",
+        title: "Validation Error",
+        detail: "Coupon code is invalid",
+      };
+    }
+
+    const totalAfterDiscount = Math.max(
+      0,
+      Math.round((subtotal - appliedCoupon.discountAmount) * 100) / 100
+    );
+
+    return {
+      data: {
+        code: appliedCoupon.code,
+        discountAmount: appliedCoupon.discountAmount,
+        totalAfterDiscount,
+      },
+    };
+  }
+
   private async resolveCouponDiscount(
     subtotal: number,
-    couponCode: string | null
+    couponCode: string | null,
+    options?: { userId?: string; customerEmail?: string }
   ): Promise<AppliedCouponResult | null> {
     if (!couponCode) {
       return null;
@@ -85,7 +141,7 @@ class OrdersService {
         return false;
       }
       const raw = item as StoredCoupon;
-      return (raw.code ?? "").trim().toUpperCase() === couponCode;
+      return String(raw.code ?? "").trim() === couponCode;
     }) as StoredCoupon | undefined;
 
     if (!coupon) {
@@ -109,17 +165,58 @@ class OrdersService {
       };
     }
 
-    const minOrderAmount =
+    const minOrderAmountAmd =
       typeof coupon.minOrderAmount === "number" && Number.isFinite(coupon.minOrderAmount)
         ? coupon.minOrderAmount
         : 0;
-    if (subtotal < minOrderAmount) {
-      throw {
-        status: 400,
-        type: "https://api.shop.am/problems/validation-error",
-        title: "Validation Error",
-        detail: `Coupon requires minimum order amount of ${minOrderAmount}`,
-      };
+    if (minOrderAmountAmd > 0) {
+      const subtotalAmd = Math.round(
+        convertPrice(subtotal, COUPON_SUBTOTAL_CURRENCY, COUPON_CATALOG_MONETARY_CURRENCY)
+      );
+      if (subtotalAmd < minOrderAmountAmd) {
+        throw {
+          status: 400,
+          type: "https://api.shop.am/problems/validation-error",
+          title: "Validation Error",
+          detail: `Coupon requires minimum order amount of ${minOrderAmountAmd} AMD`,
+        };
+      }
+    }
+
+    const maxUsesPerUser =
+      typeof coupon.maxUsesPerUser === "number" &&
+      Number.isFinite(coupon.maxUsesPerUser) &&
+      Number.isInteger(coupon.maxUsesPerUser) &&
+      coupon.maxUsesPerUser > 0
+        ? coupon.maxUsesPerUser
+        : null;
+    const matchedCode = String(coupon.code ?? "").trim();
+
+    if (maxUsesPerUser !== null) {
+      const hasUserIdentity = Boolean(options?.userId || options?.customerEmail);
+      if (hasUserIdentity) {
+        const usageFilter: Prisma.OrderWhereInput = {
+          notes: {
+            contains: `Coupon code: ${matchedCode}`,
+          },
+        };
+
+        if (options?.userId) {
+          usageFilter.userId = options.userId;
+        } else if (options?.customerEmail) {
+          usageFilter.customerEmail = options.customerEmail;
+        }
+
+        const usedCount = await db.order.count({ where: usageFilter });
+        if (usedCount >= maxUsesPerUser) {
+          throw {
+            status: 400,
+            type: "https://api.shop.am/problems/validation-error",
+            title: "Validation Error",
+            detail: `Coupon usage limit reached for this user (${maxUsesPerUser})`,
+          };
+        }
+      }
     }
 
     const discountType = coupon.discountType === "fixed" ? "fixed" : "percent";
@@ -128,12 +225,18 @@ class OrdersService {
         ? coupon.discountValue
         : 0;
     const calculatedDiscount =
-      discountType === "percent" ? subtotal * (Math.min(100, Math.max(0, discountValue)) / 100) : discountValue;
+      discountType === "percent"
+        ? subtotal * (Math.min(100, Math.max(0, discountValue)) / 100)
+        : convertPrice(
+            Math.max(0, discountValue),
+            COUPON_CATALOG_MONETARY_CURRENCY,
+            COUPON_SUBTOTAL_CURRENCY
+          );
     const safeDiscount = Math.min(subtotal, Math.max(0, calculatedDiscount));
     const roundedDiscount = Math.round(safeDiscount * 100) / 100;
 
     return {
-      code: couponCode,
+      code: matchedCode,
       discountAmount: roundedDiscount,
     };
   }

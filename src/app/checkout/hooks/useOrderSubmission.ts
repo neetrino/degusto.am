@@ -12,6 +12,8 @@ interface UseOrderSubmissionProps {
   setError: (error: string | null) => void;
 }
 
+const COUPON_CODE_STORAGE_KEY = 'checkout_coupon_code';
+
 export function useOrderSubmission({
   cart,
   isLoggedIn,
@@ -59,6 +61,13 @@ export function useOrderSubmission({
       const cashChangeFromValue = data.cashChangeFrom?.trim()
         ? Number(data.cashChangeFrom.replace(',', '.'))
         : undefined;
+      const couponCode =
+        typeof window !== 'undefined'
+          ? (() => {
+              const raw = localStorage.getItem(COUPON_CODE_STORAGE_KEY)?.trim();
+              return raw || undefined;
+            })()
+          : undefined;
 
       const response = await apiClient.post<{
         order: {
@@ -89,11 +98,15 @@ export function useOrderSubmission({
         ...(typeof cashChangeFromValue === 'number' && Number.isFinite(cashChangeFromValue)
           ? { cashChangeFrom: cashChangeFromValue }
           : {}),
+        ...(couponCode ? { couponCode } : {}),
         ...(data.orderNotes?.trim() ? { notes: data.orderNotes.trim() } : {}),
       });
 
       if (!isLoggedIn) {
         clearGuestCart();
+      }
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(COUPON_CODE_STORAGE_KEY);
       }
 
       if (response.payment?.paymentUrl) {
