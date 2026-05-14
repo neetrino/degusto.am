@@ -176,8 +176,6 @@ function MobileProductCard({ product }: { product: MobileProduct }) {
   const formattedOldPrice = formatPrice(product.oldPrice, currency);
   const priceSizeClass = getMobileProductCardPriceSizeClass(formattedPrice);
   const oldPriceSizeClass = getMobileProductCardPriceSizeClass(formattedOldPrice);
-  const priceSizeClass = getMobilePriceSizeClass(formattedPrice);
-  const oldPriceSizeClass = getMobilePriceSizeClass(formattedOldPrice);
   const supportsSpicy = product.supportsSpicy ?? false;
   const supportsGreens = product.supportsGreens ?? false;
   const greensTopClass = supportsSpicy ? 'top-[38px]' : 'top-[11px]';
@@ -258,7 +256,6 @@ const MOBILE_HOME_HEADER_STACKING_CLASS = 'z-[100]';
 /** Horizontal inset for logo row + search on mobile home (keeps controls off screen edges). */
 const MOBILE_HOME_HEADER_HORIZONTAL_INSET_CLASS = 'px-4';
 
-export function FigmaHomePageMobile() {
 type FigmaHomePageMobileProps = {
   categories?: Array<{
     id: string;
@@ -322,8 +319,6 @@ export function FigmaHomePageMobile({ categories = [] }: FigmaHomePageMobileProp
       </header>
 
       <main className="relative z-10 mt-[87px] rounded-t-[30px] bg-white px-0 pb-[110px] pt-8">
-        <MobileCategoryStrip categoriesTitleClassName={categoriesTitleClassName} />
-      <main className="relative z-10 mt-[87px] rounded-t-[30px] bg-white px-[19px] pb-[110px] pt-8">
         <MobileCategoryStrip
           categories={displayCategories}
           categoriesTitleClassName={categoriesTitleClassName}
@@ -335,7 +330,7 @@ export function FigmaHomePageMobile({ categories = [] }: FigmaHomePageMobileProp
           <MobileCategorySliderIndicator />
         </div>
 
-        <div className={`mt-[30px] space-y-[22px] ${MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}`}>
+        <div className={'mt-[30px] space-y-[22px] ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
           <MobileSectionHeader title={t('products.categoryNavigation.newArrivals')} />
           <div className="grid grid-cols-2 gap-x-[14px] gap-y-[22px]">
             {mobileProducts.slice(0, 4).map((product) => (
@@ -344,7 +339,7 @@ export function FigmaHomePageMobile({ categories = [] }: FigmaHomePageMobileProp
           </div>
         </div>
 
-        <div className={`mt-[30px] space-y-[22px] ${MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}`}>
+        <div className={'mt-[30px] space-y-[22px] ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
           <MobileSectionHeader
             title={t('common.navigation.categories')}
             titleClassName={categoriesTitleClassName}
@@ -356,7 +351,7 @@ export function FigmaHomePageMobile({ categories = [] }: FigmaHomePageMobileProp
           </div>
         </div>
 
-        <div className={`mt-[30px] space-y-[22px] ${MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}`}>
+        <div className={'mt-[30px] space-y-[22px] ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
           <MobileSectionHeader
             title={t('common.navigation.categories')}
             titleClassName={categoriesTitleClassName}
