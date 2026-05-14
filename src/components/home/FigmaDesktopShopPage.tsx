@@ -48,6 +48,8 @@ type MenuCategory = {
   slug: string;
   title: string;
   iconUrl?: string | null;
+  /** When set (shop/combo DB categories), shown in the UI and used to block empty categories. */
+  productCount?: number;
 };
 
 type DesktopMenuPageProps = {
@@ -174,6 +176,21 @@ function useMenuSearchUrlSync(
   }, [router]);
 
   return { scheduleSearchQueryUrlSync, flushSearchQueryUrlSync };
+}
+
+function isMenuCategoryEmpty(category: MenuCategory): boolean {
+  return (
+    typeof category.productCount === 'number' &&
+    category.productCount === 0 &&
+    category.slug !== ''
+  );
+}
+
+function formatCategoryLabelWithCount(category: MenuCategory): string {
+  if (typeof category.productCount !== 'number') {
+    return category.title;
+  }
+  return `${category.title} (${category.productCount})`;
 }
 
 const categoryIconUrls: readonly string[] = [
@@ -501,19 +518,27 @@ export function FigmaDesktopMenuPage({
             <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {dbCategories.map((category) => {
                 const isActive = activeCategorySlug === category.slug;
+                const empty = isMenuCategoryEmpty(category);
                 return (
                   <button
                     key={category.id}
                     type="button"
+                    aria-disabled={empty}
+                    tabIndex={empty ? -1 : undefined}
                     onClick={() => {
+                      if (empty) {
+                        return;
+                      }
                       router.push(buildTargetPath(category.slug));
                     }}
                     aria-pressed={isActive}
                     className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold ${
                       isActive ? 'bg-[#ff7f20] text-white' : 'bg-[#f3f3f5] text-[#3c2f2f]'
+                    } ${empty ? 'cursor-not-allowed' : ''} ${
+                      empty && !isActive ? 'opacity-50 hover:bg-[#f3f3f5]' : ''
                     }`}
                   >
-                    {category.title}
+                    {formatCategoryLabelWithCount(category)}
                   </button>
                 );
               })}
@@ -636,22 +661,30 @@ export function FigmaDesktopMenuPage({
               {hasDbCategories
                 ? dbCategories.map((category) => {
                     const isActive = activeCategorySlug === category.slug;
+                    const empty = isMenuCategoryEmpty(category);
                     return (
                       <button
                         key={category.id}
                         type="button"
+                        aria-disabled={empty}
+                        tabIndex={empty ? -1 : undefined}
                         onClick={() => {
+                          if (empty) {
+                            return;
+                          }
                           router.push(buildTargetPath(category.slug));
                         }}
                         aria-pressed={isActive}
-                        className={`flex h-10 w-full items-center rounded-[10px] px-3 py-[10px] text-left text-[14px] font-medium leading-5 tracking-[-0.15px] ${
+                        className={`flex h-10 w-full min-w-0 items-center gap-2 rounded-[10px] px-3 py-[10px] text-left text-[14px] font-medium leading-5 tracking-[-0.15px] ${
                           isActive ? 'rounded-[30px] bg-[#ff7f20] text-white' : 'text-white hover:bg-white/10'
+                        } ${empty ? 'cursor-not-allowed' : ''} ${
+                          empty && !isActive ? 'opacity-50 hover:bg-transparent' : ''
                         }`}
                       >
-                        <span className="mr-3 inline-flex h-6 w-6 shrink-0 items-center justify-center" aria-hidden="true">
+                        <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center" aria-hidden="true">
                           {category.iconUrl ? <img src={category.iconUrl} alt="" className="h-6 w-6 object-contain" /> : null}
                         </span>
-                        <span>{category.title}</span>
+                        <span className="min-w-0 flex-1 truncate">{formatCategoryLabelWithCount(category)}</span>
                       </button>
                     );
                   })
