@@ -7,9 +7,24 @@ import {
   normalizeProductCustomizations,
   type ProductCustomizations,
 } from "../cart/customizations";
+import { sumVerifiedAttributePriceAdjustment } from "../cart/attribute-price-adjustment";
+import { cartVariantDisplayLinesFromPrismaOptions } from "../cart/cart-variant-display-lines";
 import { ensureCartItemCustomizationsColumn } from "../utils/db-ensure";
 
 class CartService {
+  private extractVariantImageUrl(imageUrl: string | null | undefined): string | null {
+    if (!imageUrl) {
+      return null;
+    }
+
+    const first = imageUrl
+      .split(",")
+      .map((part) => part.trim())
+      .find((part) => part.length > 0);
+
+    return first || null;
+  }
+
   private isCartCustomizationsMissingError(error: unknown): boolean {
     const errorObj = error as { code?: string; message?: string };
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -61,6 +76,16 @@ class CartService {
             include: {
               variant: {
                 include: {
+                  options: {
+                    include: {
+                      attributeValue: {
+                        include: {
+                          attribute: { select: { key: true } },
+                          translations: true,
+                        },
+                      },
+                    },
+                  },
                   product: {
                     include: {
                       translations: true,
@@ -105,6 +130,16 @@ class CartService {
               include: {
                 variant: {
                   include: {
+                    options: {
+                      include: {
+                        attributeValue: {
+                          include: {
+                            attribute: { select: { key: true } },
+                            translations: true,
+                          },
+                        },
+                      },
+                    },
                     product: {
                       include: {
                         translations: true,
@@ -133,7 +168,21 @@ class CartService {
       }
     }
 
-    // Format items using already-loaded cart data (no N+1: no extra DB calls per item)
+    const attributeAdjustments = await Promise.all(
+      cart.items.map(async (item) => {
+        const custom = normalizeProductCustomizations(item.customizations);
+        const adj = await sumVerifiedAttributePriceAdjustment(
+          item.variantId,
+          custom?.selectedAttributeValueIds
+        );
+        return { itemId: item.id, adj };
+      })
+    );
+    const adjustmentByItemId = new Map(
+      attributeAdjustments.map(({ itemId, adj }) => [itemId, adj])
+    );
+
+    // Format items using already-loaded cart data
     const itemsWithDetails = cart.items.map((item) => {
         const product = item.product;
         const variant = item.variant;
@@ -141,7 +190,7 @@ class CartService {
           product?.translations?.find((t: { locale: string }) => t.locale === locale) ||
           product?.translations?.[0];
 
-        const imageUrl = extractMediaUrl(product?.media);
+        const imageUrl = this.extractVariantImageUrl(variant?.imageUrl) ?? extractMediaUrl(product?.media);
 
         const productDiscount = product?.discountPercent ?? 0;
         let appliedDiscount = 0;
@@ -161,14 +210,24 @@ class CartService {
           }
         }
 
-        const variantOriginalPrice = variant?.price ?? 0;
+        const snapshotRaw = item.priceSnapshot != null ? Number(item.priceSnapshot) : NaN;
+        const recomputedAdj = adjustmentByItemId.get(item.id) ?? 0;
+        const listPriceBase =
+          Number.isFinite(snapshotRaw) && snapshotRaw >= 0
+            ? snapshotRaw
+            : (variant?.price ?? 0) + recomputedAdj;
+
+        const variantOriginalPrice = listPriceBase;
         let finalPrice = variantOriginalPrice;
         let originalPrice: number | null = null;
         if (appliedDiscount > 0 && variantOriginalPrice > 0) {
           finalPrice = variantOriginalPrice * (1 - appliedDiscount / 100);
           originalPrice = variantOriginalPrice;
-        } else if (variant?.compareAtPrice != null && variant.compareAtPrice > variantOriginalPrice) {
-          originalPrice = Number(variant.compareAtPrice);
+        } else if (variant?.compareAtPrice != null) {
+          const compareAtAdjusted = Number(variant.compareAtPrice) + recomputedAdj;
+          if (compareAtAdjusted > listPriceBase) {
+            originalPrice = compareAtAdjusted;
+          }
         }
 
         return {
@@ -177,6 +236,7 @@ class CartService {
             id: variant?.id ?? item.variantId,
             sku: variant?.sku ?? "",
             stock: variant?.stock ?? 0,
+            displayLines: cartVariantDisplayLinesFromPrismaOptions(variant?.options, locale),
             product: {
               id: product?.id ?? "",
               title: translation?.title ?? "",
@@ -321,6 +381,12 @@ class CartService {
       };
     }
 
+    const attrAdj = await sumVerifiedAttributePriceAdjustment(
+      variantId,
+      normalizedCustomizations?.selectedAttributeValueIds
+    );
+    const unitPriceWithAdjustments = Number(variant.price) + attrAdj;
+
     let item;
     if (existingItem) {
       logger.debug("Cart: updating existing item", {
@@ -377,7 +443,7 @@ class CartService {
             productId,
             quantity,
             customizations: normalizedCustomizations as Prisma.InputJsonValue | undefined,
-            priceSnapshot: variant.price,
+            priceSnapshot: unitPriceWithAdjustments,
           },
         });
       try {
@@ -391,7 +457,7 @@ class CartService {
       }
       const itemsForSum = [
         ...resolvedCart.items.map((i: { quantity: number; priceSnapshot: unknown }) => ({ q: i.quantity, p: Number(i.priceSnapshot) })),
-        { q: quantity, p: Number(variant.price) },
+        { q: quantity, p: unitPriceWithAdjustments },
       ];
       const itemsCount = itemsForSum.reduce((sum, i) => sum + i.q, 0);
       const total = itemsForSum.reduce((sum, i) => sum + i.q * i.p, 0);
