@@ -4,6 +4,7 @@ import { customAlphabet } from "nanoid";
 import type { CheckoutData } from "../types/checkout";
 import { logger } from "../utils/logger";
 import { resolveFixedDeliveryFees } from "../delivery-rules";
+import { COUPON_CODE_REGEX } from "../coupon-code-format";
 import { extractMediaUrl } from "../utils/extractMediaUrl";
 import {
   formatCustomizationsForVariantTitle,
@@ -122,11 +123,11 @@ function normalizeCouponCode(input: unknown): string | null {
   if (typeof input !== "string") {
     return null;
   }
-  const normalized = input.trim().toUpperCase();
+  const normalized = input.trim();
   if (!normalized) {
     return null;
   }
-  if (!/^[A-Z0-9_-]{3,32}$/.test(normalized)) {
+  if (!COUPON_CODE_REGEX.test(normalized)) {
     throw {
       status: 400,
       type: "https://api.shop.am/problems/validation-error",

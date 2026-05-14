@@ -5,10 +5,11 @@ import { useParams, useRouter } from 'next/navigation';
 import { Button, Card } from '@shop/ui';
 import { useAuth } from '../../../../../lib/auth/AuthContext';
 import { useTranslation } from '../../../../../lib/i18n-client';
-import { apiClient } from '../../../../../lib/api-client';
+import { ApiError, apiClient } from '../../../../../lib/api-client';
 import { logger } from '../../../../../lib/utils/logger';
 
 type CouponDiscountType = 'percent' | 'fixed';
+const MAX_PERCENT_COUPON_VALUE = 100;
 const MAX_USES_PER_USER_OPTIONS = ['', '1', '2', '3', '5', '10', '20', '50', '100'] as const;
 
 interface CouponItem {
@@ -78,7 +79,7 @@ export default function EditPromocodePage() {
   const params = useParams<{ code: string }>();
   const { isLoggedIn, isAdmin, isLoading } = useAuth();
 
-  const rawCode = useMemo(() => {
+  const couponCode = useMemo(() => {
     if (!params?.code || typeof params.code !== 'string') {
       return '';
     }
@@ -88,7 +89,6 @@ export default function EditPromocodePage() {
       return params.code;
     }
   }, [params?.code]);
-  const couponCode = rawCode.toUpperCase();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -147,6 +147,10 @@ export default function EditPromocodePage() {
       alert(t('admin.promocode.invalidDiscount'));
       return;
     }
+    if (form.discountType === 'percent' && discountValue > MAX_PERCENT_COUPON_VALUE) {
+      alert(t('admin.promocode.percentDiscountTooHigh'));
+      return;
+    }
 
     const minOrderAmount = form.minOrderAmount.trim()
       ? Number(form.minOrderAmount)
@@ -193,7 +197,7 @@ export default function EditPromocodePage() {
       router.push('/supersudo/promocode');
     } catch (error: unknown) {
       logger.error('Failed to update coupon', { error, couponCode, payload });
-      alert(t('admin.promocode.saveError'));
+      alert(error instanceof ApiError ? error.message : t('admin.promocode.saveError'));
     } finally {
       setSaving(false);
     }
@@ -251,6 +255,7 @@ export default function EditPromocodePage() {
             <input
               type="number"
               min="0"
+              max={form.discountType === 'percent' ? MAX_PERCENT_COUPON_VALUE : undefined}
               step="0.01"
               value={form.discountValue}
               onChange={(event) =>
@@ -259,6 +264,9 @@ export default function EditPromocodePage() {
               className="w-full rounded-md border border-[#ebd3c1] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#f7bc95]"
               placeholder={t('admin.promocode.discountPlaceholder')}
             />
+            {form.discountType === 'percent' ? (
+              <p className="mt-1 text-xs text-gray-500">{t('admin.promocode.discountValuePercentHint')}</p>
+            ) : null}
           </div>
 
           <div>

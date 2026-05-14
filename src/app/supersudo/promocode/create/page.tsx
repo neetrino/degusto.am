@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation';
 import { Button, Card } from '@shop/ui';
 import { useAuth } from '../../../../lib/auth/AuthContext';
 import { useTranslation } from '../../../../lib/i18n-client';
-import { apiClient } from '../../../../lib/api-client';
+import { ApiError, apiClient } from '../../../../lib/api-client';
 import { logger } from '../../../../lib/utils/logger';
 
 type CouponDiscountType = 'percent' | 'fixed';
+const MAX_PERCENT_COUPON_VALUE = 100;
 const MAX_USES_PER_USER_OPTIONS = ['', '1', '2', '3', '5', '10', '20', '50', '100'] as const;
 
 interface CouponFormState {
@@ -65,6 +66,10 @@ export default function CreatePromocodePage() {
       alert(t('admin.promocode.invalidDiscount'));
       return;
     }
+    if (form.discountType === 'percent' && discountValue > MAX_PERCENT_COUPON_VALUE) {
+      alert(t('admin.promocode.percentDiscountTooHigh'));
+      return;
+    }
 
     const minOrderAmount = form.minOrderAmount.trim()
       ? Number(form.minOrderAmount)
@@ -90,7 +95,7 @@ export default function CreatePromocodePage() {
       return;
     }
 
-    const code = form.code.trim().toUpperCase();
+    const code = form.code.trim();
     if (!code) {
       alert(t('admin.promocode.codeRequired'));
       return;
@@ -115,7 +120,7 @@ export default function CreatePromocodePage() {
       router.push('/supersudo/promocode');
     } catch (error: unknown) {
       logger.error('Failed to create coupon', { error, payload });
-      alert(t('admin.promocode.saveError'));
+      alert(error instanceof ApiError ? error.message : t('admin.promocode.saveError'));
     } finally {
       setSaving(false);
     }
@@ -152,7 +157,7 @@ export default function CreatePromocodePage() {
               type="text"
               value={form.code}
               onChange={(event) =>
-                setForm((prev) => ({ ...prev, code: event.target.value.toUpperCase() }))
+                setForm((prev) => ({ ...prev, code: event.target.value }))
               }
               className="w-full rounded-md border border-[#ebd3c1] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#f7bc95]"
               placeholder={t('admin.promocode.codePlaceholder')}
@@ -185,6 +190,7 @@ export default function CreatePromocodePage() {
             <input
               type="number"
               min="0"
+              max={form.discountType === 'percent' ? MAX_PERCENT_COUPON_VALUE : undefined}
               step="0.01"
               value={form.discountValue}
               onChange={(event) =>
@@ -193,6 +199,9 @@ export default function CreatePromocodePage() {
               className="w-full rounded-md border border-[#ebd3c1] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#f7bc95]"
               placeholder={t('admin.promocode.discountPlaceholder')}
             />
+            {form.discountType === 'percent' ? (
+              <p className="mt-1 text-xs text-gray-500">{t('admin.promocode.discountValuePercentHint')}</p>
+            ) : null}
           </div>
 
           <div>

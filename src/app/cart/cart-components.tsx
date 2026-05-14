@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Button } from '@shop/ui';
 import { formatPrice } from '../../lib/currency';
 import type { CurrencyCode } from '../../lib/currency';
+import { COUPON_CODE_REGEX } from '../../lib/coupon-code-format';
 import type { Cart, CartItem } from './types';
 
 function cartVariantGroupHeading(attributeKey: string, t: (key: string) => string): string {
@@ -286,8 +287,8 @@ export function OrderSummary({ cart, currency, t }: OrderSummaryProps) {
   const [applyingPromo, setApplyingPromo] = useState(false);
 
   async function validateAndApplyPromoCode(rawCode: string, silent = false) {
-    const normalizedCode = rawCode.trim().toUpperCase();
-    if (!/^[A-Z0-9_-]{3,32}$/.test(normalizedCode)) {
+    const trimmedCode = rawCode.trim();
+    if (!COUPON_CODE_REGEX.test(trimmedCode)) {
       setAppliedPromoCode('');
       setPromoDiscountAmount(0);
       localStorage.removeItem(COUPON_CODE_STORAGE_KEY);
@@ -300,7 +301,7 @@ export function OrderSummary({ cart, currency, t }: OrderSummaryProps) {
     try {
       setApplyingPromo(true);
       const responseData = await requestCouponValidation(
-        normalizedCode,
+        trimmedCode,
         cart.totals.subtotal
       );
 
@@ -331,12 +332,12 @@ export function OrderSummary({ cart, currency, t }: OrderSummaryProps) {
     if (!storedCode) {
       return;
     }
-    const normalizedCode = storedCode.trim().toUpperCase();
-    if (!normalizedCode) {
+    const trimmedStored = storedCode.trim();
+    if (!trimmedStored) {
       return;
     }
-    setPromoCodeInput(normalizedCode);
-    void validateAndApplyPromoCode(normalizedCode, true);
+    setPromoCodeInput(trimmedStored);
+    void validateAndApplyPromoCode(trimmedStored, true);
   }, [cart.totals.subtotal]);
 
   const handleApplyPromoCode = () => {
