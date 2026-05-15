@@ -2,9 +2,8 @@ import { NextResponse } from "next/server";
 import { pingDatabase } from "@/lib/db/ping-database";
 
 /**
- * GET /api/health
- * Returns 200 if DB is reachable, 503 otherwise.
- * Used by load balancers and monitoring.
+ * GET /api/health/db
+ * Verifies PostgreSQL connectivity from the Vercel runtime (no secrets in response).
  */
 export async function GET() {
   const result = await pingDatabase();
@@ -12,7 +11,7 @@ export async function GET() {
     return NextResponse.json(
       {
         status: "ok",
-        db: "ok",
+        database: "up",
         latencyMs: result.latencyMs,
       },
       { status: 200 }
@@ -22,7 +21,7 @@ export async function GET() {
   return NextResponse.json(
     {
       status: "error",
-      db: "unavailable",
+      database: "down",
       reason: result.reason,
     },
     { status: 503, headers: { "Retry-After": "15" } }

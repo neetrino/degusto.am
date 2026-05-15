@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { buildDatabaseUrlLogFields } from "@white-shop/db";
 import { logger } from "@/lib/utils/logger";
 
 const SERVICE_UNAVAILABLE = "https://api.shop.am/problems/service-unavailable";
@@ -70,7 +71,13 @@ export function apiRouteErrorResponse(
 
   if (isPrismaConnectionError(error)) {
     const code = isPrismaKnownRequestError(error) ? error.code : "init";
-    logger.warn(`${logLabel} database unreachable`, { code });
+    logger.warn(`${logLabel} database unreachable`, {
+      code,
+      ...buildDatabaseUrlLogFields(
+        (process.env.DATABASE_URL ?? "").trim(),
+        (process.env.DIRECT_URL ?? "").trim()
+      ),
+    });
     return NextResponse.json(
       {
         type: SERVICE_UNAVAILABLE,

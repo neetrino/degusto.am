@@ -25,6 +25,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(result, { headers: { "X-Cache": "MISS" } });
   } catch (error: unknown) {
-    return apiRouteErrorResponse(req, error, "[CATEGORIES TREE]");
+    const { searchParams } = new URL(req.url);
+    const lang = resolveStorefrontLocaleFromSearchParams(searchParams);
+    return apiRouteErrorResponse(req, error, `[CATEGORIES TREE] lang=${lang}`);
   }
 }

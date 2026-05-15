@@ -1,41 +1,17 @@
 import { PrismaClient } from "./src/generated/prisma-client";
+import {
+  assertNoBuildPlaceholderInRuntime,
+  buildDatabaseUrlLogFields,
+  isNextBuildWithoutDbEnv,
+  mergePostgresConnectionUrlTuning,
+  NEXT_BUILD_DB_PLACEHOLDER,
+} from "./postgres-connection";
 
 declare global {
   var prisma: PrismaClient | undefined;
 }
 
 const globalForPrisma = globalThis as typeof globalThis & { prisma?: PrismaClient };
-
-/** Valid-shaped URL only for `next build` when CI has no DB secrets (Prisma client must instantiate). */
-const NEXT_BUILD_DB_PLACEHOLDER =
-  "postgresql://localhost:5432/_next_build_placeholder?schema=public";
-
-function isNextBuildWithoutDbEnv(): boolean {
-  if (process.env.SKIP_DB_URL_VALIDATION === "1") {
-    return true;
-  }
-  const phase = process.env.NEXT_PHASE ?? "";
-  return (
-    phase === "phase-production-build" ||
-    phase === "phase-development-build" ||
-    phase === "phase-export"
-  );
-}
-
-/**
- * Append libpq params if missing: UTF-8 + bounded connect wait (faster fail than default).
- */
-function augmentDatabaseUrl(raw: string): string {
-  if (!raw) return raw;
-  let u = raw;
-  if (!u.includes("client_encoding=")) {
-    u += u.includes("?") ? "&client_encoding=UTF8" : "?client_encoding=UTF8";
-  }
-  if (!u.includes("connect_timeout=")) {
-    u += u.includes("?") ? "&connect_timeout=12" : "?connect_timeout=12";
-  }
-  return u;
-}
 
 let databaseUrl = (process.env.DATABASE_URL ?? "").trim();
 let directUrl = (process.env.DIRECT_URL ?? "").trim();
@@ -58,8 +34,10 @@ if (!directUrl) {
 }
 
 /** Resolved at module load so Prisma does not rely on `env("DATABASE_URL")` inside a Turbopack-bundled generated client (it can be inlined as empty). */
-const resolvedDatabaseUrl = augmentDatabaseUrl(databaseUrl);
-const resolvedDirectUrl = augmentDatabaseUrl(directUrl);
+const resolvedDatabaseUrl = mergePostgresConnectionUrlTuning(databaseUrl);
+const resolvedDirectUrl = mergePostgresConnectionUrlTuning(directUrl);
+
+assertNoBuildPlaceholderInRuntime(resolvedDatabaseUrl, resolvedDirectUrl);
 
 process.env.DATABASE_URL = resolvedDatabaseUrl;
 process.env.DIRECT_URL = resolvedDirectUrl;
@@ -69,22 +47,29 @@ const devPrismaLogs: Array<"query" | "error" | "warn"> =
     ? ["query", "error", "warn"]
     : ["error", "warn"];
 
+const prismaErrorFormat = process.env.NODE_ENV === "development" ? "pretty" : "minimal";
+
 const prismaClientOptions = {
   datasources: {
     db: {
       url: resolvedDatabaseUrl,
     },
   },
-  log: process.env.NODE_ENV === "development" ? devPrismaLogs : (["error"] as Array<"error">),
-  errorFormat: "pretty" as const,
+  log: process.env.NODE_ENV === "development" ? devPrismaLogs : (["error", "warn"] as Array<"error" | "warn">),
+  errorFormat: prismaErrorFormat as "pretty" | "minimal",
 };
 
-export const db =
-  globalForPrisma.prisma ?? new PrismaClient(prismaClientOptions);
+function logDatabaseBootstrapOnce(): void {
+  if (isNextBuildWithoutDbEnv()) return;
+  const meta = buildDatabaseUrlLogFields(resolvedDatabaseUrl, resolvedDirectUrl);
+  // Low-level package: structured stderr for Vercel/host logs (never log full URLs).
+  console.warn("[@white-shop/db] Connection config (no secrets)", JSON.stringify(meta));
+}
 
-// Prisma Client connects automatically on first query (lazy connection)
-// No need to call $connect() explicitly as it can cause issues in Next.js API routes
-// Connection will be established automatically when the first database query is made
+if (!globalForPrisma.prisma) {
+  globalForPrisma.prisma = new PrismaClient(prismaClientOptions);
+  logDatabaseBootstrapOnce();
+}
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;
-
+/** Reuse one client per serverless isolate / dev HMR (Prisma + Next.js guidance). */
+export const db = globalForPrisma.prisma;
