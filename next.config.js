@@ -19,8 +19,8 @@ const nextConfig = {
   reactStrictMode: true,
   // Скрыть индикатор "Compiling..." в углу в dev — не мешает на экране
   devIndicators: false,
-  // Prisma: avoid Turbopack/webpack inlining `env("DATABASE_URL")` inside bundled `@prisma/client` (empty URL at runtime).
-  serverExternalPackages: ['@prisma/client', 'prisma'],
+  // Prisma: avoid Turbopack/webpack inlining `env("DATABASE_URL")` inside bundled client (empty URL at runtime).
+  serverExternalPackages: ['@prisma/client', 'prisma', '@white-shop/db'],
   transpilePackages: ['@shop/ui', '@shop/design-tokens'],
   // Standalone output - prevents prerendering of 404 page
   output: 'standalone',
@@ -122,18 +122,19 @@ const nextConfig = {
     // Resolve workspace packages and path aliases
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@': path.resolve(__dirname, 'src'),
-      '@shop/ui': path.resolve(__dirname, 'shared/ui'),
-      '@shop/design-tokens': path.resolve(__dirname, 'shared/design-tokens'),
+      "@": path.resolve(__dirname, "src"),
+      "@shop/ui": path.resolve(__dirname, "shared/ui"),
+      "@shop/design-tokens": path.resolve(__dirname, "shared/design-tokens"),
+      "@prisma/client": path.resolve(__dirname, "shared/db/src/generated/prisma-client"),
     };
     
     return config;
   },
   // Turbopack configuration for monorepo
   // Required when webpack config is present - Next.js 16 requires explicit turbopack config
-  // Set root to project root where Next.js is installed in node_modules (monorepo workspace)
+  // Use `__dirname` (not `path.resolve`) so Turbopack NFT does not trace the whole tree via `path.*`.
   turbopack: {
-    root: path.resolve(__dirname, '.'),
+    root: __dirname,
   },
 };
 
