@@ -48,8 +48,8 @@ function collectSelectedAttributeValueIdsForCart(
 
 /** White behind header on PDP so the UniversalHeader spacer matches the chrome, not orange. */
 const PDP_BODY_BACKGROUND = '#ffffff';
-/** Pull orange shell under the fixed header stack (104px spacer) like login layout. */
-const PDP_HEADER_UNDERLAP_CLASS = 'relative z-10 -mt-[104px] pt-[104px]';
+/** Desktop: pull orange shell under the fixed header stack (104px spacer) like login layout. */
+const PDP_HEADER_DESKTOP_UNDERLAP_CLASS = 'lg:relative lg:z-10 lg:-mt-[104px] lg:pt-[104px]';
 
 export default function ProductPage({ params }: ProductPageProps) {
   const { isLoggedIn } = useAuth();
@@ -176,7 +176,7 @@ export default function ProductPage({ params }: ProductPageProps) {
     return (
       <>
         <BodyBackground color={PDP_BODY_BACKGROUND} />
-        <div className={PDP_HEADER_UNDERLAP_CLASS}>
+        <div className={PDP_HEADER_DESKTOP_UNDERLAP_CLASS}>
           <ProductPageShell />
         </div>
       </>
@@ -187,8 +187,8 @@ export default function ProductPage({ params }: ProductPageProps) {
     return (
       <>
         <BodyBackground color={PDP_BODY_BACKGROUND} />
-        <div className={PDP_HEADER_UNDERLAP_CLASS}>
-          <div className="max-w-7xl mx-auto px-4 py-16 text-center space-y-4">
+        <div className={PDP_HEADER_DESKTOP_UNDERLAP_CLASS}>
+          <div className="mx-auto max-w-7xl max-lg:px-0 px-4 py-16 text-center space-y-4">
             <p className="text-lg text-neutral-600">{t(language, 'common.messages.noProductsFound')}</p>
             <Link
               href="/shop"
@@ -206,8 +206,8 @@ export default function ProductPage({ params }: ProductPageProps) {
     return (
       <>
         <BodyBackground color={PDP_BODY_BACKGROUND} />
-        <div className={PDP_HEADER_UNDERLAP_CLASS}>
-          <div className="max-w-7xl mx-auto px-4 py-16 text-center space-y-4">
+        <div className={PDP_HEADER_DESKTOP_UNDERLAP_CLASS}>
+          <div className="mx-auto max-w-7xl max-lg:px-0 px-4 py-16 text-center space-y-4">
             <p className="text-lg text-neutral-600">{t(language, 'common.messages.invalidProduct')}</p>
             <Link
               href="/shop"
@@ -225,10 +225,12 @@ export default function ProductPage({ params }: ProductPageProps) {
     <>
       <BodyBackground color={PDP_BODY_BACKGROUND} />
       <div
-        className={`${PDP_HEADER_UNDERLAP_CLASS} min-h-dvh overflow-x-hidden bg-[var(--project-color)]`}
+        className={`${PDP_HEADER_DESKTOP_UNDERLAP_CLASS} min-h-dvh overflow-x-hidden max-lg:min-h-0 lg:min-h-dvh lg:bg-[var(--project-color)]`}
       >
-        <ProjectGreenStripes extendFirstStrokeUp />
-        <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
+        <div className="hidden lg:block">
+          <ProjectGreenStripes extendFirstStrokeUp />
+        </div>
+        <div className="relative z-10 mx-auto max-w-7xl max-lg:px-0 px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
           <section className="rounded-3xl border border-neutral-200 bg-white p-4 sm:p-6 lg:p-8 shadow-[0_8px_28px_rgba(0,0,0,0.06)]">
             <div className="grid grid-cols-1 lg:grid-cols-[55%_45%] gap-10 lg:gap-12 items-start">
             <ProductImageGallery

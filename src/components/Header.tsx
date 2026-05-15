@@ -635,7 +635,7 @@ export function Header() {
       {/* Desktop top bar — hides on scroll down; main nav stays visible */}
       <div
         ref={topBarRef}
-        className={`fixed top-0 inset-x-0 z-[60] hidden md:block bg-white border-b border-gray-200 ${
+        className={`fixed top-0 inset-x-0 z-[60] hidden lg:block bg-white border-b border-gray-200 ${
           revealHeaderForCartFly ? 'transition-none' : HEADER_TOPBAR_SCROLL_TRANSITION_CLASS
         } ${
           headerScrollVisible ? 'translate-y-0' : '-translate-y-full pointer-events-none'
@@ -749,11 +749,11 @@ export function Header() {
       <div className="max-w-7xl mx-auto pl-2 sm:pl-4 md:pl-6 lg:pl-8 pr-2 sm:pr-4 md:pr-6 lg:pr-8">
         <div className="flex flex-wrap items-center gap-2 sm:gap-4 py-4 md:py-3">
           {/* Logo + Mobile Menu */}
-          <div className="relative flex w-full items-center justify-between md:w-auto md:justify-start">
+          <div className="relative flex w-full items-center justify-between lg:w-auto lg:justify-start">
             <button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
-              className="md:hidden w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+              className="lg:hidden w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
               aria-label={t('common.ariaLabels.openMenu')}
               aria-expanded={mobileMenuOpen}
             >
@@ -761,14 +761,14 @@ export function Header() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7h16M4 12h16M4 17h16" />
               </svg>
             </button>
-            <div className="hidden md:block">
+            <div className="hidden lg:block">
               <BrandLogoLink />
             </div>
-            <div className="absolute left-1/2 -translate-x-1/2 md:hidden">
+            <div className="absolute left-1/2 -translate-x-1/2 lg:hidden">
               <BrandLogoLink />
             </div>
             {/* Mobile language + currency via single globe */}
-            <div className="flex items-center gap-1 sm:gap-2 md:hidden">
+            <div className="flex items-center gap-1 sm:gap-2 lg:hidden">
               <div className="relative" ref={mobileCurrencyRef}>
                 <button
                   type="button"
@@ -817,7 +817,7 @@ export function Header() {
           </div>
 
           {/* Navigation Links - Centered */}
-          <nav className="order-3 hidden w-full items-center justify-center gap-1 md:order-none md:flex md:flex-1">
+          <nav className="order-3 hidden w-full items-center justify-center gap-1 lg:order-none lg:flex lg:flex-1">
             <Link
               href="/"
               {...getFastNavHandlers('/')}
@@ -854,7 +854,7 @@ export function Header() {
 
 
           {/* Right Side Actions - Icons Only */}
-          <div className="ml-auto hidden items-center gap-2 md:flex">
+          <div className="ml-auto hidden items-center gap-2 lg:flex">
             <div
               className="relative mr-1"
               onMouseEnter={() => setSearchHoverExpanded(true)}
@@ -1007,7 +1007,7 @@ export function Header() {
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 z-50 flex md:hidden bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex lg:hidden bg-black/40 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
           onClick={() => setMobileMenuOpen(false)}

@@ -2,18 +2,20 @@
 
 import type { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
+import { usesStorefrontMobileChrome } from '../lib/uses-storefront-mobile-chrome';
 
 /**
- * Root flex shell: mobile bottom padding for fixed nav, except on `/` where
- * FigmaHomePageMobile already reserves space (`pb-[110px]` on main).
+ * Root flex shell: mobile bottom padding for fixed nav when the page does not
+ * reserve space itself (home and mobile Figma chrome use `pb-[110px]` on the content surface).
  */
 export function LayoutShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const reserveMobileNavSpace = pathname !== '/';
+  const chrome = usesStorefrontMobileChrome(pathname);
+  const reserveMobileNavSpace = pathname !== '/' && !chrome;
 
   return (
     <div
-      className={`flex min-h-screen flex-col${reserveMobileNavSpace ? ' pb-16 lg:pb-0' : ''}`}
+      className={`flex min-h-screen flex-col${reserveMobileNavSpace ? ' pb-[110px] lg:pb-0' : ''}`}
     >
       {children}
     </div>

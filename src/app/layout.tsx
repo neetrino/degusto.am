@@ -6,6 +6,7 @@ import { ConditionalHeader } from '../components/ConditionalHeader';
 import { ConditionalFooter } from '../components/ConditionalFooter';
 import { ConditionalMobileBottomNav } from '../components/ConditionalMobileBottomNav';
 import { LayoutShell } from '../components/LayoutShell';
+import { MobileStorefrontChrome } from '../components/mobile/MobileStorefrontChrome';
 import { cookies } from 'next/headers';
 import { resolveStorefrontLocaleFromCookie } from '@/lib/i18n/locale';
 import { getSiteMetadataCopy } from '@/lib/i18n/metadata';
@@ -37,7 +38,7 @@ export default function RootLayout({
             <LayoutShell>
               <ConditionalHeader />
               <main className="flex-1 w-full">
-                {children}
+                <MobileStorefrontChrome>{children}</MobileStorefrontChrome>
               </main>
               <ConditionalFooter />
               <ConditionalMobileBottomNav />

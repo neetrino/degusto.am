@@ -8,15 +8,14 @@ import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
 import { formatPrice } from '../../lib/currency';
 import { useCurrency } from '../hooks/useCurrency';
 import { getHomeCategoryHref } from './homeCategoryLinks';
+import {
+  MOBILE_FIGMA_HEADER_HORIZONTAL_INSET_CLASS,
+  MOBILE_FIGMA_HEADER_STACKING_CLASS,
+  MOBILE_FIGMA_STOREFRONT_ASSETS,
+} from '@/constants/mobile-figma-storefront';
 
 const mobileAssets = {
-  logo: '/api/r2/logo/20260512-SkrFbnskhy.png',
-  callCircle: '/api/r2/assets/20260512-oiO5lHqN_7.svg',
-  callIcon: '/api/r2/icons/20260512-EM1Vpadi-M.svg',
-  switcherIcon: '/api/r2/icons/20260512-qZTYh7B1Ko.svg',
-  switcherArrow: '/api/r2/assets/20260512-XFFAtVhXmC.svg',
-  searchIcon: '/api/r2/icons/20260512-6InNAfSqmg.svg',
-  searchFilterButton: '/api/r2/search/20260512-X-wm1R4kZC.svg',
+  ...MOBILE_FIGMA_STOREFRONT_ASSETS,
   categoryFrame: '/api/r2/category/20260512-uqGTJqCe88.svg',
   categoryPizza: '/api/r2/category/20260512-w5zllSSAIo.png',
   categoryBurger: '/api/r2/category/20260512-1bbwOOTncy.png',
@@ -250,12 +249,6 @@ function MobileCategorySliderIndicator() {
 /** Inset for product grid sections (cards slightly narrower than full-bleed main). */
 const MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS = 'px-3';
 
-/** Stacking: header (incl. language dropdown) above main (`z-10`) and bottom nav (`z-40`). */
-const MOBILE_HOME_HEADER_STACKING_CLASS = 'z-[100]';
-
-/** Horizontal inset for logo row + search on mobile home (keeps controls off screen edges). */
-const MOBILE_HOME_HEADER_HORIZONTAL_INSET_CLASS = 'px-4';
-
 type FigmaHomePageMobileProps = {
   categories?: Array<{
     id: string;
@@ -284,7 +277,7 @@ export function FigmaHomePageMobile({ categories = [] }: FigmaHomePageMobileProp
       <div className="absolute -right-[160px] -top-[184px] h-[320px] w-[360px] rounded-full border-[70px] border-[#3E573D]" />
 
       <header
-        className={`relative ${MOBILE_HOME_HEADER_STACKING_CLASS} ${MOBILE_HOME_HEADER_HORIZONTAL_INSET_CLASS} pt-[58px]`}
+        className={`relative ${MOBILE_FIGMA_HEADER_STACKING_CLASS} ${MOBILE_FIGMA_HEADER_HORIZONTAL_INSET_CLASS} pt-[58px]`}
       >
         <div className="relative z-30 flex translate-y-[20px] items-start justify-between">
           <img src={mobileAssets.logo} alt="Degusto" className="h-[46px] w-[129px] object-contain" />
