@@ -7,9 +7,6 @@ import {
   AboutStatsSection,
 } from './about-sections';
 
-export const dynamic = 'force-dynamic';
-export const dynamicParams = true;
-
 /**
  * About Us: company story, stats, mission, and goals.
  */
