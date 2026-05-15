@@ -28,9 +28,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="h-full" style={{ backgroundColor: '#ffffff' }}>
-      <head>
-        <link rel="preload" as="image" href="/api/r2/hero/20260512-tOKhBzyB6u.png" />
-      </head>
       <body
         className="font-sans text-gray-900 antialiased min-h-full"
         style={{ backgroundColor: '#ffffff' }}

@@ -29,18 +29,21 @@ function isPrismaPoolTimeout(error: unknown): boolean {
 }
 
 /**
- * Retries pool timeouts; in development, returns fallback when PostgreSQL is unreachable
- * so the home layout still renders (FigmaHomePage uses built-in demo data when arrays are empty).
+ * Retries pool timeouts; returns fallback when PostgreSQL is unreachable (any env) so the
+ * home shell still renders (FigmaHomePage uses built-in demo data when arrays are empty).
  */
 async function withPrismaPoolRetry<T>(operation: () => Promise<T>, fallback: T, operationName: string): Promise<T> {
   for (let attempt = 0; attempt <= HOME_DB_RETRY_ATTEMPTS; attempt += 1) {
     try {
       return await operation();
     } catch (error: unknown) {
-      if (process.env.NODE_ENV === 'development' && isPrismaConnectionError(error)) {
+      if (isPrismaConnectionError(error)) {
         const code =
           error instanceof Prisma.PrismaClientKnownRequestError ? error.code : 'initialization';
-        logger.warn(`[HOME] Database unreachable in development; empty ${operationName}`, { code });
+        logger.warn(`[HOME] Database unreachable; empty ${operationName}`, {
+          code,
+          nodeEnv: process.env.NODE_ENV,
+        });
         return fallback;
       }
       if (!isPrismaPoolTimeout(error)) {
