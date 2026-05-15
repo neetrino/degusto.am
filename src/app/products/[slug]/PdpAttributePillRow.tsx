@@ -38,13 +38,13 @@ export function PdpAttributePillRow({
   const minWidthClass = totalValues > 6 ? 'min-w-[40px]' : 'min-w-[50px]';
 
   return (
-    <div className="flex w-full flex-col gap-2">
+    <div className="flex w-full flex-col gap-2.5">
       <label
-        className={`text-xs font-bold uppercase ${isUnavailable ? 'text-red-600' : 'text-neutral-700'}`}
+        className={`text-sm font-semibold tracking-tight ${isUnavailable ? 'text-red-600' : 'text-neutral-900'}`}
       >
         {title}:
       </label>
-      <div className="flex flex-wrap gap-1.5">
+      <div className="flex flex-wrap gap-2">
         {attrGroups.map((g) => {
           const displayStock = g.stock;
           const selectedRaw = selectedAttributeValues.get(attrKey);
@@ -63,19 +63,19 @@ export function PdpAttributePillRow({
               type="button"
               key={g.valueId || g.value}
               onClick={() => onAttributeValueSelect(attrKey, selectPayload)}
-              className={`${minWidthClass} ${paddingClass} flex items-center gap-1.5 rounded-lg border-2 transition-all ${
+              className={`${minWidthClass} ${paddingClass} flex items-center gap-1.5 rounded-xl border bg-white shadow-sm transition-all duration-200 ${
                 isSelected
-                  ? 'border-green-500 bg-gray-50'
+                  ? 'border-[#F66812] bg-orange-50/90 ring-1 ring-[#F66812]/25'
                   : displayStock <= 0
-                    ? 'border-gray-200 opacity-60 hover:opacity-80'
-                    : 'border-gray-200 hover:border-gray-400'
+                    ? 'border-neutral-200/80 opacity-55 hover:opacity-80'
+                    : 'border-neutral-200 hover:border-neutral-300 hover:shadow-md active:scale-[0.98]'
               }`}
             >
               {hasImage && processedImageUrl && (
                 <img
                   src={processedImageUrl}
                   alt={g.label}
-                  className={`${imageSizeClass} flex-shrink-0 rounded border border-gray-300 object-cover`}
+                  className={`${imageSizeClass} shrink-0 rounded-md border border-neutral-200 object-cover`}
                   onError={(e) => {
                     logger.warn('[PDP ATTR PILL] Image failed to load', {
                       attrKey,
@@ -86,11 +86,11 @@ export function PdpAttributePillRow({
                 />
               )}
               <div className="flex flex-col text-center">
-                <span className={`${textSizeClass} font-medium`}>
+                <span className={`${textSizeClass} font-medium text-neutral-900`}>
                   {getAttributeLabel(language, attrKey, g.value)}
                 </span>
                 <span
-                  className={`${totalValues > 10 ? 'text-[10px]' : 'text-xs'} ${displayStock > 0 ? 'text-gray-500' : 'text-gray-400'}`}
+                  className={`${totalValues > 10 ? 'text-[10px]' : 'text-xs'} tabular-nums ${displayStock > 0 ? 'text-neutral-500' : 'text-neutral-400'}`}
                 >
                   ({displayStock})
                 </span>

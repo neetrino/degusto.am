@@ -11,6 +11,7 @@ interface OrderSummaryModalProps {
     subtotalDisplay: number;
     bagFeeDisplay: number;
     shippingDisplay: number;
+    discountDisplay: number;
     totalDisplay: number;
   };
   currency: 'USD' | 'AMD' | 'EUR' | 'RUB' | 'GEL';
@@ -50,6 +51,8 @@ export function OrderSummaryModal({
           (shippingCity ? ` (${shippingCity})` : ` (${t('checkout.shipping.delivery')})`)
         : t('checkout.shipping.enterCity');
 
+  const hasDiscount = orderSummary.discountDisplay > 0;
+
   return (
     <div className="space-y-2 rounded-xl border border-[#F66812]/15 bg-[#F66812]/[0.05] p-4">
       <div className="flex justify-between gap-2 text-sm">
@@ -62,6 +65,14 @@ export function OrderSummaryModal({
           {formatPriceInCurrency(orderSummary.subtotalDisplay, currency)}
         </span>
       </div>
+      {hasDiscount ? (
+        <div className="flex justify-between gap-2 text-sm">
+          <span className={CHECKOUT_TEXT_LABEL}>{t('common.cart.discount')}:</span>
+          <span className={`font-medium text-green-600 ${CHECKOUT_TEXT_VALUE}`}>
+            −{formatPriceInCurrency(orderSummary.discountDisplay, currency)}
+          </span>
+        </div>
+      ) : null}
       <div className="flex justify-between gap-2 text-sm">
         <span className={CHECKOUT_TEXT_LABEL}>{t('checkout.summary.shipping')}:</span>
         <span className={`text-right ${CHECKOUT_TEXT_VALUE}`}>{shippingDisplay}</span>

@@ -130,7 +130,7 @@ export function useOrders({
           result.skippedCount > 0 ? `, ${result.skippedCount} ${t('profile.orderDetails.skipped')}` : '';
         onSuccess(`${result.addedCount} ${t('profile.orderDetails.itemsAdded')}${skippedText}`);
         setTimeout(() => {
-          router.push('/cart');
+          router.push('/shop');
         }, 1500);
       } else {
         onError(t('profile.orderDetails.failedToAdd'));

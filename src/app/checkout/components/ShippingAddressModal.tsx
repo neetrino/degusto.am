@@ -24,6 +24,7 @@ interface ShippingAddressModalProps {
     subtotalDisplay: number;
     bagFeeDisplay: number;
     shippingDisplay: number;
+    discountDisplay: number;
     totalDisplay: number;
   };
   currency: 'USD' | 'AMD' | 'EUR' | 'RUB' | 'GEL';

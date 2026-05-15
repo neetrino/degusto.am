@@ -24,6 +24,10 @@ const nextConfig = {
   transpilePackages: ['@shop/ui', '@shop/design-tokens'],
   // Standalone output - prevents prerendering of 404 page
   output: 'standalone',
+  /** Full cart page removed; drawer-only cart — old URLs go to shop. */
+  async redirects() {
+    return [{ source: '/cart', destination: '/shop', permanent: false }];
+  },
   // Security headers (P1-SEC-07)
   async headers() {
     return [

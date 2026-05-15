@@ -14,6 +14,7 @@ import { useCurrency } from './hooks/useCurrency';
 import { readCartSummaryCache, writeCartSummaryCache } from '../lib/cartSummaryCache';
 import { useInstantSearch } from './hooks/useInstantSearch';
 import { SearchDropdown } from './SearchDropdown';
+import { useCartDrawer } from './cart-drawer/cart-drawer-context';
 
 const assets = {
   logo: 'https://www.figma.com/api/mcp/asset/b684f5ca-5543-4689-be84-ac53b6c5d14c',
@@ -47,6 +48,7 @@ interface CartResponse {
 export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: UniversalHeaderProps) {
   const [cartCount, setCartCount] = useState(0);
   const [cartTotal, setCartTotal] = useState(0);
+  const { openCartDrawer } = useCartDrawer();
   const { t } = useTranslation();
   const { isLoggedIn, isAdmin, logout } = useAuth();
   const currency = useCurrency();
@@ -245,20 +247,25 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
         </form>
         <div className="ml-3 flex items-center gap-[11px]">
           <div className="hidden items-center gap-[7px] md:flex">
-            <Link href="/cart" className="relative inline-flex h-12 min-w-[117px] shrink-0 items-center justify-end pl-10">
-              <span className="inline-flex h-12 min-w-[88px] items-center justify-center whitespace-nowrap rounded-[70px] bg-white px-4 text-base font-bold tabular-nums text-black">
+            <button
+              type="button"
+              onClick={() => openCartDrawer()}
+              className="relative inline-flex h-12 min-w-[117px] shrink-0 items-center justify-end pl-10"
+              aria-label={`${t('common.navigation.cart')}, ${formatPrice(cartTotal, currency)}`}
+            >
+              <span aria-hidden className="inline-flex h-12 min-w-[88px] items-center justify-center whitespace-nowrap rounded-[70px] bg-white px-4 text-base font-bold tabular-nums text-black">
                 {formatPrice(cartTotal, currency)}
               </span>
               <span data-cart-fly-target className="absolute bottom-[1px] left-2 inline-flex h-[34px] w-[37px] items-center justify-center">
                 <img src={assets.cartIcon} alt="" className="h-[34px] w-[37px] object-contain" />
               </span>
-              <span className="absolute left-[35px] top-[2px] inline-flex h-6 w-6 items-center justify-center">
+              <span aria-hidden className="absolute left-[35px] top-[2px] inline-flex h-6 w-6 items-center justify-center">
                 <img src={assets.cartCounterBubble} alt="" className="absolute h-6 w-6 object-contain" />
                 <span className="relative text-sm font-bold leading-6 text-white">
                   {cartCount > 99 ? '99+' : cartCount}
                 </span>
               </span>
-            </Link>
+            </button>
             <LanguageCurrencySwitcher
               variant="desktop"
               iconSrc={assets.switcherIcon}
