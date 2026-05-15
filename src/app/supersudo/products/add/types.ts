@@ -101,4 +101,11 @@ export interface GeneratedVariant {
   image: string | null;
 }
 
+/** Queued server payload for variant-builder hydration (replaces window globals). */
+export interface PendingVariantHydration {
+  productId: string;
+  variants: unknown[];
+  attributeIds: string[];
+}
+
 

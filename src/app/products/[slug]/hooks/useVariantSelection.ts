@@ -4,6 +4,21 @@ import { findVariantByColorAndSize, findVariantByAllAttributes } from '../utils/
 import { switchToVariantImage, handleColorSelect as handleColorSelectUtil } from '../utils/image-switching';
 import type { Product, ProductVariant, VariantOption } from '../types';
 
+export function otherAttributeSelectionsFromVariant(variant: ProductVariant | null): Map<string, string> {
+  const next = new Map<string, string>();
+  if (!variant?.options) return next;
+  for (const opt of variant.options) {
+    const key = opt.key || opt.attribute || '';
+    if (!key || key === 'color' || key === 'size') continue;
+    if (opt.valueId) {
+      next.set(key, opt.valueId);
+    } else if (opt.value) {
+      next.set(key, opt.value.trim());
+    }
+  }
+  return next;
+}
+
 interface UseVariantSelectionProps {
   product: Product | null;
   images: string[];
@@ -49,29 +64,37 @@ export function useVariantSelection({
       const sizeValue = getOptionValueFn(initialVariant.options, 'size');
       if (colorValue) setSelectedColor(colorValue);
       if (sizeValue) setSelectedSize(sizeValue);
+      setSelectedAttributeValues(otherAttributeSelectionsFromVariant(initialVariant));
     }
   }, [product, selectedVariant, getOptionValueFn, setSelectedVariant, setSelectedColor, setSelectedSize]);
 
-  // Update variant when selections change
+  // Update variant when selections change (partial selections allowed — fall back to best match)
   useEffect(() => {
-    if (product && product.variants && product.variants.length > 0) {
-      const newVariant = findVariantByAllAttributesFn(selectedColor, selectedSize, selectedAttributeValues);
-      if (newVariant && newVariant.id !== selectedVariant?.id) {
-        setSelectedVariant(newVariant);
-        switchToVariantImageFn(newVariant);
-        const colorValue = getOptionValueFn(newVariant.options, 'color');
-        const sizeValue = getOptionValueFn(newVariant.options, 'size');
-        if (colorValue && colorValue !== selectedColor?.toLowerCase().trim()) {
-          setSelectedColor(colorValue);
-        }
-        if (sizeValue && sizeValue !== selectedSize?.toLowerCase().trim()) {
-          setSelectedSize(sizeValue);
-        }
-      } else if (newVariant && newVariant.imageUrl) {
-        switchToVariantImageFn(newVariant);
-      }
+    if (!product?.variants?.length) return;
+    const relaxed =
+      findVariantByAllAttributesFn(selectedColor, selectedSize, selectedAttributeValues) ??
+      findVariantByColorAndSizeFn(selectedColor, selectedSize) ??
+      product.variants.find((v) => v.stock > 0) ??
+      product.variants[0] ??
+      null;
+    if (!relaxed) return;
+    if (relaxed.id !== selectedVariant?.id) {
+      setSelectedVariant(relaxed);
+      switchToVariantImageFn(relaxed);
+    } else if (relaxed.imageUrl) {
+      switchToVariantImageFn(relaxed);
     }
-  }, [selectedColor, selectedSize, selectedAttributeValues, findVariantByAllAttributesFn, selectedVariant?.id, product, getOptionValueFn, switchToVariantImageFn, setSelectedVariant, setSelectedColor, setSelectedSize]);
+  }, [
+    selectedColor,
+    selectedSize,
+    selectedAttributeValues,
+    findVariantByAllAttributesFn,
+    findVariantByColorAndSizeFn,
+    selectedVariant?.id,
+    product,
+    switchToVariantImageFn,
+    setSelectedVariant,
+  ]);
 
   const handleColorSelect = useCallback((color: string) => {
     handleColorSelectUtil(
@@ -110,15 +133,34 @@ export function useVariantSelection({
   }, [selectedAttributeValues]);
 
   const currentVariant = useMemo(() => {
-    return selectedVariant || findVariantByColorAndSizeFn(selectedColor, selectedSize) || product?.variants?.[0] || null;
-  }, [selectedVariant, findVariantByColorAndSizeFn, selectedColor, selectedSize, product?.variants]);
+    if (!product?.variants?.length) return null;
+    return (
+      findVariantByAllAttributesFn(selectedColor, selectedSize, selectedAttributeValues) ??
+      findVariantByColorAndSizeFn(selectedColor, selectedSize) ??
+      selectedVariant ??
+      product.variants.find((v) => v.stock > 0) ??
+      product.variants[0] ??
+      null
+    );
+  }, [
+    product,
+    selectedColor,
+    selectedSize,
+    selectedAttributeValues,
+    findVariantByAllAttributesFn,
+    findVariantByColorAndSizeFn,
+    selectedVariant,
+  ]);
 
   return {
     selectedVariant,
     setSelectedVariant,
     selectedColor,
+    setSelectedColor,
     selectedSize,
+    setSelectedSize,
     selectedAttributeValues,
+    setSelectedAttributeValues,
     currentVariant,
     getOptionValue: getOptionValueFn,
     handleColorSelect,

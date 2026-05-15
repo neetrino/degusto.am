@@ -105,7 +105,7 @@ export default async function ShopPage({
       },
     },
   } as const;
-  const productWhere: Prisma.ProductWhereInput = {
+  const productWhereBase: Prisma.ProductWhereInput = {
     published: true,
     deletedAt: null,
     ...comboExclusionCategoryFilter,
@@ -144,23 +144,29 @@ export default async function ShopPage({
         }
       : {}),
     ...(tasteFilter ? buildProductWhereTasteCapability(tasteFilter) : {}),
-    ...(selectedCategorySlug
-      ? {
-          categories: {
-            some: {
-              deletedAt: null,
-              published: true,
-              translations: {
-                some: {
-                  locale: { in: [locale, 'en'] },
-                  slug: selectedCategorySlug,
+  };
+
+  const productWhere: Prisma.ProductWhereInput = selectedCategorySlug
+    ? {
+        AND: [
+          productWhereBase,
+          {
+            categories: {
+              some: {
+                deletedAt: null,
+                published: true,
+                translations: {
+                  some: {
+                    locale: { in: [locale, 'en'] },
+                    slug: selectedCategorySlug,
+                  },
                 },
               },
             },
           },
-        }
-      : {}),
-  };
+        ],
+      }
+    : productWhereBase;
   const productTotal = await db.product.count({ where: productWhere });
   const totalPages =
     productTotal === 0 ? 0 : Math.ceil(productTotal / STORE_MENU_PAGE_SIZE);
@@ -280,7 +286,12 @@ export default async function ShopPage({
     },
   });
 
-  const categories: MenuCategory[] = [
+  const categoryEntries: Array<{
+    id: string;
+    slug: string;
+    title: string;
+    iconUrl: string | null;
+  }> = [
     {
       id: 'all',
       slug: '',
@@ -299,13 +310,56 @@ export default async function ShopPage({
       continue;
     }
 
-    categories.push({
+    categoryEntries.push({
       id: row.id,
       slug: translation.slug,
       title: resolveCategoryTitle(locale, translation),
       iconUrl: toImageUrl(row.media),
     });
   }
+
+  const slugsToCount = categoryEntries.filter((item) => item.slug !== '').map((item) => item.slug);
+
+  const [allProductCount, ...countsBySlug] = await Promise.all([
+    db.product.count({ where: productWhereBase }),
+    ...slugsToCount.map((slug) =>
+      db.product.count({
+        where: {
+          AND: [
+            productWhereBase,
+            {
+              categories: {
+                some: {
+                  deletedAt: null,
+                  published: true,
+                  translations: {
+                    some: {
+                      locale: { in: [locale, 'en'] },
+                      slug,
+                    },
+                  },
+                },
+              },
+            },
+          ],
+        },
+      })
+    ),
+  ]);
+
+  const slugToProductCount = new Map<string, number>();
+  slugsToCount.forEach((slug, index) => {
+    slugToProductCount.set(slug, countsBySlug[index] ?? 0);
+  });
+
+  const categories: MenuCategory[] = categoryEntries.map((entry) => ({
+    id: entry.id,
+    slug: entry.slug,
+    title: entry.title,
+    iconUrl: entry.iconUrl,
+    productCount:
+      entry.slug === '' ? allProductCount : (slugToProductCount.get(entry.slug) ?? 0),
+  }));
 
   const cards: MenuCard[] = productRows.map((row, index) => {
     const translation =

@@ -1,4 +1,5 @@
 import { db } from "@white-shop/db";
+import { COUPON_CODE_REGEX } from "@/lib/coupon-code-format";
 
 type AnalyticsPeriod = "day" | "week" | "month";
 
@@ -69,7 +70,7 @@ function normalizeCouponCode(code: string | null): string | null {
   if (!code) {
     return null;
   }
-  const normalized = code.trim().toUpperCase();
+  const normalized = code.trim();
   return normalized || null;
 }
 
@@ -77,8 +78,8 @@ function extractCouponCode(notes: string | null): string | null {
   if (!notes) {
     return null;
   }
-  const match = notes.match(/Coupon code:\s*([A-Z0-9_-]{3,32})/);
-  return match ? match[1].toUpperCase() : null;
+  const match = notes.match(new RegExp(`Coupon code:\\s*(${COUPON_CODE_REGEX.source.slice(1, -1)})`));
+  return match ? match[1] : null;
 }
 
 function dateKey(date: Date): string {
@@ -131,8 +132,7 @@ export class AdminCouponsAnalyticsService {
       if (!item || typeof item !== "object") {
         continue;
       }
-      const code =
-        typeof item.code === "string" ? item.code.trim().toUpperCase() : "";
+      const code = typeof item.code === "string" ? item.code.trim() : "";
       if (!code) {
         continue;
       }

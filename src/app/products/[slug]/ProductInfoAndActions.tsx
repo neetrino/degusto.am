@@ -23,8 +23,6 @@ interface ProductInfoAndActionsProps {
   quantity: number;
   maxQuantity: number;
   isOutOfStock: boolean;
-  isVariationRequired: boolean;
-  hasUnavailableAttributes: boolean;
   unavailableAttributes: Map<string, boolean>;
   canAddToCart: boolean;
   isAddingToCart: boolean;
@@ -42,7 +40,6 @@ interface ProductInfoAndActionsProps {
   onSizeSelect: (size: string) => void;
   onAttributeValueSelect: (attrKey: string, value: string) => void;
   getOptionValue: (options: any[] | undefined, key: string) => string | null;
-  getRequiredAttributesMessage: () => string;
 }
 
 export function ProductInfoAndActions({
@@ -58,8 +55,6 @@ export function ProductInfoAndActions({
   quantity,
   maxQuantity,
   isOutOfStock,
-  isVariationRequired,
-  hasUnavailableAttributes,
   unavailableAttributes,
   canAddToCart,
   isAddingToCart,
@@ -77,7 +72,6 @@ export function ProductInfoAndActions({
   onSizeSelect,
   onAttributeValueSelect,
   getOptionValue,
-  getRequiredAttributesMessage,
 }: ProductInfoAndActionsProps) {
   return (
     <div className="flex w-full max-w-full flex-col self-start p-4 sm:p-5 lg:p-6">
@@ -143,54 +137,18 @@ export function ProductInfoAndActions({
               colorGroups={colorGroups}
               sizeGroups={sizeGroups}
               language={language}
-              quantity={quantity}
-              maxQuantity={maxQuantity}
-              isOutOfStock={isOutOfStock}
-              isVariationRequired={isVariationRequired}
-              hasUnavailableAttributes={hasUnavailableAttributes}
-              canAddToCart={canAddToCart}
-              isAddingToCart={isAddingToCart}
               onColorSelect={onColorSelect}
               onSizeSelect={onSizeSelect}
               onAttributeValueSelect={onAttributeValueSelect}
-              onQuantityAdjust={onQuantityAdjust}
-              onAddToCart={onAddToCart}
               getOptionValue={getOptionValue}
-              getRequiredAttributesMessage={getRequiredAttributesMessage}
             />
           </div>
         </div>
 
         <div className="mt-[50px] pt-4">
-        {isVariationRequired && (
-          <div className="mb-3 rounded-lg bg-yellow-50 p-3">
-            <p className="text-sm text-yellow-800 font-medium">
-              {getRequiredAttributesMessage()}
-            </p>
-          </div>
-        )}
-        {hasUnavailableAttributes && !isVariationRequired && (
-          <div className="mb-3 rounded-lg bg-red-50 p-3">
-            <p className="text-sm text-red-800 font-medium">
-              {Array.from(unavailableAttributes.entries()).map(([attrKey]) => {
-                const productAttr = product?.productAttributes?.find((pa: unknown) => {
-                  if (typeof pa !== 'object' || pa === null) {
-                    return false;
-                  }
-                  const candidate = pa as { attribute?: { key?: string } };
-                  return candidate.attribute?.key === attrKey;
-                });
-                const attributeName = productAttr?.attribute?.name || attrKey.charAt(0).toUpperCase() + attrKey.slice(1);
-                return attrKey === 'color' ? t(language, 'product.color') : 
-                       attrKey === 'size' ? t(language, 'product.size') : 
-                       attributeName;
-              }).join(', ')} {t(language, 'product.outOfStock')}
-            </p>
-          </div>
-        )}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 sm:gap-3">
           <div
-            className="inline-flex h-12 shrink-0 items-center gap-0.5 rounded-[15px] border border-neutral-200 bg-white px-1.5"
+            className="inline-flex h-9 shrink-0 items-center gap-0 rounded-full border border-neutral-200 bg-white px-0.5 sm:h-10"
             role="group"
             aria-label={t(language, 'common.messages.quantity')}
           >
@@ -198,31 +156,31 @@ export function ProductInfoAndActions({
               type="button"
               onClick={() => onQuantityAdjust(-1)}
               disabled={quantity <= 1}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-35"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-35 sm:h-8 sm:w-8"
               aria-label={t(language, 'common.ariaLabels.decreaseQuantity')}
             >
-              <Minus className="h-4 w-4" strokeWidth={2.25} aria-hidden />
+              <Minus className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2.25} aria-hidden />
             </button>
-            <span className="min-w-[2.25rem] select-none text-center text-sm font-semibold tabular-nums text-neutral-900">
+            <span className="min-w-[1.75rem] select-none px-0.5 text-center text-xs font-semibold tabular-nums text-neutral-900 sm:min-w-[2rem] sm:text-sm">
               {quantity}
             </span>
             <button
               type="button"
               onClick={() => onQuantityAdjust(1)}
               disabled={quantity >= maxQuantity}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-35"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-35 sm:h-8 sm:w-8"
               aria-label={t(language, 'common.ariaLabels.increaseQuantity')}
             >
-              <Plus className="h-4 w-4" strokeWidth={2.25} aria-hidden />
+              <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2.25} aria-hidden />
             </button>
           </div>
           <button
             type="button"
             disabled={!canAddToCart || isAddingToCart}
-            className="h-12 flex-1 rounded-xl bg-orange-500 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-500"
+            className="h-9 flex-1 rounded-xl bg-orange-500 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-500 sm:h-10 sm:text-sm"
             onClick={onAddToCart}
           >
-            {isAddingToCart ? t(language, 'product.adding') : (isOutOfStock ? t(language, 'product.outOfStock') : (isVariationRequired ? getRequiredAttributesMessage() : (hasUnavailableAttributes ? t(language, 'product.outOfStock') : t(language, 'product.addToCart'))))}
+            {isAddingToCart ? t(language, 'product.adding') : (isOutOfStock ? t(language, 'product.outOfStock') : t(language, 'product.addToCart'))}
           </button>
         </div>
         </div>

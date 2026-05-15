@@ -3,6 +3,7 @@
 import { Button, Input } from '@shop/ui';
 import { UseFormRegister, UseFormSetValue, UseFormHandleSubmit, FieldErrors } from 'react-hook-form';
 import { useTranslation } from '../../../lib/i18n-client';
+import { CHECKOUT_MODAL_CLOSE_ICON, CHECKOUT_MODAL_PANEL, CHECKOUT_OUTLINE_BUTTON, CHECKOUT_PRIMARY_BUTTON, CHECKOUT_TEXT_INK } from '../checkout-ui';
 import { ContactInformation } from './ContactInformation';
 import { CardInputFields } from './CardInputFields';
 import { OrderSummaryModal } from './OrderSummaryModal';
@@ -21,9 +22,9 @@ interface ShippingAddressModalProps {
   cart: Cart | null;
   orderSummary: {
     subtotalDisplay: number;
-    taxDisplay: number;
     bagFeeDisplay: number;
     shippingDisplay: number;
+    discountDisplay: number;
     totalDisplay: number;
   };
   currency: 'USD' | 'AMD' | 'EUR' | 'RUB' | 'GEL';
@@ -76,20 +77,20 @@ export function ShippingAddressModal({
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
       onClick={onClose}
     >
-      <div 
-        className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto"
+      <div
+        className={CHECKOUT_MODAL_PANEL}
         onClick={(e) => e.stopPropagation()}
         style={{ zIndex: 10000 }}
       >
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-[#1F2E1F]">
             {shippingMethod === 'delivery' 
               ? t('checkout.modals.completeOrder') 
               : t('checkout.modals.confirmOrder')}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className={CHECKOUT_MODAL_CLOSE_ICON}
             aria-label={t('checkout.modals.closeModal')}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -107,7 +108,7 @@ export function ShippingAddressModal({
         {shippingMethod === 'delivery' ? (
           <>
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('checkout.shippingAddress')}</h3>
+              <h3 className="mb-4 text-lg font-semibold text-[#1F2E1F]">{t('checkout.shippingAddress')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Input
@@ -142,7 +143,7 @@ export function ShippingAddressModal({
 
             {(paymentMethod === 'arca' || paymentMethod === 'idram') && (
               <div className="space-y-4 mb-6 mt-6">
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold text-[#1F2E1F]">
                   {t('checkout.payment.paymentDetails')} (
                   {paymentMethod === 'idram' ? t('checkout.payment.idram') : t('checkout.payment.arca')})
                 </h3>
@@ -157,7 +158,7 @@ export function ShippingAddressModal({
 
             {paymentMethod === 'cash_on_delivery' && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 mt-6">
-                <p className="text-sm text-green-800">
+                <p className={`text-sm ${CHECKOUT_TEXT_INK}`}>
                   <strong>{t('checkout.payment.cashOnDelivery')}:</strong> {t('checkout.messages.cashOnDeliveryInfo')}
                 </p>
               </div>
@@ -177,15 +178,15 @@ export function ShippingAddressModal({
           </>
         ) : (
           <div className="mb-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-              <p className="text-sm text-blue-800">
+            <div className="mb-4 rounded-lg border border-[#F66812]/20 bg-[#F66812]/[0.06] p-4">
+              <p className="text-sm text-[#1F2E1F]">
                 <strong>{t('checkout.shipping.storePickup')}:</strong> {t('checkout.messages.storePickupInfo')}
               </p>
             </div>
 
             {(paymentMethod === 'arca' || paymentMethod === 'idram') && (
               <div className="space-y-4 mb-6">
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold text-[#1F2E1F]">
                   {t('checkout.payment.paymentDetails')} (
                   {paymentMethod === 'idram' ? t('checkout.payment.idram') : t('checkout.payment.arca')})
                 </h3>
@@ -200,7 +201,7 @@ export function ShippingAddressModal({
 
             {paymentMethod === 'cash_on_delivery' && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-                <p className="text-sm text-green-800">
+                <p className={`text-sm ${CHECKOUT_TEXT_INK}`}>
                   <strong>{t('checkout.payment.cashOnDelivery')}:</strong> {t('checkout.messages.cashOnDeliveryPickup')}
                 </p>
               </div>
@@ -224,7 +225,7 @@ export function ShippingAddressModal({
           <Button
             type="button"
             variant="outline"
-            className="flex-1"
+            className={`flex-1 ${CHECKOUT_OUTLINE_BUTTON}`}
             onClick={onClose}
             disabled={isSubmitting}
           >
@@ -233,7 +234,7 @@ export function ShippingAddressModal({
           <Button
             type="button"
             variant="primary"
-            className="flex-1"
+            className={`flex-1 ${CHECKOUT_PRIMARY_BUTTON}`}
             onClick={handleSubmit(
               (data) => {
                 onClose();

@@ -3,7 +3,19 @@
   "methods": [
     { "id": "standard", "enabled": true, "name": "Стандартная доставка", "price": 2000, "freeAbove": 50000, "estimatedDays": 3, "locations": [] },
     { "id": "express", "enabled": true, "name": "Экспресс доставка", "price": 5000, "freeAbove": 100000, "estimatedDays": 1, "locations": [] },
-    { "id": "pickup", "enabled": true, "name": "Самовывоз из магазина", "price": 0, "freeAbove": null, "estimatedDays": 0, "locations": [{ "name": "Главный магазин", "address": "Yerevan, Armenia", "workingHours": "Пн-Сб: 10:00-20:00" }] }
+    {
+      "id": "pickup",
+      "enabled": true,
+      "name": "Самовывоз из магазина",
+      "price": 0,
+      "freeAbove": null,
+      "estimatedDays": 0,
+      "locations": [
+        { "name": "ул. Паруйра Севака, 92", "address": "Ереван, Армения", "workingHours": "Пн-Сб: 10:00-20:00" },
+        { "name": "ул. Багратуняца, 11А", "address": "Ереван, Армения", "workingHours": "Пн-Сб: 10:00-20:00" },
+        { "name": "Coffee Studio by Degusto", "address": "пр. Азатутян, 24/19, Ереван", "workingHours": "Пн-Сб: 10:00-20:00" }
+      ]
+    }
   ],
   "deliveryInformation": {
     "title": "Информация о доставке",

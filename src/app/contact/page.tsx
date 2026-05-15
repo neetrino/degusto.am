@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import type { FormEvent, ChangeEvent } from 'react';
 import { useTranslation } from '../../lib/i18n-client';
 import { apiClient } from '../../lib/api-client';
+import { SITE_CONTACT_EMAIL, SITE_CONTACT_PHONES } from '../../lib/site-contact';
 
 // Icons
 const PhoneIcon = () => (
@@ -135,9 +136,17 @@ export default function ContactPage() {
                 <h3 className="text-xl font-semibold text-gray-900">{t('contact.callToUs.title')}</h3>
               </div>
               <p className="text-gray-600 mb-2">{t('contact.callToUs.description')}</p>
-              <a href={`tel:${t('contact.phone')}`} className="text-orange-500 hover:text-orange-600 font-medium">
-                {t('contact.phone')}
-              </a>
+              <div className="flex flex-col gap-1">
+                {SITE_CONTACT_PHONES.map((phone) => (
+                  <a
+                    key={phone.tel}
+                    href={`tel:${phone.tel}`}
+                    className="text-orange-500 hover:text-orange-600 font-medium"
+                  >
+                    {phone.display}
+                  </a>
+                ))}
+              </div>
             </div>
 
             {/* Write to Us */}
@@ -149,8 +158,8 @@ export default function ContactPage() {
                 <h3 className="text-xl font-semibold text-gray-900">{t('contact.writeToUs.title')}</h3>
               </div>
               <p className="text-gray-600 mb-2">{t('contact.writeToUs.description')}</p>
-              <a href={`mailto:${t('contact.email')}`} className="text-orange-500 hover:text-orange-600 font-medium">
-                {t('contact.writeToUs.emailLabel')} {t('contact.email')}
+              <a href={`mailto:${SITE_CONTACT_EMAIL}`} className="text-orange-500 hover:text-orange-600 font-medium">
+                {t('contact.writeToUs.emailLabel')} {SITE_CONTACT_EMAIL}
               </a>
             </div>
 

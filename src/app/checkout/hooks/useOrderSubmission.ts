@@ -2,6 +2,7 @@ import { useRouter } from 'next/navigation';
 import { apiClient } from '../../../lib/api-client';
 import { useTranslation } from '../../../lib/i18n-client';
 import { clearGuestCart } from '../checkoutUtils';
+import { CHECKOUT_COUPON_CODE_STORAGE_KEY } from '../checkout-coupon-client';
 import type { CheckoutFormData, Cart, CartItem } from '../types';
 
 interface UseOrderSubmissionProps {
@@ -11,8 +12,6 @@ interface UseOrderSubmissionProps {
   bagFee: number;
   setError: (error: string | null) => void;
 }
-
-const COUPON_CODE_STORAGE_KEY = 'checkout_coupon_code';
 
 export function useOrderSubmission({
   cart,
@@ -63,7 +62,10 @@ export function useOrderSubmission({
         : undefined;
       const couponCode =
         typeof window !== 'undefined'
-          ? localStorage.getItem(COUPON_CODE_STORAGE_KEY)?.trim().toUpperCase() || undefined
+          ? (() => {
+              const raw = localStorage.getItem(CHECKOUT_COUPON_CODE_STORAGE_KEY)?.trim();
+              return raw || undefined;
+            })()
           : undefined;
 
       const response = await apiClient.post<{
@@ -103,7 +105,7 @@ export function useOrderSubmission({
         clearGuestCart();
       }
       if (typeof window !== 'undefined') {
-        localStorage.removeItem(COUPON_CODE_STORAGE_KEY);
+        localStorage.removeItem(CHECKOUT_COUPON_CODE_STORAGE_KEY);
       }
 
       if (response.payment?.paymentUrl) {

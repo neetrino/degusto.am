@@ -3,6 +3,7 @@
 import { Card, Button, Input } from '@shop/ui';
 import Link from 'next/link';
 import { useTranslation } from '../../lib/i18n-client';
+import { SITE_CONTACT_EMAIL, SITE_CONTACT_PHONES } from '../../lib/site-contact';
 
 /**
  * Support page - provides customer support options and resources
@@ -23,20 +24,23 @@ export default function SupportPage() {
             <div>
               <p className="text-sm font-medium text-gray-700 mb-1">{t('support.contactUs.email')}</p>
               <a
-                href="mailto:info@degusto.am"
+                href={`mailto:${SITE_CONTACT_EMAIL}`}
                 className="text-blue-600 hover:underline"
               >
-                info@degusto.am
+                {SITE_CONTACT_EMAIL}
               </a>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-700 mb-1">{t('support.contactUs.phone')}</p>
-              <a
-                href="tel:+1234567890"
-                className="text-blue-600 hover:underline"
-              >
-                +1 (234) 567-890
-              </a>
+              <ul className="list-none space-y-1 pl-0">
+                {SITE_CONTACT_PHONES.map((phone) => (
+                  <li key={phone.tel}>
+                    <a href={`tel:${phone.tel}`} className="text-blue-600 hover:underline">
+                      {phone.display}
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-700 mb-1">{t('support.contactUs.businessHours')}</p>

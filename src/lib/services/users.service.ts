@@ -219,8 +219,8 @@ function extractCouponCodeFromNotes(notes: string | null): string | null {
   if (!notes) {
     return null;
   }
-  const match = notes.match(/(?:coupon|promo)\s*(?:code)?\s*[:=-]\s*([A-Z0-9_-]{3,32})/i);
-  return match?.[1]?.toUpperCase() ?? null;
+  const match = notes.match(/(?:coupon|promo)\s*(?:code)?\s*[:=-]\s*([A-Za-z0-9_-]{3,32})/i);
+  return match?.[1] ?? null;
 }
 
 function normalizeWishlistIds(input: unknown): string[] {
@@ -981,7 +981,7 @@ class UsersService {
           return null;
         }
         const raw = item as StoredCoupon;
-        const code = (raw.code ?? "").trim().toUpperCase();
+        const code = (raw.code ?? "").trim();
         if (!code) {
           return null;
         }

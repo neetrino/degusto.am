@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "./src/generated/prisma-client";
 
 declare global {
   var prisma: PrismaClient | undefined;
@@ -57,7 +57,7 @@ if (!directUrl) {
   );
 }
 
-/** Resolved at module load so Prisma does not rely on `env("DATABASE_URL")` inside a Turbopack-bundled `@prisma/client` (it can be inlined as empty). */
+/** Resolved at module load so Prisma does not rely on `env("DATABASE_URL")` inside a Turbopack-bundled generated client (it can be inlined as empty). */
 const resolvedDatabaseUrl = augmentDatabaseUrl(databaseUrl);
 const resolvedDirectUrl = augmentDatabaseUrl(directUrl);
 

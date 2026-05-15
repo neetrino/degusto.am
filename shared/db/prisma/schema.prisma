@@ -1,5 +1,7 @@
 generator client {
   provider = "prisma-client-js"
+  // Avoid Windows EPERM when `pnpm dev` locks the hoisted `@prisma/client` query engine under `.pnpm`.
+  output   = "../src/generated/prisma-client"
 }
 
 datasource db {

@@ -1,5 +1,6 @@
 import { db } from "@white-shop/db";
 import { Prisma } from "@prisma/client";
+import { COUPON_CODE_REGEX } from "@/lib/coupon-code-format";
 
 export type CouponDiscountType = "percent" | "fixed";
 
@@ -55,13 +56,13 @@ function normalizeCode(code: unknown): string {
     };
   }
 
-  const normalized = code.trim().toUpperCase();
-  if (!/^[A-Z0-9_-]{3,32}$/.test(normalized)) {
+  const normalized = code.trim();
+  if (!COUPON_CODE_REGEX.test(normalized)) {
     throw {
       status: 400,
       type: "https://api.shop.am/problems/validation-error",
       title: "Validation Error",
-      detail: "Field 'code' must match /^[A-Z0-9_-]{3,32}$/",
+      detail: "Field 'code' must match /^[a-zA-Z0-9_-]{3,32}$/ (trimmed)",
     };
   }
 

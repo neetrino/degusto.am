@@ -14,6 +14,28 @@ import {
 } from "./error-handler";
 import { logger } from "@/lib/utils/logger";
 
+const DEFAULT_GET_TIMEOUT_MS = 30_000;
+
+/**
+ * Abort when any source aborts (timeout + caller cleanup).
+ */
+function combineAbortSignals(
+  signals: ReadonlyArray<AbortSignal | undefined | null>
+): AbortSignal {
+  const controller = new AbortController();
+  for (const sig of signals) {
+    if (!sig) {
+      continue;
+    }
+    if (sig.aborted) {
+      controller.abort(sig.reason);
+      return controller.signal;
+    }
+    sig.addEventListener('abort', () => controller.abort(sig.reason), { once: true });
+  }
+  return controller.signal;
+}
+
 /**
  * Handle network errors
  */
@@ -22,7 +44,7 @@ function handleNetworkError(error: unknown, baseUrl: string, url: string): never
   
   // Check if it's a timeout error
   if (networkError.message?.includes('timeout') || networkError.message?.includes('Request timeout')) {
-    console.error('⏱️ [API CLIENT] Request timeout:', networkError.message);
+    logger.warn('⏱️ [API CLIENT] Request timeout', { message: networkError.message, url });
     throw networkError;
   }
   
@@ -135,30 +157,37 @@ export async function getRequest<T>(
   const url = buildUrl(baseUrl, endpoint, options?.params);
   const maxRetries = 3;
   const retryDelay = 1000; // 1 second
-  const timeout = 30000; // 30 seconds timeout
-  
-  logger.debug('🌐 [API CLIENT] GET request:', { url, endpoint, baseUrl });
+  const { params: _p, skipAuth: _s, timeoutMs: customTimeoutMs, signal: userSignal, ...fetchRest } =
+    options ?? {};
+  const timeoutMs = customTimeoutMs ?? DEFAULT_GET_TIMEOUT_MS;
+
+  logger.debug('🌐 [API CLIENT] GET request:', { url, endpoint, baseUrl, timeoutMs });
   
   let response: Response;
   try {
-    // Create timeout controller
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
-    
+    const timeoutController = new AbortController();
+    const timeoutId = setTimeout(() => timeoutController.abort(), timeoutMs);
+    const combinedSignal = combineAbortSignals([timeoutController.signal, userSignal ?? null]);
+
     try {
       response = await fetch(url, {
         method: 'GET',
         headers: getHeaders(options),
         cache: 'no-store', // Disable caching for server components
-        signal: controller.signal,
-        ...options,
+        ...fetchRest,
+        signal: combinedSignal,
       });
       clearTimeout(timeoutId);
     } catch (fetchError: unknown) {
       clearTimeout(timeoutId);
       const error = fetchError as { name?: string };
       if (error.name === 'AbortError') {
-        throw new Error(`Request timeout: API server did not respond within ${timeout / 1000} seconds. URL: ${url}`);
+        if (userSignal?.aborted) {
+          throw fetchError;
+        }
+        throw new Error(
+          `Request timeout: API server did not respond within ${timeoutMs / 1000} seconds. URL: ${url}`
+        );
       }
       throw fetchError;
     }

@@ -8,6 +8,8 @@ interface UseOrderSummaryProps {
   deliveryPrice: number | null;
   bagFee: number;
   currency: 'USD' | 'AMD' | 'EUR' | 'RUB' | 'GEL';
+  /** Coupon discount amount in USD (same basis as `cart.totals.subtotal`). */
+  couponDiscountUsd?: number;
 }
 
 export function useOrderSummary({
@@ -16,19 +18,20 @@ export function useOrderSummary({
   deliveryPrice,
   bagFee,
   currency,
+  couponDiscountUsd = 0,
 }: UseOrderSummaryProps) {
   const orderSummary = useMemo(() => {
     if (!cart || cart.items.length === 0) {
       return {
         subtotalAMD: 0,
-        taxAMD: 0,
         bagFeeAMD: 0,
         shippingAMD: 0,
+        taxAMD: 0,
         totalAMD: 0,
         subtotalDisplay: 0,
-        taxDisplay: 0,
         bagFeeDisplay: 0,
         shippingDisplay: 0,
+        discountDisplay: 0,
         totalDisplay: 0,
       };
     }
@@ -37,31 +40,29 @@ export function useOrderSummary({
     const taxAMD = convertPrice(cart.totals.tax, 'USD', 'AMD');
     const shippingAMD = shippingMethod === 'delivery' && deliveryPrice !== null ? deliveryPrice : 0;
     const bagFeeAMD = shippingMethod === 'delivery' ? bagFee : 0;
-    const totalAMD = subtotalAMD + taxAMD + shippingAMD + bagFeeAMD;
-    
+    const discountAMD = convertPrice(Math.max(0, couponDiscountUsd), 'USD', 'AMD');
+    const discountedSubtotalAMD = Math.max(0, subtotalAMD - discountAMD);
+    const totalAMD = discountedSubtotalAMD + taxAMD + shippingAMD + bagFeeAMD;
+
     const subtotalDisplay = currency === 'AMD' ? subtotalAMD : convertPrice(subtotalAMD, 'AMD', currency);
-    const taxDisplay = currency === 'AMD' ? taxAMD : convertPrice(taxAMD, 'AMD', currency);
     const shippingDisplay = currency === 'AMD' ? shippingAMD : convertPrice(shippingAMD, 'AMD', currency);
     const bagFeeDisplay = currency === 'AMD' ? bagFeeAMD : convertPrice(bagFeeAMD, 'AMD', currency);
+    const discountDisplay = currency === 'AMD' ? discountAMD : convertPrice(discountAMD, 'AMD', currency);
     const totalDisplay = currency === 'AMD' ? totalAMD : convertPrice(totalAMD, 'AMD', currency);
-    
+
     return {
       subtotalAMD,
-      taxAMD,
       bagFeeAMD,
       shippingAMD,
+      taxAMD,
       totalAMD,
       subtotalDisplay,
-      taxDisplay,
       bagFeeDisplay,
       shippingDisplay,
+      discountDisplay,
       totalDisplay,
     };
-  }, [cart, shippingMethod, deliveryPrice, bagFee, currency]);
+  }, [cart, shippingMethod, deliveryPrice, bagFee, currency, couponDiscountUsd]);
 
   return { orderSummary };
 }
-
-
-
-

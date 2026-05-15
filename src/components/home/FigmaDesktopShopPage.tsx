@@ -7,6 +7,9 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { KeyboardEvent, MouseEvent } from 'react';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useAddToCart } from '../hooks/useAddToCart';
+import { useWishlist } from '../hooks/useWishlist';
+import { useAuth } from '../../lib/auth/AuthContext';
+import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
 import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
 import { StoreMenuPagination } from './StoreMenuPagination';
 
@@ -48,6 +51,8 @@ type MenuCategory = {
   slug: string;
   title: string;
   iconUrl?: string | null;
+  /** When set (shop/combo DB categories), shown in the UI and used to block empty categories. */
+  productCount?: number;
 };
 
 type DesktopMenuPageProps = {
@@ -176,6 +181,21 @@ function useMenuSearchUrlSync(
   return { scheduleSearchQueryUrlSync, flushSearchQueryUrlSync };
 }
 
+function isMenuCategoryEmpty(category: MenuCategory): boolean {
+  return (
+    typeof category.productCount === 'number' &&
+    category.productCount === 0 &&
+    category.slug !== ''
+  );
+}
+
+function formatCategoryLabelWithCount(category: MenuCategory): string {
+  if (typeof category.productCount !== 'number') {
+    return category.title;
+  }
+  return `${category.title} (${category.productCount})`;
+}
+
 const categoryIconUrls: readonly string[] = [
   'https://www.figma.com/api/mcp/asset/8de80153-582c-4bef-9266-5891b9fbdab3',
   'https://www.figma.com/api/mcp/asset/e3d4fcad-c674-4414-95c8-ca012568b13e',
@@ -198,6 +218,8 @@ function MenuCardItem({ card }: { card: MenuCard }) {
   const { t } = useTranslation();
   const currency = useCurrency();
   const router = useRouter();
+  const { isLoggedIn } = useAuth();
+  const { isInWishlist, toggleWishlist } = useWishlist(card.id);
   const title = card.title || t(card.titleKey);
   const category = card.category || (card.categoryKey ? t(card.categoryKey) : '');
   const imageSrc = card.image || assets.productCardImage;
@@ -241,6 +263,16 @@ function MenuCardItem({ card }: { card: MenuCard }) {
     void addToCart({ origin, imageUrl: card.image || null });
   };
 
+  const handleWishlistToggle = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!isLoggedIn) {
+      router.push(`/login?redirect=${encodeURIComponent(productHref)}`);
+      return;
+    }
+    void toggleWishlist();
+  };
+
   return (
     <article
       data-home-product-card
@@ -261,6 +293,23 @@ function MenuCardItem({ card }: { card: MenuCard }) {
         hotIconSrc={assets.productCardHot}
         greensIconSrc={assets.productCardRibbon}
       />
+      <button
+        type="button"
+        onClick={handleWishlistToggle}
+        className={`absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border shadow-md transition-colors sm:h-10 sm:w-10 ${
+          isInWishlist
+            ? 'border-red-600 bg-red-600 text-white hover:bg-red-700'
+            : 'border-[#dedede]/90 bg-white/95 text-gray-700 hover:bg-white'
+        }`}
+        title={
+          isInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')
+        }
+        aria-label={
+          isInWishlist ? t('common.ariaLabels.removeFromWishlist') : t('common.ariaLabels.addToWishlist')
+        }
+      >
+        <WishlistHeartIcon filled={isInWishlist} size={18} />
+      </button>
       <div className="absolute left-[14px] top-[170px] flex items-center gap-[6px]">
         <img src={assets.productCardStar} alt="" className="h-5 w-5 object-contain" />
         <p className="text-base font-medium leading-[1.35] text-[rgba(60,47,47,0.62)]">4.7</p>
@@ -501,19 +550,27 @@ export function FigmaDesktopMenuPage({
             <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {dbCategories.map((category) => {
                 const isActive = activeCategorySlug === category.slug;
+                const empty = isMenuCategoryEmpty(category);
                 return (
                   <button
                     key={category.id}
                     type="button"
+                    aria-disabled={empty}
+                    tabIndex={empty ? -1 : undefined}
                     onClick={() => {
+                      if (empty) {
+                        return;
+                      }
                       router.push(buildTargetPath(category.slug));
                     }}
                     aria-pressed={isActive}
                     className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold ${
                       isActive ? 'bg-[#ff7f20] text-white' : 'bg-[#f3f3f5] text-[#3c2f2f]'
+                    } ${empty ? 'cursor-not-allowed' : ''} ${
+                      empty && !isActive ? 'opacity-50 hover:bg-[#f3f3f5]' : ''
                     }`}
                   >
-                    {category.title}
+                    {formatCategoryLabelWithCount(category)}
                   </button>
                 );
               })}
@@ -636,22 +693,30 @@ export function FigmaDesktopMenuPage({
               {hasDbCategories
                 ? dbCategories.map((category) => {
                     const isActive = activeCategorySlug === category.slug;
+                    const empty = isMenuCategoryEmpty(category);
                     return (
                       <button
                         key={category.id}
                         type="button"
+                        aria-disabled={empty}
+                        tabIndex={empty ? -1 : undefined}
                         onClick={() => {
+                          if (empty) {
+                            return;
+                          }
                           router.push(buildTargetPath(category.slug));
                         }}
                         aria-pressed={isActive}
-                        className={`flex h-10 w-full items-center rounded-[10px] px-3 py-[10px] text-left text-[14px] font-medium leading-5 tracking-[-0.15px] ${
+                        className={`flex h-10 w-full min-w-0 items-center gap-2 rounded-[10px] px-3 py-[10px] text-left text-[14px] font-medium leading-5 tracking-[-0.15px] ${
                           isActive ? 'rounded-[30px] bg-[#ff7f20] text-white' : 'text-white hover:bg-white/10'
+                        } ${empty ? 'cursor-not-allowed' : ''} ${
+                          empty && !isActive ? 'opacity-50 hover:bg-transparent' : ''
                         }`}
                       >
-                        <span className="mr-3 inline-flex h-6 w-6 shrink-0 items-center justify-center" aria-hidden="true">
+                        <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center" aria-hidden="true">
                           {category.iconUrl ? <img src={category.iconUrl} alt="" className="h-6 w-6 object-contain" /> : null}
                         </span>
-                        <span>{category.title}</span>
+                        <span className="min-w-0 flex-1 truncate">{formatCategoryLabelWithCount(category)}</span>
                       </button>
                     );
                   })

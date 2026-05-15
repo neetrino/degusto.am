@@ -16,6 +16,7 @@ import { useAuth } from '../../../../lib/auth/AuthContext';
 import { useTranslation } from '../../../../lib/i18n-client';
 import { apiClient } from '../../../../lib/api-client';
 import { formatPrice } from '../../../../lib/currency';
+import { PromocodeCodeWithCopy } from '../PromocodeCodeWithCopy';
 
 type AnalyticsPeriod = 'day' | 'week' | 'month';
 
@@ -293,7 +294,9 @@ export default function PromocodeAnalyticsPage() {
                 <tbody>
                   {analytics.coupons.map((coupon) => (
                     <tr key={coupon.code} className="border-b border-gray-100">
-                      <td className="px-3 py-3 font-semibold text-gray-900">{coupon.code}</td>
+                      <td className="px-3 py-3">
+                        <PromocodeCodeWithCopy code={coupon.code} />
+                      </td>
                       <td className="px-3 py-3">
                         <span
                           className={`rounded-full px-2 py-1 text-xs font-medium ${

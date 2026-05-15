@@ -152,11 +152,10 @@ export function RelatedProducts({ categorySlug, currentProductId, productSlug }:
 
   // Always show the section, even if no products (will show loading or empty state)
   return (
-    <section className="pt-12 pb-20 mt-20 rounded-t-[40px] bg-white">
+    <section className="rounded-t-[40px] bg-white pt-4 pb-6 sm:pt-5 sm:pb-7">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-10 flex items-center justify-between">
+        <div className="mb-5 flex items-center justify-between sm:mb-6">
           <h2 className="text-3xl font-black text-black">
-            <span className="text-[#f66913]">{t(language, 'common.navigation.products')}</span>{' '}
             {t(language, 'product.related_products_title')}
           </h2>
           <Link href="/shop" className="inline-block rounded-full bg-[#ff7f20] px-6 py-3 text-base font-bold text-white">
@@ -180,7 +179,7 @@ export function RelatedProducts({ categorySlug, currentProductId, productSlug }:
           </div>
         ) : (
           // Products Carousel
-          <div className="relative pb-4">
+          <div className="relative pb-2">
             {/* Carousel Container */}
             <div 
               ref={carouselRef}
@@ -223,8 +222,8 @@ export function RelatedProducts({ categorySlug, currentProductId, productSlug }:
               <CarouselNavigation onPrevious={goToPrevious} onNext={goToNext} />
             )}
 
-            {/* Dots Indicator - Only show if there are more products than visible */}
-            {products.length > visibleCards && (
+            {/* One dot per related product; pill tracks the visible window */}
+            {products.length > 0 && (
               <CarouselDots
                 totalItems={products.length}
                 visibleItems={visibleCards}

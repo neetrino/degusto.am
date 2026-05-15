@@ -420,7 +420,6 @@
       "applyPriceToAll": "Применить цену ко всем",
       "applyStockToAll": "Применить запас ко всем",
       "applySkuToAll": "Применить шаблон SKU ко всем",
-      "variantsReady": "Варианты готовы",
       "addVariant": "Добавить",
       "image": "Изображение",
       "compareAtPrice": "Старая цена",
@@ -536,9 +535,11 @@
     "percent": "Процент",
     "fixed": "Фиксированная сумма",
     "discountValue": "Размер скидки",
-    "discountPlaceholder": "10",
+    "discountPlaceholder": "15",
+    "discountValuePercentHint": "Укажите 0–100 как процент от суммы заказа (15 = 15%).",
+    "percentDiscountTooHigh": "Процентная скидка не может быть больше 100 (100% от суммы заказа).",
     "minOrderAmount": "Минимальная сумма заказа",
-    "minOrderPlaceholder": "0",
+    "minOrderPlaceholder": "0 (драм)",
     "maxUsesPerUser": "Один человек",
     "timesSuffix": "раз",
     "maxUsesPerUserPlaceholder": "Оставьте пустым для неограниченного использования",
@@ -584,7 +585,9 @@
     "fetchError": "Не удалось загрузить промокоды",
     "saveError": "Не удалось сохранить промокод",
     "deleteError": "Не удалось удалить промокод",
-    "deleteConfirm": "Удалить промокод \"{code}\"?"
+    "deleteConfirm": "Удалить промокод \"{code}\"?",
+    "copyCode": "Копировать промокод",
+    "copyError": "Не удалось скопировать в буфер обмена"
   },
   "priceFilter": {
     "title": "Настройки фильтра по цене",

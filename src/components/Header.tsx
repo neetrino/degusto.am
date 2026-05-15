@@ -20,9 +20,12 @@ import { CART_KEY, getCompareCount, getWishlistCount } from '../lib/storageCount
 import { LanguageSwitcherHeader } from './LanguageSwitcherHeader';
 import { Instagram, Facebook, Linkedin, Globe } from 'lucide-react';
 import { CompareIcon } from './icons/CompareIcon';
+import { WishlistHeaderHeartIcon } from './icons/WishlistHeaderHeartIcon';
 import { BrandLogoLink } from './BrandLogoLink';
 import { CartIcon } from './icons/CartIcon';
 import { readCartSummaryCache, writeCartSummaryCache } from '../lib/cartSummaryCache';
+import { useCartDrawer } from './cart-drawer/cart-drawer-context';
+import { SITE_CONTACT_PHONES } from '../lib/site-contact';
 
 // Navigation links will be translated dynamically using useTranslation hook
 const primaryNavLinks = [
@@ -49,7 +52,7 @@ function isHeaderNavActive(pathname: string | null, href: string): boolean {
 const HEADER_NAV_LINK_BASE =
   'px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium whitespace-nowrap';
 
-const HEADER_FAST_NAV_ROUTES = ['/', '/shop', '/about', '/wishlist', '/compare', '/cart'] as const;
+const HEADER_FAST_NAV_ROUTES = ['/', '/shop', '/about', '/wishlist', '/compare'] as const;
 
 function headerTextNavClassName(active: boolean): string {
   return active
@@ -63,6 +66,15 @@ function headerIconNavClassName(active: boolean): string {
   return active
     ? `${base} text-gray-900 bg-gray-100 ring-1 ring-gray-200/90`
     : `${base} text-gray-700 hover:text-gray-900`;
+}
+
+/** Wishlist control: white pill circle + brand heart (matches Figma header). */
+function headerWishlistNavClassName(active: boolean): string {
+  const base =
+    'h-12 w-12 shrink-0 flex items-center justify-center rounded-full bg-white shadow-sm transition-colors duration-150 ring-1';
+  return active
+    ? `${base} ring-[color:var(--project-color)] ring-2`
+    : `${base} ring-black/10 hover:ring-[color:var(--project-color)]/40`;
 }
 
 function headerMobileRowClassName(active: boolean): string {
@@ -121,8 +133,9 @@ const ProfileIconFilled = () => (
   </div>
 );
 
+/** Outline heart (e.g. mobile drawer). */
 const WishlistIcon = () => (
-  <svg width="19" height="19" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg width="19" height="19" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
     <path d="M10 17L8.55 15.7C4.4 12.2 2 10.1 2 7.5C2 5.4 3.4 4 5.5 4C6.8 4 8.1 4.6 9 5.5C9.9 4.6 11.2 4 12.5 4C14.6 4 16 5.4 16 7.5C16 10.1 13.6 12.2 9.45 15.7L10 17Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
   </svg>
 );
@@ -209,6 +222,7 @@ function HeaderSearchSync({
 
 export function Header() {
   const router = useRouter();
+  const { openCartDrawer, isCartDrawerOpen } = useCartDrawer();
   const pathname = usePathname();
   const { isLoggedIn, isAdmin } = useAuth();
   const { t } = useTranslation();
@@ -631,11 +645,20 @@ export function Header() {
           <div className="flex flex-col gap-3 py-3 text-sm text-gray-700 sm:flex-row sm:items-center sm:justify-between">
             {/* Phone + Social */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-              <div className="flex items-center gap-2 text-gray-700">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-gray-700">
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
                   <path d="M2 3C2 2.44772 2.44772 2 3 2H5.15287C5.64171 2 6.0589 2.35341 6.13927 2.8356L6.87858 7.27147C6.95075 7.70451 6.73206 8.13397 6.3394 8.3303L4.79126 9.10437C5.90715 11.8783 8.12168 14.0929 10.8956 15.2088L11.6697 13.6606C11.866 13.2679 12.2955 13.0493 12.7285 13.1214L17.1644 13.8607C17.6466 13.9411 18 14.3583 18 14.8471V17C18 17.5523 17.5523 18 17 18H15C7.8203 18 2 12.1797 2 5V3Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                <span className="font-medium">{t('contact.phone')}</span>
+                <span className="flex flex-wrap items-center gap-x-2 gap-y-1 font-medium">
+                  {SITE_CONTACT_PHONES.map((phone, index) => (
+                    <span key={phone.tel} className="inline-flex items-center gap-x-2">
+                      {index > 0 ? <span className="text-gray-400" aria-hidden>·</span> : null}
+                      <a href={`tel:${phone.tel}`} className="hover:text-gray-900">
+                        {phone.display}
+                      </a>
+                    </span>
+                  ))}
+                </span>
               </div>
               <div className="flex items-center gap-3 text-gray-600">
                 <a
@@ -903,7 +926,56 @@ export function Header() {
               />
             </div>
 
-            {/* Icons */}
+            {/* Icons — order per Figma: cart → wishlist → … → profile */}
+              {/* Shopping Cart */}
+              <button
+                type="button"
+                onClick={() => openCartDrawer()}
+                className={`flex items-center gap-[0.hpx] group rounded-lg transition-colors ${
+                  isCartDrawerOpen ? 'bg-gray-100 ring-1 ring-gray-200/90 p-0.5' : ''
+                }`}
+                aria-current={isCartDrawerOpen ? 'page' : undefined}
+                aria-label={`${t('common.navigation.cart')}, ${formatPrice(cartTotal, selectedCurrency)}`}
+              >
+                <div
+                  data-cart-fly-target
+                  className={`relative flex h-11 w-11 items-center justify-center transition-colors duration-150 ${
+                    isCartDrawerOpen ? 'text-gray-900' : 'text-gray-700 hover:text-gray-900'
+                  }`}
+                >
+                  <BadgeIcon icon={<CartIcon size={19} />} badge={cartCount} />
+                </div>
+                <span
+                  aria-hidden
+                  className={`hidden min-w-[3.25rem] text-sm font-bold transition-colors sm:block ${
+                    isCartDrawerOpen ? 'text-gray-900' : 'text-gray-800 group-hover:text-gray-900'
+                  }`}
+                >
+                  {formatPrice(cartTotal, selectedCurrency)}
+                </span>
+              </button>
+
+              {/* Wishlist — white circle + filled brand heart */}
+              <Link
+                href="/wishlist"
+                {...getFastNavHandlers('/wishlist')}
+                className={`${headerWishlistNavClassName(isHeaderNavActive(pathname, '/wishlist'))} group relative`}
+                aria-current={isHeaderNavActive(pathname, '/wishlist') ? 'page' : undefined}
+                aria-label={t('common.navigation.wishlist')}
+              >
+                <BadgeIcon icon={<WishlistHeaderHeartIcon />} badge={wishlistCount} />
+              </Link>
+
+              {/* Compare */}
+              <Link
+                href="/compare"
+                {...getFastNavHandlers('/compare')}
+                className={`${headerIconNavClassName(isHeaderNavActive(pathname, '/compare'))} relative group`}
+                aria-current={isHeaderNavActive(pathname, '/compare') ? 'page' : undefined}
+              >
+                <BadgeIcon icon={<CompareIcon size={18} />} badge={compareCount} />
+              </Link>
+
               {/* Profile / User Menu */}
               <div className="relative">
                 {isLoggedIn ? (
@@ -927,58 +999,6 @@ export function Header() {
                   </Link>
                 )}
               </div>
-
-              {/* Compare */}
-              <Link
-                href="/compare"
-                {...getFastNavHandlers('/compare')}
-                className={`${headerIconNavClassName(isHeaderNavActive(pathname, '/compare'))} relative group`}
-                aria-current={isHeaderNavActive(pathname, '/compare') ? 'page' : undefined}
-              >
-                <BadgeIcon icon={<CompareIcon size={18} />} badge={compareCount} />
-              </Link>
-
-              {/* Wishlist */}
-              <Link
-                href="/wishlist"
-                {...getFastNavHandlers('/wishlist')}
-                className={`${headerIconNavClassName(isHeaderNavActive(pathname, '/wishlist'))} relative group`}
-                aria-current={isHeaderNavActive(pathname, '/wishlist') ? 'page' : undefined}
-              >
-                <BadgeIcon icon={<WishlistIcon />} badge={wishlistCount} />
-              </Link>
-
-              {/* Shopping Cart */}
-              <Link
-                href="/cart"
-                {...getFastNavHandlers('/cart')}
-                className={`flex items-center gap-[0.hpx] group rounded-lg transition-colors ${
-                  isHeaderNavActive(pathname, '/cart')
-                    ? 'bg-gray-100 ring-1 ring-gray-200/90 p-0.5'
-                    : ''
-                }`}
-                aria-current={isHeaderNavActive(pathname, '/cart') ? 'page' : undefined}
-              >
-                <div
-                  data-cart-fly-target
-                  className={`w-11 h-11 flex items-center justify-center transition-colors duration-150 relative ${
-                    isHeaderNavActive(pathname, '/cart')
-                      ? 'text-gray-900'
-                      : 'text-gray-700 hover:text-gray-900'
-                  }`}
-                >
-                  <BadgeIcon icon={<CartIcon size={19} />} badge={cartCount} />
-                </div>
-                <span
-                  className={`font-bold text-sm hidden sm:block min-w-[3.25rem] transition-colors ${
-                    isHeaderNavActive(pathname, '/cart')
-                      ? 'text-gray-900'
-                      : 'text-gray-800 group-hover:text-gray-900'
-                  }`}
-                >
-                  {formatPrice(cartTotal, selectedCurrency)}
-                </span>
-              </Link>
             </div>
           </div>
 

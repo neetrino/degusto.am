@@ -5,6 +5,11 @@
   "shippingAddress": "Адрес доставки",
   "paymentMethod": "Способ оплаты",
   "orderSummary": "Итоги заказа",
+  "cashDenominations": {
+    "hint": "Выберите купюру, с которой нужна сдача.",
+    "noteAlt": "Банкнота {amount} драм",
+    "groupAria": "Выбор купюры драм"
+  },
   "form": {
     "firstName": "Имя",
     "lastName": "Фамилия",

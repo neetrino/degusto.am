@@ -5,8 +5,6 @@ interface UseProductCalculationsProps {
   product: Product | null;
   currentVariant: ProductVariant | null;
   attributeGroups: Map<string, AttributeGroupValue[]>;
-  selectedColor: string | null;
-  selectedSize: string | null;
   selectedAttributeValues: Map<string, string>;
 }
 
@@ -14,8 +12,6 @@ export function useProductCalculations({
   product,
   currentVariant,
   attributeGroups,
-  selectedColor,
-  selectedSize,
   selectedAttributeValues,
 }: UseProductCalculationsProps) {
   const attributePriceAdjustment = useMemo(() => {
@@ -78,12 +74,6 @@ export function useProductCalculations({
     return groups;
   }, [attributeGroups]);
 
-  const hasColorAttribute = colorGroups.length > 0 && colorGroups.some(g => g.stock > 0);
-  const hasSizeAttribute = sizeGroups.length > 0 && sizeGroups.some(g => g.stock > 0);
-  const needsColor = hasColorAttribute && !selectedColor;
-  const needsSize = hasSizeAttribute && !selectedSize;
-  const isVariationRequired = needsColor || needsSize;
-
   const unavailableAttributes = useMemo(() => {
     const unavailable = new Map<string, boolean>();
     if (!currentVariant || !product) return unavailable;
@@ -108,8 +98,7 @@ export function useProductCalculations({
     return unavailable;
   }, [currentVariant, attributeGroups, product]);
 
-  const hasUnavailableAttributes = unavailableAttributes.size > 0;
-  const canAddToCart = !isOutOfStock && !isVariationRequired && !hasUnavailableAttributes;
+  const canAddToCart = !isOutOfStock;
 
   return {
     price,
@@ -119,9 +108,7 @@ export function useProductCalculations({
     isOutOfStock,
     colorGroups,
     sizeGroups,
-    isVariationRequired,
     unavailableAttributes,
-    hasUnavailableAttributes,
     canAddToCart,
   };
 }
