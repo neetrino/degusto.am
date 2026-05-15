@@ -3,25 +3,8 @@
 import type { MouseEvent } from 'react';
 import { CompareIcon } from '../icons/CompareIcon';
 import { CartIcon as CartPngIcon } from '../icons/CartIcon';
+import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
 import { useTranslation } from '../../lib/i18n-client';
-
-interface WishlistIconProps {
-  filled?: boolean;
-  size?: number;
-}
-
-const WishlistIcon = ({ filled = false, size = 24 }: WishlistIconProps) => (
-  <svg width={size} height={size} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path 
-      d="M10 17L8.55 15.7C4.4 12.2 2 10.1 2 7.5C2 5.4 3.4 4 5.5 4C6.8 4 8.1 4.6 9 5.5C9.9 4.6 11.2 4 12.5 4C14.6 4 16 5.4 16 7.5C16 10.1 13.6 12.2 9.45 15.7L10 17Z" 
-      stroke="currentColor" 
-      strokeWidth="1.8" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
-      fill={filled ? "currentColor" : "none"} 
-    />
-  </svg>
-);
 
 interface ProductCardActionsProps {
   isInWishlist: boolean;
@@ -33,6 +16,8 @@ interface ProductCardActionsProps {
   onCompareToggle: (e: MouseEvent) => void;
   onAddToCart: (e: MouseEvent) => void;
   showOnHover?: boolean;
+  /** When false, wishlist is rendered elsewhere (e.g. fixed on image). Default true. */
+  showWishlist?: boolean;
 }
 
 /**
@@ -48,10 +33,20 @@ export function ProductCardActions({
   onCompareToggle,
   onAddToCart,
   showOnHover = false,
+  showWishlist = true,
 }: ProductCardActionsProps) {
   const { t } = useTranslation();
   const iconSize = isCompact ? 18 : 24;
   const buttonSize = isCompact ? 'w-10 h-10' : 'w-12 h-12';
+
+  const hoverCornerClass =
+    showOnHover && !showWishlist
+      ? isCompact
+        ? 'top-[3.25rem] right-1.5'
+        : 'top-16 right-3'
+      : isCompact
+        ? 'top-1.5 right-1.5'
+        : 'top-3 right-3';
 
   const actions = (
     <>
@@ -69,29 +64,31 @@ export function ProductCardActions({
         <CompareIcon isActive={isInCompare} size={isCompact ? 16 : 18} />
       </button>
 
-      {/* Wishlist Icon */}
-      <button
-        onClick={onWishlistToggle}
-        className={`${buttonSize} rounded-full flex items-center justify-center transition-all duration-200 ${
-          isInWishlist
-            ? 'bg-red-600 text-white shadow-lg'
-            : 'bg-white text-gray-700 hover:bg-gray-50 shadow-md hover:shadow-lg'
-        }`}
-        title={isInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')}
-        aria-label={isInWishlist ? t('common.ariaLabels.removeFromWishlist') : t('common.ariaLabels.addToWishlist')}
-      >
-        {isCompact ? (
-          <WishlistIcon filled={isInWishlist} size={18} />
-        ) : (
-          <WishlistIcon filled={isInWishlist} />
-        )}
-      </button>
+      {showWishlist ? (
+        <button
+          type="button"
+          onClick={onWishlistToggle}
+          className={`${buttonSize} rounded-full flex items-center justify-center transition-all duration-200 ${
+            isInWishlist
+              ? 'bg-red-600 text-white shadow-lg'
+              : 'bg-white text-gray-700 hover:bg-gray-50 shadow-md hover:shadow-lg'
+          }`}
+          title={isInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')}
+          aria-label={
+            isInWishlist ? t('common.ariaLabels.removeFromWishlist') : t('common.ariaLabels.addToWishlist')
+          }
+        >
+          <WishlistHeartIcon filled={isInWishlist} size={isCompact ? 18 : 20} />
+        </button>
+      ) : null}
     </>
   );
 
   if (showOnHover) {
     return (
-      <div className={`absolute ${isCompact ? 'top-1.5 right-1.5' : 'top-3 right-3'} flex flex-col ${isCompact ? 'gap-1.5' : 'gap-2'} opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10`}>
+      <div
+        className={`absolute ${hoverCornerClass} flex flex-col ${isCompact ? 'gap-1.5' : 'gap-2'} opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10`}
+      >
         {actions}
       </div>
     );

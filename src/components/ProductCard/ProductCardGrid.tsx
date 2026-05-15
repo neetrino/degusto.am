@@ -4,6 +4,7 @@ import type { KeyboardEvent, MouseEvent } from 'react';
 import { ProductCardImage } from './ProductCardImage';
 import { ProductCardInfo } from './ProductCardInfo';
 import { ProductCardActions } from './ProductCardActions';
+import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
 import { useTranslation } from '../../lib/i18n-client';
 import type { CurrencyCode } from '../../lib/currency';
 import type { ProductLabel } from '../ProductLabels';
@@ -60,6 +61,8 @@ export function ProductCardGrid({
   onProductClick,
 }: ProductCardGridProps) {
   const { t } = useTranslation();
+  const wishlistButtonSize = isCompact ? 'w-10 h-10' : 'w-12 h-12';
+  const wishlistIconSize = isCompact ? 18 : 20;
   const handleCardKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key !== 'Enter' && event.key !== ' ') {
       return;
@@ -88,8 +91,27 @@ export function ProductCardGrid({
           onImageError={onImageError}
           isCompact={isCompact}
         />
-        
-        {/* Action Icons - appear on hover */}
+
+        {/* Wishlist — always visible on image (touch + desktop) */}
+        <button
+          type="button"
+          onClick={onWishlistToggle}
+          className={`absolute ${isCompact ? 'top-1.5 right-1.5' : 'top-3 right-3'} z-20 ${wishlistButtonSize} rounded-full flex items-center justify-center transition-all duration-200 shadow-md ${
+            isInWishlist
+              ? 'bg-red-600 text-white hover:bg-red-700'
+              : 'bg-white/95 text-gray-700 hover:bg-white border border-gray-200/80'
+          }`}
+          title={
+            isInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')
+          }
+          aria-label={
+            isInWishlist ? t('common.ariaLabels.removeFromWishlist') : t('common.ariaLabels.addToWishlist')
+          }
+        >
+          <WishlistHeartIcon filled={isInWishlist} size={wishlistIconSize} />
+        </button>
+
+        {/* Compare — on hover (wishlist is fixed above) */}
         <ProductCardActions
           isInWishlist={isInWishlist}
           isInCompare={isInCompare}
@@ -100,6 +122,7 @@ export function ProductCardGrid({
           onCompareToggle={onCompareToggle}
           onAddToCart={onAddToCart}
           showOnHover
+          showWishlist={false}
         />
       </div>
       

@@ -3,10 +3,15 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import type { MouseEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import { formatPrice } from '../../lib/currency';
 import type { CurrencyCode } from '../../lib/currency';
 import type { LanguageCode } from '../../lib/language';
-import { logger } from "@/lib/utils/logger";
+import { logger } from '@/lib/utils/logger';
+import { useAuth } from '../../lib/auth/AuthContext';
+import { useWishlist } from '../hooks/useWishlist';
+import { useTranslation } from '../../lib/i18n-client';
+import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
 
 const FIGMA_CARD_IMAGE = '/api/r2/product/20260512-D3w_teddze.png';
 const FIGMA_HOT_ICON = '/api/r2/product/20260512-dWv7-ZfxP1.svg';
@@ -61,9 +66,23 @@ export function RelatedProductCard({
   imageError,
   width,
 }: RelatedProductCardProps) {
+  const router = useRouter();
+  const { isLoggedIn } = useAuth();
+  const { t } = useTranslation();
+  const { isInWishlist, toggleWishlist } = useWishlist(product.id);
   const hasImage = product.image && !imageError;
   const hasDiscount = typeof product.discountPercent === 'number' && product.discountPercent > 0;
   const discountText = hasDiscount ? `-${Math.round(product.discountPercent!)}%` : '';
+
+  const handleWishlistClick = (e: MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isLoggedIn) {
+      router.push(`/login?redirect=/products/${encodeURIComponent(product.slug)}`);
+      return;
+    }
+    void toggleWishlist();
+  };
 
   return (
     <div
@@ -103,6 +122,24 @@ export function RelatedProductCard({
             <div className="absolute left-4 top-[58px] flex h-8 w-8 items-center justify-center overflow-hidden rounded-full">
               <img src={FIGMA_RIBBON_ICON} alt="" className="h-8 w-8 scale-110 object-cover" />
             </div>
+
+            <button
+              type="button"
+              onClick={handleWishlistClick}
+              className={`absolute right-3 top-3 z-30 flex h-9 w-9 items-center justify-center rounded-full border shadow-md transition-colors sm:h-10 sm:w-10 ${
+                isInWishlist
+                  ? 'border-red-600 bg-red-600 text-white hover:bg-red-700'
+                  : 'border-[#dedede]/90 bg-white/95 text-gray-700 hover:bg-white'
+              }`}
+              title={
+                isInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')
+              }
+              aria-label={
+                isInWishlist ? t('common.ariaLabels.removeFromWishlist') : t('common.ariaLabels.addToWishlist')
+              }
+            >
+              <WishlistHeartIcon filled={isInWishlist} size={18} />
+            </button>
 
             <div className="absolute left-[14px] top-[170px] flex items-center gap-[6px]">
               <img src={FIGMA_STAR_ICON} alt="" className="h-5 w-5 object-contain" />

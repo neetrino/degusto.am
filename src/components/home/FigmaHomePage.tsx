@@ -11,6 +11,9 @@ import { useTranslation } from '../../lib/i18n-client';
 import { useCurrency } from '../hooks/useCurrency';
 import { formatPrice } from '../../lib/currency';
 import { useAddToCart } from '../hooks/useAddToCart';
+import { useWishlist } from '../hooks/useWishlist';
+import { useAuth } from '../../lib/auth/AuthContext';
+import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
 import { getHomeCategoryHref } from './homeCategoryLinks';
 import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
 import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
@@ -93,6 +96,8 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
   const formattedOldPrice = item.oldPrice ? keepCurrencySymbolAttached(formatPrice(item.oldPrice, currency)) : null;
   const mainPriceClassName = formattedPrice.length > 12 ? 'text-[18px]' : 'text-[20px]';
   const productHref = `/products/${item.slug}`;
+  const { isLoggedIn } = useAuth();
+  const { isInWishlist, toggleWishlist } = useWishlist(item.id);
   const { isAddingToCart, addToCart } = useAddToCart({
     productId: item.id,
     productSlug: item.slug,
@@ -121,6 +126,16 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
     void addToCart({ origin, imageUrl: item.image });
   };
 
+  const handleWishlistToggle = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!isLoggedIn) {
+      router.push(`/login?redirect=${encodeURIComponent(productHref)}`);
+      return;
+    }
+    void toggleWishlist();
+  };
+
   return (
     <article
       data-home-product-card
@@ -141,6 +156,23 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
         hotIconSrc={assets.productCardHot}
         greensIconSrc={assets.productCardRibbon}
       />
+      <button
+        type="button"
+        onClick={handleWishlistToggle}
+        className={`absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border shadow-md transition-colors sm:h-10 sm:w-10 ${
+          isInWishlist
+            ? 'border-red-600 bg-red-600 text-white hover:bg-red-700'
+            : 'border-[#dedede]/90 bg-white/95 text-gray-700 hover:bg-white'
+        }`}
+        title={
+          isInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')
+        }
+        aria-label={
+          isInWishlist ? t('common.ariaLabels.removeFromWishlist') : t('common.ariaLabels.addToWishlist')
+        }
+      >
+        <WishlistHeartIcon filled={isInWishlist} size={18} />
+      </button>
       <div className="absolute left-[14px] top-[170px] flex items-center gap-[6px]">
         <img src={assets.productCardStar} alt="" className="h-5 w-5 object-contain" />
         <p className="text-base font-medium leading-[1.35] text-[rgba(60,47,47,0.62)]">4.7</p>
@@ -211,6 +243,9 @@ export function FigmaHomePage({
       : (heroProduct?.title || t('home.figma.mobile.product.title'));
   const heroProductSubtitle = heroProduct?.subtitle || t('home.figma.mobile.product.subtitle');
   const heroProductHref = `/products/${heroProduct?.slug || 'products'}`;
+  const { isLoggedIn } = useAuth();
+  const heroForWishlist = heroProduct ?? fallbackFeaturedProducts[0];
+  const { isInWishlist: heroInWishlist, toggleWishlist: toggleHeroWishlist } = useWishlist(heroForWishlist.id);
   const openHeroProduct = () => {
     router.push(heroProductHref);
   };
@@ -220,6 +255,16 @@ export function FigmaHomePage({
     }
     event.preventDefault();
     openHeroProduct();
+  };
+
+  const handleHeroWishlistToggle = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!isLoggedIn) {
+      router.push(`/login?redirect=${encodeURIComponent(heroProductHref)}`);
+      return;
+    }
+    void toggleHeroWishlist();
   };
 
   return (
@@ -260,6 +305,23 @@ export function FigmaHomePage({
                 greensIconSrc={assets.productCardRibbon}
               />
             </div>
+            <button
+              type="button"
+              onClick={handleHeroWishlistToggle}
+              className={`absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border shadow-md transition-colors sm:h-10 sm:w-10 ${
+                heroInWishlist
+                  ? 'border-red-600 bg-red-600 text-white hover:bg-red-700'
+                  : 'border-[#dedede]/90 bg-white/95 text-gray-700 hover:bg-white'
+              }`}
+              title={
+                heroInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')
+              }
+              aria-label={
+                heroInWishlist ? t('common.ariaLabels.removeFromWishlist') : t('common.ariaLabels.addToWishlist')
+              }
+            >
+              <WishlistHeartIcon filled={heroInWishlist} size={18} />
+            </button>
             <div className="absolute left-[14px] top-[172px] flex items-center gap-1.5">
               <img src={assets.productCardStar} alt="" className="h-5 w-5 object-contain" />
               <p className="text-base font-medium leading-none text-[rgba(60,47,47,0.62)]">4.7</p>
