@@ -310,6 +310,7 @@ export function ProductAttributesSelector({
                 );
               })}
               </div>
+<<<<<<< HEAD
             </div>
           )}
           {genericDimensionEntries.length > 0 && (
@@ -329,10 +330,13 @@ export function ProductAttributesSelector({
                 />
               ))}
               </div>
+=======
+>>>>>>> 7aba160 (cart style and deleted /cart)
             </div>
           )}
           {genericDimensionEntries.length > 0 && (
-            <div className="flex w-full flex-col gap-4">
+            <div className={PDP_ATTR_SECTION_CARD}>
+              <div className="flex flex-col gap-5">
               {genericDimensionEntries.map(([attrKey, attrGroups]) => (
                 <PdpAttributePillRow
                   key={attrKey}
@@ -346,6 +350,7 @@ export function ProductAttributesSelector({
                   onAttributeValueSelect={onAttributeValueSelect}
                 />
               ))}
+              </div>
             </div>
           )}
           {genericDimensionEntries.length > 0 && (
