@@ -2,7 +2,6 @@
 
 import { useTranslation } from '../../../lib/i18n-client';
 import { formatPriceInCurrency } from '../../../lib/currency';
-import { CHECKOUT_TEXT_LABEL, CHECKOUT_TEXT_VALUE } from '../checkout-ui';
 import { Cart } from '../types';
 
 interface OrderSummaryModalProps {
@@ -11,7 +10,6 @@ interface OrderSummaryModalProps {
     subtotalDisplay: number;
     bagFeeDisplay: number;
     shippingDisplay: number;
-    discountDisplay: number;
     totalDisplay: number;
   };
   currency: 'USD' | 'AMD' | 'EUR' | 'RUB' | 'GEL';
@@ -51,44 +49,32 @@ export function OrderSummaryModal({
           (shippingCity ? ` (${shippingCity})` : ` (${t('checkout.shipping.delivery')})`)
         : t('checkout.shipping.enterCity');
 
-  const hasDiscount = orderSummary.discountDisplay > 0;
-
   return (
-    <div className="space-y-2 rounded-xl border border-[#F66812]/15 bg-[#F66812]/[0.05] p-4">
-      <div className="flex justify-between gap-2 text-sm">
-        <span className={CHECKOUT_TEXT_LABEL}>{t('checkout.summary.items')}:</span>
-        <span className={CHECKOUT_TEXT_VALUE}>{cart.itemsCount}</span>
+    <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+      <div className="flex justify-between text-sm">
+        <span className="text-gray-600">{t('checkout.summary.items')}:</span>
+        <span className="font-medium">{cart.itemsCount}</span>
       </div>
-      <div className="flex justify-between gap-2 text-sm">
-        <span className={CHECKOUT_TEXT_LABEL}>{t('checkout.summary.subtotal')}:</span>
-        <span className={CHECKOUT_TEXT_VALUE}>
-          {formatPriceInCurrency(orderSummary.subtotalDisplay, currency)}
-        </span>
+      <div className="flex justify-between text-sm">
+        <span className="text-gray-600">{t('checkout.summary.subtotal')}:</span>
+        <span className="font-medium">{formatPriceInCurrency(orderSummary.subtotalDisplay, currency)}</span>
       </div>
-      {hasDiscount ? (
-        <div className="flex justify-between gap-2 text-sm">
-          <span className={CHECKOUT_TEXT_LABEL}>{t('common.cart.discount')}:</span>
-          <span className={`font-medium text-green-600 ${CHECKOUT_TEXT_VALUE}`}>
-            −{formatPriceInCurrency(orderSummary.discountDisplay, currency)}
-          </span>
-        </div>
-      ) : null}
-      <div className="flex justify-between gap-2 text-sm">
-        <span className={CHECKOUT_TEXT_LABEL}>{t('checkout.summary.shipping')}:</span>
-        <span className={`text-right ${CHECKOUT_TEXT_VALUE}`}>{shippingDisplay}</span>
+      <div className="flex justify-between text-sm">
+        <span className="text-gray-600">{t('checkout.summary.shipping')}:</span>
+        <span className="font-medium">{shippingDisplay}</span>
       </div>
-      <div className="flex justify-between gap-2 text-sm">
-        <span className={CHECKOUT_TEXT_LABEL}>{t('checkout.summary.bagFee')}:</span>
-        <span className={CHECKOUT_TEXT_VALUE}>
+      <div className="flex justify-between text-sm">
+        <span className="text-gray-600">{t('checkout.summary.bagFee')}:</span>
+        <span className="font-medium">
           {shippingMethod === 'delivery'
             ? formatPriceInCurrency(orderSummary.bagFeeDisplay, currency)
             : formatPriceInCurrency(0, currency)}
         </span>
       </div>
-      <div className="mt-2 border-t border-[#F66812]/15 pt-2">
+      <div className="border-t border-gray-200 pt-2 mt-2">
         <div className="flex justify-between">
-          <span className="font-semibold text-[#1F2E1F]">{t('checkout.summary.total')}:</span>
-          <span className="font-bold text-[#F66812]">
+          <span className="font-semibold text-gray-900">{t('checkout.summary.total')}:</span>
+          <span className="font-bold text-gray-900">
             {formatPriceInCurrency(orderSummary.totalDisplay, currency)}
           </span>
         </div>

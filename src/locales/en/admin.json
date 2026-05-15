@@ -585,7 +585,9 @@
     "fetchError": "Failed to load promocodes",
     "saveError": "Failed to save promocode",
     "deleteError": "Failed to delete promocode",
-    "deleteConfirm": "Delete promocode \"{code}\"?"
+    "deleteConfirm": "Delete promocode \"{code}\"?",
+    "copyCode": "Copy promocode",
+    "copyError": "Could not copy to clipboard"
   },
   "priceFilter": {
     "title": "Price Filter Settings",
