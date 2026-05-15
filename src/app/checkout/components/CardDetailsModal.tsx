@@ -3,6 +3,7 @@
 import { Button } from '@shop/ui';
 import { UseFormRegister, UseFormSetValue, UseFormHandleSubmit, FieldErrors } from 'react-hook-form';
 import { useTranslation } from '../../../lib/i18n-client';
+import { CHECKOUT_MODAL_PANEL, CHECKOUT_MODAL_CLOSE_ICON, CHECKOUT_OUTLINE_BUTTON, CHECKOUT_PRIMARY_BUTTON, CHECKOUT_TEXT_INK_MUTED } from '../checkout-ui';
 import { PaymentMethodLogo } from './PaymentMethodLogo';
 import { CardInputFields } from './CardInputFields';
 import { OrderSummaryModal } from './OrderSummaryModal';
@@ -87,13 +88,13 @@ export function CardDetailsModal({
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
       onClick={onClose}
     >
-      <div 
-        className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto"
+      <div
+        className={CHECKOUT_MODAL_PANEL}
         onClick={(e) => e.stopPropagation()}
         style={{ zIndex: 10000 }}
       >
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-[#1F2E1F]">
             {t('checkout.modals.cardDetails').replace(
               '{method}',
               paymentMethod === 'arca' ? t('checkout.payment.arca') : t('checkout.payment.idram')
@@ -101,7 +102,7 @@ export function CardDetailsModal({
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className={CHECKOUT_MODAL_CLOSE_ICON}
             aria-label={t('checkout.modals.closeModal')}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -119,10 +120,10 @@ export function CardDetailsModal({
               size="medium"
             />
             <div>
-              <div className="font-semibold text-gray-900">
+              <div className="font-semibold text-[#1F2E1F]">
                 {paymentMethod === 'arca' ? t('checkout.payment.arca') : t('checkout.payment.idram')} {t('checkout.payment.paymentDetails')}
               </div>
-              <div className="text-sm text-gray-600">{t('checkout.payment.enterCardDetails')}</div>
+              <div className={`text-sm ${CHECKOUT_TEXT_INK_MUTED}`}>{t('checkout.payment.enterCardDetails')}</div>
             </div>
           </div>
 
@@ -146,7 +147,7 @@ export function CardDetailsModal({
         )}
 
         <div className="mb-6">
-          <h3 className="font-semibold text-gray-900 mb-3">{t('checkout.orderSummary')}</h3>
+          <h3 className="mb-3 font-semibold text-[#1F2E1F]">{t('checkout.orderSummary')}</h3>
           <OrderSummaryModal
             cart={cart}
             orderSummary={orderSummary}
@@ -164,7 +165,7 @@ export function CardDetailsModal({
           <Button
             type="button"
             variant="outline"
-            className="flex-1"
+            className={`flex-1 ${CHECKOUT_OUTLINE_BUTTON}`}
             onClick={onClose}
             disabled={isSubmitting}
           >
@@ -173,7 +174,7 @@ export function CardDetailsModal({
           <Button
             type="button"
             variant="primary"
-            className="flex-1"
+            className={`flex-1 ${CHECKOUT_PRIMARY_BUTTON}`}
             onClick={handleSubmit(
               (data) => {
                 onClose();
