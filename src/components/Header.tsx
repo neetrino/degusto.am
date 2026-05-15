@@ -20,6 +20,7 @@ import { CART_KEY, getCompareCount, getWishlistCount } from '../lib/storageCount
 import { LanguageSwitcherHeader } from './LanguageSwitcherHeader';
 import { Instagram, Facebook, Linkedin, Globe } from 'lucide-react';
 import { CompareIcon } from './icons/CompareIcon';
+import { WishlistHeaderHeartIcon } from './icons/WishlistHeaderHeartIcon';
 import { BrandLogoLink } from './BrandLogoLink';
 import { CartIcon } from './icons/CartIcon';
 import { readCartSummaryCache, writeCartSummaryCache } from '../lib/cartSummaryCache';
@@ -65,6 +66,15 @@ function headerIconNavClassName(active: boolean): string {
   return active
     ? `${base} text-gray-900 bg-gray-100 ring-1 ring-gray-200/90`
     : `${base} text-gray-700 hover:text-gray-900`;
+}
+
+/** Wishlist control: white pill circle + brand heart (matches Figma header). */
+function headerWishlistNavClassName(active: boolean): string {
+  const base =
+    'h-12 w-12 shrink-0 flex items-center justify-center rounded-full bg-white shadow-sm transition-colors duration-150 ring-1';
+  return active
+    ? `${base} ring-[color:var(--project-color)] ring-2`
+    : `${base} ring-black/10 hover:ring-[color:var(--project-color)]/40`;
 }
 
 function headerMobileRowClassName(active: boolean): string {
@@ -123,8 +133,9 @@ const ProfileIconFilled = () => (
   </div>
 );
 
+/** Outline heart (e.g. mobile drawer). */
 const WishlistIcon = () => (
-  <svg width="19" height="19" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg width="19" height="19" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
     <path d="M10 17L8.55 15.7C4.4 12.2 2 10.1 2 7.5C2 5.4 3.4 4 5.5 4C6.8 4 8.1 4.6 9 5.5C9.9 4.6 11.2 4 12.5 4C14.6 4 16 5.4 16 7.5C16 10.1 13.6 12.2 9.45 15.7L10 17Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
   </svg>
 );
@@ -915,51 +926,7 @@ export function Header() {
               />
             </div>
 
-            {/* Icons */}
-              {/* Profile / User Menu */}
-              <div className="relative">
-                {isLoggedIn ? (
-                  <Link
-                    href="/profile"
-                    {...getFastNavHandlers('/profile')}
-                    className={headerIconNavClassName(isHeaderNavActive(pathname, '/profile'))}
-                    aria-current={isHeaderNavActive(pathname, '/profile') ? 'page' : undefined}
-                    aria-label={t('common.navigation.profile')}
-                  >
-                    <ProfileIconFilled />
-                  </Link>
-                ) : (
-                  <Link
-                    href="/login"
-                    {...getFastNavHandlers('/login')}
-                    className={headerIconNavClassName(isHeaderNavActive(pathname, '/login'))}
-                    aria-current={isHeaderNavActive(pathname, '/login') ? 'page' : undefined}
-                  >
-                    <ProfileIconOutline />
-                  </Link>
-                )}
-              </div>
-
-              {/* Compare */}
-              <Link
-                href="/compare"
-                {...getFastNavHandlers('/compare')}
-                className={`${headerIconNavClassName(isHeaderNavActive(pathname, '/compare'))} relative group`}
-                aria-current={isHeaderNavActive(pathname, '/compare') ? 'page' : undefined}
-              >
-                <BadgeIcon icon={<CompareIcon size={18} />} badge={compareCount} />
-              </Link>
-
-              {/* Wishlist */}
-              <Link
-                href="/wishlist"
-                {...getFastNavHandlers('/wishlist')}
-                className={`${headerIconNavClassName(isHeaderNavActive(pathname, '/wishlist'))} relative group`}
-                aria-current={isHeaderNavActive(pathname, '/wishlist') ? 'page' : undefined}
-              >
-                <BadgeIcon icon={<WishlistIcon />} badge={wishlistCount} />
-              </Link>
-
+            {/* Icons — order per Figma: cart → wishlist → … → profile */}
               {/* Shopping Cart */}
               <button
                 type="button"
@@ -987,6 +954,51 @@ export function Header() {
                   {formatPrice(cartTotal, selectedCurrency)}
                 </span>
               </button>
+
+              {/* Wishlist — white circle + filled brand heart */}
+              <Link
+                href="/wishlist"
+                {...getFastNavHandlers('/wishlist')}
+                className={`${headerWishlistNavClassName(isHeaderNavActive(pathname, '/wishlist'))} group relative`}
+                aria-current={isHeaderNavActive(pathname, '/wishlist') ? 'page' : undefined}
+                aria-label={t('common.navigation.wishlist')}
+              >
+                <BadgeIcon icon={<WishlistHeaderHeartIcon />} badge={wishlistCount} />
+              </Link>
+
+              {/* Compare */}
+              <Link
+                href="/compare"
+                {...getFastNavHandlers('/compare')}
+                className={`${headerIconNavClassName(isHeaderNavActive(pathname, '/compare'))} relative group`}
+                aria-current={isHeaderNavActive(pathname, '/compare') ? 'page' : undefined}
+              >
+                <BadgeIcon icon={<CompareIcon size={18} />} badge={compareCount} />
+              </Link>
+
+              {/* Profile / User Menu */}
+              <div className="relative">
+                {isLoggedIn ? (
+                  <Link
+                    href="/profile"
+                    {...getFastNavHandlers('/profile')}
+                    className={headerIconNavClassName(isHeaderNavActive(pathname, '/profile'))}
+                    aria-current={isHeaderNavActive(pathname, '/profile') ? 'page' : undefined}
+                    aria-label={t('common.navigation.profile')}
+                  >
+                    <ProfileIconFilled />
+                  </Link>
+                ) : (
+                  <Link
+                    href="/login"
+                    {...getFastNavHandlers('/login')}
+                    className={headerIconNavClassName(isHeaderNavActive(pathname, '/login'))}
+                    aria-current={isHeaderNavActive(pathname, '/login') ? 'page' : undefined}
+                  >
+                    <ProfileIconOutline />
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
 

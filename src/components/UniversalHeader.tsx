@@ -8,13 +8,14 @@ import { LanguageCurrencySwitcher } from './LanguageCurrencySwitcher';
 import { useTranslation } from '../lib/i18n-client';
 import { useAuth } from '../lib/auth/AuthContext';
 import { apiClient } from '../lib/api-client';
-import { CART_KEY } from '../lib/storageCounts';
+import { CART_KEY, getWishlistCount } from '../lib/storageCounts';
 import { formatPrice } from '../lib/currency';
 import { useCurrency } from './hooks/useCurrency';
 import { readCartSummaryCache, writeCartSummaryCache } from '../lib/cartSummaryCache';
 import { useInstantSearch } from './hooks/useInstantSearch';
 import { SearchDropdown } from './SearchDropdown';
 import { useCartDrawer } from './cart-drawer/cart-drawer-context';
+import { WishlistHeaderHeartIcon } from './icons/WishlistHeaderHeartIcon';
 
 const assets = {
   logo: 'https://www.figma.com/api/mcp/asset/b684f5ca-5543-4689-be84-ac53b6c5d14c',
@@ -26,6 +27,14 @@ const assets = {
   switcherIcon: 'https://www.figma.com/api/mcp/asset/7e774d0a-9c34-437c-b6a6-eb0f02674821',
   switcherArrow: 'https://www.figma.com/api/mcp/asset/7eb0464d-351a-4497-9966-932e83d0dc1c',
 };
+
+function universalWishlistNavClassName(active: boolean): string {
+  const base =
+    'relative inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white shadow-sm transition-colors duration-150 ring-1';
+  return active
+    ? `${base} ring-[color:var(--project-color)] ring-2`
+    : `${base} ring-black/10 hover:ring-[color:var(--project-color)]/40`;
+}
 
 interface UniversalHeaderProps {
   spacerBackgroundClassName?: string;
@@ -48,6 +57,7 @@ interface CartResponse {
 export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: UniversalHeaderProps) {
   const [cartCount, setCartCount] = useState(0);
   const [cartTotal, setCartTotal] = useState(0);
+  const [wishlistCount, setWishlistCount] = useState(0);
   const { openCartDrawer } = useCartDrawer();
   const { t } = useTranslation();
   const { isLoggedIn, isAdmin, logout } = useAuth();
@@ -172,13 +182,30 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
       void fetchCart();
     };
 
+    const refreshWishlistCount = () => {
+      setWishlistCount(getWishlistCount());
+    };
+
+    refreshWishlistCount();
+
+    const handleWishlistUpdated = () => {
+      refreshWishlistCount();
+    };
+
+    const handleAuthForCartAndWishlist = () => {
+      refreshWishlistCount();
+      void fetchCart();
+    };
+
     void fetchCart();
     window.addEventListener('cart-updated', handleCartUpdated);
-    window.addEventListener('auth-updated', fetchCart);
+    window.addEventListener('auth-updated', handleAuthForCartAndWishlist);
+    window.addEventListener('wishlist-updated', handleWishlistUpdated);
 
     return () => {
       window.removeEventListener('cart-updated', handleCartUpdated);
-      window.removeEventListener('auth-updated', fetchCart);
+      window.removeEventListener('auth-updated', handleAuthForCartAndWishlist);
+      window.removeEventListener('wishlist-updated', handleWishlistUpdated);
     };
   }, [isLoggedIn]);
 
@@ -266,6 +293,29 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
                 </span>
               </span>
             </button>
+            <Link
+              href="/wishlist"
+              className={`${universalWishlistNavClassName(isActivePath('/wishlist'))} hidden md:inline-flex`}
+              aria-current={isActivePath('/wishlist') ? 'page' : undefined}
+              aria-label={
+                wishlistCount > 0
+                  ? `${t('common.navigation.wishlist')}, ${wishlistCount}`
+                  : t('common.navigation.wishlist')
+              }
+            >
+              <WishlistHeaderHeartIcon />
+              {wishlistCount > 0 && (
+                <span
+                  aria-hidden
+                  className="absolute -right-0.5 -top-0.5 inline-flex h-6 w-6 items-center justify-center"
+                >
+                  <img src={assets.cartCounterBubble} alt="" className="absolute h-6 w-6 object-contain" />
+                  <span className="relative text-xs font-bold leading-none text-white">
+                    {wishlistCount > 99 ? '99+' : wishlistCount}
+                  </span>
+                </span>
+              )}
+            </Link>
             <LanguageCurrencySwitcher
               variant="desktop"
               iconSrc={assets.switcherIcon}
