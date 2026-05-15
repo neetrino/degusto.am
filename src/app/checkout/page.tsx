@@ -44,7 +44,6 @@ export default function CheckoutPage() {
     onSubmit,
     isLoggedIn,
     watch,
-    setCheckoutCouponDiscountUsd,
   } = useCheckout();
 
   if (loading) {
@@ -130,7 +129,6 @@ export default function CheckoutPage() {
                 handlePlaceOrder({ preventDefault: () => {} } as React.FormEvent);
               }
             }}
-            onCouponDiscountUsdChange={setCheckoutCouponDiscountUsd}
           />
         </div>
       </form>
