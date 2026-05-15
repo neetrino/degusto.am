@@ -28,7 +28,7 @@ export function getMobileBottomNavActiveFlags(
     isShopActive: pathname === '/shop',
     isHomeActive: pathname === '/',
     isCartActive: false,
-    isFavoritesActive: isPathActive(pathname, '/favorites'),
+    isFavoritesActive: isPathActive(pathname, '/wishlist'),
     isProfileSlotActive,
   };
 }
