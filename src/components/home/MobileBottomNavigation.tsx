@@ -82,7 +82,7 @@ const MOBILE_BOTTOM_NAV_ROW: BottomNavRowCell[] = [
   {
     kind: 'link',
     id: 'favorites',
-    href: () => '/favorites',
+    href: () => '/wishlist',
     rowClass: 'inline-flex h-[30px] w-[71px] items-start',
     isActive: (f) => f.isFavoritesActive,
     render: ({ assets, active }) => {

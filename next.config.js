@@ -26,7 +26,11 @@ const nextConfig = {
   output: 'standalone',
   /** Full cart page removed; drawer-only cart — old URLs go to shop. */
   async redirects() {
-    return [{ source: '/cart', destination: '/shop', permanent: false }];
+    return [
+      { source: '/cart', destination: '/shop', permanent: false },
+      /** Mobile nav historically linked `/favorites`; wishlist lives at `/wishlist`. */
+      { source: '/favorites', destination: '/wishlist', permanent: true },
+    ];
   },
   // Security headers (P1-SEC-07)
   async headers() {
