@@ -2,7 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { Card, Button } from '@shop/ui';
+import { BodyBackground } from '../../components/BodyBackground';
 import { useTranslation } from '../../lib/i18n-client';
+import { CHECKOUT_CARD_FRAME, CHECKOUT_PAGE_TITLE, CHECKOUT_PRIMARY_BUTTON, CHECKOUT_TEXT_INK_MUTED } from './checkout-ui';
 import { CheckoutForm } from './CheckoutForm';
 import { CheckoutModals } from './CheckoutModals';
 import { OrderSummary } from './OrderSummary';
@@ -45,40 +47,50 @@ export default function CheckoutPage() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-4">
-              <div className="h-96 bg-gray-200 rounded"></div>
+      <>
+        <BodyBackground color="#ffffff" />
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+          <div className="animate-pulse">
+            <div className="mb-8 h-9 w-48 rounded-lg bg-[#F66812]/15 lg:mb-10" />
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+              <div className="space-y-4 lg:col-span-2">
+                <div className="h-40 rounded-2xl bg-[#F66812]/10" />
+                <div className="h-36 rounded-2xl bg-[#F66812]/10" />
+                <div className="h-52 rounded-2xl bg-[#F66812]/10" />
+              </div>
+              <div className="h-72 rounded-t-2xl bg-[#F66812]/10" />
             </div>
-            <div className="h-64 bg-gray-200 rounded"></div>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 
   if (!cart || cart.items.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">{t('checkout.title')}</h1>
-        <Card className="p-6 text-center">
-          <p className="text-gray-600 mb-4">{t('checkout.errors.cartEmpty')}</p>
-          <Button variant="primary" onClick={() => router.push('/shop')}>
-            {t('checkout.buttons.continueShopping')}
-          </Button>
-        </Card>
-      </div>
+      <>
+        <BodyBackground color="#ffffff" />
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+          <h1 className={`mb-6 lg:mb-8 ${CHECKOUT_PAGE_TITLE}`}>{t('checkout.title')}</h1>
+          <Card className={`p-6 text-center ${CHECKOUT_CARD_FRAME}`}>
+            <p className={`mb-4 ${CHECKOUT_TEXT_INK_MUTED}`}>{t('checkout.errors.cartEmpty')}</p>
+            <Button variant="primary" className={CHECKOUT_PRIMARY_BUTTON} onClick={() => router.push('/shop')}>
+              {t('checkout.buttons.continueShopping')}
+            </Button>
+          </Card>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">{t('checkout.title')}</h1>
+    <>
+      <BodyBackground color="#ffffff" />
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+        <h1 className={`mb-6 lg:mb-8 ${CHECKOUT_PAGE_TITLE}`}>{t('checkout.title')}</h1>
 
       <form onSubmit={handlePlaceOrder}>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           {/* Checkout Form */}
           <CheckoutForm
             register={register}
@@ -117,6 +129,7 @@ export default function CheckoutPage() {
           />
         </div>
       </form>
+      </div>
 
       <CheckoutModals
         showShippingModal={showShippingModal}
@@ -143,6 +156,6 @@ export default function CheckoutPage() {
         isLoggedIn={isLoggedIn}
         onSubmit={onSubmit}
       />
-    </div>
+    </>
   );
 }

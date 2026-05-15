@@ -20,7 +20,7 @@ export function ContactInformation({
 
   return (
     <div className="space-y-4 mb-6">
-      <h3 className="text-lg font-semibold text-gray-900">{t('checkout.contactInformation')}</h3>
+      <h3 className="text-lg font-semibold text-[#1F2E1F]">{t('checkout.contactInformation')}</h3>
       <div>
         <Input
           label={t('checkout.form.email')}
