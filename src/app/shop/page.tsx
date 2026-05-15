@@ -8,6 +8,7 @@ import { resolveStorefrontLocaleFromCookie } from '@/lib/i18n/locale';
 import type { Prisma } from '@prisma/client';
 import { buildProductWhereTasteCapability, resolveFoodAttributeFlagsFromVariants } from '@/lib/product-food-attributes';
 import { storefrontAmdPriceBoundToVariantUsd } from '@/lib/currency';
+import { withPrismaResilience } from '@/lib/db/with-prisma-resilience';
 
 /** Always read fresh data from DB on each request (no static cache for this route). */
 export const dynamic = 'force-dynamic';
@@ -167,124 +168,215 @@ export default async function ShopPage({
         ],
       }
     : productWhereBase;
-  const productTotal = await db.product.count({ where: productWhere });
-  const totalPages =
-    productTotal === 0 ? 0 : Math.ceil(productTotal / STORE_MENU_PAGE_SIZE);
-  const effectivePage =
-    totalPages === 0 ? 1 : Math.min(requestedPage, totalPages);
-  const productRows = await db.product.findMany({
-    where: productWhere,
-    orderBy: {
-      updatedAt: 'desc',
-    },
-    skip: (effectivePage - 1) * STORE_MENU_PAGE_SIZE,
-    take: STORE_MENU_PAGE_SIZE,
-    select: {
-      id: true,
-      media: true,
-      discountPercent: true,
-      categories: {
-        where: {
-          deletedAt: null,
-          published: true,
-        },
-        orderBy: {
-          position: 'asc',
-        },
-        take: 1,
-        select: {
-          translations: {
-            where: {
-              locale: {
-                in: [locale, 'en'],
+
+  const { productTotal, productRows, categoryRows, allProductCount, countsBySlug } =
+    await withPrismaResilience(
+      async () => {
+        const nextProductTotal = await db.product.count({ where: productWhere });
+        const nextTotalPages =
+          nextProductTotal === 0 ? 0 : Math.ceil(nextProductTotal / STORE_MENU_PAGE_SIZE);
+        const nextEffectivePage =
+          nextTotalPages === 0 ? 1 : Math.min(requestedPage, nextTotalPages);
+        const nextProductRows = await db.product.findMany({
+          where: productWhere,
+          orderBy: {
+            updatedAt: 'desc',
+          },
+          skip: (nextEffectivePage - 1) * STORE_MENU_PAGE_SIZE,
+          take: STORE_MENU_PAGE_SIZE,
+          select: {
+            id: true,
+            media: true,
+            discountPercent: true,
+            categories: {
+              where: {
+                deletedAt: null,
+                published: true,
+              },
+              orderBy: {
+                position: 'asc',
+              },
+              take: 1,
+              select: {
+                translations: {
+                  where: {
+                    locale: {
+                      in: [locale, 'en'],
+                    },
+                  },
+                  select: {
+                    locale: true,
+                    title: true,
+                    slug: true,
+                  },
+                },
               },
             },
-            select: {
-              locale: true,
-              title: true,
-              slug: true,
+            translations: {
+              where: {
+                locale: {
+                  in: [locale, 'en'],
+                },
+              },
+              select: {
+                locale: true,
+                title: true,
+                subtitle: true,
+                slug: true,
+              },
             },
-          },
-        },
-      },
-      translations: {
-        where: {
-          locale: {
-            in: [locale, 'en'],
-          },
-        },
-        select: {
-          locale: true,
-          title: true,
-          subtitle: true,
-          slug: true,
-        },
-      },
-      variants: {
-        where: {
-          published: true,
-        },
-        orderBy: {
-          price: 'asc',
-        },
-        select: {
-          published: true,
-          price: true,
-          compareAtPrice: true,
-          attributes: true,
-          options: {
-            select: {
-              attributeKey: true,
-              value: true,
-              valueId: true,
-              attributeValue: {
-                select: {
-                  value: true,
-                  attribute: {
-                    select: {
-                      key: true,
+            variants: {
+              where: {
+                published: true,
+              },
+              orderBy: {
+                price: 'asc',
+              },
+              select: {
+                published: true,
+                price: true,
+                compareAtPrice: true,
+                attributes: true,
+                options: {
+                  select: {
+                    attributeKey: true,
+                    value: true,
+                    valueId: true,
+                    attributeValue: {
+                      select: {
+                        value: true,
+                        attribute: {
+                          select: {
+                            key: true,
+                          },
+                        },
+                      },
                     },
                   },
                 },
               },
             },
           },
-        },
-      },
-    },
-  });
+        });
 
-  const categoryRows = await db.category.findMany({
-    where: {
-      published: true,
-      deletedAt: null,
-      translations: {
-        none: {
-          locale: 'en',
-          slug: 'combo',
-        },
-      },
-    },
-    orderBy: {
-      position: 'asc',
-    },
-    select: {
-      id: true,
-      media: true,
-      translations: {
-        where: {
-          locale: {
-            in: [locale, 'en'],
+        const nextCategoryRows = await db.category.findMany({
+          where: {
+            published: true,
+            deletedAt: null,
+            translations: {
+              none: {
+                locale: 'en',
+                slug: 'combo',
+              },
+            },
           },
-        },
-        select: {
-          locale: true,
-          title: true,
-          slug: true,
-        },
+          orderBy: {
+            position: 'asc',
+          },
+          select: {
+            id: true,
+            media: true,
+            translations: {
+              where: {
+                locale: {
+                  in: [locale, 'en'],
+                },
+              },
+              select: {
+                locale: true,
+                title: true,
+                slug: true,
+              },
+            },
+          },
+        });
+
+        const nextCategoryEntries: Array<{
+          id: string;
+          slug: string;
+          title: string;
+          iconUrl: string | null;
+        }> = [
+          {
+            id: 'all',
+            slug: '',
+            title: allCategoriesLabel,
+            iconUrl: null,
+          },
+        ];
+
+        for (const row of nextCategoryRows) {
+          const translation =
+            row.translations.find((item) => item.locale === locale) ?? row.translations[0];
+          if (!translation?.slug || !translation.title) {
+            continue;
+          }
+          if (HIDDEN_STOREFRONT_CATEGORY_SLUGS.has(translation.slug.toLowerCase())) {
+            continue;
+          }
+
+          nextCategoryEntries.push({
+            id: row.id,
+            slug: translation.slug,
+            title: resolveCategoryTitle(locale, translation),
+            iconUrl: toImageUrl(row.media),
+          });
+        }
+
+        const nextSlugsToCount = nextCategoryEntries
+          .filter((item) => item.slug !== '')
+          .map((item) => item.slug);
+
+        const [nextAllProductCount, ...nextCountsBySlug] = await Promise.all([
+          db.product.count({ where: productWhereBase }),
+          ...nextSlugsToCount.map((slug) =>
+            db.product.count({
+              where: {
+                AND: [
+                  productWhereBase,
+                  {
+                    categories: {
+                      some: {
+                        deletedAt: null,
+                        published: true,
+                        translations: {
+                          some: {
+                            locale: { in: [locale, 'en'] },
+                            slug,
+                          },
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            })
+          ),
+        ]);
+
+        return {
+          productTotal: nextProductTotal,
+          productRows: nextProductRows,
+          categoryRows: nextCategoryRows,
+          allProductCount: nextAllProductCount,
+          countsBySlug: nextCountsBySlug,
+        };
       },
-    },
-  });
+      {
+        productTotal: 0,
+        productRows: [],
+        categoryRows: [],
+        allProductCount: 0,
+        countsBySlug: [] as number[],
+      },
+      'SHOP',
+      'menu data'
+    );
+
+  const totalPages =
+    productTotal === 0 ? 0 : Math.ceil(productTotal / STORE_MENU_PAGE_SIZE);
+  const effectivePage =
+    totalPages === 0 ? 1 : Math.min(requestedPage, totalPages);
 
   const categoryEntries: Array<{
     id: string;
@@ -319,33 +411,6 @@ export default async function ShopPage({
   }
 
   const slugsToCount = categoryEntries.filter((item) => item.slug !== '').map((item) => item.slug);
-
-  const [allProductCount, ...countsBySlug] = await Promise.all([
-    db.product.count({ where: productWhereBase }),
-    ...slugsToCount.map((slug) =>
-      db.product.count({
-        where: {
-          AND: [
-            productWhereBase,
-            {
-              categories: {
-                some: {
-                  deletedAt: null,
-                  published: true,
-                  translations: {
-                    some: {
-                      locale: { in: [locale, 'en'] },
-                      slug,
-                    },
-                  },
-                },
-              },
-            },
-          ],
-        },
-      })
-    ),
-  ]);
 
   const slugToProductCount = new Map<string, number>();
   slugsToCount.forEach((slug, index) => {
