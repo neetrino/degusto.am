@@ -432,12 +432,19 @@ export function useProductFormHandlers({
         finalSkuSet.add(finalSku);
       }
 
-      // Collect attribute IDs
+      // Collect attribute IDs (variant UI + color/size used for clothing)
       const attributeIdsSet = new Set<string>();
       const colorAttribute = getColorAttribute();
       const sizeAttribute = getSizeAttribute();
-      if (colorAttribute) attributeIdsSet.add(colorAttribute.id);
-      if (sizeAttribute) attributeIdsSet.add(sizeAttribute.id);
+      if (colorAttribute) {
+        attributeIdsSet.add(colorAttribute.id);
+      }
+      if (sizeAttribute) {
+        attributeIdsSet.add(sizeAttribute.id);
+      }
+      selectedAttributesForVariants.forEach((attributeId) => {
+        attributeIdsSet.add(attributeId);
+      });
       const attributeIds = Array.from(attributeIdsSet);
 
       // Process images

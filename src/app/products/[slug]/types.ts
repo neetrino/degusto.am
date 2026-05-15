@@ -13,6 +13,8 @@ export interface VariantOption {
   attribute: string;
   value: string;
   key: string;
+  /** Localized display label from API when using AttributeValue (optional). */
+  label?: string;
   valueId?: string; // New format: AttributeValue ID
   attributeId?: string; // New format: Attribute ID
 }
@@ -26,6 +28,8 @@ export interface ProductVariant {
   stock: number;
   available: boolean;
   options: VariantOption[];
+  /** Raw Prisma JSON; used for food spicy/greens capability when present. */
+  attributes?: unknown;
   productDiscount?: number | null;
   globalDiscount?: number | null;
   imageUrl?: string;
@@ -51,6 +55,7 @@ export interface ProductAttribute {
       label: string;
       imageUrl?: string | null;
       colors?: string[] | null;
+      priceAdjustment?: number;
     }>;
   };
 }
@@ -63,6 +68,8 @@ export interface AttributeGroupValue {
   variants: ProductVariant[];
   imageUrl?: string | null;
   colors?: string[] | null;
+  /** Extra amount added to variant price when this value is selected (store currency). */
+  priceAdjustment?: number;
 }
 
 export interface Product {
