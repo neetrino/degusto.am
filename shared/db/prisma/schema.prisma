@@ -1,5 +1,7 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  // Neon on Vercel: `@prisma/adapter-neon` (see `client.ts`).
+  previewFeatures = ["driverAdapters"]
   // Avoid Windows EPERM when `pnpm dev` locks the hoisted `@prisma/client` query engine under `.pnpm`.
   output   = "../src/generated/prisma-client"
 }
