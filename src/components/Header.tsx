@@ -999,57 +999,6 @@ export function Header() {
                   </Link>
                 )}
               </div>
-<<<<<<< HEAD
-=======
-
-              {/* Compare */}
-              <Link
-                href="/compare"
-                {...getFastNavHandlers('/compare')}
-                className={`${headerIconNavClassName(isHeaderNavActive(pathname, '/compare'))} relative group`}
-                aria-current={isHeaderNavActive(pathname, '/compare') ? 'page' : undefined}
-              >
-                <BadgeIcon icon={<CompareIcon size={18} />} badge={compareCount} />
-              </Link>
-
-              {/* Wishlist */}
-              <Link
-                href="/wishlist"
-                {...getFastNavHandlers('/wishlist')}
-                className={`${headerIconNavClassName(isHeaderNavActive(pathname, '/wishlist'))} relative group`}
-                aria-current={isHeaderNavActive(pathname, '/wishlist') ? 'page' : undefined}
-              >
-                <BadgeIcon icon={<WishlistIcon />} badge={wishlistCount} />
-              </Link>
-
-              {/* Shopping Cart */}
-              <button
-                type="button"
-                onClick={() => openCartDrawer()}
-                className={`flex items-center gap-[0.hpx] group rounded-lg transition-colors ${
-                  isCartDrawerOpen ? 'bg-gray-100 ring-1 ring-gray-200/90 p-0.5' : ''
-                }`}
-                aria-current={isCartDrawerOpen ? 'page' : undefined}
-                aria-label={`${t('common.navigation.cart')}, ${formatPrice(cartTotal, selectedCurrency)}`}
-              >
-                <div
-                  data-cart-fly-target
-                  className={`relative flex h-11 w-11 items-center justify-center transition-colors duration-150 ${
-                    isCartDrawerOpen ? 'text-gray-900' : 'text-gray-700 hover:text-gray-900'
-                  }`}
-                >
-                  <BadgeIcon icon={<CartIcon size={19} />} badge={cartCount} />
-                </div>
-                <span
-                  aria-hidden
-                  className={`hidden min-w-[3.25rem] text-sm font-bold transition-colors sm:block ${
-                    isCartDrawerOpen ? 'text-gray-900' : 'text-gray-800 group-hover:text-gray-900'
-                  }`}
-                >
-                  {formatPrice(cartTotal, selectedCurrency)}
-                </span>
-              </button>
->>>>>>> 7aba160 (cart style and deleted /cart)
             </div>
           </div>
 

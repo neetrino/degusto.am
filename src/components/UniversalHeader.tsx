@@ -15,10 +15,7 @@ import { readCartSummaryCache, writeCartSummaryCache } from '../lib/cartSummaryC
 import { useInstantSearch } from './hooks/useInstantSearch';
 import { SearchDropdown } from './SearchDropdown';
 import { useCartDrawer } from './cart-drawer/cart-drawer-context';
-<<<<<<< HEAD
 import { WishlistHeaderHeartIcon } from './icons/WishlistHeaderHeartIcon';
-=======
->>>>>>> 7aba160 (cart style and deleted /cart)
 
 const assets = {
   logo: 'https://www.figma.com/api/mcp/asset/b684f5ca-5543-4689-be84-ac53b6c5d14c',
@@ -60,10 +57,7 @@ interface CartResponse {
 export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: UniversalHeaderProps) {
   const [cartCount, setCartCount] = useState(0);
   const [cartTotal, setCartTotal] = useState(0);
-<<<<<<< HEAD
   const [wishlistCount, setWishlistCount] = useState(0);
-=======
->>>>>>> 7aba160 (cart style and deleted /cart)
   const { openCartDrawer } = useCartDrawer();
   const { t } = useTranslation();
   const { isLoggedIn, isAdmin, logout } = useAuth();
@@ -299,7 +293,6 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
                 </span>
               </span>
             </button>
-<<<<<<< HEAD
             <Link
               href="/wishlist"
               className={`${universalWishlistNavClassName(isActivePath('/wishlist'))} hidden md:inline-flex`}
@@ -323,8 +316,6 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
                 </span>
               )}
             </Link>
-=======
->>>>>>> 7aba160 (cart style and deleted /cart)
             <LanguageCurrencySwitcher
               variant="desktop"
               iconSrc={assets.switcherIcon}
