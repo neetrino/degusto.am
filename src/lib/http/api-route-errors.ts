@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/utils/logger";
 
@@ -36,14 +35,27 @@ export function parseRouteCatchError(error: unknown): RouteCatchFields {
 
 const PRISMA_CONNECTION_CODES = new Set(["P1001", "P1002", "P1017"]);
 
+/** Avoid importing `@prisma/client` here — it pulls the query engine into Turbopack NFT tracing. */
+function isPrismaKnownRequestError(error: unknown): error is { code: string } {
+  return (
+    error instanceof Error &&
+    error.name === "PrismaClientKnownRequestError" &&
+    typeof (error as { code?: unknown }).code === "string"
+  );
+}
+
+function isPrismaInitializationError(error: unknown): boolean {
+  return error instanceof Error && error.name === "PrismaClientInitializationError";
+}
+
 /**
  * True when Prisma cannot reach PostgreSQL (Neon paused, wrong URL, network, etc.).
  */
 export function isPrismaConnectionError(error: unknown): boolean {
-  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+  if (isPrismaKnownRequestError(error)) {
     return PRISMA_CONNECTION_CODES.has(error.code);
   }
-  return error instanceof Prisma.PrismaClientInitializationError;
+  return isPrismaInitializationError(error);
 }
 
 /**
@@ -57,8 +69,7 @@ export function apiRouteErrorResponse(
   const instance = req.url;
 
   if (isPrismaConnectionError(error)) {
-    const code =
-      error instanceof Prisma.PrismaClientKnownRequestError ? error.code : "init";
+    const code = isPrismaKnownRequestError(error) ? error.code : "init";
     logger.warn(`${logLabel} database unreachable`, { code });
     return NextResponse.json(
       {
