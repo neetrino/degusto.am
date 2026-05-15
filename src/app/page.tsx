@@ -3,9 +3,8 @@ import { FigmaHomePage, type HomeCategoryItem, type HomeFeaturedProduct } from '
 import { db } from '@white-shop/db';
 import { Prisma } from '@prisma/client';
 import { cookies } from 'next/headers';
-import { isPrismaConnectionError } from '@/lib/http/api-route-errors';
 import { resolveStorefrontLocaleFromCookie, type StorefrontLocale } from '@/lib/i18n/locale';
-import { logger } from '@/lib/utils/logger';
+import { withPrismaResilience } from '@/lib/db/with-prisma-resilience';
 import { resolveFoodAttributeFlagsFromVariants } from '@/lib/product-food-attributes';
 
 type CategoryTreeItem = {
@@ -17,53 +16,10 @@ type CategoryTreeItem = {
 
 const HOME_FEATURED_PRODUCTS_LIMIT = 5;
 const HOME_CATEGORIES_LIMIT = 8;
-const HOME_DB_RETRY_ATTEMPTS = 2;
-const HOME_DB_RETRY_DELAY_MS = 150;
 
 /** Always read fresh data from DB on each request (no static/ISR cache for this route). */
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
-
-function isPrismaPoolTimeout(error: unknown): boolean {
-  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2024';
-}
-
-/**
- * Retries pool timeouts; returns fallback when PostgreSQL is unreachable (any env) so the
- * home shell still renders (FigmaHomePage uses built-in demo data when arrays are empty).
- */
-async function withPrismaPoolRetry<T>(operation: () => Promise<T>, fallback: T, operationName: string): Promise<T> {
-  for (let attempt = 0; attempt <= HOME_DB_RETRY_ATTEMPTS; attempt += 1) {
-    try {
-      return await operation();
-    } catch (error: unknown) {
-      if (isPrismaConnectionError(error)) {
-        const code =
-          error instanceof Prisma.PrismaClientKnownRequestError ? error.code : 'initialization';
-        logger.warn(`[HOME] Database unreachable; empty ${operationName}`, {
-          code,
-          nodeEnv: process.env.NODE_ENV,
-        });
-        return fallback;
-      }
-      if (!isPrismaPoolTimeout(error)) {
-        throw error;
-      }
-      const isLastAttempt = attempt === HOME_DB_RETRY_ATTEMPTS;
-      logger.warn(`[HOME] Prisma connection pool timeout in ${operationName}`, {
-        attempt: attempt + 1,
-        maxAttempts: HOME_DB_RETRY_ATTEMPTS + 1,
-      });
-      if (isLastAttempt) {
-        logger.error(`[HOME] Falling back after repeated pool timeouts in ${operationName}`, { error });
-        return fallback;
-      }
-      await new Promise((resolve) => setTimeout(resolve, HOME_DB_RETRY_DELAY_MS * (attempt + 1)));
-    }
-  }
-
-  return fallback;
-}
 
 function getHomeProductSelect(homeLang: StorefrontLocale) {
   return {
@@ -169,7 +125,7 @@ export default async function HomePage() {
   const homeLang = resolveStorefrontLocaleFromCookie(cookieStore.get('shop_language')?.value);
   const homeProductSelect = getHomeProductSelect(homeLang);
 
-  const selectedRows = await withPrismaPoolRetry(
+  const selectedRows = await withPrismaResilience(
     () =>
       db.product.findMany({
       where: {
@@ -184,10 +140,11 @@ export default async function HomePage() {
       select: homeProductSelect,
     }),
     [],
+    'HOME',
     'home featured products'
   );
 
-  const promoRows = await withPrismaPoolRetry(
+  const promoRows = await withPrismaResilience(
     () =>
       db.product.findMany({
       where: {
@@ -204,12 +161,14 @@ export default async function HomePage() {
       select: homeProductSelect,
     }),
     [],
+    'HOME',
     'home promo products'
   );
 
-  const categoriesTreeResult = await withPrismaPoolRetry(
+  const categoriesTreeResult = await withPrismaResilience(
     () => categoriesService.getTree(homeLang),
     { data: [] as CategoryTreeItem[] },
+    'HOME',
     'home categories tree'
   );
 
@@ -255,7 +214,7 @@ export default async function HomePage() {
   const categoryTotals =
     selectedCategoryIds.length === 0
       ? []
-      : await withPrismaPoolRetry(
+      : await withPrismaResilience(
           () =>
             db.$queryRaw<Array<{ primaryCategoryId: string; total: unknown }>>(
               Prisma.sql`
@@ -268,6 +227,7 @@ export default async function HomePage() {
               `
             ),
           [],
+          'HOME',
           'home category totals'
         );
 
