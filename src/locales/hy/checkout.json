@@ -5,6 +5,11 @@
   "shippingAddress": "Առաքման հասցե",
   "paymentMethod": "Վճարման եղանակ",
   "orderSummary": "Պատվերի ամփոփում",
+  "cashDenominations": {
+    "hint": "Ընտրեք թղթադրամը, որից անհրաժեշտ է մանրը։",
+    "noteAlt": "{amount} դրամ թղթադրամ",
+    "groupAria": "Դրամի թղթադրամներից ընտրություն"
+  },
   "form": {
     "firstName": "Անուն",
     "lastName": "Ազգանուն",

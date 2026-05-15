@@ -43,6 +43,7 @@ export default function CheckoutPage() {
     handlePlaceOrder,
     onSubmit,
     isLoggedIn,
+    watch,
   } = useCheckout();
 
   if (loading) {
@@ -104,6 +105,8 @@ export default function CheckoutPage() {
             setLogoErrors={setLogoErrors}
             error={error}
             setError={setError}
+            currency={currency}
+            cashChangeFrom={watch('cashChangeFrom')}
           />
 
           {/* Order Summary */}
