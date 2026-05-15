@@ -23,6 +23,7 @@ import { CompareIcon } from './icons/CompareIcon';
 import { BrandLogoLink } from './BrandLogoLink';
 import { CartIcon } from './icons/CartIcon';
 import { readCartSummaryCache, writeCartSummaryCache } from '../lib/cartSummaryCache';
+import { useCartDrawer } from './cart-drawer/cart-drawer-context';
 import { SITE_CONTACT_PHONES } from '../lib/site-contact';
 
 // Navigation links will be translated dynamically using useTranslation hook
@@ -50,7 +51,7 @@ function isHeaderNavActive(pathname: string | null, href: string): boolean {
 const HEADER_NAV_LINK_BASE =
   'px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium whitespace-nowrap';
 
-const HEADER_FAST_NAV_ROUTES = ['/', '/shop', '/about', '/wishlist', '/compare', '/cart'] as const;
+const HEADER_FAST_NAV_ROUTES = ['/', '/shop', '/about', '/wishlist', '/compare'] as const;
 
 function headerTextNavClassName(active: boolean): string {
   return active
@@ -210,6 +211,7 @@ function HeaderSearchSync({
 
 export function Header() {
   const router = useRouter();
+  const { openCartDrawer, isCartDrawerOpen } = useCartDrawer();
   const pathname = usePathname();
   const { isLoggedIn, isAdmin } = useAuth();
   const { t } = useTranslation();
@@ -959,36 +961,32 @@ export function Header() {
               </Link>
 
               {/* Shopping Cart */}
-              <Link
-                href="/cart"
-                {...getFastNavHandlers('/cart')}
+              <button
+                type="button"
+                onClick={() => openCartDrawer()}
                 className={`flex items-center gap-[0.hpx] group rounded-lg transition-colors ${
-                  isHeaderNavActive(pathname, '/cart')
-                    ? 'bg-gray-100 ring-1 ring-gray-200/90 p-0.5'
-                    : ''
+                  isCartDrawerOpen ? 'bg-gray-100 ring-1 ring-gray-200/90 p-0.5' : ''
                 }`}
-                aria-current={isHeaderNavActive(pathname, '/cart') ? 'page' : undefined}
+                aria-current={isCartDrawerOpen ? 'page' : undefined}
+                aria-label={`${t('common.navigation.cart')}, ${formatPrice(cartTotal, selectedCurrency)}`}
               >
                 <div
                   data-cart-fly-target
-                  className={`w-11 h-11 flex items-center justify-center transition-colors duration-150 relative ${
-                    isHeaderNavActive(pathname, '/cart')
-                      ? 'text-gray-900'
-                      : 'text-gray-700 hover:text-gray-900'
+                  className={`relative flex h-11 w-11 items-center justify-center transition-colors duration-150 ${
+                    isCartDrawerOpen ? 'text-gray-900' : 'text-gray-700 hover:text-gray-900'
                   }`}
                 >
                   <BadgeIcon icon={<CartIcon size={19} />} badge={cartCount} />
                 </div>
                 <span
-                  className={`font-bold text-sm hidden sm:block min-w-[3.25rem] transition-colors ${
-                    isHeaderNavActive(pathname, '/cart')
-                      ? 'text-gray-900'
-                      : 'text-gray-800 group-hover:text-gray-900'
+                  aria-hidden
+                  className={`hidden min-w-[3.25rem] text-sm font-bold transition-colors sm:block ${
+                    isCartDrawerOpen ? 'text-gray-900' : 'text-gray-800 group-hover:text-gray-900'
                   }`}
                 >
                   {formatPrice(cartTotal, selectedCurrency)}
                 </span>
-              </Link>
+              </button>
             </div>
           </div>
 
