@@ -5,6 +5,11 @@
   "shippingAddress": "Shipping Address",
   "paymentMethod": "Payment Method",
   "orderSummary": "Order Summary",
+  "cashDenominations": {
+    "hint": "Tap the bill you will pay with so we can prepare change.",
+    "noteAlt": "{amount} dram banknote",
+    "groupAria": "Choose a dram banknote"
+  },
   "form": {
     "firstName": "First Name",
     "lastName": "Last Name",
