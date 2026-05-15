@@ -347,8 +347,12 @@ export function OrderSummary({ cart, currency, t }: OrderSummaryProps) {
   const displayTotal = Math.max(0, cart.totals.total - promoDiscountAmount);
 
   return (
-    <div className="lg:col-span-1">
-      <div className="rounded-2xl border border-[#F66812]/20 bg-white p-6 shadow-sm lg:sticky lg:top-24">
+    <div className="relative isolate lg:col-span-1 lg:sticky lg:top-24">
+      <div
+        aria-hidden
+        className="cart-order-summary-ticket-clip cart-order-summary-ticket-glow-underlay"
+      />
+      <div className="cart-order-summary-ticket-clip relative z-[1] rounded-t-2xl border-x border-t border-[#F66812]/20 bg-white px-6 pb-8 pt-6 drop-shadow-sm">
         <h2 className="mb-6 text-2xl font-bold text-[#1F2E1F]">
           {t('common.cart.orderSummary')}
         </h2>
