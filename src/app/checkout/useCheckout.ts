@@ -25,6 +25,7 @@ export function useCheckout() {
   const [logoErrors, setLogoErrors] = useState<Record<string, boolean>>({});
   const [showShippingModal, setShowShippingModal] = useState(false);
   const [showCardModal, setShowCardModal] = useState(false);
+  const [checkoutCouponDiscountUsd, setCheckoutCouponDiscountUsd] = useState(0);
 
   const paymentMethods = usePaymentMethods();
   const checkoutSchema = useCheckoutSchema();
@@ -82,6 +83,7 @@ export function useCheckout() {
     deliveryPrice,
     bagFee,
     currency,
+    couponDiscountUsd: checkoutCouponDiscountUsd,
   });
 
   useEffect(() => {
@@ -183,6 +185,7 @@ export function useCheckout() {
     shippingCity,
     paymentMethods,
     orderSummary,
+    setCheckoutCouponDiscountUsd,
     // Actions
     handlePlaceOrder,
     onSubmit,

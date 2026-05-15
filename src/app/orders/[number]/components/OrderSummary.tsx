@@ -91,11 +91,6 @@ export function OrderSummary({
             {t('orders.buttons.continueShopping')}
           </Button>
         </Link>
-        <Link href="/cart">
-          <Button variant="ghost" className="w-full">
-            {t('orders.buttons.viewCart')}
-          </Button>
-        </Link>
       </div>
     </Card>
   );

@@ -4,6 +4,8 @@ import type { ReactNode } from 'react';
 import { AuthProvider } from '../lib/auth/AuthContext';
 import { ToastContainer } from './Toast';
 import { LanguageHtmlUpdater } from './LanguageHtmlUpdater';
+import { CartDrawerProvider } from './cart-drawer/cart-drawer-context';
+import { CartDrawer } from './cart-drawer/CartDrawer';
 
 /**
  * ClientProviders component
@@ -12,9 +14,12 @@ import { LanguageHtmlUpdater } from './LanguageHtmlUpdater';
 export function ClientProviders({ children }: { children: ReactNode }) {
   return (
     <AuthProvider>
-      <LanguageHtmlUpdater />
-      {children}
-      <ToastContainer />
+      <CartDrawerProvider>
+        <LanguageHtmlUpdater />
+        {children}
+        <CartDrawer />
+        <ToastContainer />
+      </CartDrawerProvider>
     </AuthProvider>
   );
 }

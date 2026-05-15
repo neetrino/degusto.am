@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '../../lib/auth/AuthContext';
 import { getMobileBottomNavActiveFlags, type MobileBottomNavActiveFlags } from './mobileBottomNavigationActive';
 import { isShopMobileBottomNavAssetSet } from './mobileBottomNavAssets';
+import { useCartDrawer } from '../cart-drawer/cart-drawer-context';
 
 export type MobileBottomNavigationAssets = {
   bottomNavBackground: string;
@@ -60,7 +61,7 @@ const MOBILE_BOTTOM_NAV_ROW: BottomNavRowCell[] = [
   {
     kind: 'link',
     id: 'cart',
-    href: () => '/cart',
+    href: () => '/',
     rowClass: 'inline-flex h-[30px] w-[71px] items-start',
     isActive: (f) => f.isCartActive,
     render: ({ assets, active }) => {
@@ -151,13 +152,29 @@ function MobileBottomNavigationLinks({
   flags: MobileBottomNavActiveFlags;
   isLoggedIn: boolean;
 }) {
+  const { openCartDrawer, isCartDrawerOpen } = useCartDrawer();
+  const cartSlotActive = flags.isCartActive || isCartDrawerOpen;
+
   return (
     <nav className="pointer-events-auto absolute bottom-[25px] left-1/2 flex -translate-x-1/2 items-start">
       {MOBILE_BOTTOM_NAV_ROW.map((cell) => {
         if (cell.kind === 'spacer') {
           return <span key="mid-spacer" className="inline-flex h-[24px] w-[71px]" aria-hidden />;
         }
-        const active = cell.isActive(flags);
+        const active = cell.id === 'cart' ? cartSlotActive : cell.isActive(flags);
+        if (cell.id === 'cart') {
+          return (
+            <button
+              key={cell.id}
+              type="button"
+              onClick={() => openCartDrawer()}
+              className={mergeActiveClass(cell.rowClass, active)}
+              aria-current={active ? 'page' : undefined}
+            >
+              {cell.render({ assets, isLoggedIn, active })}
+            </button>
+          );
+        }
         return (
           <Link
             key={cell.id}

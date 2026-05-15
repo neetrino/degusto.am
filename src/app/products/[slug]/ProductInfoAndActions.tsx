@@ -146,9 +146,9 @@ export function ProductInfoAndActions({
         </div>
 
         <div className="mt-[50px] pt-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 sm:gap-3">
           <div
-            className="inline-flex h-12 shrink-0 items-center gap-0.5 rounded-[15px] border border-neutral-200 bg-white px-1.5"
+            className="inline-flex h-9 shrink-0 items-center gap-0 rounded-full border border-neutral-200 bg-white px-0.5 sm:h-10"
             role="group"
             aria-label={t(language, 'common.messages.quantity')}
           >
@@ -156,28 +156,28 @@ export function ProductInfoAndActions({
               type="button"
               onClick={() => onQuantityAdjust(-1)}
               disabled={quantity <= 1}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-35"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-35 sm:h-8 sm:w-8"
               aria-label={t(language, 'common.ariaLabels.decreaseQuantity')}
             >
-              <Minus className="h-4 w-4" strokeWidth={2.25} aria-hidden />
+              <Minus className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2.25} aria-hidden />
             </button>
-            <span className="min-w-[2.25rem] select-none text-center text-sm font-semibold tabular-nums text-neutral-900">
+            <span className="min-w-[1.75rem] select-none px-0.5 text-center text-xs font-semibold tabular-nums text-neutral-900 sm:min-w-[2rem] sm:text-sm">
               {quantity}
             </span>
             <button
               type="button"
               onClick={() => onQuantityAdjust(1)}
               disabled={quantity >= maxQuantity}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-35"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-35 sm:h-8 sm:w-8"
               aria-label={t(language, 'common.ariaLabels.increaseQuantity')}
             >
-              <Plus className="h-4 w-4" strokeWidth={2.25} aria-hidden />
+              <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2.25} aria-hidden />
             </button>
           </div>
           <button
             type="button"
             disabled={!canAddToCart || isAddingToCart}
-            className="h-12 flex-1 rounded-xl bg-orange-500 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-500"
+            className="h-9 flex-1 rounded-xl bg-orange-500 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-500 sm:h-10 sm:text-sm"
             onClick={onAddToCart}
           >
             {isAddingToCart ? t(language, 'product.adding') : (isOutOfStock ? t(language, 'product.outOfStock') : t(language, 'product.addToCart'))}

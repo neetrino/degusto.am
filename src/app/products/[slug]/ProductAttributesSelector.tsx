@@ -28,6 +28,10 @@ interface ProductAttributesSelectorProps {
   getOptionValue: (options: unknown[] | undefined, key: string) => string | null;
 }
 
+/** PDP attribute blocks — soft card, consistent with product chrome. */
+const PDP_ATTR_SECTION_CARD =
+  'rounded-2xl border border-neutral-200/80 bg-gradient-to-b from-white to-neutral-50/60 p-4 shadow-sm ring-1 ring-neutral-950/[0.04] sm:p-5';
+
 const getColorValue = (colorName: string): string => {
   const colorMap: Record<string, string> = {
     beige: '#F5F5DC',
@@ -161,24 +165,25 @@ export function ProductAttributesSelector({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       {useNewFormat ? (
-        <div className="flex w-full flex-col gap-4">
+        <div className="flex w-full flex-col gap-5">
           {variantDimensionEntries.length > 0 && (
-            <div className="flex w-full flex-col gap-4">
+            <div className={PDP_ATTR_SECTION_CARD}>
+              <div className="flex flex-col gap-6">
               {variantDimensionEntries.map(([attrKey, attrGroups]) => {
                 if (attrGroups.length === 0) return null;
                 const isColor = attrKey === 'color';
                 const isUnavailable = unavailableAttributes.get(attrKey) || false;
                 return (
-                  <div key={attrKey} className="flex w-full flex-col gap-2">
+                  <div key={attrKey} className="flex w-full flex-col gap-2.5">
                     <label
-                      className={`text-xs font-bold uppercase ${isUnavailable ? 'text-red-600' : 'text-neutral-700'}`}
+                      className={`block text-sm font-semibold tracking-tight ${isUnavailable ? 'text-red-600' : 'text-neutral-900'}`}
                     >
                       {isColor ? t(language, 'product.color') : t(language, 'product.size')}:
                     </label>
                     {isColor ? (
-                      <div className="flex flex-wrap items-center gap-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
                         {attrGroups.map((g) => {
                           const isSelected = selectedColor === g.value?.toLowerCase().trim();
                           const processedImageUrl = g.imageUrl ? processImageUrl(g.imageUrl) : null;
@@ -189,18 +194,18 @@ export function ProductAttributesSelector({
                               : getColorValue(g.value);
                           const totalValues = attrGroups.length;
                           const sizeClass =
-                            totalValues > 6 ? 'w-8 h-8' : totalValues > 3 ? 'w-9 h-9' : 'w-10 h-10';
+                            totalValues > 6 ? 'h-8 w-8' : totalValues > 3 ? 'h-9 w-9' : 'h-10 w-10';
                           return (
-                            <div key={g.valueId || g.value} className="flex flex-col items-center gap-0.5">
+                            <div key={g.valueId || g.value} className="flex flex-col items-center gap-1">
                               <button
                                 type="button"
                                 onClick={() => onColorSelect(g.value)}
-                                className={`${sizeClass} overflow-hidden rounded-full transition-all ${
+                                className={`${sizeClass} overflow-hidden rounded-full shadow-sm transition-all duration-200 ${
                                   isSelected
-                                    ? 'scale-110 border-[3px] border-green-500'
+                                    ? 'scale-105 ring-[3px] ring-[#F66812] ring-offset-2 ring-offset-white'
                                     : g.stock <= 0
-                                      ? 'border-2 border-gray-200 opacity-60 hover:opacity-80'
-                                      : 'border-2 border-gray-300 hover:scale-105'
+                                      ? 'ring-2 ring-neutral-200 opacity-50 grayscale hover:opacity-70'
+                                      : 'ring-2 ring-neutral-200/90 hover:scale-105 hover:ring-neutral-300'
                                 }`}
                                 style={hasImage ? {} : { backgroundColor: colorHex }}
                                 title={`${getAttributeLabel(language, attrKey, g.value)}${g.stock > 0 ? ` (${g.stock} ${t(language, 'product.pcs')})` : ` (${t(language, 'product.outOfStock')})`}`}
@@ -225,14 +230,14 @@ export function ProductAttributesSelector({
                               </button>
                               {g.stock > 0 && (
                                 <span
-                                  className={`${totalValues > 8 ? 'text-[10px]' : 'text-xs'} text-gray-500`}
+                                  className={`tabular-nums ${totalValues > 8 ? 'text-[10px]' : 'text-xs'} text-neutral-500`}
                                 >
                                   {g.stock}
                                 </span>
                               )}
                               {g.stock <= 0 && (
                                 <span
-                                  className={`${totalValues > 8 ? 'text-[10px]' : 'text-xs'} text-gray-400`}
+                                  className={`tabular-nums ${totalValues > 8 ? 'text-[10px]' : 'text-xs'} text-neutral-400`}
                                 >
                                   0
                                 </span>
@@ -242,7 +247,7 @@ export function ProductAttributesSelector({
                         })}
                       </div>
                     ) : (
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className="flex flex-wrap gap-2">
                         {attrGroups.map((g) => {
                           const displayStock = g.stock;
                           const isSelected = selectedSize === g.value.toLowerCase().trim();
@@ -250,28 +255,28 @@ export function ProductAttributesSelector({
                           const hasImage = processedImageUrl && processedImageUrl.trim() !== '';
                           const totalValues = attrGroups.length;
                           const paddingClass =
-                            totalValues > 6 ? 'px-2 py-1' : totalValues > 3 ? 'px-2.5 py-1.5' : 'px-3 py-2';
+                            totalValues > 6 ? 'px-2 py-1.5' : totalValues > 3 ? 'px-2.5 py-2' : 'px-3 py-2';
                           const textSizeClass = totalValues > 6 ? 'text-xs' : 'text-sm';
-                          const imageSizeClass = totalValues > 6 ? 'w-4 h-4' : 'w-5 h-5';
-                          const minWidthClass = totalValues > 6 ? 'min-w-[40px]' : 'min-w-[50px]';
+                          const imageSizeClass = totalValues > 6 ? 'h-4 w-4' : 'h-5 w-5';
+                          const minWidthClass = totalValues > 6 ? 'min-w-[2.5rem]' : 'min-w-[3rem]';
                           return (
                             <button
                               type="button"
                               key={g.valueId || g.value}
                               onClick={() => onSizeSelect(g.value)}
-                              className={`${minWidthClass} ${paddingClass} flex items-center gap-1.5 rounded-lg border-2 transition-all ${
+                              className={`${minWidthClass} ${paddingClass} flex items-center gap-1.5 rounded-xl border bg-white shadow-sm transition-all duration-200 ${
                                 isSelected
-                                  ? 'border-green-500 bg-gray-50'
+                                  ? 'border-[#F66812] bg-orange-50/90 ring-1 ring-[#F66812]/25'
                                   : displayStock <= 0
-                                    ? 'border-gray-200 opacity-60 hover:opacity-80'
-                                    : 'border-gray-200 hover:border-gray-400'
+                                    ? 'border-neutral-200/80 opacity-55 hover:opacity-80'
+                                    : 'border-neutral-200 hover:border-neutral-300 hover:shadow-md active:scale-[0.98]'
                               }`}
                             >
                               {hasImage && processedImageUrl && (
                                 <img
                                   src={processedImageUrl}
                                   alt={g.label}
-                                  className={`${imageSizeClass} flex-shrink-0 rounded border border-gray-300 object-cover`}
+                                  className={`${imageSizeClass} shrink-0 rounded-md border border-neutral-200 object-cover`}
                                   onError={(e) => {
                                     logger.warn('[SIZE IMAGE] Failed to load', {
                                       size: g.value,
@@ -285,11 +290,13 @@ export function ProductAttributesSelector({
                                 />
                               )}
                               <div className="flex flex-col text-center">
-                                <span className={`${textSizeClass} font-medium`}>
+                                <span
+                                  className={`${textSizeClass} font-medium text-neutral-900`}
+                                >
                                   {getAttributeLabel(language, attrKey, g.value)}
                                 </span>
                                 <span
-                                  className={`${totalValues > 10 ? 'text-[10px]' : 'text-xs'} ${displayStock > 0 ? 'text-gray-500' : 'text-gray-400'}`}
+                                  className={`tabular-nums ${totalValues > 10 ? 'text-[10px]' : 'text-xs'} ${displayStock > 0 ? 'text-neutral-500' : 'text-neutral-400'}`}
                                 >
                                   ({displayStock})
                                 </span>
@@ -302,10 +309,12 @@ export function ProductAttributesSelector({
                   </div>
                 );
               })}
+              </div>
             </div>
           )}
           {genericDimensionEntries.length > 0 && (
-            <div className="flex w-full flex-col gap-4">
+            <div className={PDP_ATTR_SECTION_CARD}>
+              <div className="flex flex-col gap-5">
               {genericDimensionEntries.map(([attrKey, attrGroups]) => (
                 <PdpAttributePillRow
                   key={attrKey}
@@ -319,11 +328,12 @@ export function ProductAttributesSelector({
                   onAttributeValueSelect={onAttributeValueSelect}
                 />
               ))}
+              </div>
             </div>
           )}
           {foodPreferenceEntries.length > 0 && (
-            <div className="rounded-2xl border border-neutral-200 bg-white p-3 sm:p-4">
-              <div className="flex flex-col gap-3 sm:gap-4">
+            <div className={PDP_ATTR_SECTION_CARD}>
+              <div className="flex flex-col gap-4 sm:gap-5">
                 {foodPreferenceEntries.map(([attrKey, attrGroups]) => {
                   if (attrGroups.length === 0) return null;
                   const isUnavailable = unavailableAttributes.get(attrKey) || false;
@@ -410,10 +420,12 @@ export function ProductAttributesSelector({
           )}
         </div>
       ) : (
-        <div className="flex w-full flex-col gap-4 rounded-2xl border border-neutral-200 bg-neutral-50/60 p-4 sm:p-5">
+        <div className={`flex w-full flex-col gap-6 ${PDP_ATTR_SECTION_CARD}`}>
           {colorGroups.length > 0 && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium">{t(language, 'product.color')}:</label>
+            <div className="space-y-2.5">
+              <label className="block text-sm font-semibold tracking-tight text-neutral-900">
+                {t(language, 'product.color')}:
+              </label>
               <div className="flex flex-wrap items-center gap-2">
                 {colorGroups.map((g) => {
                   const isSelected = selectedColor === g.color?.toLowerCase().trim();
@@ -425,12 +437,12 @@ export function ProductAttributesSelector({
                         type="button"
                         onClick={() => !isDisabled && onColorSelect(g.color)}
                         disabled={isDisabled}
-                        className={`h-10 w-10 rounded-full transition-all ${
+                        className={`h-10 w-10 rounded-full shadow-sm transition-all duration-200 ${
                           isSelected
-                            ? 'scale-110 border-[3px] border-green-500'
+                            ? 'scale-105 ring-[3px] ring-[#F66812] ring-offset-2 ring-offset-white'
                             : isDisabled
-                              ? 'cursor-not-allowed border-2 border-gray-100 opacity-30 grayscale'
-                              : 'border-2 border-gray-300 hover:scale-105'
+                              ? 'cursor-not-allowed ring-2 ring-neutral-200 opacity-40 grayscale'
+                              : 'ring-2 ring-neutral-200/90 hover:scale-105 hover:ring-neutral-300'
                         }`}
                         style={{ backgroundColor: getColorValue(g.color) }}
                         title={
@@ -439,7 +451,9 @@ export function ProductAttributesSelector({
                             : `${getAttributeLabel(language, 'color', g.color)}${g.stock > 0 ? ` (${g.stock} ${t(language, 'product.pcs')})` : ''}`
                         }
                       />
-                      {g.stock > 0 && <span className="text-xs text-gray-500">{g.stock}</span>}
+                      {g.stock > 0 && (
+                        <span className="text-xs tabular-nums text-neutral-500">{g.stock}</span>
+                      )}
                     </div>
                   );
                 })}
@@ -447,8 +461,10 @@ export function ProductAttributesSelector({
             </div>
           )}
           {!product?.productAttributes && sizeGroups.length > 0 && (
-            <div className="space-y-2">
-              <label className="text-sm font-bold uppercase">{t(language, 'product.size')}</label>
+            <div className="space-y-2.5">
+              <label className="block text-sm font-semibold tracking-tight text-neutral-900">
+                {t(language, 'product.size')}:
+              </label>
               <div className="flex flex-wrap gap-2">
                 {sizeGroups.map((g) => {
                   let displayStock = g.stock;
@@ -468,20 +484,24 @@ export function ProductAttributesSelector({
                       key={g.size}
                       onClick={() => !isDisabled && onSizeSelect(g.size)}
                       disabled={isDisabled}
-                      className={`min-w-[50px] rounded-lg border-2 px-3 py-2 transition-all ${
+                      className={`min-w-[3rem] rounded-xl border bg-white px-3 py-2 shadow-sm transition-all duration-200 ${
                         isSelected
-                          ? 'border-green-500 bg-gray-50'
+                          ? 'border-[#F66812] bg-orange-50/90 ring-1 ring-[#F66812]/25'
                           : isDisabled
-                            ? 'cursor-not-allowed border-gray-100 bg-gray-50 opacity-50'
-                            : 'border-gray-200 hover:border-gray-400'
+                            ? 'cursor-not-allowed border-neutral-200/80 opacity-50'
+                            : 'border-neutral-200 hover:border-neutral-300 hover:shadow-md active:scale-[0.98]'
                       }`}
                     >
                       <div className="flex flex-col text-center">
-                        <span className={`text-sm font-medium ${isDisabled ? 'text-gray-400' : 'text-gray-900'}`}>
+                        <span
+                          className={`text-sm font-medium ${isDisabled ? 'text-neutral-400' : 'text-neutral-900'}`}
+                        >
                           {getAttributeLabel(language, 'size', g.size)}
                         </span>
                         {displayStock > 0 && (
-                          <span className={`text-xs ${isDisabled ? 'text-gray-300' : 'text-gray-500'}`}>
+                          <span
+                            className={`text-xs tabular-nums ${isDisabled ? 'text-neutral-400' : 'text-neutral-500'}`}
+                          >
                             {displayStock} {t(language, 'product.pcs')}
                           </span>
                         )}
