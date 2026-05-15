@@ -1,6 +1,32 @@
 {
   "title": "Our Stores",
   "description": "Visit us at any of our locations. Our friendly staff is ready to help you find exactly what you're looking for.",
+  "locations": [
+    {
+      "id": 1,
+      "name": "92 Paruyr Sevak Street",
+      "address": "Yerevan, Armenia",
+      "phone": "+374 10 123456",
+      "email": "info@degusto.am",
+      "hours": "Mon-Sat: 10:00-20:00"
+    },
+    {
+      "id": 2,
+      "name": "11A Bagratunyats Street",
+      "address": "Yerevan, Armenia",
+      "phone": "+374 10 123456",
+      "email": "info@degusto.am",
+      "hours": "Mon-Sat: 10:00-20:00"
+    },
+    {
+      "id": 3,
+      "name": "Coffee Studio by Degusto",
+      "address": "24/19 Azatutyan Avenue, Yerevan, Armenia",
+      "phone": "+374 10 123456",
+      "email": "info@degusto.am",
+      "hours": "Mon-Sat: 10:00-20:00"
+    }
+  ],
   "getDirections": "Get Directions",
   "cantFind": {
     "title": "Can't find what you're looking for?",

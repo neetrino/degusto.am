@@ -8,6 +8,7 @@ import { useTranslation } from '../../../lib/i18n-client';
 import { apiClient } from '../../../lib/api-client';
 import { logger } from '../../../lib/utils/logger';
 import { useAdminDialogs } from '../context/AdminDialogsContext';
+import { PromocodeCodeWithCopy } from './PromocodeCodeWithCopy';
 
 interface CouponItem {
   code: string;
@@ -157,13 +158,15 @@ export default function PromocodePage() {
                   <th className="px-3 py-2">{t('admin.promocode.maxUsesPerUser')}</th>
                   <th className="px-3 py-2">{t('admin.promocode.period')}</th>
                   <th className="px-3 py-2">{t('admin.promocode.status')}</th>
-                  <th className="px-3 py-2">{t('admin.promocode.actions')}</th>
+                  <th className="px-3 py-2 text-center">{t('admin.promocode.actions')}</th>
                 </tr>
               </thead>
               <tbody>
                 {sortedCoupons.map((coupon) => (
                   <tr key={coupon.code} className="border-b border-gray-100">
-                    <td className="px-3 py-3 font-semibold text-gray-900">{coupon.code}</td>
+                    <td className="px-3 py-3">
+                      <PromocodeCodeWithCopy code={coupon.code} />
+                    </td>
                     <td className="px-3 py-3 text-gray-700">
                       {coupon.discountType === 'percent'
                         ? `${coupon.discountValue}%`

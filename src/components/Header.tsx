@@ -23,6 +23,7 @@ import { CompareIcon } from './icons/CompareIcon';
 import { BrandLogoLink } from './BrandLogoLink';
 import { CartIcon } from './icons/CartIcon';
 import { readCartSummaryCache, writeCartSummaryCache } from '../lib/cartSummaryCache';
+import { SITE_CONTACT_PHONES } from '../lib/site-contact';
 
 // Navigation links will be translated dynamically using useTranslation hook
 const primaryNavLinks = [
@@ -631,11 +632,20 @@ export function Header() {
           <div className="flex flex-col gap-3 py-3 text-sm text-gray-700 sm:flex-row sm:items-center sm:justify-between">
             {/* Phone + Social */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-              <div className="flex items-center gap-2 text-gray-700">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-gray-700">
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
                   <path d="M2 3C2 2.44772 2.44772 2 3 2H5.15287C5.64171 2 6.0589 2.35341 6.13927 2.8356L6.87858 7.27147C6.95075 7.70451 6.73206 8.13397 6.3394 8.3303L4.79126 9.10437C5.90715 11.8783 8.12168 14.0929 10.8956 15.2088L11.6697 13.6606C11.866 13.2679 12.2955 13.0493 12.7285 13.1214L17.1644 13.8607C17.6466 13.9411 18 14.3583 18 14.8471V17C18 17.5523 17.5523 18 17 18H15C7.8203 18 2 12.1797 2 5V3Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                <span className="font-medium">{t('contact.phone')}</span>
+                <span className="flex flex-wrap items-center gap-x-2 gap-y-1 font-medium">
+                  {SITE_CONTACT_PHONES.map((phone, index) => (
+                    <span key={phone.tel} className="inline-flex items-center gap-x-2">
+                      {index > 0 ? <span className="text-gray-400" aria-hidden>·</span> : null}
+                      <a href={`tel:${phone.tel}`} className="hover:text-gray-900">
+                        {phone.display}
+                      </a>
+                    </span>
+                  ))}
+                </span>
               </div>
               <div className="flex items-center gap-3 text-gray-600">
                 <a

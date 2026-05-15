@@ -2,6 +2,7 @@
 
 import { Card } from '@shop/ui';
 import { useTranslation } from '../../lib/i18n-client';
+import { SITE_CONTACT_EMAIL } from '../../lib/site-contact';
 
 /**
  * Refund Policy page - outlines return and refund rules
@@ -63,8 +64,8 @@ export default function RefundPolicyPage() {
             <h2 className="text-2xl font-semibold text-gray-900">{t('refund-policy.contact.title')}</h2>
             <p className="text-gray-600">
               {t('refund-policy.contact.description')}{' '}
-              <a href="mailto:info@degusto.am" className="text-blue-600 hover:underline">
-                info@degusto.am
+              <a href={`mailto:${SITE_CONTACT_EMAIL}`} className="text-blue-600 hover:underline">
+                {SITE_CONTACT_EMAIL}
               </a>
               .
             </p>

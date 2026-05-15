@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from '../../lib/i18n-client';
 import { getStoredLanguage } from '../../lib/language';
 import { loadTranslation } from '../../lib/i18n';
+import { SITE_CONTACT_EMAIL, SITE_CONTACT_PHONES } from '../../lib/site-contact';
 
 export default function DeliveryPage() {
   const { t } = useTranslation();
@@ -160,16 +161,22 @@ export default function DeliveryPage() {
           <div className="space-y-2 text-gray-700">
             <p>
               <span className="font-semibold">{t('delivery.contact.email')}</span>{' '}
-              <a href="mailto:info@degusto.am" className="text-blue-600 hover:underline">
-                info@degusto.am
+              <a href={`mailto:${SITE_CONTACT_EMAIL}`} className="text-blue-600 hover:underline">
+                {SITE_CONTACT_EMAIL}
               </a>
             </p>
             <p>
-              <span className="font-semibold">{t('delivery.contact.phone')}</span>{' '}
-              <a href="tel:+1234567890" className="text-blue-600 hover:underline">
-                +1 (234) 567-890
-              </a>
+              <span className="font-semibold">{t('delivery.contact.phone')}</span>
             </p>
+            <ul className="list-none space-y-1 pl-0">
+              {SITE_CONTACT_PHONES.map((phone) => (
+                <li key={phone.tel}>
+                  <a href={`tel:${phone.tel}`} className="text-blue-600 hover:underline">
+                    {phone.display}
+                  </a>
+                </li>
+              ))}
+            </ul>
             <p>
               <span className="font-semibold">{t('delivery.contact.hours')}</span> {t('delivery.contact.hoursValue')}
             </p>

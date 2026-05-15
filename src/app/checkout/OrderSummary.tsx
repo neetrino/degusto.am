@@ -22,7 +22,6 @@ interface OrderSummaryProps {
   cart: Cart | null;
   orderSummary: {
     subtotalDisplay: number;
-    taxDisplay: number;
     bagFeeDisplay: number;
     shippingDisplay: number;
     totalDisplay: number;
@@ -85,10 +84,6 @@ export function OrderSummary({
                 ? formatPriceInCurrency(orderSummary.bagFeeDisplay, currency)
                 : formatPriceInCurrency(0, currency)}
             </span>
-          </div>
-          <div className="flex justify-between text-gray-600">
-            <span>{t('checkout.summary.tax')}</span>
-            <span>{formatPriceInCurrency(orderSummary.taxDisplay, currency)}</span>
           </div>
           <div className="border-t border-gray-200 pt-4">
             <div className="flex justify-between text-lg font-bold text-gray-900">

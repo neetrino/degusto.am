@@ -2,39 +2,53 @@
 
 import { Card, Button } from '@shop/ui';
 import Link from 'next/link';
+import { useMemo } from 'react';
 import { useTranslation } from '../../lib/i18n-client';
+import { t as translateForLang } from '../../lib/i18n';
+import type { LanguageCode } from '../../lib/language';
+
+type StoreLocation = {
+  id: number;
+  name: string;
+  address: string;
+  phone: string;
+  email: string;
+  hours: string;
+};
+
+function parseStoreLocations(lang: LanguageCode): StoreLocation[] {
+  const raw = translateForLang(lang, 'stores.locations');
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  const out: StoreLocation[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== 'object') continue;
+    const r = item as Record<string, unknown>;
+    if (
+      typeof r.id === 'number' &&
+      typeof r.name === 'string' &&
+      typeof r.address === 'string' &&
+      typeof r.phone === 'string' &&
+      typeof r.email === 'string' &&
+      typeof r.hours === 'string'
+    ) {
+      out.push({
+        id: r.id,
+        name: r.name,
+        address: r.address,
+        phone: r.phone,
+        email: r.email,
+        hours: r.hours,
+      });
+    }
+  }
+  return out;
+}
 
 export default function StoresPage() {
-  const { t } = useTranslation();
-  const stores = [
-    {
-      id: 1,
-      name: 'Main Store',
-      address: '123 Main Street, Yerevan, Armenia',
-      phone: '+374 10 123456',
-      email: 'info@degusto.am',
-      hours: 'Mon-Sat: 9:00 AM - 8:00 PM',
-      image: 'https://via.placeholder.com/400x300?text=Main+Store',
-    },
-    {
-      id: 2,
-      name: 'Shopping Mall Branch',
-      address: '456 Mall Avenue, Yerevan, Armenia',
-      phone: '+374 10 234567',
-      email: 'info@degusto.am',
-      hours: 'Mon-Sun: 10:00 AM - 10:00 PM',
-      image: 'https://via.placeholder.com/400x300?text=Mall+Branch',
-    },
-    {
-      id: 3,
-      name: 'Downtown Location',
-      address: '789 Downtown Plaza, Yerevan, Armenia',
-      phone: '+374 10 345678',
-      email: 'info@degusto.am',
-      hours: 'Mon-Fri: 8:00 AM - 7:00 PM',
-      image: 'https://via.placeholder.com/400x300?text=Downtown',
-    },
-  ];
+  const { t, lang } = useTranslation();
+  const stores = useMemo(() => parseStoreLocations(lang as LanguageCode), [lang]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

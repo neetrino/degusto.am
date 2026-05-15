@@ -3,7 +3,19 @@
   "methods": [
     { "id": "standard", "enabled": true, "name": "Ստանդարտ առաքում", "price": 2000, "freeAbove": 50000, "estimatedDays": 3, "locations": [] },
     { "id": "express", "enabled": true, "name": "Էքսպրես առաքում", "price": 5000, "freeAbove": 100000, "estimatedDays": 1, "locations": [] },
-    { "id": "pickup", "enabled": true, "name": "Խանութից վերցնել", "price": 0, "freeAbove": null, "estimatedDays": 0, "locations": [{ "name": "Գլխավոր խանութ", "address": "Yerevan, Armenia", "workingHours": "Երկ-Շաբ: 10:00-20:00" }] }
+    {
+      "id": "pickup",
+      "enabled": true,
+      "name": "Խանութից վերցնել",
+      "price": 0,
+      "freeAbove": null,
+      "estimatedDays": 0,
+      "locations": [
+        { "name": "Պարույր Սևակի 92", "address": "Երևան", "workingHours": "Երկ-Շաբ: 10:00-20:00" },
+        { "name": "Բագրատունյաց 11Ա", "address": "Երևան", "workingHours": "Երկ-Շաբ: 10:00-20:00" },
+        { "name": "Coffee Studio by Degusto", "address": "Ազատության 24/19, Երևան", "workingHours": "Երկ-Շաբ: 10:00-20:00" }
+      ]
+    }
   ],
   "deliveryInformation": {
     "title": "Առաքման տեղեկատվություն",

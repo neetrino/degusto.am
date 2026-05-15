@@ -3,7 +3,19 @@
   "methods": [
     { "id": "standard", "enabled": true, "name": "Standard Delivery", "price": 2000, "freeAbove": 50000, "estimatedDays": 3, "locations": [] },
     { "id": "express", "enabled": true, "name": "Express Delivery", "price": 5000, "freeAbove": 100000, "estimatedDays": 1, "locations": [] },
-    { "id": "pickup", "enabled": true, "name": "Store Pickup", "price": 0, "freeAbove": null, "estimatedDays": 0, "locations": [{ "name": "Main Store", "address": "Yerevan, Armenia", "workingHours": "Mon-Sat: 10:00-20:00" }] }
+    {
+      "id": "pickup",
+      "enabled": true,
+      "name": "Store Pickup",
+      "price": 0,
+      "freeAbove": null,
+      "estimatedDays": 0,
+      "locations": [
+        { "name": "92 Paruyr Sevak Street", "address": "Yerevan, Armenia", "workingHours": "Mon-Sat: 10:00-20:00" },
+        { "name": "11A Bagratunyats Street", "address": "Yerevan, Armenia", "workingHours": "Mon-Sat: 10:00-20:00" },
+        { "name": "Coffee Studio by Degusto", "address": "24/19 Azatutyan Avenue, Yerevan, Armenia", "workingHours": "Mon-Sat: 10:00-20:00" }
+      ]
+    }
   ],
   "deliveryInformation": {
     "title": "Delivery Information",
