@@ -1,6 +1,7 @@
 import { PrismaNeon } from "@prisma/adapter-neon";
-import { Pool } from "@neondatabase/serverless";
+import { neonConfig, Pool } from "@neondatabase/serverless";
 import { PrismaClient } from "./src/generated/prisma-client";
+import WebSocket from "ws";
 import {
   assertNoBuildPlaceholderInRuntime,
   buildDatabaseUrlLogFields,
@@ -60,8 +61,16 @@ const prodPrismaLogs = ["error", "warn"] as const;
 
 const prismaErrorFormat = process.env.NODE_ENV === "development" ? "pretty" : "minimal";
 
+function configureNeonPoolForNodeRuntime(): void {
+  // Node (incl. Vercel serverless) has no global `WebSocket`; Neon's Pool needs one for WS transport.
+  // @see https://github.com/neondatabase/serverless/blob/main/CONFIG.md#websocketconstructor-typeof-websocket--undefined
+  neonConfig.webSocketConstructor =
+    typeof globalThis.WebSocket === "function" ? globalThis.WebSocket : WebSocket;
+}
+
 function createPrismaClient(): PrismaClient {
   if (useNeonDriverAdapter) {
+    configureNeonPoolForNodeRuntime();
     if (!globalForPrisma.neonSqlPool) {
       globalForPrisma.neonSqlPool = new Pool({
         connectionString: resolvedDatabaseUrl,

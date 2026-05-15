@@ -20,7 +20,14 @@ const nextConfig = {
   // Скрыть индикатор "Compiling..." в углу в dev — не мешает на экране
   devIndicators: false,
   // Prisma: avoid Turbopack/webpack inlining `env("DATABASE_URL")` inside bundled client (empty URL at runtime).
-  serverExternalPackages: ['@prisma/client', 'prisma', '@white-shop/db', '@prisma/adapter-neon', '@neondatabase/serverless'],
+  serverExternalPackages: [
+    '@prisma/client',
+    'prisma',
+    '@white-shop/db',
+    '@prisma/adapter-neon',
+    '@neondatabase/serverless',
+    'ws',
+  ],
   transpilePackages: ['@shop/ui', '@shop/design-tokens'],
   // Standalone output - prevents prerendering of 404 page
   output: 'standalone',
