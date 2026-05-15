@@ -63,6 +63,8 @@ export interface AttributeGroupValue {
   variants: ProductVariant[];
   imageUrl?: string | null;
   colors?: string[] | null;
+  /** Optional per-option surcharge when schema/API exposes it. */
+  priceAdjustment?: number;
 }
 
 export interface Product {

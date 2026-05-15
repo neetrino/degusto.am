@@ -3,13 +3,19 @@ import type {
   Brand,
   Category,
   Attribute,
-  Variant,
-  ProductLabel,
   GeneratedVariant,
   PendingVariantHydration,
 } from '../types';
 import type { CurrencyCode } from '@/lib/currency';
+import type { ProductAddFormData } from '../utils/productFormDataBuilder';
 import { getEmptyProductFormData } from '../utils/productFormDataBuilder';
+
+interface SimpleProductFormFields {
+  price: string;
+  compareAtPrice: string;
+  sku: string;
+  quantity: string;
+}
 
 export function useProductFormState() {
   const [loading, setLoading] = useState(false);
@@ -17,7 +23,7 @@ export function useProductFormState() {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [attributes, setAttributes] = useState<Attribute[]>([]);
-  const [formData, setFormData] = useState(() => getEmptyProductFormData());
+  const [formData, setFormData] = useState<ProductAddFormData>(() => getEmptyProductFormData());
   const [categoriesExpanded, setCategoriesExpanded] = useState(false);
   const [brandsExpanded, setBrandsExpanded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -39,7 +45,7 @@ export function useProductFormState() {
   const [sizeMessage, setSizeMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [defaultCurrency, setDefaultCurrency] = useState<CurrencyCode>('AMD');
   const [productType, setProductType] = useState<'simple' | 'variable'>('variable');
-  const [simpleProductData, setSimpleProductData] = useState({
+  const [simpleProductData, setSimpleProductData] = useState<SimpleProductFormFields>({
     price: '',
     compareAtPrice: '',
     sku: '',

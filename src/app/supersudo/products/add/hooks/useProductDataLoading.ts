@@ -10,6 +10,7 @@ interface UseProductDataLoadingProps {
   isLoggedIn: boolean;
   isAdmin: boolean;
   isLoading: boolean;
+  setReferenceCatalogReady: (ready: boolean) => void;
   setBrands: (brands: Brand[]) => void;
   setCategories: (categories: Category[]) => void;
   setAttributes: (attributes: Attribute[]) => void;
@@ -27,6 +28,7 @@ export function useProductDataLoading({
   isLoggedIn,
   isAdmin,
   isLoading,
+  setReferenceCatalogReady,
   setBrands,
   setCategories,
   setAttributes,
@@ -149,12 +151,14 @@ export function useProductDataLoading({
             }))
           );
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('❌ [ADMIN] Error fetching data:', err);
+      } finally {
+        setReferenceCatalogReady(true);
       }
     };
     fetchData();
-  }, [setBrands, setCategories, setAttributes]);
+  }, [setBrands, setCategories, setAttributes, setReferenceCatalogReady]);
 
   // Close category dropdown when clicking outside
   useEffect(() => {

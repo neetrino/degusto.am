@@ -4,7 +4,8 @@
 
 import type { ProductData, Variant, ProductLabel } from '../types';
 
-interface FormData {
+/** Admin add/edit product form shape (single source for empty + merge-from-API). */
+export interface ProductAddFormData {
   title: string;
   slug: string;
   descriptionHtml: string;
@@ -21,6 +22,27 @@ interface FormData {
 }
 
 /**
+ * Fresh empty form — always return new array references so nothing is mutated by reference.
+ */
+export function getEmptyProductFormData(): ProductAddFormData {
+  return {
+    title: '',
+    slug: '',
+    descriptionHtml: '',
+    brandIds: [],
+    primaryCategoryId: '',
+    categoryIds: [],
+    published: false,
+    featured: false,
+    imageUrls: [],
+    featuredImageIndex: 0,
+    mainProductImage: '',
+    variants: [],
+    labels: [],
+  };
+}
+
+/**
  * Builds form data from product data
  */
 export function buildFormData(
@@ -28,8 +50,8 @@ export function buildFormData(
   normalizedMedia: string[],
   featuredIndexFromApi: number,
   mainProductImage: string,
-  mergedVariant: Variant
-): FormData {
+  mergedVariant: Variant,
+): ProductAddFormData {
   const brandIds = product.brandId ? [product.brandId] : [];
 
   return {
@@ -48,11 +70,19 @@ export function buildFormData(
         : 0,
     mainProductImage:
       normalizedMedia.length > 0 &&
-      normalizedMedia[featuredIndexFromApi >= 0 && featuredIndexFromApi < normalizedMedia.length ? featuredIndexFromApi : 0]
-        ? normalizedMedia[featuredIndexFromApi >= 0 && featuredIndexFromApi < normalizedMedia.length ? featuredIndexFromApi : 0]
+      normalizedMedia[
+        featuredIndexFromApi >= 0 && featuredIndexFromApi < normalizedMedia.length
+          ? featuredIndexFromApi
+          : 0
+      ]
+        ? normalizedMedia[
+            featuredIndexFromApi >= 0 && featuredIndexFromApi < normalizedMedia.length
+              ? featuredIndexFromApi
+              : 0
+          ]
         : mainProductImage || '',
     variants: [mergedVariant],
-    labels: (product.labels || []).map((label: any) => ({
+    labels: (product.labels || []).map((label: ProductLabel) => ({
       id: label.id || '',
       type: label.type || 'text',
       value: label.value || '',
@@ -61,4 +91,3 @@ export function buildFormData(
     })),
   };
 }
-

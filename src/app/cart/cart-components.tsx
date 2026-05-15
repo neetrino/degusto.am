@@ -142,17 +142,6 @@ function cartItemImageLinkClassName(appearance: CartListAppearance): string {
   return `${size} rounded-2xl border border-white bg-white shadow-sm`;
 }
 
-function cartVariantGroupHeading(attributeKey: string, t: (key: string) => string): string {
-  const k = attributeKey.toLowerCase().trim();
-  if (k === 'color' || k === 'colour') {
-    return t('orders.itemDetails.color');
-  }
-  if (k === 'size') {
-    return t('orders.itemDetails.size');
-  }
-  return attributeKey.charAt(0).toUpperCase() + attributeKey.slice(1).replace(/-/g, ' ');
-}
-
 /**
  * Cart item row — horizontal card (no table layout).
  */
@@ -232,7 +221,6 @@ export function CartItemRow({
           >
             {item.variant.product.title}
           </Link>
-<<<<<<< HEAD
           {lines.length > 0 ? <CartItemVariantChips lines={lines} appearance={appearance} /> : null}
           {lines.length === 0 && (item.customizations?.additions || item.customizations?.exclusions) ? (
             <ul
@@ -258,22 +246,6 @@ export function CartItemRow({
           ) : null}
           {lines.length > 0 && item.customizations?.additions ? (
             <p className={`mt-2 text-xs ${isDrawer ? 'text-white/75' : 'text-gray-600'}`}>
-=======
-          {item.variant.displayLines && item.variant.displayLines.length > 0 ? (
-            <ul className="mt-1 list-none space-y-0.5 pl-0 text-xs text-gray-600">
-              {item.variant.displayLines.map((line) => (
-                <li key={`${line.attributeKey}:${line.valueLabel}`}>
-                  <span className="font-medium text-gray-700">
-                    {cartVariantGroupHeading(line.attributeKey, t)}:
-                  </span>{' '}
-                  {line.valueLabel}
-                </li>
-              ))}
-            </ul>
-          ) : null}
-          {item.customizations?.additions && (
-            <p className="mt-2 text-xs text-gray-600">
->>>>>>> 0ac36b8 (/cart page)
               {t('product.additionsLabel')}: {item.customizations.additions}
             </p>
           ) : null}

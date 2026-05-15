@@ -6,6 +6,7 @@ import { formatPrice, type CurrencyCode } from '../../../lib/currency';
 import { t, getProductText } from '../../../lib/i18n';
 import type { LanguageCode } from '../../../lib/language';
 import { sanitizeHtml } from '../../../lib/utils/sanitize';
+import { PRODUCT_CUSTOMIZATION_TEXT_MAX_LENGTH } from '../../../lib/cart/customizations';
 import { ProductAttributesSelector } from './ProductAttributesSelector';
 import { ProductRatingSummary } from './ProductRatingSummary';
 import type { Product, ProductVariant } from './types';
@@ -40,6 +41,10 @@ interface ProductInfoAndActionsProps {
   onSizeSelect: (size: string) => void;
   onAttributeValueSelect: (attrKey: string, value: string) => void;
   getOptionValue: (options: any[] | undefined, key: string) => string | null;
+  additions: string;
+  exclusions: string;
+  onAdditionsChange: (value: string) => void;
+  onExclusionsChange: (value: string) => void;
 }
 
 export function ProductInfoAndActions({
@@ -72,6 +77,10 @@ export function ProductInfoAndActions({
   onSizeSelect,
   onAttributeValueSelect,
   getOptionValue,
+  additions,
+  exclusions,
+  onAdditionsChange,
+  onExclusionsChange,
 }: ProductInfoAndActionsProps) {
   return (
     <div className="flex w-full max-w-full flex-col self-start p-4 sm:p-5 lg:p-6">
@@ -142,6 +151,37 @@ export function ProductInfoAndActions({
               onAttributeValueSelect={onAttributeValueSelect}
               getOptionValue={getOptionValue}
             />
+          </div>
+
+          <div className="mb-4 flex flex-col gap-3">
+            <label className="flex flex-col gap-1.5">
+              <span className="text-sm font-semibold text-neutral-800">
+                {t(language, 'product.additionsLabel')}
+              </span>
+              <textarea
+                value={additions}
+                onChange={(e) => onAdditionsChange(e.target.value)}
+                maxLength={PRODUCT_CUSTOMIZATION_TEXT_MAX_LENGTH}
+                rows={2}
+                className="w-full resize-y rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm outline-none ring-neutral-950/5 transition placeholder:text-neutral-400 focus:border-orange-300 focus:ring-2"
+                placeholder={t(language, 'product.additionsPlaceholder')}
+                autoComplete="off"
+              />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-sm font-semibold text-neutral-800">
+                {t(language, 'product.exclusionsLabel')}
+              </span>
+              <textarea
+                value={exclusions}
+                onChange={(e) => onExclusionsChange(e.target.value)}
+                maxLength={PRODUCT_CUSTOMIZATION_TEXT_MAX_LENGTH}
+                rows={2}
+                className="w-full resize-y rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm outline-none ring-neutral-950/5 transition placeholder:text-neutral-400 focus:border-orange-300 focus:ring-2"
+                placeholder={t(language, 'product.exclusionsPlaceholder')}
+                autoComplete="off"
+              />
+            </label>
           </div>
         </div>
 
