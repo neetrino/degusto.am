@@ -34,10 +34,10 @@ export default function CheckoutError({
               Try again
             </button>
             <Link
-              href="/shop"
+              href="/cart"
               className={`rounded-xl border bg-white px-4 py-2 text-sm font-medium ${CHECKOUT_OUTLINE_BUTTON}`}
             >
-              Shop
+              Cart
             </Link>
           </div>
         </div>

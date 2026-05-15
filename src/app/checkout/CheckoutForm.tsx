@@ -1,11 +1,8 @@
 'use client';
 
-import type { Dispatch, SetStateAction } from 'react';
 import { Card, Input } from '@shop/ui';
-import type { UseFormRegister, UseFormSetValue, FieldErrors } from 'react-hook-form';
-import type { CurrencyCode } from '../../lib/currency';
+import { UseFormRegister, UseFormSetValue, FieldErrors } from 'react-hook-form';
 import { useTranslation } from '../../lib/i18n-client';
-import { CashChangeFromSection } from './components/CashChangeFromSection';
 import {
   CHECKOUT_CARD_FRAME,
   CHECKOUT_OPTION_IDLE,
@@ -31,11 +28,9 @@ interface CheckoutFormProps {
     logo: string | null;
   }>;
   logoErrors: Record<string, boolean>;
-  setLogoErrors: Dispatch<SetStateAction<Record<string, boolean>>>;
+  setLogoErrors: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
   error: string | null;
-  setError: Dispatch<SetStateAction<string | null>>;
-  currency: CurrencyCode;
-  cashChangeFrom: string | undefined;
+  setError: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 export function CheckoutForm({
@@ -50,8 +45,6 @@ export function CheckoutForm({
   setLogoErrors,
   error,
   setError,
-  currency,
-  cashChangeFrom,
 }: CheckoutFormProps) {
   const { t } = useTranslation();
 
@@ -261,14 +254,19 @@ export function CheckoutForm({
       </Card>
 
       {paymentMethod === 'cash_on_delivery' && (
-        <CashChangeFromSection
-          register={register}
-          setValue={setValue}
-          errors={errors}
-          isSubmitting={isSubmitting}
-          currency={currency}
-          cashChangeFrom={cashChangeFrom}
-        />
+        <Card className={`p-6 ${CHECKOUT_CARD_FRAME}`}>
+          <h2 className={`${CHECKOUT_SECTION_TITLE_TEXT} mb-4`}>{t('checkout.form.cashChangeFrom')}</h2>
+          <Input
+            label={t('checkout.form.cashChangeFrom')}
+            type="number"
+            min="0"
+            step="1"
+            placeholder={t('checkout.placeholders.cashChangeFrom')}
+            {...register('cashChangeFrom')}
+            error={errors.cashChangeFrom?.message}
+            disabled={isSubmitting}
+          />
+        </Card>
       )}
 
       <Card className={`p-6 ${CHECKOUT_CARD_FRAME}`}>
