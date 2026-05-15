@@ -240,16 +240,6 @@ export function OrderDetailsModal({
                                   })()}
                             </span>
                           </div>
-                          <div className="flex justify-between text-gray-600">
-                            <span>{t('profile.orderDetails.tax')}</span>
-                            <span>
-                              {(() => {
-                                const taxAMD = convertPrice(selectedOrder.totals.tax, 'USD', 'AMD');
-                                const taxDisplay = currency === 'AMD' ? taxAMD : convertPrice(taxAMD, 'AMD', currency);
-                                return formatPriceInCurrency(taxDisplay, currency);
-                              })()}
-                            </span>
-                          </div>
                           <div className="border-t border-gray-200 pt-4">
                             <div className="flex justify-between text-lg font-bold text-gray-900">
                               <span>{t('profile.orderDetails.total')}</span>

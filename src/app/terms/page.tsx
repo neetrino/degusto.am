@@ -2,6 +2,7 @@
 
 import { Card } from '@shop/ui';
 import { useTranslation } from '../../lib/i18n-client';
+import { SITE_CONTACT_EMAIL } from '../../lib/site-contact';
 
 /**
  * Terms of Service page - displays terms and conditions
@@ -129,8 +130,8 @@ export default function TermsPage() {
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('terms.contactInformation.title')}</h2>
           <p className="text-gray-600">
             {t('terms.contactInformation.description')}{' '}
-            <a href="mailto:info@degusto.am" className="text-blue-600 hover:underline">
-              info@degusto.am
+            <a href={`mailto:${SITE_CONTACT_EMAIL}`} className="text-blue-600 hover:underline">
+              {SITE_CONTACT_EMAIL}
             </a>
           </p>
         </Card>

@@ -44,11 +44,6 @@ export function OrderSummary({
             (order.shippingAddress?.city ? ` (${order.shippingAddress.city})` : '');
         })();
 
-  const taxDisplay = (() => {
-    const taxAMD = convertPrice(order.totals.tax, 'USD', 'AMD');
-    return currency === 'AMD' ? taxAMD : convertPrice(taxAMD, 'AMD', currency);
-  })();
-
   const totalDisplay = (() => {
     const subtotalAMD = convertPrice(order.totals.subtotal, 'USD', 'AMD');
     const discountAMD = convertPrice(order.totals.discount, 'USD', 'AMD');
@@ -77,10 +72,6 @@ export function OrderSummary({
             <div className="flex justify-between text-gray-600">
               <span>{t('orders.orderSummary.shipping')}</span>
               <span>{shippingDisplay}</span>
-            </div>
-            <div className="flex justify-between text-gray-600">
-              <span>{t('orders.orderSummary.tax')}</span>
-              <span>{formatPriceInCurrency(taxDisplay, currency)}</span>
             </div>
             <div className="border-t border-gray-200 pt-4">
               <div className="flex justify-between text-lg font-bold text-gray-900">

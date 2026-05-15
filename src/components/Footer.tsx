@@ -3,6 +3,7 @@
 import type { CSSProperties } from 'react';
 import Link from 'next/link';
 import { useTranslation } from '../lib/i18n-client';
+import { SITE_CONTACT_EMAIL, SITE_CONTACT_PHONES } from '../lib/site-contact';
 import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
 import { bigFatBoiiFont } from '@/fonts/big-fat-boii-font';
 
@@ -59,12 +60,24 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
             >
               {t('common.footer.contactInfo')}
             </h3>
-            <a href="mailto:info@degusto.am" className="block text-sm leading-7">
-              info@degusto.am
+            <a href={`mailto:${SITE_CONTACT_EMAIL}`} className="block text-sm leading-7">
+              {SITE_CONTACT_EMAIL}
             </a>
-            <a href="tel:+37460388080" className="block text-sm leading-7">
-              {t('contact.phone')}
-            </a>
+            <p className="text-sm leading-7">
+              {SITE_CONTACT_PHONES.map((phone, index) => (
+                <span key={phone.tel}>
+                  {index > 0 ? (
+                    <span aria-hidden className="text-[#ff7f20]">
+                      {' '}
+                      /{' '}
+                    </span>
+                  ) : null}
+                  <a href={`tel:${phone.tel}`} className="hover:text-[#ff7f20]">
+                    {phone.display}
+                  </a>
+                </span>
+              ))}
+            </p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -175,16 +188,28 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
 
             <div className="flex items-center gap-3">
               <img src={assets.footerMailIcon} alt="" className="h-[25px] w-6 object-contain" />
-              <a href="mailto:info@degusto.am" className="text-sm leading-[27px] hover:text-[#ff7f20]">
-                info@degusto.am
+              <a href={`mailto:${SITE_CONTACT_EMAIL}`} className="text-sm leading-[27px] hover:text-[#ff7f20]">
+                {SITE_CONTACT_EMAIL}
               </a>
             </div>
 
             <div className="flex items-start gap-[11px]">
-              <img src={assets.footerPhoneIcon} alt="" className="mt-[1px] h-[25px] w-6 object-contain" />
-              <a href="tel:+37460388080" className="text-sm leading-[27px] hover:text-[#ff7f20]">
-                {t('contact.phone')}
-              </a>
+              <img src={assets.footerPhoneIcon} alt="" className="mt-[1px] h-[25px] w-6 shrink-0 object-contain" />
+              <p className="text-sm leading-[27px]">
+                {SITE_CONTACT_PHONES.map((phone, index) => (
+                  <span key={phone.tel}>
+                    {index > 0 ? (
+                      <span aria-hidden className="text-[#ff7f20]">
+                        {' '}
+                        /{' '}
+                      </span>
+                    ) : null}
+                    <a href={`tel:${phone.tel}`} className="hover:text-[#ff7f20]">
+                      {phone.display}
+                    </a>
+                  </span>
+                ))}
+              </p>
             </div>
 
             <div className="mt-1 flex h-[41px] items-center gap-4">
