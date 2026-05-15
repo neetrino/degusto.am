@@ -7,6 +7,9 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { KeyboardEvent, MouseEvent } from 'react';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useAddToCart } from '../hooks/useAddToCart';
+import { useWishlist } from '../hooks/useWishlist';
+import { useAuth } from '../../lib/auth/AuthContext';
+import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
 import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
 import { StoreMenuPagination } from './StoreMenuPagination';
 
@@ -215,6 +218,8 @@ function MenuCardItem({ card }: { card: MenuCard }) {
   const { t } = useTranslation();
   const currency = useCurrency();
   const router = useRouter();
+  const { isLoggedIn } = useAuth();
+  const { isInWishlist, toggleWishlist } = useWishlist(card.id);
   const title = card.title || t(card.titleKey);
   const category = card.category || (card.categoryKey ? t(card.categoryKey) : '');
   const imageSrc = card.image || assets.productCardImage;
@@ -258,6 +263,16 @@ function MenuCardItem({ card }: { card: MenuCard }) {
     void addToCart({ origin, imageUrl: card.image || null });
   };
 
+  const handleWishlistToggle = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!isLoggedIn) {
+      router.push(`/login?redirect=${encodeURIComponent(productHref)}`);
+      return;
+    }
+    void toggleWishlist();
+  };
+
   return (
     <article
       data-home-product-card
@@ -278,6 +293,23 @@ function MenuCardItem({ card }: { card: MenuCard }) {
         hotIconSrc={assets.productCardHot}
         greensIconSrc={assets.productCardRibbon}
       />
+      <button
+        type="button"
+        onClick={handleWishlistToggle}
+        className={`absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border shadow-md transition-colors sm:h-10 sm:w-10 ${
+          isInWishlist
+            ? 'border-red-600 bg-red-600 text-white hover:bg-red-700'
+            : 'border-[#dedede]/90 bg-white/95 text-gray-700 hover:bg-white'
+        }`}
+        title={
+          isInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')
+        }
+        aria-label={
+          isInWishlist ? t('common.ariaLabels.removeFromWishlist') : t('common.ariaLabels.addToWishlist')
+        }
+      >
+        <WishlistHeartIcon filled={isInWishlist} size={18} />
+      </button>
       <div className="absolute left-[14px] top-[170px] flex items-center gap-[6px]">
         <img src={assets.productCardStar} alt="" className="h-5 w-5 object-contain" />
         <p className="text-base font-medium leading-[1.35] text-[rgba(60,47,47,0.62)]">4.7</p>
