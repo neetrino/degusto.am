@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { db } from '@white-shop/db';
-import { logger } from '@/lib/utils/logger';
 import { resolveStorefrontLocaleFromSearchParams } from '@/lib/i18n/locale';
 import { extractMediaUrl } from '@/lib/utils/extractMediaUrl';
 import { processImageUrl } from '@/lib/utils/image-utils';
@@ -57,9 +56,6 @@ function buildSearchWhere(search: string): Prisma.ProductWhereInput {
  * GET /api/search/instant
  * Query params: q (required), limit (default 8), lang (default en)
  * Returns { results: InstantSearchResult[] }
- *
- * Search: PostgreSQL + Prisma `contains` (case-insensitive) on translations
- * and SKU — no Meilisearch/queue indexer. See docs/reference/knowledge-base/DEGUSTO_CURRENT_STACK.md.
  */
 export async function GET(req: NextRequest) {
   try {
@@ -151,8 +147,8 @@ export async function GET(req: NextRequest) {
       { results },
       { headers: { 'Cache-Control': 'no-store, must-revalidate' } }
     );
-  } catch (error: unknown) {
-    logger.error('[search/instant] Error', error);
+  } catch (error) {
+    console.error('[search/instant] Error:', error);
     return NextResponse.json(
       {
         error: 'Search failed',

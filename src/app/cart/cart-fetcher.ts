@@ -57,19 +57,6 @@ async function fetchGuestCartItems(
   guestCart: GuestCartItem[],
   t: (key: string) => string
 ): Promise<Array<{ item: CartItem | null; shouldRemove: boolean }>> {
-  const extractVariantImageUrl = (imageUrl?: string | null): string | null => {
-    if (!imageUrl) {
-      return null;
-    }
-
-    const first = imageUrl
-      .split(',')
-      .map((part) => part.trim())
-      .find((part) => part.length > 0);
-
-    return first || null;
-  };
-
   return Promise.all(
     guestCart.map(async (item) => {
       try {
@@ -92,12 +79,11 @@ async function fetchGuestCartItems(
         }
 
         const translation = productData.translations?.[0];
-        const imageFromMedia = productData.media?.[0] 
+        const imageUrl = productData.media?.[0] 
           ? (typeof productData.media[0] === 'string' 
               ? productData.media[0] 
               : productData.media[0].url || productData.media[0].src)
           : null;
-        const imageUrl = extractVariantImageUrl(variant.imageUrl) || imageFromMedia;
 
         return {
           item: {

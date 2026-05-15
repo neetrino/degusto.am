@@ -15,7 +15,6 @@ import { ProductsFiltersProvider } from '../../components/ProductsFiltersProvide
 import { MOBILE_FILTERS_EVENT } from '../../lib/events';
 import { logger } from '../../lib/utils/logger';
 import { productsService } from '../../lib/services/products.service';
-import { getCompactPaginationPages } from '../../lib/utils/compact-pagination-pages';
 
 const PAGE_CONTAINER = 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8';
 
@@ -198,6 +197,22 @@ export async function ProductsCatalog({
     return `/shop?${q.toString()}`;
   };
 
+  const getPaginationPages = (): (number | 'ellipsis')[] => {
+    const total = productsData.meta.totalPages;
+    const current = page;
+    if (total <= 7) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+    const set = new Set<number>([1, total, current - 1, current, current + 1]);
+    const sorted = Array.from(set).filter((p) => p >= 1 && p <= total).sort((a, b) => a - b);
+    const out: (number | 'ellipsis')[] = [];
+    for (let i = 0; i < sorted.length; i++) {
+      if (i > 0 && sorted[i]! - sorted[i - 1]! > 1) out.push('ellipsis');
+      out.push(sorted[i]!);
+    }
+    return out;
+  };
+
   const language = getStoredLanguage();
   const sortParam = typeof params.sort === 'string' ? params.sort : 'newest';
 
@@ -274,7 +289,7 @@ export async function ProductsCatalog({
                     )}
 
                     <div className="flex items-center gap-1">
-                      {getCompactPaginationPages(productsData.meta.totalPages, page).map((item, idx) =>
+                      {getPaginationPages().map((item, idx) =>
                         item === 'ellipsis' ? (
                           <span key={`ellipsis-${idx}`} className="px-2 text-neutral-400" aria-hidden>
                             …

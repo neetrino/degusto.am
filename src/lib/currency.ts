@@ -85,11 +85,8 @@ export function clearCurrencyRatesCache(): void {
 
 const CURRENCY_STORAGE_KEY = 'shop_currency';
 
-/** Matches `getStoredCurrency()` when `window` is undefined (SSR / first paint). */
-export const HYDRATION_SAFE_CURRENCY: CurrencyCode = 'AMD';
-
 export function getStoredCurrency(): CurrencyCode {
-  if (typeof window === 'undefined') return HYDRATION_SAFE_CURRENCY;
+  if (typeof window === 'undefined') return 'AMD';
   try {
     const stored = localStorage.getItem(CURRENCY_STORAGE_KEY);
     if (stored && stored in CURRENCIES) {
@@ -156,14 +153,6 @@ export function convertPrice(price: number, fromCurrency: CurrencyCode, toCurren
   // Convert to USD first, then to target currency
   const usdPrice = price / fromRate;
   return usdPrice * toRate;
-}
-
-/**
- * Catalog price filter bounds from the storefront are entered in AMD; `ProductVariant.price`
- * is stored in USD (see admin product save paths). Uses the same rates as {@link convertPrice}.
- */
-export function storefrontAmdPriceBoundToVariantUsd(amdAmount: number): number {
-  return convertPrice(amdAmount, 'AMD', 'USD');
 }
 
 /**

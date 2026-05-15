@@ -1,28 +1,18 @@
 import { FigmaDesktopMenuPage, type MenuCard, type MenuCategory } from '../../components/home/FigmaDesktopShopPage';
+import { FigmaMobileShopPage } from '../../components/home/FigmaMobileShopPage';
 import { BodyBackground } from '../../components/BodyBackground';
-import { HIDDEN_STOREFRONT_CATEGORY_SLUGS } from '@/constants/hidden-storefront-category-slugs';
-import { STORE_MENU_PAGE_SIZE } from '@/constants/store-menu-page-size';
 import { db } from '@white-shop/db';
 import { cookies } from 'next/headers';
 import { resolveStorefrontLocaleFromCookie } from '@/lib/i18n/locale';
-import type { Prisma } from '@prisma/client';
-import { buildProductWhereTasteCapability, resolveFoodAttributeFlagsFromVariants } from '@/lib/product-food-attributes';
-import { storefrontAmdPriceBoundToVariantUsd } from '@/lib/currency';
-
-/** Always read fresh data from DB on each request (no static cache for this route). */
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 const HY_CATEGORY_TITLE_BY_SLUG: Record<string, string> = {
-  shawarma: 'Շաուրմա',
-  burger: 'Բուրգեր',
-  kebab: 'Քեբաբ',
-  wraps: 'Ռոլլեր',
-  plates: 'Ափսեներ',
-  snacks: 'Խորտիկներ',
-  sandwiches: 'Սենդվիչներ',
-  pasta: 'Պաստա',
-  combo: 'Կոմբո',
+  electronics: 'Էլեկտրոնիկա',
+  clothing: 'Հագուստ',
+  shoes: 'Կոշիկներ',
+  'home-garden': 'Տուն և այգի',
+  sports: 'Սպորտ',
+  books: 'Գրքեր',
+  accessories: 'Աքսեսուարներ',
 };
 
 function toImageUrl(media: unknown): string | null {
@@ -67,118 +57,33 @@ export default async function ShopPage({
   const locale = resolveStorefrontLocaleFromCookie(cookieStore.get('shop_language')?.value);
   const selectedCategorySlug =
     typeof params?.category === 'string' ? params.category.trim() : '';
-  const selectedSearchQuery =
-    typeof params?.search === 'string' ? params.search.trim() : '';
-  const tasteFilter =
-    params?.taste === 'leaf' || params?.taste === 'pepper' ? params.taste : null;
-  const minPriceParam =
-    typeof params?.minPrice === 'string' ? Number(params.minPrice) : null;
-  const maxPriceParam =
-    typeof params?.maxPrice === 'string' ? Number(params.maxPrice) : null;
-  /** User-facing filter amounts in AMD (URL query). */
-  const minPriceAmd =
-    typeof minPriceParam === 'number' && Number.isFinite(minPriceParam) && minPriceParam >= 0
-      ? minPriceParam
-      : null;
-  const maxPriceAmd =
-    typeof maxPriceParam === 'number' && Number.isFinite(maxPriceParam) && maxPriceParam >= 0
-      ? maxPriceParam
-      : null;
-  const minPriceUsd =
-    minPriceAmd !== null ? storefrontAmdPriceBoundToVariantUsd(minPriceAmd) : null;
-  const maxPriceUsd =
-    maxPriceAmd !== null ? storefrontAmdPriceBoundToVariantUsd(maxPriceAmd) : null;
-  const rawPage = typeof params?.page === 'string' ? params.page.trim() : '';
-  const parsedPage = parseInt(rawPage || '1', 10);
-  const requestedPage =
-    Number.isFinite(parsedPage) && parsedPage >= 1 ? parsedPage : 1;
   const allCategoriesLabel = locale === 'hy' ? 'Բոլորը' : 'All';
-  const comboExclusionCategoryFilter = {
-    categories: {
-      none: {
-        translations: {
-          some: {
-            locale: 'en',
-            slug: 'combo',
-          },
-        },
-      },
-    },
-  } as const;
-  const productWhereBase: Prisma.ProductWhereInput = {
+  const productWhere = {
     published: true,
     deletedAt: null,
-    ...comboExclusionCategoryFilter,
-    ...(selectedSearchQuery
+    ...(selectedCategorySlug
       ? {
-          translations: {
+          categories: {
             some: {
-              locale: { in: [locale, 'en'] },
-              OR: [
-                {
-                  title: {
-                    contains: selectedSearchQuery,
-                    mode: 'insensitive' as const,
-                  },
-                },
-                {
-                  subtitle: {
-                    contains: selectedSearchQuery,
-                    mode: 'insensitive' as const,
-                  },
-                },
-              ],
-            },
-          },
-        }
-      : {}),
-    ...((minPriceUsd !== null || maxPriceUsd !== null)
-      ? {
-          variants: {
-            some: {
+              deletedAt: null,
               published: true,
-              ...(minPriceUsd !== null ? { price: { gte: minPriceUsd } } : {}),
-              ...(maxPriceUsd !== null ? { price: { lte: maxPriceUsd } } : {}),
-            },
-          },
-        }
-      : {}),
-    ...(tasteFilter ? buildProductWhereTasteCapability(tasteFilter) : {}),
-  };
-
-  const productWhere: Prisma.ProductWhereInput = selectedCategorySlug
-    ? {
-        AND: [
-          productWhereBase,
-          {
-            categories: {
-              some: {
-                deletedAt: null,
-                published: true,
-                translations: {
-                  some: {
-                    locale: { in: [locale, 'en'] },
-                    slug: selectedCategorySlug,
-                  },
+              translations: {
+                some: {
+                  locale: { in: [locale, 'en'] },
+                  slug: selectedCategorySlug,
                 },
               },
             },
           },
-        ],
-      }
-    : productWhereBase;
-  const productTotal = await db.product.count({ where: productWhere });
-  const totalPages =
-    productTotal === 0 ? 0 : Math.ceil(productTotal / STORE_MENU_PAGE_SIZE);
-  const effectivePage =
-    totalPages === 0 ? 1 : Math.min(requestedPage, totalPages);
+        }
+      : {}),
+  };
   const productRows = await db.product.findMany({
     where: productWhere,
     orderBy: {
       updatedAt: 'desc',
     },
-    skip: (effectivePage - 1) * STORE_MENU_PAGE_SIZE,
-    take: STORE_MENU_PAGE_SIZE,
+    take: 12,
     select: {
       id: true,
       media: true,
@@ -227,28 +132,10 @@ export default async function ShopPage({
         orderBy: {
           price: 'asc',
         },
+        take: 1,
         select: {
-          published: true,
           price: true,
           compareAtPrice: true,
-          attributes: true,
-          options: {
-            select: {
-              attributeKey: true,
-              value: true,
-              valueId: true,
-              attributeValue: {
-                select: {
-                  value: true,
-                  attribute: {
-                    select: {
-                      key: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
         },
       },
     },
@@ -258,12 +145,6 @@ export default async function ShopPage({
     where: {
       published: true,
       deletedAt: null,
-      translations: {
-        none: {
-          locale: 'en',
-          slug: 'combo',
-        },
-      },
     },
     orderBy: {
       position: 'asc',
@@ -286,12 +167,7 @@ export default async function ShopPage({
     },
   });
 
-  const categoryEntries: Array<{
-    id: string;
-    slug: string;
-    title: string;
-    iconUrl: string | null;
-  }> = [
+  const categories: MenuCategory[] = [
     {
       id: 'all',
       slug: '',
@@ -306,60 +182,14 @@ export default async function ShopPage({
     if (!translation?.slug || !translation.title) {
       continue;
     }
-    if (HIDDEN_STOREFRONT_CATEGORY_SLUGS.has(translation.slug.toLowerCase())) {
-      continue;
-    }
 
-    categoryEntries.push({
+    categories.push({
       id: row.id,
       slug: translation.slug,
       title: resolveCategoryTitle(locale, translation),
       iconUrl: toImageUrl(row.media),
     });
   }
-
-  const slugsToCount = categoryEntries.filter((item) => item.slug !== '').map((item) => item.slug);
-
-  const [allProductCount, ...countsBySlug] = await Promise.all([
-    db.product.count({ where: productWhereBase }),
-    ...slugsToCount.map((slug) =>
-      db.product.count({
-        where: {
-          AND: [
-            productWhereBase,
-            {
-              categories: {
-                some: {
-                  deletedAt: null,
-                  published: true,
-                  translations: {
-                    some: {
-                      locale: { in: [locale, 'en'] },
-                      slug,
-                    },
-                  },
-                },
-              },
-            },
-          ],
-        },
-      })
-    ),
-  ]);
-
-  const slugToProductCount = new Map<string, number>();
-  slugsToCount.forEach((slug, index) => {
-    slugToProductCount.set(slug, countsBySlug[index] ?? 0);
-  });
-
-  const categories: MenuCategory[] = categoryEntries.map((entry) => ({
-    id: entry.id,
-    slug: entry.slug,
-    title: entry.title,
-    iconUrl: entry.iconUrl,
-    productCount:
-      entry.slug === '' ? allProductCount : (slugToProductCount.get(entry.slug) ?? 0),
-  }));
 
   const cards: MenuCard[] = productRows.map((row, index) => {
     const translation =
@@ -370,7 +200,6 @@ export default async function ShopPage({
     const variant = row.variants[0];
     const price = variant?.price ?? 0;
     const oldPrice = variant?.compareAtPrice ?? price;
-    const foodAttrs = resolveFoodAttributeFlagsFromVariants(row.variants);
     return {
       id: row.id,
       slug: translation?.slug || 'products',
@@ -383,14 +212,15 @@ export default async function ShopPage({
       oldPrice,
       discount: '',
       discountPercent: row.discountPercent,
-      supportsSpicy: foodAttrs.supportsSpicy,
-      supportsGreens: foodAttrs.supportsGreens,
     };
   });
 
   return (
     <div className="min-h-screen bg-white">
       <BodyBackground color="#ffffff" />
+      <div className="lg:hidden">
+        <FigmaMobileShopPage />
+      </div>
       <FigmaDesktopMenuPage
         titleKey="home.figma.desktop.shop.menuTitle"
         subtitleKey="home.figma.desktop.shop.menuSubtitle"
@@ -398,14 +228,6 @@ export default async function ShopPage({
         cards={cards}
         categories={categories}
         activeCategorySlug={selectedCategorySlug}
-        initialSearch={selectedSearchQuery}
-        initialMinPrice={minPriceAmd !== null ? String(minPriceAmd) : ''}
-        initialMaxPrice={maxPriceAmd !== null ? String(maxPriceAmd) : ''}
-        initialFoodFilter={tasteFilter ?? 'neutral'}
-        menuPagination={{
-          currentPage: effectivePage,
-          totalPages,
-        }}
       />
     </div>
   );

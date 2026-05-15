@@ -54,15 +54,7 @@
     "orderSummary": "Итоги заказа",
     "subtotal": "Промежуточный итог",
     "shipping": "Доставка",
-    "calculated": "Рассчитывается",
     "tax": "Налог",
-    "promocode": "Промокод",
-    "promocodePlaceholder": "Введите промокод",
-    "applyPromo": "Применить",
-    "applyingPromo": "Применение...",
-    "promoApplied": "Промокод применен: {code}",
-    "promoInvalid": "Неверный формат промокода",
-    "discount": "Скидка",
     "total": "Итого",
     "free": "Бесплатно",
     "items": "товаров",
@@ -185,8 +177,7 @@
     "previousThumbnail": "Предыдущая миниатюра",
     "nextThumbnail": "Следующая миниатюра",
     "fullscreenImage": "Полноэкранное изображение",
-    "shoppingCart": "Корзина",
-    "paginationNav": "Постраничная навигация"
+    "shoppingCart": "Корзина"
   },
   "placeholders": {
     "search": "Поиск"
@@ -206,7 +197,7 @@
     "description": "Профессиональная платформа электронной коммерции для современного опыта покупок.",
     "quickLinks": "Быстрые ссылки",
     "legal": "Юридическая информация",
-    "contactInfo": "Контакты",
+    "contactInfo": "Контактная информация",
     "privacyPolicy": "Политика конфиденциальности",
     "termsOfService": "Условия использования",
     "refundPolicy": "Политика возврата",

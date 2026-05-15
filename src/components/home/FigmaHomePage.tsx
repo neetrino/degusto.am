@@ -5,18 +5,11 @@ import { useRouter } from 'next/navigation';
 import type { KeyboardEvent, MouseEvent } from 'react';
 import { FigmaHomePageMobile } from './FigmaHomePageMobile';
 import { UniversalHeader } from '../UniversalHeader';
-import { ProjectGreenStripes } from '../decor/ProjectGreenStripes';
 import { Footer } from '../Footer';
 import { useTranslation } from '../../lib/i18n-client';
 import { useCurrency } from '../hooks/useCurrency';
 import { formatPrice } from '../../lib/currency';
 import { useAddToCart } from '../hooks/useAddToCart';
-import { useWishlist } from '../hooks/useWishlist';
-import { useAuth } from '../../lib/auth/AuthContext';
-import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
-import { getHomeCategoryHref } from './homeCategoryLinks';
-import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
-import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
 
 const assets = {
   heroBg: '/api/r2/hero/20260512-tOKhBzyB6u.png',
@@ -44,13 +37,10 @@ export type HomeFeaturedProduct = {
   discountPercent: number | null;
   inStock?: boolean;
   defaultVariantId?: string | null;
-  supportsSpicy?: boolean;
-  supportsGreens?: boolean;
 };
 
 export type HomeCategoryItem = {
   id: string;
-  slug: string;
   title: string;
   count: number;
   image: string;
@@ -66,20 +56,15 @@ const fallbackFeaturedProducts: HomeFeaturedProduct[] = [
     oldPrice: 1500,
     image: assets.product,
     discountPercent: 30,
-    supportsSpicy: true,
-    supportsGreens: true,
   },
 ];
 
 const fallbackCategories: HomeCategoryItem[] = [
-  { id: 'cat-fallback-1', slug: 'soups', title: 'Ապուրներ եւ տաք ուտեստներ', count: 78, image: assets.categorySoup },
-  { id: 'cat-fallback-2', slug: 'salads', title: 'Աղցաններ', count: 41, image: assets.categorySalad },
-  { id: 'cat-fallback-3', slug: 'shawarma', title: 'Շաուրմա', count: 18, image: assets.categoryShawarma },
-  { id: 'cat-fallback-4', slug: 'pizza', title: 'Պիցցա', count: 44, image: assets.categoryPizza },
+  { id: 'cat-fallback-1', title: 'Ապուրներ եւ տաք ուտեստներ', count: 78, image: assets.categorySoup },
+  { id: 'cat-fallback-2', title: 'Աղցաններ', count: 41, image: assets.categorySalad },
+  { id: 'cat-fallback-3', title: 'Շաուրմա', count: 18, image: assets.categoryShawarma },
+  { id: 'cat-fallback-4', title: 'Պիցցա', count: 44, image: assets.categoryPizza },
 ];
-
-/** Desktop home categories block surface; footer outer wrapper uses the same for a continuous edge. */
-const HOME_DESKTOP_CATEGORY_SURFACE_CLASS = 'bg-[#e6e6e8]';
 
 function NewsCard({ item }: { item: HomeFeaturedProduct }) {
   const { t } = useTranslation();
@@ -96,8 +81,6 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
   const formattedOldPrice = item.oldPrice ? keepCurrencySymbolAttached(formatPrice(item.oldPrice, currency)) : null;
   const mainPriceClassName = formattedPrice.length > 12 ? 'text-[18px]' : 'text-[20px]';
   const productHref = `/products/${item.slug}`;
-  const { isLoggedIn } = useAuth();
-  const { isInWishlist, toggleWishlist } = useWishlist(item.id);
   const { isAddingToCart, addToCart } = useAddToCart({
     productId: item.id,
     productSlug: item.slug,
@@ -126,16 +109,6 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
     void addToCart({ origin, imageUrl: item.image });
   };
 
-  const handleWishlistToggle = (event: MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    if (!isLoggedIn) {
-      router.push(`/login?redirect=${encodeURIComponent(productHref)}`);
-      return;
-    }
-    void toggleWishlist();
-  };
-
   return (
     <article
       data-home-product-card
@@ -149,30 +122,12 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
       <div data-product-fly-origin className="absolute left-1/2 top-1 h-[147px] w-[227px] -translate-x-1/2">
         <img src={imageSrc} alt={title} className="h-full w-full rounded-[18px] object-cover" />
       </div>
-      <HomeProductFoodAttributeBadges
-        variant="desktop-card"
-        supportsSpicy={item.supportsSpicy ?? false}
-        supportsGreens={item.supportsGreens ?? false}
-        hotIconSrc={assets.productCardHot}
-        greensIconSrc={assets.productCardRibbon}
-      />
-      <button
-        type="button"
-        onClick={handleWishlistToggle}
-        className={`absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border shadow-md transition-colors sm:h-10 sm:w-10 ${
-          isInWishlist
-            ? 'border-red-600 bg-red-600 text-white hover:bg-red-700'
-            : 'border-[#dedede]/90 bg-white/95 text-gray-700 hover:bg-white'
-        }`}
-        title={
-          isInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')
-        }
-        aria-label={
-          isInWishlist ? t('common.ariaLabels.removeFromWishlist') : t('common.ariaLabels.addToWishlist')
-        }
-      >
-        <WishlistHeartIcon filled={isInWishlist} size={18} />
-      </button>
+      <div className="absolute left-4 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-[#ff2b2e] p-1">
+        <img src={assets.productCardHot} alt="" className="h-[19px] w-[19px] -rotate-[13deg] object-contain" />
+      </div>
+      <div className="absolute left-4 top-[58px] flex h-8 w-8 items-center justify-center overflow-hidden rounded-full">
+        <img src={assets.productCardRibbon} alt="" className="h-8 w-8 scale-110 object-cover" />
+      </div>
       <div className="absolute left-[14px] top-[170px] flex items-center gap-[6px]">
         <img src={assets.productCardStar} alt="" className="h-5 w-5 object-contain" />
         <p className="text-base font-medium leading-[1.35] text-[rgba(60,47,47,0.62)]">4.7</p>
@@ -212,15 +167,11 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
 
 function CategoryCard({ item }: { item: HomeCategoryItem }) {
   return (
-    <Link
-      href={getHomeCategoryHref(item)}
-      className="block rounded-[22px] bg-[#0c0d12] p-4 transition-transform hover:-translate-y-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#f66913]"
-      aria-label={item.title}
-    >
+    <article className="rounded-[22px] bg-[#0c0d12] p-4">
       <h3 className="min-h-[56px] text-2xl font-black leading-tight text-white">{item.title}</h3>
       <p className="mb-2 mt-1 text-sm text-white/80">({item.count} ապրանք)</p>
       <img src={item.image} alt={item.title} className="mx-auto h-[190px] w-full max-w-[240px] object-contain" />
-    </Link>
+    </article>
   );
 }
 
@@ -243,9 +194,6 @@ export function FigmaHomePage({
       : (heroProduct?.title || t('home.figma.mobile.product.title'));
   const heroProductSubtitle = heroProduct?.subtitle || t('home.figma.mobile.product.subtitle');
   const heroProductHref = `/products/${heroProduct?.slug || 'products'}`;
-  const { isLoggedIn } = useAuth();
-  const heroForWishlist = heroProduct ?? fallbackFeaturedProducts[0];
-  const { isInWishlist: heroInWishlist, toggleWishlist: toggleHeroWishlist } = useWishlist(heroForWishlist.id);
   const openHeroProduct = () => {
     router.push(heroProductHref);
   };
@@ -257,20 +205,10 @@ export function FigmaHomePage({
     openHeroProduct();
   };
 
-  const handleHeroWishlistToggle = (event: MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    if (!isLoggedIn) {
-      router.push(`/login?redirect=${encodeURIComponent(heroProductHref)}`);
-      return;
-    }
-    void toggleHeroWishlist();
-  };
-
   return (
     <>
       <div className="lg:hidden">
-        <FigmaHomePageMobile categories={homeCategories} />
+        <FigmaHomePageMobile />
       </div>
       <div className="hidden min-h-screen overflow-x-hidden bg-[var(--project-color)] lg:block">
       <section className="relative w-full overflow-hidden bg-[var(--project-color)] pb-56 pt-8 lg:h-[930px] lg:pb-0 lg:[aspect-ratio:231/130]">
@@ -282,7 +220,51 @@ export function FigmaHomePage({
           fetchPriority="high"
           decoding="sync"
         />
-        <ProjectGreenStripes />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="725"
+          height="450"
+          viewBox="0 0 725 450"
+          fill="none"
+          aria-hidden="true"
+          className="pointer-events-none absolute left-[-120px] top-[-450px] opacity-100"
+          style={{
+            width: '678.855px',
+            height: '1512.29px',
+            transform: 'rotate(20deg)',
+            transformOrigin: 'center',
+          }}
+        >
+          <path
+            d="M-387.936 202.028C-387.936 202.028 119.69 546.315 464.803 275C809.917 3.68502 577.568 -962.001 577.568 -962.001"
+            stroke="#3E573D"
+            strokeWidth="141"
+            strokeLinecap="square"
+          />
+        </svg>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="211"
+          height="985"
+          viewBox="0 0 211 985"
+          fill="none"
+          aria-hidden="true"
+          className="pointer-events-none absolute right-[-170px] top-[-1px] opacity-100"
+          style={{
+            width: '611.208px',
+            height: '979.275px',
+            transform: 'rotate(2deg)',
+            transformOrigin: 'center',
+          }}
+        >
+          <path
+            d="M537.749 -25.8738C537.749 -25.8738 56.6915 174.312 70.8068 462.466C84.9222 750.619 850.632 902.127 850.632 902.127"
+            stroke="#3E573D"
+            strokeWidth="141"
+            strokeLinecap="square"
+          />
+        </svg>
+
         <UniversalHeader spacerBackgroundClassName="bg-[#F66812]" />
 
         <div className="relative z-10 mx-auto mt-14 w-full max-w-[1450px] px-4 lg:mt-16 lg:px-6">
@@ -297,31 +279,15 @@ export function FigmaHomePage({
             <div className="absolute inset-0 rounded-[20px] bg-white shadow-xl" />
             <div className="absolute left-1/2 top-[5px] h-[147px] w-[227px] -translate-x-1/2">
               <img src={heroProduct?.image || assets.productCardImage} alt={t('home.figma.mobile.dailyOfferImageAlt')} className="h-full w-full rounded-[18px] object-cover" />
-              <HomeProductFoodAttributeBadges
-                variant="desktop-hero"
-                supportsSpicy={heroProduct?.supportsSpicy ?? false}
-                supportsGreens={heroProduct?.supportsGreens ?? false}
-                hotIconSrc={assets.productCardHot}
-                greensIconSrc={assets.productCardRibbon}
-              />
+              <div className="absolute left-[11px] top-[8px] flex flex-col gap-[6px]">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ff2b2e]">
+                  <img src={assets.productCardHot} alt="" className="h-[19px] w-[19px] -rotate-[13deg] object-contain" />
+                </div>
+                <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full">
+                  <img src={assets.productCardRibbon} alt="" className="h-8 w-8 scale-110 object-cover" />
+                </div>
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={handleHeroWishlistToggle}
-              className={`absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border shadow-md transition-colors sm:h-10 sm:w-10 ${
-                heroInWishlist
-                  ? 'border-red-600 bg-red-600 text-white hover:bg-red-700'
-                  : 'border-[#dedede]/90 bg-white/95 text-gray-700 hover:bg-white'
-              }`}
-              title={
-                heroInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')
-              }
-              aria-label={
-                heroInWishlist ? t('common.ariaLabels.removeFromWishlist') : t('common.ariaLabels.addToWishlist')
-              }
-            >
-              <WishlistHeartIcon filled={heroInWishlist} size={18} />
-            </button>
             <div className="absolute left-[14px] top-[172px] flex items-center gap-1.5">
               <img src={assets.productCardStar} alt="" className="h-5 w-5 object-contain" />
               <p className="text-base font-medium leading-none text-[rgba(60,47,47,0.62)]">4.7</p>
@@ -367,11 +333,7 @@ export function FigmaHomePage({
       <section className="h-[700px] w-full rounded-t-[40px] bg-[#0c0d12] pb-14 pt-6">
         <div className="w-full px-4 md:px-8 ">
           <div className="flex items-center justify-between">
-            <h2
-              className={`translate-x-[70px] translate-y-[70px] text-4xl font-black text-white md:text-6xl${
-                lang === 'hy' ? ` ${mirageExpandedFont.className}` : ''
-              }`}
-            >
+            <h2 className="translate-x-[70px] translate-y-[70px] text-4xl font-black text-white md:text-6xl">
               <span className="text-[#f66913]">{t('home.figma.desktop.specialOffersTitleAccent')}</span>
               {t('home.figma.desktop.specialOffersTitleMain')}
             </h2>
@@ -388,15 +350,9 @@ export function FigmaHomePage({
       </section>
 
       <div className="bg-black">
-        <section className={`rounded-t-[40px] px-4 pb-20 pt-10 md:px-8 lg:px-12 ${HOME_DESKTOP_CATEGORY_SURFACE_CLASS}`}>
+        <section className="rounded-t-[40px] bg-[#e6e6e8] px-4 pb-20 pt-10 md:px-8 lg:px-12">
           <div className="mx-auto max-w-[1280px]">
-            <h2
-              className={`mb-8 text-5xl font-black text-black md:text-6xl${
-                lang === 'hy' ? ` ${mirageExpandedFont.className}` : ''
-              }`}
-            >
-              {t('home.figma.desktop.categoriesTitle')}
-            </h2>
+            <h2 className="mb-8 text-5xl font-black text-black md:text-6xl">{t('home.figma.desktop.categoriesTitle')}</h2>
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {homeCategories.map((item) => (
                 <CategoryCard key={item.id} item={item} />
@@ -405,7 +361,7 @@ export function FigmaHomePage({
           </div>
         </section>
       </div>
-      <Footer outerBackgroundClassName={HOME_DESKTOP_CATEGORY_SURFACE_CLASS} />
+      <Footer />
       </div>
     </>
   );

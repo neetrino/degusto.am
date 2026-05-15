@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { parseRouteCatchError } from "@/lib/http/api-route-errors";
 import { authenticateToken } from "@/lib/middleware/auth";
 import { cartService } from "@/lib/services/cart.service";
-import { logger } from "@/lib/utils/logger";
 
 export async function PATCH(
   req: NextRequest,
@@ -27,18 +25,17 @@ export async function PATCH(
     const data = await req.json();
     const result = await cartService.updateItem(user.id, id, data.quantity);
     return NextResponse.json(result);
-  } catch (error: unknown) {
-    logger.error("[CART] Error", error);
-    const e = parseRouteCatchError(error);
+  } catch (error: any) {
+    console.error("❌ [CART] Error:", error);
     return NextResponse.json(
       {
-        type: e.type ?? "https://api.shop.am/problems/internal-error",
-        title: e.title ?? "Internal Server Error",
-        status: e.status ?? 500,
-        detail: e.detail ?? e.message ?? "An error occurred",
+        type: error.type || "https://api.shop.am/problems/internal-error",
+        title: error.title || "Internal Server Error",
+        status: error.status || 500,
+        detail: error.detail || error.message || "An error occurred",
         instance: req.url,
       },
-      { status: e.status ?? 500 }
+      { status: error.status || 500 }
     );
   }
 }
@@ -65,18 +62,17 @@ export async function DELETE(
     const { id } = await params;
     await cartService.removeItem(user.id, id);
     return new NextResponse(null, { status: 204 });
-  } catch (error: unknown) {
-    logger.error("[CART] Error", error);
-    const e = parseRouteCatchError(error);
+  } catch (error: any) {
+    console.error("❌ [CART] Error:", error);
     return NextResponse.json(
       {
-        type: e.type ?? "https://api.shop.am/problems/internal-error",
-        title: e.title ?? "Internal Server Error",
-        status: e.status ?? 500,
-        detail: e.detail ?? e.message ?? "An error occurred",
+        type: error.type || "https://api.shop.am/problems/internal-error",
+        title: error.title || "Internal Server Error",
+        status: error.status || 500,
+        detail: error.detail || error.message || "An error occurred",
         instance: req.url,
       },
-      { status: e.status ?? 500 }
+      { status: error.status || 500 }
     );
   }
 }

@@ -31,23 +31,6 @@
     "xl": "XL",
     "xxl": "XXL",
     "xxxl": "XXXL"
-  },
-  "spicy": {
-    "spicy": "Spicy",
-    "not-spicy": "Not spicy"
-  },
-  "greens": {
-    "with-greens": "With greens",
-    "without-greens": "Without greens"
-  },
-  "sauce": {
-    "ketchup": "Ketchup",
-    "mayonnaise": "Mayonnaise",
-    "no-sauce": "No sauce"
-  },
-  "garlic": {
-    "with-garlic": "With garlic",
-    "without-garlic": "Without garlic"
   }
 }
 

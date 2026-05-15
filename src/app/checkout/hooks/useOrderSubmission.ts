@@ -2,7 +2,6 @@ import { useRouter } from 'next/navigation';
 import { apiClient } from '../../../lib/api-client';
 import { useTranslation } from '../../../lib/i18n-client';
 import { clearGuestCart } from '../checkoutUtils';
-import { CHECKOUT_COUPON_CODE_STORAGE_KEY } from '../checkout-coupon-client';
 import type { CheckoutFormData, Cart, CartItem } from '../types';
 
 interface UseOrderSubmissionProps {
@@ -60,13 +59,6 @@ export function useOrderSubmission({
       const cashChangeFromValue = data.cashChangeFrom?.trim()
         ? Number(data.cashChangeFrom.replace(',', '.'))
         : undefined;
-      const couponCode =
-        typeof window !== 'undefined'
-          ? (() => {
-              const raw = localStorage.getItem(CHECKOUT_COUPON_CODE_STORAGE_KEY)?.trim();
-              return raw || undefined;
-            })()
-          : undefined;
 
       const response = await apiClient.post<{
         order: {
@@ -97,15 +89,11 @@ export function useOrderSubmission({
         ...(typeof cashChangeFromValue === 'number' && Number.isFinite(cashChangeFromValue)
           ? { cashChangeFrom: cashChangeFromValue }
           : {}),
-        ...(couponCode ? { couponCode } : {}),
         ...(data.orderNotes?.trim() ? { notes: data.orderNotes.trim() } : {}),
       });
 
       if (!isLoggedIn) {
         clearGuestCart();
-      }
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem(CHECKOUT_COUPON_CODE_STORAGE_KEY);
       }
 
       if (response.payment?.paymentUrl) {

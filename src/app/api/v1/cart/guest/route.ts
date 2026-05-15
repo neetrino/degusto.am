@@ -8,8 +8,6 @@ import {
   normalizeProductCustomizations,
   type ProductCustomizations,
 } from "@/lib/cart/customizations";
-import { sumVerifiedAttributePriceAdjustment } from "@/lib/cart/attribute-price-adjustment";
-import { cartVariantDisplayLinesFromPrismaOptions } from "@/lib/cart/cart-variant-display-lines";
 
 interface GuestCartItemInput {
   lineId?: string;
@@ -32,8 +30,6 @@ interface GuestCartVariant {
   price: number;
   compareAtPrice: number | null;
   stock: number;
-  imageUrl: string | null;
-  displayLines: Array<{ attributeKey: string; valueLabel: string }>;
 }
 
 interface GuestCartProduct {
@@ -92,19 +88,6 @@ function pickFirstImage(media: unknown): string | null {
   return null;
 }
 
-function pickVariantImage(imageUrl: string | null | undefined): string | null {
-  if (!imageUrl || typeof imageUrl !== "string") {
-    return null;
-  }
-
-  const first = imageUrl
-    .split(",")
-    .map((part) => part.trim())
-    .find((part) => part.length > 0);
-
-  return first || null;
-}
-
 function sanitizeItems(items: GuestCartItemInput[] | undefined): GuestCartItemInput[] {
   if (!Array.isArray(items)) {
     return [];
@@ -161,20 +144,6 @@ export async function POST(req: NextRequest) {
             price: true,
             compareAtPrice: true,
             stock: true,
-            imageUrl: true,
-            options: {
-              select: {
-                attributeKey: true,
-                value: true,
-                attributeValue: {
-                  select: {
-                    value: true,
-                    translations: { select: { locale: true, label: true } },
-                    attribute: { select: { key: true } },
-                  },
-                },
-              },
-            },
           },
         },
       },
@@ -184,17 +153,17 @@ export async function POST(req: NextRequest) {
     const normalizedItems: GuestCartItemInput[] = [];
     const cartItems: GuestCartLine[] = [];
 
-    for (const item of items) {
+    items.forEach((item) => {
       const product = productMap.get(item.productId);
       if (!product) {
-        continue;
+        return;
       }
 
       const selectedVariant =
         product.variants.find((variant) => variant.id === item.variantId) ?? product.variants[0];
 
       if (!selectedVariant) {
-        continue;
+        return;
       }
 
       const preferredTranslation =
@@ -205,21 +174,13 @@ export async function POST(req: NextRequest) {
         (item.productSlug && item.productSlug.trim()) ||
         "";
 
-      const adj = await sumVerifiedAttributePriceAdjustment(
-        selectedVariant.id,
-        item.customizations?.selectedAttributeValueIds
-      );
-      const unitPrice = selectedVariant.price + adj;
-      const compareAt =
-        selectedVariant.compareAtPrice != null ? selectedVariant.compareAtPrice + adj : null;
-
       normalizedItems.push({
         lineId: item.lineId || buildCustomizationLineKey(selectedVariant.id, item.customizations),
         productId: item.productId,
         productSlug: productSlug || undefined,
         variantId: selectedVariant.id,
         quantity: item.quantity,
-        price: unitPrice,
+        price: selectedVariant.price,
         customizations: item.customizations,
       });
 
@@ -228,25 +189,23 @@ export async function POST(req: NextRequest) {
         variant: {
           id: selectedVariant.id,
           sku: selectedVariant.sku,
-          price: unitPrice,
-          compareAtPrice: compareAt,
+          price: selectedVariant.price,
+          compareAtPrice: selectedVariant.compareAtPrice,
           stock: selectedVariant.stock,
-          imageUrl: selectedVariant.imageUrl,
-          displayLines: cartVariantDisplayLinesFromPrismaOptions(selectedVariant.options, lang),
           product: {
             id: product.id,
             title: preferredTranslation?.title || "Product",
             slug: productSlug,
-            image: pickVariantImage(selectedVariant.imageUrl) ?? pickFirstImage(product.media),
+            image: pickFirstImage(product.media),
           },
         },
         quantity: item.quantity,
         customizations: item.customizations,
-        price: unitPrice,
-        originalPrice: compareAt,
-        total: unitPrice * item.quantity,
+        price: selectedVariant.price,
+        originalPrice: selectedVariant.compareAtPrice,
+        total: selectedVariant.price * item.quantity,
       });
-    }
+    });
 
     if (cartItems.length === 0) {
       const empty: GuestCartResponse = {

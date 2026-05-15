@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { parseRouteCatchError } from "@/lib/http/api-route-errors";
 import { authenticateToken } from "@/lib/middleware/auth";
 import { ordersService } from "@/lib/services/orders.service";
-import { logger } from "@/lib/utils/logger";
 
 export async function GET(
   req: NextRequest,
@@ -27,23 +25,29 @@ export async function GET(
     const { number } = await params;
     const result = await ordersService.findByNumber(number, user.id);
     return NextResponse.json(result);
-  } catch (error: unknown) {
+  } catch (error: any) {
     const { number } = await params;
-    logger.error("[ORDERS] Get order by number error", {
+    console.error("❌ [ORDERS] Get order by number error:", {
       orderNumber: number,
       userId: user?.id,
-      error,
+      message: error?.message,
+      stack: error?.stack,
+      name: error?.name,
+      type: error?.type,
+      title: error?.title,
+      status: error?.status,
+      detail: error?.detail,
+      fullError: error,
     });
-    const e = parseRouteCatchError(error);
     return NextResponse.json(
       {
-        type: e.type ?? "https://api.shop.am/problems/internal-error",
-        title: e.title ?? "Internal Server Error",
-        status: e.status ?? 500,
-        detail: e.detail ?? e.message ?? "An error occurred",
+        type: error.type || "https://api.shop.am/problems/internal-error",
+        title: error.title || "Internal Server Error",
+        status: error.status || 500,
+        detail: error.detail || error.message || "An error occurred",
         instance: req.url,
       },
-      { status: e.status ?? 500 }
+      { status: error.status || 500 }
     );
   }
 }

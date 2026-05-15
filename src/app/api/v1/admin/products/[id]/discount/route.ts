@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { parseRouteCatchError } from "@/lib/http/api-route-errors";
 import { authenticateToken, requireAdmin } from "@/lib/middleware/auth";
 import { adminService } from "@/lib/services/admin.service";
 import { logger } from "@/lib/utils/logger";
@@ -39,7 +38,7 @@ export async function PATCH(
     });
 
     if (typeof discountPercent !== "number" || discountPercent < 0 || discountPercent > 100) {
-      logger.warn("[ADMIN PRODUCTS] Invalid discountPercent", { discountPercent });
+      console.error("❌ [ADMIN PRODUCTS] Invalid discountPercent:", discountPercent);
       return NextResponse.json(
         {
           type: "https://api.shop.am/problems/validation-error",
@@ -58,18 +57,17 @@ export async function PATCH(
     logger.debug("✅ [ADMIN PRODUCTS] Product discount updated:", { id, result });
 
     return NextResponse.json({ success: true, discountPercent: result.discountPercent });
-  } catch (error: unknown) {
-    logger.error("[ADMIN PRODUCTS] PATCH discount Error", error);
-    const e = parseRouteCatchError(error);
+  } catch (error: any) {
+    console.error("❌ [ADMIN PRODUCTS] PATCH discount Error:", error);
     return NextResponse.json(
       {
-        type: e.type ?? "https://api.shop.am/problems/internal-error",
-        title: e.title ?? "Internal Server Error",
-        status: e.status ?? 500,
-        detail: e.detail ?? e.message ?? "An error occurred",
+        type: error.type || "https://api.shop.am/problems/internal-error",
+        title: error.title || "Internal Server Error",
+        status: error.status || 500,
+        detail: error.detail || error.message || "An error occurred",
         instance: req.url,
       },
-      { status: e.status ?? 500 }
+      { status: error.status || 500 }
     );
   }
 }

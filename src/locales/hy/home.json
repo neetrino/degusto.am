@@ -24,14 +24,14 @@
   },
   "figma": {
     "desktop": {
-      "specialOffersTitleAccent": "Մենք ունենք ",
-      "specialOffersTitleMain": "նորություններ",
+      "specialOffersTitleAccent": "Ակցիաներ և ",
+      "specialOffersTitleMain": "հատուկ առաջարկներ",
       "moreButton": "Ավելին",
       "categoriesTitle": "Կատեգորիաներ",
       "shop": {
         "menuTitle": "Մենյու",
         "menuSubtitle": "Ընտրեք ձեր նախընտրած ուտեստները մեր լայն տեսականուց",
-        "priceLabel": "Գին (AMD)",
+        "priceLabel": "Գին",
         "priceFrom": "Սկսած",
         "priceTo": "Մինչև",
         "foodAttributeSwitcherAria": "Սննդային հատկանիշների փոխարկիչ",

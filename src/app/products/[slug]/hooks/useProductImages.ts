@@ -54,7 +54,7 @@ export function useProductImages(product: Product | null): string[] {
         seenNormalized.add(normalized);
       }
     });
-
+    
     return allImages;
   }, [product]);
 }

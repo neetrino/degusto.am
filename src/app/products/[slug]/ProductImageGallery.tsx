@@ -24,7 +24,7 @@ interface ProductImageGalleryProps {
   mainImagePriority?: boolean;
 }
 
-const THUMBNAILS_PER_VIEW = 5;
+const THUMBNAILS_PER_VIEW = 3;
 
 export function ProductImageGallery({
   images,
@@ -60,176 +60,167 @@ export function ProductImageGallery({
     }
   }, [currentImageIndex, images.length, thumbnailStartIndex, onThumbnailStartIndexChange]);
 
-  /** Visible thumbnail window; arrows scroll when count exceeds `THUMBNAILS_PER_VIEW`. */
+  // Show only 3 thumbnails at a time, scrollable with navigation arrows
   const visibleThumbnails = images.slice(thumbnailStartIndex, thumbnailStartIndex + THUMBNAILS_PER_VIEW);
-
-  const hasMultipleImages = images.length > 1;
 
   return (
     <>
-      <div className="flex w-full flex-col gap-4">
-        <div className="w-full min-w-0">
-          <div
-            data-product-fly-origin
-            className="group/main relative aspect-[6/5] w-full overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-50 shadow-[0_2px_8px_rgba(0,0,0,0.06)]"
-          >
-            {images.length > 0 && !mainImageFailed ? (
-              <Image
-                src={currentSrc}
-                alt={product.title}
-                fill
-                className="object-cover transition-transform duration-500 group-hover/main:scale-105"
-                sizes={PDP_MAIN_IMAGE_SIZES}
-                priority={mainImagePriority}
-                unoptimized
-                onError={() => markFailed(currentImageIndex)}
-              />
-            ) : (
-              <ProductImagePlaceholder
-                className="w-full h-full"
-                aria-label={t(language, "common.messages.noImage")}
-              />
-            )}
-
-            {discountPercent && (
-              <div className="absolute top-4 right-4 w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold z-10 shadow-[0_2px_8px_rgba(37,99,235,0.3)]">
-                -{discountPercent}%
-              </div>
-            )}
-
-            {product.labels && <ProductLabels labels={product.labels} />}
-
-            {hasMultipleImages ? (
-              <>
-                <button
-                  type="button"
-                  className="absolute left-3 top-1/2 z-[11] flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/60 bg-white/90 text-gray-800 opacity-0 transition-opacity duration-200 group-hover/main:opacity-100 focus-visible:opacity-100"
-                  aria-label={t(language, 'common.ariaLabels.previousImage')}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onImageIndexChange((currentImageIndex - 1 + images.length) % images.length);
-                  }}
+      <div className="flex gap-6 items-start">
+        {/* Left Column - Thumbnails (Vertical) - Show 3 at a time, scrollable */}
+        <div className="flex flex-col gap-4 w-28 flex-shrink-0">
+          <div className="flex flex-col gap-4 flex-1 overflow-hidden">
+            {visibleThumbnails.map((image, index) => {
+              const actualIndex = thumbnailStartIndex + index;
+              const isActive = actualIndex === currentImageIndex;
+              return (
+                <button 
+                  key={actualIndex}
+                  onClick={() => onImageIndexChange(actualIndex)}
+                  className={`relative w-full aspect-[3/4] rounded-lg overflow-hidden border bg-white transition-all duration-300 flex-shrink-0 ${
+                    isActive 
+                      ? "border-gray-400 shadow-[0_2px_8px_rgba(0,0,0,0.12)] ring-2 ring-gray-300" 
+                      : "border-gray-200 hover:border-gray-300 hover:shadow-[0_2px_6px_rgba(0,0,0,0.08)]"
+                  }`}
                 >
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M15 19l-7-7 7-7" />
-                  </svg>
+                  {failedIndices.has(actualIndex) ? (
+                    <ProductImagePlaceholder className="w-full h-full" aria-label="" />
+                  ) : (
+                    <img
+                      src={image}
+                      alt=""
+                      className="w-full h-full object-cover transition-transform duration-300"
+                      loading="lazy"
+                      decoding="async"
+                      onError={() => markFailed(actualIndex)}
+                    />
+                  )}
                 </button>
-                <button
-                  type="button"
-                  className="absolute right-3 top-1/2 z-[11] flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/60 bg-white/90 text-gray-800 opacity-0 transition-opacity duration-200 group-hover/main:opacity-100 focus-visible:opacity-100"
-                  aria-label={t(language, 'common.ariaLabels.nextImage')}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onImageIndexChange((currentImageIndex + 1) % images.length);
-                  }}
-                >
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </>
-            ) : null}
-
-            <div className="absolute bottom-4 left-4 flex flex-col gap-3 z-10">
-              <button
-                onClick={() => setShowZoom(true)}
-                className="w-12 h-12 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/50 shadow-[0_2px_8px_rgba(0,0,0,0.15)] hover:bg-white/90 transition-all duration-300 hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)]"
-                aria-label={t(language, 'common.ariaLabels.fullscreenImage')}
-              >
-                <Maximize2 className="w-5 h-5 text-gray-800" />
-              </button>
-            </div>
+              );
+            })}
           </div>
-        </div>
-
-        {hasMultipleImages ? (
-          <div className="group/thumbStrip flex w-full min-w-0 items-center justify-center gap-2">
-            {images.length > THUMBNAILS_PER_VIEW && (
-              <button
+          
+          {/* Navigation Arrows - Scroll thumbnails */}
+          {images.length > THUMBNAILS_PER_VIEW && (
+            <div className="flex flex-row gap-1.5 justify-center">
+              <button 
                 type="button"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
+                  // Scroll thumbnails up
                   const newStart = Math.max(0, thumbnailStartIndex - 1);
                   onThumbnailStartIndexChange(newStart);
-                  if (currentImageIndex < newStart) {
+                  // Also update current image if needed
+                  if (currentImageIndex > newStart + THUMBNAILS_PER_VIEW - 1) {
+                    onImageIndexChange(newStart + THUMBNAILS_PER_VIEW - 1);
+                  } else if (currentImageIndex < newStart) {
                     onImageIndexChange(newStart);
                   }
                 }}
                 disabled={thumbnailStartIndex <= 0}
-                className="h-9 w-9 shrink-0 rounded-lg border border-gray-300 bg-gray-100 text-gray-700 opacity-0 transition-opacity duration-200 group-hover/thumbStrip:opacity-100 focus-visible:opacity-100 hover:border-gray-400 hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-30"
+                className="w-9 h-9 rounded border transition-all duration-200 flex items-center justify-center border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-200 hover:shadow-[0_1px_3px_rgba(0,0,0,0.1)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-gray-100 disabled:hover:border-gray-300 disabled:hover:shadow-none bg-gray-100"
                 aria-label={t(language, 'common.ariaLabels.previousThumbnail')}
               >
-                <svg className="mx-auto h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                <svg 
+                  className="w-4 h-4" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2.5} 
+                    d="M5 15l7-7 7 7" 
+                  />
                 </svg>
               </button>
-            )}
-
-            <div className="min-w-0 flex-1 overflow-hidden">
-              <div className="flex max-w-full flex-nowrap justify-center gap-3 overflow-x-auto pb-0.5">
-                {visibleThumbnails.map((image, index) => {
-                  const actualIndex = thumbnailStartIndex + index;
-                  const isActive = actualIndex === currentImageIndex;
-                  return (
-                    <button
-                      key={actualIndex}
-                      type="button"
-                      onClick={() => onImageIndexChange(actualIndex)}
-                      className={`relative aspect-square w-20 shrink-0 overflow-hidden rounded-xl border-2 bg-white transition-all duration-300 sm:w-24 ${
-                        isActive
-                          ? 'border-orange-500'
-                          : 'border-neutral-200 hover:border-neutral-300'
-                      }`}
-                    >
-                      {failedIndices.has(actualIndex) ? (
-                        <ProductImagePlaceholder className="h-full w-full" aria-label="" />
-                      ) : (
-                        <img
-                          src={image}
-                          alt=""
-                          className="h-full w-full object-cover transition-transform duration-300"
-                          loading="lazy"
-                          decoding="async"
-                          onError={() => markFailed(actualIndex)}
-                        />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {images.length > THUMBNAILS_PER_VIEW && (
-              <button
+              <button 
                 type="button"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  const newStart = Math.min(
-                    images.length - THUMBNAILS_PER_VIEW,
-                    thumbnailStartIndex + 1,
-                  );
+                  // Scroll thumbnails down
+                  const newStart = Math.min(images.length - THUMBNAILS_PER_VIEW, thumbnailStartIndex + 1);
                   onThumbnailStartIndexChange(newStart);
-                  if (currentImageIndex > newStart + THUMBNAILS_PER_VIEW - 1) {
+                  // Also update current image if needed
+                  if (currentImageIndex < newStart) {
+                    onImageIndexChange(newStart);
+                  } else if (currentImageIndex > newStart + THUMBNAILS_PER_VIEW - 1) {
                     onImageIndexChange(newStart + THUMBNAILS_PER_VIEW - 1);
                   }
                 }}
                 disabled={thumbnailStartIndex >= images.length - THUMBNAILS_PER_VIEW}
-                className="h-9 w-9 shrink-0 rounded-lg border border-gray-300 bg-gray-100 text-gray-700 opacity-0 transition-opacity duration-200 group-hover/thumbStrip:opacity-100 focus-visible:opacity-100 hover:border-gray-400 hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-30"
+                className="w-9 h-9 rounded border transition-all duration-200 flex items-center justify-center border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-200 hover:shadow-[0_1px_3px_rgba(0,0,0,0.1)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-gray-100 disabled:hover:border-gray-300 disabled:hover:shadow-none bg-gray-100"
                 aria-label={t(language, 'common.ariaLabels.nextThumbnail')}
               >
-                <svg className="mx-auto h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                <svg 
+                  className="w-4 h-4" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2.5} 
+                    d="M19 9l-7 7-7-7" 
+                  />
                 </svg>
               </button>
-            )}
+            </div>
+          )}
+        </div>
+        
+        {/* Right Column - Main Image */}
+        <div className="flex-1">
+          <div
+            data-product-fly-origin
+            className="relative aspect-square bg-white rounded-lg overflow-hidden group shadow-[0_2px_8px_rgba(0,0,0,0.06)]"
+          >
+          {images.length > 0 && !mainImageFailed ? (
+            <Image
+              src={currentSrc}
+              alt={product.title}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              sizes={PDP_MAIN_IMAGE_SIZES}
+              priority={mainImagePriority}
+              unoptimized
+              onError={() => markFailed(currentImageIndex)}
+            />
+          ) : (
+            <ProductImagePlaceholder
+              className="w-full h-full"
+              aria-label={t(language, "common.messages.noImage")}
+            />
+          )}
+          
+          {/* Discount Badge on Image - Blue circle in top-right */}
+          {discountPercent && (
+            <div className="absolute top-4 right-4 w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold z-10 shadow-[0_2px_8px_rgba(37,99,235,0.3)]">
+              -{discountPercent}%
+            </div>
+          )}
+
+          {product.labels && <ProductLabels labels={product.labels} />}
+          
+          {/* Control Buttons - Bottom left */}
+          <div className="absolute bottom-4 left-4 flex flex-col gap-3 z-10">
+            {/* Fullscreen Button */}
+            <button 
+              onClick={() => setShowZoom(true)} 
+              className="w-12 h-12 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/50 shadow-[0_2px_8px_rgba(0,0,0,0.15)] hover:bg-white/90 transition-all duration-300 hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)]"
+              aria-label={t(language, 'common.ariaLabels.fullscreenImage')}
+            >
+              <Maximize2 className="w-5 h-5 text-gray-800" />
+            </button>
           </div>
-        ) : null}
+          </div>
+        </div>
       </div>
 
+      {/* Zoom Modal */}
       {showZoom && images.length > 0 && !failedIndices.has(currentImageIndex) && (
         <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4" onClick={() => setShowZoom(false)}>
           <img src={currentSrc} alt="" className="max-w-full max-h-full object-contain" />

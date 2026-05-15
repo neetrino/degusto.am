@@ -1,15 +1,6 @@
 import { useState, useRef } from 'react';
-import type {
-  Brand,
-  Category,
-  Attribute,
-  Variant,
-  ProductLabel,
-  GeneratedVariant,
-  PendingVariantHydration,
-} from '../types';
+import type { Brand, Category, Attribute, Variant, ProductLabel, GeneratedVariant } from '../types';
 import type { CurrencyCode } from '@/lib/currency';
-import { getEmptyProductFormData } from '../utils/productFormDataBuilder';
 
 export function useProductFormState() {
   const [loading, setLoading] = useState(false);
@@ -17,7 +8,21 @@ export function useProductFormState() {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [attributes, setAttributes] = useState<Attribute[]>([]);
-  const [formData, setFormData] = useState(() => getEmptyProductFormData());
+  const [formData, setFormData] = useState({
+    title: '',
+    slug: '',
+    descriptionHtml: '',
+    brandIds: [] as string[],
+    primaryCategoryId: '',
+    categoryIds: [] as string[],
+    published: false,
+    featured: false,
+    imageUrls: [] as string[],
+    featuredImageIndex: 0,
+    mainProductImage: '' as string,
+    variants: [] as Variant[],
+    labels: [] as ProductLabel[],
+  });
   const [categoriesExpanded, setCategoriesExpanded] = useState(false);
   const [brandsExpanded, setBrandsExpanded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -50,14 +55,6 @@ export function useProductFormState() {
   const [openValueModal, setOpenValueModal] = useState<{ variantId: string; attributeId: string } | null>(null);
   const [generatedVariants, setGeneratedVariants] = useState<GeneratedVariant[]>([]);
   const [hasVariantsToLoad, setHasVariantsToLoad] = useState(false);
-  /** Bumps to re-fetch the same product from the API (e.g. tab visible again). */
-  const [productFetchNonce, setProductFetchNonce] = useState(0);
-  /** Variants + attribute ids from last GET, consumed by variant-builder conversion. */
-  const [pendingVariantHydration, setPendingVariantHydration] = useState<PendingVariantHydration | null>(
-    null
-  );
-  /** True after brands/categories/attributes reference fetch finishes (success or error). */
-  const [referenceCatalogReady, setReferenceCatalogReady] = useState(false);
 
   return {
     // Loading states
@@ -133,12 +130,6 @@ export function useProductFormState() {
     setGeneratedVariants,
     hasVariantsToLoad,
     setHasVariantsToLoad,
-    productFetchNonce,
-    setProductFetchNonce,
-    pendingVariantHydration,
-    setPendingVariantHydration,
-    referenceCatalogReady,
-    setReferenceCatalogReady,
   };
 }
 

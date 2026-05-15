@@ -51,7 +51,6 @@ class AdminAttributesWriteService {
       label?: string;
       colors?: string[];
       imageUrl?: string | null;
-      priceAdjustment?: number;
       locale?: string;
     }
   ) {

@@ -279,13 +279,9 @@ class AdminProductsCreateService {
               imageUrl: processedVariantImageUrl,
               published: variant.published !== false,
               attributes: attributesJson, // JSONB column
-              ...(options.length > 0
-                ? {
-                    options: {
-                      create: options,
-                    },
-                  }
-                : {}),
+              options: {
+                create: options,
+              },
             };
           })
         );

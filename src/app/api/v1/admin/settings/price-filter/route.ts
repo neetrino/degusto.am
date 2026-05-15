@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { invalidateStorefrontProductFilterCaches } from "@/lib/cache/storefront-cache";
-import { parseRouteCatchError } from "@/lib/http/api-route-errors";
 import { authenticateToken, requireAdmin } from "@/lib/middleware/auth";
 import { adminService } from "@/lib/services/admin.service";
 import { logger } from "@/lib/utils/logger";
@@ -30,18 +29,17 @@ export async function GET(req: NextRequest) {
     const result = await adminService.getPriceFilterSettings();
     logger.debug('✅ [PRICE FILTER API] Settings retrieved:', result);
     return NextResponse.json(result);
-  } catch (error: unknown) {
-    logger.error("[PRICE FILTER API] GET Error", error);
-    const e = parseRouteCatchError(error);
+  } catch (error: any) {
+    console.error("❌ [PRICE FILTER API] GET Error:", error);
     return NextResponse.json(
       {
-        type: e.type ?? "https://api.shop.am/problems/internal-error",
-        title: e.title ?? "Internal Server Error",
-        status: e.status ?? 500,
-        detail: e.detail ?? e.message ?? "An error occurred",
+        type: error.type || "https://api.shop.am/problems/internal-error",
+        title: error.title || "Internal Server Error",
+        status: error.status || 500,
+        detail: error.detail || error.message || "An error occurred",
         instance: req.url,
       },
-      { status: e.status ?? 500 }
+      { status: error.status || 500 }
     );
   }
 }
@@ -176,18 +174,17 @@ export async function PUT(req: NextRequest) {
     logger.debug('✅ [PRICE FILTER API] Settings updated:', result);
     await invalidateStorefrontProductFilterCaches();
     return NextResponse.json(result);
-  } catch (error: unknown) {
-    logger.error("[PRICE FILTER API] PUT Error", error);
-    const e = parseRouteCatchError(error);
+  } catch (error: any) {
+    console.error("❌ [PRICE FILTER API] PUT Error:", error);
     return NextResponse.json(
       {
-        type: e.type ?? "https://api.shop.am/problems/internal-error",
-        title: e.title ?? "Internal Server Error",
-        status: e.status ?? 500,
-        detail: e.detail ?? e.message ?? "An error occurred",
+        type: error.type || "https://api.shop.am/problems/internal-error",
+        title: error.title || "Internal Server Error",
+        status: error.status || 500,
+        detail: error.detail || error.message || "An error occurred",
         instance: req.url,
       },
-      { status: e.status ?? 500 }
+      { status: error.status || 500 }
     );
   }
 }

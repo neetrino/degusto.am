@@ -2,7 +2,6 @@
 
 import { Card, Button, Input } from '@shop/ui';
 import { useTranslation } from '../../../../lib/i18n-client';
-import { QUICK_SETTINGS_LIST_SCROLL, QUICK_SETTINGS_SECTION_CARD } from '../quick-settings-ui-classes';
 
 interface AdminCategory {
   id: string;
@@ -32,9 +31,9 @@ export function CategoryDiscountsCard({
   const { t } = useTranslation();
 
   return (
-    <Card className={QUICK_SETTINGS_SECTION_CARD}>
-      <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
+    <Card className="p-6 mb-8 bg-white border-gray-200">
+      <div className="flex items-center justify-between mb-4">
+        <div>
           <h2 className="text-xl font-semibold text-gray-900">{t('admin.quickSettings.categoryDiscounts')}</h2>
           <p className="text-sm text-gray-600">{t('admin.quickSettings.categoryDiscountsSubtitle')}</p>
         </div>
@@ -42,7 +41,6 @@ export function CategoryDiscountsCard({
           variant="primary"
           onClick={handleCategoryDiscountSave}
           disabled={categorySaving || categories.length === 0}
-          className="shrink-0 bg-gradient-to-r from-[#f66812] to-[#2f7d4a] hover:from-[#e85d0b] hover:to-[#25653c]"
         >
           {categorySaving ? (
             <div className="flex items-center gap-2">
@@ -61,17 +59,17 @@ export function CategoryDiscountsCard({
           <p className="text-gray-600">{t('admin.quickSettings.loadingCategories')}</p>
         </div>
       ) : categories.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-[#e8d5c8] py-6 text-center text-gray-600">
+        <div className="text-center py-6 text-gray-600 border border-dashed border-gray-200 rounded">
           {t('admin.quickSettings.noCategories')}
         </div>
       ) : (
-        <div className={QUICK_SETTINGS_LIST_SCROLL}>
+        <div className="max-h-[420px] overflow-y-auto divide-y divide-gray-100 border border-gray-100 rounded-lg">
           {categories.map((category) => {
             const currentValue = categoryDiscounts[category.id];
             return (
               <div
                 key={category.id}
-                className="flex items-center gap-4 px-4 py-3 transition-colors hover:bg-[#fffaf6]"
+                className="flex items-center gap-4 px-4 py-3 bg-white hover:bg-gray-50 transition-colors"
               >
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">

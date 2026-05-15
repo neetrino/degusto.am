@@ -176,8 +176,6 @@ model AttributeValue {
   attributeId    String
   value          String
   position       Int                         @default(0)
-  /// Added to variant unit price when this value is selected (store currency, e.g. AMD).
-  priceAdjustment Float                      @default(0)
   colors         Json?                       @default("[]")
   imageUrl       String?
   translations   AttributeValueTranslation[]

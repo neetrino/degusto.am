@@ -14,11 +14,11 @@ class AdminProductsUpdateService {
     data: UpdateProductData
   ) {
     const result = await updateProduct(productId, data);
-
+    
     // Revalidate cache for this product and related pages
     const productSlug = result.translations[0]?.slug;
-    await revalidateProductCache(productId, productSlug);
-
+    revalidateProductCache(productId, productSlug);
+    
     return result;
   }
 }

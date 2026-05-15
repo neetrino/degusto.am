@@ -4,35 +4,6 @@ import { logger } from "@/lib/utils/logger";
 const SERVICE_UNAVAILABLE = "https://api.shop.am/problems/service-unavailable";
 const INTERNAL = "https://api.shop.am/problems/internal-error";
 
-/** Fields sometimes attached to thrown errors for Problem Details responses */
-export type RouteCatchFields = {
-  type?: string;
-  title?: string;
-  status?: number;
-  detail?: string;
-  message?: string;
-};
-
-/**
- * Narrow `unknown` from route catch blocks for JSON error bodies (strict TS, no `catch (e: any)`).
- */
-export function parseRouteCatchError(error: unknown): RouteCatchFields {
-  if (error instanceof Error) {
-    return { message: error.message };
-  }
-  if (typeof error === "object" && error !== null) {
-    const r = error as Record<string, unknown>;
-    return {
-      type: typeof r.type === "string" ? r.type : undefined,
-      title: typeof r.title === "string" ? r.title : undefined,
-      status: typeof r.status === "number" ? r.status : undefined,
-      detail: typeof r.detail === "string" ? r.detail : undefined,
-      message: typeof r.message === "string" ? r.message : undefined,
-    };
-  }
-  return {};
-}
-
 const PRISMA_CONNECTION_CODES = new Set(["P1001", "P1002", "P1017"]);
 
 /** Avoid importing `@prisma/client` here — it pulls the query engine into Turbopack NFT tracing. */

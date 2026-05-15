@@ -10,8 +10,6 @@ import {
 import { toApiError } from "@/lib/types/errors";
 import { logger } from "@/lib/utils/logger";
 
-export const dynamic = "force-dynamic";
-
 /**
  * GET /api/v1/admin/products/[id]
  * Get a single product by ID
@@ -38,12 +36,7 @@ export async function GET(
     const { id } = await params;
     const product = await adminService.getProductById(id);
 
-    return NextResponse.json(product, {
-      headers: {
-        "Cache-Control": "private, no-store, must-revalidate",
-        Pragma: "no-cache",
-      },
-    });
+    return NextResponse.json(product);
   } catch (error: unknown) {
     logger.error("Admin product fetch failed", { error });
     const apiError = toApiError(error, req.url);

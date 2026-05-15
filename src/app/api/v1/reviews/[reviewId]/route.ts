@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { parseRouteCatchError } from "@/lib/http/api-route-errors";
 import { reviewsService } from "@/lib/services/reviews.service";
 import { authenticateToken } from "@/lib/middleware/auth";
 import { logger } from "@/lib/utils/logger";
@@ -58,18 +57,17 @@ export async function PUT(
     logger.debug('✅ [REVIEWS API] Review updated:', review.id);
 
     return NextResponse.json(review);
-  } catch (error: unknown) {
-    logger.error("[REVIEWS API] PUT Error", error);
-    const e = parseRouteCatchError(error);
+  } catch (error: any) {
+    console.error("❌ [REVIEWS API] PUT Error:", error);
     return NextResponse.json(
       {
-        type: e.type ?? "https://api.shop.am/problems/internal-error",
-        title: e.title ?? "Internal Server Error",
-        status: e.status ?? 500,
-        detail: e.detail ?? e.message ?? "An error occurred",
+        type: error.type || "https://api.shop.am/problems/internal-error",
+        title: error.title || "Internal Server Error",
+        status: error.status || 500,
+        detail: error.detail || error.message || "An error occurred",
         instance: req.url,
       },
-      { status: e.status ?? 500 }
+      { status: error.status || 500 }
     );
   }
 }
@@ -107,18 +105,17 @@ export async function DELETE(
     logger.debug('✅ [REVIEWS API] Review deleted:', reviewId);
 
     return NextResponse.json({ success: true });
-  } catch (error: unknown) {
-    logger.error("[REVIEWS API] DELETE Error", error);
-    const e = parseRouteCatchError(error);
+  } catch (error: any) {
+    console.error("❌ [REVIEWS API] DELETE Error:", error);
     return NextResponse.json(
       {
-        type: e.type ?? "https://api.shop.am/problems/internal-error",
-        title: e.title ?? "Internal Server Error",
-        status: e.status ?? 500,
-        detail: e.detail ?? e.message ?? "An error occurred",
+        type: error.type || "https://api.shop.am/problems/internal-error",
+        title: error.title || "Internal Server Error",
+        status: error.status || 500,
+        detail: error.detail || error.message || "An error occurred",
         instance: req.url,
       },
-      { status: e.status ?? 500 }
+      { status: error.status || 500 }
     );
   }
 }

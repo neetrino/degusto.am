@@ -27,14 +27,7 @@
   "additionsLabel": "Հավելումներ",
   "additionsPlaceholder": "Լրացուցիչ բաղադրիչներ կամ նշումներ",
   "exclusionsLabel": "Բացառություններ",
-  "exclusionsPlaceholder": "Ինչ բաղադրիչներ հանել",
-  "preferencePlaceholder": "Ընտրեք նախընտրությունը",
-  "preferenceAria": {
-    "spicy": "Կծուություն",
-    "greens": "Կանաչի",
-    "sauce": "Սոուս",
-    "garlic": "Սխտոր"
-  }
+  "exclusionsPlaceholder": "Ինչ բաղադրիչներ հանել"
 }
 
 

@@ -54,15 +54,7 @@
     "orderSummary": "Order Summary",
     "subtotal": "Subtotal",
     "shipping": "Shipping",
-    "calculated": "Calculated",
     "tax": "Tax",
-    "promocode": "Promocode",
-    "promocodePlaceholder": "Enter promocode",
-    "applyPromo": "Apply",
-    "applyingPromo": "Applying...",
-    "promoApplied": "Promocode applied: {code}",
-    "promoInvalid": "Promocode format is invalid",
-    "discount": "Discount",
     "total": "Total",
     "free": "Free",
     "items": "items",
@@ -185,8 +177,7 @@
     "previousThumbnail": "Previous thumbnail",
     "nextThumbnail": "Next thumbnail",
     "fullscreenImage": "Fullscreen image",
-    "shoppingCart": "Shopping cart",
-    "paginationNav": "Pagination"
+    "shoppingCart": "Shopping cart"
   },
   "placeholders": {
     "search": "Search"
@@ -206,7 +197,7 @@
     "description": "Professional e-commerce platform for modern shopping experience.",
     "quickLinks": "Quick Links",
     "legal": "Legal",
-    "contactInfo": "Contacts",
+    "contactInfo": "Contact Information",
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
     "refundPolicy": "Refund Policy",

@@ -9,15 +9,22 @@ import { adminOrdersService } from "./admin/admin-orders.service";
 import { adminSettingsService } from "./admin/admin-settings.service";
 import { adminDeliveryService } from "./admin/admin-delivery.service";
 import { adminBrandsService } from "./admin/admin-brands.service";
-import { adminCategoriesService } from "./admin/admin-categories.service";
-import { adminProductsService } from "./admin/admin-products.service";
-import { adminAttributesService } from "./admin/admin-attributes.service";
-import { adminCouponsService } from "./admin/admin-coupons.service";
+
+// Import remaining methods from original file (temporary - will be moved to separate services)
+// These will be moved to admin-products.service.ts, admin-categories.service.ts, and admin-attributes.service.ts
+import { db } from "@white-shop/db";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { findOrCreateAttributeValue } from "../utils/variant-generator";
+import { ensureProductAttributesTable, ensureProductVariantAttributesColumn } from "../utils/db-ensure";
+import {
+  processImageUrl,
+  smartSplitUrls,
+  cleanImageUrls,
+  separateMainAndVariantImages,
+} from "../utils/image-utils";
 
 class AdminService {
   // Delegate to specialized services
-  
-  // Stats methods
   getStats = adminStatsService.getStats.bind(adminStatsService);
   getUserActivity = adminStatsService.getUserActivity.bind(adminStatsService);
   getRecentOrders = adminStatsService.getRecentOrders.bind(adminStatsService);
@@ -25,64 +32,39 @@ class AdminService {
   getActivity = adminStatsService.getActivity.bind(adminStatsService);
   getAnalytics = adminStatsService.getAnalytics.bind(adminStatsService);
 
-  // Users methods
   getUsers = adminUsersService.getUsers.bind(adminUsersService);
   updateUser = adminUsersService.updateUser.bind(adminUsersService);
   deleteUser = adminUsersService.deleteUser.bind(adminUsersService);
 
-  // Orders methods
   getOrders = adminOrdersService.getOrders.bind(adminOrdersService);
   getOrderById = adminOrdersService.getOrderById.bind(adminOrdersService);
   deleteOrder = adminOrdersService.deleteOrder.bind(adminOrdersService);
   updateOrder = adminOrdersService.updateOrder.bind(adminOrdersService);
 
-  // Settings methods
   getSettings = adminSettingsService.getSettings.bind(adminSettingsService);
   updateSettings = adminSettingsService.updateSettings.bind(adminSettingsService);
   getPriceFilterSettings = adminSettingsService.getPriceFilterSettings.bind(adminSettingsService);
   updatePriceFilterSettings = adminSettingsService.updatePriceFilterSettings.bind(adminSettingsService);
 
-  // Delivery methods
   getDeliverySettings = adminDeliveryService.getDeliverySettings.bind(adminDeliveryService);
   getDeliveryPrice = adminDeliveryService.getDeliveryPrice.bind(adminDeliveryService);
   updateDeliverySettings = adminDeliveryService.updateDeliverySettings.bind(adminDeliveryService);
 
-  // Brands methods
   getBrands = adminBrandsService.getBrands.bind(adminBrandsService);
   createBrand = adminBrandsService.createBrand.bind(adminBrandsService);
   updateBrand = adminBrandsService.updateBrand.bind(adminBrandsService);
   deleteBrand = adminBrandsService.deleteBrand.bind(adminBrandsService);
 
-  // Categories methods
-  getCategories = adminCategoriesService.getCategories.bind(adminCategoriesService);
-  createCategory = adminCategoriesService.createCategory.bind(adminCategoriesService);
-  getCategoryById = adminCategoriesService.getCategoryById.bind(adminCategoriesService);
-  updateCategory = adminCategoriesService.updateCategory.bind(adminCategoriesService);
-  deleteCategory = adminCategoriesService.deleteCategory.bind(adminCategoriesService);
-
-  // Products methods
-  getProducts = adminProductsService.getProducts.bind(adminProductsService);
-  getProductById = adminProductsService.getProductById.bind(adminProductsService);
-  createProduct = adminProductsService.createProduct.bind(adminProductsService);
-  duplicateProductAsDraft = adminProductsService.duplicateProductAsDraft.bind(adminProductsService);
-  updateProduct = adminProductsService.updateProduct.bind(adminProductsService);
-  deleteProduct = adminProductsService.deleteProduct.bind(adminProductsService);
-  updateProductDiscount = adminProductsService.updateProductDiscount.bind(adminProductsService);
-
-  // Attributes methods
-  getAttributes = adminAttributesService.getAttributes.bind(adminAttributesService);
-  createAttribute = adminAttributesService.createAttribute.bind(adminAttributesService);
-  updateAttributeTranslation = adminAttributesService.updateAttributeTranslation.bind(adminAttributesService);
-  addAttributeValue = adminAttributesService.addAttributeValue.bind(adminAttributesService);
-  updateAttributeValue = adminAttributesService.updateAttributeValue.bind(adminAttributesService);
-  deleteAttribute = adminAttributesService.deleteAttribute.bind(adminAttributesService);
-  deleteAttributeValue = adminAttributesService.deleteAttributeValue.bind(adminAttributesService);
-
-  // Coupons methods
-  listCoupons = adminCouponsService.listCoupons.bind(adminCouponsService);
-  createCoupon = adminCouponsService.createCoupon.bind(adminCouponsService);
-  updateCoupon = adminCouponsService.updateCoupon.bind(adminCouponsService);
-  deleteCoupon = adminCouponsService.deleteCoupon.bind(adminCouponsService);
+  // TODO: Move these to separate services:
+  // - Products methods (getProducts, getProductById, createProduct, updateProduct, deleteProduct, updateProductDiscount, generateUniqueSku)
+  // - Categories methods (getCategories, createCategory, getCategoryById, updateCategory, deleteCategory, isCategoryDescendant)
+  // - Attributes methods (getAttributes, createAttribute, updateAttributeTranslation, addAttributeValue, updateAttributeValue, deleteAttribute, deleteAttributeValue, ensureColorsColumnsExist)
+  
+  // For now, these methods will remain in the original admin.service.ts file
+  // They will be moved to admin-products.service.ts, admin-categories.service.ts, and admin-attributes.service.ts
 }
 
 export const adminService = new AdminService();
+
+
+

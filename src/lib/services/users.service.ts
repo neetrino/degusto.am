@@ -1,4 +1,5 @@
 import { db } from "@white-shop/db";
+import { Prisma } from "@prisma/client";
 import * as bcrypt from "bcryptjs";
 
 interface AddressMutationInput {
@@ -52,6 +53,11 @@ interface UserCouponHistoryItem {
 }
 
 const MAX_WISHLIST_ITEMS = 200;
+
+function generateWishlistItemId(): string {
+  const randomPart = Math.random().toString(36).slice(2, 12);
+  return `wish_${Date.now().toString(36)}_${randomPart}`;
+}
 
 function normalizeOptionalString(value: unknown): string | null | undefined {
   if (value === undefined) {
@@ -253,35 +259,34 @@ function normalizeWishlistIds(input: unknown): string[] {
 
 class UsersService {
   async getWishlistIds(userId: string): Promise<{ ids: string[] }> {
-    const items = await db.wishlistItem.findMany({
-      where: { userId },
-      orderBy: { createdAt: "desc" },
-      select: {
-        productId: true,
-        product: {
-          select: {
-            published: true,
-            deletedAt: true,
-          },
-        },
-      },
-    });
+    const items = await db.$queryRaw<
+      Array<{ productId: string; published: boolean; deletedAt: Date | null }>
+    >(
+      Prisma.sql`
+        SELECT wi."productId", p."published", p."deletedAt"
+        FROM "wishlist_items" wi
+        INNER JOIN "products" p ON p."id" = wi."productId"
+        WHERE wi."userId" = ${userId}
+        ORDER BY wi."createdAt" DESC
+      `
+    );
 
     const staleProductIds = items
-      .filter((item) => !item.product.published || item.product.deletedAt)
+      .filter((item) => !item.published || item.deletedAt)
       .map((item) => item.productId);
 
     if (staleProductIds.length > 0) {
-      await db.wishlistItem.deleteMany({
-        where: {
-          userId,
-          productId: { in: staleProductIds },
-        },
-      });
+      await db.$executeRaw(
+        Prisma.sql`
+          DELETE FROM "wishlist_items"
+          WHERE "userId" = ${userId}
+            AND "productId" IN (${Prisma.join(staleProductIds)})
+        `
+      );
     }
 
     const ids = items
-      .filter((item) => item.product.published && !item.product.deletedAt)
+      .filter((item) => item.published && !item.deletedAt)
       .map((item) => item.productId);
 
     return { ids };
@@ -290,7 +295,9 @@ class UsersService {
   async replaceWishlistIds(userId: string, input: unknown): Promise<{ ids: string[] }> {
     const ids = normalizeWishlistIds(input);
     if (ids.length === 0) {
-      await db.wishlistItem.deleteMany({ where: { userId } });
+      await db.$executeRaw(
+        Prisma.sql`DELETE FROM "wishlist_items" WHERE "userId" = ${userId}`
+      );
       return { ids: [] };
     }
 
@@ -306,13 +313,20 @@ class UsersService {
     const sanitizedIds = ids.filter((id) => allowedIdSet.has(id));
 
     await db.$transaction(async (tx) => {
-      await tx.wishlistItem.deleteMany({ where: { userId } });
+      await tx.$executeRaw(
+        Prisma.sql`DELETE FROM "wishlist_items" WHERE "userId" = ${userId}`
+      );
 
       if (sanitizedIds.length > 0) {
-        await tx.wishlistItem.createMany({
-          data: sanitizedIds.map((productId) => ({ userId, productId })),
-          skipDuplicates: true,
-        });
+        for (const productId of sanitizedIds) {
+          await tx.$executeRaw(
+            Prisma.sql`
+              INSERT INTO "wishlist_items" ("id", "userId", "productId", "createdAt")
+              VALUES (${generateWishlistItemId()}, ${userId}, ${productId}, NOW())
+              ON CONFLICT ("userId", "productId") DO NOTHING
+            `
+          );
+        }
       }
     });
 
@@ -353,10 +367,13 @@ class UsersService {
       };
     }
 
-    await db.wishlistItem.createMany({
-      data: [{ userId, productId: normalizedProductId }],
-      skipDuplicates: true,
-    });
+    await db.$executeRaw(
+      Prisma.sql`
+        INSERT INTO "wishlist_items" ("id", "userId", "productId", "createdAt")
+        VALUES (${generateWishlistItemId()}, ${userId}, ${normalizedProductId}, NOW())
+        ON CONFLICT ("userId", "productId") DO NOTHING
+      `
+    );
 
     return this.getWishlistIds(userId);
   }
@@ -372,9 +389,13 @@ class UsersService {
       };
     }
 
-    await db.wishlistItem.deleteMany({
-      where: { userId, productId: normalizedProductId },
-    });
+    await db.$executeRaw(
+      Prisma.sql`
+        DELETE FROM "wishlist_items"
+        WHERE "userId" = ${userId}
+          AND "productId" = ${normalizedProductId}
+      `
+    );
 
     return this.getWishlistIds(userId);
   }

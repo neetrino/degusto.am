@@ -60,27 +60,10 @@ export async function PATCH(
       );
     }
 
-    if (
-      body.priceAdjustment !== undefined &&
-      (typeof body.priceAdjustment !== "number" || !Number.isFinite(body.priceAdjustment))
-    ) {
-      return NextResponse.json(
-        {
-          type: "https://api.shop.am/problems/validation-error",
-          title: "Validation Error",
-          status: 400,
-          detail: "Field 'priceAdjustment' must be a finite number when provided",
-          instance: req.url,
-        },
-        { status: 400 }
-      );
-    }
-
     const result = await adminService.updateAttributeValue(attributeId, valueId, {
       label: body.label,
       colors: body.colors,
       imageUrl: body.imageUrl,
-      priceAdjustment: body.priceAdjustment,
       locale: body.locale || "en",
     });
 

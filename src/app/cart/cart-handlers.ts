@@ -2,7 +2,6 @@ import { apiClient } from '../../lib/api-client';
 import { logger } from '../../lib/utils/logger';
 import type { Cart, CartItem } from './types';
 import { CART_KEY } from './constants';
-import { writeCartSummaryCache } from '../../lib/cartSummaryCache';
 import {
   buildCustomizationLineKey,
   normalizeProductCustomizations,
@@ -17,18 +16,10 @@ interface GuestCartItem {
   productSlug?: string;
   variantId: string;
   quantity: number;
-  price?: number;
   customizations?: {
     additions?: string;
     exclusions?: string;
   };
-}
-
-function publishCartSummary(itemsCount: number, total: number): void {
-  writeCartSummaryCache(itemsCount, total);
-  window.dispatchEvent(new CustomEvent('cart-updated', {
-    detail: { itemsCount, total },
-  }));
 }
 
 /**
@@ -78,11 +69,9 @@ function removeFromGuestCart(itemId: string): void {
       return !(item.productId === parsed.productId && lineId === parsed.lineId);
     }
   );
-
-  const itemsCount = updatedCart.reduce((sum, item) => sum + item.quantity, 0);
-  const total = updatedCart.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
+  
   localStorage.setItem(CART_KEY, JSON.stringify(updatedCart));
-  publishCartSummary(itemsCount, total);
+  window.dispatchEvent(new Event('cart-updated'));
 }
 
 /**
@@ -109,10 +98,8 @@ function updateGuestCartQuantity(itemId: string, quantity: number): void {
   
   if (item) {
     item.quantity = quantity;
-    const itemsCount = guestCart.reduce((sum, cartItem) => sum + cartItem.quantity, 0);
-    const total = guestCart.reduce((sum, cartItem) => sum + (cartItem.price || 0) * cartItem.quantity, 0);
     localStorage.setItem(CART_KEY, JSON.stringify(guestCart));
-    publishCartSummary(itemsCount, total);
+    window.dispatchEvent(new Event('cart-updated'));
   }
 }
 
@@ -132,16 +119,14 @@ export async function handleRemoveItem(
   // Calculate new totals
   const updatedItems = cart.items.filter(item => item.id !== itemId);
   const newItemsCount = updatedItems.reduce((sum, item) => sum + item.quantity, 0);
-  const updatedTotals = calculateCartTotals(updatedItems, cart.totals);
 
   // Update UI immediately (optimistic update)
   setCart({
     ...cart,
     items: updatedItems,
-    totals: updatedTotals,
+    totals: calculateCartTotals(updatedItems, cart.totals),
     itemsCount: newItemsCount,
   });
-  publishCartSummary(newItemsCount, updatedTotals.total);
 
   try {
     if (!isLoggedIn) {
@@ -151,11 +136,11 @@ export async function handleRemoveItem(
 
     // For logged-in users, delete from API
     await apiClient.delete(`/api/v1/cart/items/${itemId}`);
+    window.dispatchEvent(new Event('cart-updated'));
   } catch (error: unknown) {
     logger.error('Error removing item', { error, itemId });
     // Revert optimistic update on error
     await fetchCart();
-    window.dispatchEvent(new Event('cart-updated'));
   }
 }
 
@@ -198,15 +183,13 @@ export async function handleUpdateQuantity(
         : item
     );
     const newItemsCount = updatedItems.reduce((sum, item) => sum + item.quantity, 0);
-    const updatedTotals = calculateCartTotals(updatedItems, cart.totals);
 
     setCart({
       ...cart,
       items: updatedItems,
-      totals: updatedTotals,
+      totals: calculateCartTotals(updatedItems, cart.totals),
       itemsCount: newItemsCount,
     });
-    publishCartSummary(newItemsCount, updatedTotals.total);
   }
 
   setUpdatingItems(prev => new Set(prev).add(itemId));
@@ -242,12 +225,13 @@ export async function handleUpdateQuantity(
       `/api/v1/cart/items/${itemId}`,
       { quantity }
     );
+
+    window.dispatchEvent(new Event('cart-updated'));
   } catch (error: unknown) {
     const errorObj = error as { detail?: string; message?: string };
     logger.error('Error updating quantity', { error, itemId });
     // Revert optimistic update on error
     await fetchCart();
-    window.dispatchEvent(new Event('cart-updated'));
     
     // Show user-friendly error message
     const errorMessage = errorObj?.detail || errorObj?.message || t('common.messages.failedToUpdateQuantity');

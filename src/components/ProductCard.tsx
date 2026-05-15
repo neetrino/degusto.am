@@ -50,7 +50,7 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
   const currency = useCurrency();
   const { isInWishlist, toggleWishlist } = useWishlist(product.id);
   const { isInCompare, toggleCompare } = useCompare(product.id);
-  const { isAddingToCart, isUpdatingQuantity, quantity, addToCart, removeFromCart } = useAddToCart({
+  const { isAddingToCart, addToCart } = useAddToCart({
     productId: product.id,
     productSlug: product.slug,
     inStock: product.inStock,
@@ -90,12 +90,6 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
     addToCart({ origin, imageUrl: product.image });
   };
 
-  const handleDecreaseCart = (e: MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    void removeFromCart();
-  };
-
   const handleProductClick = () => {
     router.push(`/products/${product.slug}`);
   };
@@ -109,14 +103,11 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
         isInWishlist={isInWishlist}
         isInCompare={isInCompare}
         isAddingToCart={isAddingToCart}
-        isUpdatingQuantity={isUpdatingQuantity}
-        cartQuantity={quantity}
         imageError={imageError}
         onImageError={() => setImageError(true)}
         onWishlistToggle={handleWishlistToggle}
         onCompareToggle={handleCompareToggle}
         onAddToCart={handleAddToCart}
-        onDecreaseCart={handleDecreaseCart}
         onProductClick={handleProductClick}
       />
     );
@@ -130,15 +121,12 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
       isInWishlist={isInWishlist}
       isInCompare={isInCompare}
       isAddingToCart={isAddingToCart}
-      isUpdatingQuantity={isUpdatingQuantity}
-      cartQuantity={quantity}
       imageError={imageError}
       isCompact={isCompact}
       onImageError={() => setImageError(true)}
       onWishlistToggle={handleWishlistToggle}
       onCompareToggle={handleCompareToggle}
       onAddToCart={handleAddToCart}
-      onDecreaseCart={handleDecreaseCart}
       onProductClick={handleProductClick}
     />
   );

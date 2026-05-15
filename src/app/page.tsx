@@ -3,10 +3,8 @@ import { FigmaHomePage, type HomeCategoryItem, type HomeFeaturedProduct } from '
 import { db } from '@white-shop/db';
 import { Prisma } from '@prisma/client';
 import { cookies } from 'next/headers';
-import { isPrismaConnectionError } from '@/lib/http/api-route-errors';
 import { resolveStorefrontLocaleFromCookie, type StorefrontLocale } from '@/lib/i18n/locale';
 import { logger } from '@/lib/utils/logger';
-import { resolveFoodAttributeFlagsFromVariants } from '@/lib/product-food-attributes';
 
 type CategoryTreeItem = {
   id: string;
@@ -19,30 +17,17 @@ const HOME_FEATURED_PRODUCTS_LIMIT = 5;
 const HOME_CATEGORIES_LIMIT = 8;
 const HOME_DB_RETRY_ATTEMPTS = 2;
 const HOME_DB_RETRY_DELAY_MS = 150;
-
-/** Always read fresh data from DB on each request (no static/ISR cache for this route). */
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = 1800;
 
 function isPrismaPoolTimeout(error: unknown): boolean {
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2024';
 }
 
-/**
- * Retries pool timeouts; in development, returns fallback when PostgreSQL is unreachable
- * so the home layout still renders (FigmaHomePage uses built-in demo data when arrays are empty).
- */
 async function withPrismaPoolRetry<T>(operation: () => Promise<T>, fallback: T, operationName: string): Promise<T> {
   for (let attempt = 0; attempt <= HOME_DB_RETRY_ATTEMPTS; attempt += 1) {
     try {
       return await operation();
     } catch (error: unknown) {
-      if (process.env.NODE_ENV === 'development' && isPrismaConnectionError(error)) {
-        const code =
-          error instanceof Prisma.PrismaClientKnownRequestError ? error.code : 'initialization';
-        logger.warn(`[HOME] Database unreachable in development; empty ${operationName}`, { code });
-        return fallback;
-      }
       if (!isPrismaPoolTimeout(error)) {
         throw error;
       }
@@ -102,28 +87,10 @@ function getHomeProductSelect(homeLang: StorefrontLocale) {
       orderBy: {
         price: 'asc' as const,
       },
+      take: 1,
       select: {
-        published: true,
         price: true,
         compareAtPrice: true,
-        attributes: true,
-        options: {
-          select: {
-            attributeKey: true,
-            value: true,
-            valueId: true,
-            attributeValue: {
-              select: {
-                value: true,
-                attribute: {
-                  select: {
-                    key: true,
-                  },
-                },
-              },
-            },
-          },
-        },
       },
     },
   };
@@ -222,7 +189,6 @@ export default async function HomePage() {
       firstCategory?.translations.find((translation) => translation.locale === homeLang) ??
       firstCategory?.translations[0];
     const mainVariant = product.variants[0];
-    const foodAttrs = resolveFoodAttributeFlagsFromVariants(product.variants);
     const imageUrlRaw = Array.isArray(product.media) && product.media.length > 0 ? product.media[0] : null;
     const image =
       imageUrlRaw && typeof imageUrlRaw === 'object' && 'url' in imageUrlRaw
@@ -240,8 +206,6 @@ export default async function HomePage() {
       oldPrice: toPositiveNumber(mainVariant?.compareAtPrice),
       image,
       discountPercent: toPositiveNumber(product.discountPercent),
-      supportsSpicy: foodAttrs.supportsSpicy,
-      supportsGreens: foodAttrs.supportsGreens,
     };
   });
 
@@ -271,7 +235,6 @@ export default async function HomePage() {
   const categoryTotalMap = new Map(categoryTotals.map((item) => [item.primaryCategoryId, toCountNumber(item.total)]));
   const homeCategories: HomeCategoryItem[] = selectedCategories.map((category, index) => ({
     id: category.id,
-    slug: category.slug,
     title: category.title,
     count: categoryTotalMap.get(category.id) ?? 0,
     image:

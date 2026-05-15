@@ -2,15 +2,13 @@
 
 import { useEffect } from 'react';
 import { convertPrice, type CurrencyCode } from '@/lib/currency';
-import type { Attribute, GeneratedVariant, PendingVariantHydration } from '../types';
+import type { GeneratedVariant } from '../types';
 import { logger } from "@/lib/utils/logger";
 
 interface UseProductVariantConversionProps {
   productId: string | null;
-  attributes: Attribute[];
+  attributes: any[];
   defaultCurrency: CurrencyCode;
-  pendingVariantHydration: PendingVariantHydration | null;
-  setPendingVariantHydration: (payload: PendingVariantHydration | null) => void;
   setSelectedAttributesForVariants: (attrs: Set<string>) => void;
   setSelectedAttributeValueIds: (ids: Record<string, string[]>) => void;
   setGeneratedVariants: (variants: GeneratedVariant[]) => void;
@@ -21,24 +19,14 @@ export function useProductVariantConversion({
   productId,
   attributes,
   defaultCurrency,
-  pendingVariantHydration,
-  setPendingVariantHydration,
   setSelectedAttributesForVariants,
   setSelectedAttributeValueIds,
   setGeneratedVariants,
   setHasVariantsToLoad,
 }: UseProductVariantConversionProps) {
   useEffect(() => {
-    const pending = pendingVariantHydration;
-
-    if (
-      productId &&
-      attributes.length > 0 &&
-      pending &&
-      pending.productId === productId &&
-      Array.isArray(pending.variants)
-    ) {
-      const productVariants = pending.variants as unknown[];
+    if (productId && attributes.length > 0 && (window as any).__productVariantsToConvert) {
+      const productVariants = (window as any).__productVariantsToConvert;
       logger.debug('🔄 [ADMIN] Converting product variants to generatedVariants format:', {
         variantsCount: productVariants.length,
         attributesCount: attributes.length,
@@ -60,15 +48,6 @@ export function useProductVariantConversion({
             if (!valueId && opt.attributeValue) {
               valueId = opt.attributeValue.id;
             }
-
-            if (!attributeId && valueId) {
-              const owningAttr = attributes.find((a) =>
-                a.values.some((v: { id: string }) => v.id === valueId)
-              );
-              if (owningAttr) {
-                attributeId = owningAttr.id;
-              }
-            }
             
             if (attributeId && valueId) {
               attributeIdsSet.add(attributeId);
@@ -84,7 +63,7 @@ export function useProductVariantConversion({
         }
       });
       
-      const productAttributeIds = pending.attributeIds;
+      const productAttributeIds = (window as any).__productAttributeIds || [];
       if (productAttributeIds.length > 0) {
         logger.debug('📋 [ADMIN] Adding product attributeIds to selected attributes:', productAttributeIds);
         productAttributeIds.forEach((attrId: string) => {
@@ -173,15 +152,6 @@ export function useProductVariantConversion({
               if (foundAttr) {
                 attributeId = foundAttr.id;
                 attributeKey = foundAttr.key;
-              }
-            }
-
-            if (!attributeKey && valueId) {
-              const owningAttr = attributes.find((a) =>
-                a.values.some((v: { id: string }) => v.id === valueId)
-              );
-              if (owningAttr) {
-                attributeKey = owningAttr.key;
               }
             }
             
@@ -323,39 +293,18 @@ export function useProductVariantConversion({
             sku: v.sku,
           })),
         });
+        delete (window as any).__productVariantsToConvert;
         setHasVariantsToLoad(false);
-        setPendingVariantHydration(null);
       } else {
-        const first = productVariants[0] as { options?: unknown } | undefined;
         console.warn('⚠️ [ADMIN] No variants converted. Check variant options structure:', {
           variantsCount: productVariants.length,
-          firstVariantOptions: first?.options,
+          firstVariantOptions: productVariants[0]?.options,
         });
-        setGeneratedVariants([]);
         setHasVariantsToLoad(false);
-        setPendingVariantHydration(null);
       }
     } else if (productId && attributes.length > 0) {
-      if (pending && !Array.isArray(pending.variants)) {
-        logger.warn('[ADMIN] Invalid pending variant hydration (variants not an array); clearing.', {
-          typeofPayload: typeof pending.variants,
-        });
-        setPendingVariantHydration(null);
-        setHasVariantsToLoad(false);
-      } else if (!pending) {
-        logger.debug('ℹ️ [ADMIN] Waiting for variant hydration payload. Attributes loaded:', attributes.length);
-      }
+      logger.debug('ℹ️ [ADMIN] Waiting for variants to convert. Attributes loaded:', attributes.length);
     }
-  }, [
-    productId,
-    attributes,
-    defaultCurrency,
-    pendingVariantHydration,
-    setPendingVariantHydration,
-    setSelectedAttributesForVariants,
-    setSelectedAttributeValueIds,
-    setGeneratedVariants,
-    setHasVariantsToLoad,
-  ]);
+  }, [productId, attributes, defaultCurrency, setSelectedAttributesForVariants, setSelectedAttributeValueIds, setGeneratedVariants, setHasVariantsToLoad]);
 }
 

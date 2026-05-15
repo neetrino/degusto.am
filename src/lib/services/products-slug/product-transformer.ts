@@ -224,7 +224,6 @@ function transformVariants(
         productDiscount: productDiscount > 0 ? productDiscount : null,
         stock: variant.stock,
         imageUrl: variantImageUrl,
-        attributes: variant.attributes ?? null,
         options: Array.isArray(variant.options) ? variant.options.map((opt: ProductVariantWithOptions['options'][number]) => {
           // Support both new format (AttributeValue) and old format (attributeKey/value)
           if (opt.attributeValue) {
@@ -232,13 +231,10 @@ function transformVariants(
             const attrValue = opt.attributeValue;
             const attr = attrValue.attribute;
             const translation = attrValue.translations?.find((t: { locale: string }) => t.locale === lang) || attrValue.translations?.[0];
-            // Store canonical slug in `value` so PDP logic and getAttributeLabel() match attributes.json keys.
-            const displayLabel = translation?.label || attrValue.value || "";
             return {
               attribute: attr?.key || "",
+              value: translation?.label || attrValue.value || "",
               key: attr?.key || "",
-              value: attrValue.value || "",
-              label: displayLabel,
               valueId: attrValue.id,
               attributeId: attr?.id,
             };
@@ -282,7 +278,6 @@ function transformProductAttributes(
           translations?: Array<{ locale: string; label: string }>;
           imageUrl: string | null;
           colors: string | null;
-          priceAdjustment?: number;
         }>;
       };
     };
@@ -303,17 +298,14 @@ function transformProductAttributes(
             translations?: Array<{ locale: string; label: string }>;
             imageUrl: string | null;
             colors: string | null;
-            priceAdjustment?: number | null;
           }) => {
             const valTranslation = val.translations?.find((t: { locale: string }) => t.locale === lang) || val.translations?.[0];
-            const adj = val.priceAdjustment;
             return {
               id: val.id,
               value: val.value,
               label: valTranslation?.label || val.value,
               imageUrl: val.imageUrl || null,
               colors: val.colors || null,
-              priceAdjustment: typeof adj === "number" && Number.isFinite(adj) ? adj : 0,
             };
           }) : [],
         },

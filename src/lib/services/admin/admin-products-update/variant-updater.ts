@@ -111,13 +111,9 @@ async function updateExistingVariant(
       imageUrl: processedVariantImageUrl,
       published: variant.published !== false,
       attributes: (attributesJson || undefined) as Prisma.InputJsonValue | undefined,
-      ...(options.length > 0
-        ? {
-            options: {
-              create: options,
-            },
-          }
-        : {}),
+      options: {
+        create: options,
+      },
     },
   });
   
@@ -172,13 +168,9 @@ async function createNewVariant(
       imageUrl: processedVariantImageUrl,
       published: variant.published !== false,
       attributes: (attributesJson || undefined) as Prisma.InputJsonValue | undefined,
-      ...(options.length > 0
-        ? {
-            options: {
-              create: options,
-            },
-          }
-        : {}),
+      options: {
+        create: options,
+      },
     },
   });
   

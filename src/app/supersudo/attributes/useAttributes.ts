@@ -13,7 +13,6 @@ export interface AttributeValue {
   label: string;
   colors?: string[];
   imageUrl?: string | null;
-  priceAdjustment?: number;
 }
 
 export interface Attribute {
@@ -52,7 +51,6 @@ export function useAttributes() {
   const [editingLabel, setEditingLabel] = useState('');
   const [editingColors, setEditingColors] = useState<string[]>([]);
   const [editingImageUrl, setEditingImageUrl] = useState<string | null>(null);
-  const [editingPriceAdjustment, setEditingPriceAdjustment] = useState('');
   const [savingValue, setSavingValue] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -289,7 +287,6 @@ export function useAttributes() {
     label?: string;
     colors?: string[];
     imageUrl?: string | null;
-    priceAdjustment?: number;
   }) => {
     if (!editingValue) return;
 
@@ -325,7 +322,6 @@ export function useAttributes() {
       setEditingLabel('');
       setEditingColors([]);
       setEditingImageUrl(null);
-      setEditingPriceAdjustment('');
     } else {
       // Open
       setExpandedValueId(value.id);
@@ -333,11 +329,6 @@ export function useAttributes() {
       setEditingLabel(value.label);
       setEditingColors(value.colors || []);
       setEditingImageUrl(value.imageUrl || null);
-      setEditingPriceAdjustment(
-        value.priceAdjustment !== undefined && Number.isFinite(value.priceAdjustment)
-          ? String(value.priceAdjustment)
-          : '0'
-      );
     }
   };
 
@@ -386,18 +377,10 @@ export function useAttributes() {
 
     try {
       setSavingValue(true);
-      const trimmedAdj = editingPriceAdjustment.trim();
-      const parsedAdj = trimmedAdj === '' ? 0 : Number.parseFloat(trimmedAdj.replace(',', '.'));
-      if (!Number.isFinite(parsedAdj)) {
-        showToast(t('admin.attributes.valueModal.invalidPriceAdjustment'), 'warning');
-        return;
-      }
-      const prevAdj = editingValue.value.priceAdjustment ?? 0;
       await handleUpdateValue({
         label: editingLabel.trim() !== editingValue.value.label ? editingLabel.trim() : undefined,
         colors: editingColors.length > 0 ? editingColors : undefined,
         imageUrl: editingImageUrl,
-        priceAdjustment: parsedAdj !== prevAdj ? parsedAdj : undefined,
       });
       // Close the expanded form
       setExpandedValueId(null);
@@ -405,7 +388,6 @@ export function useAttributes() {
       setEditingLabel('');
       setEditingColors([]);
       setEditingImageUrl(null);
-      setEditingPriceAdjustment('');
     } catch (error: any) {
       console.error('❌ [ADMIN] Error saving value:', error);
     } finally {
@@ -444,7 +426,6 @@ export function useAttributes() {
     editingLabel,
     editingColors,
     editingImageUrl,
-    editingPriceAdjustment,
     savingValue,
     imageUploading,
     fileInputRef,
@@ -456,7 +437,6 @@ export function useAttributes() {
     setEditingLabel,
     setEditingColors,
     setEditingImageUrl,
-    setEditingPriceAdjustment,
     setValueError,
     handleCreateAttribute,
     handleDeleteAttribute,

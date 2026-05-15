@@ -27,14 +27,7 @@
   "additionsLabel": "Добавки",
   "additionsPlaceholder": "Дополнительные ингредиенты или комментарий",
   "exclusionsLabel": "Исключить",
-  "exclusionsPlaceholder": "Ингредиенты, которые нужно убрать",
-  "preferencePlaceholder": "Выберите предпочтение",
-  "preferenceAria": {
-    "spicy": "Острота",
-    "greens": "Зелень",
-    "sauce": "Соус",
-    "garlic": "Чеснок"
-  }
+  "exclusionsPlaceholder": "Ингредиенты, которые нужно убрать"
 }
 
 

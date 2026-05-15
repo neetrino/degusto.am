@@ -9,10 +9,10 @@ export function QuickInfoCard() {
   const router = useRouter();
 
   return (
-    <div className="rounded-lg border border-[#f0ddd0] bg-white p-4">
+    <div className="bg-white rounded-lg p-4 border border-gray-200">
       <div className="flex items-center gap-2 mb-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50">
-          <svg className="h-5 w-5 text-[#2f7d4a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+          <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
@@ -24,19 +24,19 @@ export function QuickInfoCard() {
 
       <div className="space-y-2 text-sm text-gray-600">
         <div className="flex items-start gap-2">
-          <span className="mt-0.5 text-[#2f7d4a]">•</span>
+          <span className="text-blue-600 mt-0.5">•</span>
           <p>{t('admin.quickSettings.discountApplies')}</p>
         </div>
         <div className="flex items-start gap-2">
-          <span className="mt-0.5 text-[#2f7d4a]">•</span>
+          <span className="text-blue-600 mt-0.5">•</span>
           <p>{t('admin.quickSettings.discountExample')}</p>
         </div>
         <div className="flex items-start gap-2">
-          <span className="mt-0.5 text-[#2f7d4a]">•</span>
+          <span className="text-blue-600 mt-0.5">•</span>
           <p>{t('admin.quickSettings.noDiscount')}</p>
         </div>
         <div className="flex items-start gap-2">
-          <span className="mt-0.5 text-[#2f7d4a]">•</span>
+          <span className="text-blue-600 mt-0.5">•</span>
           <p>{t('admin.quickSettings.changesApplied')}</p>
         </div>
       </div>

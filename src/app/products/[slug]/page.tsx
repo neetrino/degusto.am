@@ -13,43 +13,11 @@ import { ProductPageShell } from './ProductPageShell';
 import { useProductPage } from './useProductPage';
 import { playCartFlyAnimation } from '../../../lib/cart-fly-animation';
 import { BodyBackground } from '../../../components/BodyBackground';
-import { ProjectGreenStripes } from '../../../components/decor/ProjectGreenStripes';
-import { logger } from '@/lib/utils/logger';
 import {
   buildCustomizationLineKey,
   normalizeProductCustomizations,
 } from '../../../lib/cart/customizations';
-import type { ProductPageProps, Product } from './types';
-
-function collectSelectedAttributeValueIdsForCart(
-  product: Product,
-  selected: Map<string, string>
-): string[] {
-  const ids: string[] = [];
-  const attrs = product.productAttributes;
-  if (!attrs) {
-    return ids;
-  }
-  for (const [key, raw] of selected.entries()) {
-    if (key === 'color' || key === 'size') {
-      continue;
-    }
-    const pa = attrs.find((p) => p.attribute.key === key);
-    if (!pa) {
-      continue;
-    }
-    const match = pa.attribute.values.find((v) => v.id === raw || v.value === raw || v.label === raw);
-    if (match?.id) {
-      ids.push(match.id);
-    }
-  }
-  return ids;
-}
-
-/** White behind header on PDP so the UniversalHeader spacer matches the chrome, not orange. */
-const PDP_BODY_BACKGROUND = '#ffffff';
-/** Pull orange shell under the fixed header stack (104px spacer) like login layout. */
-const PDP_HEADER_UNDERLAP_CLASS = 'relative z-10 -mt-[104px] pt-[104px]';
+import type { ProductPageProps } from './types';
 
 export default function ProductPage({ params }: ProductPageProps) {
   const { isLoggedIn } = useAuth();
@@ -69,10 +37,14 @@ export default function ProductPage({ params }: ProductPageProps) {
     selectedAttributeValues,
     isAddingToCart,
     setIsAddingToCart,
+    showMessage,
+    setShowMessage,
     additions,
     exclusions,
     setAdditions,
     setExclusions,
+    isInWishlist,
+    isInCompare,
     quantity,
     reviews,
     averageRating,
@@ -87,6 +59,8 @@ export default function ProductPage({ params }: ProductPageProps) {
     discountPercent,
     maxQuantity,
     isOutOfStock,
+    isVariationRequired,
+    hasUnavailableAttributes,
     unavailableAttributes,
     canAddToCart,
     scrollToReviews,
@@ -95,6 +69,9 @@ export default function ProductPage({ params }: ProductPageProps) {
     handleColorSelect,
     handleSizeSelect,
     handleAttributeValueSelect,
+    handleAddToWishlist,
+    handleCompareToggle,
+    getRequiredAttributesMessage,
   } = useProductPage(params);
 
   /**
@@ -107,12 +84,7 @@ export default function ProductPage({ params }: ProductPageProps) {
 
   const handleAddToCart = async () => {
     if (!canAddToCart || !product || !currentVariant) return;
-    const selectedIds = collectSelectedAttributeValueIdsForCart(product, selectedAttributeValues);
-    const customizations = normalizeProductCustomizations({
-      additions,
-      exclusions,
-      ...(selectedIds.length > 0 ? { selectedAttributeValueIds: selectedIds } : {}),
-    });
+    const customizations = normalizeProductCustomizations({ additions, exclusions });
     const flyOrigin = document.querySelector('[data-product-fly-origin]');
     const imageUrl = images[currentImageIndex] ?? images[0] ?? null;
     playCartFlyAnimation({
@@ -162,23 +134,21 @@ export default function ProductPage({ params }: ProductPageProps) {
           customizations,
         });
       }
+      setShowMessage(`${t(language, 'product.addedToCart')} ${quantity} ${t(language, 'product.pcs')}`);
       window.dispatchEvent(new Event('cart-updated'));
-    } catch (error: unknown) {
-      logger.warn('Add to cart failed', {
-        error: error instanceof Error ? error.message : String(error),
-      });
+    } catch {
+      setShowMessage(t(language, 'product.errorAddingToCart'));
     } finally {
       setIsAddingToCart(false);
+      setTimeout(() => setShowMessage(null), 2000);
     }
   };
 
   if (loading && !product) {
     return (
       <>
-        <BodyBackground color={PDP_BODY_BACKGROUND} />
-        <div className={PDP_HEADER_UNDERLAP_CLASS}>
-          <ProductPageShell />
-        </div>
+        <BodyBackground color="#ffffff" />
+        <ProductPageShell />
       </>
     );
   }
@@ -186,17 +156,12 @@ export default function ProductPage({ params }: ProductPageProps) {
   if (notFound && !product) {
     return (
       <>
-        <BodyBackground color={PDP_BODY_BACKGROUND} />
-        <div className={PDP_HEADER_UNDERLAP_CLASS}>
-          <div className="max-w-7xl mx-auto px-4 py-16 text-center space-y-4">
-            <p className="text-lg text-neutral-600">{t(language, 'common.messages.noProductsFound')}</p>
-            <Link
-              href="/shop"
-              className="inline-flex h-10 items-center rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-50"
-            >
-              {t(language, 'common.navigation.products')}
-            </Link>
-          </div>
+        <BodyBackground color="#ffffff" />
+        <div className="max-w-7xl mx-auto px-4 py-16 text-center space-y-4">
+          <p className="text-lg text-neutral-600">{t(language, 'common.messages.noProductsFound')}</p>
+          <Link href="/shop" className="inline-block text-blue-600 font-medium hover:underline">
+            {t(language, 'common.navigation.products')}
+          </Link>
         </div>
       </>
     );
@@ -205,17 +170,12 @@ export default function ProductPage({ params }: ProductPageProps) {
   if (!product) {
     return (
       <>
-        <BodyBackground color={PDP_BODY_BACKGROUND} />
-        <div className={PDP_HEADER_UNDERLAP_CLASS}>
-          <div className="max-w-7xl mx-auto px-4 py-16 text-center space-y-4">
-            <p className="text-lg text-neutral-600">{t(language, 'common.messages.invalidProduct')}</p>
-            <Link
-              href="/shop"
-              className="inline-flex h-10 items-center rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-50"
-            >
-              {t(language, 'common.navigation.products')}
-            </Link>
-          </div>
+        <BodyBackground color="#ffffff" />
+        <div className="max-w-7xl mx-auto px-4 py-16 text-center space-y-4">
+          <p className="text-lg text-neutral-600">{t(language, 'common.messages.invalidProduct')}</p>
+          <Link href="/shop" className="inline-block text-blue-600 font-medium hover:underline">
+            {t(language, 'common.navigation.products')}
+          </Link>
         </div>
       </>
     );
@@ -223,14 +183,10 @@ export default function ProductPage({ params }: ProductPageProps) {
 
   return (
     <>
-      <BodyBackground color={PDP_BODY_BACKGROUND} />
-      <div
-        className={`${PDP_HEADER_UNDERLAP_CLASS} min-h-dvh overflow-x-hidden bg-[var(--project-color)]`}
-      >
-        <ProjectGreenStripes extendFirstStrokeUp />
-        <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
-          <section className="rounded-3xl border border-neutral-200 bg-white p-4 sm:p-6 lg:p-8 shadow-[0_8px_28px_rgba(0,0,0,0.06)]">
-            <div className="grid grid-cols-1 lg:grid-cols-[55%_45%] gap-10 lg:gap-12 items-start">
+      <BodyBackground color="#ffffff" />
+      <div className="bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid grid-cols-1 lg:grid-cols-[55%_45%] gap-12 items-start">
             <ProductImageGallery
               images={images}
               product={product}
@@ -256,9 +212,15 @@ export default function ProductPage({ params }: ProductPageProps) {
               quantity={quantity}
               maxQuantity={maxQuantity}
               isOutOfStock={isOutOfStock}
+              isVariationRequired={isVariationRequired}
+              hasUnavailableAttributes={hasUnavailableAttributes}
               unavailableAttributes={unavailableAttributes}
               canAddToCart={canAddToCart}
               isAddingToCart={isAddingToCart}
+              isInWishlist={isInWishlist}
+              isInCompare={isInCompare}
+              showMessage={showMessage}
+              isLoggedIn={isLoggedIn}
               currentVariant={currentVariant}
               attributeGroups={attributeGroups}
               selectedColor={selectedColor}
@@ -268,27 +230,29 @@ export default function ProductPage({ params }: ProductPageProps) {
               sizeGroups={sizeGroups}
               onQuantityAdjust={adjustQuantity}
               onAddToCart={handleAddToCart}
+              onAddToWishlist={handleAddToWishlist}
+              onCompareToggle={handleCompareToggle}
               onScrollToReviews={scrollToReviews}
+              additions={additions}
+              exclusions={exclusions}
+              onAdditionsChange={setAdditions}
+              onExclusionsChange={setExclusions}
               onColorSelect={handleColorSelect}
               onSizeSelect={handleSizeSelect}
               onAttributeValueSelect={handleAttributeValueSelect}
               getOptionValue={getOptionValue}
+              getRequiredAttributesMessage={getRequiredAttributesMessage}
             />
           </div>
-          </section>
 
-          <div className="mt-10 rounded-3xl border border-neutral-200 bg-white p-3 shadow-[0_6px_22px_rgba(0,0,0,0.04)] sm:mt-12 sm:p-4 lg:p-5">
+          <div className="mt-24">
             <RelatedProducts
               productSlug={slug}
               categorySlug={product.categories?.[0]?.slug}
               currentProductId={product.id}
             />
           </div>
-
-          <div
-            id="product-reviews"
-            className="mt-10 rounded-3xl border border-neutral-200 bg-white p-4 sm:p-6 lg:p-8 scroll-mt-24 shadow-[0_6px_22px_rgba(0,0,0,0.04)]"
-          >
+          <div id="product-reviews" className="mt-16 scroll-mt-24">
             <ProductReviews productSlug={slug} productId={product.id} />
           </div>
         </div>

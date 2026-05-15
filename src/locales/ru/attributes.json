@@ -31,23 +31,6 @@
     "xl": "XL",
     "xxl": "XXL",
     "xxxl": "XXXL"
-  },
-  "spicy": {
-    "spicy": "Острое",
-    "not-spicy": "Не острое"
-  },
-  "greens": {
-    "with-greens": "С зеленью",
-    "without-greens": "Без зелени"
-  },
-  "sauce": {
-    "ketchup": "Кетчуп",
-    "mayonnaise": "Майонез",
-    "no-sauce": "Без соуса"
-  },
-  "garlic": {
-    "with-garlic": "С чесноком",
-    "without-garlic": "Без чеснока"
   }
 }
 

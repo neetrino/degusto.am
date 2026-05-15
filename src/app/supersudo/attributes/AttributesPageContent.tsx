@@ -5,7 +5,6 @@ import { Input } from '@shop/ui';
 import { useTranslation } from '../../../lib/i18n-client';
 import { useAttributes, type Attribute, type AttributeValue } from './useAttributes';
 import { ValueEditForm } from './ValueEditForm';
-import { AttributesPageLoading } from './AttributesPageLoading';
 
 export function AttributesPageContent() {
   const { t } = useTranslation();
@@ -29,7 +28,6 @@ export function AttributesPageContent() {
     editingLabel,
     editingColors,
     editingImageUrl,
-    editingPriceAdjustment,
     savingValue,
     imageUploading,
     fileInputRef,
@@ -41,7 +39,6 @@ export function AttributesPageContent() {
     setEditingLabel,
     setEditingColors,
     setEditingImageUrl,
-    setEditingPriceAdjustment,
     setValueError,
     handleCreateAttribute,
     handleDeleteAttribute,
@@ -77,7 +74,12 @@ export function AttributesPageContent() {
   }, [attributes, normalizedSearch]);
 
   if (loading) {
-    return <AttributesPageLoading />;
+    return (
+      <div className="py-12 text-center">
+        <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900" />
+        <p className="text-sm text-gray-600">{t('admin.attributes.loadingAttributes')}</p>
+      </div>
+    );
   }
 
   return (
@@ -410,13 +412,11 @@ export function AttributesPageContent() {
                                     editingLabel={editingLabel}
                                     editingColors={editingColors}
                                     editingImageUrl={editingImageUrl}
-                                    editingPriceAdjustment={editingPriceAdjustment}
                                     savingValue={savingValue}
                                     imageUploading={imageUploading}
                                     fileInputRef={fileInputRef}
                                     onLabelChange={setEditingLabel}
                                     onColorsChange={setEditingColors}
-                                    onPriceAdjustmentChange={setEditingPriceAdjustment}
                                     onImageUpload={handleImageUpload}
                                     onRemoveImage={handleRemoveImage}
                                     onSave={handleSaveInlineValue}

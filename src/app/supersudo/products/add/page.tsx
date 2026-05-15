@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect } from 'react';
+import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../../../../lib/auth/AuthContext';
 import { useTranslation } from '../../../../lib/i18n-client';
@@ -33,7 +33,6 @@ function AddProductPageContent() {
     isLoggedIn,
     isAdmin,
     isLoading,
-    setReferenceCatalogReady: formState.setReferenceCatalogReady,
     setBrands: formState.setBrands,
     setCategories: formState.setCategories,
     setAttributes: formState.setAttributes,
@@ -51,7 +50,6 @@ function AddProductPageContent() {
     productId,
     isLoggedIn,
     isAdmin,
-    referenceCatalogReady: formState.referenceCatalogReady,
     attributes: formState.attributes,
     defaultCurrency: formState.defaultCurrency,
     setLoadingProduct: formState.setLoadingProduct,
@@ -63,38 +61,17 @@ function AddProductPageContent() {
     setHasVariantsToLoad: formState.setHasVariantsToLoad,
     setProductType: formState.setProductType,
     setSimpleProductData: formState.setSimpleProductData,
-    setGeneratedVariants: formState.setGeneratedVariants,
-    setSelectedAttributesForVariants: formState.setSelectedAttributesForVariants,
-    setSelectedAttributeValueIds: formState.setSelectedAttributeValueIds,
-    setOpenValueModal: formState.setOpenValueModal,
-    productFetchNonce: formState.productFetchNonce,
-    setPendingVariantHydration: formState.setPendingVariantHydration,
   });
 
   useProductVariantConversion({
     productId,
     attributes: formState.attributes,
     defaultCurrency: formState.defaultCurrency,
-    pendingVariantHydration: formState.pendingVariantHydration,
-    setPendingVariantHydration: formState.setPendingVariantHydration,
     setSelectedAttributesForVariants: formState.setSelectedAttributesForVariants,
     setSelectedAttributeValueIds: formState.setSelectedAttributeValueIds,
     setGeneratedVariants: formState.setGeneratedVariants,
     setHasVariantsToLoad: formState.setHasVariantsToLoad,
   });
-
-  useEffect(() => {
-    if (!isEditMode || !productId) {
-      return undefined;
-    }
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') {
-        formState.setProductFetchNonce((n) => n + 1);
-      }
-    };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
-  }, [isEditMode, productId, formState.setProductFetchNonce]);
 
   const { applyToAllVariants } = useVariantGeneration({
     selectedAttributesForVariants: formState.selectedAttributesForVariants,
@@ -105,7 +82,6 @@ function AddProductPageContent() {
     formDataTitle: formState.formData.title,
     isEditMode,
     productId,
-    hasVariantsToLoad: formState.hasVariantsToLoad,
     setGeneratedVariants: formState.setGeneratedVariants,
   });
 
@@ -192,7 +168,7 @@ function AddProductPageContent() {
     isClothingCategory,
   });
 
-  if (isLoading || formState.loadingProduct || (isEditMode && !formState.referenceCatalogReady)) {
+  if (isLoading || formState.loadingProduct) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center py-12">
         <div className="text-center">

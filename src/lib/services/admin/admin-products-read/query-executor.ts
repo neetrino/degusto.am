@@ -1,9 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { db } from "@white-shop/db";
-import {
-  ensureAttributeValuePriceAdjustmentColumn,
-  ensureProductVariantAttributesColumn,
-} from "../../../utils/db-ensure";
+import { ensureProductVariantAttributesColumn } from "../../../utils/db-ensure";
 import { logger } from "../../../utils/logger";
 
 /**
@@ -203,7 +200,6 @@ export async function executeProductListQuery(
  * Execute product detail query with error handling
  */
 export async function executeProductDetailQuery(productId: string) {
-  await ensureAttributeValuePriceAdjustmentColumn();
   try {
     const product = await db.product.findUnique({
       where: { id: productId },

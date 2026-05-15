@@ -52,7 +52,6 @@ export function buildProductUpdateData(
   published?: boolean;
   publishedAt?: Date;
   featured?: boolean;
-  attributeIds?: string[];
 } {
   const updateData: {
     brandId?: string | null;
@@ -62,7 +61,6 @@ export function buildProductUpdateData(
     published?: boolean;
     publishedAt?: Date;
     featured?: boolean;
-    attributeIds?: string[];
   } = {};
   
   if (data.brandId !== undefined) updateData.brandId = data.brandId || null;
@@ -87,11 +85,7 @@ export function buildProductUpdateData(
   }
   
   if (data.featured !== undefined) updateData.featured = data.featured;
-
-  if (data.attributeIds !== undefined) {
-    updateData.attributeIds = [...data.attributeIds];
-  }
-
+  
   return updateData;
 }
 
@@ -103,45 +97,31 @@ export async function updateProductTranslation(
   data: UpdateProductData,
   tx: Prisma.TransactionClient
 ) {
-  const shouldUpdateTranslation =
-    data.title !== undefined ||
-    data.slug !== undefined ||
-    data.subtitle !== undefined ||
-    data.descriptionHtml !== undefined;
-
-  if (!shouldUpdateTranslation) {
-    return;
-  }
-
-  const locale = data.locale || "en";
-  /** Prisma `title` / `slug` are non-null strings; JSON may send `null`. */
-  const normalizedTitle = (v: string | null | undefined) =>
-    v === null || v === undefined ? "" : String(v);
-  const normalizedSlug = (v: string | null | undefined) =>
-    v === null || v === undefined ? "" : String(v);
-
-  await tx.productTranslation.upsert({
-    where: {
-      productId_locale: {
+  if (data.title || data.slug || data.subtitle !== undefined || data.descriptionHtml !== undefined) {
+    const locale = data.locale || "en";
+    await tx.productTranslation.upsert({
+      where: {
+        productId_locale: {
+          productId,
+          locale,
+        },
+      },
+      update: {
+        ...(data.title && { title: data.title }),
+        ...(data.slug && { slug: data.slug }),
+        ...(data.subtitle !== undefined && { subtitle: data.subtitle || null }),
+        ...(data.descriptionHtml !== undefined && { descriptionHtml: data.descriptionHtml || null }),
+      },
+      create: {
         productId,
         locale,
+        title: data.title || "",
+        slug: data.slug || "",
+        subtitle: data.subtitle || null,
+        descriptionHtml: data.descriptionHtml || null,
       },
-    },
-    update: {
-      ...(data.title !== undefined && { title: normalizedTitle(data.title) }),
-      ...(data.slug !== undefined && { slug: normalizedSlug(data.slug) }),
-      ...(data.subtitle !== undefined && { subtitle: data.subtitle ?? null }),
-      ...(data.descriptionHtml !== undefined && { descriptionHtml: data.descriptionHtml ?? null }),
-    },
-    create: {
-      productId,
-      locale,
-      title: normalizedTitle(data.title),
-      slug: normalizedSlug(data.slug),
-      subtitle: data.subtitle ?? null,
-      descriptionHtml: data.descriptionHtml ?? null,
-    },
-  });
+    });
+  }
 }
 
 /**

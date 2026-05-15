@@ -13,12 +13,14 @@ export function ProductPageShell() {
       aria-label="Product loading"
     >
       <div className="grid grid-cols-1 lg:grid-cols-[55%_45%] gap-12 items-start">
-        <div className="flex w-full flex-col gap-4" aria-hidden>
-          <div className="relative aspect-[6/5] w-full rounded-2xl bg-neutral-100" />
-          <div className="flex justify-center gap-3">
-            <div className="aspect-square w-20 shrink-0 rounded-xl bg-neutral-100 sm:w-24" />
-            <div className="aspect-square w-20 shrink-0 rounded-xl bg-neutral-100 sm:w-24" />
-            <div className="aspect-square w-20 shrink-0 rounded-xl bg-neutral-100 sm:w-24" />
+        <div className="flex gap-6 items-start">
+          <div className="flex flex-col gap-4 w-28 flex-shrink-0" aria-hidden>
+            <div className="aspect-[3/4] w-full rounded-lg bg-neutral-100" />
+            <div className="aspect-[3/4] w-full rounded-lg bg-neutral-100" />
+            <div className="aspect-[3/4] w-full rounded-lg bg-neutral-100" />
+          </div>
+          <div className="flex-1">
+            <div className="relative aspect-square w-full max-w-[560px] mx-auto lg:mx-0 rounded-lg bg-neutral-100" aria-hidden />
           </div>
         </div>
         <ProductInfoColumnSkeleton />

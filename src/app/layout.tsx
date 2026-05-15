@@ -4,8 +4,6 @@ import './globals.css';
 import { ClientProviders } from '../components/ClientProviders';
 import { ConditionalHeader } from '../components/ConditionalHeader';
 import { ConditionalFooter } from '../components/ConditionalFooter';
-import { ConditionalMobileBottomNav } from '../components/ConditionalMobileBottomNav';
-import { LayoutShell } from '../components/LayoutShell';
 import { cookies } from 'next/headers';
 import { resolveStorefrontLocaleFromCookie } from '@/lib/i18n/locale';
 import { getSiteMetadataCopy } from '@/lib/i18n/metadata';
@@ -27,24 +25,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="h-full" style={{ backgroundColor: '#ffffff' }}>
+    <html lang="en" className="h-full" style={{ backgroundColor: '#f56814' }}>
       <head>
         <link rel="preload" as="image" href="/api/r2/hero/20260512-tOKhBzyB6u.png" />
       </head>
       <body
         className="font-sans text-gray-900 antialiased min-h-full"
-        style={{ backgroundColor: '#ffffff' }}
+        style={{ backgroundColor: '#f56814' }}
       >
         <Suspense fallback={null}>
           <ClientProviders>
-            <LayoutShell>
+            <div className="flex min-h-screen flex-col pb-16 lg:pb-0">
               <ConditionalHeader />
               <main className="flex-1 w-full">
                 {children}
               </main>
               <ConditionalFooter />
-              <ConditionalMobileBottomNav />
-            </LayoutShell>
+            </div>
           </ClientProviders>
         </Suspense>
       </body>
