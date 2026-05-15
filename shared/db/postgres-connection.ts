@@ -35,7 +35,9 @@ export function augmentCorePostgresParams(raw: string): string {
       u += u.includes("?") ? "&client_encoding=UTF8" : "?client_encoding=UTF8";
     }
     if (!u.includes("connect_timeout=")) {
-      u += u.includes("?") ? "&connect_timeout=12" : "?connect_timeout=12";
+      const isVercelNeon =
+        process.env.VERCEL === "1" && u.toLowerCase().includes("neon.tech");
+      u += u.includes("?") ? `&connect_timeout=${isVercelNeon ? "30" : "12"}` : `?connect_timeout=${isVercelNeon ? "30" : "12"}`;
     }
     return u;
   }
@@ -43,13 +45,23 @@ export function augmentCorePostgresParams(raw: string): string {
     parsed.searchParams.set("client_encoding", "UTF8");
   }
   if (!parsed.searchParams.has("connect_timeout")) {
-    parsed.searchParams.set("connect_timeout", "12");
+    const isVercelNeon =
+      process.env.VERCEL === "1" && parsed.hostname.toLowerCase().endsWith("neon.tech");
+    parsed.searchParams.set("connect_timeout", isVercelNeon ? "30" : "12");
   }
   return parsed.toString();
 }
 
 function isNeonHost(hostname: string): boolean {
   return hostname.toLowerCase().endsWith("neon.tech");
+}
+
+/** Use Neon's serverless driver + Prisma adapter (WS/HTTP) instead of TCP query engine — fixes many Vercel↔Neon P1001 cases. */
+export function shouldUseNeonDriverAdapterForRuntime(databaseUrl: string): boolean {
+  if (process.env.PRISMA_NEON_ADAPTER === "0") return false;
+  const parsed = tryParsePostgresUrl(databaseUrl);
+  if (!parsed || !isNeonHost(parsed.hostname)) return false;
+  return process.env.VERCEL === "1" || process.env.PRISMA_NEON_ADAPTER === "1";
 }
 
 function isLikelyNeonPoolerHost(hostname: string): boolean {
@@ -99,6 +111,7 @@ export type DatabaseUrlLogFields = {
   directHost: string | null;
   databaseLikelyNeonPooler: boolean;
   vercelRuntime: boolean;
+  neonDriverAdapter: boolean;
 };
 
 /** Safe for logs: hostnames only, no credentials or full URLs. */
@@ -115,6 +128,7 @@ export function buildDatabaseUrlLogFields(
     directHost: dirParsed?.hostname ?? null,
     databaseLikelyNeonPooler: dbParsed ? isLikelyNeonPoolerHost(dbParsed.hostname) : false,
     vercelRuntime: process.env.VERCEL === "1",
+    neonDriverAdapter: shouldUseNeonDriverAdapterForRuntime(databaseUrl),
   };
 }
 
