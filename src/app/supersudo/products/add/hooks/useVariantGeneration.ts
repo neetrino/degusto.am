@@ -14,8 +14,6 @@ interface UseVariantGenerationProps {
   formDataTitle: string;
   isEditMode: boolean;
   productId: string | null;
-  /** True while edit-mode product variants are waiting to be converted from window payload. */
-  hasVariantsToLoad: boolean;
   setGeneratedVariants: (updater: (prev: GeneratedVariant[]) => GeneratedVariant[]) => void;
 }
 
@@ -28,7 +26,6 @@ export function useVariantGeneration({
   formDataTitle,
   isEditMode,
   productId,
-  hasVariantsToLoad,
   setGeneratedVariants,
 }: UseVariantGenerationProps) {
   const generateVariantsFromAttributes = () => {
@@ -112,7 +109,7 @@ export function useVariantGeneration({
   };
 
   useEffect(() => {
-    if (isEditMode && productId && hasVariantsToLoad) {
+    if (isEditMode && productId && (window as any).__productVariantsToConvert) {
       return;
     }
 
@@ -124,16 +121,7 @@ export function useVariantGeneration({
       }
     }
      
-  }, [
-    selectedAttributesForVariants,
-    selectedAttributeValueIds,
-    attributes,
-    formDataSlug,
-    formDataTitle,
-    isEditMode,
-    productId,
-    hasVariantsToLoad,
-  ]);
+  }, [selectedAttributesForVariants, selectedAttributeValueIds, attributes, formDataSlug, formDataTitle, isEditMode, productId]);
 
   return {
     generateVariantsFromAttributes,

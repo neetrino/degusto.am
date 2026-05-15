@@ -1,11 +1,7 @@
 'use client';
 
-import type { CSSProperties } from 'react';
 import Link from 'next/link';
 import { useTranslation } from '../lib/i18n-client';
-import { SITE_CONTACT_EMAIL, SITE_CONTACT_PHONES } from '../lib/site-contact';
-import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
-import { bigFatBoiiFont } from '@/fonts/big-fat-boii-font';
 
 const assets = {
   footerBrandLogo: '/api/r2/footer/20260512-5UxUa-QBsL.png',
@@ -34,14 +30,6 @@ const socialLinks = {
   viber: 'viber://chat?number=%2B37460388080',
 };
 
-const footerOrangeHeadingFontProps: { className: string; style: CSSProperties } = {
-  className: `${bigFatBoiiFont.className} ${mirageExpandedFont.className}`,
-  style: {
-    ...bigFatBoiiFont.style,
-    fontFamily: `${String(bigFatBoiiFont.style.fontFamily)}, ${String(mirageExpandedFont.style.fontFamily)}, ui-sans-serif, system-ui, sans-serif`,
-  },
-};
-
 interface FooterProps {
   outerBackgroundClassName?: string;
 }
@@ -54,30 +42,13 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
       <div className="lg:hidden rounded-t-[28px] bg-[#121212] px-4 pb-8 pt-8 text-white">
         <div className="space-y-6">
           <div>
-            <h3
-              className={`mb-3 text-lg font-black text-[#ff7f20] ${footerOrangeHeadingFontProps.className}`}
-              style={footerOrangeHeadingFontProps.style}
-            >
-              {t('common.footer.contactInfo')}
-            </h3>
-            <a href={`mailto:${SITE_CONTACT_EMAIL}`} className="block text-sm leading-7">
-              {SITE_CONTACT_EMAIL}
+            <h3 className="mb-3 text-lg font-black text-[#ff7f20]">{t('common.footer.contactInfo')}</h3>
+            <a href="mailto:info@degusto.am" className="block text-sm leading-7">
+              info@degusto.am
             </a>
-            <p className="text-sm leading-7">
-              {SITE_CONTACT_PHONES.map((phone, index) => (
-                <span key={phone.tel}>
-                  {index > 0 ? (
-                    <span aria-hidden className="text-[#ff7f20]">
-                      {' '}
-                      /{' '}
-                    </span>
-                  ) : null}
-                  <a href={`tel:${phone.tel}`} className="hover:text-[#ff7f20]">
-                    {phone.display}
-                  </a>
-                </span>
-              ))}
-            </p>
+            <a href="tel:+37460388080" className="block text-sm leading-7">
+              {t('contact.phone')}
+            </a>
           </div>
 
           <div className="flex items-center gap-3">
@@ -117,10 +88,7 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
 
           <div className="relative z-10 grid gap-10 lg:grid-cols-[244px_283px_120px_1fr] lg:pt-[73px]">
             <div>
-              <h3
-                className={`mb-4 flex items-center gap-[6px] text-[20px] font-black leading-6 text-[#ff7f20] ${footerOrangeHeadingFontProps.className}`}
-                style={footerOrangeHeadingFontProps.style}
-              >
+              <h3 className="mb-4 flex items-center gap-[6px] text-[20px] font-black leading-6 text-[#ff7f20]">
                 <img src={assets.footerAddressPinIcon} alt="" className="h-6 w-[18px] object-contain" />
                 <span>{t('profile.tabs.addresses')}</span>
               </h3>
@@ -130,12 +98,7 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
             </div>
 
             <div>
-              <h3
-                className={`mb-4 text-[20px] font-black uppercase tracking-[0.55px] text-[#ff7f20] ${footerOrangeHeadingFontProps.className}`}
-                style={footerOrangeHeadingFontProps.style}
-              >
-                {t('common.footer.legal')}
-              </h3>
+              <h3 className="mb-4 text-[20px] font-black uppercase tracking-[0.55px] text-[#ff7f20]">{t('common.footer.legal')}</h3>
               <div className="space-y-2 text-sm text-white">
                 <Link href="/privacy" className="block leading-5 hover:text-[#ff7f20]">
                   {t('common.footer.privacyPolicy')}
@@ -153,12 +116,7 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
             </div>
 
             <div>
-              <h3
-                className={`mb-2 text-[20px] font-black leading-6 text-[#ff7f20] ${footerOrangeHeadingFontProps.className}`}
-                style={footerOrangeHeadingFontProps.style}
-              >
-                {t('common.footer.quickLinks')}
-              </h3>
+              <h3 className="mb-2 text-[20px] font-black leading-6 text-[#ff7f20]">{t('common.footer.quickLinks')}</h3>
               <div className="space-y-0 text-sm leading-[30px]">
                 <Link href="/" className="block hover:text-[#ff7f20]">
                   {t('common.navigation.home')}
@@ -179,37 +137,20 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
           </div>
 
           <div className="relative z-10 mt-[18px] flex flex-col gap-3 lg:mt-8 lg:w-[472px]">
-            <h3
-              className={`text-[20px] font-black leading-6 text-[#ff7f20] ${footerOrangeHeadingFontProps.className}`}
-              style={footerOrangeHeadingFontProps.style}
-            >
-              {t('common.footer.contactInfo')}
-            </h3>
+            <h3 className="text-[20px] font-black leading-6 text-[#ff7f20]">{t('common.footer.contactInfo')}</h3>
 
             <div className="flex items-center gap-3">
               <img src={assets.footerMailIcon} alt="" className="h-[25px] w-6 object-contain" />
-              <a href={`mailto:${SITE_CONTACT_EMAIL}`} className="text-sm leading-[27px] hover:text-[#ff7f20]">
-                {SITE_CONTACT_EMAIL}
+              <a href="mailto:info@degusto.am" className="text-sm leading-[27px] hover:text-[#ff7f20]">
+                info@degusto.am
               </a>
             </div>
 
             <div className="flex items-start gap-[11px]">
-              <img src={assets.footerPhoneIcon} alt="" className="mt-[1px] h-[25px] w-6 shrink-0 object-contain" />
-              <p className="text-sm leading-[27px]">
-                {SITE_CONTACT_PHONES.map((phone, index) => (
-                  <span key={phone.tel}>
-                    {index > 0 ? (
-                      <span aria-hidden className="text-[#ff7f20]">
-                        {' '}
-                        /{' '}
-                      </span>
-                    ) : null}
-                    <a href={`tel:${phone.tel}`} className="hover:text-[#ff7f20]">
-                      {phone.display}
-                    </a>
-                  </span>
-                ))}
-              </p>
+              <img src={assets.footerPhoneIcon} alt="" className="mt-[1px] h-[25px] w-6 object-contain" />
+              <a href="tel:+37460388080" className="text-sm leading-[27px] hover:text-[#ff7f20]">
+                {t('contact.phone')}
+              </a>
             </div>
 
             <div className="mt-1 flex h-[41px] items-center gap-4">
@@ -241,12 +182,7 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
               <img src={assets.footerBrandLogo} alt="Degusto" className="h-[42px] w-[117px] object-contain" />
               <p className="text-[14px] leading-[23px] text-white lg:pr-[24px]">
                 Copyright © 2026 | All rights reserved | Created by{' '}
-                <span
-                  className={`font-black text-[#ff7f20] ${footerOrangeHeadingFontProps.className}`}
-                  style={footerOrangeHeadingFontProps.style}
-                >
-                  Neetrino IT Company
-                </span>
+                <span className="font-black text-[#ff7f20]">Neetrino IT Company</span>
               </p>
               <div className="flex items-center gap-[11px]">
                 <span className="inline-flex h-[30px] w-[73px] items-center justify-center rounded-lg bg-white px-1">
@@ -269,3 +205,4 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
     </footer>
   );
 }
+

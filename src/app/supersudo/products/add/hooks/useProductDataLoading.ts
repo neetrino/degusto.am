@@ -10,7 +10,6 @@ interface UseProductDataLoadingProps {
   isLoggedIn: boolean;
   isAdmin: boolean;
   isLoading: boolean;
-  setReferenceCatalogReady: (ready: boolean) => void;
   setBrands: (brands: Brand[]) => void;
   setCategories: (categories: Category[]) => void;
   setAttributes: (attributes: Attribute[]) => void;
@@ -28,7 +27,6 @@ export function useProductDataLoading({
   isLoggedIn,
   isAdmin,
   isLoading,
-  setReferenceCatalogReady,
   setBrands,
   setCategories,
   setAttributes,
@@ -70,24 +68,37 @@ export function useProductDataLoading({
     };
   }, [attributesDropdownOpen, attributesDropdownRef, setAttributesDropdownOpen]);
 
-  // Fetch settings (currency) + brands, categories, and attributes together so edit load runs once with correct currency
+  // Load default currency from settings
   useEffect(() => {
-    const fetchData = async () => {
+    const loadDefaultCurrency = async () => {
       try {
-        logger.debug('📥 [ADMIN] Fetching settings, brands, categories, and attributes...');
-        const [settingsRes, brandsRes, categoriesRes, attributesRes] = await Promise.all([
-          apiClient.get<{ defaultCurrency?: string }>('/api/v1/admin/settings'),
-          apiClient.get<{ data: Brand[] }>('/api/v1/admin/brands'),
-          apiClient.get<{ data: Category[] }>('/api/v1/admin/categories'),
-          apiClient.get<{ data: Attribute[] }>('/api/v1/admin/attributes'),
-        ]);
+        const settingsRes = await apiClient.get<{ defaultCurrency?: string }>('/api/v1/admin/settings');
         const currency = (settingsRes.defaultCurrency || 'AMD') as CurrencyCode;
         if (currency in CURRENCIES) {
           setDefaultCurrency(currency);
           logger.debug('✅ [ADMIN] Default currency loaded:', currency);
-        } else {
-          setDefaultCurrency('AMD');
         }
+      } catch (err) {
+        console.error('❌ [ADMIN] Error loading default currency:', err);
+        setDefaultCurrency('AMD');
+      }
+    };
+    
+    if (isLoggedIn && isAdmin) {
+      loadDefaultCurrency();
+    }
+  }, [isLoggedIn, isAdmin, setDefaultCurrency]);
+
+  // Fetch brands, categories, and attributes
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        logger.debug('📥 [ADMIN] Fetching brands, categories, and attributes...');
+        const [brandsRes, categoriesRes, attributesRes] = await Promise.all([
+          apiClient.get<{ data: Brand[] }>('/api/v1/admin/brands'),
+          apiClient.get<{ data: Category[] }>('/api/v1/admin/categories'),
+          apiClient.get<{ data: Attribute[] }>('/api/v1/admin/attributes'),
+        ]);
         setBrands(brandsRes.data || []);
         setCategories(categoriesRes.data || []);
         setAttributes(attributesRes.data || []);
@@ -140,13 +151,10 @@ export function useProductDataLoading({
         }
       } catch (err: any) {
         console.error('❌ [ADMIN] Error fetching data:', err);
-        setDefaultCurrency('AMD');
-      } finally {
-        setReferenceCatalogReady(true);
       }
     };
     fetchData();
-  }, [setBrands, setCategories, setAttributes, setReferenceCatalogReady, setDefaultCurrency]);
+  }, [setBrands, setCategories, setAttributes]);
 
   // Close category dropdown when clicking outside
   useEffect(() => {

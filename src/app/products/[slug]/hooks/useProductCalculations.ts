@@ -5,46 +5,20 @@ interface UseProductCalculationsProps {
   product: Product | null;
   currentVariant: ProductVariant | null;
   attributeGroups: Map<string, AttributeGroupValue[]>;
-  selectedAttributeValues: Map<string, string>;
+  selectedColor: string | null;
+  selectedSize: string | null;
 }
 
 export function useProductCalculations({
   product,
   currentVariant,
   attributeGroups,
-  selectedAttributeValues,
+  selectedColor,
+  selectedSize,
 }: UseProductCalculationsProps) {
-  const attributePriceAdjustment = useMemo(() => {
-    let sum = 0;
-    for (const [attrKey, raw] of selectedAttributeValues.entries()) {
-      if (attrKey === 'color' || attrKey === 'size') {
-        continue;
-      }
-      const group = attributeGroups.get(attrKey);
-      if (!group) {
-        continue;
-      }
-      const normalized = raw.toLowerCase().trim();
-      const entry = group.find(
-        (g) =>
-          (g.valueId !== undefined && g.valueId !== '' && g.valueId === raw) ||
-          g.value?.toLowerCase().trim() === normalized ||
-          g.label?.toLowerCase().trim() === normalized
-      );
-      sum += entry?.priceAdjustment ?? 0;
-    }
-    return sum;
-  }, [attributeGroups, selectedAttributeValues]);
-
-  const basePrice = currentVariant?.price || 0;
-  const price = basePrice + attributePriceAdjustment;
-  const originalPrice = currentVariant?.originalPrice != null
-    ? currentVariant.originalPrice + attributePriceAdjustment
-    : null;
-  const compareAtPrice =
-    currentVariant?.compareAtPrice != null
-      ? currentVariant.compareAtPrice + attributePriceAdjustment
-      : undefined;
+  const price = currentVariant?.price || 0;
+  const originalPrice = currentVariant?.originalPrice;
+  const compareAtPrice = currentVariant?.compareAtPrice;
   const discountPercent = currentVariant?.productDiscount || product?.productDiscount || null;
   const isOutOfStock = !currentVariant || currentVariant.stock <= 0;
 
@@ -74,6 +48,12 @@ export function useProductCalculations({
     return groups;
   }, [attributeGroups]);
 
+  const hasColorAttribute = colorGroups.length > 0 && colorGroups.some(g => g.stock > 0);
+  const hasSizeAttribute = sizeGroups.length > 0 && sizeGroups.some(g => g.stock > 0);
+  const needsColor = hasColorAttribute && !selectedColor;
+  const needsSize = hasSizeAttribute && !selectedSize;
+  const isVariationRequired = needsColor || needsSize;
+
   const unavailableAttributes = useMemo(() => {
     const unavailable = new Map<string, boolean>();
     if (!currentVariant || !product) return unavailable;
@@ -98,7 +78,8 @@ export function useProductCalculations({
     return unavailable;
   }, [currentVariant, attributeGroups, product]);
 
-  const canAddToCart = !isOutOfStock;
+  const hasUnavailableAttributes = unavailableAttributes.size > 0;
+  const canAddToCart = !isOutOfStock && !isVariationRequired && !hasUnavailableAttributes;
 
   return {
     price,
@@ -108,7 +89,9 @@ export function useProductCalculations({
     isOutOfStock,
     colorGroups,
     sizeGroups,
+    isVariationRequired,
     unavailableAttributes,
+    hasUnavailableAttributes,
     canAddToCart,
   };
 }

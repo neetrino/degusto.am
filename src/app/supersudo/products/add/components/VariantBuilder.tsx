@@ -71,14 +71,6 @@ export function VariantBuilder({
     <div>
       <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('admin.products.add.variantBuilder')}</h2>
       <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-6">
-        {generatedVariants.length === 0 && selectedAttributesForVariants.size > 0 && (
-          <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-6 text-center">
-            <p className="mb-4 text-sm text-gray-600">{t('admin.products.add.variantBuilderEmptyHint')}</p>
-            <Button type="button" variant="outline" onClick={onVariantAdd}>
-              {t('admin.products.add.addFirstVariant')}
-            </Button>
-          </div>
-        )}
         {/* Generated Variants Table */}
         {generatedVariants.length > 0 && (
           <div>
