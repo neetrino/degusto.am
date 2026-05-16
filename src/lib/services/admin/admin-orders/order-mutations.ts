@@ -1,4 +1,5 @@
 import { db } from "@white-shop/db";
+import { problemTypes } from "@/lib/http/problem-details";
 import { logger } from "../../../utils/logger";
 import type { UpdateOrderData } from "./types";
 
@@ -32,7 +33,7 @@ export async function deleteOrder(orderId: string) {
       logger.warn('Order not found', { orderId });
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Order not found",
         detail: `Order with id '${orderId}' does not exist`,
       };
@@ -96,7 +97,7 @@ export async function deleteOrder(orderId: string) {
       logger.warn('Prisma P2025: Record not found');
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Order not found",
         detail: `Order with id '${orderId}' does not exist`,
       };
@@ -107,7 +108,7 @@ export async function deleteOrder(orderId: string) {
       logger.warn('Prisma P2003: Foreign key constraint');
       throw {
         status: 409,
-        type: "https://api.shop.am/problems/conflict",
+        type: problemTypes.conflict,
         title: "Cannot delete order",
         detail: "Order has related records that cannot be deleted",
       };
@@ -116,7 +117,7 @@ export async function deleteOrder(orderId: string) {
     // Գեներիկ սխալ
     throw {
       status: 500,
-      type: "https://api.shop.am/problems/internal-error",
+      type: problemTypes.internalError,
       title: "Internal Server Error",
       detail: errorObj?.message || "Failed to delete order",
     };
@@ -136,7 +137,7 @@ export async function updateOrder(orderId: string, data: UpdateOrderData) {
     if (!existing) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Order not found",
         detail: `Order with id '${orderId}' does not exist`,
       };
@@ -150,7 +151,7 @@ export async function updateOrder(orderId: string, data: UpdateOrderData) {
     if (data.status !== undefined && !validStatuses.includes(data.status)) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation Error",
         detail: `Invalid status. Must be one of: ${validStatuses.join(', ')}`,
       };
@@ -159,7 +160,7 @@ export async function updateOrder(orderId: string, data: UpdateOrderData) {
     if (data.paymentStatus !== undefined && !validPaymentStatuses.includes(data.paymentStatus)) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation Error",
         detail: `Invalid paymentStatus. Must be one of: ${validPaymentStatuses.join(', ')}`,
       };
@@ -168,7 +169,7 @@ export async function updateOrder(orderId: string, data: UpdateOrderData) {
     if (data.fulfillmentStatus !== undefined && !validFulfillmentStatuses.includes(data.fulfillmentStatus)) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation Error",
         detail: `Invalid fulfillmentStatus. Must be one of: ${validFulfillmentStatuses.join(', ')}`,
       };
@@ -246,7 +247,7 @@ export async function updateOrder(orderId: string, data: UpdateOrderData) {
       // Record not found
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Not Found",
         detail: errorObj?.meta?.cause || "The requested order was not found",
       };
@@ -255,7 +256,7 @@ export async function updateOrder(orderId: string, data: UpdateOrderData) {
     // Generic database error
     throw {
       status: 500,
-      type: "https://api.shop.am/problems/internal-error",
+      type: problemTypes.internalError,
       title: "Database Error",
       detail: errorObj?.message || "An error occurred while updating the order",
     };

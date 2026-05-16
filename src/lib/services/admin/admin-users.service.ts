@@ -1,4 +1,5 @@
 import { db } from "@white-shop/db";
+import { problemTypes } from "@/lib/http/problem-details";
 import type { AdminUserUpdateInput } from "@/lib/schemas/admin.schema";
 
 class AdminUsersService {
@@ -80,7 +81,7 @@ class AdminUsersService {
     if (!user) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "User not found",
         detail: `User with id '${userId}' does not exist`,
       };

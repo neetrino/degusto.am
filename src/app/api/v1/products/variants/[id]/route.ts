@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import { parseRouteCatchError } from "@/lib/http/api-route-errors";
 import { db } from "@white-shop/db";
 import { logger } from "@/lib/utils/logger";
@@ -23,7 +24,7 @@ export async function GET(
     if (!variant) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/not-found",
+          type: problemTypes.notFound,
           title: "Variant not found",
           status: 404,
           detail: `Variant with id '${id}' not found`,
@@ -47,7 +48,7 @@ export async function GET(
     const e = parseRouteCatchError(error);
     return NextResponse.json(
       {
-        type: e.type ?? "https://api.shop.am/problems/internal-error",
+        type: e.type ?? problemTypes.internalError,
         title: e.title ?? "Internal Server Error",
         status: e.status ?? 500,
         detail: e.detail ?? e.message ?? "An error occurred",

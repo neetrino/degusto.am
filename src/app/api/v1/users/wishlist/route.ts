@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import { authenticateToken } from "@/lib/middleware/auth";
 import { usersService } from "@/lib/services/users.service";
 import { toApiError } from "@/lib/types/errors";
@@ -7,7 +8,7 @@ import { logger } from "@/lib/utils/logger";
 function unauthorizedResponse(req: NextRequest) {
   return NextResponse.json(
     {
-      type: "https://api.shop.am/problems/unauthorized",
+      type: problemTypes.unauthorized,
       title: "Unauthorized",
       status: 401,
       detail: "Authentication token required",

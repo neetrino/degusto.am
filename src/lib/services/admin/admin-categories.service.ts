@@ -1,4 +1,5 @@
 import { db } from "@white-shop/db";
+import { problemTypes } from "@/lib/http/problem-details";
 import { toSlug } from "@/lib/utils/slug";
 import { logger } from "@/lib/utils/logger";
 
@@ -122,7 +123,7 @@ class AdminCategoriesService {
       if (!parentCategory) {
         throw {
           status: 404,
-          type: "https://api.shop.am/problems/not-found",
+          type: problemTypes.notFound,
           title: "Parent category not found",
           detail: `Parent category with id '${data.parentId}' does not exist`,
         };
@@ -246,7 +247,7 @@ class AdminCategoriesService {
     if (!category) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Category not found",
         detail: `Category with id '${categoryId}' does not exist`,
       };
@@ -256,7 +257,7 @@ class AdminCategoriesService {
     if (data.parentId === categoryId) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/bad-request",
+        type: problemTypes.badRequest,
         title: "Invalid parent",
         detail: "Category cannot be its own parent",
       };
@@ -278,7 +279,7 @@ class AdminCategoriesService {
       if (!potentialParent) {
         throw {
           status: 404,
-          type: "https://api.shop.am/problems/not-found",
+          type: problemTypes.notFound,
           title: "Parent category not found",
           detail: `Parent category with id '${data.parentId}' does not exist`,
         };
@@ -289,7 +290,7 @@ class AdminCategoriesService {
       if (isChild) {
         throw {
           status: 400,
-          type: "https://api.shop.am/problems/bad-request",
+          type: problemTypes.badRequest,
           title: "Circular reference",
           detail: "Cannot set parent to a category that is a descendant of this category",
         };
@@ -315,7 +316,7 @@ class AdminCategoriesService {
           if (isDescendant) {
             throw {
               status: 400,
-              type: "https://api.shop.am/problems/bad-request",
+              type: problemTypes.badRequest,
               title: "Circular reference",
               detail: "Cannot set a descendant category as subcategory",
             };
@@ -456,7 +457,7 @@ class AdminCategoriesService {
     if (!category) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Category not found",
         detail: `Category with id '${categoryId}' does not exist`,
       };
@@ -467,7 +468,7 @@ class AdminCategoriesService {
     if (childrenCount > 0) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/bad-request",
+        type: problemTypes.badRequest,
         title: "Cannot delete category",
         detail: `This category has ${childrenCount} child categor${childrenCount > 1 ? 'ies' : 'y'}. Please delete or move child categories first.`,
         childrenCount,

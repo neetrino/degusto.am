@@ -1,5 +1,6 @@
 import { db } from "@white-shop/db";
 
+import { problemTypes } from "@/lib/http/problem-details";
 class CategoriesService {
   /**
    * Get category tree
@@ -99,7 +100,7 @@ class CategoriesService {
     if (!category) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Category not found",
         detail: `Category with slug '${slug}' does not exist or is not published`,
       };

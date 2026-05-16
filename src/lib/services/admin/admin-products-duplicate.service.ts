@@ -1,4 +1,5 @@
 import { db } from "@white-shop/db";
+import { problemTypes } from "@/lib/http/problem-details";
 import { logger } from "@/lib/utils/logger";
 import { adminProductsCreateService } from "./admin-products-create.service";
 import { getProductById } from "./admin-products-read/product-operations";
@@ -38,7 +39,7 @@ export async function duplicateProductAsDraft(sourceProductId: string): Promise<
   if (allTranslations.length === 0) {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/bad-request",
+      type: problemTypes.badRequest,
       title: "Bad Request",
       detail: "Product has no translations to duplicate",
     };
@@ -105,7 +106,7 @@ export async function duplicateProductAsDraft(sourceProductId: string): Promise<
   if (!created?.id) {
     throw {
       status: 500,
-      type: "https://api.shop.am/problems/internal-error",
+      type: problemTypes.internalError,
       title: "Internal Server Error",
       detail: "Duplicate create returned no product id",
     };

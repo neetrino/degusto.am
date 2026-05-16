@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import { authenticateToken } from "@/lib/middleware/auth";
 import { usersService } from "@/lib/services/users.service";
 import { toApiError } from "@/lib/types/errors";
@@ -10,7 +11,7 @@ export async function PUT(req: NextRequest) {
     if (!user) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/unauthorized",
+          type: problemTypes.unauthorized,
           title: "Unauthorized",
           status: 401,
           detail: "Authentication token required",
@@ -29,7 +30,7 @@ export async function PUT(req: NextRequest) {
     if (!oldPassword || typeof oldPassword !== 'string' || oldPassword.trim() === '') {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Current password (oldPassword or currentPassword) is required",
@@ -42,7 +43,7 @@ export async function PUT(req: NextRequest) {
     if (!newPassword || typeof newPassword !== 'string' || newPassword.trim() === '') {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "New password is required",
@@ -56,7 +57,7 @@ export async function PUT(req: NextRequest) {
     if (newPassword.length < 6) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "New password must be at least 6 characters long",

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import * as jose from "jose";
@@ -11,7 +12,7 @@ async function requireAdminAuth(request: NextRequest): Promise<NextResponse | nu
   if (!token) {
     return NextResponse.json(
       {
-        type: "https://api.shop.am/problems/unauthorized",
+        type: problemTypes.unauthorized,
         title: "Unauthorized",
         status: 401,
         detail: "Missing or invalid Authorization header",
@@ -24,7 +25,7 @@ async function requireAdminAuth(request: NextRequest): Promise<NextResponse | nu
   if (!secret) {
     return NextResponse.json(
       {
-        type: "https://api.shop.am/problems/internal-error",
+        type: problemTypes.internalError,
         title: "Internal Server Error",
         status: 500,
         detail: "Server configuration error",
@@ -40,7 +41,7 @@ async function requireAdminAuth(request: NextRequest): Promise<NextResponse | nu
   } catch {
     return NextResponse.json(
       {
-        type: "https://api.shop.am/problems/unauthorized",
+        type: problemTypes.unauthorized,
         title: "Unauthorized",
         status: 401,
         detail: "Invalid or expired token",
@@ -73,7 +74,7 @@ async function checkAuthRateLimit(request: NextRequest): Promise<NextResponse | 
   if (!success) {
     return NextResponse.json(
       {
-        type: "https://api.shop.am/problems/too-many-requests",
+        type: problemTypes.tooManyRequests,
         title: "Too Many Requests",
         status: 429,
         detail: "Too many login/register attempts. Try again later.",
@@ -126,7 +127,7 @@ export async function middleware(request: NextRequest) {
       if (!allowedOrigin) {
         return NextResponse.json(
           {
-            type: "https://api.shop.am/problems/forbidden",
+            type: problemTypes.forbidden,
             title: "Forbidden",
             status: 403,
             detail: "Origin is not allowed by CORS policy",

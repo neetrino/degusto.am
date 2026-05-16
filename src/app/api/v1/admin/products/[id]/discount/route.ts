@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import { parseRouteCatchError } from "@/lib/http/api-route-errors";
 import { authenticateToken, requireAdmin } from "@/lib/middleware/auth";
 import { adminService } from "@/lib/services/admin.service";
@@ -17,7 +18,7 @@ export async function PATCH(
     if (!user || !requireAdmin(user)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/forbidden",
+          type: problemTypes.forbidden,
           title: "Forbidden",
           status: 403,
           detail: "Admin access required",
@@ -42,7 +43,7 @@ export async function PATCH(
       logger.warn("[ADMIN PRODUCTS] Invalid discountPercent", { discountPercent });
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "discountPercent must be a number between 0 and 100",
@@ -63,7 +64,7 @@ export async function PATCH(
     const e = parseRouteCatchError(error);
     return NextResponse.json(
       {
-        type: e.type ?? "https://api.shop.am/problems/internal-error",
+        type: e.type ?? problemTypes.internalError,
         title: e.title ?? "Internal Server Error",
         status: e.status ?? 500,
         detail: e.detail ?? e.message ?? "An error occurred",

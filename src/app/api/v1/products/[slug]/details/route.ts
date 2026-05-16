@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import {
   STOREFRONT_CACHE_KEYS,
   STOREFRONT_CACHE_TTL,
@@ -52,7 +53,7 @@ export async function GET(
     if (err?.status === 404) {
       return NextResponse.json(
         buildLocalizedProblem(req, {
-          type: err.type || "https://api.shop.am/problems/not-found",
+          type: err.type || problemTypes.notFound,
           status: 404,
           titleKey: "notFoundTitle",
           detailKey: "notFoundDetail",
@@ -67,7 +68,7 @@ export async function GET(
     logger.error("GET product details failed", { error: message });
     return NextResponse.json(
       buildLocalizedProblem(req, {
-        type: "https://api.shop.am/problems/internal-error",
+        type: problemTypes.internalError,
         status: 500,
         titleKey: "internalErrorTitle",
         detailKey: "internalErrorDetail",

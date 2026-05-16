@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import { authenticateToken, requireAdmin } from "@/lib/middleware/auth";
 import { adminService } from "@/lib/services/admin.service";
 import { toApiError } from "@/lib/types/errors";
@@ -28,7 +29,7 @@ export async function GET(req: NextRequest) {
     if (!user || !requireAdmin(user)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/forbidden",
+          type: problemTypes.forbidden,
           title: "Forbidden",
           status: 403,
           detail: "Admin access required",
@@ -51,7 +52,7 @@ export async function GET(req: NextRequest) {
     if (!Number.isFinite(page)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Parameter 'page' must be a positive integer",
@@ -64,7 +65,7 @@ export async function GET(req: NextRequest) {
     if (!Number.isFinite(limit) || limit > 100) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Parameter 'limit' must be an integer between 1 and 100",
@@ -77,7 +78,7 @@ export async function GET(req: NextRequest) {
     if (status && !ORDER_STATUSES.includes(status as (typeof ORDER_STATUSES)[number])) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: `Parameter 'status' must be one of: ${ORDER_STATUSES.join(", ")}`,
@@ -90,7 +91,7 @@ export async function GET(req: NextRequest) {
     if (paymentStatus && !PAYMENT_STATUSES.includes(paymentStatus as (typeof PAYMENT_STATUSES)[number])) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: `Parameter 'paymentStatus' must be one of: ${PAYMENT_STATUSES.join(", ")}`,
@@ -103,7 +104,7 @@ export async function GET(req: NextRequest) {
     if (sortBy && !SORT_FIELDS.includes(sortBy as (typeof SORT_FIELDS)[number])) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: `Parameter 'sortBy' must be one of: ${SORT_FIELDS.join(", ")}`,
@@ -116,7 +117,7 @@ export async function GET(req: NextRequest) {
     if (sortOrder && !SORT_ORDERS.includes(sortOrder as (typeof SORT_ORDERS)[number])) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Parameter 'sortOrder' must be one of: asc, desc",

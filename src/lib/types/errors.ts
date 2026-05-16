@@ -3,6 +3,13 @@
  */
 
 import { Prisma } from "@prisma/client";
+import {
+  databaseUnavailableDetail,
+  problemTypes,
+  type ProblemDetails,
+} from "@/lib/http/problem-details";
+
+export { problemTypes, createProblem, type ProblemDetails } from "@/lib/http/problem-details";
 
 export interface ApiError {
   type?: string;
@@ -30,7 +37,7 @@ export class AppError extends Error implements ApiError {
   ) {
     super(message);
     this.name = 'AppError';
-    this.type = type || 'https://api.shop.am/problems/internal-error';
+    this.type = type || problemTypes.internalError;
     this.title = title || 'Internal Server Error';
     this.status = status;
     this.detail = detail || message;
@@ -82,11 +89,10 @@ function prismaKnownRequestToApiError(
 ): ApiError | null {
   if (PRISMA_DB_UNAVAILABLE_CODES.has(error.code)) {
     return {
-      type: "https://api.shop.am/problems/service-unavailable",
-      title: "Database temporarily unavailable",
+      type: problemTypes.serviceUnavailable,
+      title: "Service temporarily unavailable",
       status: 503,
-      detail:
-        "Could not connect to PostgreSQL. Check DATABASE_URL, VPN/firewall, and that the database is running.",
+      detail: databaseUnavailableDetail(),
       instance,
     };
   }
@@ -94,7 +100,7 @@ function prismaKnownRequestToApiError(
   if (error.code === "P2002") {
     const fields = formatPrismaUniqueTarget(error.meta);
     return {
-      type: "https://api.shop.am/problems/conflict",
+      type: problemTypes.conflict,
       title: "Conflict",
       status: 409,
       detail: `Unique constraint failed (${fields}). ${error.message}`,
@@ -104,7 +110,7 @@ function prismaKnownRequestToApiError(
 
   if (error.code === "P2003") {
     return {
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Invalid reference",
       status: 400,
       detail:
@@ -115,7 +121,7 @@ function prismaKnownRequestToApiError(
 
   if (error.code === "P2025") {
     return {
-      type: "https://api.shop.am/problems/not-found",
+      type: problemTypes.notFound,
       title: "Not found",
       status: 404,
       detail: "The requested record was not found.",
@@ -147,7 +153,7 @@ export function toApiError(error: unknown, instance?: string): ApiError {
     const status =
       typeof error.status === "number" ? error.status : 500;
     return {
-      type: error.type || 'https://api.shop.am/problems/internal-error',
+      type: error.type || problemTypes.internalError,
       title: error.title || 'Internal Server Error',
       status,
       detail: shouldMaskErrorDetail(status)
@@ -168,7 +174,7 @@ export function toApiError(error: unknown, instance?: string): ApiError {
   if (error instanceof Prisma.PrismaClientValidationError) {
     const status = 400;
     return {
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation error",
       status,
       detail: shouldMaskErrorDetail(status)
@@ -181,11 +187,11 @@ export function toApiError(error: unknown, instance?: string): ApiError {
   if (error instanceof Prisma.PrismaClientInitializationError) {
     const status = 503;
     return {
-      type: "https://api.shop.am/problems/service-unavailable",
-      title: "Database temporarily unavailable",
+      type: problemTypes.serviceUnavailable,
+      title: "Service temporarily unavailable",
       status,
       detail: shouldMaskErrorDetail(status)
-        ? "An internal error occurred"
+        ? databaseUnavailableDetail()
         : error.message || "Database client failed to initialize.",
       instance,
     };
@@ -194,7 +200,7 @@ export function toApiError(error: unknown, instance?: string): ApiError {
   if (error instanceof Error) {
     const status = 500;
     return {
-      type: 'https://api.shop.am/problems/internal-error',
+      type: problemTypes.internalError,
       title: 'Internal Server Error',
       status,
       detail: shouldMaskErrorDetail(status)
@@ -205,14 +211,10 @@ export function toApiError(error: unknown, instance?: string): ApiError {
   }
 
   return {
-    type: 'https://api.shop.am/problems/internal-error',
+    type: problemTypes.internalError,
     title: 'Internal Server Error',
     status: 500,
     detail: 'An unknown error occurred',
     instance,
   };
 }
-
-
-
-

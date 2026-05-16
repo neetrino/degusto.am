@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import { invalidateStorefrontProductFilterCaches } from "@/lib/cache/storefront-cache";
 import { parseRouteCatchError } from "@/lib/http/api-route-errors";
 import { authenticateToken, requireAdmin } from "@/lib/middleware/auth";
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest) {
       logger.debug('❌ [PRICE FILTER API] Unauthorized access attempt');
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/forbidden",
+          type: problemTypes.forbidden,
           title: "Forbidden",
           status: 403,
           detail: "Admin access required",
@@ -35,7 +36,7 @@ export async function GET(req: NextRequest) {
     const e = parseRouteCatchError(error);
     return NextResponse.json(
       {
-        type: e.type ?? "https://api.shop.am/problems/internal-error",
+        type: e.type ?? problemTypes.internalError,
         title: e.title ?? "Internal Server Error",
         status: e.status ?? 500,
         detail: e.detail ?? e.message ?? "An error occurred",
@@ -58,7 +59,7 @@ export async function PUT(req: NextRequest) {
       logger.debug('❌ [PRICE FILTER API] Unauthorized access attempt');
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/forbidden",
+          type: problemTypes.forbidden,
           title: "Forbidden",
           status: 403,
           detail: "Admin access required",
@@ -75,7 +76,7 @@ export async function PUT(req: NextRequest) {
     if (data.minPrice !== null && data.minPrice !== undefined && (typeof data.minPrice !== 'number' || data.minPrice < 0)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "minPrice must be a valid positive number or null",
@@ -88,7 +89,7 @@ export async function PUT(req: NextRequest) {
     if (data.maxPrice !== null && data.maxPrice !== undefined && (typeof data.maxPrice !== 'number' || data.maxPrice < 0)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "maxPrice must be a valid positive number or null",
@@ -101,7 +102,7 @@ export async function PUT(req: NextRequest) {
     if (data.stepSize !== null && data.stepSize !== undefined && (typeof data.stepSize !== 'number' || data.stepSize <= 0)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "stepSize must be a valid positive number or null",
@@ -116,7 +117,7 @@ export async function PUT(req: NextRequest) {
       if (typeof data.stepSizePerCurrency !== 'object') {
         return NextResponse.json(
           {
-            type: "https://api.shop.am/problems/validation-error",
+            type: problemTypes.validationError,
             title: "Validation Error",
             status: 400,
             detail: "stepSizePerCurrency must be an object map of currency codes to positive numbers or null",
@@ -131,7 +132,7 @@ export async function PUT(req: NextRequest) {
         if (!allowedCurrencies.includes(code)) {
           return NextResponse.json(
             {
-              type: "https://api.shop.am/problems/validation-error",
+              type: problemTypes.validationError,
               title: "Validation Error",
               status: 400,
               detail: `Unsupported currency code in stepSizePerCurrency: ${code}`,
@@ -143,7 +144,7 @@ export async function PUT(req: NextRequest) {
         if (value !== null && value !== undefined && (typeof value !== 'number' || value <= 0)) {
           return NextResponse.json(
             {
-              type: "https://api.shop.am/problems/validation-error",
+              type: problemTypes.validationError,
               title: "Validation Error",
               status: 400,
               detail: `stepSizePerCurrency.${code} must be a valid positive number or null`,
@@ -162,7 +163,7 @@ export async function PUT(req: NextRequest) {
     ) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "minPrice must be less than maxPrice",
@@ -181,7 +182,7 @@ export async function PUT(req: NextRequest) {
     const e = parseRouteCatchError(error);
     return NextResponse.json(
       {
-        type: e.type ?? "https://api.shop.am/problems/internal-error",
+        type: e.type ?? problemTypes.internalError,
         title: e.title ?? "Internal Server Error",
         status: e.status ?? 500,
         detail: e.detail ?? e.message ?? "An error occurred",

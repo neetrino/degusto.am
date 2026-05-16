@@ -1,4 +1,5 @@
 import { db } from "@white-shop/db";
+import { problemTypes } from "@/lib/http/problem-details";
 import { logger } from "@/lib/utils/logger";
 
 class AdminProductsDeleteService {
@@ -13,7 +14,7 @@ class AdminProductsDeleteService {
     if (!product) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Product not found",
         detail: `Product with id '${productId}' does not exist`,
       };
@@ -44,7 +45,7 @@ class AdminProductsDeleteService {
       console.error('❌ [ADMIN PRODUCTS DELETE SERVICE] Product not found:', productId);
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Product not found",
         detail: `Product with id '${productId}' does not exist`,
       };

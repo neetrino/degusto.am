@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import { authenticateToken, requireAdmin } from "@/lib/middleware/auth";
 import { adminService } from "@/lib/services/admin.service";
 import {
@@ -39,7 +40,7 @@ function validateAndNormalizeFilters(searchParams: URLSearchParams): {
   if (pageParam && (isNaN(page) || page < 1)) {
     return {
       error: {
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation Error",
         status: 400,
         detail: "Parameter 'page' must be a positive integer",
@@ -53,7 +54,7 @@ function validateAndNormalizeFilters(searchParams: URLSearchParams): {
   if (limitParam && (isNaN(limit) || limit < 1 || limit > 100)) {
     return {
       error: {
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation Error",
         status: 400,
         detail: "Parameter 'limit' must be an integer between 1 and 100",
@@ -69,7 +70,7 @@ function validateAndNormalizeFilters(searchParams: URLSearchParams): {
     if (isNaN(minPrice) || minPrice < 0) {
       return {
         error: {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Parameter 'minPrice' must be a non-negative number",
@@ -86,7 +87,7 @@ function validateAndNormalizeFilters(searchParams: URLSearchParams): {
     if (isNaN(maxPrice) || maxPrice < 0) {
       return {
         error: {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Parameter 'maxPrice' must be a non-negative number",
@@ -99,7 +100,7 @@ function validateAndNormalizeFilters(searchParams: URLSearchParams): {
   if (minPrice !== undefined && maxPrice !== undefined && minPrice > maxPrice) {
     return {
       error: {
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation Error",
         status: 400,
         detail: "Parameter 'minPrice' cannot be greater than 'maxPrice'",
@@ -150,7 +151,7 @@ export async function GET(req: NextRequest) {
       logger.warn("Unauthorized admin products access attempt", { userId: user?.id });
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/forbidden",
+          type: problemTypes.forbidden,
           title: "Forbidden",
           status: 403,
           detail: "Admin access required",
@@ -223,7 +224,7 @@ export async function POST(req: NextRequest) {
       logger.warn("Unauthorized admin product creation attempt", { userId: user?.id });
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/forbidden",
+          type: problemTypes.forbidden,
           title: "Forbidden",
           status: 403,
           detail: "Admin access required",
@@ -241,7 +242,7 @@ export async function POST(req: NextRequest) {
       logger.warn("Admin product creation JSON parse error", { error: parseError });
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Invalid JSON in request body",
@@ -254,7 +255,7 @@ export async function POST(req: NextRequest) {
     if (payloadContainsBase64Images(body) && !canUploadProductImagesToR2()) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/config-error",
+          type: problemTypes.configError,
           title: "Storage not configured",
           status: 503,
           detail:
@@ -273,7 +274,7 @@ export async function POST(req: NextRequest) {
     if (!body.title || typeof body.title !== 'string' || body.title.trim().length === 0) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Field 'title' is required and must be a non-empty string",
@@ -286,7 +287,7 @@ export async function POST(req: NextRequest) {
     if (!body.slug || typeof body.slug !== 'string' || body.slug.trim().length === 0) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Field 'slug' is required and must be a non-empty string",
@@ -299,7 +300,7 @@ export async function POST(req: NextRequest) {
     if (typeof body.published !== 'boolean') {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Field 'published' is required and must be a boolean",
@@ -312,7 +313,7 @@ export async function POST(req: NextRequest) {
     if (!body.locale || typeof body.locale !== 'string') {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Field 'locale' is required and must be a string",
@@ -325,7 +326,7 @@ export async function POST(req: NextRequest) {
     if (!Array.isArray(body.variants) || body.variants.length === 0) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Field 'variants' is required and must be a non-empty array",

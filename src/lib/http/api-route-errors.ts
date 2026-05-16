@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildDatabaseUrlLogFields } from "@white-shop/db";
 import { logger } from "@/lib/utils/logger";
-
-const SERVICE_UNAVAILABLE = "https://api.shop.am/problems/service-unavailable";
-const INTERNAL = "https://api.shop.am/problems/internal-error";
+import {
+  internalErrorResponse,
+  serviceUnavailableResponse,
+} from "@/lib/http/problem-response";
 
 /** Fields sometimes attached to thrown errors for Problem Details responses */
 export type RouteCatchFields = {
@@ -78,17 +79,7 @@ export function apiRouteErrorResponse(
         (process.env.DIRECT_URL ?? "").trim()
       ),
     });
-    return NextResponse.json(
-      {
-        type: SERVICE_UNAVAILABLE,
-        title: "Database temporarily unavailable",
-        status: 503,
-        detail:
-          "Could not connect to PostgreSQL. Check DATABASE_URL, VPN/firewall, and that the database is running (e.g. wake a paused Neon branch).",
-        instance,
-      },
-      { status: 503, headers: { "Retry-After": "15" } }
-    );
+    return serviceUnavailableResponse(instance);
   }
 
   logger.error(logLabel, error);
@@ -99,14 +90,5 @@ export function apiRouteErrorResponse(
         ? error.message
         : "An error occurred";
 
-  return NextResponse.json(
-    {
-      type: INTERNAL,
-      title: "Internal Server Error",
-      status: 500,
-      detail: safeDetail,
-      instance,
-    },
-    { status: 500 }
-  );
+  return internalErrorResponse(instance, safeDetail);
 }

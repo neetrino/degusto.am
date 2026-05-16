@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import { parseRouteCatchError } from "@/lib/http/api-route-errors";
 import { reviewsService } from "@/lib/services/reviews.service";
 import { authenticateToken } from "@/lib/middleware/auth";
@@ -20,7 +21,7 @@ export async function PUT(
     if (!user) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/unauthorized",
+          type: problemTypes.unauthorized,
           title: "Unauthorized",
           status: 401,
           detail: "Authentication required",
@@ -39,7 +40,7 @@ export async function PUT(
     if (body.rating !== undefined && (typeof body.rating !== 'number' || body.rating < 1 || body.rating > 5)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Rating must be between 1 and 5",
@@ -63,7 +64,7 @@ export async function PUT(
     const e = parseRouteCatchError(error);
     return NextResponse.json(
       {
-        type: e.type ?? "https://api.shop.am/problems/internal-error",
+        type: e.type ?? problemTypes.internalError,
         title: e.title ?? "Internal Server Error",
         status: e.status ?? 500,
         detail: e.detail ?? e.message ?? "An error occurred",
@@ -88,7 +89,7 @@ export async function DELETE(
     if (!user) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/unauthorized",
+          type: problemTypes.unauthorized,
           title: "Unauthorized",
           status: 401,
           detail: "Authentication required",
@@ -112,7 +113,7 @@ export async function DELETE(
     const e = parseRouteCatchError(error);
     return NextResponse.json(
       {
-        type: e.type ?? "https://api.shop.am/problems/internal-error",
+        type: e.type ?? problemTypes.internalError,
         title: e.title ?? "Internal Server Error",
         status: e.status ?? 500,
         detail: e.detail ?? e.message ?? "An error occurred",

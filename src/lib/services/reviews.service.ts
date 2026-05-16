@@ -1,4 +1,5 @@
 import { db } from "@white-shop/db";
+import { problemTypes } from "@/lib/http/problem-details";
 import { Prisma } from "@prisma/client";
 import { ensureProductReviewsTable } from "../utils/db-ensure";
 import { logger } from "@/lib/utils/logger";
@@ -184,7 +185,7 @@ class ReviewsService {
     if (!data.rating || data.rating < 1 || data.rating > 5) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation Error",
         detail: "Rating must be between 1 and 5",
       };
@@ -199,7 +200,7 @@ class ReviewsService {
     if (!product) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Product not found",
         detail: `Product with ID ${productId} does not exist`,
       };
@@ -218,7 +219,7 @@ class ReviewsService {
     if (existingReview) {
       throw {
         status: 409,
-        type: "https://api.shop.am/problems/conflict",
+        type: problemTypes.conflict,
         title: "Review already exists",
         detail: "You have already reviewed this product. You can update your existing review.",
       };
@@ -279,7 +280,7 @@ class ReviewsService {
     if (!review) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Review not found",
       };
     }
@@ -287,7 +288,7 @@ class ReviewsService {
     if (review.userId !== userId) {
       throw {
         status: 403,
-        type: "https://api.shop.am/problems/forbidden",
+        type: problemTypes.forbidden,
         title: "Forbidden",
         detail: "You can only update your own reviews",
       };
@@ -297,7 +298,7 @@ class ReviewsService {
     if (data.rating !== undefined && (data.rating < 1 || data.rating > 5)) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation Error",
         detail: "Rating must be between 1 and 5",
       };
@@ -352,7 +353,7 @@ class ReviewsService {
     if (!review) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Review not found",
       };
     }
@@ -360,7 +361,7 @@ class ReviewsService {
     if (review.userId !== userId) {
       throw {
         status: 403,
-        type: "https://api.shop.am/problems/forbidden",
+        type: problemTypes.forbidden,
         title: "Forbidden",
         detail: "You can only delete your own reviews",
       };

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import { db } from "@white-shop/db";
 import { logger } from "@/lib/utils/logger";
 import { isValidEmail } from "@/lib/utils/email";
@@ -16,7 +17,7 @@ export async function POST(req: NextRequest) {
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Field 'name' is required",
@@ -29,7 +30,7 @@ export async function POST(req: NextRequest) {
     if (!email || typeof email !== 'string' || email.trim().length === 0) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Field 'email' is required",
@@ -42,7 +43,7 @@ export async function POST(req: NextRequest) {
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Field 'message' is required",
@@ -56,7 +57,7 @@ export async function POST(req: NextRequest) {
     if (!isValidEmail(email)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Invalid email format",
@@ -98,7 +99,7 @@ export async function POST(req: NextRequest) {
     logger.error("Contact form error", { error });
     return NextResponse.json(
       {
-        type: "https://api.shop.am/problems/internal-error",
+        type: problemTypes.internalError,
         title: "Internal Server Error",
         status: 500,
         detail: errorMessage || "An error occurred while submitting the contact form",

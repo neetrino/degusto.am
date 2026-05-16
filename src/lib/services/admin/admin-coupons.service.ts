@@ -1,4 +1,5 @@
 import { db } from "@white-shop/db";
+import { problemTypes } from "@/lib/http/problem-details";
 import { Prisma } from "@prisma/client";
 import { COUPON_CODE_REGEX } from "@/lib/coupon-code-format";
 
@@ -37,7 +38,7 @@ function toIsoOrNull(value: string | null | undefined): string | null {
   if (Number.isNaN(date.getTime())) {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation Error",
       detail: "Invalid date format in startsAt/expiresAt",
     };
@@ -50,7 +51,7 @@ function normalizeCode(code: unknown): string {
   if (typeof code !== "string") {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation Error",
       detail: "Field 'code' must be a string",
     };
@@ -60,7 +61,7 @@ function normalizeCode(code: unknown): string {
   if (!COUPON_CODE_REGEX.test(normalized)) {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation Error",
       detail: "Field 'code' must match /^[a-zA-Z0-9_-]{3,32}$/ (trimmed)",
     };
@@ -78,7 +79,7 @@ function normalizeMutationInput(
   if (discountType !== "percent" && discountType !== "fixed") {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation Error",
       detail: "Field 'discountType' must be either 'percent' or 'fixed'",
     };
@@ -88,7 +89,7 @@ function normalizeMutationInput(
   if (!Number.isFinite(rawDiscountValue) || rawDiscountValue < 0) {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation Error",
       detail: "Field 'discountValue' must be a non-negative number",
     };
@@ -97,7 +98,7 @@ function normalizeMutationInput(
   if (discountType === "percent" && rawDiscountValue > 100) {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation Error",
       detail: "Percent coupon cannot be greater than 100",
     };
@@ -110,7 +111,7 @@ function normalizeMutationInput(
   if (minOrderAmount !== null && (!Number.isFinite(minOrderAmount) || minOrderAmount < 0)) {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation Error",
       detail: "Field 'minOrderAmount' must be a non-negative number when provided",
     };
@@ -121,7 +122,7 @@ function normalizeMutationInput(
   if (startsAt && expiresAt && new Date(startsAt) > new Date(expiresAt)) {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation Error",
       detail: "startsAt cannot be greater than expiresAt",
     };
@@ -142,7 +143,7 @@ function normalizeMutationInput(
   ) {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation Error",
       detail:
         "Field 'maxUsesPerUser' must be a positive integer when provided",
@@ -227,7 +228,7 @@ class AdminCouponsService {
     if (coupons.some((coupon) => coupon.code === payload.code)) {
       throw {
         status: 409,
-        type: "https://api.shop.am/problems/conflict",
+        type: problemTypes.conflict,
         title: "Conflict",
         detail: `Coupon '${payload.code}' already exists`,
       };
@@ -245,7 +246,7 @@ class AdminCouponsService {
     if (index < 0) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Coupon not found",
         detail: `Coupon '${couponCode}' does not exist`,
       };
@@ -282,7 +283,7 @@ class AdminCouponsService {
     if (nextCatalog.length === coupons.length) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Coupon not found",
         detail: `Coupon '${couponCode}' does not exist`,
       };

@@ -1,4 +1,5 @@
 import { db } from "@white-shop/db";
+import { problemTypes } from "@/lib/http/problem-details";
 import { logger } from "../../../utils/logger";
 import type { OrderFilters } from "./types";
 import { buildOrderWhereClause, buildOrderByClause } from "./query-builder";
@@ -106,7 +107,7 @@ export async function getOrderById(orderId: string) {
   if (!order) {
     throw {
       status: 404,
-      type: "https://api.shop.am/problems/not-found",
+      type: problemTypes.notFound,
       title: "Order not found",
       detail: `Order with id '${orderId}' does not exist`,
     };

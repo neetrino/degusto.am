@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import {
   STOREFRONT_CACHE_KEYS,
   STOREFRONT_CACHE_TTL,
@@ -33,7 +34,7 @@ export async function GET(
     logger.error("GET product related failed", { error: message });
     return NextResponse.json(
       {
-        type: "https://api.shop.am/problems/internal-error",
+        type: problemTypes.internalError,
         title: "Internal Server Error",
         status: 500,
         detail: message,

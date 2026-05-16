@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import { resolveStorefrontLocaleFromSearchParams } from "@/lib/i18n/locale";
 import { parseRouteCatchError } from "@/lib/http/api-route-errors";
 import { reviewsService } from "@/lib/services/reviews.service";
@@ -31,7 +32,7 @@ export async function GET(
     if (!product || !product.id) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/not-found",
+          type: problemTypes.notFound,
           title: "Product not found",
           status: 404,
           detail: `Product with slug '${slug}' does not exist`,
@@ -47,7 +48,7 @@ export async function GET(
       if (!user) {
         return NextResponse.json(
           {
-            type: "https://api.shop.am/problems/unauthorized",
+            type: problemTypes.unauthorized,
             title: "Unauthorized",
             status: 401,
             detail: "Authentication required",
@@ -72,7 +73,7 @@ export async function GET(
     const e = parseRouteCatchError(error);
     return NextResponse.json(
       {
-        type: e.type ?? "https://api.shop.am/problems/internal-error",
+        type: e.type ?? problemTypes.internalError,
         title: e.title ?? "Internal Server Error",
         status: e.status ?? 500,
         detail: e.detail ?? e.message ?? "An error occurred",
@@ -97,7 +98,7 @@ export async function POST(
     if (!user) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/unauthorized",
+          type: problemTypes.unauthorized,
           title: "Unauthorized",
           status: 401,
           detail: "Authentication required",
@@ -119,7 +120,7 @@ export async function POST(
     if (!product || !product.id) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/not-found",
+          type: problemTypes.notFound,
           title: "Product not found",
           status: 404,
           detail: `Product with slug '${slug}' does not exist`,
@@ -133,7 +134,7 @@ export async function POST(
     if (!body.rating || typeof body.rating !== 'number') {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Rating is required and must be a number",
@@ -146,7 +147,7 @@ export async function POST(
     if (body.rating < 1 || body.rating > 5) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Rating must be between 1 and 5",
@@ -170,7 +171,7 @@ export async function POST(
     const e = parseRouteCatchError(error);
     return NextResponse.json(
       {
-        type: e.type ?? "https://api.shop.am/problems/internal-error",
+        type: e.type ?? problemTypes.internalError,
         title: e.title ?? "Internal Server Error",
         status: e.status ?? 500,
         detail: e.detail ?? e.message ?? "An error occurred",

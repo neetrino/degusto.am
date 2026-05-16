@@ -1,4 +1,5 @@
 import { db } from "@white-shop/db";
+import { problemTypes } from "@/lib/http/problem-details";
 import { COUPON_CODE_REGEX } from "@/lib/coupon-code-format";
 
 type AnalyticsPeriod = "day" | "week" | "month";
@@ -60,7 +61,7 @@ function normalizePeriod(period: string): AnalyticsPeriod {
   }
   throw {
     status: 400,
-    type: "https://api.shop.am/problems/validation-error",
+    type: problemTypes.validationError,
     title: "Validation Error",
     detail: "period must be one of: day, week, month",
   };

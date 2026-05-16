@@ -1,4 +1,5 @@
 import { db } from "@white-shop/db";
+import { problemTypes } from "@/lib/http/problem-details";
 import * as bcrypt from "bcryptjs";
 
 interface AddressMutationInput {
@@ -95,7 +96,7 @@ function normalizeAddressInput(data: unknown): AddressMutationInput {
   if (!data || typeof data !== "object") {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation Error",
       detail: "Address payload must be an object",
     };
@@ -109,7 +110,7 @@ function normalizeAddressInput(data: unknown): AddressMutationInput {
   if (!addressLine1) {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation Error",
       detail: "addressLine1 is required",
     };
@@ -118,7 +119,7 @@ function normalizeAddressInput(data: unknown): AddressMutationInput {
   if (!city) {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation Error",
       detail: "city is required",
     };
@@ -128,7 +129,7 @@ function normalizeAddressInput(data: unknown): AddressMutationInput {
   if (!/^[A-Z]{2,3}$/.test(countryCode)) {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation Error",
       detail: "countryCode must be a valid 2-3 letter code",
     };
@@ -153,7 +154,7 @@ function normalizeProfileInput(data: unknown): ProfileMutationInput {
   if (!data || typeof data !== "object") {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation Error",
       detail: "Profile payload must be an object",
     };
@@ -168,7 +169,7 @@ function normalizeProfileInput(data: unknown): ProfileMutationInput {
   if (email && !isSimpleValidEmail(email)) {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation Error",
       detail: "Email format is invalid",
     };
@@ -179,7 +180,7 @@ function normalizeProfileInput(data: unknown): ProfileMutationInput {
     if (digits.length < 6) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation Error",
         detail: "Phone format is invalid",
       };
@@ -189,7 +190,7 @@ function normalizeProfileInput(data: unknown): ProfileMutationInput {
   if (localeRaw && !/^[a-z]{2}(?:-[A-Z]{2})?$/.test(localeRaw)) {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation Error",
       detail: "Locale format is invalid",
     };
@@ -227,7 +228,7 @@ function normalizeWishlistIds(input: unknown): string[] {
   if (!Array.isArray(input)) {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation Error",
       detail: "ids must be an array of product ids",
     };
@@ -331,7 +332,7 @@ class UsersService {
     if (!normalizedProductId) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation Error",
         detail: "productId is required",
       };
@@ -348,7 +349,7 @@ class UsersService {
     if (!product) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Product not found",
       };
     }
@@ -366,7 +367,7 @@ class UsersService {
     if (!normalizedProductId) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation Error",
         detail: "productId is required",
       };
@@ -402,7 +403,7 @@ class UsersService {
     if (!user || user.deletedAt) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "User not found",
       };
     }
@@ -433,7 +434,7 @@ class UsersService {
     if (!current || current.deletedAt) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "User not found",
       };
     }
@@ -457,7 +458,7 @@ class UsersService {
       if (existing) {
         throw {
           status: 409,
-          type: "https://api.shop.am/problems/conflict",
+          type: problemTypes.conflict,
           title: "Conflict",
           detail: "User with this email or phone already exists",
         };
@@ -501,7 +502,7 @@ class UsersService {
     if (!oldPassword || typeof oldPassword !== 'string' || oldPassword.trim() === '') {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation Error",
         detail: "Old password is required and must be a non-empty string",
       };
@@ -510,7 +511,7 @@ class UsersService {
     if (!newPassword || typeof newPassword !== 'string' || newPassword.trim() === '') {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation Error",
         detail: "New password is required and must be a non-empty string",
       };
@@ -519,7 +520,7 @@ class UsersService {
     if (oldPassword.trim() === newPassword.trim()) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation Error",
         detail: "New password must be different from current password",
       };
@@ -536,7 +537,7 @@ class UsersService {
     if (!user || !user.passwordHash) {
       throw {
         status: 401,
-        type: "https://api.shop.am/problems/unauthorized",
+        type: problemTypes.unauthorized,
         title: "Invalid credentials",
         detail: "User not found or password not set",
       };
@@ -546,7 +547,7 @@ class UsersService {
     if (typeof user.passwordHash !== 'string' || user.passwordHash.trim() === '') {
       throw {
         status: 500,
-        type: "https://api.shop.am/problems/internal-error",
+        type: problemTypes.internalError,
         title: "Internal Server Error",
         detail: "User password hash is invalid",
       };
@@ -557,7 +558,7 @@ class UsersService {
       if (!isValid) {
         throw {
           status: 401,
-          type: "https://api.shop.am/problems/unauthorized",
+          type: problemTypes.unauthorized,
           title: "Invalid password",
           detail: "The old password is incorrect",
         };
@@ -573,7 +574,7 @@ class UsersService {
       });
       throw {
         status: 500,
-        type: "https://api.shop.am/problems/internal-error",
+        type: problemTypes.internalError,
         title: "Internal Server Error",
         detail: "Failed to verify password",
       };
@@ -596,7 +597,7 @@ class UsersService {
       });
       throw {
         status: 500,
-        type: "https://api.shop.am/problems/internal-error",
+        type: problemTypes.internalError,
         title: "Internal Server Error",
         detail: "Failed to hash new password",
       };
@@ -640,7 +641,7 @@ class UsersService {
     if (!user || user.deletedAt) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "User not found",
       };
     }
@@ -652,7 +653,7 @@ class UsersService {
       if (!password) {
         throw {
           status: 400,
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           detail: "Current password is required to delete your account",
         };
@@ -661,7 +662,7 @@ class UsersService {
       if (!isValid) {
         throw {
           status: 401,
-          type: "https://api.shop.am/problems/unauthorized",
+          type: problemTypes.unauthorized,
           title: "Invalid password",
           detail: "The password you entered is incorrect",
         };
@@ -672,7 +673,7 @@ class UsersService {
       if (!email && !phone) {
         throw {
           status: 400,
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           detail: "This account cannot be deleted automatically. Please contact support.",
         };
@@ -681,7 +682,7 @@ class UsersService {
       if (!confirmation) {
         throw {
           status: 400,
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           detail: "Confirmation is required: enter the email or phone on this account",
         };
@@ -694,7 +695,7 @@ class UsersService {
       if (!emailMatch && !phoneMatch) {
         throw {
           status: 401,
-          type: "https://api.shop.am/problems/unauthorized",
+          type: problemTypes.unauthorized,
           title: "Confirmation does not match",
           detail: "The value you entered does not match your email or phone",
         };
@@ -764,7 +765,7 @@ class UsersService {
     if (!address) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Address not found",
       };
     }
@@ -825,7 +826,7 @@ class UsersService {
     if (!address) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Address not found",
       };
     }
@@ -863,7 +864,7 @@ class UsersService {
     if (!target) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Address not found",
       };
     }

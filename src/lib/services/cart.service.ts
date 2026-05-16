@@ -1,4 +1,5 @@
 import { db } from "@white-shop/db";
+import { problemTypes } from "@/lib/http/problem-details";
 import { Prisma } from "@prisma/client";
 import { logger } from "../utils/logger";
 import { extractMediaUrl } from "../utils/extractMediaUrl";
@@ -290,7 +291,7 @@ class CartService {
     if (!variantId || !productId) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation failed",
         detail: "variantId and productId are required",
       };
@@ -347,7 +348,7 @@ class CartService {
     if (!variant || !variant.published || variant.productId !== productId) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Variant not found",
       };
     }
@@ -375,7 +376,7 @@ class CartService {
       });
       throw {
         status: 422,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Insufficient stock",
         detail: `No more stock available. Maximum available: ${variant.stock}, already in cart: ${existingItem?.quantity || 0}, requested: ${quantity}`,
       };
@@ -481,7 +482,7 @@ class CartService {
     if (!quantity || quantity < 1) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation failed",
         detail: "quantity must be at least 1",
       };
@@ -506,7 +507,7 @@ class CartService {
     if (!cart || cart.items.length === 0) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Cart item not found",
       };
     }
@@ -519,7 +520,7 @@ class CartService {
     if (!variant || variant.stock < quantity) {
       throw {
         status: 422,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Insufficient stock",
         detail: `Requested quantity (${quantity}) exceeds available stock (${variant?.stock || 0})`,
       };
@@ -556,7 +557,7 @@ class CartService {
     if (!cart) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Cart item not found",
       };
     }

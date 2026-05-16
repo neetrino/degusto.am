@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import { authenticateToken, requireAdmin } from "@/lib/middleware/auth";
 import { adminService } from "@/lib/services/admin.service";
 import { safeParseAdminOrderUpdate } from "@/lib/schemas/admin.schema";
@@ -12,7 +13,7 @@ function getValidatedOrderId(rawId: unknown) {
 
   throw {
     status: 400,
-    type: "https://api.shop.am/problems/bad-request",
+    type: problemTypes.badRequest,
     title: "Bad Request",
     detail: "Order ID is required and must be a valid string",
   };
@@ -31,7 +32,7 @@ export async function GET(
     if (!user || !requireAdmin(user)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/forbidden",
+          type: problemTypes.forbidden,
           title: "Forbidden",
           status: 403,
           detail: "Admin access required",
@@ -69,7 +70,7 @@ export async function PUT(
     if (!user || !requireAdmin(user)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/forbidden",
+          type: problemTypes.forbidden,
           title: "Forbidden",
           status: 403,
           detail: "Admin access required",
@@ -89,7 +90,7 @@ export async function PUT(
       logger.warn("Admin order update JSON parse error", { parseError });
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Invalid JSON in request body",
@@ -108,7 +109,7 @@ export async function PUT(
           .join("; ") || parsed.error.message;
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail,
@@ -143,7 +144,7 @@ export async function DELETE(
     if (!user || !requireAdmin(user)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/forbidden",
+          type: problemTypes.forbidden,
           title: "Forbidden",
           status: 403,
           detail: "Admin access required",

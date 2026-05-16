@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import { resolveFixedDeliveryFees } from "@/lib/delivery-rules";
 import { logger } from "@/lib/utils/logger";
 
@@ -13,7 +14,7 @@ export async function GET(req: NextRequest) {
     if (!city) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "City parameter is required",
@@ -28,7 +29,7 @@ export async function GET(req: NextRequest) {
     if (!fixed.isAllowed) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 422,
           detail: "Delivery is available only in Yerevan",
@@ -55,7 +56,7 @@ export async function GET(req: NextRequest) {
     });
     return NextResponse.json(
       {
-        type: err?.type ?? "https://api.shop.am/problems/internal-error",
+        type: err?.type ?? problemTypes.internalError,
         title: err?.title ?? "Internal Server Error",
         status: err?.status ?? 500,
         detail: err?.detail ?? err?.message ?? "An error occurred",

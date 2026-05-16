@@ -62,8 +62,13 @@ const prodPrismaLogs = ["error", "warn"] as const;
 const prismaErrorFormat = process.env.NODE_ENV === "development" ? "pretty" : "minimal";
 
 function configureNeonPoolForNodeRuntime(): void {
-  // Node (incl. Vercel serverless) has no global `WebSocket`; Neon's Pool needs one for WS transport.
-  // @see https://github.com/neondatabase/serverless/blob/main/CONFIG.md#websocketconstructor-typeof-websocket--undefined
+  // Vercel: prefer HTTP fetch for Pool.query (avoids WebSocket/ws bundling issues on serverless).
+  // @see https://github.com/neondatabase/serverless/blob/main/CONFIG.md#poolqueryviafetch-boolean
+  if (process.env.VERCEL === "1") {
+    neonConfig.poolQueryViaFetch = true;
+    return;
+  }
+  // Local Node: no global WebSocket — Neon's Pool needs one for WS transport.
   neonConfig.webSocketConstructor =
     typeof globalThis.WebSocket === "function" ? globalThis.WebSocket : WebSocket;
 }
