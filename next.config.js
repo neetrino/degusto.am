@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-const path = require('path');
+const projectRoot = __dirname;
 
 // Vercel Toolbar / Live inject scripts and WebSockets from vercel.live (preview & prod tooling).
 const VERCEL_LIVE_SCRIPT = 'https://vercel.live';
@@ -29,6 +29,12 @@ const nextConfig = {
     'ws',
   ],
   transpilePackages: ['@shop/ui', '@shop/design-tokens'],
+  // Monorepo: trace generated Prisma client + query engine into standalone serverless bundle
+  outputFileTracingRoot: __dirname,
+  outputFileTracingIncludes: {
+    '/*': ['./shared/db/src/generated/prisma-client/**/*'],
+    '/api/**/*': ['./shared/db/src/generated/prisma-client/**/*'],
+  },
   // Standalone output - prevents prerendering of 404 page
   output: 'standalone',
   /** Full cart page removed; drawer-only cart — old URLs go to shop. */
@@ -130,13 +136,13 @@ const nextConfig = {
       };
     }
     
-    // Resolve workspace packages and path aliases
+    // Resolve workspace packages and path aliases (no path.resolve — avoids Turbopack NFT over-tracing)
     config.resolve.alias = {
       ...config.resolve.alias,
-      "@": path.resolve(__dirname, "src"),
-      "@shop/ui": path.resolve(__dirname, "shared/ui"),
-      "@shop/design-tokens": path.resolve(__dirname, "shared/design-tokens"),
-      "@prisma/client": path.resolve(__dirname, "shared/db/src/generated/prisma-client"),
+      "@": `${projectRoot}/src`,
+      "@shop/ui": `${projectRoot}/shared/ui`,
+      "@shop/design-tokens": `${projectRoot}/shared/design-tokens`,
+      "@prisma/client": `${projectRoot}/shared/db/src/generated/prisma-client`,
     };
     
     return config;

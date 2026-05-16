@@ -35,6 +35,8 @@
     "@aws-sdk/client-s3": "^3.995.0",
     "@hookform/resolvers": "^5.2.2",
     "@prisma/client": "^5.22.0",
+    "@prisma/adapter-neon": "5.22.0",
+    "@neondatabase/serverless": "0.10.4",
     "@shop/design-tokens": "workspace:*",
     "@shop/ui": "workspace:*",
     "@upstash/ratelimit": "^2.0.8",

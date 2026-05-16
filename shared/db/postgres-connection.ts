@@ -23,6 +23,26 @@ function tryParsePostgresUrl(raw: string): URL | null {
 }
 
 /**
+ * Normalize DATABASE_URL / DIRECT_URL from env (Vercel UI, .env files).
+ * Strips wrapping quotes and whitespace that break Prisma init on serverless.
+ */
+export function normalizeDatabaseEnvUrl(raw: string): string {
+  let value = raw.trim();
+  if (
+    (value.startsWith('"') && value.endsWith('"')) ||
+    (value.startsWith("'") && value.endsWith("'"))
+  ) {
+    value = value.slice(1, -1).trim();
+  }
+  return value.replace(/\r?\n/g, "");
+}
+
+/** Redact credentials from error text for safe API responses. */
+export function redactConnectionStringInMessage(message: string): string {
+  return message.replace(/postgres(?:ql)?:\/\/[^\s]+/gi, "postgresql://***");
+}
+
+/**
  * Append libpq params if missing: UTF-8 + bounded connect wait (faster fail than default).
  * Uses URL parsing so query strings stay valid.
  */
@@ -56,12 +76,16 @@ function isNeonHost(hostname: string): boolean {
   return hostname.toLowerCase().endsWith("neon.tech");
 }
 
-/** Use Neon's serverless driver + Prisma adapter (WS/HTTP) instead of TCP query engine — fixes many Vercel↔Neon P1001 cases. */
+/**
+ * Neon serverless driver + `@prisma/adapter-neon` (HTTP/WS).
+ * **Opt-in** via `PRISMA_NEON_ADAPTER=1` — default is TCP + pooler (`pgbouncer=true`), same as typical Vercel+Neon apps.
+ * The adapter path needs extra bundle deps; TCP avoids `prismaCode: init` on some monorepo/standalone deploys.
+ */
 export function shouldUseNeonDriverAdapterForRuntime(databaseUrl: string): boolean {
-  if (process.env.PRISMA_NEON_ADAPTER === "0") return false;
+  if (process.env.PRISMA_NEON_ADAPTER !== "1") return false;
   const parsed = tryParsePostgresUrl(databaseUrl);
   if (!parsed || !isNeonHost(parsed.hostname)) return false;
-  return process.env.VERCEL === "1" || process.env.PRISMA_NEON_ADAPTER === "1";
+  return true;
 }
 
 function isLikelyNeonPoolerHost(hostname: string): boolean {
