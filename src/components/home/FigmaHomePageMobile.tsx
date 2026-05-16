@@ -81,6 +81,9 @@ const mobileProducts: MobileProduct[] = Array.from({ length: 12 }, (_, index) =>
   supportsGreens: false,
 }));
 
+/** Inset for product grid sections and the top category strip (aligns section titles). */
+const MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS = 'px-3';
+
 function MobileSectionHeader({ title, titleClassName }: { title: string; titleClassName?: string }) {
   const { t } = useTranslation();
   return (
@@ -106,7 +109,7 @@ function MobileCategoryStrip({
 }) {
   const { t } = useTranslation();
   return (
-    <div className="space-y-3">
+    <div className={'space-y-3 ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
       <MobileSectionHeader
         title={t('common.navigation.categories')}
         titleClassName={categoriesTitleClassName}
@@ -246,9 +249,6 @@ function MobileCategorySliderIndicator() {
   );
 }
 
-/** Inset for product grid sections (cards slightly narrower than full-bleed main). */
-const MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS = 'px-3';
-
 type FigmaHomePageMobileProps = {
   categories?: Array<{
     id: string;
@@ -316,10 +316,10 @@ export function FigmaHomePageMobile({ categories = [] }: FigmaHomePageMobileProp
           categories={displayCategories}
           categoriesTitleClassName={categoriesTitleClassName}
         />
-        <div className="mt-[22px]">
+        <div className={'mt-[22px] ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
           <MobileDailyOffer />
         </div>
-        <div className="mt-[19px]">
+        <div className={'mt-[19px] ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
           <MobileCategorySliderIndicator />
         </div>
 
