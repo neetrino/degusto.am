@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { extractMediaUrl } from "./extractMediaUrl";
+import { extractMediaUrl, extractVariantImageUrl } from "./extractMediaUrl";
 
 describe("extractMediaUrl", () => {
   it("returns null for null or undefined", () => {
@@ -38,5 +38,16 @@ describe("extractMediaUrl", () => {
     expect(extractMediaUrl([{}])).toBe(null);
     expect(extractMediaUrl([{ url: 123 }])).toBe(null);
     expect(extractMediaUrl([{ src: null }])).toBe(null);
+  });
+});
+
+describe("extractVariantImageUrl", () => {
+  it("returns first comma-separated URL", () => {
+    expect(extractVariantImageUrl("https://a.jpg, https://b.jpg")).toBe("https://a.jpg");
+  });
+
+  it("returns null for empty input", () => {
+    expect(extractVariantImageUrl(null)).toBe(null);
+    expect(extractVariantImageUrl("  ")).toBe(null);
   });
 });

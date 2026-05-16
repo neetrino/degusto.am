@@ -8,6 +8,7 @@ import { logger } from "../utils/logger";
 import { cartService } from "./cart.service";
 import { normalizeProductCustomizations } from "../cart/customizations";
 import { performCheckout } from "./orders.checkout";
+import { extractMediaUrl, extractVariantImageUrl } from "../utils/extractMediaUrl";
 
 /** Cart/order line subtotals use `ProductVariant.price`, stored in USD after admin save. */
 const COUPON_SUBTOTAL_CURRENCY = "USD" as const;
@@ -18,6 +19,11 @@ type OrderItemWithVariant = Prisma.OrderItemGetPayload<{
   include: {
     variant: {
       include: {
+        product: {
+          select: {
+            media: true;
+          };
+        };
         options: {
           include: {
             attributeValue: {
@@ -32,6 +38,28 @@ type OrderItemWithVariant = Prisma.OrderItemGetPayload<{
     };
   };
 }>;
+
+function resolveOrderItemImageUrl(item: OrderItemWithVariant): string | undefined {
+  const fromStored = extractVariantImageUrl(item.imageUrl);
+  if (fromStored) {
+    return fromStored;
+  }
+
+  const fromVariant = extractVariantImageUrl(item.variant?.imageUrl);
+  if (fromVariant) {
+    return fromVariant;
+  }
+
+  const fromProduct = extractMediaUrl(item.variant?.product?.media);
+  if (fromProduct) {
+    return fromProduct;
+  }
+
+  const fromOption = item.variant?.options?.find(
+    (opt) => opt.attributeValue?.imageUrl?.trim()
+  )?.attributeValue?.imageUrl;
+  return extractVariantImageUrl(fromOption) ?? fromOption?.trim() ?? undefined;
+}
 
 interface StoredCoupon {
   code: string;
@@ -317,6 +345,11 @@ class OrdersService {
           include: {
             variant: {
               include: {
+                product: {
+                  select: {
+                    media: true,
+                  },
+                },
                 options: {
                   include: {
                     attributeValue: {
@@ -429,7 +462,7 @@ class OrdersService {
           quantity: item.quantity,
           price: Number(item.price),
           total: Number(item.total),
-          imageUrl: item.imageUrl || undefined,
+          imageUrl: resolveOrderItemImageUrl(item),
           variantOptions,
         };
       }),
