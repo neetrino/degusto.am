@@ -1,4 +1,5 @@
 import { db } from "@white-shop/db";
+import { problemTypes } from "@/lib/http/problem-details";
 import { Prisma } from "@prisma/client";
 import type { CheckoutData } from "../types/checkout";
 import { COUPON_CODE_REGEX } from "../coupon-code-format";
@@ -79,7 +80,7 @@ class OrdersService {
     if (!Number.isFinite(subtotal) || subtotal < 0) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation Error",
         detail: "subtotal must be a valid non-negative number",
       };
@@ -89,7 +90,7 @@ class OrdersService {
     if (!COUPON_CODE_REGEX.test(trimmedCouponCode)) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation Error",
         detail: "couponCode format is invalid",
       };
@@ -99,7 +100,7 @@ class OrdersService {
     if (!appliedCoupon) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation Error",
         detail: "Coupon code is invalid",
       };
@@ -147,7 +148,7 @@ class OrdersService {
     if (!coupon) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation Error",
         detail: "Coupon code is invalid",
       };
@@ -159,7 +160,7 @@ class OrdersService {
     if ((coupon.isActive ?? true) !== true || !isEnabledByWindow) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation Error",
         detail: "Coupon is inactive or expired",
       };
@@ -176,7 +177,7 @@ class OrdersService {
       if (subtotalAmd < minOrderAmountAmd) {
         throw {
           status: 400,
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           detail: `Coupon requires minimum order amount of ${minOrderAmountAmd} AMD`,
         };
@@ -211,7 +212,7 @@ class OrdersService {
         if (usedCount >= maxUsesPerUser) {
           throw {
             status: 400,
-            type: "https://api.shop.am/problems/validation-error",
+            type: problemTypes.validationError,
             title: "Validation Error",
             detail: `Coupon usage limit reached for this user (${maxUsesPerUser})`,
           };
@@ -338,7 +339,7 @@ class OrdersService {
     if (!order) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Order not found",
         detail: `Order with number '${orderNumber}' not found`,
       };
@@ -479,7 +480,7 @@ class OrdersService {
     if (!order) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Order not found",
         detail: `Order with number '${orderNumber}' not found`,
       };
@@ -488,7 +489,7 @@ class OrdersService {
     if (order.items.length === 0) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Order has no items",
         detail: "Cannot reorder an empty order",
       };
@@ -529,7 +530,7 @@ class OrdersService {
     if (addedCount === 0) {
       throw {
         status: 422,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Reorder failed",
         detail: "No items from this order are currently available",
       };

@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { Header } from './Header';
 import { UniversalHeader } from './UniversalHeader';
+import { usesStorefrontMobileChrome } from '../lib/uses-storefront-mobile-chrome';
 
 export function ConditionalHeader() {
   const pathname = usePathname();
@@ -16,15 +17,18 @@ export function ConditionalHeader() {
   }
 
   const universalSpacerClass = isAuthPage ? 'bg-[#F66812]' : 'bg-white';
+  const showLegacyMobileHeader = !usesStorefrontMobileChrome(pathname);
 
   return (
     <>
       <div className="hidden lg:block">
         <UniversalHeader spacerBackgroundClassName={universalSpacerClass} />
       </div>
-      <div className="lg:hidden">
-        <Header />
-      </div>
+      {showLegacyMobileHeader ? (
+        <div className="lg:hidden">
+          <Header />
+        </div>
+      ) : null}
     </>
   );
 }

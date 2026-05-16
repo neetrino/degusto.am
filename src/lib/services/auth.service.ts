@@ -1,4 +1,5 @@
 import * as bcrypt from "bcryptjs";
+import { problemTypes } from "@/lib/http/problem-details";
 import * as jwt from "jsonwebtoken";
 import { db } from "@white-shop/db";
 import { logger } from "../utils/logger";
@@ -44,7 +45,7 @@ class AuthService {
     if (!data.email && !data.phone) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation failed",
         detail: "Either email or phone is required",
       };
@@ -53,7 +54,7 @@ class AuthService {
     if (!data.password || data.password.length < 6) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation failed",
         detail: "Password must be at least 6 characters",
       };
@@ -77,7 +78,7 @@ class AuthService {
         logger.info("Auth registration rejected: user already exists");
         throw {
           status: 409,
-          type: "https://api.shop.am/problems/conflict",
+          type: problemTypes.conflict,
           title: "User already exists",
           detail: "User with this email or phone already exists",
         };
@@ -122,7 +123,7 @@ class AuthService {
         // Prisma unique constraint error
         throw {
           status: 409,
-          type: "https://api.shop.am/problems/conflict",
+          type: problemTypes.conflict,
           title: "User already exists",
           detail: "User with this email or phone already exists",
         };
@@ -135,7 +136,7 @@ class AuthService {
       logger.error("Auth config error: JWT_SECRET is not set");
       throw {
         status: 500,
-        type: "https://api.shop.am/problems/internal-error",
+        type: problemTypes.internalError,
         title: "Internal Server Error",
         detail: "Server configuration error",
       };
@@ -170,7 +171,7 @@ class AuthService {
     if (!data.identifier) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation failed",
         detail: "Email or phone is required",
       };
@@ -179,7 +180,7 @@ class AuthService {
     if (!data.password) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation failed",
         detail: "Password is required",
       };
@@ -210,7 +211,7 @@ class AuthService {
       logger.debug("Auth login: user not found or no password");
       throw {
         status: 401,
-        type: "https://api.shop.am/problems/unauthorized",
+        type: problemTypes.unauthorized,
         title: "Invalid credentials",
         detail: "Invalid email/phone or password",
       };
@@ -226,7 +227,7 @@ class AuthService {
       logger.debug("Auth login: invalid password");
       throw {
         status: 401,
-        type: "https://api.shop.am/problems/unauthorized",
+        type: problemTypes.unauthorized,
         title: "Invalid credentials",
         detail: "Invalid email/phone or password",
       };
@@ -236,7 +237,7 @@ class AuthService {
       logger.info("Auth login rejected: account blocked", { userId: user.id });
       throw {
         status: 403,
-        type: "https://api.shop.am/problems/forbidden",
+        type: problemTypes.forbidden,
         title: "Account blocked",
         detail: "Your account has been blocked",
       };
@@ -246,7 +247,7 @@ class AuthService {
     if (!process.env.JWT_SECRET) {
       throw {
         status: 500,
-        type: "https://api.shop.am/problems/internal-error",
+        type: problemTypes.internalError,
         title: "Internal Server Error",
         detail: "Server configuration error",
       };

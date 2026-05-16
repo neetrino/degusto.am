@@ -1,4 +1,5 @@
 import { db } from "@white-shop/db";
+import { problemTypes } from "@/lib/http/problem-details";
 import { logger } from "../../../utils/logger";
 import { formatAttribute } from "./utils";
 
@@ -22,7 +23,7 @@ export async function createAttribute(data: {
   if (existing) {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Attribute already exists",
       detail: `Attribute with key '${data.key}' already exists`,
     };
@@ -83,7 +84,7 @@ export async function updateAttributeTranslation(
   if (!attribute) {
     throw {
       status: 404,
-      type: "https://api.shop.am/problems/not-found",
+      type: problemTypes.notFound,
       title: "Attribute not found",
       detail: `Attribute with id '${attributeId}' does not exist`,
     };
@@ -130,7 +131,7 @@ export async function updateAttributeTranslation(
   if (!updatedAttribute) {
     throw {
       status: 500,
-      type: "https://api.shop.am/problems/internal-error",
+      type: problemTypes.internalError,
       title: "Internal Server Error",
       detail: "Failed to retrieve updated attribute",
     };

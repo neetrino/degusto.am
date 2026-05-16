@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import {
   STOREFRONT_CACHE_KEYS,
   STOREFRONT_CACHE_TTL,
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
       logger.error("[PRODUCTS FILTERS] Invalid request URL", urlError);
       return NextResponse.json(
         buildLocalizedProblem(req, {
-          type: "https://api.shop.am/problems/internal-error",
+          type: problemTypes.internalError,
           status: 500,
           titleKey: "internalErrorTitle",
           detailKey: "internalErrorDetail",
@@ -61,7 +62,7 @@ export async function GET(req: NextRequest) {
     const status = err.status || 500;
     return NextResponse.json(
       buildLocalizedProblem(req, {
-        type: err.type || "https://api.shop.am/problems/internal-error",
+        type: err.type || problemTypes.internalError,
         status,
         titleKey: "internalErrorTitle",
         detailKey: "internalErrorDetail",

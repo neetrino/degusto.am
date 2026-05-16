@@ -2,35 +2,23 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '@shop/ui';
 import { apiClient } from '../../lib/api-client';
-import { formatPrice, getStoredCurrency } from '../../lib/currency';
+import { getStoredCurrency } from '../../lib/currency';
 import { getStoredLanguage } from '../../lib/language';
 import { useTranslation } from '../../lib/i18n-client';
 import { useAuth } from '../../lib/auth/AuthContext';
+import { logger } from '../../lib/utils/logger';
+import { WishlistHeartIcon } from '../../components/icons/WishlistHeartIcon';
 import {
   emitWishlistUpdated,
   getLocalWishlistIds,
   setLocalWishlistIds,
 } from '../../lib/wishlist';
+import { WishlistProductCard, type WishlistProductCardProduct } from './WishlistProductCard';
 
-interface Product {
-  id: string;
-  slug: string;
-  title: string;
-  price: number;
-  originalPrice: number | null;
-  compareAtPrice: number | null;
-  discountPercent: number | null;
-  image: string | null;
-  inStock: boolean;
-  brand: {
-    id: string;
-    name: string;
-  } | null;
-}
+type Product = WishlistProductCardProduct;
 
 /**
  * Wishlist page that shows saved products and supports lightweight CRUD actions.
@@ -52,7 +40,7 @@ export default function WishlistPage() {
    */
   const fetchWishlistProducts = useCallback(async (idsToLoad: string[]) => {
     if (idsToLoad.length === 0) {
-      console.info('[Wishlist] Skip fetch because ids array is empty');
+      logger.debug('[Wishlist] Skip fetch because ids array is empty');
       setProducts([]);
       setLoading(false);
       return;
@@ -60,7 +48,7 @@ export default function WishlistPage() {
 
     try {
       setLoading(true);
-      console.info(`[Wishlist] Fetching ${idsToLoad.length} products for render`);
+      logger.debug(`[Wishlist] Fetching ${idsToLoad.length} products for render`);
       const languagePreference = getStoredLanguage();
       const response = await apiClient.get<{
         data: Product[];
@@ -91,7 +79,7 @@ export default function WishlistPage() {
         window.dispatchEvent(new Event('wishlist-updated'));
       }
     } catch (error) {
-      console.error('[Wishlist] Error fetching wishlist products:', error);
+      logger.error('[Wishlist] Error fetching wishlist products', { error });
     } finally {
       setLoading(false);
     }
@@ -117,7 +105,7 @@ export default function WishlistPage() {
         fetchWishlistProducts(normalizedIds);
         emitWishlistUpdated();
       } catch (error) {
-        console.error('[Wishlist] Failed to sync server wishlist, fallback to local cache:', error);
+        logger.error('[Wishlist] Failed to sync server wishlist, fallback to local cache', { error });
         setWishlistIds(localIds);
         fetchWishlistProducts(localIds);
       }
@@ -153,7 +141,7 @@ export default function WishlistPage() {
   }, [fetchWishlistProducts, isLoggedIn]);
 
   const handleRemove = async (productId: string) => {
-    console.info(`[Wishlist] Removing product ${productId} from wishlist UI`);
+    logger.debug(`[Wishlist] Removing product ${productId} from wishlist UI`);
     
     // Mark as local update to prevent re-fetch in event handler
     isLocalUpdateRef.current = true;
@@ -177,7 +165,7 @@ export default function WishlistPage() {
       try {
         await apiClient.delete(`/api/v1/users/wishlist/${productId}`);
       } catch (error) {
-        console.error('[Wishlist] Failed to remove item from server wishlist:', error);
+        logger.error('[Wishlist] Failed to remove item from server wishlist', { error });
         const rollbackIds = [...wishlistIds];
         setLocalWishlistIds(rollbackIds);
         setWishlistIds(rollbackIds);
@@ -232,9 +220,10 @@ export default function WishlistPage() {
 
       // Trigger cart update event
       window.dispatchEvent(new Event('cart-updated'));
-    } catch (error: any) {
-      console.error('Error adding to cart:', error);
-      if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+    } catch (error: unknown) {
+      logger.error('Error adding to cart from wishlist', { error });
+      const message = error instanceof Error ? error.message : '';
+      if (message.includes('401') || message.includes('Unauthorized')) {
         router.push(`/login?redirect=/wishlist`);
       }
     } finally {
@@ -248,154 +237,62 @@ export default function WishlistPage() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+      <div className="mx-auto max-w-7xl max-lg:px-0 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="py-6 text-center">
+          <div className="animate-pulse space-y-4">
+            <div className="mx-auto h-6 w-1/4 max-w-xs rounded bg-gray-200" />
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="h-72 rounded-lg bg-gray-200" />
+              <div className="hidden h-72 rounded-lg bg-gray-200 sm:block" />
+              <div className="hidden h-72 rounded-lg bg-gray-200 lg:block" />
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">{t('common.wishlist.title')}</h1>
+    <div className="mx-auto max-w-7xl max-lg:px-0 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">{t('common.wishlist.title')}</h1>
+        {products.length > 0 ? (
+          <p className="flex items-center gap-2 text-sm text-gray-600">
+            <span className="text-brand" aria-hidden>
+              <WishlistHeartIcon filled size={18} />
+            </span>
+            <span>
+              {t('common.wishlist.totalCount')}:{' '}
+              <span className="font-semibold text-brand">{products.length}</span>
+            </span>
+          </p>
+        ) : null}
+      </div>
 
       {products.length > 0 ? (
-        <>
-          {/* Total Count Section */}
-          <div className="px-6 py-4 mb-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-                <span className="text-base font-medium text-gray-700">
-                  {t('common.wishlist.totalCount')}: <span className="font-bold text-gray-900">{products.length}</span>
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Products grid (cards side by side) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {products.map((product) => (
-              <article
-                key={product.id}
-                className="bg-white rounded-lg border border-gray-200 overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow"
-              >
-                <div className="relative aspect-square bg-gray-100 shrink-0">
-                  <Link
-                    href={`/products/${product.slug}`}
-                    className="absolute inset-0 block"
-                  >
-                    {product.image ? (
-                      <Image
-                        src={product.image}
-                        alt={product.title}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                        unoptimized
-                      />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
-                        <svg className="w-12 h-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                    )}
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleRemove(product.id);
-                    }}
-                    className="absolute right-2 top-2 z-10 w-9 h-9 rounded-full flex items-center justify-center bg-white/95 shadow-md border border-gray-200/80 text-gray-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
-                    aria-label={t('common.ariaLabels.removeFromWishlist')}
-                  >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="p-4 flex flex-col flex-1 gap-3 min-w-0">
-                  <Link
-                    href={`/products/${product.slug}`}
-                    className="text-base font-medium text-gray-900 hover:text-blue-600 transition-colors line-clamp-2"
-                  >
-                    {product.title}
-                  </Link>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-lg font-semibold text-blue-600">
-                      {formatPrice(product.price, currency)}
-                    </span>
-                    {product.originalPrice != null && product.originalPrice > product.price && (
-                      <span className="text-sm text-gray-500 line-through">
-                        {formatPrice(product.originalPrice, currency)}
-                      </span>
-                    )}
-                    {product.originalPrice == null &&
-                      product.compareAtPrice != null &&
-                      product.compareAtPrice > product.price && (
-                        <span className="text-sm text-gray-500 line-through">
-                          {formatPrice(product.compareAtPrice, currency)}
-                        </span>
-                      )}
-                  </div>
-                  <div>
-                    {product.inStock ? (
-                      <span className="text-sm font-medium text-green-600 inline-flex items-center gap-1">
-                        <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                        {t('common.stock.inStock')}
-                      </span>
-                    ) : (
-                      <span className="text-sm font-medium text-red-600">{t('common.stock.outOfStock')}</span>
-                    )}
-                  </div>
-                  <div className="mt-auto pt-2">
-                    <Button
-                      variant="primary"
-                      onClick={() => handleAddToCart(product)}
-                      disabled={!product.inStock || addingToCart.has(product.id)}
-                      className="w-full bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 font-semibold uppercase text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {addingToCart.has(product.id) ? t('common.messages.adding') : t('common.buttons.addToCart')}
-                    </Button>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </>
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
+          {products.map((product) => (
+            <WishlistProductCard
+              key={product.id}
+              product={product}
+              currency={currency}
+              isAddingToCart={addingToCart.has(product.id)}
+              onRemove={handleRemove}
+              onAddToCart={handleAddToCart}
+              t={t}
+            />
+          ))}
+        </div>
       ) : (
-        <div className="text-center py-16">
-          <div className="max-w-md mx-auto">
-            <svg
-              className="mx-auto h-24 w-24 text-gray-400 mb-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-              />
-            </svg>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              {t('common.wishlist.empty')}
-            </h2>
-            <p className="text-gray-600 mb-6">
-              {t('common.wishlist.emptyDescription')}
-            </p>
+        <div className="py-8 text-center">
+          <div className="mx-auto max-w-md">
+            <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center text-brand" aria-hidden>
+              <WishlistHeartIcon filled size={40} />
+            </div>
+            <h2 className="mb-2 text-xl font-bold text-gray-900">{t('common.wishlist.empty')}</h2>
+            <p className="mb-4 text-sm text-gray-600">{t('common.wishlist.emptyDescription')}</p>
             <Link href="/shop">
-              <Button variant="primary" size="lg">
+              <Button variant="primary" size="md" className="!bg-brand hover:!bg-brand-hover focus:!ring-brand">
                 {t('common.buttons.browseProducts')}
               </Button>
             </Link>

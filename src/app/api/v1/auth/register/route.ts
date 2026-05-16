@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import { authService } from "@/lib/services/auth.service";
 import { toApiError } from "@/lib/types/errors";
 import { logger } from "@/lib/utils/logger";
@@ -15,7 +16,7 @@ export async function POST(req: NextRequest) {
         .join("; ") || parsed.error.message;
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation failed",
           status: 400,
           detail,

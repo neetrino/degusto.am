@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import { invalidateStorefrontCategoryCaches } from "@/lib/cache/storefront-cache";
 import { authenticateToken, requireAdmin } from "@/lib/middleware/auth";
 import { adminService } from "@/lib/services/admin.service";
@@ -15,7 +16,7 @@ export async function GET(req: NextRequest) {
     if (!user || !requireAdmin(user)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/forbidden",
+          type: problemTypes.forbidden,
           title: "Forbidden",
           status: 403,
           detail: "Admin access required",
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
     if (!user || !requireAdmin(user)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/forbidden",
+          type: problemTypes.forbidden,
           title: "Forbidden",
           status: 403,
           detail: "Admin access required",
@@ -58,7 +59,7 @@ export async function POST(req: NextRequest) {
     if (!body || typeof body !== "object") {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Request body must be a valid JSON object",
@@ -71,7 +72,7 @@ export async function POST(req: NextRequest) {
     if (typeof body.title !== "string" || body.title.trim().length === 0) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Field 'title' is required and must be a non-empty string",

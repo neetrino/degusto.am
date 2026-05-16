@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import { authenticateToken } from "@/lib/middleware/auth";
 import { cartService } from "@/lib/services/cart.service";
 import { logger } from "@/lib/utils/logger";
@@ -9,7 +10,7 @@ export async function POST(req: NextRequest) {
     if (!user) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/unauthorized",
+          type: problemTypes.unauthorized,
           title: "Unauthorized",
           status: 401,
           detail: "Authentication token required",
@@ -41,7 +42,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       {
-        type: e.type || "https://api.shop.am/problems/internal-error",
+        type: e.type || problemTypes.internalError,
         title: e.title || "Internal Server Error",
         status: e.status || 500,
         detail: e.detail || e.message || "An error occurred",

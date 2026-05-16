@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import { invalidateStorefrontAfterAdminSettingsUpdate } from "@/lib/cache/storefront-cache";
 import { parseRouteCatchError } from "@/lib/http/api-route-errors";
 import { authenticateToken, requireAdmin } from "@/lib/middleware/auth";
@@ -11,7 +12,7 @@ export async function GET(req: NextRequest) {
     if (!user || !requireAdmin(user)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/forbidden",
+          type: problemTypes.forbidden,
           title: "Forbidden",
           status: 403,
           detail: "Admin access required",
@@ -28,7 +29,7 @@ export async function GET(req: NextRequest) {
     const e = parseRouteCatchError(error);
     return NextResponse.json(
       {
-        type: e.type ?? "https://api.shop.am/problems/internal-error",
+        type: e.type ?? problemTypes.internalError,
         title: e.title ?? "Internal Server Error",
         status: e.status ?? 500,
         detail: e.detail ?? e.message ?? "An error occurred",
@@ -45,7 +46,7 @@ export async function PUT(req: NextRequest) {
     if (!user || !requireAdmin(user)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/forbidden",
+          type: problemTypes.forbidden,
           title: "Forbidden",
           status: 403,
           detail: "Admin access required",
@@ -64,7 +65,7 @@ export async function PUT(req: NextRequest) {
     const e = parseRouteCatchError(error);
     return NextResponse.json(
       {
-        type: e.type ?? "https://api.shop.am/problems/internal-error",
+        type: e.type ?? problemTypes.internalError,
         title: e.title ?? "Internal Server Error",
         status: e.status ?? 500,
         detail: e.detail ?? e.message ?? "An error occurred",

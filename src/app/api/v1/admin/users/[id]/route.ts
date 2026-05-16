@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import { authenticateToken, requireAdmin } from "@/lib/middleware/auth";
 import { adminService } from "@/lib/services/admin.service";
 import { safeParseAdminUserUpdate } from "@/lib/schemas/admin.schema";
@@ -14,7 +15,7 @@ export async function PUT(
     if (!user || !requireAdmin(user)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/forbidden",
+          type: problemTypes.forbidden,
           title: "Forbidden",
           status: 403,
           detail: "Admin access required",
@@ -35,7 +36,7 @@ export async function PUT(
           .join("; ") || parsed.error.message;
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail,
@@ -64,7 +65,7 @@ export async function DELETE(
     if (!user || !requireAdmin(user)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/forbidden",
+          type: problemTypes.forbidden,
           title: "Forbidden",
           status: 403,
           detail: "Admin access required",

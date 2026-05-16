@@ -1,4 +1,5 @@
 import { db } from "@white-shop/db";
+import { problemTypes } from "@/lib/http/problem-details";
 import { Prisma } from "@prisma/client";
 import { customAlphabet } from "nanoid";
 import type { CheckoutData } from "../types/checkout";
@@ -130,7 +131,7 @@ function normalizeCouponCode(input: unknown): string | null {
   if (!COUPON_CODE_REGEX.test(normalized)) {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation Error",
       detail: "couponCode format is invalid",
     };
@@ -142,7 +143,7 @@ function normalizeQuantity(input: unknown): number {
   if (typeof input !== "number" || !Number.isFinite(input)) {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation Error",
       detail: "Item quantity must be a valid number",
     };
@@ -151,7 +152,7 @@ function normalizeQuantity(input: unknown): number {
   if (quantity < 1 || quantity > 999) {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation Error",
       detail: "Item quantity must be between 1 and 999",
     };
@@ -171,7 +172,7 @@ function validateCheckoutInput(params: {
   if (!email || !phone) {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation Error",
       detail: "Email and phone are required",
     };
@@ -179,7 +180,7 @@ function validateCheckoutInput(params: {
   if (!ALLOWED_SHIPPING_METHODS.includes(shippingMethod as (typeof ALLOWED_SHIPPING_METHODS)[number])) {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation Error",
       detail: "Invalid shipping method",
     };
@@ -187,7 +188,7 @@ function validateCheckoutInput(params: {
   if (!ALLOWED_PAYMENT_METHODS.includes(paymentMethod as (typeof ALLOWED_PAYMENT_METHODS)[number])) {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation Error",
       detail: "Invalid payment method",
     };
@@ -195,7 +196,7 @@ function validateCheckoutInput(params: {
   if (shippingMethod === "delivery" && !shippingAddress?.city?.trim()) {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation Error",
       detail: "Shipping city is required for delivery orders",
     };
@@ -231,7 +232,7 @@ async function getUserCartItems(cartId: string, userId: string): Promise<Checkou
   if (!cart || cart.items.length === 0) {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Cart is empty",
       detail: "Cannot checkout with an empty cart",
     };
@@ -244,7 +245,7 @@ async function getUserCartItems(cartId: string, userId: string): Promise<Checkou
       if (!variant) {
         throw {
           status: 404,
-          type: "https://api.shop.am/problems/not-found",
+          type: problemTypes.notFound,
           title: "Variant not found",
           detail: `Variant ${item.variantId} not found for cart item`,
         };
@@ -255,7 +256,7 @@ async function getUserCartItems(cartId: string, userId: string): Promise<Checkou
         const translation = product.translations?.[0] || product.translations?.[0];
         throw {
           status: 422,
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Insufficient stock",
           detail: `Product "${translation?.title || "Unknown"}" - insufficient stock. Available: ${variant.stock}, Requested: ${safeQuantity}`,
         };
@@ -303,7 +304,7 @@ async function getGuestCartItems(
     if (!item.productId || !item.variantId) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation Error",
         detail: "Each item must have productId, variantId, and quantity",
       };
@@ -335,7 +336,7 @@ async function getGuestCartItems(
       if (!variant || variant.productId !== item.productId || !variant.published || !variant.product) {
         throw {
           status: 404,
-          type: "https://api.shop.am/problems/not-found",
+          type: problemTypes.notFound,
           title: "Product variant not found",
           detail: `Variant ${item.variantId} not found for product ${item.productId}`,
         };
@@ -343,7 +344,7 @@ async function getGuestCartItems(
       if (variant.stock < safeQuantity) {
         throw {
           status: 422,
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Insufficient stock",
           detail: `Insufficient stock. Available: ${variant.stock}, Requested: ${safeQuantity}`,
         };
@@ -402,7 +403,7 @@ async function resolveCartItems(params: {
   }
   throw {
     status: 400,
-    type: "https://api.shop.am/problems/validation-error",
+    type: problemTypes.validationError,
     title: "Cart is empty",
     detail: "Cannot checkout with an empty cart",
   };
@@ -443,7 +444,7 @@ async function computeCheckout(params: {
     if (!fixedDelivery.isAllowed) {
       throw {
         status: 422,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation Error",
         detail: "Delivery is available only in Yerevan",
       };
@@ -466,7 +467,7 @@ async function computeCheckout(params: {
   ) {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation Error",
       detail: "Cash change amount must be greater than or equal to order total",
     };
@@ -582,7 +583,7 @@ async function createOrderAndPayment(params: {
         if (!item.variantId) {
           throw {
             status: 400,
-            type: "https://api.shop.am/problems/validation-error",
+            type: problemTypes.validationError,
             title: "Validation Error",
             detail: `Missing variantId for item with SKU: ${item.sku}`,
           };
@@ -600,7 +601,7 @@ async function createOrderAndPayment(params: {
           });
           throw {
             status: 422,
-            type: "https://api.shop.am/problems/validation-error",
+            type: problemTypes.validationError,
             title: "Insufficient stock",
             detail: `Insufficient stock for SKU ${variant?.sku ?? variantId}. Available: ${variant?.stock ?? 0}, requested: ${quantity}`,
           };
@@ -680,7 +681,7 @@ export async function performCheckout(params: {
     if (cartItems.length === 0) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Cart is empty",
         detail: "Cannot checkout with an empty cart",
       };
@@ -765,7 +766,7 @@ export async function performCheckout(params: {
     if (customError?.code === "P2002") {
       throw {
         status: 409,
-        type: "https://api.shop.am/problems/conflict",
+        type: problemTypes.conflict,
         title: "Conflict",
         detail: "Order number already exists, please try again",
       };
@@ -773,7 +774,7 @@ export async function performCheckout(params: {
 
     throw {
       status: 500,
-      type: "https://api.shop.am/problems/internal-error",
+      type: problemTypes.internalError,
       title: "Internal Server Error",
       detail: customError?.message || "An error occurred during checkout",
     };

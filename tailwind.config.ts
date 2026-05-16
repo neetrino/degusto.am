@@ -12,6 +12,11 @@ const config: Config = {
       colors: {
         primary: '#000000',
         secondary: '#FFFFFF',
+        /** Shop accent — profile, cart, checkout, auth hero */
+        brand: {
+          DEFAULT: '#F66812',
+          hover: '#e45f10',
+        },
         success: '#10B981',
         warning: '#F59E0B',
         error: '#EF4444',

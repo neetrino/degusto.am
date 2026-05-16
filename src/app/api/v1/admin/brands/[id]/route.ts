@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import { authenticateToken, requireAdmin } from "@/lib/middleware/auth";
 import { adminService } from "@/lib/services/admin.service";
 import { toApiError } from "@/lib/types/errors";
@@ -17,7 +18,7 @@ export async function PUT(
     if (!user || !requireAdmin(user)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/forbidden",
+          type: problemTypes.forbidden,
           title: "Forbidden",
           status: 403,
           detail: "Admin access required",
@@ -32,7 +33,7 @@ export async function PUT(
     if (!body || typeof body !== "object") {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Request body must be a valid JSON object",
@@ -45,7 +46,7 @@ export async function PUT(
     if (body.name !== undefined && (typeof body.name !== "string" || body.name.trim().length === 0)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Field 'name' must be a non-empty string when provided",
@@ -81,7 +82,7 @@ export async function DELETE(
     if (!user || !requireAdmin(user)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/forbidden",
+          type: problemTypes.forbidden,
           title: "Forbidden",
           status: 403,
           detail: "Admin access required",

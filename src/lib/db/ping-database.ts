@@ -2,10 +2,15 @@ import { db } from "@white-shop/db";
 import { isPrismaConnectionError } from "@/lib/http/api-route-errors";
 import { logger } from "@/lib/utils/logger";
 
-const DEFAULT_PING_TIMEOUT_MS = 5000;
+const DEFAULT_PING_TIMEOUT_MS =
+  process.env.VERCEL === "1" ? 12_000 : 5_000;
 
 export type DbPingOk = { ok: true; latencyMs: number };
-export type DbPingFail = { ok: false; reason: "connection" | "timeout" | "unknown" };
+export type DbPingFail = {
+  ok: false;
+  reason: "connection" | "timeout" | "unknown";
+  prismaCode?: string;
+};
 export type DbPingResult = DbPingOk | DbPingFail;
 
 /**
@@ -39,7 +44,7 @@ export async function pingDatabase(
           ? (error as { code: string }).code
           : "init";
       logger.warn("[db-ping] database unreachable", { code });
-      return { ok: false, reason: "connection" };
+      return { ok: false, reason: "connection", prismaCode: code };
     }
     logger.warn("[db-ping] unexpected failure", { message: error instanceof Error ? error.message : "unknown" });
     return { ok: false, reason: "unknown" };

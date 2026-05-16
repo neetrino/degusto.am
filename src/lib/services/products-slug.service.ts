@@ -1,4 +1,5 @@
 import { buildProductQuery } from "./products-slug/product-query-builder";
+import { problemTypes } from "@/lib/http/problem-details";
 import { transformProduct } from "./products-slug/product-transformer";
 
 /**
@@ -15,7 +16,7 @@ class ProductsSlugService {
     if (!product) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Product not found",
         detail: `Product with slug '${slug}' does not exist or is not published`,
       };

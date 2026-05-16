@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import { db } from "@white-shop/db";
 import { buildLocalizedProblem } from "@/lib/i18n/api-problem";
 import { resolveStorefrontLocale } from "@/lib/i18n/locale";
@@ -281,7 +282,7 @@ export async function POST(req: NextRequest) {
     logger.error("[CART][GUEST] Failed to build guest cart", { error });
     return NextResponse.json(
       buildLocalizedProblem(req, {
-        type: "https://api.shop.am/problems/internal-error",
+        type: problemTypes.internalError,
         status: 500,
         titleKey: "internalErrorTitle",
         detailKey: "internalErrorDetail",

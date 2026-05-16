@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import { parseRouteCatchError } from "@/lib/http/api-route-errors";
 import { authenticateToken } from "@/lib/middleware/auth";
 import { cartService } from "@/lib/services/cart.service";
@@ -13,7 +14,7 @@ export async function PATCH(
     if (!user) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/unauthorized",
+          type: problemTypes.unauthorized,
           title: "Unauthorized",
           status: 401,
           detail: "Authentication token required",
@@ -32,7 +33,7 @@ export async function PATCH(
     const e = parseRouteCatchError(error);
     return NextResponse.json(
       {
-        type: e.type ?? "https://api.shop.am/problems/internal-error",
+        type: e.type ?? problemTypes.internalError,
         title: e.title ?? "Internal Server Error",
         status: e.status ?? 500,
         detail: e.detail ?? e.message ?? "An error occurred",
@@ -52,7 +53,7 @@ export async function DELETE(
     if (!user) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/unauthorized",
+          type: problemTypes.unauthorized,
           title: "Unauthorized",
           status: 401,
           detail: "Authentication token required",
@@ -70,7 +71,7 @@ export async function DELETE(
     const e = parseRouteCatchError(error);
     return NextResponse.json(
       {
-        type: e.type ?? "https://api.shop.am/problems/internal-error",
+        type: e.type ?? problemTypes.internalError,
         title: e.title ?? "Internal Server Error",
         status: e.status ?? 500,
         detail: e.detail ?? e.message ?? "An error occurred",

@@ -12,6 +12,7 @@ import { useAuth } from '../../lib/auth/AuthContext';
 import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
 import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
 import { StoreMenuPagination } from './StoreMenuPagination';
+import { MOBILE_STOREFRONT_FILTERS_ANCHOR_ID } from '@/constants/mobile-figma-storefront';
 
 const assets = {
   productCardImage: '/api/r2/product/20260512-D3w_teddze.png',
@@ -514,37 +515,10 @@ export function FigmaDesktopMenuPage({
 
   return (
     <>
-      <div className="bg-white pb-28 pt-6 lg:hidden">
-        <div className="mx-auto max-w-[1470px] px-4">
+      <div className="pb-8 pt-0 lg:hidden">
+        <div className="mx-auto w-full max-w-[1470px]">
           <h1 className="text-[32px] font-bold leading-tight text-[#f66913]">{t(titleKey)}</h1>
           <p className="mt-2 text-sm tracking-[-0.2px] text-[#717182]">{t(subtitleKey)}</p>
-
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              flushSearchQueryUrlSync(searchTerm);
-            }}
-            className="relative mt-6 flex h-[46px] items-center rounded-[40px] bg-[#f3f3f5] pl-10 pr-4 text-[16px] text-black/50"
-          >
-            <span className="absolute left-4 text-[#7f7f80]" aria-hidden="true">
-              <svg className="h-5 w-5" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="9" cy="9" r="6.5" stroke="currentColor" strokeWidth="2" />
-                <path d="M13.5 13.5L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            </span>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(event) => {
-                const nextSearch = event.target.value;
-                setSearchTerm(nextSearch);
-                scheduleSearchQueryUrlSync(nextSearch);
-              }}
-              placeholder={`${t('common.buttons.search')}...`}
-              className="h-full w-full bg-transparent text-[16px] text-black outline-none placeholder:text-black/50"
-              aria-label={t('common.ariaLabels.search')}
-            />
-          </form>
 
           {hasDbCategories ? (
             <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -577,7 +551,10 @@ export function FigmaDesktopMenuPage({
             </div>
           ) : null}
 
-          <div className="mt-6 flex flex-wrap items-center gap-2 text-sm text-[#717182]">
+          <div
+            id={MOBILE_STOREFRONT_FILTERS_ANCHOR_ID}
+            className="scroll-mt-28 mt-6 flex flex-wrap items-center gap-2 text-sm text-[#717182]"
+          >
             <span className="w-full shrink-0 text-base sm:w-auto">{t('home.figma.desktop.shop.priceLabel')}</span>
             <input
               type="number"

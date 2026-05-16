@@ -1,4 +1,5 @@
 import { db } from "@white-shop/db";
+import { problemTypes } from "@/lib/http/problem-details";
 import { logger } from "@/lib/utils/logger";
 
 class AdminDeliveryService {
@@ -67,7 +68,7 @@ class AdminDeliveryService {
     if (!Array.isArray(data.locations)) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/validation-error",
+        type: problemTypes.validationError,
         title: "Validation Error",
         detail: "Locations must be an array",
       };
@@ -78,7 +79,7 @@ class AdminDeliveryService {
       if (!location.country || !location.city) {
         throw {
           status: 400,
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           detail: "Each location must have country and city",
         };
@@ -86,7 +87,7 @@ class AdminDeliveryService {
       if (typeof location.price !== 'number' || location.price < 0) {
         throw {
           status: 400,
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           detail: "Price must be a non-negative number",
         };

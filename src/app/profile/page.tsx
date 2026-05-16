@@ -80,7 +80,7 @@ function ProfilePageContent() {
   if (authLoading || loading) {
     return (
       <div className="min-h-full bg-white">
-        <div className="mx-auto hidden max-w-7xl px-4 py-10 md:block md:px-6 lg:px-8">
+        <div className="mx-auto hidden max-w-7xl px-4 py-10 lg:block lg:px-8">
           <div className="grid grid-cols-12 items-start gap-6 lg:gap-8">
             <aside className="col-span-12 lg:col-span-4 xl:col-span-3">
               <div className="h-[560px] animate-pulse rounded-2xl border border-[#F66812]/20 bg-white" />
@@ -90,7 +90,7 @@ function ProfilePageContent() {
             </main>
           </div>
         </div>
-        <div className="mx-auto w-full max-w-md px-4 pb-8 pt-6 md:hidden">
+        <div className="mx-auto w-full max-w-md max-lg:px-0 px-4 pb-8 pt-6 lg:hidden">
           <div className="h-[420px] animate-pulse rounded-[2rem] bg-white ring-1 ring-[#F66812]/20" />
         </div>
       </div>
@@ -278,7 +278,7 @@ function ProfilePageContent() {
       >
         {tabContent}
       </ProfileMobilePage>
-      <div className="mx-auto hidden max-w-7xl px-4 py-10 md:block md:px-6 lg:px-8">
+      <div className="mx-auto hidden max-w-7xl px-4 py-10 lg:block lg:px-8">
         <div className="grid grid-cols-12 items-start gap-6 lg:gap-8">
           <aside className="col-span-12 self-start lg:col-span-4 lg:sticky lg:top-28 xl:col-span-3">
             <ProfileHeader profile={profile} tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} onLogout={logout} t={t} />
@@ -310,7 +310,7 @@ export default function ProfilePage() {
   return (
     <Suspense fallback={
       <div className="min-h-full bg-white">
-        <div className="mx-auto hidden max-w-7xl px-4 py-10 md:block md:px-6 lg:px-8">
+        <div className="mx-auto hidden max-w-7xl px-4 py-10 lg:block lg:px-8">
           <div className="grid grid-cols-12 items-start gap-6 lg:gap-8">
             <aside className="col-span-12 lg:col-span-4 xl:col-span-3">
               <div className="h-[560px] animate-pulse rounded-2xl border border-[#F66812]/20 bg-white" />
@@ -320,7 +320,7 @@ export default function ProfilePage() {
             </main>
           </div>
         </div>
-        <div className="mx-auto w-full max-w-md px-4 pb-8 pt-6 md:hidden">
+        <div className="mx-auto w-full max-w-md max-lg:px-0 px-4 pb-8 pt-6 lg:hidden">
           <div className="h-[420px] animate-pulse rounded-[2rem] bg-white ring-1 ring-[#F66812]/20" />
         </div>
       </div>

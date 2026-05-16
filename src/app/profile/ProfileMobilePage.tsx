@@ -51,24 +51,22 @@ export function ProfileMobilePage({
   }, [isSheetOpen]);
 
   return (
-    <div className="mx-auto w-full max-w-md px-4 pb-8 pt-6 md:hidden">
-      <div className="rounded-[2rem] bg-white px-5 pb-7 pt-5 shadow-sm ring-1 ring-gray-200/80">
-
-        <div className="mb-5 flex items-center gap-4">
-          <UserAvatar
-            firstName={profile?.firstName}
-            lastName={profile?.lastName}
-            avatarUrl={profile?.avatarUrl || profile?.avatar || profile?.imageUrl || profile?.image || null}
-            size="lg"
-            className="h-20 w-20 text-xl"
-          />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-xl font-semibold text-gray-900">{displayName}</p>
-            {profile?.email && <p className="truncate text-sm text-gray-600">{profile.email}</p>}
-          </div>
+    <div className="mx-auto w-full max-w-md max-lg:px-0 px-4 pb-2 pt-0 lg:hidden">
+      <div className="mb-5 flex items-center gap-4">
+        <UserAvatar
+          firstName={profile?.firstName}
+          lastName={profile?.lastName}
+          avatarUrl={profile?.avatarUrl || profile?.avatar || profile?.imageUrl || profile?.image || null}
+          size="lg"
+          className="h-20 w-20 text-xl"
+        />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-xl font-semibold text-gray-900">{displayName}</p>
+          {profile?.email && <p className="truncate text-sm text-gray-600">{profile.email}</p>}
         </div>
+      </div>
 
-        <div className="divide-y divide-gray-100 rounded-2xl border border-gray-200/80 bg-white">
+      <div className="divide-y divide-gray-100 rounded-2xl border border-gray-200/80 bg-white">
           {dashboardTab && (
             <>
               <button
@@ -150,7 +148,6 @@ export function ProfileMobilePage({
             </svg>
           </button>
         </div>
-      </div>
 
       {isSheetOpen && (
         <div className="fixed inset-0 z-[70] flex items-end bg-black/35 backdrop-blur-[1px]" onClick={onCloseSheet}>

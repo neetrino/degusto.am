@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import { authenticateToken, requireAdmin } from "@/lib/middleware/auth";
 import { adminService } from "@/lib/services/admin.service";
 import {
@@ -25,7 +26,7 @@ export async function GET(
     if (!user || !requireAdmin(user)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/forbidden",
+          type: problemTypes.forbidden,
           title: "Forbidden",
           status: 403,
           detail: "Admin access required",
@@ -64,7 +65,7 @@ export async function PUT(
     if (!user || !requireAdmin(user)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/forbidden",
+          type: problemTypes.forbidden,
           title: "Forbidden",
           status: 403,
           detail: "Admin access required",
@@ -80,7 +81,7 @@ export async function PUT(
     if (payloadContainsBase64Images(body) && !canUploadProductImagesToR2()) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/config-error",
+          type: problemTypes.configError,
           title: "Storage not configured",
           status: 503,
           detail:
@@ -127,7 +128,7 @@ export async function DELETE(
     if (!user || !requireAdmin(user)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/forbidden",
+          type: problemTypes.forbidden,
           title: "Forbidden",
           status: 403,
           detail: "Admin access required",

@@ -91,6 +91,11 @@ export function augmentNeonPrismaPoolerParams(url: string): string {
   const parsed = tryParsePostgresUrl(url);
   if (!parsed) return url;
   if (!isLikelyNeonPoolerHost(parsed.hostname)) return url;
+  // `pgbouncer` / `connection_limit` are for Prisma's TCP engine + PgBouncer.
+  // With `@prisma/adapter-neon` + `@neondatabase/serverless` Pool (HTTP/WS), they can break connects on Vercel.
+  if (shouldUseNeonDriverAdapterForRuntime(url)) {
+    return parsed.toString();
+  }
   if (!parsed.searchParams.has("pgbouncer")) {
     parsed.searchParams.set("pgbouncer", "true");
   }

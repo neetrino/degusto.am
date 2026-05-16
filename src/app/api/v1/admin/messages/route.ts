@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import { authenticateToken, requireAdmin } from "@/lib/middleware/auth";
 import { db } from "@white-shop/db";
 import { toApiError } from "@/lib/types/errors";
@@ -14,7 +15,7 @@ export async function GET(req: NextRequest) {
     if (!user || !requireAdmin(user)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/forbidden",
+          type: problemTypes.forbidden,
           title: "Forbidden",
           status: 403,
           detail: "Admin access required",
@@ -95,7 +96,7 @@ export async function DELETE(req: NextRequest) {
     if (!user || !requireAdmin(user)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/forbidden",
+          type: problemTypes.forbidden,
           title: "Forbidden",
           status: 403,
           detail: "Admin access required",
@@ -111,7 +112,7 @@ export async function DELETE(req: NextRequest) {
     if (!Array.isArray(ids) || ids.length === 0) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Field 'ids' is required and must be a non-empty array",

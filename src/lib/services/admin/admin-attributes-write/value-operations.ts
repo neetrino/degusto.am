@@ -1,4 +1,5 @@
 import { db } from "@white-shop/db";
+import { problemTypes } from "@/lib/http/problem-details";
 import { logger } from "../../../utils/logger";
 import { ensureColorsColumnsExist } from "./migration";
 import { formatAttribute } from "./utils";
@@ -33,7 +34,7 @@ export async function addAttributeValue(
   if (!attribute) {
     throw {
       status: 404,
-      type: "https://api.shop.am/problems/not-found",
+      type: problemTypes.notFound,
       title: "Attribute not found",
       detail: `Attribute with id '${attributeId}' does not exist`,
     };
@@ -55,7 +56,7 @@ export async function addAttributeValue(
   if (existing) {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Value already exists",
       detail: `Value '${data.label}' already exists for this attribute`,
     };
@@ -96,7 +97,7 @@ export async function addAttributeValue(
   if (!updatedAttribute) {
     throw {
       status: 500,
-      type: "https://api.shop.am/problems/internal-error",
+      type: problemTypes.internalError,
       title: "Internal Server Error",
       detail: "Failed to retrieve updated attribute",
     };
@@ -141,7 +142,7 @@ export async function updateAttributeValue(
   if (!attributeValue) {
     throw {
       status: 404,
-      type: "https://api.shop.am/problems/not-found",
+      type: problemTypes.notFound,
       title: "Attribute value not found",
       detail: `Attribute value with id '${valueId}' does not exist`,
     };
@@ -150,7 +151,7 @@ export async function updateAttributeValue(
   if (attributeValue.attributeId !== attributeId) {
     throw {
       status: 400,
-      type: "https://api.shop.am/problems/validation-error",
+      type: problemTypes.validationError,
       title: "Validation Error",
       detail: "Attribute value does not belong to the specified attribute",
     };
@@ -246,7 +247,7 @@ export async function updateAttributeValue(
   if (!updatedAttribute) {
     throw {
       status: 500,
-      type: "https://api.shop.am/problems/internal-error",
+      type: problemTypes.internalError,
       title: "Internal Server Error",
       detail: "Failed to retrieve updated attribute",
     };

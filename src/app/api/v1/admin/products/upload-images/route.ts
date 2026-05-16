@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import { nanoid } from "nanoid";
 import { authenticateToken, requireAdmin } from "@/lib/middleware/auth";
 import { uploadToR2, isR2Configured } from "@/lib/r2";
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest) {
       logger.warn("Admin upload images: unauthorized", { userId: user?.id });
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/forbidden",
+          type: problemTypes.forbidden,
           title: "Forbidden",
           status: 403,
           detail: "Admin access required",
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest) {
     if (!isR2Configured()) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/config-error",
+          type: problemTypes.configError,
           title: "Storage not configured",
           status: 503,
           detail:
@@ -66,7 +67,7 @@ export async function POST(req: NextRequest) {
     } catch {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Invalid JSON in request body",
@@ -79,7 +80,7 @@ export async function POST(req: NextRequest) {
     if (!Array.isArray(body.images) || body.images.length === 0) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Field 'images' is required and must be a non-empty array",
@@ -95,7 +96,7 @@ export async function POST(req: NextRequest) {
       if (typeof image !== "string" || !image.startsWith("data:image/")) {
         return NextResponse.json(
           {
-            type: "https://api.shop.am/problems/validation-error",
+            type: problemTypes.validationError,
             title: "Validation Error",
             status: 400,
             detail: `Image at index ${i} must be a valid base64 image (data:image/...)`,
@@ -115,7 +116,7 @@ export async function POST(req: NextRequest) {
       if (!parsed) {
         return NextResponse.json(
           {
-            type: "https://api.shop.am/problems/validation-error",
+            type: problemTypes.validationError,
             title: "Validation Error",
             status: 400,
             detail: `Invalid data URL at index ${i}`,
@@ -131,7 +132,7 @@ export async function POST(req: NextRequest) {
         logger.error("Admin upload images: R2 upload failed", { key });
         return NextResponse.json(
           {
-            type: "https://api.shop.am/problems/internal-error",
+            type: problemTypes.internalError,
             title: "Upload failed",
             status: 500,
             detail: "Failed to upload image to storage",
@@ -157,7 +158,7 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json(
       {
-        type: err?.type ?? "https://api.shop.am/problems/internal-error",
+        type: err?.type ?? problemTypes.internalError,
         title: err?.title ?? "Internal Server Error",
         status: err?.status ?? 500,
         detail: err?.detail ?? err?.message ?? "An error occurred",

@@ -1,4 +1,5 @@
 import { db } from "@white-shop/db";
+import { problemTypes } from "@/lib/http/problem-details";
 import { Prisma } from "@prisma/client";
 import { logger } from "../../../utils/logger";
 import type { UpdateProductData } from "./types";
@@ -28,7 +29,7 @@ export async function updateProduct(
     if (!existing) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Product not found",
         detail: `Product with id '${productId}' does not exist`,
       };

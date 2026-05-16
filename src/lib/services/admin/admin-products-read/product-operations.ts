@@ -1,4 +1,5 @@
 import { db } from "@white-shop/db";
+import { problemTypes } from "@/lib/http/problem-details";
 import { logger } from "../../../utils/logger";
 import type { ProductFilters } from "./types";
 import { buildProductWhereClause, buildProductOrderByClause } from "./query-builder";
@@ -49,7 +50,7 @@ export async function getProductById(productId: string) {
   if (!product) {
     throw {
       status: 404,
-      type: "https://api.shop.am/problems/not-found",
+      type: problemTypes.notFound,
       title: "Product not found",
       detail: `Product with id '${productId}' does not exist`,
     };

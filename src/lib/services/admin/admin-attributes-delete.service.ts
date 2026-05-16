@@ -1,4 +1,5 @@
 import { db } from "@white-shop/db";
+import { problemTypes } from "@/lib/http/problem-details";
 import { logger } from "@/lib/utils/logger";
 
 class AdminAttributesDeleteService {
@@ -26,7 +27,7 @@ class AdminAttributesDeleteService {
         logger.debug('❌ [ADMIN ATTRIBUTES DELETE SERVICE] Attribute-ը չի գտնվել:', attributeId);
         throw {
           status: 404,
-          type: "https://api.shop.am/problems/not-found",
+          type: problemTypes.notFound,
           title: "Attribute not found",
           detail: `Attribute with id '${attributeId}' does not exist`,
         };
@@ -76,7 +77,7 @@ class AdminAttributesDeleteService {
         logger.debug('⚠️ [ADMIN ATTRIBUTES DELETE SERVICE] Attribute-ը օգտագործվում է արտադրանքներում:', productAttributesCount);
         throw {
           status: 400,
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Cannot delete attribute",
           detail: `Attribute is used in ${productAttributesCount} product(s). Please remove it from products first.`,
         };
@@ -124,7 +125,7 @@ class AdminAttributesDeleteService {
           logger.debug('⚠️ [ADMIN ATTRIBUTES DELETE SERVICE] Attribute values-ները օգտագործվում են variants-ներում:', variantOptionsCount);
           throw {
             status: 400,
-            type: "https://api.shop.am/problems/validation-error",
+            type: problemTypes.validationError,
             title: "Cannot delete attribute",
             detail: `Some attribute values are used in ${variantOptionsCount} variant(s). Please remove them from variants first.`,
           };
@@ -173,7 +174,7 @@ class AdminAttributesDeleteService {
         logger.debug('⚠️ [ADMIN ATTRIBUTES DELETE SERVICE] Prisma P2025: Գրառումը չի գտնվել');
         throw {
           status: 404,
-          type: "https://api.shop.am/problems/not-found",
+          type: problemTypes.notFound,
           title: "Attribute not found",
           detail: `Attribute with id '${attributeId}' does not exist`,
         };
@@ -182,7 +183,7 @@ class AdminAttributesDeleteService {
       // Գեներիկ սխալ
       throw {
         status: 500,
-        type: "https://api.shop.am/problems/internal-error",
+        type: problemTypes.internalError,
         title: "Internal Server Error",
         detail: error?.message || "Failed to delete attribute",
       };
@@ -208,7 +209,7 @@ class AdminAttributesDeleteService {
       if (!attributeValue) {
         throw {
           status: 404,
-          type: "https://api.shop.am/problems/not-found",
+          type: problemTypes.notFound,
           title: "Attribute value not found",
           detail: `Attribute value with id '${attributeValueId}' does not exist`,
         };
@@ -224,7 +225,7 @@ class AdminAttributesDeleteService {
       if (variantOptionsCount > 0) {
         throw {
           status: 400,
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Cannot delete attribute value",
           detail: `Attribute value is used in ${variantOptionsCount} variant(s). Please remove it from variants first.`,
         };
@@ -258,7 +259,7 @@ class AdminAttributesDeleteService {
       if (!attribute) {
         throw {
           status: 500,
-          type: "https://api.shop.am/problems/internal-error",
+          type: problemTypes.internalError,
           title: "Internal Server Error",
           detail: "Failed to retrieve updated attribute",
         };
@@ -289,7 +290,7 @@ class AdminAttributesDeleteService {
       }
       throw {
         status: 500,
-        type: "https://api.shop.am/problems/internal-error",
+        type: problemTypes.internalError,
         title: "Internal Server Error",
         detail: error.message || "Failed to delete attribute value",
       };

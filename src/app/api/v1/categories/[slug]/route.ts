@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import {
   STOREFRONT_CACHE_KEYS,
   STOREFRONT_CACHE_TTL,
@@ -40,7 +41,7 @@ export async function GET(
     const status = err.status ?? 500;
     return NextResponse.json(
       {
-        type: err.type || "https://api.shop.am/problems/internal-error",
+        type: err.type || problemTypes.internalError,
         title: err.title || "Internal Server Error",
         status,
         detail: err.detail || err.message || "An error occurred",

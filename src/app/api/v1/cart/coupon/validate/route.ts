@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import { ordersService } from "@/lib/services/orders.service";
 import { toApiError } from "@/lib/types/errors";
 import { logger } from "@/lib/utils/logger";
@@ -14,7 +15,7 @@ export async function POST(req: NextRequest) {
     if (!body || typeof body !== "object") {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Request body must be a valid JSON object",
@@ -27,7 +28,7 @@ export async function POST(req: NextRequest) {
     if (typeof body.couponCode !== "string") {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "couponCode must be a string",

@@ -1,4 +1,5 @@
 import { db } from "@white-shop/db";
+import { problemTypes } from "@/lib/http/problem-details";
 import { toSlug } from "@/lib/utils/slug";
 import { logger } from "@/lib/utils/logger";
 
@@ -69,7 +70,7 @@ class AdminBrandsService {
       if (counter > 1000) {
         throw {
           status: 500,
-          type: "https://api.shop.am/problems/internal-error",
+          type: problemTypes.internalError,
           title: "Unable to generate unique slug",
           detail: "Could not generate a unique slug for the brand after many attempts",
         };
@@ -132,7 +133,7 @@ class AdminBrandsService {
     if (!brand) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Brand not found",
         detail: `Brand with id '${brandId}' does not exist`,
       };
@@ -223,7 +224,7 @@ class AdminBrandsService {
     if (!brand) {
       throw {
         status: 404,
-        type: "https://api.shop.am/problems/not-found",
+        type: problemTypes.notFound,
         title: "Brand not found",
         detail: `Brand with id '${brandId}' does not exist`,
       };
@@ -240,7 +241,7 @@ class AdminBrandsService {
     if (productsCount > 0) {
       throw {
         status: 400,
-        type: "https://api.shop.am/problems/bad-request",
+        type: problemTypes.badRequest,
         title: "Cannot delete brand",
         detail: `This brand has ${productsCount} associated product${productsCount > 1 ? 's' : ''}. Please remove or change brand for these products first.`,
         productsCount,

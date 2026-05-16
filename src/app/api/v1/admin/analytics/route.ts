@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { problemTypes } from "@/lib/http/problem-details";
 import { authenticateToken, requireAdmin } from "@/lib/middleware/auth";
 import { adminService } from "@/lib/services/admin.service";
 import { toApiError } from "@/lib/types/errors";
@@ -23,7 +24,7 @@ export async function GET(req: NextRequest) {
       logger.debug("❌ [ANALYTICS] Unauthorized or not admin");
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/forbidden",
+          type: problemTypes.forbidden,
           title: "Forbidden",
           status: 403,
           detail: "Admin access required",
@@ -42,7 +43,7 @@ export async function GET(req: NextRequest) {
     if (!allowedPeriods.has(period)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Parameter 'period' must be one of: day, week, month, year, custom",
@@ -55,7 +56,7 @@ export async function GET(req: NextRequest) {
     if (period === "custom" && (!startDate || !endDate)) {
       return NextResponse.json(
         {
-          type: "https://api.shop.am/problems/validation-error",
+          type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
           detail: "Parameters 'startDate' and 'endDate' are required for custom period",
