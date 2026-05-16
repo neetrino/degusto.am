@@ -71,6 +71,8 @@ type DesktopMenuPageProps = {
     currentPage: number;
     totalPages: number;
   };
+  /** When false, hides the mobile product list (e.g. mobile shop category grid on `/shop`). */
+  showMobileProductsList?: boolean;
 };
 
 const fallbackCategoryKeys = [
@@ -432,6 +434,7 @@ export function FigmaDesktopMenuPage({
   initialMaxPrice = '',
   initialFoodFilter = 'neutral',
   menuPagination,
+  showMobileProductsList = true,
 }: DesktopMenuPageProps) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -444,6 +447,16 @@ export function FigmaDesktopMenuPage({
   const [maxPrice, setMaxPrice] = useState(initialMaxPrice);
   const [foodFilter, setFoodFilter] = useState<'leaf' | 'neutral' | 'pepper'>(initialFoodFilter);
   const routeBasePath = pathname?.startsWith('/combo') ? '/combo' : '/shop';
+
+  useEffect(() => {
+    if (!showMobileProductsList || searchParams.get('openFilters') !== '1') {
+      return;
+    }
+    document.getElementById(MOBILE_STOREFRONT_FILTERS_ANCHOR_ID)?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  }, [searchParams, showMobileProductsList]);
 
   const buildTargetPath = useMemo(() => {
     return (
@@ -515,6 +528,7 @@ export function FigmaDesktopMenuPage({
 
   return (
     <>
+      {showMobileProductsList ? (
       <div className="pb-8 pt-0 lg:hidden">
         <div className="mx-auto w-full max-w-[1470px]">
           <h1 className="text-[32px] font-bold leading-tight text-[#f66913]">{t(titleKey)}</h1>
@@ -632,6 +646,7 @@ export function FigmaDesktopMenuPage({
           ) : null}
         </div>
       </div>
+      ) : null}
 
       <div className="hidden bg-white pb-20 pt-5 lg:block">
         <div className="mx-auto flex w-full max-w-[1470px] gap-8 px-3">
@@ -822,3 +837,4 @@ export function FigmaDesktopShopPage() {
 }
 
 export type { MenuCard, MenuCategory };
+

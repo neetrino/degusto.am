@@ -1,5 +1,7 @@
 import { FigmaDesktopMenuPage, type MenuCard, type MenuCategory } from '../../components/home/FigmaDesktopShopPage';
+import { MobileShopCategoriesView } from '../../components/home/MobileShopCategoriesView';
 import { BodyBackground } from '../../components/BodyBackground';
+import { shouldShowMobileShopCategoryGrid } from '@/lib/shop-mobile-view';
 import { HIDDEN_STOREFRONT_CATEGORY_SLUGS } from '@/constants/hidden-storefront-category-slugs';
 import { STORE_MENU_PAGE_SIZE } from '@/constants/store-menu-page-size';
 import { db } from '@white-shop/db';
@@ -72,6 +74,7 @@ export default async function ShopPage({
     typeof params?.search === 'string' ? params.search.trim() : '';
   const tasteFilter =
     params?.taste === 'leaf' || params?.taste === 'pepper' ? params.taste : null;
+  const openFilters = params?.openFilters === '1';
   const minPriceParam =
     typeof params?.minPrice === 'string' ? Number(params.minPrice) : null;
   const maxPriceParam =
@@ -85,6 +88,14 @@ export default async function ShopPage({
     typeof maxPriceParam === 'number' && Number.isFinite(maxPriceParam) && maxPriceParam >= 0
       ? maxPriceParam
       : null;
+  const showMobileCategoryGrid = shouldShowMobileShopCategoryGrid({
+    categorySlug: selectedCategorySlug,
+    searchQuery: selectedSearchQuery,
+    tasteFilter,
+    minPriceAmd,
+    maxPriceAmd,
+    openFilters,
+  });
   const minPriceUsd =
     minPriceAmd !== null ? storefrontAmdPriceBoundToVariantUsd(minPriceAmd) : null;
   const maxPriceUsd =
@@ -172,93 +183,6 @@ export default async function ShopPage({
   const { productTotal, productRows, categoryRows, allProductCount, countsBySlug } =
     await withPrismaResilience(
       async () => {
-        const nextProductTotal = await db.product.count({ where: productWhere });
-        const nextTotalPages =
-          nextProductTotal === 0 ? 0 : Math.ceil(nextProductTotal / STORE_MENU_PAGE_SIZE);
-        const nextEffectivePage =
-          nextTotalPages === 0 ? 1 : Math.min(requestedPage, nextTotalPages);
-        const nextProductRows = await db.product.findMany({
-          where: productWhere,
-          orderBy: {
-            updatedAt: 'desc',
-          },
-          skip: (nextEffectivePage - 1) * STORE_MENU_PAGE_SIZE,
-          take: STORE_MENU_PAGE_SIZE,
-          select: {
-            id: true,
-            media: true,
-            discountPercent: true,
-            categories: {
-              where: {
-                deletedAt: null,
-                published: true,
-              },
-              orderBy: {
-                position: 'asc',
-              },
-              take: 1,
-              select: {
-                translations: {
-                  where: {
-                    locale: {
-                      in: [locale, 'en'],
-                    },
-                  },
-                  select: {
-                    locale: true,
-                    title: true,
-                    slug: true,
-                  },
-                },
-              },
-            },
-            translations: {
-              where: {
-                locale: {
-                  in: [locale, 'en'],
-                },
-              },
-              select: {
-                locale: true,
-                title: true,
-                subtitle: true,
-                slug: true,
-              },
-            },
-            variants: {
-              where: {
-                published: true,
-              },
-              orderBy: {
-                price: 'asc',
-              },
-              select: {
-                published: true,
-                price: true,
-                compareAtPrice: true,
-                attributes: true,
-                options: {
-                  select: {
-                    attributeKey: true,
-                    value: true,
-                    valueId: true,
-                    attributeValue: {
-                      select: {
-                        value: true,
-                        attribute: {
-                          select: {
-                            key: true,
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        });
-
         const nextCategoryRows = await db.category.findMany({
           where: {
             published: true,
@@ -353,6 +277,103 @@ export default async function ShopPage({
             })
           ),
         ]);
+
+        if (showMobileCategoryGrid) {
+          return {
+            productTotal: 0,
+            productRows: [],
+            categoryRows: nextCategoryRows,
+            allProductCount: nextAllProductCount,
+            countsBySlug: nextCountsBySlug,
+          };
+        }
+
+        const nextProductTotal = await db.product.count({ where: productWhere });
+        const nextTotalPages =
+          nextProductTotal === 0 ? 0 : Math.ceil(nextProductTotal / STORE_MENU_PAGE_SIZE);
+        const nextEffectivePage =
+          nextTotalPages === 0 ? 1 : Math.min(requestedPage, nextTotalPages);
+        const nextProductRows = await db.product.findMany({
+          where: productWhere,
+          orderBy: {
+            updatedAt: 'desc',
+          },
+          skip: (nextEffectivePage - 1) * STORE_MENU_PAGE_SIZE,
+          take: STORE_MENU_PAGE_SIZE,
+          select: {
+            id: true,
+            media: true,
+            discountPercent: true,
+            categories: {
+              where: {
+                deletedAt: null,
+                published: true,
+              },
+              orderBy: {
+                position: 'asc',
+              },
+              take: 1,
+              select: {
+                translations: {
+                  where: {
+                    locale: {
+                      in: [locale, 'en'],
+                    },
+                  },
+                  select: {
+                    locale: true,
+                    title: true,
+                    slug: true,
+                  },
+                },
+              },
+            },
+            translations: {
+              where: {
+                locale: {
+                  in: [locale, 'en'],
+                },
+              },
+              select: {
+                locale: true,
+                title: true,
+                subtitle: true,
+                slug: true,
+              },
+            },
+            variants: {
+              where: {
+                published: true,
+              },
+              orderBy: {
+                price: 'asc',
+              },
+              select: {
+                published: true,
+                price: true,
+                compareAtPrice: true,
+                attributes: true,
+                options: {
+                  select: {
+                    attributeKey: true,
+                    value: true,
+                    valueId: true,
+                    attributeValue: {
+                      select: {
+                        value: true,
+                        attribute: {
+                          select: {
+                            key: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        });
 
         return {
           productTotal: nextProductTotal,
@@ -453,9 +474,22 @@ export default async function ShopPage({
     };
   });
 
+  const mobileShopCategories = categoryEntries
+    .filter((entry) => entry.slug !== '')
+    .map((entry) => ({
+      id: entry.id,
+      slug: entry.slug,
+      title: entry.title,
+      iconUrl: entry.iconUrl,
+      productCount: slugToProductCount.get(entry.slug) ?? 0,
+    }));
+
   return (
     <div className="min-h-screen bg-white">
       <BodyBackground color="#ffffff" />
+      {showMobileCategoryGrid ? (
+        <MobileShopCategoriesView categories={mobileShopCategories} />
+      ) : null}
       <FigmaDesktopMenuPage
         titleKey="home.figma.desktop.shop.menuTitle"
         subtitleKey="home.figma.desktop.shop.menuSubtitle"
@@ -471,6 +505,7 @@ export default async function ShopPage({
           currentPage: effectivePage,
           totalPages,
         }}
+        showMobileProductsList={!showMobileCategoryGrid}
       />
     </div>
   );

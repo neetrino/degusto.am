@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { MobileBottomNavigation } from './home/MobileBottomNavigation';
 import { resolveMobileBottomNavAssets } from './home/mobileBottomNavAssets';
@@ -13,6 +14,10 @@ export function ConditionalMobileBottomNav() {
   }
 
   const assets = resolveMobileBottomNavAssets(pathname ?? null);
+
+  useEffect(() => {
+    void router.prefetch('/shop');
+  }, [router]);
 
   return (
     <div className="lg:hidden">

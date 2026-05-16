@@ -2,7 +2,11 @@
 
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import {
+  resolveShopMenuQueryState,
+  shouldShowMobileShopCategoryGrid,
+} from '@/lib/shop-mobile-view';
 import { LanguageCurrencySwitcher } from '../LanguageCurrencySwitcher';
 import { useTranslation } from '../../lib/i18n-client';
 import { SITE_CONTACT_PHONES } from '../../lib/site-contact';
@@ -30,10 +34,22 @@ export function MobileStorefrontHeader() {
   const { t } = useTranslation();
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const primaryPhone = SITE_CONTACT_PHONES[0];
 
   const handleFilterClick = () => {
-    if (pathname === '/shop' || pathname?.startsWith('/shop/') || pathname === '/combo' || pathname?.startsWith('/combo/')) {
+    if (pathname === '/shop' || pathname?.startsWith('/shop/')) {
+      if (shouldShowMobileShopCategoryGrid(resolveShopMenuQueryState(searchParams))) {
+        router.push('/shop?openFilters=1');
+        return;
+      }
+      document.getElementById(MOBILE_STOREFRONT_FILTERS_ANCHOR_ID)?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+      return;
+    }
+    if (pathname === '/combo' || pathname?.startsWith('/combo/')) {
       document.getElementById(MOBILE_STOREFRONT_FILTERS_ANCHOR_ID)?.scrollIntoView({
         behavior: 'smooth',
         block: 'start',
