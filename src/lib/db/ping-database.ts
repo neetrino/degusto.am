@@ -1,4 +1,4 @@
-import { db } from "@white-shop/db";
+import { db, redactConnectionStringInMessage } from "@white-shop/db";
 import { isPrismaConnectionError } from "@/lib/http/api-route-errors";
 import { logger } from "@/lib/utils/logger";
 
@@ -10,6 +10,8 @@ export type DbPingFail = {
   ok: false;
   reason: "connection" | "timeout" | "unknown";
   prismaCode?: string;
+  /** Safe hint for /api/health/db (no credentials). */
+  hint?: string;
 };
 export type DbPingResult = DbPingOk | DbPingFail;
 
@@ -43,10 +45,18 @@ export async function pingDatabase(
         typeof (error as { code: unknown }).code === "string"
           ? (error as { code: string }).code
           : "init";
-      logger.warn("[db-ping] database unreachable", { code });
-      return { ok: false, reason: "connection", prismaCode: code };
+      const hint =
+        error instanceof Error
+          ? redactConnectionStringInMessage(error.message).slice(0, 200)
+          : undefined;
+      logger.warn("[db-ping] database unreachable", { code, hint });
+      return { ok: false, reason: "connection", prismaCode: code, hint };
     }
-    logger.warn("[db-ping] unexpected failure", { message: error instanceof Error ? error.message : "unknown" });
-    return { ok: false, reason: "unknown" };
+    const hint =
+      error instanceof Error
+        ? redactConnectionStringInMessage(error.message).slice(0, 200)
+        : undefined;
+    logger.warn("[db-ping] unexpected failure", { hint });
+    return { ok: false, reason: "unknown", hint };
   }
 }

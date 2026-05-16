@@ -28,7 +28,13 @@ const nextConfig = {
     '@neondatabase/serverless',
     'ws',
   ],
-  transpilePackages: ['@shop/ui', '@shop/design-tokens'],
+  transpilePackages: ['@shop/ui', '@shop/design-tokens', '@white-shop/db'],
+  // Monorepo: trace generated Prisma client + query engine into standalone serverless bundle
+  outputFileTracingRoot: path.resolve(__dirname),
+  outputFileTracingIncludes: {
+    '/*': ['./shared/db/src/generated/prisma-client/**/*'],
+    '/api/**/*': ['./shared/db/src/generated/prisma-client/**/*'],
+  },
   // Standalone output - prevents prerendering of 404 page
   output: 'standalone',
   /** Full cart page removed; drawer-only cart — old URLs go to shop. */

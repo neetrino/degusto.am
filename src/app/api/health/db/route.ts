@@ -39,12 +39,19 @@ export async function GET() {
       database: "down",
       reason: result.reason,
       prismaCode: "prismaCode" in result ? result.prismaCode : undefined,
+      hint: "hint" in result ? result.hint : undefined,
       config,
       checks: {
         usePooledDatabaseUrl: config.databaseLikelyNeonPooler,
         neonDriverAdapter: config.neonDriverAdapter,
         vercelRuntime: config.vercelRuntime,
       },
+      fixSteps: [
+        "Neon → Connection string → Pooled → copy into Vercel DATABASE_URL (no quotes).",
+        "Neon → Direct → copy into Vercel DIRECT_URL (no quotes).",
+        "Vercel → Redeploy after saving env vars.",
+        "If password was rotated in Neon, update both URLs in Vercel.",
+      ],
     },
     { status: 503, headers: { "Retry-After": "15" } }
   );

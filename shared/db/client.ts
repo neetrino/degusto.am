@@ -8,6 +8,7 @@ import {
   isNextBuildWithoutDbEnv,
   mergePostgresConnectionUrlTuning,
   NEXT_BUILD_DB_PLACEHOLDER,
+  normalizeDatabaseEnvUrl,
   shouldUseNeonDriverAdapterForRuntime,
 } from "./postgres-connection";
 
@@ -21,8 +22,8 @@ const globalForPrisma = globalThis as typeof globalThis & {
   neonSqlPool?: Pool;
 };
 
-let databaseUrl = (process.env.DATABASE_URL ?? "").trim();
-let directUrl = (process.env.DIRECT_URL ?? "").trim();
+let databaseUrl = normalizeDatabaseEnvUrl(process.env.DATABASE_URL ?? "");
+let directUrl = normalizeDatabaseEnvUrl(process.env.DIRECT_URL ?? "");
 
 if ((!databaseUrl || !directUrl) && isNextBuildWithoutDbEnv()) {
   databaseUrl = databaseUrl || NEXT_BUILD_DB_PLACEHOLDER;
