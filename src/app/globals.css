@@ -56,8 +56,13 @@
    * Mobile bottom bar: tint external nav glyphs (<img>) toward --project-color (#f56814).
    * Filter chain from a standard “hex to CSS filter” mapping; adjust if assets change.
    */
-  .mobile-bottom-nav-item-active img {
+  .mobile-bottom-nav-item-active img:not(.mobile-bottom-nav-shop-disc):not(.mobile-bottom-nav-shop-glyph) {
     filter: brightness(0) saturate(100%) invert(51%) sepia(96%) saturate(2146%) hue-rotate(359deg) brightness(101%) contrast(97%);
+  }
+
+  /** Center shop cloche stays white on the orange disc (Figma 1:2573, 29×26). */
+  .mobile-bottom-nav-shop-glyph {
+    filter: none;
   }
 
   /**

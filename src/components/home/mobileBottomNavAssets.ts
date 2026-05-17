@@ -34,8 +34,12 @@ export const MOBILE_SHOP_BOTTOM_NAV_ASSETS = {
   bottomNavProfile: '/api/r2/navigation/20260512-npk36RTIVm.svg',
 } as const;
 
+export function isShopMobileBottomNavRoute(pathname: string | null): boolean {
+  return pathname === '/shop' || (pathname?.startsWith('/shop/') ?? false);
+}
+
 export function resolveMobileBottomNavAssets(pathname: string | null): MobileBottomNavResolvedAssets {
-  if (pathname === '/shop') {
+  if (isShopMobileBottomNavRoute(pathname)) {
     return { ...MOBILE_SHOP_BOTTOM_NAV_ASSETS };
   }
   return { ...MOBILE_HOME_BOTTOM_NAV_ASSETS };

@@ -25,7 +25,7 @@ export function getMobileBottomNavActiveFlags(
 
   return {
     profileHref,
-    isShopActive: pathname === '/shop',
+    isShopActive: pathname === '/shop' || pathname.startsWith('/shop/'),
     isHomeActive: pathname === '/',
     isCartActive: false,
     isFavoritesActive: isPathActive(pathname, '/wishlist'),

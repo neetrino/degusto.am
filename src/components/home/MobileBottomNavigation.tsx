@@ -128,16 +128,21 @@ function MobileBottomNavigationShopButton({
     <button
       type="button"
       onClick={onShopClick}
-      className={mergeActiveClass(
-        'pointer-events-auto absolute left-1/2 top-[40px] inline-flex h-[70px] w-[70px] -translate-x-1/2 items-center justify-center',
-        isShopActive
-      )}
+      className="pointer-events-auto absolute left-1/2 top-[40px] inline-flex h-[70px] w-[70px] -translate-x-1/2 items-center justify-center relative"
       aria-label="Shop"
       aria-current={isShopActive ? 'page' : undefined}
     >
-      <img src={assets.bottomNavShop} alt="" className="h-[70px] w-[70px] object-contain" />
+      <img
+        src={assets.bottomNavShop}
+        alt=""
+        className="mobile-bottom-nav-shop-disc h-[70px] w-[70px] object-contain"
+      />
       {assets.bottomNavShopIcon ? (
-        <img src={assets.bottomNavShopIcon} alt="" className="absolute h-8 w-8 object-contain" />
+        <img
+          src={assets.bottomNavShopIcon}
+          alt=""
+          className="mobile-bottom-nav-shop-glyph pointer-events-none absolute left-1/2 top-1/2 z-[1] h-[26px] w-[29px] -translate-x-1/2 -translate-y-[calc(50%+4px)] object-contain"
+        />
       ) : null}
     </button>
   );
