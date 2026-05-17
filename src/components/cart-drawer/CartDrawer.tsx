@@ -11,6 +11,7 @@ import type { Cart } from '@/app/cart/types';
 import { fetchCart } from '@/app/cart/cart-fetcher';
 import { handleRemoveItem, handleUpdateQuantity } from '@/app/cart/cart-handlers';
 import { CartTable, OrderSummary } from '@/app/cart/cart-components';
+import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
 import { useCartDrawer } from './cart-drawer-context';
 import {
   cartDrawerBackdropTransition,
@@ -22,16 +23,16 @@ import {
   cartDrawerPanelVariants,
 } from './cart-drawer-motion-variants';
 
-/** Liquid-glass cart drawer header: matches panel chrome (blur + tint + specular edge). */
+/** Header uses panel glass only — no separate tint (avoids dark band at top on mobile). */
 const DRAWER_HEADER_CLASS =
-  'relative z-10 flex shrink-0 items-start justify-between bg-gradient-to-br from-white/58 via-white/42 to-white/30 px-5 py-4 ring-1 ring-inset ring-white/35 backdrop-blur-xl backdrop-saturate-150 supports-[backdrop-filter]:from-white/48 supports-[backdrop-filter]:via-white/36 supports-[backdrop-filter]:to-white/26';
+  'relative z-10 flex shrink-0 items-start justify-between bg-transparent px-5 pb-3 pt-5';
 
 const DRAWER_HEADER_CLOSE_CLASS =
   'flex h-10 w-10 items-center justify-center rounded-full border border-white/50 bg-white/20 text-white shadow-sm backdrop-blur-md transition-colors hover:border-white/65 hover:bg-white/30 hover:text-white';
 
-/** Liquid-glass drawer shell: blurs page behind; no image/WebGL. */
+/** Mobile: full-viewport sheet (no radius), darker glass. Desktop: right drawer, lighter glass. */
 const DRAWER_PANEL_CLASS =
-  'absolute right-0 top-0 z-[200] flex h-full w-full max-w-md flex-col overflow-hidden rounded-l-[2rem] bg-gradient-to-b from-white/78 via-white/68 to-white/58 shadow-2xl backdrop-blur-2xl backdrop-saturate-150 ring-1 ring-inset ring-white/45 supports-[backdrop-filter]:from-white/68 supports-[backdrop-filter]:via-white/58 supports-[backdrop-filter]:to-white/48 sm:rounded-l-[2.25rem]';
+  'absolute inset-0 z-[200] flex h-full w-full max-w-none flex-col overflow-hidden rounded-none bg-gradient-to-b from-neutral-950/68 via-neutral-900/62 to-neutral-950/72 shadow-2xl backdrop-blur-2xl backdrop-saturate-150 ring-1 ring-inset ring-white/22 supports-[backdrop-filter]:from-neutral-950/60 supports-[backdrop-filter]:via-neutral-900/55 supports-[backdrop-filter]:to-neutral-950/65 lg:inset-y-0 lg:left-auto lg:right-0 lg:max-w-md lg:rounded-none lg:rounded-l-[2.25rem] lg:from-white/78 lg:via-white/68 lg:to-white/58 lg:ring-white/45 lg:supports-[backdrop-filter]:from-white/68 lg:supports-[backdrop-filter]:via-white/58 lg:supports-[backdrop-filter]:to-white/48';
 
 function CartDrawerBackdrop({
   onClose,
@@ -46,7 +47,7 @@ function CartDrawerBackdrop({
     <motion.button
       type="button"
       aria-label={label}
-      className="absolute inset-0 z-[1] bg-black/45 backdrop-blur-[2px]"
+      className="absolute inset-0 z-[1] hidden bg-black/45 backdrop-blur-[2px] lg:block"
       variants={cartDrawerBackdropVariants}
       initial="hidden"
       animate="visible"
@@ -59,6 +60,7 @@ function CartDrawerBackdrop({
 
 function CartDrawerMounted({ onClose }: { onClose: () => void }) {
   const router = useRouter();
+  const isMobileViewport = useIsMobileViewport();
   const reduceMotion = useReducedMotion();
   const panelTransition = cartDrawerPanelTransition(reduceMotion);
   const { isLoggedIn } = useAuth();
@@ -156,7 +158,9 @@ function CartDrawerMounted({ onClose }: { onClose: () => void }) {
       <CartDrawerBackdrop onClose={onClose} label={t('common.ariaLabels.closeMenu')} reduceMotion={reduceMotion} />
       <motion.div
         className={DRAWER_PANEL_CLASS}
-        variants={cartDrawerPanelVariants(panelTransition, reduceMotion)}
+        variants={cartDrawerPanelVariants(panelTransition, reduceMotion, {
+          fullScreen: isMobileViewport,
+        })}
         initial="hidden"
         animate="visible"
         exit="exit"
