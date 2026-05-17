@@ -11,8 +11,13 @@ import { useWishlist } from '../hooks/useWishlist';
 import { useAuth } from '../../lib/auth/AuthContext';
 import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
 import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
+import type { MenuCard, MenuCategory } from './menu-types';
+import { ShopMobileProductCard } from './ShopMobileProductCard';
 import { StoreMenuPagination } from './StoreMenuPagination';
-import { MOBILE_STOREFRONT_FILTERS_ANCHOR_ID } from '@/constants/mobile-figma-storefront';
+import {
+  MOBILE_SHOP_PRODUCTS_GRID_CLASS,
+  MOBILE_STOREFRONT_FILTERS_ANCHOR_ID,
+} from '@/constants/mobile-figma-storefront';
 
 const assets = {
   productCardImage: '/api/r2/product/20260512-D3w_teddze.png',
@@ -26,35 +31,6 @@ const assets = {
 
 /** Debounce before writing search to the URL (server refetch); avoids one request per key. */
 const SEARCH_QUERY_URL_DEBOUNCE_MS = 250;
-
-type MenuCard = {
-  id: string;
-  slug: string;
-  titleKey: string;
-  subtitleKey: string;
-  title?: string;
-  subtitle?: string;
-  category?: string;
-  categoryKey?: string;
-  image?: string | null;
-  price: number;
-  oldPrice: number;
-  discount: string;
-  discountPercent?: number | null;
-  inStock?: boolean;
-  defaultVariantId?: string | null;
-  supportsSpicy?: boolean;
-  supportsGreens?: boolean;
-};
-
-type MenuCategory = {
-  id: string;
-  slug: string;
-  title: string;
-  iconUrl?: string | null;
-  /** When set (shop/combo DB categories), shown in the UI and used to block empty categories. */
-  productCount?: number;
-};
 
 type DesktopMenuPageProps = {
   titleKey: string;
@@ -625,9 +601,9 @@ export function FigmaDesktopMenuPage({
           </div>
 
           {menuCards.length > 0 ? (
-            <div className="mt-8 grid grid-cols-1 justify-items-center gap-x-6 gap-y-10 sm:grid-cols-2">
+            <div className={`mt-8 ${MOBILE_SHOP_PRODUCTS_GRID_CLASS}`}>
               {menuCards.map((card) => (
-                <MenuCardItem key={card.id} card={card} />
+                <ShopMobileProductCard key={card.id} card={card} />
               ))}
             </div>
           ) : (
@@ -836,5 +812,5 @@ export function FigmaDesktopShopPage() {
   );
 }
 
-export type { MenuCard, MenuCategory };
+export type { MenuCard, MenuCategory } from './menu-types';
 

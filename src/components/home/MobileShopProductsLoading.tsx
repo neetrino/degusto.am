@@ -10,11 +10,11 @@ export function MobileShopProductsLoading() {
             <div key={index} className="h-9 w-24 shrink-0 animate-pulse rounded-full bg-[#f3f3f5]" />
           ))}
         </div>
-        <div className="mt-8 grid grid-cols-1 justify-items-center gap-y-10 sm:grid-cols-2">
+        <div className="mt-8 grid grid-cols-2 gap-x-[14px] gap-y-[22px]">
           {Array.from({ length: 4 }, (_, index) => (
             <div
               key={index}
-              className="h-[284px] w-[236px] max-w-full animate-pulse rounded-[20px] border border-[#dedede] bg-[#f3f3f5]"
+              className="h-[240px] w-full animate-pulse rounded-[20px] bg-[#ffeacc]"
             />
           ))}
         </div>

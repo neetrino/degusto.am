@@ -26,3 +26,15 @@ export const MOBILE_STOREFRONT_CHROME_BOTTOM_INSET_CLASS = 'pb-[110px]';
 
 /** Scroll target for mobile header filter control on shop/combo. */
 export const MOBILE_STOREFRONT_FILTERS_ANCHOR_ID = 'mobile-storefront-filters-anchor';
+
+/** Product grid on mobile shop/combo category views (2 columns, Figma 1:2235). */
+export const MOBILE_SHOP_PRODUCTS_GRID_CLASS = 'grid grid-cols-2 gap-x-[14px] gap-y-[22px]';
+
+/** Mobile shop product card artwork (Figma 1:2235 / home mobile parity). */
+export const MOBILE_SHOP_PRODUCT_CARD_ASSETS = {
+  fallbackImage: '/api/r2/product/20260512-lbgLHc4bPu.png',
+  addToCart: '/api/r2/product/20260512-N6b8G5qARR.svg',
+  hot: '/api/r2/product/20260512-Y6Ue4PwD26.svg',
+  ribbon: '/api/r2/product/20260512-vCDQ1I3ZtJ.svg',
+  star: '/api/r2/product/20260512-4fThctFUPS.svg',
+} as const;
