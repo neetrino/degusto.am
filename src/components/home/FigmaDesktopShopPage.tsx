@@ -18,6 +18,7 @@ import {
   MOBILE_SHOP_PRODUCTS_GRID_CLASS,
   MOBILE_STOREFRONT_FILTERS_ANCHOR_ID,
 } from '@/constants/mobile-figma-storefront';
+import { MobileFriendlyInput } from '@/components/mobile/MobileFriendlyInput';
 
 const assets = {
   productCardImage: '/api/r2/product/20260512-D3w_teddze.png',
@@ -529,7 +530,7 @@ export function FigmaDesktopMenuPage({
             className="scroll-mt-28 mt-6 flex flex-wrap items-center gap-2 text-sm text-[#717182]"
           >
             <span className="w-full shrink-0 text-base sm:w-auto">{t('home.figma.desktop.shop.priceLabel')}</span>
-            <input
+            <MobileFriendlyInput
               type="number"
               min={0}
               inputMode="numeric"
@@ -545,10 +546,20 @@ export function FigmaDesktopMenuPage({
                   })
                 );
               }}
+              onSheetCommit={(nextMinPrice) => {
+                router.replace(
+                  buildTargetPath(activeCategorySlug, {
+                    search: searchTerm,
+                    minPrice: nextMinPrice,
+                    maxPrice,
+                  })
+                );
+              }}
               placeholder={t('home.figma.desktop.shop.priceFrom')}
+              sheetTitle={t('home.figma.desktop.shop.priceFrom')}
               className="h-[46px] min-w-0 flex-1 rounded-[40px] bg-[#f3f3f5] px-4 text-left text-base text-[#7f7f80] sm:flex-none sm:basis-[109px]"
             />
-            <input
+            <MobileFriendlyInput
               type="number"
               min={0}
               inputMode="numeric"
@@ -564,7 +575,17 @@ export function FigmaDesktopMenuPage({
                   })
                 );
               }}
+              onSheetCommit={(nextMaxPrice) => {
+                router.replace(
+                  buildTargetPath(activeCategorySlug, {
+                    search: searchTerm,
+                    minPrice,
+                    maxPrice: nextMaxPrice,
+                  })
+                );
+              }}
               placeholder={t('home.figma.desktop.shop.priceTo')}
+              sheetTitle={t('home.figma.desktop.shop.priceTo')}
               className="h-[46px] min-w-0 flex-1 rounded-[40px] bg-[#f3f3f5] px-4 text-left text-base text-[#7f7f80] sm:flex-none sm:basis-[109px]"
             />
             <FoodAttributeSwitcher

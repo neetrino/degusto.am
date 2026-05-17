@@ -1,15 +1,21 @@
 'use client';
 
+import { useState } from 'react';
 import { Card, Button, Input } from '@shop/ui';
 import Link from 'next/link';
 import { useTranslation } from '../../lib/i18n-client';
 import { SITE_CONTACT_EMAIL, SITE_CONTACT_PHONES } from '../../lib/site-contact';
+import { MobileFriendlyTextarea } from '@/components/mobile/MobileFriendlyTextarea';
 
 /**
  * Support page - provides customer support options and resources
  */
 export default function SupportPage() {
   const { t } = useTranslation();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [subject, setSubject] = useState('');
+  const [message, setMessage] = useState('');
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="text-4xl font-bold text-gray-900 mb-4">{t('support.title')}</h1>
@@ -94,6 +100,9 @@ export default function SupportPage() {
             <Input
               id="name"
               type="text"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              sheetTitle={t('support.sendMessage.form.name')}
               placeholder={t('support.sendMessage.form.namePlaceholder')}
               className="w-full"
             />
@@ -105,6 +114,9 @@ export default function SupportPage() {
             <Input
               id="email"
               type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              sheetTitle={t('support.sendMessage.form.email')}
               placeholder={t('support.sendMessage.form.emailPlaceholder')}
               className="w-full"
             />
@@ -116,6 +128,9 @@ export default function SupportPage() {
             <Input
               id="subject"
               type="text"
+              value={subject}
+              onChange={(event) => setSubject(event.target.value)}
+              sheetTitle={t('support.sendMessage.form.subject')}
               placeholder={t('support.sendMessage.form.subjectPlaceholder')}
               className="w-full"
             />
@@ -124,9 +139,12 @@ export default function SupportPage() {
             <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
               {t('support.sendMessage.form.message')}
             </label>
-            <textarea
+            <MobileFriendlyTextarea
               id="message"
               rows={6}
+              value={message}
+              onChange={(event) => setMessage(event.target.value)}
+              sheetTitle={t('support.sendMessage.form.message')}
               placeholder={t('support.sendMessage.form.messagePlaceholder')}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />

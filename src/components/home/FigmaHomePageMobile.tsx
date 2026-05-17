@@ -13,6 +13,7 @@ import {
   MOBILE_FIGMA_HEADER_STACKING_CLASS,
   MOBILE_FIGMA_STOREFRONT_ASSETS,
 } from '@/constants/mobile-figma-storefront';
+import { MobileFriendlyInput } from '@/components/mobile/MobileFriendlyInput';
 
 const mobileAssets = {
   ...MOBILE_FIGMA_STOREFRONT_ASSETS,
@@ -296,13 +297,14 @@ export function FigmaHomePageMobile({ categories = [] }: FigmaHomePageMobileProp
 
         <div className="relative z-10 mt-[8px] h-12 translate-y-[20px] rounded-[30px] bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.05)]">
           <img src={mobileAssets.searchIcon} alt="" className="absolute left-[15px] top-1/2 h-[17px] w-[17px] -translate-y-1/2 object-contain" />
-          <input
+          <MobileFriendlyInput
             type="text"
             value={searchQuery}
             onChange={(event) => {
               setSearchQuery(event.target.value);
             }}
             placeholder={t('common.buttons.search')}
+            sheetTitle={t('common.buttons.search')}
             className="h-full w-full rounded-[30px] bg-transparent pl-[39px] pr-[58px] text-[15px] leading-6 text-black outline-none placeholder:text-[#abb7c2]"
           />
           <button type="button" className="absolute right-[7px] top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center">
