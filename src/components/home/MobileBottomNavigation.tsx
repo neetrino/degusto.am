@@ -48,12 +48,12 @@ const MOBILE_BOTTOM_NAV_ROW: BottomNavRowCell[] = [
     href: () => '/',
     rowClass: 'inline-flex h-[30px] w-[71px] items-center justify-center',
     isActive: (f) => f.isHomeActive,
-    render: ({ assets }) => (
-      <span className="relative inline-flex h-[30px] w-[30px]">
-        <img
-          src={assets.bottomNavHome}
-          alt="Home"
-          className="absolute inset-[8.33%] h-[83.34%] w-[83.34%] object-contain"
+    render: ({ active }) => (
+      <span className="relative inline-flex h-[30px] w-[30px] items-center justify-center">
+        <span
+          className={active ? 'mobile-bottom-nav-fill-home-active' : 'mobile-bottom-nav-fill-home-inactive'}
+          role="img"
+          aria-label="Home"
         />
       </span>
     ),
@@ -65,17 +65,22 @@ const MOBILE_BOTTOM_NAV_ROW: BottomNavRowCell[] = [
     rowClass: 'inline-flex h-[30px] w-[71px] items-start',
     isActive: (f) => f.isCartActive,
     render: ({ assets, active }) => {
-      if (active) {
-        const shop = isShopMobileBottomNavAssetSet(assets);
-        return (
-          <span
-            className={shop ? 'mobile-bottom-nav-fill-cart-shop' : 'mobile-bottom-nav-fill-cart-home'}
-            role="img"
-            aria-label="Cart"
-          />
-        );
-      }
-      return <img src={assets.bottomNavCart} alt="Cart" className="h-[30px] w-[71px] object-contain" />;
+      const shop = isShopMobileBottomNavAssetSet(assets);
+      return (
+        <span
+          className={
+            active
+              ? shop
+                ? 'mobile-bottom-nav-fill-cart-shop'
+                : 'mobile-bottom-nav-fill-cart-home'
+              : shop
+                ? 'mobile-bottom-nav-fill-cart-shop-inactive'
+                : 'mobile-bottom-nav-fill-cart-home-inactive'
+          }
+          role="img"
+          aria-label="Cart"
+        />
+      );
     },
   },
   { kind: 'spacer' },
@@ -86,17 +91,22 @@ const MOBILE_BOTTOM_NAV_ROW: BottomNavRowCell[] = [
     rowClass: 'inline-flex h-[30px] w-[71px] items-start',
     isActive: (f) => f.isFavoritesActive,
     render: ({ assets, active }) => {
-      if (active) {
-        const shop = isShopMobileBottomNavAssetSet(assets);
-        return (
-          <span
-            className={shop ? 'mobile-bottom-nav-fill-fav-shop' : 'mobile-bottom-nav-fill-fav-home'}
-            role="img"
-            aria-label="Favorites"
-          />
-        );
-      }
-      return <img src={assets.bottomNavFavorite} alt="Favorites" className="h-[30px] w-[71px] object-contain" />;
+      const shop = isShopMobileBottomNavAssetSet(assets);
+      return (
+        <span
+          className={
+            active
+              ? shop
+                ? 'mobile-bottom-nav-fill-fav-shop'
+                : 'mobile-bottom-nav-fill-fav-home'
+              : shop
+                ? 'mobile-bottom-nav-fill-fav-shop-inactive'
+                : 'mobile-bottom-nav-fill-fav-home-inactive'
+          }
+          role="img"
+          aria-label="Favorites"
+        />
+      );
     },
   },
   {
@@ -105,11 +115,11 @@ const MOBILE_BOTTOM_NAV_ROW: BottomNavRowCell[] = [
     href: (f) => f.profileHref,
     rowClass: 'inline-flex h-[30px] w-[71px] items-center justify-center',
     isActive: (f) => f.isProfileSlotActive,
-    render: ({ assets, isLoggedIn }) => (
-      <img
-        src={assets.bottomNavProfile}
-        alt={isLoggedIn ? 'Profile' : 'Login'}
-        className="h-[30px] w-[30px] object-contain"
+    render: ({ isLoggedIn, active }) => (
+      <span
+        className={active ? 'mobile-bottom-nav-fill-profile-active' : 'mobile-bottom-nav-fill-profile-inactive'}
+        role="img"
+        aria-label={isLoggedIn ? 'Profile' : 'Login'}
       />
     ),
   },

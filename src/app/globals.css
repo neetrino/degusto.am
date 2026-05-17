@@ -69,7 +69,7 @@
    * Mobile bottom bar: tint external nav glyphs (<img>) toward --project-color (#f56814).
    * Filter chain from a standard “hex to CSS filter” mapping; adjust if assets change.
    */
-  .mobile-bottom-nav-item-active img:not(.mobile-bottom-nav-shop-disc):not(.mobile-bottom-nav-shop-glyph) {
+  .mobile-bottom-nav-item-active img:not(.mobile-bottom-nav-shop-disc):not(.mobile-bottom-nav-shop-glyph):not(.mobile-bottom-nav-glyph-managed) {
     filter: brightness(0) saturate(100%) invert(51%) sepia(96%) saturate(2146%) hue-rotate(359deg) brightness(101%) contrast(97%);
   }
 
@@ -143,6 +143,83 @@
     mask-repeat: no-repeat;
     -webkit-mask-position: center;
     mask-position: center;
+  }
+
+  .mobile-bottom-nav-fill-cart-home-inactive,
+  .mobile-bottom-nav-fill-cart-shop-inactive,
+  .mobile-bottom-nav-fill-fav-home-inactive,
+  .mobile-bottom-nav-fill-fav-shop-inactive {
+    display: block;
+    width: 71px;
+    height: 30px;
+    flex-shrink: 0;
+    background-color: #ffffff;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+  }
+
+  .mobile-bottom-nav-fill-cart-home-inactive {
+    -webkit-mask-image: url(/api/r2/navigation/20260512-uAd4OmdwhO.svg);
+    mask-image: url(/api/r2/navigation/20260512-uAd4OmdwhO.svg);
+  }
+
+  .mobile-bottom-nav-fill-cart-shop-inactive {
+    -webkit-mask-image: url(/api/r2/navigation/20260512-W6yz-_u1_J.svg);
+    mask-image: url(/api/r2/navigation/20260512-W6yz-_u1_J.svg);
+  }
+
+  .mobile-bottom-nav-fill-fav-home-inactive {
+    -webkit-mask-image: url(/api/r2/navigation/20260512-rq6TGa1j4e.svg);
+    mask-image: url(/api/r2/navigation/20260512-rq6TGa1j4e.svg);
+  }
+
+  .mobile-bottom-nav-fill-fav-shop-inactive {
+    -webkit-mask-image: url(/api/r2/navigation/20260512-Krr_aEiAGb.svg);
+    mask-image: url(/api/r2/navigation/20260512-Krr_aEiAGb.svg);
+  }
+
+  .mobile-bottom-nav-fill-home-inactive,
+  .mobile-bottom-nav-fill-home-active,
+  .mobile-bottom-nav-fill-profile-inactive,
+  .mobile-bottom-nav-fill-profile-active {
+    display: block;
+    flex-shrink: 0;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+  }
+
+  .mobile-bottom-nav-fill-home-inactive,
+  .mobile-bottom-nav-fill-home-active {
+    width: 25px;
+    height: 25px;
+    -webkit-mask-image: url(/api/r2/navigation/20260512-l6dbCo33w3.svg);
+    mask-image: url(/api/r2/navigation/20260512-l6dbCo33w3.svg);
+  }
+
+  .mobile-bottom-nav-fill-home-inactive,
+  .mobile-bottom-nav-fill-profile-inactive {
+    background-color: #ffffff;
+  }
+
+  .mobile-bottom-nav-fill-home-active,
+  .mobile-bottom-nav-fill-profile-active {
+    background-color: var(--project-color);
+  }
+
+  .mobile-bottom-nav-fill-profile-inactive,
+  .mobile-bottom-nav-fill-profile-active {
+    width: 30px;
+    height: 30px;
+    -webkit-mask-image: url(/api/r2/navigation/20260512-npk36RTIVm.svg);
+    mask-image: url(/api/r2/navigation/20260512-npk36RTIVm.svg);
   }
 
   .project-stroke {

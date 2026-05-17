@@ -48,3 +48,8 @@ export function resolveMobileBottomNavAssets(pathname: string | null): MobileBot
 export function isShopMobileBottomNavAssetSet(assets: { bottomNavCart: string }): boolean {
   return assets.bottomNavCart === MOBILE_SHOP_BOTTOM_NAV_ASSETS.bottomNavCart;
 }
+
+/**
+ * Home SVGs in R2 are brand-filled (#F66A13) in both asset sets; tab colors use CSS masks
+ * (see `.mobile-bottom-nav-fill-home-*` / `.mobile-bottom-nav-fill-profile-*` in globals.css).
+ */
