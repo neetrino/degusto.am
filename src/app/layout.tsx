@@ -1,5 +1,6 @@
 import React, { Suspense } from 'react';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
+import { LOCKED_MOBILE_VIEWPORT } from '@/constants/viewport';
 import './globals.css';
 import { ClientProviders } from '../components/ClientProviders';
 import { ConditionalHeader } from '../components/ConditionalHeader';
@@ -10,6 +11,8 @@ import { MobileStorefrontChrome } from '../components/mobile/MobileStorefrontChr
 import { cookies } from 'next/headers';
 import { resolveStorefrontLocaleFromCookie } from '@/lib/i18n/locale';
 import { getSiteMetadataCopy } from '@/lib/i18n/metadata';
+
+export const viewport: Viewport = LOCKED_MOBILE_VIEWPORT;
 
 export async function generateMetadata(): Promise<Metadata> {
   const cookieStore = await cookies();

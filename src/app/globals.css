@@ -49,6 +49,19 @@
     -moz-user-select: none !important;
     -ms-user-select: none !important;
   }
+
+  /* Mobile: no pinch/double-tap zoom; 16px fields avoid iOS focus zoom */
+  @media (max-width: 1023px) {
+    html {
+      touch-action: manipulation;
+    }
+
+    input,
+    textarea,
+    select {
+      font-size: 16px;
+    }
+  }
 }
 
 @layer utilities {
