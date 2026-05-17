@@ -28,7 +28,7 @@ export function MobileShopCategoriesView({ categories }: MobileShopCategoriesVie
   const [pendingSlug, setPendingSlug] = useState<string | null>(null);
 
   const selectableCategories = useMemo(
-    () => categories.filter((category) => category.slug.trim() !== '' && isCategorySelectable(category)),
+    () => categories.filter(isCategorySelectable),
     [categories]
   );
 

@@ -19,6 +19,7 @@ import {
   MOBILE_STOREFRONT_FILTERS_ANCHOR_ID,
 } from '@/constants/mobile-figma-storefront';
 import { MobileFriendlyInput } from '@/components/mobile/MobileFriendlyInput';
+import { isStorefrontAllCategorySlug } from '@/constants/storefront-all-category-slug';
 
 const assets = {
   productCardImage: '/api/r2/product/20260512-D3w_teddze.png',
@@ -664,7 +665,10 @@ export function FigmaDesktopMenuPage({
             <div className="min-h-0 flex-1 space-y-1 overflow-y-auto pr-1 scrollbar-hide">
               {hasDbCategories
                 ? dbCategories.map((category) => {
-                    const isActive = activeCategorySlug === category.slug;
+                    const isActive =
+                      category.slug === ''
+                        ? isStorefrontAllCategorySlug(activeCategorySlug)
+                        : activeCategorySlug === category.slug;
                     const empty = isMenuCategoryEmpty(category);
                     return (
                       <button

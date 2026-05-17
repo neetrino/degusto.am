@@ -3,6 +3,10 @@ import { MobileShopCategoriesView } from '../../components/home/MobileShopCatego
 import { BodyBackground } from '../../components/BodyBackground';
 import { shouldShowMobileShopCategoryGrid } from '@/lib/shop-mobile-view';
 import { HIDDEN_STOREFRONT_CATEGORY_SLUGS } from '@/constants/hidden-storefront-category-slugs';
+import {
+  normalizeStorefrontCategorySlug,
+  STOREFRONT_ALL_CATEGORY_SLUG,
+} from '@/constants/storefront-all-category-slug';
 import { STORE_MENU_PAGE_SIZE } from '@/constants/store-menu-page-size';
 import { db } from '@white-shop/db';
 import { cookies } from 'next/headers';
@@ -68,8 +72,9 @@ export default async function ShopPage({
   const params = searchParams instanceof Promise ? await searchParams : searchParams;
   const cookieStore = await cookies();
   const locale = resolveStorefrontLocaleFromCookie(cookieStore.get('shop_language')?.value);
-  const selectedCategorySlug =
+  const rawCategorySlug =
     typeof params?.category === 'string' ? params.category.trim() : '';
+  const selectedCategorySlug = normalizeStorefrontCategorySlug(rawCategorySlug);
   const selectedSearchQuery =
     typeof params?.search === 'string' ? params.search.trim() : '';
   const tasteFilter =
@@ -89,7 +94,7 @@ export default async function ShopPage({
       ? maxPriceParam
       : null;
   const showMobileCategoryGrid = shouldShowMobileShopCategoryGrid({
-    categorySlug: selectedCategorySlug,
+    categorySlug: rawCategorySlug,
     searchQuery: selectedSearchQuery,
     tasteFilter,
     minPriceAmd,
@@ -278,16 +283,6 @@ export default async function ShopPage({
           ),
         ]);
 
-        if (showMobileCategoryGrid) {
-          return {
-            productTotal: 0,
-            productRows: [],
-            categoryRows: nextCategoryRows,
-            allProductCount: nextAllProductCount,
-            countsBySlug: nextCountsBySlug,
-          };
-        }
-
         const nextProductTotal = await db.product.count({ where: productWhere });
         const nextTotalPages =
           nextProductTotal === 0 ? 0 : Math.ceil(nextProductTotal / STORE_MENU_PAGE_SIZE);
@@ -474,15 +469,14 @@ export default async function ShopPage({
     };
   });
 
-  const mobileShopCategories = categoryEntries
-    .filter((entry) => entry.slug !== '')
-    .map((entry) => ({
-      id: entry.id,
-      slug: entry.slug,
-      title: entry.title,
-      iconUrl: entry.iconUrl,
-      productCount: slugToProductCount.get(entry.slug) ?? 0,
-    }));
+  const mobileShopCategories = categoryEntries.map((entry) => ({
+    id: entry.id,
+    slug: entry.slug === '' ? STOREFRONT_ALL_CATEGORY_SLUG : entry.slug,
+    title: entry.title,
+    iconUrl: entry.iconUrl,
+    productCount:
+      entry.slug === '' ? allProductCount : (slugToProductCount.get(entry.slug) ?? 0),
+  }));
 
   return (
     <div className="min-h-screen bg-white">
@@ -496,7 +490,7 @@ export default async function ShopPage({
         activeCategoryIndex={0}
         cards={cards}
         categories={categories}
-        activeCategorySlug={selectedCategorySlug}
+        activeCategorySlug={rawCategorySlug}
         initialSearch={selectedSearchQuery}
         initialMinPrice={minPriceAmd !== null ? String(minPriceAmd) : ''}
         initialMaxPrice={maxPriceAmd !== null ? String(maxPriceAmd) : ''}
