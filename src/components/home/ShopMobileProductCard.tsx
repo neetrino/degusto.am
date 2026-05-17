@@ -6,6 +6,9 @@ import { useTranslation } from '../../lib/i18n-client';
 import { useCurrency } from '../hooks/useCurrency';
 import { formatPrice } from '../../lib/currency';
 import { useAddToCart } from '../hooks/useAddToCart';
+import { useWishlist } from '../hooks/useWishlist';
+import { useAuth } from '../../lib/auth/AuthContext';
+import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
 import { MOBILE_SHOP_PRODUCT_CARD_ASSETS } from '@/constants/mobile-figma-storefront';
 import type { MenuCard } from './menu-types';
 
@@ -32,6 +35,8 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
   const { t } = useTranslation();
   const currency = useCurrency();
   const router = useRouter();
+  const { isLoggedIn } = useAuth();
+  const { isInWishlist, toggleWishlist } = useWishlist(card.id);
   const title = card.title || t(card.titleKey);
   const category = card.category || (card.categoryKey ? t(card.categoryKey) : '');
   const imageSrc = card.image || MOBILE_SHOP_PRODUCT_CARD_ASSETS.fallbackImage;
@@ -84,6 +89,16 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
     void addToCart({ origin, imageUrl: card.image || null });
   };
 
+  const handleWishlistToggle = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!isLoggedIn) {
+      router.push(`/login?redirect=${encodeURIComponent(productHref)}`);
+      return;
+    }
+    void toggleWishlist();
+  };
+
   return (
     <article
       data-home-product-card
@@ -100,6 +115,24 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
       >
         <img src={imageSrc} alt={title} className="h-full w-full object-cover" />
       </div>
+
+      <button
+        type="button"
+        onClick={handleWishlistToggle}
+        className={`absolute right-2 top-2 z-20 flex h-8 w-8 items-center justify-center rounded-full border shadow-md transition-colors ${
+          isInWishlist
+            ? 'border-red-600 bg-red-600 text-white hover:bg-red-700'
+            : 'border-[#dedede]/90 bg-white/95 text-gray-700 hover:bg-white'
+        }`}
+        title={
+          isInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')
+        }
+        aria-label={
+          isInWishlist ? t('common.ariaLabels.removeFromWishlist') : t('common.ariaLabels.addToWishlist')
+        }
+      >
+        <WishlistHeartIcon filled={isInWishlist} size={16} />
+      </button>
 
       {supportsSpicy ? (
         <div className="absolute left-[9px] top-[11px] flex h-[22px] w-[22px] items-center justify-center rounded-full bg-[#ff2b2e]">
