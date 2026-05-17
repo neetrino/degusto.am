@@ -502,6 +502,10 @@ export function FigmaDesktopMenuPage({
     foodFilter
   );
 
+  const openMobileCategoryPicker = useCallback(() => {
+    router.push(routeBasePath);
+  }, [router, routeBasePath]);
+
   return (
     <>
       {showMobileProductsList ? (
@@ -511,34 +515,13 @@ export function FigmaDesktopMenuPage({
           <p className="mt-2 text-sm tracking-[-0.2px] text-[#717182]">{t(subtitleKey)}</p>
 
           {hasDbCategories ? (
-            <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {dbCategories.map((category) => {
-                const isActive = activeCategorySlug === category.slug;
-                const empty = isMenuCategoryEmpty(category);
-                return (
-                  <button
-                    key={category.id}
-                    type="button"
-                    aria-disabled={empty}
-                    tabIndex={empty ? -1 : undefined}
-                    onClick={() => {
-                      if (empty) {
-                        return;
-                      }
-                      router.push(buildTargetPath(category.slug));
-                    }}
-                    aria-pressed={isActive}
-                    className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold ${
-                      isActive ? 'bg-[#ff7f20] text-white' : 'bg-[#f3f3f5] text-[#3c2f2f]'
-                    } ${empty ? 'cursor-not-allowed' : ''} ${
-                      empty && !isActive ? 'opacity-50 hover:bg-[#f3f3f5]' : ''
-                    }`}
-                  >
-                    {formatCategoryLabelWithCount(category)}
-                  </button>
-                );
-              })}
-            </div>
+            <button
+              type="button"
+              onClick={openMobileCategoryPicker}
+              className="mt-4 flex h-[46px] w-full items-center justify-center rounded-[40px] bg-[#ff7f20] px-4 text-base font-semibold text-white"
+            >
+              {t('home.figma.mobile.chooseCategories')}
+            </button>
           ) : null}
 
           <div
