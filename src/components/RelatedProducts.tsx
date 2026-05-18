@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, type MouseEvent } from 'react';
+import { useState, useEffect, useMemo, type MouseEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '../lib/api-client';
 import { getStoredCurrency } from '../lib/currency';
@@ -33,15 +33,19 @@ export function RelatedProducts({ categorySlug, currentProductId, productSlug }:
   const [language, setLanguage] = useState<LanguageCode>('en');
   const [addingToCart, setAddingToCart] = useState<Set<string>>(new Set());
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
-  
+
   const visibleCards = useVisibleCards();
+  /** One card per swipe; viewport still shows `visibleCards` (2 on mobile). */
+  const scrollStep = 1;
+  const isCompactCarousel = visibleCards === 2;
+
   const { products, loading } = useRelatedProducts({
     categorySlug,
     currentProductId,
     language,
     productSlug,
   });
-  
+
   const {
     currentIndex,
     isDragging,
@@ -57,16 +61,25 @@ export function RelatedProducts({ categorySlug, currentProductId, productSlug }:
     handleTouchMove,
     handleTouchEnd,
     handleWheel,
-  } = useCarousel({ itemCount: products.length, visibleItems: visibleCards });
+  } = useCarousel({
+    itemCount: products.length,
+    visibleItems: visibleCards,
+    scrollStep,
+  });
+
+  const loadingSkeletonCount = useMemo(
+    () => (visibleCards === 2 ? 2 : 4),
+    [visibleCards],
+  );
 
   // Initialize language from localStorage after mount to prevent hydration mismatch
   useEffect(() => {
     setLanguage(getStoredLanguage());
-    
+
     const handleLanguageUpdate = () => {
       setLanguage(getStoredLanguage());
     };
-    
+
     window.addEventListener('language-updated', handleLanguageUpdate);
     return () => {
       window.removeEventListener('language-updated', handleLanguageUpdate);
@@ -76,10 +89,10 @@ export function RelatedProducts({ categorySlug, currentProductId, productSlug }:
   /**
    * Handle adding product to cart
    */
-  const handleAddToCart = async (e: MouseEvent, product: typeof products[0]) => {
+  const handleAddToCart = async (e: MouseEvent, product: (typeof products)[0]) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!product.inStock) {
       return;
     }
@@ -89,10 +102,9 @@ export function RelatedProducts({ categorySlug, currentProductId, productSlug }:
       return;
     }
 
-    setAddingToCart(prev => new Set(prev).add(product.id));
+    setAddingToCart((prev) => new Set(prev).add(product.id));
 
     try {
-      // Get product details to get variant ID
       interface ProductDetails {
         id: string;
         slug: string;
@@ -114,17 +126,13 @@ export function RelatedProducts({ categorySlug, currentProductId, productSlug }:
       }
 
       const variantId = productDetails.variants[0].id;
-      
-      await apiClient.post(
-        '/api/v1/cart/items',
-        {
-          productId: product.id,
-          variantId: variantId,
-          quantity: 1,
-        }
-      );
 
-      // Trigger cart update event
+      await apiClient.post('/api/v1/cart/items', {
+        productId: product.id,
+        variantId: variantId,
+        quantity: 1,
+      });
+
       window.dispatchEvent(new Event('cart-updated'));
     } catch (error: unknown) {
       logger.warn('[RelatedProducts] Error adding to cart', {
@@ -137,7 +145,7 @@ export function RelatedProducts({ categorySlug, currentProductId, productSlug }:
         alert('Failed to add product to cart. Please try again.');
       }
     } finally {
-      setAddingToCart(prev => {
+      setAddingToCart((prev) => {
         const next = new Set(prev);
         next.delete(product.id);
         return next;
@@ -147,43 +155,44 @@ export function RelatedProducts({ categorySlug, currentProductId, productSlug }:
 
   const currency = getStoredCurrency();
   const handleImageError = (productId: string) => {
-    setImageErrors(prev => new Set(prev).add(productId));
+    setImageErrors((prev) => new Set(prev).add(productId));
   };
 
-  // Always show the section, even if no products (will show loading or empty state)
   return (
-    <section className="rounded-t-[40px] bg-white pt-4 pb-6 sm:pt-5 sm:pb-7">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="rounded-t-[40px] bg-white pb-6 pt-4 sm:pb-7 sm:pt-5">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-5 flex items-center justify-between sm:mb-6">
-          <h2 className="text-3xl font-black text-black">
+          <h2 className="text-2xl font-black text-black sm:text-3xl">
             {t(language, 'product.related_products_title')}
           </h2>
-          <Link href="/shop" className="inline-block rounded-full bg-[#ff7f20] px-6 py-3 text-base font-bold text-white">
+          <Link
+            href="/shop"
+            className="inline-block shrink-0 rounded-full bg-[#ff7f20] px-4 py-2.5 text-sm font-bold text-white sm:px-6 sm:py-3 sm:text-base"
+          >
             {t(language, 'home.figma.desktop.moreButton')} →
           </Link>
         </div>
-        
+
         {loading ? (
-          // Loading state
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[30px]">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="animate-pulse">
-                <div className="h-[284px] rounded-[20px] bg-white/10"></div>
+          <div
+            className="flex gap-3 lg:grid lg:grid-cols-4 lg:gap-[30px]"
+            aria-busy="true"
+          >
+            {Array.from({ length: loadingSkeletonCount }, (_, i) => i + 1).map((i) => (
+              <div key={i} className="min-w-0 flex-1 animate-pulse lg:flex-none">
+                <div className="h-[240px] rounded-[20px] bg-neutral-100 lg:h-[284px]" />
               </div>
             ))}
           </div>
         ) : products.length === 0 ? (
-          // Empty state
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">{t(language, 'product.noRelatedProducts')}</p>
+          <div className="py-12 text-center">
+            <p className="text-lg text-gray-500">{t(language, 'product.noRelatedProducts')}</p>
           </div>
         ) : (
-          // Products Carousel
           <div className="relative pb-2">
-            {/* Carousel Container */}
-            <div 
+            <div
               ref={carouselRef}
-              className="relative overflow-hidden cursor-grab active:cursor-grabbing select-none"
+              className="relative cursor-grab touch-pan-y select-none overflow-hidden active:cursor-grabbing"
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
@@ -212,23 +221,23 @@ export function RelatedProducts({ categorySlug, currentProductId, productSlug }:
                     onImageError={handleImageError}
                     imageError={imageErrors.has(product.id)}
                     width={`${100 / visibleCards}%`}
+                    compact={isCompactCarousel}
                   />
                 ))}
               </div>
             </div>
 
-            {/* Navigation Arrows - Only show if there are more products than visible */}
             {products.length > visibleCards && (
               <CarouselNavigation onPrevious={goToPrevious} onNext={goToNext} />
             )}
 
-            {/* One dot per related product; pill tracks the visible window */}
-            {products.length > 0 && (
+            {products.length > visibleCards && (
               <CarouselDots
                 totalItems={products.length}
                 visibleItems={visibleCards}
                 currentIndex={currentIndex}
                 onDotClick={goToIndex}
+                scrollStep={scrollStep}
               />
             )}
           </div>
@@ -237,4 +246,3 @@ export function RelatedProducts({ categorySlug, currentProductId, productSlug }:
     </section>
   );
 }
-
