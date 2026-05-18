@@ -9,15 +9,15 @@ export function ConditionalMobileBottomNav() {
   const pathname = usePathname();
   const router = useRouter();
 
+  useEffect(() => {
+    void router.prefetch('/shop');
+  }, [router]);
+
   if (pathname?.startsWith('/supersudo')) {
     return null;
   }
 
   const assets = resolveMobileBottomNavAssets(pathname ?? null);
-
-  useEffect(() => {
-    void router.prefetch('/shop');
-  }, [router]);
 
   return (
     <div className="lg:hidden">

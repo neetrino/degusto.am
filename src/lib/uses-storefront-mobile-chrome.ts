@@ -20,7 +20,7 @@ export function usesStorefrontMobileChrome(pathname: string | null): boolean {
 
 /** Profile uses storefront chrome (bottom nav) but not the shared logo/search header. */
 export function usesStorefrontMobileHeader(pathname: string | null): boolean {
-  if (!usesStorefrontMobileChrome(pathname)) {
+  if (!pathname || !usesStorefrontMobileChrome(pathname)) {
     return false;
   }
   return !pathname.startsWith('/profile');
