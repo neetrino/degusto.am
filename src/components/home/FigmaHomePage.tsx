@@ -270,7 +270,7 @@ export function FigmaHomePage({
   return (
     <>
       <div className="lg:hidden">
-        <FigmaHomePageMobile categories={homeCategories} />
+        <FigmaHomePageMobile categories={homeCategories} featuredProducts={homeFeaturedProducts} />
       </div>
       <div className="hidden min-h-screen overflow-x-hidden bg-[var(--project-color)] lg:block">
       <section className="relative w-full overflow-hidden bg-[var(--project-color)] pb-56 pt-8 lg:h-[930px] lg:pb-0 lg:[aspect-ratio:231/130]">
