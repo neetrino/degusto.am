@@ -8,6 +8,8 @@ import { SearchDropdown } from '../SearchDropdown';
 import { useTranslation } from '../../lib/i18n-client';
 import { getStoredLanguage } from '../../lib/language';
 import {
+  MOBILE_FIGMA_HEADER_SEARCH_RESULTS_STACKING_CLASS,
+  MOBILE_FIGMA_HEADER_SEARCH_STACKING_CLASS,
   MOBILE_FIGMA_STOREFRONT_ASSETS,
   MOBILE_STORE_MENU_SEARCH_URL_DEBOUNCE_MS,
 } from '@/constants/mobile-figma-storefront';
@@ -181,10 +183,10 @@ export function MobileStorefrontHeaderSearch({ onFilterClick }: MobileStorefront
   };
 
   return (
-    <div className="relative z-[110]">
+    <div className={`relative ${MOBILE_FIGMA_HEADER_SEARCH_STACKING_CLASS}`}>
       <form
         onSubmit={handleSubmit}
-        className="relative z-10 mt-[8px] h-12 translate-y-[20px] rounded-[30px] bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.05)]"
+        className="relative z-0 mt-[8px] h-12 translate-y-[20px] rounded-[30px] bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.05)]"
       >
         <img
           src={MOBILE_FIGMA_STOREFRONT_ASSETS.searchIcon}
@@ -265,7 +267,7 @@ export function MobileStorefrontHeaderSearch({ onFilterClick }: MobileStorefront
           }}
           onClose={() => setIsOpen(false)}
           onSeeAllClick={() => setIsOpen(false)}
-          className="z-[120]"
+          className={MOBILE_FIGMA_HEADER_SEARCH_RESULTS_STACKING_CLASS}
         />
       ) : null}
     </div>

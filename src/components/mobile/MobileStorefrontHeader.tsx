@@ -8,7 +8,9 @@ import { useTranslation } from '../../lib/i18n-client';
 import { SITE_CONTACT_PHONES } from '../../lib/site-contact';
 import {
   MOBILE_FIGMA_HEADER_HORIZONTAL_INSET_CLASS,
+  MOBILE_FIGMA_HEADER_SEARCH_STACKING_CLASS,
   MOBILE_FIGMA_HEADER_STACKING_CLASS,
+  MOBILE_FIGMA_HEADER_TOP_ROW_STACKING_CLASS,
   MOBILE_FIGMA_STOREFRONT_ASSETS,
   MOBILE_STOREFRONT_FILTERS_ANCHOR_ID,
 } from '@/constants/mobile-figma-storefront';
@@ -17,7 +19,7 @@ import { MobileStorefrontHeaderSearch } from './MobileStorefrontHeaderSearch';
 function MobileStorefrontSearchSkeleton() {
   return (
     <div
-      className="relative z-10 mt-[8px] h-12 translate-y-[20px] rounded-[30px] bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.05)]"
+      className={`relative ${MOBILE_FIGMA_HEADER_SEARCH_STACKING_CLASS} mt-[8px] h-12 translate-y-[20px] rounded-[30px] bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.05)]`}
       aria-hidden
     />
   );
@@ -52,9 +54,11 @@ export function MobileStorefrontHeader() {
 
   return (
     <header
-      className={`relative ${MOBILE_FIGMA_HEADER_STACKING_CLASS} ${MOBILE_FIGMA_HEADER_HORIZONTAL_INSET_CLASS} shrink-0 pt-[58px] lg:hidden`}
+      className={`relative overflow-visible ${MOBILE_FIGMA_HEADER_STACKING_CLASS} ${MOBILE_FIGMA_HEADER_HORIZONTAL_INSET_CLASS} shrink-0 pt-[58px] lg:hidden`}
     >
-      <div className="relative z-30 flex translate-y-[20px] items-start justify-between">
+      <div
+        className={`relative overflow-visible ${MOBILE_FIGMA_HEADER_TOP_ROW_STACKING_CLASS} flex translate-y-[20px] items-start justify-between`}
+      >
         <Link href="/" className="inline-flex shrink-0" aria-label={t('common.navigation.home')}>
           <img
             src={MOBILE_FIGMA_STOREFRONT_ASSETS.logo}

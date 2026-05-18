@@ -14,7 +14,9 @@ import { ShopMobileProductCard } from './ShopMobileProductCard';
 import type { MenuCard } from './menu-types';
 import {
   MOBILE_FIGMA_HEADER_HORIZONTAL_INSET_CLASS,
+  MOBILE_FIGMA_HEADER_SEARCH_STACKING_CLASS,
   MOBILE_FIGMA_HEADER_STACKING_CLASS,
+  MOBILE_FIGMA_HEADER_TOP_ROW_STACKING_CLASS,
   MOBILE_FIGMA_STOREFRONT_ASSETS,
 } from '@/constants/mobile-figma-storefront';
 import { MobileFriendlyInput } from '@/components/mobile/MobileFriendlyInput';
@@ -300,9 +302,11 @@ export function FigmaHomePageMobile({
       <div className="absolute -right-[160px] -top-[184px] h-[320px] w-[360px] rounded-full border-[70px] border-[#3E573D]" />
 
       <header
-        className={`relative ${MOBILE_FIGMA_HEADER_STACKING_CLASS} ${MOBILE_FIGMA_HEADER_HORIZONTAL_INSET_CLASS} pt-[58px]`}
+        className={`relative overflow-visible ${MOBILE_FIGMA_HEADER_STACKING_CLASS} ${MOBILE_FIGMA_HEADER_HORIZONTAL_INSET_CLASS} pt-[58px]`}
       >
-        <div className="relative z-30 flex translate-y-[20px] items-start justify-between">
+        <div
+          className={`relative overflow-visible ${MOBILE_FIGMA_HEADER_TOP_ROW_STACKING_CLASS} flex translate-y-[20px] items-start justify-between`}
+        >
           <img src={mobileAssets.logo} alt="Degusto" className="h-[46px] w-[129px] object-contain" />
           <div className="flex items-center gap-1">
             <button type="button" className="relative inline-flex h-12 w-12 items-center justify-center">
@@ -316,7 +320,9 @@ export function FigmaHomePageMobile({
           </div>
         </div>
 
-        <div className="relative z-10 mt-[8px] h-12 translate-y-[20px] rounded-[30px] bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.05)]">
+        <div
+          className={`relative ${MOBILE_FIGMA_HEADER_SEARCH_STACKING_CLASS} mt-[8px] h-12 translate-y-[20px] rounded-[30px] bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.05)]`}
+        >
           <img
             src={mobileAssets.searchIcon}
             alt=""

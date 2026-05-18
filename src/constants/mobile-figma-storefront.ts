@@ -16,6 +16,21 @@ export const MOBILE_FIGMA_STOREFRONT_ASSETS = {
 /** Header stacking: language dropdown above main + bottom nav. */
 export const MOBILE_FIGMA_HEADER_STACKING_CLASS = 'z-[100]';
 
+/** Logo / call / language row — above search bar. */
+export const MOBILE_FIGMA_HEADER_TOP_ROW_STACKING_CLASS = 'z-20';
+
+/** Mobile header search bar — behind top row and language menu. */
+export const MOBILE_FIGMA_HEADER_SEARCH_STACKING_CLASS = 'z-0';
+
+/** Mobile header search autocomplete — above search bar, below language menu. */
+export const MOBILE_FIGMA_HEADER_SEARCH_RESULTS_STACKING_CLASS = 'z-10';
+
+/** Language / currency trigger while menu is open (mobile). */
+export const MOBILE_FIGMA_HEADER_SWITCHER_OPEN_STACKING_CLASS = 'z-30';
+
+/** Language / currency popup — topmost header layer. */
+export const MOBILE_FIGMA_HEADER_SWITCHER_DROPDOWN_STACKING_CLASS = 'z-40';
+
 /** Horizontal inset for logo row + search (matches home). */
 export const MOBILE_FIGMA_HEADER_HORIZONTAL_INSET_CLASS = 'px-4';
 
