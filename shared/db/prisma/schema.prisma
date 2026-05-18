@@ -4,8 +4,8 @@ generator client {
   previewFeatures = ["driverAdapters"]
   // Avoid Windows EPERM when `pnpm dev` locks the hoisted `@prisma/client` query engine under `.pnpm`.
   output        = "../src/generated/prisma-client"
-  // Vercel Node runtime = rhel-openssl-3.0.x; build may run on debian — ship both + local native.
-  binaryTargets = ["native", "rhel-openssl-3.0.x", "debian-openssl-3.0.x"]
+  // Vercel Node runtime = rhel-openssl-3.0.x; native = local dev OS.
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
