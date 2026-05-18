@@ -15,6 +15,11 @@
     "delivery": "Առաքում",
     "settings": "Կարգավորումներ"
   },
+  "mobileHub": {
+    "title": "Ադմին",
+    "subtitle": "Ընտրեք բաժին",
+    "back": "Հետ"
+  },
   "sidebar": {
     "expand": "Բացել sidebar-ը",
     "collapse": "Փակել sidebar-ը",

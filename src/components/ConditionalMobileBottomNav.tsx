@@ -11,6 +11,9 @@ export function ConditionalMobileBottomNav() {
 
   useEffect(() => {
     void router.prefetch('/shop');
+    void router.prefetch('/admin-mobile');
+    void router.prefetch('/admin-mobile/analytics');
+    void router.prefetch('/admin-mobile/orders');
   }, [router]);
 
   if (pathname?.startsWith('/supersudo')) {

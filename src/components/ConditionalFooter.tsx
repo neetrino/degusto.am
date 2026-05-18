@@ -9,7 +9,7 @@ const FOOTER_OUTER_ORANGE_CLASS = 'bg-[#F66812]';
 export function ConditionalFooter() {
   const pathname = usePathname();
 
-  if (pathname === '/' || pathname?.startsWith('/supersudo')) {
+  if (pathname === '/' || pathname?.startsWith('/supersudo') || pathname?.startsWith('/admin-mobile')) {
     return null;
   }
 

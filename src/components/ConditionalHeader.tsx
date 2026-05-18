@@ -8,7 +8,7 @@ import { usesStorefrontMobileChrome } from '../lib/uses-storefront-mobile-chrome
 export function ConditionalHeader() {
   const pathname = usePathname();
   const isAuthPage = pathname === '/login' || pathname === '/register';
-  if (pathname?.startsWith('/supersudo')) {
+  if (pathname?.startsWith('/supersudo') || pathname?.startsWith('/admin-mobile')) {
     return null;
   }
 

@@ -213,8 +213,8 @@ export function MobileBottomNavigation({
   onShopClick: () => void;
 }) {
   const pathname = usePathname() ?? '';
-  const { isLoggedIn } = useAuth();
-  const flags = getMobileBottomNavActiveFlags(pathname, isLoggedIn);
+  const { isLoggedIn, isAdmin } = useAuth();
+  const flags = getMobileBottomNavActiveFlags(pathname, isLoggedIn, isAdmin);
 
   return (
     <div className="pointer-events-none fixed bottom-0 left-1/2 z-40 h-[159px] w-[375px] -translate-x-1/2">

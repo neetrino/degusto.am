@@ -1093,28 +1093,7 @@ export function Header() {
                     )}
                   </Link>
 
-                  {isLoggedIn ? (
-                    <>
-                      {isAdmin && (
-                        <Link
-                          href="/supersudo"
-                          {...getFastNavHandlers('/supersudo')}
-                          onClick={() => setMobileMenuOpen(false)}
-                          className={`flex items-center justify-between px-4 py-3 normal-case ${
-                            isHeaderNavActive(pathname, '/supersudo')
-                              ? 'bg-gray-200/90 text-gray-900 font-semibold'
-                              : 'text-gray-800 hover:bg-gray-50'
-                          }`}
-                          aria-current={isHeaderNavActive(pathname, '/supersudo') ? 'page' : undefined}
-                        >
-                          <span>Admin Panel</span>
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </Link>
-                      )}
-                    </>
-                  ) : (
+                  {isLoggedIn ? null : (
                     <>
                       <Link
                         href="/login"
