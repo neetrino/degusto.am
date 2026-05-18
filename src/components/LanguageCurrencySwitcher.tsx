@@ -27,7 +27,30 @@ type SwitcherVariant = 'desktop' | 'mobile';
 interface LanguageCurrencySwitcherProps {
   variant: SwitcherVariant;
   iconSrc: string;
-  arrowSrc: string;
+  /** When omitted, a built-in chevron is rendered (avoids expired remote asset URLs). */
+  arrowSrc?: string;
+}
+
+function SwitcherChevronIcon({ className }: { className: string }) {
+  return (
+    <svg
+      width={8}
+      height={12}
+      viewBox="0 0 8 12"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      aria-hidden
+    >
+      <path
+        d="M1 1.5L4 6L7 1.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
 
 export function LanguageCurrencySwitcher({
@@ -117,12 +140,24 @@ export function LanguageCurrencySwitcher({
         className={buttonClassName}
       >
         <span className={contentClassName}>
-          <img src={iconSrc} alt="" className="h-[19px] w-[19px] shrink-0 object-contain" />
+          <img
+            src={iconSrc}
+            alt=""
+            className={`h-[19px] w-[19px] shrink-0 object-contain ${
+              variant === 'desktop' ? 'brightness-0 invert' : 'brightness-0'
+            }`}
+          />
           <span className={labelClassName}>
             {language.toUpperCase()} / {currency} {currentCurrencyInfo.symbol}
           </span>
         </span>
-        <img src={arrowSrc} alt="" className={arrowClassName} />
+        {arrowSrc ? (
+          <img src={arrowSrc} alt="" className={arrowClassName} />
+        ) : (
+          <SwitcherChevronIcon
+            className={`${arrowClassName} text-white ${variant === 'mobile' ? 'text-[#ff7f20]' : ''}`}
+          />
+        )}
       </button>
 
       {isOpen ? (

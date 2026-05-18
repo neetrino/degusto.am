@@ -189,7 +189,7 @@ export function MobileStorefrontHeaderSearch({ onFilterClick }: MobileStorefront
         <img
           src={MOBILE_FIGMA_STOREFRONT_ASSETS.searchIcon}
           alt=""
-          className="absolute left-[15px] top-1/2 h-[17px] w-[17px] -translate-y-1/2 object-contain"
+          className="absolute left-[15px] top-1/2 h-[17px] w-[17px] -translate-y-1/2 object-contain brightness-0"
         />
         <MobileFriendlyInput
           type="text"

@@ -82,7 +82,6 @@ export function MobileStorefrontHeader() {
           <LanguageCurrencySwitcher
             variant="mobile"
             iconSrc={MOBILE_FIGMA_STOREFRONT_ASSETS.switcherIcon}
-            arrowSrc={MOBILE_FIGMA_STOREFRONT_ASSETS.switcherArrow}
           />
         </div>
       </div>

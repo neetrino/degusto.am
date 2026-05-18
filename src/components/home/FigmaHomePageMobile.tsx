@@ -290,13 +290,16 @@ export function FigmaHomePageMobile({ categories = [] }: FigmaHomePageMobileProp
             <LanguageCurrencySwitcher
               variant="mobile"
               iconSrc={mobileAssets.switcherIcon}
-              arrowSrc={mobileAssets.switcherArrow}
             />
           </div>
         </div>
 
         <div className="relative z-10 mt-[8px] h-12 translate-y-[20px] rounded-[30px] bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.05)]">
-          <img src={mobileAssets.searchIcon} alt="" className="absolute left-[15px] top-1/2 h-[17px] w-[17px] -translate-y-1/2 object-contain" />
+          <img
+            src={mobileAssets.searchIcon}
+            alt=""
+            className="absolute left-[15px] top-1/2 h-[17px] w-[17px] -translate-y-1/2 object-contain brightness-0"
+          />
           <MobileFriendlyInput
             type="text"
             value={searchQuery}

@@ -1,14 +1,15 @@
+import { HEADER_PUBLIC_ASSETS } from '@/constants/header-public-assets';
+
 /**
  * Shared mobile storefront chrome (Figma home parity): assets + layout tokens.
  * Keep in sync with `FigmaHomePageMobile` visual structure.
  */
 export const MOBILE_FIGMA_STOREFRONT_ASSETS = {
-  logo: '/api/r2/logo/20260512-SkrFbnskhy.png',
+  logo: HEADER_PUBLIC_ASSETS.logo,
   callCircle: '/api/r2/assets/20260512-oiO5lHqN_7.svg',
   callIcon: '/api/r2/icons/20260512-EM1Vpadi-M.svg',
-  switcherIcon: '/api/r2/icons/20260512-qZTYh7B1Ko.svg',
-  switcherArrow: '/api/r2/assets/20260512-XFFAtVhXmC.svg',
-  searchIcon: '/api/r2/icons/20260512-6InNAfSqmg.svg',
+  switcherIcon: HEADER_PUBLIC_ASSETS.switcherIcon,
+  searchIcon: HEADER_PUBLIC_ASSETS.searchIcon,
   searchFilterButton: '/api/r2/search/20260512-X-wm1R4kZC.svg',
 } as const;
 
