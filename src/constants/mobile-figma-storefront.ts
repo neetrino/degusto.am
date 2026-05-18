@@ -5,7 +5,7 @@ import { HEADER_PUBLIC_ASSETS } from '@/constants/header-public-assets';
  * Keep in sync with `FigmaHomePageMobile` visual structure.
  */
 export const MOBILE_FIGMA_STOREFRONT_ASSETS = {
-  logo: HEADER_PUBLIC_ASSETS.logo,
+  logo: HEADER_PUBLIC_ASSETS.mobileLogo,
   callCircle: '/api/r2/assets/20260512-oiO5lHqN_7.svg',
   callIcon: '/api/r2/icons/20260512-EM1Vpadi-M.svg',
   switcherIcon: HEADER_PUBLIC_ASSETS.switcherIcon,
