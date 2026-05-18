@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { ViewMoreButton } from '../view-more/ViewMoreButton';
 import { useRouter } from 'next/navigation';
 import type { KeyboardEvent, MouseEvent } from 'react';
 import { FigmaHomePageMobile } from './FigmaHomePageMobile';
@@ -348,9 +349,13 @@ export function FigmaHomePage({
               <span className="text-[#f66913]">{t('home.figma.desktop.specialOffersTitleAccent')}</span>
               {t('home.figma.desktop.specialOffersTitleMain')}
             </h2>
-            <Link href="/shop" className="translate-x-[-115px] translate-y-[70px] inline-block rounded-full bg-[#ff7f20] px-6 py-4 text-lg font-bold text-white">
+            <ViewMoreButton
+              href="/shop"
+              size="lg"
+              className="translate-x-[-115px] translate-y-[70px] shrink-0"
+            >
               {t('home.figma.desktop.moreButton')} →
-            </Link>
+            </ViewMoreButton>
           </div>
           <div className="mt-[150px] overflow-x-auto pb-8">
             <div className="mx-auto flex w-max flex-nowrap justify-center gap-[10px]">
