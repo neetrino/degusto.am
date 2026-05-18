@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@shop/ui';
 import { formatPrice, type CurrencyCode } from '../../lib/currency';
+import { WishlistMobileProductCard } from './WishlistMobileProductCard';
 
 export interface WishlistProductCardProduct {
   id: string;
@@ -48,7 +49,7 @@ function WishlistCardImageLink({ slug, title, image }: WishlistCardImageLinkProp
           alt={title}
           fill
           className="object-cover transition-transform duration-500 ease-out group-hover/card:scale-[1.05]"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
           unoptimized
         />
       ) : (
@@ -210,22 +211,34 @@ export function WishlistProductCard({
   t,
 }: WishlistProductCardProps) {
   return (
-    <article className="group/card relative flex flex-col overflow-hidden rounded-xl border border-gray-200/90 bg-white shadow-sm ring-1 ring-brand/5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-brand/25 hover:shadow-lg hover:ring-brand/15">
-      <div className="relative aspect-square shrink-0 overflow-hidden bg-gradient-to-b from-brand/5 to-gray-100">
-        <WishlistCardImageLink slug={product.slug} title={product.title} image={product.image} />
-        <WishlistCardRemove
-          productId={product.id}
-          removeLabel={t('common.ariaLabels.removeFromWishlist')}
+    <>
+      <div className="sm:hidden">
+        <WishlistMobileProductCard
+          product={product}
+          currency={currency}
+          isAddingToCart={isAddingToCart}
           onRemove={onRemove}
+          onAddToCart={onAddToCart}
+          t={t}
         />
       </div>
-      <WishlistCardInfoPanel
-        product={product}
-        currency={currency}
-        isAddingToCart={isAddingToCart}
-        onAddToCart={onAddToCart}
-        t={t}
-      />
-    </article>
+      <article className="group/card relative hidden flex-col overflow-hidden rounded-xl border border-gray-200/90 bg-white shadow-sm ring-1 ring-brand/5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-brand/25 hover:shadow-lg hover:ring-brand/15 sm:flex">
+        <div className="relative aspect-square shrink-0 overflow-hidden bg-gradient-to-b from-brand/5 to-gray-100">
+          <WishlistCardImageLink slug={product.slug} title={product.title} image={product.image} />
+          <WishlistCardRemove
+            productId={product.id}
+            removeLabel={t('common.ariaLabels.removeFromWishlist')}
+            onRemove={onRemove}
+          />
+        </div>
+        <WishlistCardInfoPanel
+          product={product}
+          currency={currency}
+          isAddingToCart={isAddingToCart}
+          onAddToCart={onAddToCart}
+          t={t}
+        />
+      </article>
+    </>
   );
 }
