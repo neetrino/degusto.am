@@ -8,6 +8,10 @@ import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
 import { useTranslation } from '../../lib/i18n-client';
 import type { CurrencyCode } from '../../lib/currency';
 import type { ProductLabel } from '../ProductLabels';
+import {
+  FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS,
+  FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS,
+} from '@/constants/mobile-figma-storefront';
 
 interface ProductCardGridProps {
   product: {
@@ -74,14 +78,16 @@ export function ProductCardGrid({
   return (
     <div
       data-product-card
-      className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow relative group cursor-pointer"
+      className={`bg-white rounded-lg border border-gray-200 overflow-hidden transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} hover:shadow-md relative group cursor-pointer`}
       onClick={onProductClick}
       onKeyDown={handleCardKeyDown}
       role="link"
       tabIndex={0}
     >
       {/* Product Image */}
-      <div className="aspect-square bg-gray-100 relative overflow-hidden">
+      <div
+        className={`aspect-square bg-gray-100 relative overflow-hidden transition-colors ${FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS}`}
+      >
         <ProductCardImage
           slug={product.slug}
           image={product.image}

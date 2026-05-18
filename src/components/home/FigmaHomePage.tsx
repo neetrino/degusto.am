@@ -18,6 +18,7 @@ import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
 import { getHomeCategoryHref } from './homeCategoryLinks';
 import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
 import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
+import { FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS } from '@/constants/mobile-figma-storefront';
 
 const assets = {
   heroBg: '/api/r2/hero/20260512-tOKhBzyB6u.png',
@@ -142,7 +143,7 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
   return (
     <article
       data-home-product-card
-      className="relative h-[284px] w-[236px] shrink-0 rounded-[20px] border-[1.5px] border-[#dedede] bg-white cursor-pointer transition-shadow hover:shadow-md"
+      className={`relative h-[284px] w-[236px] shrink-0 rounded-[20px] border-[1.5px] border-[#dedede] bg-white cursor-pointer transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} hover:shadow-md`}
       onClick={openProduct}
       onKeyDown={handleCardKeyDown}
       role="link"
