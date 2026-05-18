@@ -184,7 +184,7 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
         <h3 className="text-base font-bold leading-[1.05] text-[#3c2f2f]">
           <span className="block max-h-[34px] overflow-hidden break-words">{title}</span>
         </h3>
-        <p className="mt-1 overflow-hidden truncate text-base font-medium leading-none text-[#a1a1a1]">{subtitle}</p>
+        <p className="mt-1 truncate text-base font-medium leading-[1.2] text-[#a1a1a1]">{subtitle}</p>
       </div>
       {hasDiscount ? (
         <span className="absolute right-px top-[170px] inline-flex h-[30px] items-center rounded-[60px] bg-[#ff7f20] px-[17px] text-sm font-bold leading-none text-black">
@@ -304,7 +304,7 @@ export function FigmaHomePage({
               <h2 className="text-base font-bold leading-none text-[#3c2f2f]">
                 <span className="block">{heroProductTitle}</span>
               </h2>
-              <p className="mt-1 text-base font-medium leading-none text-[#a1a1a1]">{heroProductSubtitle}</p>
+              <p className="mt-1 text-base font-medium leading-[1.2] text-[#a1a1a1]">{heroProductSubtitle}</p>
             </div>
             <span className="absolute right-[12px] top-[165px] inline-flex items-center rounded-[60px] bg-[#ff7f20] px-[17px] py-[8px] text-sm font-bold leading-none text-black">
               -{Math.round(heroProduct?.discountPercent || 30)}%

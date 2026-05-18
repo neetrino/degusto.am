@@ -161,7 +161,7 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
           <span className="line-clamp-2">{title}</span>
         </h3>
         {category ? (
-          <p className="mt-[2px] truncate text-sm font-medium leading-none text-[#a1a1a1]">{category}</p>
+          <p className="mt-[2px] truncate text-sm font-medium leading-[1.2] text-[#a1a1a1]">{category}</p>
         ) : null}
       </div>
 
