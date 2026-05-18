@@ -77,15 +77,16 @@ function isNeonHost(hostname: string): boolean {
 }
 
 /**
- * Neon serverless driver + `@prisma/adapter-neon` (HTTP/WS).
- * **Opt-in** via `PRISMA_NEON_ADAPTER=1` — default is TCP + pooler (`pgbouncer=true`), same as typical Vercel+Neon apps.
- * The adapter path needs extra bundle deps; TCP avoids `prismaCode: init` on some monorepo/standalone deploys.
+ * Neon serverless driver + `@prisma/adapter-neon` (HTTP on Vercel).
+ * Default on Vercel + Neon host (avoids missing `libquery_engine-rhel-openssl-3.0.x` in serverless bundles).
+ * Force TCP: `PRISMA_NEON_ADAPTER=0`. Force adapter elsewhere: `PRISMA_NEON_ADAPTER=1`.
  */
 export function shouldUseNeonDriverAdapterForRuntime(databaseUrl: string): boolean {
-  if (process.env.PRISMA_NEON_ADAPTER !== "1") return false;
+  if (process.env.PRISMA_NEON_ADAPTER === "0") return false;
   const parsed = tryParsePostgresUrl(databaseUrl);
   if (!parsed || !isNeonHost(parsed.hostname)) return false;
-  return true;
+  if (process.env.PRISMA_NEON_ADAPTER === "1") return true;
+  return process.env.VERCEL === "1";
 }
 
 function isLikelyNeonPoolerHost(hostname: string): boolean {
