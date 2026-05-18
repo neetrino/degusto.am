@@ -84,6 +84,7 @@ const nextConfig = {
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: https: blob:",
               `connect-src 'self' https: ${VERCEL_LIVE_CONNECT}`,
+              `frame-src 'self' ${VERCEL_LIVE_SCRIPT}`,
               "frame-ancestors 'none'",
             ].join('; '),
           },
