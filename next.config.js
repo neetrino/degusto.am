@@ -32,8 +32,16 @@ const nextConfig = {
   // Monorepo: trace generated Prisma client + query engine into standalone serverless bundle
   outputFileTracingRoot: __dirname,
   outputFileTracingIncludes: {
-    '/*': ['./shared/db/src/generated/prisma-client/**/*'],
-    '/api/**/*': ['./shared/db/src/generated/prisma-client/**/*'],
+    '/*': [
+      './shared/db/src/generated/prisma-client/**/*',
+      './shared/db/src/generated/prisma-client/libquery_engine-*',
+      './shared/db/src/generated/prisma-client/query_engine-*',
+    ],
+    '/api/**/*': [
+      './shared/db/src/generated/prisma-client/**/*',
+      './shared/db/src/generated/prisma-client/libquery_engine-*',
+      './shared/db/src/generated/prisma-client/query_engine-*',
+    ],
   },
   // Standalone output - prevents prerendering of 404 page
   output: 'standalone',
