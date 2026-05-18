@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { ComponentProps } from 'react';
 
-const DEGUSTO_LOGO_SRC = 'https://www.figma.com/api/mcp/asset/b684f5ca-5543-4689-be84-ac53b6c5d14c';
+import { HEADER_PUBLIC_ASSETS } from '@/constants/header-public-assets';
 
 export type BrandLogoLinkProps = Omit<ComponentProps<typeof Link>, 'href' | 'children'> & {
   /** Icon-sized mark for narrow sidebars (e.g. admin rail). */
@@ -37,9 +37,9 @@ export function BrandLogoLink({ className = '', compact = false, onDark = false,
     >
       {onDark ? (
         <img
-          src={DEGUSTO_LOGO_SRC}
+          src={HEADER_PUBLIC_ASSETS.logo}
           alt="Degusto"
-          className="h-12 w-[134px] max-w-full object-contain brightness-0 invert drop-shadow-[0_1px_2px_rgba(0,0,0,0.28)]"
+          className="h-12 w-[134px] max-w-full object-contain"
         />
       ) : (
         <span className="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-xl font-bold text-transparent transition-all duration-300 group-hover:from-gray-800 group-hover:to-gray-600 sm:text-2xl">

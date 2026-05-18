@@ -2,25 +2,31 @@
 
 import { useState, useEffect } from 'react';
 
+function resolveVisibleCards(width: number): number {
+  if (width < 640) {
+    return 2;
+  }
+  if (width < 1024) {
+    return 2;
+  }
+  if (width < 1280) {
+    return 3;
+  }
+  return 4;
+}
+
 /**
  * Hook for determining number of visible cards based on screen size
  * @returns Number of visible cards
  */
 export function useVisibleCards() {
-  const [visibleCards, setVisibleCards] = useState(4);
+  const [visibleCards, setVisibleCards] = useState(() =>
+    typeof window === 'undefined' ? 2 : resolveVisibleCards(window.innerWidth),
+  );
 
   useEffect(() => {
     const updateVisibleCards = () => {
-      const width = window.innerWidth;
-      if (width < 640) {
-        setVisibleCards(1); // mobile
-      } else if (width < 1024) {
-        setVisibleCards(2); // tablet
-      } else if (width < 1280) {
-        setVisibleCards(3); // desktop
-      } else {
-        setVisibleCards(4); // large desktop
-      }
+      setVisibleCards(resolveVisibleCards(window.innerWidth));
     };
 
     updateVisibleCards();
@@ -30,7 +36,6 @@ export function useVisibleCards() {
 
   return visibleCards;
 }
-
 
 
 

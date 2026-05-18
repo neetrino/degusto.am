@@ -25,8 +25,25 @@ export const cartDrawerBackdropVariants: Variants = {
 export function cartDrawerPanelVariants(
   panelTransition: Transition,
   reduceMotion: boolean | null,
+  options?: { fullScreen?: boolean },
 ): Variants {
   const exitDuration = reduceMotion ? 0 : 0.3;
+  const exitTransition = { duration: exitDuration, ease: [0.4, 0, 0.2, 1] as const };
+
+  if (options?.fullScreen) {
+    return {
+      hidden: { y: '100%' },
+      visible: {
+        y: 0,
+        transition: panelTransition,
+      },
+      exit: {
+        y: '100%',
+        transition: exitTransition,
+      },
+    };
+  }
+
   return {
     hidden: { x: '100%', opacity: 0.88, scale: 0.985 },
     visible: {
@@ -39,7 +56,7 @@ export function cartDrawerPanelVariants(
       x: '100%',
       opacity: 0.72,
       scale: 0.99,
-      transition: { duration: exitDuration, ease: [0.4, 0, 0.2, 1] },
+      transition: exitTransition,
     },
   };
 }

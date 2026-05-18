@@ -81,6 +81,8 @@ const fallbackCategories: HomeCategoryItem[] = [
 /** Desktop home categories block surface; footer outer wrapper uses the same for a continuous edge. */
 const HOME_DESKTOP_CATEGORY_SURFACE_CLASS = 'bg-[#e6e6e8]';
 
+const DESKTOP_HOME_SPECIAL_OFFERS_PRODUCT_COUNT = 5;
+
 function NewsCard({ item }: { item: HomeFeaturedProduct }) {
   const { t } = useTranslation();
   const currency = useCurrency();
@@ -236,6 +238,7 @@ export function FigmaHomePage({
   const router = useRouter();
   const homeFeaturedProducts = featuredProducts.length > 0 ? featuredProducts : fallbackFeaturedProducts;
   const homeCategories = categories.length > 0 ? categories : fallbackCategories;
+  const specialOfferProducts = homeFeaturedProducts.slice(0, DESKTOP_HOME_SPECIAL_OFFERS_PRODUCT_COUNT);
   const heroProduct = homeFeaturedProducts[0];
   const heroProductTitle =
     heroProduct?.title === 'Double Cheeseburger'
@@ -243,9 +246,6 @@ export function FigmaHomePage({
       : (heroProduct?.title || t('home.figma.mobile.product.title'));
   const heroProductSubtitle = heroProduct?.subtitle || t('home.figma.mobile.product.subtitle');
   const heroProductHref = `/products/${heroProduct?.slug || 'products'}`;
-  const { isLoggedIn } = useAuth();
-  const heroForWishlist = heroProduct ?? fallbackFeaturedProducts[0];
-  const { isInWishlist: heroInWishlist, toggleWishlist: toggleHeroWishlist } = useWishlist(heroForWishlist.id);
   const openHeroProduct = () => {
     router.push(heroProductHref);
   };
@@ -257,20 +257,10 @@ export function FigmaHomePage({
     openHeroProduct();
   };
 
-  const handleHeroWishlistToggle = (event: MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    if (!isLoggedIn) {
-      router.push(`/login?redirect=${encodeURIComponent(heroProductHref)}`);
-      return;
-    }
-    void toggleHeroWishlist();
-  };
-
   return (
     <>
       <div className="lg:hidden">
-        <FigmaHomePageMobile categories={homeCategories} />
+        <FigmaHomePageMobile categories={homeCategories} featuredProducts={homeFeaturedProducts} />
       </div>
       <div className="hidden min-h-screen overflow-x-hidden bg-[var(--project-color)] lg:block">
       <section className="relative w-full overflow-hidden bg-[var(--project-color)] pb-56 pt-8 lg:h-[930px] lg:pb-0 lg:[aspect-ratio:231/130]">
@@ -305,23 +295,6 @@ export function FigmaHomePage({
                 greensIconSrc={assets.productCardRibbon}
               />
             </div>
-            <button
-              type="button"
-              onClick={handleHeroWishlistToggle}
-              className={`absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border shadow-md transition-colors sm:h-10 sm:w-10 ${
-                heroInWishlist
-                  ? 'border-red-600 bg-red-600 text-white hover:bg-red-700'
-                  : 'border-[#dedede]/90 bg-white/95 text-gray-700 hover:bg-white'
-              }`}
-              title={
-                heroInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')
-              }
-              aria-label={
-                heroInWishlist ? t('common.ariaLabels.removeFromWishlist') : t('common.ariaLabels.addToWishlist')
-              }
-            >
-              <WishlistHeartIcon filled={heroInWishlist} size={18} />
-            </button>
             <div className="absolute left-[14px] top-[172px] flex items-center gap-1.5">
               <img src={assets.productCardStar} alt="" className="h-5 w-5 object-contain" />
               <p className="text-base font-medium leading-none text-[rgba(60,47,47,0.62)]">4.7</p>
@@ -379,10 +352,12 @@ export function FigmaHomePage({
               {t('home.figma.desktop.moreButton')} →
             </Link>
           </div>
-          <div className="mt-[150px] flex flex-wrap justify-center gap-[10px] pb-8">
-            {homeFeaturedProducts.map((item) => (
-              <NewsCard key={item.id} item={item} />
-            ))}
+          <div className="mt-[150px] overflow-x-auto pb-8">
+            <div className="mx-auto flex w-max flex-nowrap justify-center gap-[10px]">
+              {specialOfferProducts.map((item) => (
+                <NewsCard key={item.id} item={item} />
+              ))}
+            </div>
           </div>
         </div>
       </section>

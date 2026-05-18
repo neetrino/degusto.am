@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { LanguageCurrencySwitcher } from '../LanguageCurrencySwitcher';
 import { useTranslation } from '../../lib/i18n-client';
@@ -8,11 +9,21 @@ import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
 import { formatPrice } from '../../lib/currency';
 import { useCurrency } from '../hooks/useCurrency';
 import { getHomeCategoryHref } from './homeCategoryLinks';
+import type { HomeFeaturedProduct } from './FigmaHomePage';
+import { ShopMobileProductCard } from './ShopMobileProductCard';
+import type { MenuCard } from './menu-types';
 import {
   MOBILE_FIGMA_HEADER_HORIZONTAL_INSET_CLASS,
+  MOBILE_FIGMA_HEADER_SEARCH_STACKING_CLASS,
   MOBILE_FIGMA_HEADER_STACKING_CLASS,
+  MOBILE_FIGMA_HEADER_TOP_ROW_STACKING_CLASS,
   MOBILE_FIGMA_STOREFRONT_ASSETS,
 } from '@/constants/mobile-figma-storefront';
+import { MobileFriendlyInput } from '@/components/mobile/MobileFriendlyInput';
+
+const MOBILE_HOME_SECTION_PRODUCT_COUNT = 4;
+const MOBILE_HOME_PRODUCT_GRID_TOTAL =
+  MOBILE_HOME_SECTION_PRODUCT_COUNT * 3;
 
 const mobileAssets = {
   ...MOBILE_FIGMA_STOREFRONT_ASSETS,
@@ -41,26 +52,47 @@ type MobileCategory = {
   framed?: boolean;
 };
 
-type MobileProduct = {
-  id: string;
-  titleKey: string;
-  subtitleKey: string;
-  price: number;
-  oldPrice: number;
-  supportsSpicy?: boolean;
-  supportsGreens?: boolean;
-};
+function homeFeaturedProductToMenuCard(product: HomeFeaturedProduct): MenuCard {
+  const price = product.price ?? 0;
+  const oldPrice = product.oldPrice ?? price;
+  const discountPercent =
+    typeof product.discountPercent === 'number' && product.discountPercent > 0
+      ? Math.round(product.discountPercent)
+      : 0;
+  const discount = discountPercent > 0 ? `-${discountPercent}%` : '';
 
-/** Responsive font size for product card corner prices (compact). */
-function getMobileProductCardPriceSizeClass(formattedPrice: string): string {
-  const length = formattedPrice.length;
-  if (length >= 14) {
-    return 'text-[11px]';
-  }
-  if (length >= 11) {
-    return 'text-xs';
-  }
-  return 'text-sm';
+  return {
+    id: product.id,
+    slug: product.slug,
+    titleKey: 'home.figma.mobile.product.title',
+    subtitleKey: 'home.figma.mobile.product.subtitle',
+    title: product.title,
+    subtitle: product.subtitle,
+    category: product.subtitle,
+    image: product.image,
+    price,
+    oldPrice,
+    discount,
+    discountPercent: product.discountPercent,
+    inStock: product.inStock,
+    defaultVariantId: product.defaultVariantId,
+    supportsSpicy: product.supportsSpicy,
+    supportsGreens: product.supportsGreens,
+  };
+}
+
+function resolveMobileHomeDiscountPercent(product: HomeFeaturedProduct): number {
+  const price = product.price ?? 0;
+  const oldPrice = product.oldPrice ?? 0;
+  const calculated =
+    oldPrice > price && oldPrice > 0
+      ? Math.round(((oldPrice - price) / oldPrice) * 100)
+      : 0;
+  const fromDb =
+    typeof product.discountPercent === 'number' && product.discountPercent > 0
+      ? Math.round(product.discountPercent)
+      : 0;
+  return calculated || fromDb;
 }
 
 const mobileCategories: MobileCategory[] = [
@@ -71,15 +103,8 @@ const mobileCategories: MobileCategory[] = [
   { id: 'soup', slug: 'soups', titleKey: 'home.figma.mobile.category.soup', image: mobileAssets.categorySoup },
 ];
 
-const mobileProducts: MobileProduct[] = Array.from({ length: 12 }, (_, index) => ({
-  id: `mobile-product-${index + 1}`,
-  titleKey: 'home.figma.mobile.product.title',
-  subtitleKey: 'home.figma.mobile.product.subtitle',
-  price: 1200,
-  oldPrice: 1200,
-  supportsSpicy: false,
-  supportsGreens: false,
-}));
+/** Inset for product grid sections and the top category strip (aligns section titles). */
+const MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS = 'px-3';
 
 function MobileSectionHeader({ title, titleClassName }: { title: string; titleClassName?: string }) {
   const { t } = useTranslation();
@@ -106,7 +131,7 @@ function MobileCategoryStrip({
 }) {
   const { t } = useTranslation();
   return (
-    <div className="space-y-3">
+    <div className={'space-y-3 ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
       <MobileSectionHeader
         title={t('common.navigation.categories')}
         titleClassName={categoriesTitleClassName}
@@ -140,87 +165,78 @@ function MobileCategoryStrip({
   );
 }
 
-function MobileDailyOffer() {
+function MobileDailyOffer({ product }: { product: HomeFeaturedProduct }) {
   const { t } = useTranslation();
   const currency = useCurrency();
+  const router = useRouter();
+  const title =
+    product.title === 'Double Cheeseburger'
+      ? t('home.figma.mobile.product.title')
+      : (product.title || t('home.figma.mobile.product.title'));
+  const imageSrc = product.image || mobileAssets.dailyOfferPizza;
+  const price = product.price ?? 0;
+  const discountPercent = resolveMobileHomeDiscountPercent(product);
+  const productHref = `/products/${product.slug}`;
+
   return (
-    <article className="relative h-32 w-full max-w-full overflow-hidden rounded-[20px]">
+    <article
+      className="relative h-32 w-full max-w-full cursor-pointer overflow-hidden rounded-[20px]"
+      onClick={() => {
+        router.push(productHref);
+      }}
+      onKeyDown={(event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') {
+          return;
+        }
+        event.preventDefault();
+        router.push(productHref);
+      }}
+      role="link"
+      tabIndex={0}
+      aria-label={title}
+    >
       <div className="absolute left-0 top-0 h-full w-[51.12%] bg-[#f66a13]" />
-      <img
-        src={mobileAssets.dailyOfferPizza}
-        alt={t('home.figma.mobile.dailyOfferImageAlt')}
-        className="absolute right-0 top-0 h-full w-[48.88%] object-cover"
-      />
+      <img src={imageSrc} alt={title} className="absolute right-0 top-0 h-full w-[48.88%] object-cover" />
       <h3 className="absolute left-[11px] top-[10px] whitespace-pre-line text-[20px] font-bold leading-[21px] text-white">
         {t('home.figma.mobile.dailyOfferTitle')}
       </h3>
-      <p className="absolute left-[11px] top-[57px] w-[102px] text-sm font-medium leading-[1.15] text-[rgba(255,255,255,0.89)]">
-        {t('home.figma.mobile.product.title')}
+      <p className="absolute left-[11px] top-[57px] w-[102px] line-clamp-2 text-sm font-medium leading-[1.15] text-[rgba(255,255,255,0.89)]">
+        {title}
       </p>
-      <p className="absolute left-[11px] top-24 text-base font-black leading-none text-white">{formatPrice(1200, currency)}</p>
-      <span className="absolute right-[10px] top-[15px] inline-flex h-[25px] w-[65px] items-center justify-center rounded-[60px] bg-white text-xs font-bold text-black">
-        -30%
-      </span>
-      <button type="button" className="absolute left-[35.95%] top-[76px] inline-flex h-[41.669px] w-[41.096px] items-center justify-center">
-        <img src={mobileAssets.dailyOfferAddToCart} alt={t('common.buttons.addToCart')} className="h-[41.7px] w-[41.1px] object-contain" />
+      <p className="absolute left-[11px] top-24 text-base font-black leading-none text-white">
+        {formatPrice(price, currency)}
+      </p>
+      {discountPercent > 0 ? (
+        <span className="absolute right-[10px] top-[15px] inline-flex h-[25px] w-[65px] items-center justify-center rounded-[60px] bg-white text-xs font-bold text-black">
+          -{discountPercent}%
+        </span>
+      ) : null}
+      <button
+        type="button"
+        className="absolute left-[35.95%] top-[76px] inline-flex h-[41.669px] w-[41.096px] items-center justify-center"
+        onClick={(event) => {
+          event.stopPropagation();
+          router.push(productHref);
+        }}
+        aria-label={t('common.buttons.addToCart')}
+      >
+        <img src={mobileAssets.dailyOfferAddToCart} alt="" className="h-[41.7px] w-[41.1px] object-contain" />
       </button>
     </article>
   );
 }
 
-function MobileProductCard({ product }: { product: MobileProduct }) {
-  const { t } = useTranslation();
-  const currency = useCurrency();
-  const formattedPrice = formatPrice(product.price, currency);
-  const formattedOldPrice = formatPrice(product.oldPrice, currency);
-  const priceSizeClass = getMobileProductCardPriceSizeClass(formattedPrice);
-  const oldPriceSizeClass = getMobileProductCardPriceSizeClass(formattedOldPrice);
-  const supportsSpicy = product.supportsSpicy ?? false;
-  const supportsGreens = product.supportsGreens ?? false;
-  const greensTopClass = supportsSpicy ? 'top-[38px]' : 'top-[11px]';
+function MobileHomeProductGrid({ products }: { products: HomeFeaturedProduct[] }) {
+  if (products.length === 0) {
+    return null;
+  }
 
   return (
-    <article className="relative h-[248px] rounded-[20px] bg-[#ffeacc]">
-      <div className="absolute left-1 right-1 top-[5px] h-[143px] overflow-hidden rounded-[18px]">
-        <img src={mobileAssets.productImage} alt={t(product.titleKey)} className="h-full w-full object-cover" />
-      </div>
-      {supportsSpicy ? (
-        <div className="absolute left-[9px] top-[11px] flex h-[22px] w-[22px] items-center justify-center rounded-full bg-[#ff2b2e]">
-          <img src={mobileAssets.productHot} alt="" className="h-[13px] w-[13px] -rotate-[13deg] object-contain" />
-        </div>
-      ) : null}
-      {supportsGreens ? (
-        <img
-          src={mobileAssets.productRibbon}
-          alt=""
-          className={`absolute left-[9px] h-[22px] w-[22px] object-contain ${greensTopClass}`}
-        />
-      ) : null}
-
-      <div className="absolute left-[9px] top-[150px] flex items-center gap-1.5">
-        <img src={mobileAssets.productStar} alt="" className="h-[19px] w-[19px] object-contain" />
-        <p className="text-sm font-medium leading-none text-[rgba(60,47,47,0.62)]">4.7</p>
-      </div>
-
-      <div className="absolute left-[9px] top-[172px] w-[118px]">
-        <h3 className="text-sm font-bold leading-[1.15] text-[#3c2f2f]">{t(product.titleKey)}</h3>
-        <p className="mt-[2px] text-sm font-medium leading-none text-[#a1a1a1]">{t(product.subtitleKey)}</p>
-      </div>
-
-      <span className="absolute right-0 top-[112px] inline-flex h-[25px] w-[65px] items-center justify-center rounded-[60px] bg-[#ff7f20] text-xs font-bold leading-none text-black">
-        -30%
-      </span>
-      <div className="absolute right-2 top-[158px] flex max-w-[76px] flex-col items-end gap-0.5 text-right leading-tight">
-        <p className={`w-full break-words font-black tabular-nums text-[#3c2f2f] ${priceSizeClass}`}>{formattedPrice}</p>
-        <p className={`w-full break-words font-medium tabular-nums text-[#3c2f2f] line-through ${oldPriceSizeClass}`}>
-          {formattedOldPrice}
-        </p>
-      </div>
-
-      <button type="button" className="absolute -bottom-[14px] left-1/2 inline-flex h-[42px] w-[42px] -translate-x-1/2 items-center justify-center">
-        <img src={mobileAssets.productAddToCart} alt={t('common.buttons.addToCart')} className="h-[42px] w-[42px] object-contain" />
-      </button>
-    </article>
+    <div className="grid grid-cols-2 gap-x-[14px] gap-y-[22px]">
+      {products.map((product) => (
+        <ShopMobileProductCard key={product.id} card={homeFeaturedProductToMenuCard(product)} />
+      ))}
+    </div>
   );
 }
 
@@ -246,9 +262,6 @@ function MobileCategorySliderIndicator() {
   );
 }
 
-/** Inset for product grid sections (cards slightly narrower than full-bleed main). */
-const MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS = 'px-3';
-
 type FigmaHomePageMobileProps = {
   categories?: Array<{
     id: string;
@@ -256,11 +269,23 @@ type FigmaHomePageMobileProps = {
     title: string;
     image: string;
   }>;
+  featuredProducts?: HomeFeaturedProduct[];
 };
 
-export function FigmaHomePageMobile({ categories = [] }: FigmaHomePageMobileProps) {
+export function FigmaHomePageMobile({
+  categories = [],
+  featuredProducts = [],
+}: FigmaHomePageMobileProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const { t, lang } = useTranslation();
+  const heroProduct = featuredProducts[0];
+  const gridProducts = featuredProducts.slice(0, MOBILE_HOME_PRODUCT_GRID_TOTAL);
+  const newArrivalProducts = gridProducts.slice(0, MOBILE_HOME_SECTION_PRODUCT_COUNT);
+  const categoryProductsA = gridProducts.slice(
+    MOBILE_HOME_SECTION_PRODUCT_COUNT,
+    MOBILE_HOME_SECTION_PRODUCT_COUNT * 2
+  );
+  const categoryProductsB = gridProducts.slice(MOBILE_HOME_SECTION_PRODUCT_COUNT * 2);
   const displayCategories =
     categories.length > 0
       ? categories.slice(0, mobileCategories.length).map((category, index) => ({
@@ -277,9 +302,11 @@ export function FigmaHomePageMobile({ categories = [] }: FigmaHomePageMobileProp
       <div className="absolute -right-[160px] -top-[184px] h-[320px] w-[360px] rounded-full border-[70px] border-[#3E573D]" />
 
       <header
-        className={`relative ${MOBILE_FIGMA_HEADER_STACKING_CLASS} ${MOBILE_FIGMA_HEADER_HORIZONTAL_INSET_CLASS} pt-[58px]`}
+        className={`relative overflow-visible ${MOBILE_FIGMA_HEADER_STACKING_CLASS} ${MOBILE_FIGMA_HEADER_HORIZONTAL_INSET_CLASS} pt-[58px]`}
       >
-        <div className="relative z-30 flex translate-y-[20px] items-start justify-between">
+        <div
+          className={`relative overflow-visible ${MOBILE_FIGMA_HEADER_TOP_ROW_STACKING_CLASS} flex translate-y-[20px] items-start justify-between`}
+        >
           <img src={mobileAssets.logo} alt="Degusto" className="h-[46px] w-[129px] object-contain" />
           <div className="flex items-center gap-1">
             <button type="button" className="relative inline-flex h-12 w-12 items-center justify-center">
@@ -289,20 +316,26 @@ export function FigmaHomePageMobile({ categories = [] }: FigmaHomePageMobileProp
             <LanguageCurrencySwitcher
               variant="mobile"
               iconSrc={mobileAssets.switcherIcon}
-              arrowSrc={mobileAssets.switcherArrow}
             />
           </div>
         </div>
 
-        <div className="relative z-10 mt-[8px] h-12 translate-y-[20px] rounded-[30px] bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.05)]">
-          <img src={mobileAssets.searchIcon} alt="" className="absolute left-[15px] top-1/2 h-[17px] w-[17px] -translate-y-1/2 object-contain" />
-          <input
+        <div
+          className={`relative ${MOBILE_FIGMA_HEADER_SEARCH_STACKING_CLASS} mt-[8px] h-12 translate-y-[20px] rounded-[30px] bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.05)]`}
+        >
+          <img
+            src={mobileAssets.searchIcon}
+            alt=""
+            className="absolute left-[15px] top-1/2 h-[17px] w-[17px] -translate-y-1/2 object-contain brightness-0"
+          />
+          <MobileFriendlyInput
             type="text"
             value={searchQuery}
             onChange={(event) => {
               setSearchQuery(event.target.value);
             }}
             placeholder={t('common.buttons.search')}
+            sheetTitle={t('common.buttons.search')}
             className="h-full w-full rounded-[30px] bg-transparent pl-[39px] pr-[58px] text-[15px] leading-6 text-black outline-none placeholder:text-[#abb7c2]"
           />
           <button type="button" className="absolute right-[7px] top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center">
@@ -316,45 +349,41 @@ export function FigmaHomePageMobile({ categories = [] }: FigmaHomePageMobileProp
           categories={displayCategories}
           categoriesTitleClassName={categoriesTitleClassName}
         />
-        <div className="mt-[22px]">
-          <MobileDailyOffer />
-        </div>
-        <div className="mt-[19px]">
+        {heroProduct ? (
+          <div className={'mt-[22px] ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
+            <MobileDailyOffer product={heroProduct} />
+          </div>
+        ) : null}
+        <div className={'mt-[19px] ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
           <MobileCategorySliderIndicator />
         </div>
 
-        <div className={'mt-[30px] space-y-[22px] ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
-          <MobileSectionHeader title={t('products.categoryNavigation.newArrivals')} />
-          <div className="grid grid-cols-2 gap-x-[14px] gap-y-[22px]">
-            {mobileProducts.slice(0, 4).map((product) => (
-              <MobileProductCard key={`new-${product.id}`} product={product} />
-            ))}
+        {newArrivalProducts.length > 0 ? (
+          <div className={'mt-[30px] space-y-[22px] ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
+            <MobileSectionHeader title={t('products.categoryNavigation.newArrivals')} />
+            <MobileHomeProductGrid products={newArrivalProducts} />
           </div>
-        </div>
+        ) : null}
 
-        <div className={'mt-[30px] space-y-[22px] ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
-          <MobileSectionHeader
-            title={t('common.navigation.categories')}
-            titleClassName={categoriesTitleClassName}
-          />
-          <div className="grid grid-cols-2 gap-x-[14px] gap-y-[22px]">
-            {mobileProducts.slice(4, 8).map((product) => (
-              <MobileProductCard key={`cat-a-${product.id}`} product={product} />
-            ))}
+        {categoryProductsA.length > 0 ? (
+          <div className={'mt-[30px] space-y-[22px] ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
+            <MobileSectionHeader
+              title={t('common.navigation.categories')}
+              titleClassName={categoriesTitleClassName}
+            />
+            <MobileHomeProductGrid products={categoryProductsA} />
           </div>
-        </div>
+        ) : null}
 
-        <div className={'mt-[30px] space-y-[22px] ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
-          <MobileSectionHeader
-            title={t('common.navigation.categories')}
-            titleClassName={categoriesTitleClassName}
-          />
-          <div className="grid grid-cols-2 gap-x-[14px] gap-y-[22px]">
-            {mobileProducts.slice(8, 12).map((product) => (
-              <MobileProductCard key={`cat-b-${product.id}`} product={product} />
-            ))}
+        {categoryProductsB.length > 0 ? (
+          <div className={'mt-[30px] space-y-[22px] ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
+            <MobileSectionHeader
+              title={t('common.navigation.categories')}
+              titleClassName={categoriesTitleClassName}
+            />
+            <MobileHomeProductGrid products={categoryProductsB} />
           </div>
-        </div>
+        ) : null}
       </main>
     </div>
   );

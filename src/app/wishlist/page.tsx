@@ -16,6 +16,7 @@ import {
   getLocalWishlistIds,
   setLocalWishlistIds,
 } from '../../lib/wishlist';
+import { MOBILE_SHOP_PRODUCTS_GRID_CLASS } from '../../constants/mobile-figma-storefront';
 import { WishlistProductCard, type WishlistProductCardProduct } from './WishlistProductCard';
 
 type Product = WishlistProductCardProduct;
@@ -237,13 +238,13 @@ export default function WishlistPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-7xl max-lg:px-0 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <div className="py-6 text-center">
           <div className="animate-pulse space-y-4">
             <div className="mx-auto h-6 w-1/4 max-w-xs rounded bg-gray-200" />
-            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className={`mt-4 ${MOBILE_SHOP_PRODUCTS_GRID_CLASS} lg:grid-cols-3`}>
               <div className="h-72 rounded-lg bg-gray-200" />
-              <div className="hidden h-72 rounded-lg bg-gray-200 sm:block" />
+              <div className="h-72 rounded-lg bg-gray-200" />
               <div className="hidden h-72 rounded-lg bg-gray-200 lg:block" />
             </div>
           </div>
@@ -253,7 +254,7 @@ export default function WishlistPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl max-lg:px-0 px-4 py-6 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-gray-900">{t('common.wishlist.title')}</h1>
         {products.length > 0 ? (
@@ -270,7 +271,9 @@ export default function WishlistPage() {
       </div>
 
       {products.length > 0 ? (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
+        <div
+          className={`${MOBILE_SHOP_PRODUCTS_GRID_CLASS} max-sm:gap-y-[30px] sm:gap-6 lg:grid-cols-3 xl:grid-cols-4`}
+        >
           {products.map((product) => (
             <WishlistProductCard
               key={product.id}

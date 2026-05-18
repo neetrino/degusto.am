@@ -1,4 +1,22 @@
 {
+  "success": {
+    "title": "Order placed successfully",
+    "subtitle": "Thank you for your order. We will receive your request and contact you shortly.",
+    "purchaseHistory": {
+      "title": "Purchase history",
+      "empty": "No items in this order",
+      "quantityLine": "{qty} × {unitPrice} = {total}",
+      "totalPaid": "Total paid"
+    },
+    "help": {
+      "title": "Need help?",
+      "description": "If you have questions about your order, call us."
+    },
+    "buttons": {
+      "orderAgain": "Order again",
+      "home": "Home"
+    }
+  },
   "notFound": {
     "title": "Order Not Found",
     "description": "The order you are looking for does not exist."

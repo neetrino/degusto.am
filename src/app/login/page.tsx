@@ -198,7 +198,7 @@ function LoginPageContent() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1F2E1F]/70 hover:text-[#1F2E1F] focus:outline-none"
+                className="absolute right-3 top-1/2 hidden -translate-y-1/2 text-[#1F2E1F]/70 hover:text-[#1F2E1F] focus:outline-none lg:block"
                 disabled={isSubmitting || isLoading}
               >
                 {showPassword ? (

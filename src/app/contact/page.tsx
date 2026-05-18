@@ -1,6 +1,7 @@
 'use client';
 
 import { Button, Input } from '@shop/ui';
+import { MobileFriendlyTextarea } from '@/components/mobile/MobileFriendlyTextarea';
 import { useMemo, useState } from 'react';
 import type { FormEvent, ChangeEvent } from 'react';
 import { useTranslation } from '../../lib/i18n-client';
@@ -251,14 +252,15 @@ export default function ContactPage() {
                 <label htmlFor="message" className="block text-sm font-medium text-gray-900 mb-2">
                   {t('contact.form.message')}
                 </label>
-                <textarea
+                <MobileFriendlyTextarea
                   id="message"
                   name="message"
                   rows={6}
                   required
                   value={formData.message}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                  sheetTitle={t('contact.form.message')}
+                  className="w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
                   placeholder={t('contact.form.messagePlaceholder')}
                 />
               </div>

@@ -352,7 +352,7 @@ export function OrderSummary({ cart, currency, t, appearance = 'page' }: OrderSu
   const isDrawer = appearance === 'drawer';
 
   const innerClass = isDrawer
-    ? 'rounded-2xl border border-white/20 bg-black/40 p-5 shadow-sm backdrop-blur-md sm:p-5'
+    ? 'rounded-2xl border border-white/15 bg-black/62 p-5 shadow-sm backdrop-blur-md sm:p-5 lg:border-white/20 lg:bg-black/40'
     : 'rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6';
 
   const headingClass = `text-lg font-semibold ${isDrawer ? 'mb-4 text-white' : 'mb-5 text-gray-900'}`;

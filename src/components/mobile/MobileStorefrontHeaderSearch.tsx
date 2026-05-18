@@ -8,9 +8,12 @@ import { SearchDropdown } from '../SearchDropdown';
 import { useTranslation } from '../../lib/i18n-client';
 import { getStoredLanguage } from '../../lib/language';
 import {
+  MOBILE_FIGMA_HEADER_SEARCH_RESULTS_STACKING_CLASS,
+  MOBILE_FIGMA_HEADER_SEARCH_STACKING_CLASS,
   MOBILE_FIGMA_STOREFRONT_ASSETS,
   MOBILE_STORE_MENU_SEARCH_URL_DEBOUNCE_MS,
 } from '@/constants/mobile-figma-storefront';
+import { MobileFriendlyInput } from '@/components/mobile/MobileFriendlyInput';
 
 function isStoreMenuPath(pathname: string | null): boolean {
   if (!pathname) {
@@ -180,33 +183,59 @@ export function MobileStorefrontHeaderSearch({ onFilterClick }: MobileStorefront
   };
 
   return (
-    <div className="relative z-[110]">
+    <div className={`relative ${MOBILE_FIGMA_HEADER_SEARCH_STACKING_CLASS}`}>
       <form
         onSubmit={handleSubmit}
-        className="relative z-10 mt-[8px] h-12 translate-y-[20px] rounded-[30px] bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.05)]"
+        className="relative z-0 mt-[8px] h-12 translate-y-[20px] rounded-[30px] bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.05)]"
       >
         <img
           src={MOBILE_FIGMA_STOREFRONT_ASSETS.searchIcon}
           alt=""
-          className="absolute left-[15px] top-1/2 h-[17px] w-[17px] -translate-y-1/2 object-contain"
+          className="absolute left-[15px] top-1/2 h-[17px] w-[17px] -translate-y-1/2 object-contain brightness-0"
         />
-        <input
+        <MobileFriendlyInput
           type="text"
           value={query}
           onChange={(event) => {
             onInputChange(event.target.value);
           }}
-          onFocus={() => {
+          onSheetOpen={() => {
             if (!menu && query.trim().length >= 1) {
               setIsOpen(true);
             }
           }}
+          onSheetCommit={(nextValue) => {
+            if (menu) {
+              flushMenuSearchUrlSync(nextValue);
+            }
+          }}
           onKeyDown={onInputKeyDown}
           placeholder={t('common.buttons.search')}
+          sheetTitle={t('common.buttons.search')}
           className="h-full w-full rounded-[30px] bg-transparent pl-[39px] pr-[58px] text-[15px] leading-6 text-black outline-none placeholder:text-[#abb7c2]"
           aria-controls="search-results"
           aria-expanded={!menu && isOpen && results.length > 0}
           aria-autocomplete="list"
+          sheetFooter={
+            !menu ? (
+              <SearchDropdown
+                results={results}
+                loading={loading}
+                error={error}
+                isOpen={isOpen}
+                selectedIndex={selectedIndex}
+                query={query}
+                onResultClick={(result) => {
+                  router.push(`/products/${result.slug}`);
+                  setIsOpen(false);
+                  clearSearch();
+                }}
+                onClose={() => setIsOpen(false)}
+                onSeeAllClick={() => setIsOpen(false)}
+                className="relative z-[1] shadow-none"
+              />
+            ) : undefined
+          }
         />
         <button
           type="button"
@@ -238,7 +267,7 @@ export function MobileStorefrontHeaderSearch({ onFilterClick }: MobileStorefront
           }}
           onClose={() => setIsOpen(false)}
           onSeeAllClick={() => setIsOpen(false)}
-          className="z-[120]"
+          className={MOBILE_FIGMA_HEADER_SEARCH_RESULTS_STACKING_CLASS}
         />
       ) : null}
     </div>

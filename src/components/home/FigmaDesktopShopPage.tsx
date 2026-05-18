@@ -11,8 +11,15 @@ import { useWishlist } from '../hooks/useWishlist';
 import { useAuth } from '../../lib/auth/AuthContext';
 import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
 import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
+import type { MenuCard, MenuCategory } from './menu-types';
+import { ShopMobileProductCard } from './ShopMobileProductCard';
 import { StoreMenuPagination } from './StoreMenuPagination';
-import { MOBILE_STOREFRONT_FILTERS_ANCHOR_ID } from '@/constants/mobile-figma-storefront';
+import {
+  MOBILE_SHOP_PRODUCTS_GRID_CLASS,
+  MOBILE_STOREFRONT_FILTERS_ANCHOR_ID,
+} from '@/constants/mobile-figma-storefront';
+import { MobileFriendlyInput } from '@/components/mobile/MobileFriendlyInput';
+import { isStorefrontAllCategorySlug } from '@/constants/storefront-all-category-slug';
 
 const assets = {
   productCardImage: '/api/r2/product/20260512-D3w_teddze.png',
@@ -26,35 +33,6 @@ const assets = {
 
 /** Debounce before writing search to the URL (server refetch); avoids one request per key. */
 const SEARCH_QUERY_URL_DEBOUNCE_MS = 250;
-
-type MenuCard = {
-  id: string;
-  slug: string;
-  titleKey: string;
-  subtitleKey: string;
-  title?: string;
-  subtitle?: string;
-  category?: string;
-  categoryKey?: string;
-  image?: string | null;
-  price: number;
-  oldPrice: number;
-  discount: string;
-  discountPercent?: number | null;
-  inStock?: boolean;
-  defaultVariantId?: string | null;
-  supportsSpicy?: boolean;
-  supportsGreens?: boolean;
-};
-
-type MenuCategory = {
-  id: string;
-  slug: string;
-  title: string;
-  iconUrl?: string | null;
-  /** When set (shop/combo DB categories), shown in the UI and used to block empty categories. */
-  productCount?: number;
-};
 
 type DesktopMenuPageProps = {
   titleKey: string;
@@ -71,6 +49,8 @@ type DesktopMenuPageProps = {
     currentPage: number;
     totalPages: number;
   };
+  /** When false, hides the mobile product list (e.g. mobile shop category grid on `/shop`). */
+  showMobileProductsList?: boolean;
 };
 
 const fallbackCategoryKeys = [
@@ -432,6 +412,7 @@ export function FigmaDesktopMenuPage({
   initialMaxPrice = '',
   initialFoodFilter = 'neutral',
   menuPagination,
+  showMobileProductsList = true,
 }: DesktopMenuPageProps) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -444,6 +425,16 @@ export function FigmaDesktopMenuPage({
   const [maxPrice, setMaxPrice] = useState(initialMaxPrice);
   const [foodFilter, setFoodFilter] = useState<'leaf' | 'neutral' | 'pepper'>(initialFoodFilter);
   const routeBasePath = pathname?.startsWith('/combo') ? '/combo' : '/shop';
+
+  useEffect(() => {
+    if (!showMobileProductsList || searchParams.get('openFilters') !== '1') {
+      return;
+    }
+    document.getElementById(MOBILE_STOREFRONT_FILTERS_ANCHOR_ID)?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  }, [searchParams, showMobileProductsList]);
 
   const buildTargetPath = useMemo(() => {
     return (
@@ -513,42 +504,26 @@ export function FigmaDesktopMenuPage({
     foodFilter
   );
 
+  const openMobileCategoryPicker = useCallback(() => {
+    router.push(routeBasePath);
+  }, [router, routeBasePath]);
+
   return (
     <>
+      {showMobileProductsList ? (
       <div className="pb-8 pt-0 lg:hidden">
         <div className="mx-auto w-full max-w-[1470px]">
           <h1 className="text-[32px] font-bold leading-tight text-[#f66913]">{t(titleKey)}</h1>
           <p className="mt-2 text-sm tracking-[-0.2px] text-[#717182]">{t(subtitleKey)}</p>
 
           {hasDbCategories ? (
-            <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {dbCategories.map((category) => {
-                const isActive = activeCategorySlug === category.slug;
-                const empty = isMenuCategoryEmpty(category);
-                return (
-                  <button
-                    key={category.id}
-                    type="button"
-                    aria-disabled={empty}
-                    tabIndex={empty ? -1 : undefined}
-                    onClick={() => {
-                      if (empty) {
-                        return;
-                      }
-                      router.push(buildTargetPath(category.slug));
-                    }}
-                    aria-pressed={isActive}
-                    className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold ${
-                      isActive ? 'bg-[#ff7f20] text-white' : 'bg-[#f3f3f5] text-[#3c2f2f]'
-                    } ${empty ? 'cursor-not-allowed' : ''} ${
-                      empty && !isActive ? 'opacity-50 hover:bg-[#f3f3f5]' : ''
-                    }`}
-                  >
-                    {formatCategoryLabelWithCount(category)}
-                  </button>
-                );
-              })}
-            </div>
+            <button
+              type="button"
+              onClick={openMobileCategoryPicker}
+              className="mt-4 flex h-[46px] w-full items-center justify-center rounded-[40px] bg-[#ff7f20] px-4 text-base font-semibold text-white"
+            >
+              {t('home.figma.mobile.chooseCategories')}
+            </button>
           ) : null}
 
           <div
@@ -556,7 +531,7 @@ export function FigmaDesktopMenuPage({
             className="scroll-mt-28 mt-6 flex flex-wrap items-center gap-2 text-sm text-[#717182]"
           >
             <span className="w-full shrink-0 text-base sm:w-auto">{t('home.figma.desktop.shop.priceLabel')}</span>
-            <input
+            <MobileFriendlyInput
               type="number"
               min={0}
               inputMode="numeric"
@@ -572,10 +547,20 @@ export function FigmaDesktopMenuPage({
                   })
                 );
               }}
+              onSheetCommit={(nextMinPrice) => {
+                router.replace(
+                  buildTargetPath(activeCategorySlug, {
+                    search: searchTerm,
+                    minPrice: nextMinPrice,
+                    maxPrice,
+                  })
+                );
+              }}
               placeholder={t('home.figma.desktop.shop.priceFrom')}
+              sheetTitle={t('home.figma.desktop.shop.priceFrom')}
               className="h-[46px] min-w-0 flex-1 rounded-[40px] bg-[#f3f3f5] px-4 text-left text-base text-[#7f7f80] sm:flex-none sm:basis-[109px]"
             />
-            <input
+            <MobileFriendlyInput
               type="number"
               min={0}
               inputMode="numeric"
@@ -591,7 +576,17 @@ export function FigmaDesktopMenuPage({
                   })
                 );
               }}
+              onSheetCommit={(nextMaxPrice) => {
+                router.replace(
+                  buildTargetPath(activeCategorySlug, {
+                    search: searchTerm,
+                    minPrice,
+                    maxPrice: nextMaxPrice,
+                  })
+                );
+              }}
               placeholder={t('home.figma.desktop.shop.priceTo')}
+              sheetTitle={t('home.figma.desktop.shop.priceTo')}
               className="h-[46px] min-w-0 flex-1 rounded-[40px] bg-[#f3f3f5] px-4 text-left text-base text-[#7f7f80] sm:flex-none sm:basis-[109px]"
             />
             <FoodAttributeSwitcher
@@ -611,9 +606,9 @@ export function FigmaDesktopMenuPage({
           </div>
 
           {menuCards.length > 0 ? (
-            <div className="mt-8 grid grid-cols-1 justify-items-center gap-x-6 gap-y-10 sm:grid-cols-2">
+            <div className={`mt-8 ${MOBILE_SHOP_PRODUCTS_GRID_CLASS}`}>
               {menuCards.map((card) => (
-                <MenuCardItem key={card.id} card={card} />
+                <ShopMobileProductCard key={card.id} card={card} />
               ))}
             </div>
           ) : (
@@ -632,6 +627,7 @@ export function FigmaDesktopMenuPage({
           ) : null}
         </div>
       </div>
+      ) : null}
 
       <div className="hidden bg-white pb-20 pt-5 lg:block">
         <div className="mx-auto flex w-full max-w-[1470px] gap-8 px-3">
@@ -669,7 +665,10 @@ export function FigmaDesktopMenuPage({
             <div className="min-h-0 flex-1 space-y-1 overflow-y-auto pr-1 scrollbar-hide">
               {hasDbCategories
                 ? dbCategories.map((category) => {
-                    const isActive = activeCategorySlug === category.slug;
+                    const isActive =
+                      category.slug === ''
+                        ? isStorefrontAllCategorySlug(activeCategorySlug)
+                        : activeCategorySlug === category.slug;
                     const empty = isMenuCategoryEmpty(category);
                     return (
                       <button
@@ -821,4 +820,5 @@ export function FigmaDesktopShopPage() {
   );
 }
 
-export type { MenuCard, MenuCategory };
+export type { MenuCard, MenuCategory } from './menu-types';
+

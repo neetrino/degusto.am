@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { MobileBottomNavigation } from './home/MobileBottomNavigation';
 import { resolveMobileBottomNavAssets } from './home/mobileBottomNavAssets';
@@ -7,6 +8,10 @@ import { resolveMobileBottomNavAssets } from './home/mobileBottomNavAssets';
 export function ConditionalMobileBottomNav() {
   const pathname = usePathname();
   const router = useRouter();
+
+  useEffect(() => {
+    void router.prefetch('/shop');
+  }, [router]);
 
   if (pathname?.startsWith('/supersudo')) {
     return null;

@@ -230,9 +230,9 @@ export default function ProductPage({ params }: ProductPageProps) {
         <div className="hidden lg:block">
           <ProjectGreenStripes extendFirstStrokeUp />
         </div>
-        <div className="relative z-10 mx-auto max-w-7xl max-lg:px-0 px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
-          <section className="rounded-3xl border border-neutral-200 bg-white p-4 sm:p-6 lg:p-8 shadow-[0_8px_28px_rgba(0,0,0,0.06)]">
-            <div className="grid grid-cols-1 lg:grid-cols-[55%_45%] gap-10 lg:gap-12 items-start">
+        <div className="relative z-10 mx-auto max-w-7xl max-lg:px-0 max-lg:py-0 px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
+          <section className="rounded-3xl border border-neutral-200 bg-white p-4 shadow-[0_8px_28px_rgba(0,0,0,0.06)] max-lg:rounded-none max-lg:border-0 max-lg:bg-transparent max-lg:p-0 max-lg:shadow-none sm:p-6 lg:p-8">
+            <div className="grid grid-cols-1 items-start gap-6 max-lg:gap-5 lg:grid-cols-[55%_45%] lg:gap-12">
             <ProductImageGallery
               images={images}
               product={product}
@@ -279,7 +279,7 @@ export default function ProductPage({ params }: ProductPageProps) {
           </div>
           </section>
 
-          <div className="mt-10 rounded-3xl border border-neutral-200 bg-white p-3 shadow-[0_6px_22px_rgba(0,0,0,0.04)] sm:mt-12 sm:p-4 lg:p-5">
+          <div className="mt-8 rounded-3xl border border-neutral-200 bg-white p-3 shadow-[0_6px_22px_rgba(0,0,0,0.04)] max-lg:mt-8 max-lg:rounded-none max-lg:border-x-0 max-lg:border-b-0 max-lg:border-t max-lg:border-neutral-200 max-lg:bg-transparent max-lg:p-0 max-lg:pt-8 max-lg:shadow-none sm:mt-12 sm:p-4 lg:mt-10 lg:p-5">
             <RelatedProducts
               productSlug={slug}
               categorySlug={product.categories?.[0]?.slug}
@@ -289,7 +289,7 @@ export default function ProductPage({ params }: ProductPageProps) {
 
           <div
             id="product-reviews"
-            className="mt-10 rounded-3xl border border-neutral-200 bg-white p-4 sm:p-6 lg:p-8 scroll-mt-24 shadow-[0_6px_22px_rgba(0,0,0,0.04)]"
+            className="mt-8 scroll-mt-24 rounded-3xl border border-neutral-200 bg-white p-4 shadow-[0_6px_22px_rgba(0,0,0,0.04)] max-lg:mt-8 max-lg:rounded-none max-lg:border-x-0 max-lg:border-b-0 max-lg:border-t max-lg:border-neutral-200 max-lg:bg-transparent max-lg:pt-8 max-lg:shadow-none sm:mt-10 sm:p-6 lg:mt-10 lg:p-8"
           >
             <ProductReviews productSlug={slug} productId={product.id} />
           </div>

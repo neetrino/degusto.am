@@ -15,6 +15,10 @@ import {
   type LanguageCode,
 } from '../lib/language';
 import { useTranslation } from '../lib/i18n-client';
+import {
+  MOBILE_FIGMA_HEADER_SWITCHER_DROPDOWN_STACKING_CLASS,
+  MOBILE_FIGMA_HEADER_SWITCHER_OPEN_STACKING_CLASS,
+} from '@/constants/mobile-figma-storefront';
 
 const LANGUAGE_CODES: LanguageCode[] = ['en', 'hy', 'ru'];
 const CURRENCY_CODES: CurrencyCode[] = ['AMD', 'USD', 'EUR', 'RUB', 'GEL'];
@@ -27,7 +31,30 @@ type SwitcherVariant = 'desktop' | 'mobile';
 interface LanguageCurrencySwitcherProps {
   variant: SwitcherVariant;
   iconSrc: string;
-  arrowSrc: string;
+  /** When omitted, a built-in chevron is rendered (avoids expired remote asset URLs). */
+  arrowSrc?: string;
+}
+
+function SwitcherChevronIcon({ className }: { className: string }) {
+  return (
+    <svg
+      width={8}
+      height={12}
+      viewBox="0 0 8 12"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      aria-hidden
+    >
+      <path
+        d="M1 1.5L4 6L7 1.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
 
 export function LanguageCurrencySwitcher({
@@ -98,15 +125,16 @@ export function LanguageCurrencySwitcher({
       ? 'absolute right-[18px] h-3 w-2 shrink-0 rotate-90 object-contain'
       : 'absolute right-[20px] h-[10px] w-[4px] rotate-90 object-contain';
 
-  const rootClassName = variant === 'mobile' ? 'relative z-[200]' : 'relative';
-
   const dropdownPositionClassName =
     variant === 'mobile'
-      ? 'absolute right-0 top-full z-[100] mt-2 max-h-[min(420px,calc(100vh-120px))] w-[216px] overflow-y-auto rounded-2xl border border-[#ececec] bg-white p-2 shadow-2xl'
+      ? `absolute right-0 top-full ${MOBILE_FIGMA_HEADER_SWITCHER_DROPDOWN_STACKING_CLASS} mt-2 max-h-[min(420px,calc(100vh-120px))] w-[216px] overflow-y-auto rounded-2xl border border-[#ececec] bg-white p-2 shadow-2xl`
       : 'absolute right-0 top-full z-50 mt-2 w-[216px] rounded-2xl border border-[#ececec] bg-white p-2 shadow-xl';
 
+  const mobileOpenStackingClassName =
+    variant === 'mobile' && isOpen ? MOBILE_FIGMA_HEADER_SWITCHER_OPEN_STACKING_CLASS : '';
+
   return (
-    <div className={rootClassName} ref={switcherRef}>
+    <div className={`relative ${mobileOpenStackingClassName}`.trim()} ref={switcherRef}>
       <button
         type="button"
         onClick={() => {
@@ -117,12 +145,24 @@ export function LanguageCurrencySwitcher({
         className={buttonClassName}
       >
         <span className={contentClassName}>
-          <img src={iconSrc} alt="" className="h-[19px] w-[19px] shrink-0 object-contain" />
+          <img
+            src={iconSrc}
+            alt=""
+            className={`h-[19px] w-[19px] shrink-0 object-contain ${
+              variant === 'desktop' ? 'brightness-0 invert' : 'brightness-0'
+            }`}
+          />
           <span className={labelClassName}>
             {language.toUpperCase()} / {currency} {currentCurrencyInfo.symbol}
           </span>
         </span>
-        <img src={arrowSrc} alt="" className={arrowClassName} />
+        {arrowSrc ? (
+          <img src={arrowSrc} alt="" className={arrowClassName} />
+        ) : (
+          <SwitcherChevronIcon
+            className={`${arrowClassName} text-white ${variant === 'mobile' ? 'text-[#ff7f20]' : ''}`}
+          />
+        )}
       </button>
 
       {isOpen ? (

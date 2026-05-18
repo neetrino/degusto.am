@@ -51,7 +51,7 @@ export function ProfileMobilePage({
   }, [isSheetOpen]);
 
   return (
-    <div className="mx-auto w-full max-w-md max-lg:px-0 px-4 pb-2 pt-0 lg:hidden">
+    <div className="mx-auto w-full max-w-md max-lg:px-4 px-4 pb-2 pt-6 lg:hidden">
       <div className="mb-5 flex items-center gap-4">
         <UserAvatar
           firstName={profile?.firstName}

@@ -103,7 +103,7 @@ export function ProductImageGallery({
               <>
                 <button
                   type="button"
-                  className="absolute left-3 top-1/2 z-[11] flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/60 bg-white/90 text-gray-800 opacity-0 transition-opacity duration-200 group-hover/main:opacity-100 focus-visible:opacity-100"
+                  className="absolute left-3 top-1/2 z-[11] flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/60 bg-white/90 text-gray-800 opacity-100 transition-opacity duration-200 sm:h-11 sm:w-11 lg:opacity-0 lg:group-hover/main:opacity-100 lg:focus-visible:opacity-100"
                   aria-label={t(language, 'common.ariaLabels.previousImage')}
                   onClick={(e) => {
                     e.preventDefault();
@@ -117,7 +117,7 @@ export function ProductImageGallery({
                 </button>
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 z-[11] flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/60 bg-white/90 text-gray-800 opacity-0 transition-opacity duration-200 group-hover/main:opacity-100 focus-visible:opacity-100"
+                  className="absolute right-3 top-1/2 z-[11] flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/60 bg-white/90 text-gray-800 opacity-100 transition-opacity duration-200 sm:h-11 sm:w-11 lg:opacity-0 lg:group-hover/main:opacity-100 lg:focus-visible:opacity-100"
                   aria-label={t(language, 'common.ariaLabels.nextImage')}
                   onClick={(e) => {
                     e.preventDefault();
@@ -159,7 +159,7 @@ export function ProductImageGallery({
                   }
                 }}
                 disabled={thumbnailStartIndex <= 0}
-                className="h-9 w-9 shrink-0 rounded-lg border border-gray-300 bg-gray-100 text-gray-700 opacity-0 transition-opacity duration-200 group-hover/thumbStrip:opacity-100 focus-visible:opacity-100 hover:border-gray-400 hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-30"
+                className="h-9 w-9 shrink-0 rounded-lg border border-gray-300 bg-gray-100 text-gray-700 opacity-100 transition-opacity duration-200 hover:border-gray-400 hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-30 lg:opacity-0 lg:group-hover/thumbStrip:opacity-100 lg:focus-visible:opacity-100"
                 aria-label={t(language, 'common.ariaLabels.previousThumbnail')}
               >
                 <svg className="mx-auto h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -218,7 +218,7 @@ export function ProductImageGallery({
                   }
                 }}
                 disabled={thumbnailStartIndex >= images.length - THUMBNAILS_PER_VIEW}
-                className="h-9 w-9 shrink-0 rounded-lg border border-gray-300 bg-gray-100 text-gray-700 opacity-0 transition-opacity duration-200 group-hover/thumbStrip:opacity-100 focus-visible:opacity-100 hover:border-gray-400 hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-30"
+                className="h-9 w-9 shrink-0 rounded-lg border border-gray-300 bg-gray-100 text-gray-700 opacity-100 transition-opacity duration-200 hover:border-gray-400 hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-30 lg:opacity-0 lg:group-hover/thumbStrip:opacity-100 lg:focus-visible:opacity-100"
                 aria-label={t(language, 'common.ariaLabels.nextThumbnail')}
               >
                 <svg className="mx-auto h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

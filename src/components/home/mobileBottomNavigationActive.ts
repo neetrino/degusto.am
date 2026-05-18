@@ -1,8 +1,17 @@
-function isPathActive(pathname: string, href: string): boolean {
-  if (href === '/') {
-    return pathname === '/';
+function normalizePathname(pathname: string): string {
+  const base = pathname.split('?')[0]?.split('#')[0] ?? '';
+  if (!base || base === '/') {
+    return base || '/';
   }
-  return pathname === href || pathname.startsWith(`${href}/`);
+  return base.endsWith('/') ? base.slice(0, -1) : base;
+}
+
+function isPathActive(pathname: string, href: string): boolean {
+  const path = normalizePathname(pathname);
+  if (href === '/') {
+    return path === '/';
+  }
+  return path === href || path.startsWith(`${href}/`);
 }
 
 export type MobileBottomNavActiveFlags = {
@@ -18,15 +27,16 @@ export function getMobileBottomNavActiveFlags(
   pathname: string,
   isLoggedIn: boolean
 ): MobileBottomNavActiveFlags {
+  const path = normalizePathname(pathname);
   const profileHref = isLoggedIn ? '/profile' : '/login';
   const isProfileSlotActive = isLoggedIn
     ? isPathActive(pathname, '/profile')
-    : pathname === '/login' || pathname === '/register';
+    : path === '/login' || path === '/register';
 
   return {
     profileHref,
-    isShopActive: pathname === '/shop',
-    isHomeActive: pathname === '/',
+    isShopActive: path === '/shop' || path.startsWith('/shop/'),
+    isHomeActive: path === '/',
     isCartActive: false,
     isFavoritesActive: isPathActive(pathname, '/wishlist'),
     isProfileSlotActive,

@@ -74,8 +74,8 @@ export function ProductInfoAndActions({
   getOptionValue,
 }: ProductInfoAndActionsProps) {
   return (
-    <div className="flex w-full max-w-full flex-col self-start p-4 sm:p-5 lg:p-6">
-      <div className="-translate-x-[30px] flex min-h-0 flex-col">
+    <div className="flex w-full max-w-full flex-col self-start max-lg:px-0 max-lg:py-0 p-4 sm:p-5 lg:p-6">
+      <div className="flex min-h-0 flex-col lg:-translate-x-[30px]">
         <div>
           {product.brand && (
             <div className="mb-3 flex items-center gap-2">
@@ -94,7 +94,7 @@ export function ProductInfoAndActions({
               <p className="text-sm text-gray-500">{product.brand.name}</p>
             </div>
           )}
-          <h1 className="mb-2 text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl">
+          <h1 className="mb-2 text-2xl font-semibold tracking-tight text-gray-900 max-lg:leading-tight sm:text-3xl lg:text-4xl">
             {getProductText(language, product.id, 'title') || product.title}
           </h1>
           <ProductRatingSummary
@@ -105,7 +105,7 @@ export function ProductInfoAndActions({
           />
           <div className="mb-6 flex flex-col gap-1">
             <div className="flex items-center gap-2">
-              <p className="text-3xl font-bold text-gray-900">{formatPrice(price, currency as CurrencyCode)}</p>
+              <p className="text-2xl font-bold text-gray-900 sm:text-3xl">{formatPrice(price, currency as CurrencyCode)}</p>
               {discountPercent && discountPercent > 0 && (
                 <span className="text-lg font-semibold text-blue-600">
                   -{discountPercent}%
@@ -145,7 +145,7 @@ export function ProductInfoAndActions({
           </div>
         </div>
 
-        <div className="mt-[50px] pt-4">
+        <div className="mt-6 pt-2 lg:mt-[50px] lg:pt-4">
         <div className="flex items-center gap-2.5 sm:gap-3">
           <div
             className="inline-flex h-9 shrink-0 items-center gap-0 rounded-full border border-neutral-200 bg-white px-0.5 sm:h-10"

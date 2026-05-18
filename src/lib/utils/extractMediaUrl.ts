@@ -20,3 +20,17 @@ export function extractMediaUrl(media: unknown): string | null {
   }
   return null;
 }
+
+/** First URL from variant `imageUrl` (may be comma-separated). */
+export function extractVariantImageUrl(imageUrl: string | null | undefined): string | null {
+  if (!imageUrl) {
+    return null;
+  }
+
+  const first = imageUrl
+    .split(',')
+    .map((part) => part.trim())
+    .find((part) => part.length > 0);
+
+  return first ?? null;
+}

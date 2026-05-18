@@ -14,7 +14,7 @@ type CategoryTreeItem = {
   children: CategoryTreeItem[];
 };
 
-const HOME_FEATURED_PRODUCTS_LIMIT = 5;
+const HOME_FEATURED_PRODUCTS_LIMIT = 12;
 const HOME_CATEGORIES_LIMIT = 8;
 
 /** Always read fresh data from DB on each request (no static/ISR cache for this route). */
@@ -62,6 +62,7 @@ function getHomeProductSelect(homeLang: StorefrontLocale) {
         price: 'asc' as const,
       },
       select: {
+        id: true,
         published: true,
         price: true,
         compareAtPrice: true,
@@ -202,6 +203,8 @@ export default async function HomePage() {
       oldPrice: toPositiveNumber(mainVariant?.compareAtPrice),
       image,
       discountPercent: toPositiveNumber(product.discountPercent),
+      inStock: mainVariant?.published ?? true,
+      defaultVariantId: mainVariant?.id ?? null,
       supportsSpicy: foodAttrs.supportsSpicy,
       supportsGreens: foodAttrs.supportsGreens,
     };

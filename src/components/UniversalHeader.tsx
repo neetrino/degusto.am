@@ -16,17 +16,7 @@ import { useInstantSearch } from './hooks/useInstantSearch';
 import { SearchDropdown } from './SearchDropdown';
 import { useCartDrawer } from './cart-drawer/cart-drawer-context';
 import { WishlistHeaderHeartIcon } from './icons/WishlistHeaderHeartIcon';
-
-const assets = {
-  logo: 'https://www.figma.com/api/mcp/asset/b684f5ca-5543-4689-be84-ac53b6c5d14c',
-  loginIcon: 'https://www.figma.com/api/mcp/asset/78b21874-ca2c-4a82-ad97-53f6d15d758a',
-  cartIcon: 'https://www.figma.com/api/mcp/asset/6af1086c-a9ef-4e40-a198-a1dc8ae19a1b',
-  cartCounterBubble: 'https://www.figma.com/api/mcp/asset/92cf106e-719d-418a-9062-442c2c704c3a',
-  searchBadge: 'https://www.figma.com/api/mcp/asset/717cf64a-7dc5-44fd-8730-e63c2abe5677',
-  searchIcon: 'https://www.figma.com/api/mcp/asset/79afe4c8-e7f4-44f9-8a3e-d76365facd5a',
-  switcherIcon: 'https://www.figma.com/api/mcp/asset/7e774d0a-9c34-437c-b6a6-eb0f02674821',
-  switcherArrow: 'https://www.figma.com/api/mcp/asset/7eb0464d-351a-4497-9966-932e83d0dc1c',
-};
+import { HEADER_PUBLIC_ASSETS } from '@/constants/header-public-assets';
 
 function universalWishlistNavClassName(active: boolean): string {
   const base =
@@ -213,7 +203,7 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
     <>
       <div aria-hidden="true" className={`h-[104px] ${spacerBackgroundClassName}`} />
       <header className="fixed left-0 right-0 top-6 z-50 mx-auto flex h-20 w-full max-w-[1450px] items-center rounded-[120px] border border-white/10 bg-gradient-to-r from-[#0f1017] to-[#13151d] px-4 shadow-2xl md:px-6 lg:px-7">
-        <img src={assets.logo} alt="Degusto" className="h-12 w-[134px] shrink-0 object-contain" />
+        <img src={HEADER_PUBLIC_ASSETS.logo} alt="Degusto" className="h-12 w-[134px] shrink-0 object-contain" />
         <nav className="ml-8 mr-auto hidden items-center gap-[30px] whitespace-nowrap px-4 text-[18px] font-semibold leading-[30px] text-white lg:flex">
           <Link href="/" className={`shrink-0 transition-colors ${isActivePath('/') ? 'text-[#ff7f20]' : 'text-white hover:text-[#ffb07a]'}`}>{t('common.navigation.home')}</Link>
           <Link href="/shop" className={`shrink-0 transition-colors ${isActivePath('/shop') ? 'text-[#ff7f20]' : 'text-white hover:text-[#ffb07a]'}`}>{t('common.navigation.shop')}</Link>
@@ -249,9 +239,8 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
             aria-autocomplete="list"
           />
           <button type="submit" className="relative ml-auto inline-flex h-10 items-center overflow-hidden rounded-[20px] bg-[#f66812] py-2 pl-10 pr-4">
-            <span className="absolute left-0 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center overflow-hidden">
-              <img src={assets.searchBadge} alt="" className="h-8 w-8 object-contain" />
-              <img src={assets.searchIcon} alt="" className="absolute h-6 w-6 object-contain" />
+            <span className="absolute left-0 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center">
+              <img src={HEADER_PUBLIC_ASSETS.searchIcon} alt="" className="h-6 w-6 object-contain brightness-0 invert" />
             </span>
             <span className="text-[15px] font-semibold leading-6 text-white">{t('common.buttons.search')}</span>
           </button>
@@ -284,11 +273,15 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
                 {formatPrice(cartTotal, currency)}
               </span>
               <span data-cart-fly-target className="absolute bottom-[1px] left-2 inline-flex h-[34px] w-[37px] items-center justify-center">
-                <img src={assets.cartIcon} alt="" className="h-[34px] w-[37px] object-contain" />
+                <img src={HEADER_PUBLIC_ASSETS.cartIcon} alt="" className="h-[34px] w-[37px] object-contain" />
               </span>
               <span aria-hidden className="absolute left-[35px] top-[2px] inline-flex h-6 w-6 items-center justify-center">
-                <img src={assets.cartCounterBubble} alt="" className="absolute h-6 w-6 object-contain" />
-                <span className="relative text-sm font-bold leading-6 text-white">
+                <img
+                  src={HEADER_PUBLIC_ASSETS.cartCountBadge}
+                  alt=""
+                  className="absolute h-6 w-6 object-contain"
+                />
+                <span className="relative text-sm font-bold leading-6 text-[#f66812]">
                   {cartCount > 99 ? '99+' : cartCount}
                 </span>
               </span>
@@ -309,7 +302,7 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
                   aria-hidden
                   className="absolute -right-0.5 -top-0.5 inline-flex h-6 w-6 items-center justify-center"
                 >
-                  <img src={assets.cartCounterBubble} alt="" className="absolute h-6 w-6 object-contain" />
+                  <span className="absolute h-6 w-6 rounded-full bg-[#f66812]" />
                   <span className="relative text-xs font-bold leading-none text-white">
                     {wishlistCount > 99 ? '99+' : wishlistCount}
                   </span>
@@ -318,13 +311,19 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
             </Link>
             <LanguageCurrencySwitcher
               variant="desktop"
-              iconSrc={assets.switcherIcon}
-              arrowSrc={assets.switcherArrow}
+              iconSrc={HEADER_PUBLIC_ASSETS.switcherIcon}
             />
           </div>
           <div className="group relative">
-            <Link href={userNavHref} className="inline-flex h-12 w-12 items-center justify-center">
-              <img src={assets.loginIcon} alt={isLoggedIn ? 'Profile' : 'Log in'} className="h-12 w-12 object-contain" />
+            <Link
+              href={userNavHref}
+              className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-black/10 transition-colors hover:ring-[color:var(--project-color)]/40"
+            >
+              <img
+                src={HEADER_PUBLIC_ASSETS.loginIcon}
+                alt={isLoggedIn ? 'Profile' : 'Log in'}
+                className="h-9 w-9 translate-x-0.5 -translate-y-0.5 object-contain"
+              />
             </Link>
             <div className="pointer-events-none absolute right-0 top-full z-50 min-w-[180px] pt-2 opacity-0 transition-opacity duration-150 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
               <div className="rounded-xl border border-[#e4e6eb] bg-white p-2 shadow-lg">

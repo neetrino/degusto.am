@@ -17,3 +17,11 @@ export function usesStorefrontMobileChrome(pathname: string | null): boolean {
   }
   return true;
 }
+
+/** Profile uses storefront chrome (bottom nav) but not the shared logo/search header. */
+export function usesStorefrontMobileHeader(pathname: string | null): boolean {
+  if (!pathname || !usesStorefrontMobileChrome(pathname)) {
+    return false;
+  }
+  return !pathname.startsWith('/profile');
+}
