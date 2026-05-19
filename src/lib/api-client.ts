@@ -4,8 +4,9 @@
  * Client for making requests to the backend API
  * 
  * In Next.js, when API routes are in the same app, we use relative paths.
- * If NEXT_PUBLIC_API_URL is set, use it (for external API).
- * Otherwise, use empty string to make relative requests to Next.js API routes.
+ * If NEXT_PUBLIC_API_URL is set, use it (external API only).
+ * Otherwise use empty string for same-origin Next.js API routes (/api/v1/...).
+ * On Vercel Production leave NEXT_PUBLIC_API_URL empty — never point it at localhost.
  */
 
 import { ApiError } from "./api-client/types";

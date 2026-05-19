@@ -91,7 +91,8 @@ function getAllowedOrigins(): string[] {
     .split(",")
     .map((item) => item.trim())
     .filter((item) => item.length > 0);
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  const appUrl =
+    process.env.NEXT_PUBLIC_APP_URL?.trim() || process.env.APP_URL?.trim();
   const defaults =
     process.env.NODE_ENV === "development"
       ? ["http://localhost:3000", "http://127.0.0.1:3000"]

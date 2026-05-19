@@ -102,8 +102,23 @@ function createPrismaClient(): PrismaClient {
   });
 }
 
+function warnIfDirectUrlUsesNeonPooler(): void {
+  try {
+    const parsed = new URL(resolvedDirectUrl);
+    const host = parsed.hostname.toLowerCase();
+    if (host.endsWith("neon.tech") && (host.includes("pooler") || host.includes("-pooler"))) {
+      console.warn(
+        "[@white-shop/db] DIRECT_URL uses a Neon pooler host. Use the direct (non-pooler) URL from Neon → Connection details → Direct."
+      );
+    }
+  } catch {
+    /* ignore malformed URL; Prisma will surface the error */
+  }
+}
+
 function logDatabaseBootstrapOnce(): void {
   if (isNextBuildWithoutDbEnv()) return;
+  warnIfDirectUrlUsesNeonPooler();
   const meta = buildDatabaseUrlLogFields(resolvedDatabaseUrl, resolvedDirectUrl);
   console.warn("[@white-shop/db] Connection config (no secrets)", JSON.stringify(meta));
 }

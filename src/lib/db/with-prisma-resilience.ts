@@ -11,9 +11,14 @@ function isPrismaPoolTimeout(error: unknown): boolean {
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2024';
 }
 
+function shouldRethrowDatabaseConnectionError(): boolean {
+  return process.env.VERCEL === '1' || process.env.NODE_ENV === 'production';
+}
+
 /**
- * Runs a Prisma-backed operation with retries on pool timeouts and a safe fallback when
- * PostgreSQL is unreachable (any environment), so storefront Server Components can render.
+ * Runs a Prisma-backed operation with retries on pool timeouts.
+ * Connection failures rethrow in production/Vercel (error boundary / logs) instead of silent empty UI.
+ * Development may still use fallback for easier local work without Postgres.
  */
 export async function withPrismaResilience<T>(
   operation: () => Promise<T>,
@@ -28,10 +33,15 @@ export async function withPrismaResilience<T>(
       if (isPrismaConnectionError(error)) {
         const code =
           error instanceof Prisma.PrismaClientKnownRequestError ? error.code : 'initialization';
-        logger.warn(`[${scope}] Database unreachable; empty ${step}`, {
+        logger.error(`[${scope}] Database unreachable in ${step}`, {
           code,
           nodeEnv: process.env.NODE_ENV,
+          vercel: process.env.VERCEL === '1',
         });
+        if (shouldRethrowDatabaseConnectionError()) {
+          throw error;
+        }
+        logger.warn(`[${scope}] Using empty fallback for ${step} (development only)`);
         return fallback;
       }
       if (!isPrismaPoolTimeout(error)) {
