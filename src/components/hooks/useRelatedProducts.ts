@@ -38,6 +38,8 @@ interface UseRelatedProductsProps {
   language: LanguageCode;
   /** When set (PDP), uses cached `/api/v1/products/[slug]/related` instead of list API. */
   productSlug?: string;
+  /** When false, skips fetch until the block is near the viewport. */
+  enabled?: boolean;
 }
 
 /**
@@ -48,11 +50,16 @@ export function useRelatedProducts({
   currentProductId,
   language,
   productSlug,
+  enabled = true,
 }: UseRelatedProductsProps) {
   const [products, setProducts] = useState<RelatedProduct[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
     const fetchRelatedProducts = async () => {
       try {
         setLoading(true);
@@ -108,7 +115,7 @@ export function useRelatedProducts({
     };
 
     void fetchRelatedProducts();
-  }, [categorySlug, currentProductId, language, productSlug]);
+  }, [categorySlug, currentProductId, language, productSlug, enabled]);
 
   return { products, loading };
 }

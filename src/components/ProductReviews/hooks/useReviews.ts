@@ -1,49 +1,78 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '../../../lib/api-client';
 import type { Review } from '../utils';
-import { logger } from "@/lib/utils/logger";
+import { logger } from '@/lib/utils/logger';
 
 /**
- * Hook for fetching and managing reviews
+ * Fetches product reviews once per slug + productId pair.
+ * Pass `productId` to use the PDP fast path (`?productId=` on the API).
  */
-export function useReviews(productId?: string, productSlug?: string) {
+interface UseReviewsOptions {
+  enabled?: boolean;
+}
+
+export function useReviews(
+  productId: string | undefined,
+  productSlug: string | undefined,
+  options?: UseReviewsOptions
+) {
+  const enabled = options?.enabled ?? true;
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  const loadReviews = async () => {
+  const loadReviews = useCallback(async () => {
+    const slug = productSlug?.trim();
+    if (!slug) {
+      setReviews([]);
+      setLoading(false);
+      return;
+    }
+
+    const id = productId?.trim();
+    if (!id) {
+      setReviews([]);
+      setLoading(false);
+      return;
+    }
+
     try {
-      // Use slug if available, otherwise fall back to productId
-      const identifier = productSlug || productId;
-      if (!identifier) {
-        console.warn('⚠️ [PRODUCT REVIEWS] No product identifier provided');
-        setReviews([]);
-        setLoading(false);
-        return;
-      }
-
-      logger.debug('📝 [PRODUCT REVIEWS] Loading reviews for product:', identifier);
       setLoading(true);
-      const data = await apiClient.get<Review[]>(`/api/v1/products/${identifier}/reviews`);
-      logger.debug('✅ [PRODUCT REVIEWS] Reviews loaded:', data?.length || 0);
-      setReviews(data || []);
+      const encodedSlug = encodeURIComponent(slug);
+      const data = await apiClient.get<Review[]>(`/api/v1/products/${encodedSlug}/reviews`, {
+        params: { productId: id },
+      });
+      setReviews(data ?? []);
     } catch (error: unknown) {
-      console.error('❌ [PRODUCT REVIEWS] Error loading reviews:', error);
-      // If 404, product might not have reviews yet - that's okay
       const err = error as { status?: number };
       if (err.status !== 404) {
-        console.error('Failed to load reviews:', error);
+        logger.warn('[PRODUCT REVIEWS] Failed to load reviews', {
+          slug,
+          productId: id,
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
       setReviews([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [productId, productSlug]);
 
   useEffect(() => {
-    loadReviews();
-  }, [productId, productSlug]);
+    if (!enabled) {
+      return;
+    }
+    void loadReviews();
+  }, [loadReviews, enabled]);
+
+  useEffect(() => {
+    const handleReviewUpdate = () => {
+      void loadReviews();
+    };
+    window.addEventListener('review-updated', handleReviewUpdate);
+    return () => window.removeEventListener('review-updated', handleReviewUpdate);
+  }, [loadReviews]);
 
   return {
     reviews,
@@ -52,7 +81,3 @@ export function useReviews(productId?: string, productSlug?: string) {
     loadReviews,
   };
 }
-
-
-
-

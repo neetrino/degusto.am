@@ -16,6 +16,31 @@ if (
   );
 }
 
+function buildR2CdnRemotePatterns() {
+  const candidates = [process.env.NEXT_PUBLIC_R2_PUBLIC_URL, process.env.R2_PUBLIC_URL].filter(
+    Boolean
+  );
+  const patterns = [];
+
+  for (const raw of candidates) {
+    try {
+      const parsed = new URL(String(raw).trim());
+      if (/\.r2\.cloudflarestorage\.com$/i.test(parsed.hostname)) {
+        continue;
+      }
+      patterns.push({
+        protocol: parsed.protocol.replace(':', ''),
+        hostname: parsed.hostname,
+        pathname: '/**',
+      });
+    } catch {
+      // ignore invalid URL
+    }
+  }
+
+  return patterns;
+}
+
 const nextConfig = {
   reactStrictMode: true,
   // Скрыть индикатор "Compiling..." в углу в dev — не мешает на экране
@@ -108,6 +133,7 @@ const nextConfig = {
         hostname: 'cdn-icons-png.flaticon.com',
         pathname: '/**',
       },
+      ...buildR2CdnRemotePatterns(),
     ],
     // Allow unoptimized images for development (images will use unoptimized prop)
     // Ensure image optimization is enabled for production

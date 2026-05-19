@@ -11,6 +11,7 @@ import { formatPrice } from '../../lib/currency';
 import { useCurrency } from '../hooks/useCurrency';
 import { getHomeCategoryHref } from './homeCategoryLinks';
 import type { HomeFeaturedProduct } from './FigmaHomePage';
+import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
 import { ShopMobileProductCard } from './ShopMobileProductCard';
 import type { MenuCard } from './menu-types';
 import {
@@ -21,6 +22,9 @@ import {
   MOBILE_FIGMA_STOREFRONT_ASSETS,
 } from '@/constants/mobile-figma-storefront';
 import { MobileFriendlyInput } from '@/components/mobile/MobileFriendlyInput';
+import { r2Asset } from '@/lib/r2-public-url';
+import { HomeOptimizedImage } from './HomeOptimizedImage';
+import { resolveHomeDailyOfferProduct } from './home-daily-offer';
 
 const MOBILE_HOME_SECTION_PRODUCT_COUNT = 4;
 const MOBILE_HOME_PRODUCT_GRID_TOTAL =
@@ -28,20 +32,19 @@ const MOBILE_HOME_PRODUCT_GRID_TOTAL =
 
 const mobileAssets = {
   ...MOBILE_FIGMA_STOREFRONT_ASSETS,
-  categoryFrame: '/api/r2/category/20260512-uqGTJqCe88.svg',
-  categoryPizza: '/api/r2/category/20260512-w5zllSSAIo.png',
-  categoryBurger: '/api/r2/category/20260512-1bbwOOTncy.png',
-  categorySushi: '/api/r2/category/20260512-fVYeOn2udd.png',
-  categorySalad: '/api/r2/category/20260512-5hRi9b8irf.png',
-  categorySoup: '/api/r2/category/20260512-n-C21lLLfT.png',
-  dailyOfferBackground: '/api/r2/assets/20260512-Qr_pLoFG6x.svg',
-  dailyOfferPizza: '/api/r2/assets/20260512-84Sj1kTqGo.png',
-  dailyOfferAddToCart: '/api/r2/assets/20260512-AiLSWk8lFo.svg',
-  productImage: '/api/r2/product/20260512-lbgLHc4bPu.png',
-  productHot: '/api/r2/product/20260512-Y6Ue4PwD26.svg',
-  productRibbon: '/api/r2/product/20260512-vCDQ1I3ZtJ.svg',
-  productStar: '/api/r2/product/20260512-4fThctFUPS.svg',
-  productAddToCart: '/api/r2/product/20260512-N6b8G5qARR.svg',
+  categoryFrame: r2Asset('category/20260512-uqGTJqCe88.svg'),
+  categoryPizza: r2Asset('category/20260512-w5zllSSAIo.png'),
+  categoryBurger: r2Asset('category/20260512-1bbwOOTncy.png'),
+  categorySushi: r2Asset('category/20260512-fVYeOn2udd.png'),
+  categorySalad: r2Asset('category/20260512-5hRi9b8irf.png'),
+  categorySoup: r2Asset('category/20260512-n-C21lLLfT.png'),
+  dailyOfferBackground: r2Asset('assets/20260512-Qr_pLoFG6x.svg'),
+  dailyOfferPizza: r2Asset('assets/20260512-84Sj1kTqGo.png'),
+  dailyOfferAddToCart: r2Asset('assets/20260512-AiLSWk8lFo.svg'),
+  productHot: r2Asset('product/20260512-Y6Ue4PwD26.svg'),
+  productRibbon: r2Asset('product/20260512-vCDQ1I3ZtJ.svg'),
+  productStar: r2Asset('product/20260512-4fThctFUPS.svg'),
+  productAddToCart: r2Asset('product/20260512-N6b8G5qARR.svg'),
 };
 
 type MobileCategory = {
@@ -70,7 +73,7 @@ function homeFeaturedProductToMenuCard(product: HomeFeaturedProduct): MenuCard {
     title: product.title,
     subtitle: product.subtitle,
     category: product.subtitle,
-    image: product.image,
+    image: STOREFRONT_PRODUCT_IMAGE_PATH,
     price,
     oldPrice,
     discount,
@@ -150,9 +153,24 @@ function MobileCategoryStrip({
           >
             <div className="relative mx-auto flex h-[72px] w-[48px] items-center justify-center rounded-[24px] bg-[#090909]">
               {category.framed ? (
-                <img src={mobileAssets.categoryFrame} alt="" className="absolute inset-0 h-full w-full object-contain" />
+                <HomeOptimizedImage
+                  src={mobileAssets.categoryFrame}
+                  alt=""
+                  width={48}
+                  height={72}
+                  className="absolute inset-0 h-full w-full object-contain"
+                  loading="lazy"
+                />
               ) : null}
-              <img src={category.image} alt={title} className="relative h-[42px] w-[40px] rounded-[10px] object-cover" />
+              <HomeOptimizedImage
+                src={category.image}
+                alt={title}
+                width={40}
+                height={42}
+                className="relative h-[42px] w-[40px] rounded-[10px] object-cover"
+                loading="lazy"
+                sizes="48px"
+              />
             </div>
             <p className="mt-[6px] text-center text-xs leading-5 text-black">{title}</p>
           </Link>
@@ -174,7 +192,7 @@ function MobileDailyOffer({ product }: { product: HomeFeaturedProduct }) {
     product.title === 'Double Cheeseburger'
       ? t('home.figma.mobile.product.title')
       : (product.title || t('home.figma.mobile.product.title'));
-  const imageSrc = product.image || mobileAssets.dailyOfferPizza;
+  const imageSrc = STOREFRONT_PRODUCT_IMAGE_PATH;
   const price = product.price ?? 0;
   const discountPercent = resolveMobileHomeDiscountPercent(product);
   const productHref = `/products/${product.slug}`;
@@ -197,7 +215,17 @@ function MobileDailyOffer({ product }: { product: HomeFeaturedProduct }) {
       aria-label={title}
     >
       <div className="absolute left-0 top-0 h-full w-[51.12%] bg-[#f66a13]" />
-      <img src={imageSrc} alt={title} className="absolute right-0 top-0 h-full w-[48.88%] object-cover" />
+      <div className="absolute right-0 top-0 h-full w-[48.88%] relative">
+        <HomeOptimizedImage
+          src={imageSrc}
+          alt={title}
+          fill
+          className="object-cover"
+          priority
+          loading="eager"
+          sizes="50vw"
+        />
+      </div>
       <h3 className="absolute left-[11px] top-[10px] whitespace-pre-line text-[20px] font-bold leading-[21px] text-white">
         {t('home.figma.mobile.dailyOfferTitle')}
       </h3>
@@ -221,7 +249,14 @@ function MobileDailyOffer({ product }: { product: HomeFeaturedProduct }) {
         }}
         aria-label={t('common.buttons.addToCart')}
       >
-        <img src={mobileAssets.dailyOfferAddToCart} alt="" className="h-[41.7px] w-[41.1px] object-contain" />
+        <HomeOptimizedImage
+          src={mobileAssets.dailyOfferAddToCart}
+          alt=""
+          width={41}
+          height={42}
+          className="h-[41.7px] w-[41.1px] object-contain"
+          loading="lazy"
+        />
       </button>
     </article>
   );
@@ -279,7 +314,7 @@ export function FigmaHomePageMobile({
 }: FigmaHomePageMobileProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const { t, lang } = useTranslation();
-  const heroProduct = featuredProducts[0];
+  const dailyOfferProduct = resolveHomeDailyOfferProduct(featuredProducts);
   const gridProducts = featuredProducts.slice(0, MOBILE_HOME_PRODUCT_GRID_TOTAL);
   const newArrivalProducts = gridProducts.slice(0, MOBILE_HOME_SECTION_PRODUCT_COUNT);
   const categoryProductsA = gridProducts.slice(
@@ -308,11 +343,33 @@ export function FigmaHomePageMobile({
         <div
           className={`relative overflow-visible ${MOBILE_FIGMA_HEADER_TOP_ROW_STACKING_CLASS} flex translate-y-[20px] items-start justify-between`}
         >
-          <img src={mobileAssets.logo} alt="Degusto" className="h-[46px] w-[129px] object-contain" />
+          <HomeOptimizedImage
+            src={mobileAssets.logo}
+            alt="Degusto"
+            width={129}
+            height={46}
+            className="h-[46px] w-[129px] object-contain"
+            priority
+            loading="eager"
+          />
           <div className="flex items-center gap-1">
             <button type="button" className="relative inline-flex h-12 w-12 items-center justify-center">
-              <img src={mobileAssets.callCircle} alt="" className="absolute inset-0 h-12 w-12 object-contain" />
-              <img src={mobileAssets.callIcon} alt="Call" className="relative h-[23px] w-[23px] object-contain" />
+              <HomeOptimizedImage
+                src={mobileAssets.callCircle}
+                alt=""
+                width={48}
+                height={48}
+                className="absolute inset-0 h-12 w-12 object-contain"
+                loading="lazy"
+              />
+              <HomeOptimizedImage
+                src={mobileAssets.callIcon}
+                alt="Call"
+                width={23}
+                height={23}
+                className="relative h-[23px] w-[23px] object-contain"
+                loading="lazy"
+              />
             </button>
             <LanguageCurrencySwitcher
               variant="mobile"
@@ -324,10 +381,13 @@ export function FigmaHomePageMobile({
         <div
           className={`relative ${MOBILE_FIGMA_HEADER_SEARCH_STACKING_CLASS} mt-[8px] h-12 translate-y-[20px] rounded-[30px] bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.05)]`}
         >
-          <img
+          <HomeOptimizedImage
             src={mobileAssets.searchIcon}
             alt=""
+            width={17}
+            height={17}
             className="absolute left-[15px] top-1/2 h-[17px] w-[17px] -translate-y-1/2 object-contain brightness-0"
+            loading="eager"
           />
           <MobileFriendlyInput
             type="text"
@@ -340,7 +400,14 @@ export function FigmaHomePageMobile({
             className="h-full w-full rounded-[30px] bg-transparent pl-[39px] pr-[58px] text-[15px] leading-6 text-black outline-none placeholder:text-[#abb7c2]"
           />
           <button type="button" className="absolute right-[7px] top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center">
-            <img src={mobileAssets.searchFilterButton} alt={t('products.header.filters')} className="h-10 w-10 object-contain" />
+            <HomeOptimizedImage
+              src={mobileAssets.searchFilterButton}
+              alt={t('products.header.filters')}
+              width={40}
+              height={40}
+              className="h-10 w-10 object-contain"
+              loading="lazy"
+            />
           </button>
         </div>
       </header>
@@ -350,11 +417,9 @@ export function FigmaHomePageMobile({
           categories={displayCategories}
           categoriesTitleClassName={categoriesTitleClassName}
         />
-        {heroProduct ? (
-          <div className={'mt-[22px] ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
-            <MobileDailyOffer product={heroProduct} />
-          </div>
-        ) : null}
+        <div className={'mt-[22px] ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
+          <MobileDailyOffer product={dailyOfferProduct} />
+        </div>
         <div className={'mt-[19px] ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
           <MobileCategorySliderIndicator />
         </div>

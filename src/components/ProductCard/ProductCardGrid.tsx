@@ -42,6 +42,7 @@ interface ProductCardGridProps {
   onAddToCart: (e: MouseEvent) => void;
   onDecreaseCart: (e: MouseEvent) => void;
   onProductClick: () => void;
+  onPrefetchNavigate?: () => void;
 }
 
 /**
@@ -63,6 +64,7 @@ export function ProductCardGrid({
   onAddToCart,
   onDecreaseCart,
   onProductClick,
+  onPrefetchNavigate,
 }: ProductCardGridProps) {
   const { t } = useTranslation();
   const wishlistButtonSize = isCompact ? 'w-10 h-10' : 'w-12 h-12';
@@ -80,6 +82,8 @@ export function ProductCardGrid({
       data-product-card
       className={`bg-white rounded-lg border border-gray-200 overflow-hidden transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} hover:shadow-md relative group cursor-pointer`}
       onClick={onProductClick}
+      onMouseEnter={onPrefetchNavigate}
+      onFocus={onPrefetchNavigate}
       onKeyDown={handleCardKeyDown}
       role="link"
       tabIndex={0}

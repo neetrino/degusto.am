@@ -3,75 +3,112 @@ import { ensureProductVariantAttributesColumn } from "../../utils/db-ensure";
 import { logger } from "../../utils/logger";
 import type { ProductWithFullRelations } from "./types";
 
+/** PDP + transformer only need requested locale and English fallback. */
+function translationLocaleWhere(lang: string) {
+  return { locale: { in: [lang, "en"] } };
+}
+
 /**
- * Base include configuration for product queries
+ * Base include configuration for product queries (locale-scoped translations).
  */
-const getBaseInclude = () => ({
-  translations: true,
-  brand: {
-    include: {
-      translations: true,
+function getBaseInclude(lang: string) {
+  const localeWhere = translationLocaleWhere(lang);
+  return {
+    translations: {
+      where: localeWhere,
     },
-  },
-  categories: {
-    include: {
-      translations: true,
+    brand: {
+      include: {
+        translations: {
+          where: localeWhere,
+        },
+      },
     },
-  },
-  variants: {
-    where: {
-      published: true,
+    categories: {
+      include: {
+        translations: {
+          where: localeWhere,
+        },
+      },
     },
-    include: {
-      options: {
-        include: {
-          attributeValue: {
-            include: {
-              attribute: true,
-              translations: true,
+    variants: {
+      where: {
+        published: true,
+      },
+      orderBy: {
+        position: "asc" as const,
+      },
+      include: {
+        options: {
+          include: {
+            attributeValue: {
+              include: {
+                attribute: {
+                  include: {
+                    translations: {
+                      where: localeWhere,
+                    },
+                  },
+                },
+                translations: {
+                  where: localeWhere,
+                },
+              },
             },
           },
         },
       },
     },
-  },
-  labels: true,
-});
+    labels: true,
+  };
+}
 
 /**
  * Base include without attributeValue relation (fallback)
  */
-const getBaseIncludeWithoutAttributeValue = () => ({
-  ...getBaseInclude(),
-  variants: {
-    where: {
-      published: true,
+function getBaseIncludeWithoutAttributeValue(lang: string) {
+  return {
+    ...getBaseInclude(lang),
+    variants: {
+      where: {
+        published: true,
+      },
+      orderBy: {
+        position: "asc" as const,
+      },
+      include: {
+        options: true,
+      },
     },
-    include: {
-      options: true, // Include options without attributeValue relation
-    },
-  },
-});
+  };
+}
 
 /**
- * ProductAttributes include configuration
+ * ProductAttributes include configuration (locale-scoped labels/names).
  */
-const getProductAttributesInclude = () => ({
-  productAttributes: {
-    include: {
-      attribute: {
-        include: {
-          translations: true,
-          values: {
-            include: {
-              translations: true,
+function getProductAttributesInclude(lang: string) {
+  const localeWhere = translationLocaleWhere(lang);
+  return {
+    productAttributes: {
+      include: {
+        attribute: {
+          include: {
+            translations: {
+              where: localeWhere,
+            },
+            values: {
+              include: {
+                translations: {
+                  where: localeWhere,
+                },
+              },
             },
           },
         },
       },
     },
-  },
-});
+  };
+}
 
 /**
  * Base where clause for product queries.
@@ -127,7 +164,7 @@ async function fetchWithProductAttributes(
   slug: string,
   lang: string
 ): Promise<ProductWithFullRelations | null> {
-  const baseInclude = getBaseInclude();
+  const baseInclude = getBaseInclude(lang);
   const baseWhere = getBaseWhere(slug, lang);
 
   try {
@@ -135,10 +172,9 @@ async function fetchWithProductAttributes(
       where: baseWhere,
       include: {
         ...baseInclude,
-        ...getProductAttributesInclude(),
+        ...getProductAttributesInclude(lang),
       },
     });
-    logger.info('Successfully fetched product with productAttributes');
     const productAttrs = product && 'productAttributes' in product && Array.isArray(product.productAttributes) ? product.productAttributes : [];
     logger.debug('Product attributes count', { count: productAttrs.length });
     return product as unknown as ProductWithFullRelations | null;
@@ -182,7 +218,7 @@ async function fetchWithoutProductAttributes(
   slug: string,
   lang: string
 ): Promise<ProductWithFullRelations | null> {
-  const baseInclude = getBaseInclude();
+  const baseInclude = getBaseInclude(lang);
   const baseWhere = getBaseWhere(slug, lang);
 
   try {
@@ -243,7 +279,7 @@ async function fetchWithoutAttributeValue(
   slug: string,
   lang: string
 ): Promise<ProductWithFullRelations | null> {
-  const baseIncludeWithoutAttributeValue = getBaseIncludeWithoutAttributeValue();
+  const baseIncludeWithoutAttributeValue = getBaseIncludeWithoutAttributeValue(lang);
   const baseWhere = getBaseWhere(slug, lang);
 
   // Try to include productAttributes even in fallback
@@ -252,7 +288,7 @@ async function fetchWithoutAttributeValue(
       where: baseWhere,
       include: {
         ...baseIncludeWithoutAttributeValue,
-        ...getProductAttributesInclude(),
+        ...getProductAttributesInclude(lang),
       },
     });
     return product as unknown as ProductWithFullRelations | null;

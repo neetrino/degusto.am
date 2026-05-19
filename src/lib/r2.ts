@@ -1,4 +1,5 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { resolveR2AssetUrl } from "@/lib/r2-public-url";
 
 const accountId = process.env.R2_ACCOUNT_ID;
 const accessKeyId = process.env.R2_ACCESS_KEY_ID;
@@ -18,30 +19,12 @@ const r2 =
       })
     : null;
 
-function isR2StorageEndpoint(urlValue: string): boolean {
-  try {
-    const parsed = new URL(urlValue);
-    return parsed.protocol === "https:" && /\.r2\.cloudflarestorage\.com$/i.test(parsed.hostname);
-  } catch {
-    return false;
-  }
-}
-
 function buildPublicAssetUrl(key: string): string | null {
-  if (!publicUrl) {
+  if (!publicUrl && !process.env.NEXT_PUBLIC_R2_PUBLIC_URL?.trim()) {
     return null;
   }
 
-  const path = key.startsWith("/") ? key.slice(1) : key;
-  const normalizedBase = publicUrl.replace(/\/$/, "");
-
-  // R2 S3 endpoint is not directly public for browser image access.
-  // Use internal proxy route to serve files from private bucket safely.
-  if (isR2StorageEndpoint(normalizedBase)) {
-    return `/api/r2/${path}`;
-  }
-
-  return `${normalizedBase}/${path}`;
+  return resolveR2AssetUrl(key);
 }
 
 /**

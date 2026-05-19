@@ -2,6 +2,11 @@
 
 import { Minus, Plus } from 'lucide-react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import type { MouseEvent } from 'react';
+import { useWishlist } from '../../../components/hooks/useWishlist';
+import { WishlistHeartIcon } from '../../../components/icons/WishlistHeartIcon';
+import { useAuth } from '../../../lib/auth/AuthContext';
 import { formatPrice, type CurrencyCode } from '../../../lib/currency';
 import { t, getProductText } from '../../../lib/i18n';
 import type { LanguageCode } from '../../../lib/language';
@@ -73,6 +78,19 @@ export function ProductInfoAndActions({
   onAttributeValueSelect,
   getOptionValue,
 }: ProductInfoAndActionsProps) {
+  const router = useRouter();
+  const { isLoggedIn } = useAuth();
+  const { isInWishlist, toggleWishlist } = useWishlist(product.id);
+
+  const handleWishlistToggle = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    if (!isLoggedIn) {
+      router.push(`/login?redirect=/products/${encodeURIComponent(product.slug)}`);
+      return;
+    }
+    void toggleWishlist();
+  };
+
   return (
     <div className="flex w-full max-w-full flex-col self-start max-lg:px-0 max-lg:py-0 p-4 sm:p-5 lg:p-6">
       <div className="flex min-h-0 flex-col lg:-translate-x-[30px]">
@@ -181,6 +199,27 @@ export function ProductInfoAndActions({
             onClick={onAddToCart}
           >
             {isAddingToCart ? t(language, 'product.adding') : (isOutOfStock ? t(language, 'product.outOfStock') : t(language, 'product.addToCart'))}
+          </button>
+          <button
+            type="button"
+            onClick={handleWishlistToggle}
+            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition-colors sm:h-10 sm:w-10 ${
+              isInWishlist
+                ? 'border-red-600 bg-red-600 text-white hover:bg-red-700'
+                : 'border-neutral-200 bg-white text-gray-700 hover:bg-neutral-50'
+            }`}
+            title={
+              isInWishlist
+                ? t(language, 'common.messages.removedFromWishlist')
+                : t(language, 'common.messages.addedToWishlist')
+            }
+            aria-label={
+              isInWishlist
+                ? t(language, 'common.ariaLabels.removeFromWishlist')
+                : t(language, 'common.ariaLabels.addToWishlist')
+            }
+          >
+            <WishlistHeartIcon filled={isInWishlist} size={20} />
           </button>
         </div>
         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import type { MouseEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../lib/auth/AuthContext';
@@ -10,6 +10,8 @@ import { useAddToCart } from './hooks/useAddToCart';
 import { useCurrency } from './hooks/useCurrency';
 import { ProductCardList } from './ProductCard/ProductCardList';
 import { ProductCardGrid } from './ProductCard/ProductCardGrid';
+import { prefetchProductRoute } from '../lib/products/prefetch-product-route';
+import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
 
 interface Product {
   id: string;
@@ -87,7 +89,7 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
     const card = button.closest('[data-product-card]');
     const origin =
       (card?.querySelector('[data-product-fly-origin]') as HTMLElement | null) ?? button;
-    addToCart({ origin, imageUrl: product.image });
+    addToCart({ origin, imageUrl: STOREFRONT_PRODUCT_IMAGE_PATH });
   };
 
   const handleDecreaseCart = (e: MouseEvent) => {
@@ -99,6 +101,10 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
   const handleProductClick = () => {
     router.push(`/products/${product.slug}`);
   };
+
+  const handlePrefetchNavigate = useCallback(() => {
+    prefetchProductRoute(router, product.slug);
+  }, [router, product.slug]);
 
   // List view layout
   if (viewMode === 'list') {
@@ -118,6 +124,7 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
         onAddToCart={handleAddToCart}
         onDecreaseCart={handleDecreaseCart}
         onProductClick={handleProductClick}
+        onPrefetchNavigate={handlePrefetchNavigate}
       />
     );
   }
@@ -140,6 +147,7 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
       onAddToCart={handleAddToCart}
       onDecreaseCart={handleDecreaseCart}
       onProductClick={handleProductClick}
+      onPrefetchNavigate={handlePrefetchNavigate}
     />
   );
 }

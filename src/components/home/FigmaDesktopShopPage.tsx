@@ -10,6 +10,7 @@ import { useAddToCart } from '../hooks/useAddToCart';
 import { useWishlist } from '../hooks/useWishlist';
 import { useAuth } from '../../lib/auth/AuthContext';
 import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
+import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
 import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
 import type { MenuCard, MenuCategory } from './menu-types';
 import { ShopMobileProductCard } from './ShopMobileProductCard';
@@ -20,16 +21,20 @@ import {
   MOBILE_STOREFRONT_FILTERS_ANCHOR_ID,
 } from '@/constants/mobile-figma-storefront';
 import { MobileFriendlyInput } from '@/components/mobile/MobileFriendlyInput';
-import { isStorefrontAllCategorySlug } from '@/constants/storefront-all-category-slug';
+import {
+  isStorefrontAllCategorySlug,
+  STOREFRONT_ALL_CATEGORY_SLUG,
+} from '@/constants/storefront-all-category-slug';
+import { shouldShowMenuCardStrikethroughPrice } from '@/lib/storefront/menu-card-pricing';
+import { r2Asset } from '@/lib/r2-public-url';
 
 const assets = {
-  productCardImage: '/api/r2/product/20260512-D3w_teddze.png',
-  productCardAddToCart: '/api/r2/product/20260512-g67zkm13ZH.svg',
-  productCardHot: 'https://www.figma.com/api/mcp/asset/fc4ede25-e0a0-40c4-9e90-1108955e5111',
-  productCardRibbon: '/api/r2/product/20260512-lmzrYlGD39.svg',
-  productCardStar: '/api/r2/product/20260512-7jf6Wihrew.svg',
-  switcherLeafRibbon: 'https://www.figma.com/api/mcp/asset/c35852c7-d37b-4ae3-bce2-6cff1c8c6763',
-  switcherPepper: 'https://www.figma.com/api/mcp/asset/b55ba537-950b-4307-b788-dd50e7b74c43',
+  productCardAddToCart: r2Asset('product/20260512-g67zkm13ZH.svg'),
+  productCardHot: r2Asset('product/20260512-dWv7-ZfxP1.svg'),
+  productCardRibbon: r2Asset('product/20260512-lmzrYlGD39.svg'),
+  productCardStar: r2Asset('product/20260512-7jf6Wihrew.svg'),
+  switcherLeafRibbon: r2Asset('product/20260512-vCDQ1I3ZtJ.svg'),
+  switcherPepper: r2Asset('product/20260512-Y6Ue4PwD26.svg'),
 };
 
 /** Debounce before writing search to the URL (server refetch); avoids one request per key. */
@@ -204,7 +209,7 @@ function MenuCardItem({ card }: { card: MenuCard }) {
   const { isInWishlist, toggleWishlist } = useWishlist(card.id);
   const title = card.title || t(card.titleKey);
   const category = card.category || (card.categoryKey ? t(card.categoryKey) : '');
-  const imageSrc = card.image || assets.productCardImage;
+  const imageSrc = STOREFRONT_PRODUCT_IMAGE_PATH;
   const calculatedDiscountPercent =
     card.oldPrice > card.price && card.oldPrice > 0
       ? Math.round(((card.oldPrice - card.price) / card.oldPrice) * 100)
@@ -215,6 +220,7 @@ function MenuCardItem({ card }: { card: MenuCard }) {
       : 0;
   const effectiveDiscountPercent = calculatedDiscountPercent || fallbackDiscountPercent;
   const hasDiscount = effectiveDiscountPercent > 0;
+  const showStrikethroughPrice = shouldShowMenuCardStrikethroughPrice(card.price, card.oldPrice);
   const discountText = hasDiscount ? `-${effectiveDiscountPercent}%` : '';
   const productHref = `/products/${card.slug}`;
   const { isAddingToCart, addToCart } = useAddToCart({
@@ -242,7 +248,7 @@ function MenuCardItem({ card }: { card: MenuCard }) {
     const cardRoot = button.closest('[data-home-product-card]');
     const origin =
       (cardRoot?.querySelector('[data-product-fly-origin]') as HTMLElement | null) ?? button;
-    void addToCart({ origin, imageUrl: card.image || null });
+    void addToCart({ origin, imageUrl: STOREFRONT_PRODUCT_IMAGE_PATH });
   };
 
   const handleWishlistToggle = (event: MouseEvent<HTMLButtonElement>) => {
@@ -310,7 +316,11 @@ function MenuCardItem({ card }: { card: MenuCard }) {
         </span>
       ) : null}
       <p className="absolute right-[14px] top-[236px] text-[20px] font-black leading-none text-[#3c2f2f]">{formatPrice(card.price, currency)}</p>
-      <p className="absolute right-[14px] top-[262px] text-sm font-light leading-none text-[#3c2f2f] line-through">{formatPrice(card.oldPrice, currency)}</p>
+      {showStrikethroughPrice ? (
+        <p className="absolute right-[14px] top-[262px] text-sm font-light leading-none text-[#3c2f2f] line-through">
+          {formatPrice(card.oldPrice, currency)}
+        </p>
+      ) : null}
       <button
         type="button"
         onClick={handleAddToCart}
@@ -454,7 +464,9 @@ export function FigmaDesktopMenuPage({
       const nextMaxPrice = (overrides?.maxPrice ?? maxPrice).trim();
       const nextTaste = overrides?.taste ?? foodFilter;
 
-      if (categorySlug) {
+      if (isStorefrontAllCategorySlug(categorySlug)) {
+        params.set('category', STOREFRONT_ALL_CATEGORY_SLUG);
+      } else if (categorySlug) {
         params.set('category', categorySlug);
       } else {
         params.delete('category');

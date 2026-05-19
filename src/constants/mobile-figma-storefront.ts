@@ -1,4 +1,6 @@
+import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
 import { HEADER_PUBLIC_ASSETS } from '@/constants/header-public-assets';
+import { r2Asset } from '@/lib/r2-public-url';
 
 /**
  * Shared mobile storefront chrome (Figma home parity): assets + layout tokens.
@@ -6,11 +8,11 @@ import { HEADER_PUBLIC_ASSETS } from '@/constants/header-public-assets';
  */
 export const MOBILE_FIGMA_STOREFRONT_ASSETS = {
   logo: HEADER_PUBLIC_ASSETS.mobileLogo,
-  callCircle: '/api/r2/assets/20260512-oiO5lHqN_7.svg',
-  callIcon: '/api/r2/icons/20260512-EM1Vpadi-M.svg',
+  callCircle: r2Asset('assets/20260512-oiO5lHqN_7.svg'),
+  callIcon: r2Asset('icons/20260512-EM1Vpadi-M.svg'),
   switcherIcon: HEADER_PUBLIC_ASSETS.switcherIcon,
   searchIcon: HEADER_PUBLIC_ASSETS.searchIcon,
-  searchFilterButton: '/api/r2/search/20260512-X-wm1R4kZC.svg',
+  searchFilterButton: r2Asset('search/20260512-X-wm1R4kZC.svg'),
 } as const;
 
 /** Header stacking: language dropdown above main + bottom nav. */
@@ -53,9 +55,9 @@ export const FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS = 'group-hover:bg-[#FFEA
 
 /** Mobile shop product card artwork (Figma 1:2235 / home mobile parity). */
 export const MOBILE_SHOP_PRODUCT_CARD_ASSETS = {
-  fallbackImage: '/api/r2/product/20260512-lbgLHc4bPu.png',
-  addToCart: '/api/r2/product/20260512-N6b8G5qARR.svg',
-  hot: '/api/r2/product/20260512-Y6Ue4PwD26.svg',
-  ribbon: '/api/r2/product/20260512-vCDQ1I3ZtJ.svg',
-  star: '/api/r2/product/20260512-4fThctFUPS.svg',
+  productImage: STOREFRONT_PRODUCT_IMAGE_PATH,
+  addToCart: r2Asset('product/20260512-N6b8G5qARR.svg'),
+  hot: r2Asset('product/20260512-Y6Ue4PwD26.svg'),
+  ribbon: r2Asset('product/20260512-vCDQ1I3ZtJ.svg'),
+  star: r2Asset('product/20260512-4fThctFUPS.svg'),
 } as const;
