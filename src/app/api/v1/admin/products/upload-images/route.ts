@@ -2,25 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { problemTypes } from "@/lib/http/problem-details";
 import { nanoid } from "nanoid";
 import { authenticateToken, requireAdmin } from "@/lib/middleware/auth";
+import { prepareBase64ImageForR2Upload } from "@/lib/images/r2-upload-image";
 import { uploadToR2, isR2Configured } from "@/lib/r2";
 import { logger } from "@/lib/utils/logger";
-
-const MIME_TO_EXT: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/jpg": "jpg",
-  "image/png": "png",
-  "image/gif": "gif",
-  "image/webp": "webp",
-};
-
-function parseDataUrl(dataUrl: string): { mime: string; buffer: Buffer } | null {
-  const match = dataUrl.match(/^data:(image\/[a-z+]+);base64,(.+)$/i);
-  if (!match) return null;
-  const mime = match[1].toLowerCase();
-  const base64 = match[2];
-  const buffer = Buffer.from(base64, "base64");
-  return { mime, buffer };
-}
 
 /**
  * POST /api/v1/admin/products/upload-images
@@ -112,8 +96,10 @@ export async function POST(req: NextRequest) {
     const urls: string[] = [];
 
     for (let i = 0; i < validImages.length; i++) {
-      const parsed = parseDataUrl(validImages[i]);
-      if (!parsed) {
+      let prepared;
+      try {
+        prepared = await prepareBase64ImageForR2Upload(validImages[i]);
+      } catch {
         return NextResponse.json(
           {
             type: problemTypes.validationError,
@@ -125,9 +111,8 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
-      const ext = MIME_TO_EXT[parsed.mime] ?? "webp";
-      const key = `products/${date}-${nanoid(10)}.${ext}`;
-      const url = await uploadToR2(key, parsed.buffer, parsed.mime);
+      const key = `products/${date}-${nanoid(10)}.${prepared.extension}`;
+      const url = await uploadToR2(key, prepared.buffer, prepared.mime);
       if (!url) {
         logger.error("Admin upload images: R2 upload failed", { key });
         return NextResponse.json(

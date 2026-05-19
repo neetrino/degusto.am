@@ -19,20 +19,23 @@ import { getHomeCategoryHref } from './homeCategoryLinks';
 import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
 import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
 import { FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS } from '@/constants/mobile-figma-storefront';
+import { r2Asset } from '@/lib/r2-public-url';
+import { HomeOptimizedImage } from './HomeOptimizedImage';
+import { HOME_DAILY_OFFER_FALLBACK_PRODUCT, resolveHomeDailyOfferProduct } from './home-daily-offer';
 
 const assets = {
-  heroBg: '/api/r2/hero/20260512-tOKhBzyB6u.png',
-  offerBadge: '/api/r2/assets/20260512-3dEN1cAZhG.svg',
-  product: '/api/r2/product/20260512-5XM6tLjCRv.png',
-  productCardImage: '/api/r2/product/20260512-D3w_teddze.png',
-  productCardAddToCart: '/api/r2/product/20260512-g67zkm13ZH.svg',
-  productCardHot: '/api/r2/product/20260512-dWv7-ZfxP1.svg',
-  productCardRibbon: '/api/r2/product/20260512-lmzrYlGD39.svg',
-  productCardStar: '/api/r2/product/20260512-7jf6Wihrew.svg',
-  categorySoup: '/api/r2/category/20260512-27SeUi_ujs.png',
-  categorySalad: '/api/r2/category/20260512-Np6RG2GuNi.png',
-  categoryShawarma: '/api/r2/category/20260512-UOlekxqQyh.png',
-  categoryPizza: '/api/r2/category/20260512-j5QKmShMEM.png',
+  heroBg: r2Asset('hero/20260512-tOKhBzyB6u.png'),
+  offerBadge: r2Asset('assets/20260512-3dEN1cAZhG.svg'),
+  product: r2Asset('product/20260512-5XM6tLjCRv.png'),
+  productCardImage: r2Asset('product/20260512-D3w_teddze.png'),
+  productCardAddToCart: r2Asset('product/20260512-g67zkm13ZH.svg'),
+  productCardHot: r2Asset('product/20260512-dWv7-ZfxP1.svg'),
+  productCardRibbon: r2Asset('product/20260512-lmzrYlGD39.svg'),
+  productCardStar: r2Asset('product/20260512-7jf6Wihrew.svg'),
+  categorySoup: r2Asset('category/20260512-27SeUi_ujs.png'),
+  categorySalad: r2Asset('category/20260512-Np6RG2GuNi.png'),
+  categoryShawarma: r2Asset('category/20260512-UOlekxqQyh.png'),
+  categoryPizza: r2Asset('category/20260512-j5QKmShMEM.png'),
 };
 
 export type HomeFeaturedProduct = {
@@ -58,20 +61,7 @@ export type HomeCategoryItem = {
   image: string;
 };
 
-const fallbackFeaturedProducts: HomeFeaturedProduct[] = [
-  {
-    id: 'featured-fallback-1',
-    slug: 'products',
-    title: 'Double Cheeseburger',
-    subtitle: 'Բուրգեր',
-    price: 1200,
-    oldPrice: 1500,
-    image: assets.product,
-    discountPercent: 30,
-    supportsSpicy: true,
-    supportsGreens: true,
-  },
-];
+const fallbackFeaturedProducts: HomeFeaturedProduct[] = [HOME_DAILY_OFFER_FALLBACK_PRODUCT];
 
 const fallbackCategories: HomeCategoryItem[] = [
   { id: 'cat-fallback-1', slug: 'soups', title: 'Ապուրներ եւ տաք ուտեստներ', count: 78, image: assets.categorySoup },
@@ -84,6 +74,9 @@ const fallbackCategories: HomeCategoryItem[] = [
 const HOME_DESKTOP_CATEGORY_SURFACE_CLASS = 'bg-[#e6e6e8]';
 
 const DESKTOP_HOME_SPECIAL_OFFERS_PRODUCT_COUNT = 5;
+
+/** Desktop hero background offset from section top (lower = image sits higher). */
+const HOME_DESKTOP_HERO_BG_TOP_CLASS = 'top-[68px]';
 
 function NewsCard({ item }: { item: HomeFeaturedProduct }) {
   const { t } = useTranslation();
@@ -151,7 +144,15 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
       aria-label={title}
     >
       <div data-product-fly-origin className="absolute left-1/2 top-1 h-[147px] w-[227px] -translate-x-1/2">
-        <img src={imageSrc} alt={title} className="h-full w-full rounded-[18px] object-cover" />
+        <HomeOptimizedImage
+          src={imageSrc}
+          alt={title}
+          width={227}
+          height={147}
+          className="h-full w-full rounded-[18px] object-cover"
+          loading="lazy"
+          sizes="236px"
+        />
       </div>
       <HomeProductFoodAttributeBadges
         variant="desktop-card"
@@ -178,7 +179,14 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
         <WishlistHeartIcon filled={isInWishlist} size={18} />
       </button>
       <div className="absolute left-[14px] top-[170px] flex items-center gap-[6px]">
-        <img src={assets.productCardStar} alt="" className="h-5 w-5 object-contain" />
+        <HomeOptimizedImage
+          src={assets.productCardStar}
+          alt=""
+          width={20}
+          height={20}
+          className="h-5 w-5 object-contain"
+          loading="lazy"
+        />
         <p className="text-base font-medium leading-[1.35] text-[rgba(60,47,47,0.62)]">4.7</p>
       </div>
       <div className="absolute left-[14px] top-[194px] w-[130px]">
@@ -208,7 +216,14 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
         disabled={isAddingToCart || (item.inStock === false)}
         className="absolute -bottom-[25px] left-1/2 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center"
       >
-        <img src={assets.productCardAddToCart} alt={t('common.buttons.addToCart')} className="h-[52px] w-[51px] object-contain" />
+        <HomeOptimizedImage
+          src={assets.productCardAddToCart}
+          alt={t('common.buttons.addToCart')}
+          width={51}
+          height={52}
+          className="h-[52px] w-[51px] object-contain"
+          loading="lazy"
+        />
       </button>
     </article>
   );
@@ -223,7 +238,15 @@ function CategoryCard({ item }: { item: HomeCategoryItem }) {
     >
       <h3 className="min-h-[56px] text-2xl font-black leading-tight text-white">{item.title}</h3>
       <p className="mb-2 mt-1 text-sm text-white/80">({item.count} ապրանք)</p>
-      <img src={item.image} alt={item.title} className="mx-auto h-[190px] w-full max-w-[240px] object-contain" />
+      <HomeOptimizedImage
+        src={item.image}
+        alt={item.title}
+        width={240}
+        height={190}
+        className="mx-auto h-[190px] w-full max-w-[240px] object-contain"
+        loading="lazy"
+        sizes="240px"
+      />
     </Link>
   );
 }
@@ -241,7 +264,7 @@ export function FigmaHomePage({
   const homeFeaturedProducts = featuredProducts.length > 0 ? featuredProducts : fallbackFeaturedProducts;
   const homeCategories = categories.length > 0 ? categories : fallbackCategories;
   const specialOfferProducts = homeFeaturedProducts.slice(0, DESKTOP_HOME_SPECIAL_OFFERS_PRODUCT_COUNT);
-  const heroProduct = homeFeaturedProducts[0];
+  const heroProduct = resolveHomeDailyOfferProduct(homeFeaturedProducts);
   const heroProductTitle =
     heroProduct?.title === 'Double Cheeseburger'
       ? t('home.figma.mobile.product.title')
@@ -266,20 +289,27 @@ export function FigmaHomePage({
       </div>
       <div className="hidden min-h-screen overflow-x-hidden bg-[var(--project-color)] lg:block">
       <section className="relative w-full overflow-hidden bg-[var(--project-color)] pb-56 pt-8 lg:h-[930px] lg:pb-0 lg:[aspect-ratio:231/130]">
-        <img
-          src={assets.heroBg}
-          alt="Degusto hero"
-          className="absolute inset-x-0 top-[92px] h-[900px] w-full object-contain object-top lg:h-full"
-          loading="eager"
-          fetchPriority="high"
-          decoding="sync"
-        />
+        <div
+          className={`pointer-events-none absolute inset-x-0 ${HOME_DESKTOP_HERO_BG_TOP_CLASS} z-0 h-[900px] w-full lg:h-full`}
+        >
+          <div className="relative h-full w-full">
+            <HomeOptimizedImage
+            src={assets.heroBg}
+            alt="Degusto hero"
+            fill
+            className="object-contain object-top"
+            priority
+            loading="eager"
+            sizes="100vw"
+          />
+          </div>
+        </div>
         <ProjectGreenStripes />
         <UniversalHeader spacerBackgroundClassName="bg-[#F66812]" />
 
-        <div className="relative z-10 mx-auto mt-14 w-full max-w-[1450px] px-4 lg:mt-16 lg:px-6">
+        <div className="relative z-20 mx-auto mt-14 w-full max-w-[1450px] px-4 lg:mt-16 lg:px-6">
           <article
-            className="relative h-[284px] w-[236px] cursor-pointer sm:ml-[45px]"
+            className="relative z-20 h-[284px] w-[236px] cursor-pointer sm:ml-[45px]"
             onClick={openHeroProduct}
             onKeyDown={handleHeroProductKeyDown}
             role="link"
@@ -288,7 +318,16 @@ export function FigmaHomePage({
           >
             <div className="absolute inset-0 rounded-[20px] bg-white shadow-xl" />
             <div className="absolute left-1/2 top-[5px] h-[147px] w-[227px] -translate-x-1/2">
-              <img src={heroProduct?.image || assets.productCardImage} alt={t('home.figma.mobile.dailyOfferImageAlt')} className="h-full w-full rounded-[18px] object-cover" />
+              <HomeOptimizedImage
+                src={heroProduct?.image || assets.productCardImage}
+                alt={t('home.figma.mobile.dailyOfferImageAlt')}
+                width={227}
+                height={147}
+                className="h-full w-full rounded-[18px] object-cover"
+                priority
+                loading="eager"
+                sizes="236px"
+              />
               <HomeProductFoodAttributeBadges
                 variant="desktop-hero"
                 supportsSpicy={heroProduct?.supportsSpicy ?? false}
@@ -298,7 +337,14 @@ export function FigmaHomePage({
               />
             </div>
             <div className="absolute left-[14px] top-[172px] flex items-center gap-1.5">
-              <img src={assets.productCardStar} alt="" className="h-5 w-5 object-contain" />
+              <HomeOptimizedImage
+                src={assets.productCardStar}
+                alt=""
+                width={20}
+                height={20}
+                className="h-5 w-5 object-contain"
+                loading="lazy"
+              />
               <p className="text-base font-medium leading-none text-[rgba(60,47,47,0.62)]">4.7</p>
             </div>
             <div className="absolute left-[14px] top-[194px] w-[130px]">
@@ -321,10 +367,24 @@ export function FigmaHomePage({
               }}
               className="absolute bottom-[-25px] left-1/2 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center"
             >
-              <img src={assets.productCardAddToCart} alt="Add to cart" className="h-[52px] w-[51px] object-contain" />
+              <HomeOptimizedImage
+                src={assets.productCardAddToCart}
+                alt="Add to cart"
+                width={51}
+                height={52}
+                className="h-[52px] w-[51px] object-contain"
+                loading="lazy"
+              />
             </button>
             <div className="absolute -right-[88px] -top-[46px] h-[132px] w-[132px]">
-              <img src={assets.offerBadge} alt="" className="absolute inset-0 h-full w-full object-contain" />
+              <HomeOptimizedImage
+                src={assets.offerBadge}
+                alt=""
+                width={132}
+                height={132}
+                className="absolute inset-0 h-full w-full object-contain"
+                loading="lazy"
+              />
               <div
                 className={`absolute inset-0 flex items-center justify-center text-center font-black text-white ${
                   lang === 'ru' ? 'text-[11px] leading-[1.05]' : 'text-[16px] leading-[1.1]'

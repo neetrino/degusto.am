@@ -1,16 +1,8 @@
 import { nanoid } from "nanoid";
+import { prepareImageBufferForR2Upload } from "@/lib/images/prepare-raster-for-r2";
+import { parseBase64ImageDataUrl } from "@/lib/images/r2-upload-image";
 import { isR2Configured, uploadToR2 } from "@/lib/r2";
 import { smartSplitUrls } from "@/lib/utils/image-utils";
-
-const IMAGE_MIME_TO_EXTENSION: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/jpg": "jpg",
-  "image/png": "png",
-  "image/gif": "gif",
-  "image/webp": "webp",
-  "image/avif": "avif",
-  "image/svg+xml": "svg",
-};
 
 const R2_IMAGES_PREFIX = "products";
 
@@ -32,24 +24,8 @@ function isBase64ImageDataUrl(value: string): boolean {
   return /^data:image\/[a-z0-9.+-]+;base64,/i.test(value);
 }
 
-function parseImageDataUrl(dataUrl: string): { mime: string; buffer: Buffer } | null {
-  const match = dataUrl.match(/^data:(image\/[a-z0-9.+-]+);base64,(.+)$/i);
-  if (!match) {
-    return null;
-  }
-
-  const mime = match[1].toLowerCase();
-  const base64Payload = match[2];
-
-  return {
-    mime,
-    buffer: Buffer.from(base64Payload, "base64"),
-  };
-}
-
-function buildR2ObjectKey(mime: string): string {
+function buildR2ObjectKey(extension: string): string {
   const dateSegment = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-  const extension = IMAGE_MIME_TO_EXTENSION[mime] ?? "webp";
 
   return `${R2_IMAGES_PREFIX}/${dateSegment}-${nanoid(10)}.${extension}`;
 }
@@ -67,13 +43,14 @@ async function uploadSingleBase64Image(
     return cachedResult;
   }
 
-  const parsed = parseImageDataUrl(value);
+  const parsed = parseBase64ImageDataUrl(value);
   if (!parsed) {
     return value;
   }
 
-  const key = buildR2ObjectKey(parsed.mime);
-  const uploadedUrl = await uploadToR2(key, parsed.buffer, parsed.mime);
+  const prepared = await prepareImageBufferForR2Upload(parsed.buffer, parsed.mime);
+  const key = buildR2ObjectKey(prepared.extension);
+  const uploadedUrl = await uploadToR2(key, prepared.buffer, prepared.mime);
   if (!uploadedUrl) {
     throw new Error("Failed to upload image to R2");
   }

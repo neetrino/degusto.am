@@ -27,7 +27,6 @@
     "db:seed": "node shared/db/prisma/seed.cjs",
     "db:migrate:deploy": "node src/scripts/run-migrations.js",
     "db:baseline": "node src/scripts/db-baseline-if-needed.js",
-    "images:migrate:r2": "node src/scripts/migrate-images-to-r2.js",
     "images:migrate:homepage": "node src/scripts/migrate-homepage-assets-to-r2.js",
     "images:migrate:figma": "node src/scripts/migrate-figma-assets-to-r2.js",
     "i18n:check": "node src/scripts/check-locales-coverage.js"
@@ -58,6 +57,7 @@
     "react-hook-form": "^7.66.0",
     "react-icons": "^5.6.0",
     "recharts": "^3.8.1",
+    "sharp": "^0.34.5",
     "ws": "^8.18.0",
     "zod": "^4.1.12"
   },

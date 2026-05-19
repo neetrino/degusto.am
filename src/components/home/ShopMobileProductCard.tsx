@@ -13,6 +13,7 @@ import {
   FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS,
   MOBILE_SHOP_PRODUCT_CARD_ASSETS,
 } from '@/constants/mobile-figma-storefront';
+import { HomeOptimizedImage } from './HomeOptimizedImage';
 import type { MenuCard } from './menu-types';
 
 /** Figma mobile product card (1:2235) — compact price typography. */
@@ -114,9 +115,16 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
     >
       <div
         data-product-fly-origin
-        className="absolute left-1 right-1 top-[5px] h-[143px] overflow-hidden rounded-[18px]"
+        className="absolute left-1 right-1 top-[5px] h-[143px] overflow-hidden rounded-[18px] relative"
       >
-        <img src={imageSrc} alt={title} className="h-full w-full object-cover" />
+        <HomeOptimizedImage
+          src={imageSrc}
+          alt={title}
+          fill
+          className="object-cover"
+          loading="lazy"
+          sizes="50vw"
+        />
       </div>
 
       <button
@@ -139,23 +147,36 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
 
       {supportsSpicy ? (
         <div className="absolute left-[9px] top-[11px] flex h-[22px] w-[22px] items-center justify-center rounded-full bg-[#ff2b2e]">
-          <img
+          <HomeOptimizedImage
             src={MOBILE_SHOP_PRODUCT_CARD_ASSETS.hot}
             alt=""
+            width={13}
+            height={13}
             className="h-[13px] w-[13px] -rotate-[13deg] object-contain"
+            loading="lazy"
           />
         </div>
       ) : null}
       {supportsGreens ? (
-        <img
+        <HomeOptimizedImage
           src={MOBILE_SHOP_PRODUCT_CARD_ASSETS.ribbon}
           alt=""
+          width={22}
+          height={22}
           className={`absolute left-[9px] h-[22px] w-[22px] object-contain ${greensTopClass}`}
+          loading="lazy"
         />
       ) : null}
 
       <div className="absolute left-[9px] top-[150px] flex items-center gap-1.5">
-        <img src={MOBILE_SHOP_PRODUCT_CARD_ASSETS.star} alt="" className="h-[19px] w-[19px] object-contain" />
+        <HomeOptimizedImage
+          src={MOBILE_SHOP_PRODUCT_CARD_ASSETS.star}
+          alt=""
+          width={19}
+          height={19}
+          className="h-[19px] w-[19px] object-contain"
+          loading="lazy"
+        />
         <p className="text-sm font-medium leading-none text-[rgba(60,47,47,0.62)]">4.7</p>
       </div>
 
@@ -194,10 +215,13 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
         aria-label={t('common.buttons.addToCart')}
         className="absolute -bottom-[14px] left-1/2 inline-flex h-[42px] w-[42px] -translate-x-1/2 items-center justify-center"
       >
-        <img
+        <HomeOptimizedImage
           src={MOBILE_SHOP_PRODUCT_CARD_ASSETS.addToCart}
           alt=""
+          width={42}
+          height={42}
           className="h-[42px] w-[42px] object-contain"
+          loading="lazy"
         />
       </button>
     </article>

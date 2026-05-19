@@ -3,6 +3,7 @@ import {
   invalidateProductPageCaches,
   invalidateStorefrontProductRelatedCaches,
 } from "@/lib/cache/storefront-cache";
+import { HOME_PAGE_CACHE_TAG } from "@/lib/services/home-page-data.service";
 import { logger } from "../../../utils/logger";
 import { cacheService } from "../../cache.service";
 
@@ -20,6 +21,8 @@ export async function revalidateProductCache(
     }
     revalidatePath('/');
     revalidatePath('/shop');
+    // @ts-expect-error - revalidateTag type issue in Next.js
+    revalidateTag(HOME_PAGE_CACHE_TAG);
     // @ts-expect-error - revalidateTag type issue in Next.js
     revalidateTag('products');
     // @ts-expect-error - revalidateTag type issue in Next.js
