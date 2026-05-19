@@ -77,16 +77,17 @@ function isNeonHost(hostname: string): boolean {
 }
 
 /**
- * Neon serverless driver + `@prisma/adapter-neon` (HTTP on Vercel).
- * Default on Vercel + Neon host (avoids missing `libquery_engine-rhel-openssl-3.0.x` in serverless bundles).
- * Force TCP: `PRISMA_NEON_ADAPTER=0`. Force adapter elsewhere: `PRISMA_NEON_ADAPTER=1`.
+ * Use Prisma's stable query engine by default.
+ *
+ * `@prisma/adapter-neon` is still preview in Prisma 5 and can fail parsing PostgreSQL
+ * JSON array columns (`P2023: Failed to parse incoming json from a driver adapter`).
+ * Keep it as explicit opt-in only after schema/query compatibility is verified.
  */
 export function shouldUseNeonDriverAdapterForRuntime(databaseUrl: string): boolean {
-  if (process.env.PRISMA_NEON_ADAPTER === "0") return false;
   const parsed = tryParsePostgresUrl(databaseUrl);
   if (!parsed || !isNeonHost(parsed.hostname)) return false;
   if (process.env.PRISMA_NEON_ADAPTER === "1") return true;
-  return process.env.VERCEL === "1";
+  return false;
 }
 
 function isLikelyNeonPoolerHost(hostname: string): boolean {
