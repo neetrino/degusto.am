@@ -43,6 +43,7 @@ interface ProductCardListProps {
   onAddToCart: (e: MouseEvent) => void;
   onDecreaseCart: (e: MouseEvent) => void;
   onProductClick: () => void;
+  onPrefetchNavigate?: () => void;
 }
 
 /**
@@ -63,6 +64,7 @@ export function ProductCardList({
   onAddToCart,
   onDecreaseCart,
   onProductClick,
+  onPrefetchNavigate,
 }: ProductCardListProps) {
   const { t } = useTranslation();
   const handleCardKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -78,6 +80,8 @@ export function ProductCardList({
       data-product-card
       className={`bg-white rounded-lg border border-gray-200 overflow-hidden transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} group cursor-pointer`}
       onClick={onProductClick}
+      onMouseEnter={onPrefetchNavigate}
+      onFocus={onPrefetchNavigate}
       onKeyDown={handleCardKeyDown}
       role="link"
       tabIndex={0}

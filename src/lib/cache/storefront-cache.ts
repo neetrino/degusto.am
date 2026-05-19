@@ -1,4 +1,6 @@
+import { revalidateTag } from "next/cache";
 import { cacheService } from "@/lib/services/cache.service";
+import { STOREFRONT_DISCOUNT_SETTINGS_CACHE_TAG } from "@/lib/services/storefront/get-storefront-discount-settings";
 
 /**
  * Central TTLs (seconds) for public storefront HTTP responses stored in Redis / in-memory fallback.
@@ -91,6 +93,8 @@ export async function invalidateStorefrontProductRelatedCaches(): Promise<void> 
  */
 export async function invalidateStorefrontAfterAdminSettingsUpdate(): Promise<void> {
   await invalidateCurrencyRatesCache();
+  // @ts-expect-error - revalidateTag type issue in Next.js
+  revalidateTag(STOREFRONT_DISCOUNT_SETTINGS_CACHE_TAG);
   await cacheService.deletePattern("products:*");
   await Promise.all([
     cacheService.deletePattern("product:visual:*"),

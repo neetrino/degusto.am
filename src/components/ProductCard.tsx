@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import type { MouseEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../lib/auth/AuthContext';
@@ -10,6 +10,7 @@ import { useAddToCart } from './hooks/useAddToCart';
 import { useCurrency } from './hooks/useCurrency';
 import { ProductCardList } from './ProductCard/ProductCardList';
 import { ProductCardGrid } from './ProductCard/ProductCardGrid';
+import { prefetchProductRoute } from '../lib/products/prefetch-product-route';
 
 interface Product {
   id: string;
@@ -100,6 +101,10 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
     router.push(`/products/${product.slug}`);
   };
 
+  const handlePrefetchNavigate = useCallback(() => {
+    prefetchProductRoute(router, product.slug);
+  }, [router, product.slug]);
+
   // List view layout
   if (viewMode === 'list') {
     return (
@@ -118,6 +123,7 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
         onAddToCart={handleAddToCart}
         onDecreaseCart={handleDecreaseCart}
         onProductClick={handleProductClick}
+        onPrefetchNavigate={handlePrefetchNavigate}
       />
     );
   }
@@ -140,6 +146,7 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
       onAddToCart={handleAddToCart}
       onDecreaseCart={handleDecreaseCart}
       onProductClick={handleProductClick}
+      onPrefetchNavigate={handlePrefetchNavigate}
     />
   );
 }

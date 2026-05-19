@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { productsService } from "@/lib/services/products.service";
 import { resolveStorefrontLocaleFromCookie } from "@/lib/i18n/locale";
 import { getProductMetadataFallbackCopy } from "@/lib/i18n/metadata";
+import { getProductPageData } from "@/lib/services/products-slug/get-product-page-data";
+import { parseProductSlugParam } from "./parse-product-slug-param";
 
 const SITE_NAME = "WhiteShop.am";
 
@@ -11,12 +12,19 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const { slug } = parseProductSlugParam(rawSlug);
   const cookieStore = await cookies();
   const locale = resolveStorefrontLocaleFromCookie(cookieStore.get("shop_language")?.value);
   const fallback = getProductMetadataFallbackCopy(locale);
   try {
-    const product = await productsService.findBySlug(slug, locale);
+    const result = await getProductPageData(slug, locale);
+    if (result.status !== "ok") {
+      return {
+        title: `${fallback.notFound} | ${SITE_NAME}`,
+      };
+    }
+    const product = result.product;
     const title = product.seo?.title || product.title || fallback.title;
     const description = product.seo?.description || product.description || null;
     const firstImage =
@@ -46,6 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 }
+
 
 export default function ProductSlugLayout({
   children,

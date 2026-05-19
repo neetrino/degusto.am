@@ -1,25 +1,33 @@
 'use client';
 
+import type { Dispatch, SetStateAction } from 'react';
 import { Button } from '@shop/ui';
 import { useAuth } from '../lib/auth/AuthContext';
 import { useTranslation } from '../lib/i18n-client';
-import { useReviews } from './ProductReviews/hooks/useReviews';
 import { useReviewForm } from './ProductReviews/hooks/useReviewForm';
+import type { Review } from './ProductReviews/utils';
 import { ReviewSummary } from './ProductReviews/ReviewSummary';
 import { ReviewForm } from './ProductReviews/ReviewForm';
 import { ReviewList } from './ProductReviews/ReviewList';
 import { ProductReviewsLoading } from './ProductReviews/ProductReviewsLoading';
 
 interface ProductReviewsProps {
-  productId?: string; // For backward compatibility
-  productSlug?: string; // Preferred: use slug for API calls
+  productId: string;
+  productSlug: string;
+  reviews: Review[];
+  reviewsLoading: boolean;
+  setReviews: Dispatch<SetStateAction<Review[]>>;
 }
 
-export function ProductReviews({ productId, productSlug }: ProductReviewsProps) {
+export function ProductReviews({
+  productId,
+  productSlug,
+  reviews,
+  reviewsLoading,
+  setReviews,
+}: ProductReviewsProps) {
   const { isLoggedIn, user } = useAuth();
   const { t } = useTranslation();
-  
-  const { reviews, loading, setReviews } = useReviews(productId, productSlug);
   
   const {
     showForm,
@@ -46,7 +54,7 @@ export function ProductReviews({ productId, productSlug }: ProductReviewsProps) 
   // Get user's review if exists
   const userReview = user ? reviews.find(r => r.userId === user.id) : null;
 
-  if (loading) {
+  if (reviewsLoading) {
     return <ProductReviewsLoading />;
   }
 

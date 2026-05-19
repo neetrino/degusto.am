@@ -3,6 +3,7 @@ import { problemTypes } from "@/lib/http/problem-details";
 import { resolveStorefrontLocaleFromSearchParams } from "@/lib/i18n/locale";
 import { parseRouteCatchError } from "@/lib/http/api-route-errors";
 import { reviewsService } from "@/lib/services/reviews.service";
+import { resolveReviewsProductId } from "@/lib/services/reviews/resolve-reviews-product-id";
 import { authenticateToken } from "@/lib/middleware/auth";
 import { productsService } from "@/lib/services/products.service";
 import { logger } from "@/lib/utils/logger";
@@ -13,6 +14,7 @@ export const dynamic = "force-dynamic";
  * GET /api/v1/products/[slug]/reviews
  * Get all reviews for a product (by slug)
  * Query params:
+ *   - productId: optional; skips full findBySlug when it matches slug (PDP fast path)
  *   - my=true: Get current user's review (requires authentication)
  */
 export async function GET(
@@ -24,12 +26,12 @@ export async function GET(
     const { searchParams } = new URL(req.url);
     const lang = resolveStorefrontLocaleFromSearchParams(searchParams);
     const myReview = searchParams.get("my") === "true";
-    
-    logger.debug('📝 [REVIEWS API] GET request for product slug:', slug, { myReview });
+    const productIdParam = searchParams.get("productId");
 
-    // First, get the product by slug to get the productId
-    const product = await productsService.findBySlug(slug, lang);
-    if (!product || !product.id) {
+    logger.debug("[REVIEWS API] GET", { slug, myReview, hasProductId: Boolean(productIdParam?.trim()) });
+
+    const productId = await resolveReviewsProductId(slug, lang, productIdParam);
+    if (!productId) {
       return NextResponse.json(
         {
           type: problemTypes.notFound,
@@ -58,12 +60,12 @@ export async function GET(
         );
       }
 
-      const review = await reviewsService.getUserReview(product.id, user.id, true);
+      const review = await reviewsService.getUserReview(productId, user.id, true);
       return NextResponse.json(review);
     }
 
     // Otherwise, return all published reviews
-    const reviews = await reviewsService.getProductReviews(product.id, {
+    const reviews = await reviewsService.getProductReviews(productId, {
       publishedOnly: true,
     });
 

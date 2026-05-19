@@ -1,5 +1,5 @@
-import { db } from "@white-shop/db";
 import { processImageUrl } from "../../utils/image-utils";
+import { getStorefrontDiscountSettings } from "../storefront/get-storefront-discount-settings";
 
 /** Prisma `select` shape for related carousel (minimal joins). */
 export interface RelatedProductRow {
@@ -39,33 +39,6 @@ export interface RelatedCardPayload {
   categories: Array<{ id: string; slug: string; title: string }>;
 }
 
-async function loadDiscountMaps(): Promise<{
-  globalDiscount: number;
-  categoryDiscounts: Record<string, number>;
-  brandDiscounts: Record<string, number>;
-}> {
-  const discountSettings = await db.settings.findMany({
-    where: {
-      key: {
-        in: ["globalDiscount", "categoryDiscounts", "brandDiscounts"],
-      },
-    },
-  });
-
-  const globalDiscount =
-    Number(discountSettings.find((s) => s.key === "globalDiscount")?.value) || 0;
-  const categoryDiscountsSetting = discountSettings.find((s) => s.key === "categoryDiscounts");
-  const categoryDiscounts = categoryDiscountsSetting
-    ? ((categoryDiscountsSetting.value as Record<string, number>) || {})
-    : {};
-  const brandDiscountsSetting = discountSettings.find((s) => s.key === "brandDiscounts");
-  const brandDiscounts = brandDiscountsSetting
-    ? ((brandDiscountsSetting.value as Record<string, number>) || {})
-    : {};
-
-  return { globalDiscount, categoryDiscounts, brandDiscounts };
-}
-
 function pickAppliedDiscount(
   productDiscount: number,
   primaryCategoryId: string | null,
@@ -98,7 +71,8 @@ export async function transformRelatedProductRows(
 ): Promise<RelatedCardPayload[]> {
   if (rows.length === 0) return [];
 
-  const { globalDiscount, categoryDiscounts, brandDiscounts } = await loadDiscountMaps();
+  const { globalDiscount, categoryDiscounts, brandDiscounts } =
+    await getStorefrontDiscountSettings();
 
   return rows.map((product) => {
     const tr = pickTranslation(product.translations, lang);

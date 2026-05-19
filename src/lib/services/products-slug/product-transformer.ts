@@ -1,37 +1,13 @@
-import { db } from "@white-shop/db";
 import {
   processImageUrl,
   smartSplitUrls,
   cleanImageUrls,
   separateMainAndVariantImages,
 } from "../../utils/image-utils";
+import { getStorefrontDiscountSettings } from "../storefront/get-storefront-discount-settings";
 import { logger } from "../../utils/logger";
 import { getOutOfStockLabel } from "./utils";
 import type { ProductWithFullRelations, ProductVariantWithOptions } from "./types";
-
-/**
- * Get discount settings from database
- */
-async function getDiscountSettings() {
-  const discountSettings = await db.settings.findMany({
-    where: {
-      key: {
-        in: ["globalDiscount", "categoryDiscounts", "brandDiscounts"],
-      },
-    },
-  });
-
-  const globalDiscountSetting = discountSettings.find((s: { key: string; value: unknown }) => s.key === "globalDiscount");
-  const globalDiscount = Number(globalDiscountSetting?.value) || 0;
-  
-  const categoryDiscountsSetting = discountSettings.find((s: { key: string; value: unknown }) => s.key === "categoryDiscounts");
-  const categoryDiscounts = categoryDiscountsSetting ? (categoryDiscountsSetting.value as Record<string, number>) || {} : {};
-  
-  const brandDiscountsSetting = discountSettings.find((s: { key: string; value: unknown }) => s.key === "brandDiscounts");
-  const brandDiscounts = brandDiscountsSetting ? (brandDiscountsSetting.value as Record<string, number>) || {} : {};
-
-  return { globalDiscount, categoryDiscounts, brandDiscounts };
-}
 
 /**
  * Calculate actual discount with priority: productDiscount > categoryDiscount > brandDiscount > globalDiscount
@@ -346,7 +322,8 @@ export async function transformProduct(
     : null;
 
   // Get discount settings
-  const { globalDiscount, categoryDiscounts, brandDiscounts } = await getDiscountSettings();
+  const { globalDiscount, categoryDiscounts, brandDiscounts } =
+    await getStorefrontDiscountSettings();
   
   const productDiscount = product.discountPercent || 0;
   

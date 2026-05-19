@@ -1,83 +1,77 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { apiClient } from '../../../../lib/api-client';
 import { getStoredLanguage } from '../../../../lib/language';
 import { logger } from '@/lib/utils/logger';
 import { RESERVED_ROUTES } from '../types';
 import type { Product } from '../types';
+import { isNotFoundError, loadProductProgressive } from './fetch-product-client';
 
 interface UseProductFetchProps {
   slug: string;
   variantIdFromUrl: string | null;
+  initialProduct: Product | null;
+  initialNotFound: boolean;
+  serverLocale: string;
 }
 
-function isNotFoundError(error: unknown): boolean {
-  return Boolean(
-    error &&
-      typeof error === 'object' &&
-      'status' in error &&
-      Number((error as { status: number }).status) === 404
-  );
-}
-
-async function fetchProductForLang(slug: string, lang: string): Promise<Product> {
-  return apiClient.get<Product>(`/api/v1/products/${slug}/details`, {
-    params: { lang },
-  });
-}
-
-export function useProductFetch({ slug, variantIdFromUrl }: UseProductFetchProps) {
+export function useProductFetch({
+  slug,
+  variantIdFromUrl,
+  initialProduct,
+  initialNotFound,
+  serverLocale,
+}: UseProductFetchProps) {
   const router = useRouter();
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
+  const [product, setProduct] = useState<Product | null>(initialProduct);
+  const [loading, setLoading] = useState(initialProduct === null && !initialNotFound);
+  const [notFound, setNotFound] = useState(initialNotFound);
   const generationRef = useRef(0);
+  const productRef = useRef<Product | null>(initialProduct);
+
+  useEffect(() => {
+    productRef.current = product;
+  }, [product]);
 
   const runLoad = useCallback(async () => {
     if (!slug || RESERVED_ROUTES.includes(slug.toLowerCase())) {
       setLoading(false);
       return;
     }
+
     const gen = ++generationRef.current;
-    setLoading(true);
+    const hadProduct = productRef.current !== null;
+    if (!hadProduct) {
+      setLoading(true);
+    }
     setNotFound(false);
-    setProduct(null);
 
     const currentLang = getStoredLanguage();
-
-    const load = async (lang: string) => {
-      try {
-        return await fetchProductForLang(slug, lang);
-      } catch (second: unknown) {
-        if (isNotFoundError(second) && lang !== 'en') {
-          return fetchProductForLang(slug, 'en');
-        }
-        throw second;
-      }
-    };
+    const isStale = () => gen !== generationRef.current;
 
     try {
-      const data = await load(currentLang);
-      if (gen !== generationRef.current) return;
+      const data = await loadProductProgressive({
+        slug,
+        lang: currentLang,
+        previousProduct: productRef.current,
+        onVisualApplied: (partial) => {
+          if (!isStale()) {
+            setProduct(partial);
+          }
+        },
+        isStale,
+      });
+      if (isStale()) return;
       setProduct(data);
     } catch (error: unknown) {
-      logger.warn('Product fetch failed', {
+      logger.warn('Product progressive fetch failed', {
         slug,
         error: error instanceof Error ? error.message : String(error),
       });
-      try {
-        const fallback = await apiClient.get<Product>(`/api/v1/products/${slug}`, {
-          params: { lang: currentLang },
-        });
-        if (gen !== generationRef.current) return;
-        setProduct(fallback);
-      } catch (inner: unknown) {
-        if (gen !== generationRef.current) return;
-        setProduct(null);
-        setNotFound(isNotFoundError(inner));
-      }
+      if (isStale()) return;
+      setProduct(null);
+      setNotFound(isNotFoundError(error));
     } finally {
-      if (gen === generationRef.current) {
+      if (!isStale()) {
         setLoading(false);
       }
     }
@@ -92,6 +86,12 @@ export function useProductFetch({ slug, variantIdFromUrl }: UseProductFetchProps
 
   useEffect(() => {
     if (!slug || RESERVED_ROUTES.includes(slug.toLowerCase())) return;
+
+    const storedLang = getStoredLanguage();
+    if (initialProduct && storedLang === serverLocale && !initialNotFound) {
+      return;
+    }
+
     void runLoad();
 
     const handleLanguageUpdate = () => {
@@ -102,7 +102,7 @@ export function useProductFetch({ slug, variantIdFromUrl }: UseProductFetchProps
     return () => {
       window.removeEventListener('language-updated', handleLanguageUpdate);
     };
-  }, [slug, variantIdFromUrl, router, runLoad]);
+  }, [slug, variantIdFromUrl, router, runLoad, initialProduct, initialNotFound, serverLocale]);
 
   return {
     product,

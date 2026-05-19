@@ -9,6 +9,7 @@ import { t } from '../lib/i18n';
 import { logger } from '@/lib/utils/logger';
 import { useAuth } from '../lib/auth/AuthContext';
 import { useRelatedProducts } from './hooks/useRelatedProducts';
+import { useLazyInView } from './hooks/useLazyInView';
 import { useCarousel } from './hooks/useCarousel';
 import { useVisibleCards } from './hooks/useVisibleCards';
 import { RelatedProductCard } from './RelatedProducts/RelatedProductCard';
@@ -38,12 +39,14 @@ export function RelatedProducts({ categorySlug, currentProductId, productSlug }:
   /** One card per swipe; viewport still shows `visibleCards` (2 on mobile). */
   const scrollStep = 1;
   const isCompactCarousel = visibleCards === 2;
+  const { ref: lazyRef, inView } = useLazyInView();
 
   const { products, loading } = useRelatedProducts({
     categorySlug,
     currentProductId,
     language,
     productSlug,
+    enabled: inView,
   });
 
   const {
@@ -159,7 +162,10 @@ export function RelatedProducts({ categorySlug, currentProductId, productSlug }:
   };
 
   return (
-    <section className="rounded-t-[40px] bg-white pb-6 pt-4 sm:pb-7 sm:pt-5">
+    <section
+      ref={lazyRef}
+      className="rounded-t-[40px] bg-white pb-6 pt-4 sm:pb-7 sm:pt-5"
+    >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-5 flex items-center justify-between sm:mb-6">
           <h2 className="text-2xl font-black text-black sm:text-3xl">
@@ -170,7 +176,18 @@ export function RelatedProducts({ categorySlug, currentProductId, productSlug }:
           </ViewMoreButton>
         </div>
 
-        {loading ? (
+        {!inView ? (
+          <div
+            className="flex gap-3 lg:grid lg:grid-cols-4 lg:gap-[30px]"
+            aria-hidden
+          >
+            {Array.from({ length: loadingSkeletonCount }, (_, i) => i + 1).map((i) => (
+              <div key={i} className="min-w-0 flex-1 lg:flex-none">
+                <div className="h-[240px] rounded-[20px] bg-neutral-50 lg:h-[284px]" />
+              </div>
+            ))}
+          </div>
+        ) : loading ? (
           <div
             className="flex gap-3 lg:grid lg:grid-cols-4 lg:gap-[30px]"
             aria-busy="true"
