@@ -110,6 +110,20 @@ JWT_SECRET = strong production secret
 
 Важно: `DIRECT_URL` нужен для миграций. Он не должен быть pooled URL.
 
+Если в схеме есть JSON array поля (`Json[]`), не включать `@prisma/adapter-neon` по умолчанию. В Prisma 5 adapter ещё preview и может падать на production с:
+
+```text
+P2023: Failed to parse incoming json from a driver adapter
+```
+
+В таком случае профессиональный default — стабильный Prisma query engine + Neon pooled URL. Adapter можно включать только явно:
+
+```text
+PRISMA_NEON_ADAPTER=1
+```
+
+и только после проверки `/shop`, PDP и API routes на production/preview.
+
 ## Build/deploy checklist
 
 Перед деплоем:
