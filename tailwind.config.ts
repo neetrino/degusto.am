@@ -5,8 +5,10 @@ const config: Config = {
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/constants/**/*.{js,ts,tsx}',
     './shared/ui/**/*.{ts,tsx}',
   ],
+  safelist: ['bg-[#FFEACC]', 'hover:bg-[#FFEACC]', 'group-hover:bg-[#FFEACC]'],
   theme: {
     extend: {
       colors: {

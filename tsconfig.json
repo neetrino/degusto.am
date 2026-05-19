@@ -27,9 +27,6 @@
       }
     ],
     "paths": {
-      "@prisma/client": [
-        "./shared/db/src/generated/prisma-client"
-      ],
       "@/*": [
         "./src/*"
       ],

@@ -10,34 +10,7 @@
 const { execSync } = require("child_process");
 const path = require("path");
 const fs = require("fs");
-
-function loadRootEnv() {
-  const rootDir = path.join(__dirname, "../..");
-  const envPath = path.join(rootDir, ".env");
-  if (!fs.existsSync(envPath)) {
-    console.error("Missing .env at project root:", envPath);
-    process.exit(1);
-  }
-  const content = fs.readFileSync(envPath, "utf8");
-  for (const line of content.split("\n")) {
-    const trimmed = line.trim();
-    if (trimmed && !trimmed.startsWith("#")) {
-      const eq = trimmed.indexOf("=");
-      if (eq > 0) {
-        const key = trimmed.slice(0, eq).trim();
-        let val = trimmed.slice(eq + 1).trim();
-        if (val.startsWith('"') && val.endsWith('"')) {
-          val = val.slice(1, -1).replace(/\\"/g, '"');
-        }
-        if (val.startsWith("'") && val.endsWith("'")) {
-          val = val.slice(1, -1).replace(/\\'/g, "'");
-        }
-        process.env[key] = val;
-      }
-    }
-  }
-  return rootDir;
-}
+const { loadRootEnv } = require("./load-root-env");
 
 function listMigrationNames(migrationsDir) {
   return fs
@@ -59,7 +32,12 @@ function diffHasExecutableSql(diffScript) {
   return lines.length > 0;
 }
 
-const rootDir = loadRootEnv();
+const rootDir = path.join(__dirname, "../..");
+loadRootEnv(rootDir);
+if (!fs.existsSync(path.join(rootDir, ".env")) && !fs.existsSync(path.join(rootDir, ".env.local"))) {
+  console.error("Missing .env or .env.local at project root:", rootDir);
+  process.exit(1);
+}
 const dbDir = path.join(rootDir, "shared/db");
 const migrationsDir = path.join(dbDir, "prisma/migrations");
 

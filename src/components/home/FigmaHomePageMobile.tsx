@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { ViewMoreButton } from '../view-more/ViewMoreButton';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { LanguageCurrencySwitcher } from '../LanguageCurrencySwitcher';
@@ -115,9 +116,9 @@ function MobileSectionHeader({ title, titleClassName }: { title: string; titleCl
       >
         {title}
       </h2>
-      <Link href="/shop" className="text-base font-bold leading-6 text-[#f66a13]">
+      <ViewMoreButton href="/shop" variant="text">
         {t('common.buttons.viewMore')} {'>'}
-      </Link>
+      </ViewMoreButton>
     </div>
   );
 }

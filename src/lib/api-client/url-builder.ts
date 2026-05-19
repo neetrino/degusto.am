@@ -19,7 +19,10 @@ export function buildUrl(
     // On server, we need an absolute URL
     if (isServer) {
       // Try to get the base URL from environment variable or construct it
-      let serverUrl = process.env.NEXT_PUBLIC_APP_URL;
+      let serverUrl =
+        process.env.NEXT_PUBLIC_APP_URL?.trim() ||
+        process.env.APP_URL?.trim() ||
+        '';
       if (!serverUrl) {
         if (process.env.VERCEL_URL) {
           serverUrl = `https://${process.env.VERCEL_URL}`;

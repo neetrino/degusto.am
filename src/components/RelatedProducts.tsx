@@ -14,7 +14,7 @@ import { useVisibleCards } from './hooks/useVisibleCards';
 import { RelatedProductCard } from './RelatedProducts/RelatedProductCard';
 import { CarouselNavigation } from './RelatedProducts/CarouselNavigation';
 import { CarouselDots } from './RelatedProducts/CarouselDots';
-import Link from 'next/link';
+import { ViewMoreButton } from './view-more/ViewMoreButton';
 
 interface RelatedProductsProps {
   categorySlug?: string;
@@ -165,12 +165,9 @@ export function RelatedProducts({ categorySlug, currentProductId, productSlug }:
           <h2 className="text-2xl font-black text-black sm:text-3xl">
             {t(language, 'product.related_products_title')}
           </h2>
-          <Link
-            href="/shop"
-            className="inline-block shrink-0 rounded-full bg-[#ff7f20] px-4 py-2.5 text-sm font-bold text-white sm:px-6 sm:py-3 sm:text-base"
-          >
+          <ViewMoreButton href="/shop" className="shrink-0">
             {t(language, 'home.figma.desktop.moreButton')} →
-          </Link>
+          </ViewMoreButton>
         </div>
 
         {loading ? (

@@ -12,6 +12,7 @@ import { useAuth } from '../../lib/auth/AuthContext';
 import { useWishlist } from '../hooks/useWishlist';
 import { useTranslation } from '../../lib/i18n-client';
 import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
+import { FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS } from '@/constants/mobile-figma-storefront';
 
 const FIGMA_CARD_IMAGE = '/api/r2/product/20260512-D3w_teddze.png';
 const FIGMA_HOT_ICON = '/api/r2/product/20260512-dWv7-ZfxP1.svg';
@@ -113,8 +114,8 @@ export function RelatedProductCard({
           <div
             className={
               compact
-                ? 'relative mx-auto h-[240px] w-full max-w-[236px] rounded-[20px] border-[1.5px] border-[#dedede] bg-white'
-                : 'relative h-[284px] w-[236px] rounded-[20px] border-[1.5px] border-[#dedede] bg-white'
+                ? `relative mx-auto h-[240px] w-full max-w-[236px] rounded-[20px] border-[1.5px] border-[#dedede] bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS}`
+                : `relative h-[284px] w-[236px] rounded-[20px] border-[1.5px] border-[#dedede] bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS}`
             }
           >
             <div

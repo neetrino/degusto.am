@@ -10,6 +10,10 @@ import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
 import { ProductColors } from './ProductColors';
 import type { CurrencyCode } from '../../lib/currency';
 import type { ProductLabel } from '../ProductLabels';
+import {
+  FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS,
+  FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS,
+} from '@/constants/mobile-figma-storefront';
 
 interface ProductCardListProps {
   product: {
@@ -72,7 +76,7 @@ export function ProductCardList({
   return (
     <div
       data-product-card
-      className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:bg-gray-50 transition-colors cursor-pointer"
+      className={`bg-white rounded-lg border border-gray-200 overflow-hidden transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} group cursor-pointer`}
       onClick={onProductClick}
       onKeyDown={handleCardKeyDown}
       role="link"
@@ -83,7 +87,7 @@ export function ProductCardList({
         <Link
           href={`/products/${product.slug}`}
           data-product-fly-origin
-          className="w-20 h-20 bg-gray-100 rounded-lg flex-shrink-0 relative overflow-hidden self-start sm:self-center"
+          className={`w-20 h-20 bg-gray-100 rounded-lg flex-shrink-0 relative overflow-hidden self-start sm:self-center transition-colors ${FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS}`}
         >
           {product.image && !imageError ? (
             <Image

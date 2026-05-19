@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { ViewMoreButton } from '../view-more/ViewMoreButton';
 import { useRouter } from 'next/navigation';
 import type { KeyboardEvent, MouseEvent } from 'react';
 import { FigmaHomePageMobile } from './FigmaHomePageMobile';
@@ -17,6 +18,7 @@ import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
 import { getHomeCategoryHref } from './homeCategoryLinks';
 import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
 import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
+import { FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS } from '@/constants/mobile-figma-storefront';
 
 const assets = {
   heroBg: '/api/r2/hero/20260512-tOKhBzyB6u.png',
@@ -141,7 +143,7 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
   return (
     <article
       data-home-product-card
-      className="relative h-[284px] w-[236px] shrink-0 rounded-[20px] border-[1.5px] border-[#dedede] bg-white cursor-pointer transition-shadow hover:shadow-md"
+      className={`relative h-[284px] w-[236px] shrink-0 rounded-[20px] border-[1.5px] border-[#dedede] bg-white cursor-pointer transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} hover:shadow-md`}
       onClick={openProduct}
       onKeyDown={handleCardKeyDown}
       role="link"
@@ -183,7 +185,7 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
         <h3 className="text-base font-bold leading-[1.05] text-[#3c2f2f]">
           <span className="block max-h-[34px] overflow-hidden break-words">{title}</span>
         </h3>
-        <p className="mt-1 overflow-hidden truncate text-base font-medium leading-none text-[#a1a1a1]">{subtitle}</p>
+        <p className="mt-1 truncate text-base font-medium leading-[1.2] text-[#a1a1a1]">{subtitle}</p>
       </div>
       {hasDiscount ? (
         <span className="absolute right-px top-[170px] inline-flex h-[30px] items-center rounded-[60px] bg-[#ff7f20] px-[17px] text-sm font-bold leading-none text-black">
@@ -303,7 +305,7 @@ export function FigmaHomePage({
               <h2 className="text-base font-bold leading-none text-[#3c2f2f]">
                 <span className="block">{heroProductTitle}</span>
               </h2>
-              <p className="mt-1 text-base font-medium leading-none text-[#a1a1a1]">{heroProductSubtitle}</p>
+              <p className="mt-1 text-base font-medium leading-[1.2] text-[#a1a1a1]">{heroProductSubtitle}</p>
             </div>
             <span className="absolute right-[12px] top-[165px] inline-flex items-center rounded-[60px] bg-[#ff7f20] px-[17px] py-[8px] text-sm font-bold leading-none text-black">
               -{Math.round(heroProduct?.discountPercent || 30)}%
@@ -348,9 +350,13 @@ export function FigmaHomePage({
               <span className="text-[#f66913]">{t('home.figma.desktop.specialOffersTitleAccent')}</span>
               {t('home.figma.desktop.specialOffersTitleMain')}
             </h2>
-            <Link href="/shop" className="translate-x-[-115px] translate-y-[70px] inline-block rounded-full bg-[#ff7f20] px-6 py-4 text-lg font-bold text-white">
+            <ViewMoreButton
+              href="/shop"
+              size="lg"
+              className="translate-x-[-115px] translate-y-[70px] shrink-0"
+            >
               {t('home.figma.desktop.moreButton')} →
-            </Link>
+            </ViewMoreButton>
           </div>
           <div className="mt-[150px] overflow-x-auto pb-8">
             <div className="mx-auto flex w-max flex-nowrap justify-center gap-[10px]">

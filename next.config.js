@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+const { PrismaPlugin } = require('@prisma/nextjs-monorepo-workaround-plugin');
 const projectRoot = __dirname;
 
 // Vercel Toolbar / Live inject scripts and WebSockets from vercel.live (preview & prod tooling).
@@ -19,40 +20,11 @@ const nextConfig = {
   reactStrictMode: true,
   // Скрыть индикатор "Compiling..." в углу в dev — не мешает на экране
   devIndicators: false,
-  // Prisma: avoid Turbopack/webpack inlining `env("DATABASE_URL")` inside bundled client (empty URL at runtime).
-  serverExternalPackages: [
-    '@prisma/client',
-    'prisma',
-    '@white-shop/db',
-    '@prisma/adapter-neon',
-    '@neondatabase/serverless',
-    'ws',
-  ],
+  // Bundle Prisma + Neon adapter into serverless functions (externalizing breaks engine/adapter on Vercel).
+  serverExternalPackages: ['ws'],
   transpilePackages: ['@shop/ui', '@shop/design-tokens'],
-  // Monorepo: trace generated Prisma client + query engine into standalone serverless bundle
+  // Monorepo root for workspace package tracing.
   outputFileTracingRoot: __dirname,
-  outputFileTracingIncludes: {
-    '/*': [
-      './shared/db/src/generated/prisma-client/**/*',
-      './shared/db/src/generated/prisma-client/libquery_engine-*',
-      './shared/db/src/generated/prisma-client/query_engine-*',
-      './node_modules/@white-shop/db/src/generated/prisma-client/**/*',
-      './node_modules/@white-shop/db/src/generated/prisma-client/libquery_engine-*',
-      './node_modules/.prisma/client/libquery_engine-*',
-      './node_modules/.prisma/client/query_engine-*',
-    ],
-    '/api/**/*': [
-      './shared/db/src/generated/prisma-client/**/*',
-      './shared/db/src/generated/prisma-client/libquery_engine-*',
-      './shared/db/src/generated/prisma-client/query_engine-*',
-      './node_modules/@white-shop/db/src/generated/prisma-client/**/*',
-      './node_modules/@white-shop/db/src/generated/prisma-client/libquery_engine-*',
-      './node_modules/.prisma/client/libquery_engine-*',
-      './node_modules/.prisma/client/query_engine-*',
-    ],
-  },
-  // Standalone output - prevents prerendering of 404 page
-  output: 'standalone',
   /** Full cart page removed; drawer-only cart — old URLs go to shop. */
   async redirects() {
     return [
@@ -146,20 +118,22 @@ const nextConfig = {
   },
   // Fix for HMR issues in Next.js 15
   webpack: (config, { dev, isServer }) => {
+    if (isServer) {
+      config.plugins = [...(config.plugins ?? []), new PrismaPlugin()];
+    }
     if (dev && !isServer) {
       config.watchOptions = {
         poll: 1000,
         aggregateTimeout: 300,
       };
     }
-    
+
     // Resolve workspace packages and path aliases (no path.resolve — avoids Turbopack NFT over-tracing)
     config.resolve.alias = {
       ...config.resolve.alias,
       "@": `${projectRoot}/src`,
       "@shop/ui": `${projectRoot}/shared/ui`,
       "@shop/design-tokens": `${projectRoot}/shared/design-tokens`,
-      "@prisma/client": `${projectRoot}/shared/db/src/generated/prisma-client`,
     };
     
     return config;
