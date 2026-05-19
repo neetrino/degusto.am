@@ -1,11 +1,10 @@
 import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidateStorefrontMenuCaches } from "@/lib/cache/revalidate-storefront-menu-caches";
 import {
   invalidateProductPageCaches,
   invalidateStorefrontProductRelatedCaches,
 } from "@/lib/cache/storefront-cache";
-import { HOME_PAGE_CACHE_TAG } from "@/lib/services/home-page-data.service";
 import { pdpPageCacheTag } from "@/lib/services/products-slug/get-product-page-data";
-import { SHOP_MENU_CACHE_TAG } from "@/lib/services/shop-page/shop-page-data.service";
 import { logger } from "../../../utils/logger";
 import { cacheService } from "../../cache.service";
 
@@ -23,12 +22,7 @@ export async function revalidateProductCache(
       // @ts-expect-error - revalidateTag type issue in Next.js
       revalidateTag(pdpPageCacheTag(productSlug));
     }
-    revalidatePath('/');
-    revalidatePath('/shop');
-    // @ts-expect-error - revalidateTag type issue in Next.js
-    revalidateTag(HOME_PAGE_CACHE_TAG);
-    // @ts-expect-error - revalidateTag type issue in Next.js
-    revalidateTag(SHOP_MENU_CACHE_TAG);
+    revalidateStorefrontMenuCaches();
     // @ts-expect-error - revalidateTag type issue in Next.js
     revalidateTag('products');
     // @ts-expect-error - revalidateTag type issue in Next.js

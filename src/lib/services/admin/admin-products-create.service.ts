@@ -1,5 +1,5 @@
 import { db } from "@white-shop/db";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { findOrCreateAttributeValue } from "../../utils/variant-generator";
 import { ensureProductAttributesTable } from "../../utils/db-ensure";
 import {
@@ -9,8 +9,7 @@ import {
   separateMainAndVariantImages,
 } from "../../utils/image-utils";
 import { logger } from "@/lib/utils/logger";
-import { HOME_PAGE_CACHE_TAG } from "@/lib/services/home-page-data.service";
-import { SHOP_MENU_CACHE_TAG } from "@/lib/services/shop-page/shop-page-data.service";
+import { revalidateStorefrontMenuCaches } from "@/lib/cache/revalidate-storefront-menu-caches";
 import { ensureUniqueProductSlug } from "./product-slug-utils";
 
 const PRODUCT_CREATE_TX_TIMEOUT_MS = 15000;
@@ -426,12 +425,7 @@ class AdminProductsCreateService {
       // Revalidate cache
       try {
         logger.debug('🧹 [ADMIN PRODUCTS CREATE SERVICE] Revalidating paths for new product');
-        revalidatePath('/');
-        revalidatePath('/shop');
-        // @ts-expect-error - revalidateTag type issue in Next.js
-        revalidateTag(HOME_PAGE_CACHE_TAG);
-        // @ts-expect-error - revalidateTag type issue in Next.js
-        revalidateTag(SHOP_MENU_CACHE_TAG);
+        revalidateStorefrontMenuCaches();
         // @ts-expect-error - revalidateTag type issue in Next.js
         revalidateTag('products');
       } catch (e) {

@@ -1,9 +1,23 @@
 import { db } from "@white-shop/db";
+import { revalidateStorefrontMenuCaches } from "@/lib/cache/revalidate-storefront-menu-caches";
+import { invalidateStorefrontCategoryCaches } from "@/lib/cache/storefront-cache";
 import { problemTypes } from "@/lib/http/problem-details";
 import { toSlug } from "@/lib/utils/slug";
 import { logger } from "@/lib/utils/logger";
 
 class AdminCategoriesService {
+  private async revalidateStorefrontAfterCategoryChange(): Promise<void> {
+    try {
+      revalidateStorefrontMenuCaches();
+      await invalidateStorefrontCategoryCaches();
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.warn("Category cache revalidation failed (expected in some environments)", {
+        error: errorMessage,
+      });
+    }
+  }
+
   private extractImageUrl(media: unknown): string | null {
     if (!Array.isArray(media)) {
       return null;
@@ -158,6 +172,8 @@ class AdminCategoriesService {
     // Безопасное получение translation с проверкой на существование массива
     const categoryTranslations = Array.isArray(category.translations) ? category.translations : [];
     const translation = categoryTranslations.find((t: { locale: string }) => t.locale === locale) || categoryTranslations[0] || null;
+
+    await this.revalidateStorefrontAfterCategoryChange();
 
     return {
       data: {
@@ -396,6 +412,8 @@ class AdminCategoriesService {
     const categoryTranslations = Array.isArray(updatedCategory.translations) ? updatedCategory.translations : [];
     const translation = categoryTranslations.find((t: { locale: string }) => t.locale === locale) || categoryTranslations[0] || null;
 
+    await this.revalidateStorefrontAfterCategoryChange();
+
     return {
       data: {
         id: updatedCategory.id,
@@ -484,6 +502,8 @@ class AdminCategoriesService {
         published: false,
       },
     });
+
+    await this.revalidateStorefrontAfterCategoryChange();
 
     logger.debug('✅ [ADMIN SERVICE] Category deleted:', categoryId);
     return { success: true };
