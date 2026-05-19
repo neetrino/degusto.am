@@ -1,7 +1,10 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '../../lib/auth/AuthContext';
+import { ADMIN_MOBILE_HUB_PATH } from '@/constants/admin-mobile-profile';
+import { isMobileViewport } from '../../lib/viewport';
 import { useTranslation } from '../../lib/i18n-client';
 import { useProfilePage } from './useProfilePage';
 import { ProfileHeader } from './ProfileHeader';
@@ -17,8 +20,18 @@ import { OrderDetailsModal } from './OrderDetailsModal';
 import type { ProfileTab, ProfileTabConfig } from './types';
 
 function ProfilePageContent() {
-  const { isLoggedIn, isLoading: authLoading, logout } = useAuth();
+  const router = useRouter();
+  const { isLoggedIn, isLoading: authLoading, logout, isAdmin } = useAuth();
   const { t } = useTranslation();
+
+  useEffect(() => {
+    if (authLoading || !isLoggedIn || !isAdmin) {
+      return;
+    }
+    if (isMobileViewport()) {
+      router.replace(ADMIN_MOBILE_HUB_PATH);
+    }
+  }, [authLoading, isAdmin, isLoggedIn, router]);
   
   const {
     loading,

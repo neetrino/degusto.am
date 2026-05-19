@@ -9,7 +9,10 @@ import { useAddToCart } from '../hooks/useAddToCart';
 import { useWishlist } from '../hooks/useWishlist';
 import { useAuth } from '../../lib/auth/AuthContext';
 import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
-import { MOBILE_SHOP_PRODUCT_CARD_ASSETS } from '@/constants/mobile-figma-storefront';
+import {
+  FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS,
+  MOBILE_SHOP_PRODUCT_CARD_ASSETS,
+} from '@/constants/mobile-figma-storefront';
 import type { MenuCard } from './menu-types';
 
 /** Figma mobile product card (1:2235) — compact price typography. */
@@ -102,7 +105,7 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
   return (
     <article
       data-home-product-card
-      className="relative h-[240px] w-full cursor-pointer rounded-[20px] bg-[#ffeacc]"
+      className={`relative h-[240px] w-full cursor-pointer rounded-[20px] border-[1.5px] border-[#dedede] bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS}`}
       onClick={handleOpenProduct}
       onKeyDown={handleCardKeyDown}
       role="link"
@@ -161,7 +164,7 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
           <span className="line-clamp-2">{title}</span>
         </h3>
         {category ? (
-          <p className="mt-[2px] truncate text-sm font-medium leading-none text-[#a1a1a1]">{category}</p>
+          <p className="mt-[2px] truncate text-sm font-medium leading-[1.2] text-[#a1a1a1]">{category}</p>
         ) : null}
       </div>
 

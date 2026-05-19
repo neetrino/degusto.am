@@ -12,7 +12,10 @@ export function usesStorefrontMobileChrome(pathname: string | null): boolean {
   if (pathname === '/login' || pathname === '/register') {
     return false;
   }
-  if (pathname.startsWith('/supersudo') || pathname.startsWith('/admin')) {
+  if (pathname.startsWith('/supersudo')) {
+    return false;
+  }
+  if (pathname.startsWith('/admin') && !pathname.startsWith('/admin-mobile')) {
     return false;
   }
   return true;
@@ -23,5 +26,5 @@ export function usesStorefrontMobileHeader(pathname: string | null): boolean {
   if (!pathname || !usesStorefrontMobileChrome(pathname)) {
     return false;
   }
-  return !pathname.startsWith('/profile');
+  return !pathname.startsWith('/profile') && !pathname.startsWith('/admin-mobile');
 }

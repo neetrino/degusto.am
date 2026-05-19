@@ -15,6 +15,11 @@
     "delivery": "Delivery",
     "settings": "Settings"
   },
+  "mobileHub": {
+    "title": "Admin",
+    "subtitle": "Choose a section",
+    "back": "Back"
+  },
   "sidebar": {
     "expand": "Expand sidebar",
     "collapse": "Collapse sidebar",

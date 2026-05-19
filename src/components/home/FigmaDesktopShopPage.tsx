@@ -15,6 +15,7 @@ import type { MenuCard, MenuCategory } from './menu-types';
 import { ShopMobileProductCard } from './ShopMobileProductCard';
 import { StoreMenuPagination } from './StoreMenuPagination';
 import {
+  FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS,
   MOBILE_SHOP_PRODUCTS_GRID_CLASS,
   MOBILE_STOREFRONT_FILTERS_ANCHOR_ID,
 } from '@/constants/mobile-figma-storefront';
@@ -257,7 +258,7 @@ function MenuCardItem({ card }: { card: MenuCard }) {
   return (
     <article
       data-home-product-card
-      className="relative h-[284px] w-[236px] shrink-0 rounded-[20px] border-[1.5px] border-[#dedede] bg-white cursor-pointer transition-shadow hover:shadow-md"
+      className={`relative h-[284px] w-[236px] shrink-0 rounded-[20px] border-[1.5px] border-[#dedede] bg-white cursor-pointer transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} hover:shadow-md`}
       onClick={handleOpenProduct}
       onKeyDown={handleCardKeyDown}
       role="link"

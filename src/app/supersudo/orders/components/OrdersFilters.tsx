@@ -13,6 +13,8 @@ interface OrdersFiltersProps {
   setPage: (value: number | ((prev: number) => number)) => void;
   router: ReturnType<typeof useOrders>['router'];
   searchParams: ReturnType<typeof useOrders>['searchParams'];
+  /** Defaults to `/supersudo/orders` (desktop admin). */
+  basePath?: string;
 }
 
 export function OrdersFilters({
@@ -24,8 +26,19 @@ export function OrdersFilters({
   setPage,
   router,
   searchParams,
+  basePath = '/supersudo/orders',
 }: OrdersFiltersProps) {
   const { t } = useTranslation();
+
+  const buildOrdersUrl = (params: URLSearchParams) =>
+    params.toString() ? `${basePath}?${params.toString()}` : basePath;
+  const isMobileLayout = basePath.startsWith('/admin-mobile');
+  const fieldClass = isMobileLayout
+    ? 'w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#f66812]/20'
+    : 'shrink-0 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500';
+  const searchClass = isMobileLayout
+    ? fieldClass
+    : 'min-w-0 w-full flex-1 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 basis-full sm:basis-0 sm:min-w-[12rem]';
 
   const handleStatusChange = (newStatus: string) => {
     setPage(1);
@@ -35,8 +48,7 @@ export function OrdersFilters({
     } else {
       params.delete('status');
     }
-    const newUrl = params.toString() ? `/supersudo/orders?${params.toString()}` : '/supersudo/orders';
-    router.push(newUrl, { scroll: false });
+    router.push(buildOrdersUrl(params), { scroll: false });
   };
 
   const handlePaymentStatusChange = (newPaymentStatus: string) => {
@@ -47,8 +59,7 @@ export function OrdersFilters({
     } else {
       params.delete('paymentStatus');
     }
-    const newUrl = params.toString() ? `/supersudo/orders?${params.toString()}` : '/supersudo/orders';
-    router.push(newUrl, { scroll: false });
+    router.push(buildOrdersUrl(params), { scroll: false });
   };
 
   const handleSearchChange = (newSearch: string) => {
@@ -59,16 +70,19 @@ export function OrdersFilters({
     } else {
       params.delete('search');
     }
-    const newUrl = params.toString() ? `/supersudo/orders?${params.toString()}` : '/supersudo/orders';
-    router.push(newUrl, { scroll: false });
+    router.push(buildOrdersUrl(params), { scroll: false });
   };
 
   return (
-    <Card className="mb-6 w-full min-w-0 p-4">
-      <div className="flex w-full min-w-0 flex-wrap items-center gap-4">
-        <select
-          className="shrink-0 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={statusFilter}
+    <Card className={`w-full min-w-0 p-4 ${isMobileLayout ? 'mb-4 rounded-2xl border-gray-200/80 shadow-sm' : 'mb-6'}`}>
+      <div
+        className={
+          isMobileLayout
+            ? 'flex w-full min-w-0 flex-col gap-3'
+            : 'flex w-full min-w-0 flex-wrap items-center gap-4'
+        }
+      >
+        <select className={fieldClass} value={statusFilter}
           onChange={(e) => handleStatusChange(e.target.value)}
         >
           <option value="">{t('admin.orders.allStatuses')}</option>
@@ -77,9 +91,7 @@ export function OrdersFilters({
           <option value="completed">{t('admin.orders.completed')}</option>
           <option value="cancelled">{t('admin.orders.cancelled')}</option>
         </select>
-        <select
-          className="shrink-0 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={paymentStatusFilter}
+        <select className={fieldClass} value={paymentStatusFilter}
           onChange={(e) => handlePaymentStatusChange(e.target.value)}
         >
           <option value="">{t('admin.orders.allPaymentStatuses')}</option>
@@ -90,7 +102,7 @@ export function OrdersFilters({
         <input
           type="text"
           placeholder={t('admin.orders.searchPlaceholder')}
-          className="min-w-0 w-full flex-1 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 basis-full sm:basis-0 sm:min-w-[12rem]"
+          className={searchClass}
           value={searchQuery}
           onChange={(e) => handleSearchChange(e.target.value)}
         />

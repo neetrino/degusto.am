@@ -46,6 +46,11 @@ export const MOBILE_STOREFRONT_FILTERS_ANCHOR_ID = 'mobile-storefront-filters-an
 /** Product grid on mobile shop/combo category views (2 columns, Figma 1:2235). */
 export const MOBILE_SHOP_PRODUCTS_GRID_CLASS = 'grid grid-cols-2 gap-x-[14px] gap-y-[22px]';
 
+/** Figma product card cream surface (#FFEACC) — mobile default, desktop/catalog hover. */
+export const FIGMA_PRODUCT_CARD_CREAM_BG_CLASS = 'bg-[#FFEACC]';
+export const FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS = 'hover:bg-[#FFEACC]';
+export const FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS = 'group-hover:bg-[#FFEACC]';
+
 /** Mobile shop product card artwork (Figma 1:2235 / home mobile parity). */
 export const MOBILE_SHOP_PRODUCT_CARD_ASSETS = {
   fallbackImage: '/api/r2/product/20260512-lbgLHc4bPu.png',

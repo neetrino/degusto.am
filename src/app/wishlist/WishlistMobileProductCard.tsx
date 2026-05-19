@@ -159,7 +159,7 @@ export function WishlistMobileProductCard({
             <span className="line-clamp-2">{product.title}</span>
           </h3>
           {product.brand?.name ? (
-            <p className="mt-[2px] truncate text-sm font-medium leading-none text-[#a1a1a1]">
+            <p className="mt-[2px] truncate text-sm font-medium leading-[1.2] text-[#a1a1a1]">
               {product.brand.name}
             </p>
           ) : null}

@@ -1,3 +1,8 @@
+import {
+  ADMIN_MOBILE_HUB_PATH,
+  isAdminMobileHubActivePath,
+} from '@/constants/admin-mobile-profile';
+
 function normalizePathname(pathname: string): string {
   const base = pathname.split('?')[0]?.split('#')[0] ?? '';
   if (!base || base === '/') {
@@ -25,13 +30,22 @@ export type MobileBottomNavActiveFlags = {
 
 export function getMobileBottomNavActiveFlags(
   pathname: string,
-  isLoggedIn: boolean
+  isLoggedIn: boolean,
+  isAdmin = false
 ): MobileBottomNavActiveFlags {
   const path = normalizePathname(pathname);
-  const profileHref = isLoggedIn ? '/profile' : '/login';
-  const isProfileSlotActive = isLoggedIn
-    ? isPathActive(pathname, '/profile')
-    : path === '/login' || path === '/register';
+  const profileHref =
+    isLoggedIn && isAdmin
+      ? ADMIN_MOBILE_HUB_PATH
+      : isLoggedIn
+        ? '/profile'
+        : '/login';
+  const isProfileSlotActive =
+    isLoggedIn && isAdmin
+      ? isAdminMobileHubActivePath(pathname)
+      : isLoggedIn
+        ? isPathActive(pathname, '/profile')
+        : path === '/login' || path === '/register';
 
   return {
     profileHref,
