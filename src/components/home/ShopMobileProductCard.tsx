@@ -14,6 +14,7 @@ import {
   MOBILE_SHOP_PRODUCT_CARD_ASSETS,
 } from '@/constants/mobile-figma-storefront';
 import { HomeOptimizedImage } from './HomeOptimizedImage';
+import { shouldShowMenuCardStrikethroughPrice } from '@/lib/storefront/menu-card-pricing';
 import type { MenuCard } from './menu-types';
 
 /** Figma mobile product card (1:2235) — compact price typography. */
@@ -58,6 +59,7 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
       : 0;
   const effectiveDiscountPercent = calculatedDiscountPercent || fallbackDiscountPercent;
   const hasDiscount = effectiveDiscountPercent > 0;
+  const showStrikethroughPrice = shouldShowMenuCardStrikethroughPrice(card.price, card.oldPrice);
   const discountText = hasDiscount ? `-${effectiveDiscountPercent}%` : '';
   const supportsSpicy = card.supportsSpicy ?? false;
   const supportsGreens = card.supportsGreens ?? false;
@@ -199,7 +201,7 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
         <p className={`w-full break-words font-black tabular-nums text-[#3c2f2f] ${priceSizeClass}`}>
           {formattedPrice}
         </p>
-        {hasDiscount ? (
+        {showStrikethroughPrice ? (
           <p
             className={`w-full break-words font-medium tabular-nums text-[#3c2f2f] line-through ${oldPriceSizeClass}`}
           >

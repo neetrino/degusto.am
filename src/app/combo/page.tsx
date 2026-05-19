@@ -10,6 +10,7 @@ import type { Prisma } from '@prisma/client';
 import { buildProductWhereTasteCapability, resolveFoodAttributeFlagsFromVariants } from '@/lib/product-food-attributes';
 import { storefrontAmdPriceBoundToVariantUsd } from '@/lib/currency';
 import { withPrismaResilience } from '@/lib/db/with-prisma-resilience';
+import { resolveMenuCardCompareAtPrice } from '@/lib/storefront/menu-card-pricing';
 
 /** Always read fresh data from DB on each request (no static cache for this route). */
 export const dynamic = 'force-dynamic';
@@ -435,7 +436,7 @@ export default async function ComboPage({
       row.categories[0]?.translations[0];
     const variant = row.variants[0];
     const price = variant?.price ?? 0;
-    const oldPrice = variant?.compareAtPrice ?? price;
+    const oldPrice = resolveMenuCardCompareAtPrice(price, variant?.compareAtPrice);
     const foodAttrs = resolveFoodAttributeFlagsFromVariants(row.variants);
     return {
       id: row.id,

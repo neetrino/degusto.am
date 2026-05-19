@@ -10,6 +10,7 @@ import {
 } from "../../utils/image-utils";
 import { logger } from "@/lib/utils/logger";
 import { HOME_PAGE_CACHE_TAG } from "@/lib/services/home-page-data.service";
+import { SHOP_MENU_CACHE_TAG } from "@/lib/services/shop-page/shop-page-data.service";
 import { ensureUniqueProductSlug } from "./product-slug-utils";
 
 const PRODUCT_CREATE_TX_TIMEOUT_MS = 15000;
@@ -429,6 +430,8 @@ class AdminProductsCreateService {
         revalidatePath('/shop');
         // @ts-expect-error - revalidateTag type issue in Next.js
         revalidateTag(HOME_PAGE_CACHE_TAG);
+        // @ts-expect-error - revalidateTag type issue in Next.js
+        revalidateTag(SHOP_MENU_CACHE_TAG);
         // @ts-expect-error - revalidateTag type issue in Next.js
         revalidateTag('products');
       } catch (e) {
