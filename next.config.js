@@ -1,5 +1,15 @@
 /** @type {import('next').NextConfig} */
+const { PrismaPlugin } = require('@prisma/nextjs-monorepo-workaround-plugin');
 const projectRoot = __dirname;
+
+const PRISMA_ENGINE_TRACE_INCLUDES = [
+  './shared/db/src/generated/prisma-client/**/*',
+  './shared/db/src/generated/prisma-client/libquery_engine-rhel-openssl-3.0.x.so.node',
+  './shared/db/src/generated/prisma-client/libquery_engine-*',
+  './shared/db/src/generated/prisma-client/query_engine-*',
+  './node_modules/@white-shop/db/src/generated/prisma-client/**/*',
+  './node_modules/@white-shop/db/src/generated/prisma-client/libquery_engine-rhel-openssl-3.0.x.so.node',
+];
 
 // Vercel Toolbar / Live inject scripts and WebSockets from vercel.live (preview & prod tooling).
 const VERCEL_LIVE_SCRIPT = 'https://vercel.live';
@@ -32,27 +42,10 @@ const nextConfig = {
   // Monorepo: trace generated Prisma client + query engine into standalone serverless bundle
   outputFileTracingRoot: __dirname,
   outputFileTracingIncludes: {
-    '/*': [
-      './shared/db/src/generated/prisma-client/**/*',
-      './shared/db/src/generated/prisma-client/libquery_engine-*',
-      './shared/db/src/generated/prisma-client/query_engine-*',
-      './node_modules/@white-shop/db/src/generated/prisma-client/**/*',
-      './node_modules/@white-shop/db/src/generated/prisma-client/libquery_engine-*',
-      './node_modules/.prisma/client/libquery_engine-*',
-      './node_modules/.prisma/client/query_engine-*',
-    ],
-    '/api/**/*': [
-      './shared/db/src/generated/prisma-client/**/*',
-      './shared/db/src/generated/prisma-client/libquery_engine-*',
-      './shared/db/src/generated/prisma-client/query_engine-*',
-      './node_modules/@white-shop/db/src/generated/prisma-client/**/*',
-      './node_modules/@white-shop/db/src/generated/prisma-client/libquery_engine-*',
-      './node_modules/.prisma/client/libquery_engine-*',
-      './node_modules/.prisma/client/query_engine-*',
-    ],
+    '/*': PRISMA_ENGINE_TRACE_INCLUDES,
+    '/api/**/*': PRISMA_ENGINE_TRACE_INCLUDES,
   },
-  // Standalone output - prevents prerendering of 404 page
-  output: 'standalone',
+  // Vercel manages deployment output; standalone breaks Prisma engine tracing on serverless.
   /** Full cart page removed; drawer-only cart — old URLs go to shop. */
   async redirects() {
     return [
@@ -146,13 +139,16 @@ const nextConfig = {
   },
   // Fix for HMR issues in Next.js 15
   webpack: (config, { dev, isServer }) => {
+    if (isServer) {
+      config.plugins = [...(config.plugins ?? []), new PrismaPlugin()];
+    }
     if (dev && !isServer) {
       config.watchOptions = {
         poll: 1000,
         aggregateTimeout: 300,
       };
     }
-    
+
     // Resolve workspace packages and path aliases (no path.resolve — avoids Turbopack NFT over-tracing)
     config.resolve.alias = {
       ...config.resolve.alias,
