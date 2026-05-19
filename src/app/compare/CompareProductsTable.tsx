@@ -91,9 +91,7 @@ export function CompareProductsTable({
                         className="object-cover"
                         sizes="128px"
                         unoptimized
-                      /></span>
-                        </div>
-                      )}
+                      />
                     </div>
                   </Link>
                 </td>
