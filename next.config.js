@@ -2,15 +2,6 @@
 const { PrismaPlugin } = require('@prisma/nextjs-monorepo-workaround-plugin');
 const projectRoot = __dirname;
 
-const PRISMA_ENGINE_TRACE_INCLUDES = [
-  './shared/db/src/generated/prisma-client/**/*',
-  './shared/db/src/generated/prisma-client/libquery_engine-rhel-openssl-3.0.x.so.node',
-  './shared/db/src/generated/prisma-client/libquery_engine-*',
-  './shared/db/src/generated/prisma-client/query_engine-*',
-  './node_modules/@white-shop/db/src/generated/prisma-client/**/*',
-  './node_modules/@white-shop/db/src/generated/prisma-client/libquery_engine-rhel-openssl-3.0.x.so.node',
-];
-
 // Vercel Toolbar / Live inject scripts and WebSockets from vercel.live (preview & prod tooling).
 const VERCEL_LIVE_SCRIPT = 'https://vercel.live';
 const VERCEL_LIVE_CONNECT = `${VERCEL_LIVE_SCRIPT} wss://*.vercel.live`;
@@ -32,13 +23,8 @@ const nextConfig = {
   // Bundle Prisma + Neon adapter into serverless functions (externalizing breaks engine/adapter on Vercel).
   serverExternalPackages: ['ws'],
   transpilePackages: ['@shop/ui', '@shop/design-tokens'],
-  // Monorepo: trace generated Prisma client + query engine into standalone serverless bundle
+  // Monorepo root for workspace package tracing.
   outputFileTracingRoot: __dirname,
-  outputFileTracingIncludes: {
-    '/*': PRISMA_ENGINE_TRACE_INCLUDES,
-    '/api/**/*': PRISMA_ENGINE_TRACE_INCLUDES,
-  },
-  // Vercel manages deployment output; standalone breaks Prisma engine tracing on serverless.
   /** Full cart page removed; drawer-only cart — old URLs go to shop. */
   async redirects() {
     return [
@@ -148,7 +134,6 @@ const nextConfig = {
       "@": `${projectRoot}/src`,
       "@shop/ui": `${projectRoot}/shared/ui`,
       "@shop/design-tokens": `${projectRoot}/shared/design-tokens`,
-      "@prisma/client": `${projectRoot}/shared/db/src/generated/prisma-client`,
     };
     
     return config;
