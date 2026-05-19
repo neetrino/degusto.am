@@ -10,6 +10,7 @@ import { useAddToCart } from '../hooks/useAddToCart';
 import { useWishlist } from '../hooks/useWishlist';
 import { useAuth } from '../../lib/auth/AuthContext';
 import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
+import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
 import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
 import type { MenuCard, MenuCategory } from './menu-types';
 import { ShopMobileProductCard } from './ShopMobileProductCard';
@@ -28,7 +29,6 @@ import { shouldShowMenuCardStrikethroughPrice } from '@/lib/storefront/menu-card
 import { r2Asset } from '@/lib/r2-public-url';
 
 const assets = {
-  productCardImage: r2Asset('product/20260512-D3w_teddze.png'),
   productCardAddToCart: r2Asset('product/20260512-g67zkm13ZH.svg'),
   productCardHot: r2Asset('product/20260512-dWv7-ZfxP1.svg'),
   productCardRibbon: r2Asset('product/20260512-lmzrYlGD39.svg'),
@@ -209,7 +209,7 @@ function MenuCardItem({ card }: { card: MenuCard }) {
   const { isInWishlist, toggleWishlist } = useWishlist(card.id);
   const title = card.title || t(card.titleKey);
   const category = card.category || (card.categoryKey ? t(card.categoryKey) : '');
-  const imageSrc = card.image || assets.productCardImage;
+  const imageSrc = STOREFRONT_PRODUCT_IMAGE_PATH;
   const calculatedDiscountPercent =
     card.oldPrice > card.price && card.oldPrice > 0
       ? Math.round(((card.oldPrice - card.price) / card.oldPrice) * 100)
@@ -248,7 +248,7 @@ function MenuCardItem({ card }: { card: MenuCard }) {
     const cardRoot = button.closest('[data-home-product-card]');
     const origin =
       (cardRoot?.querySelector('[data-product-fly-origin]') as HTMLElement | null) ?? button;
-    void addToCart({ origin, imageUrl: card.image || null });
+    void addToCart({ origin, imageUrl: STOREFRONT_PRODUCT_IMAGE_PATH });
   };
 
   const handleWishlistToggle = (event: MouseEvent<HTMLButtonElement>) => {

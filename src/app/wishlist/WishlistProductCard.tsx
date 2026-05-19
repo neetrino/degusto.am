@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
 import { Button } from '@shop/ui';
 import { formatPrice, type CurrencyCode } from '../../lib/currency';
 import { WishlistMobileProductCard } from './WishlistMobileProductCard';
@@ -37,39 +38,20 @@ interface WishlistCardImageLinkProps {
   image: string | null;
 }
 
-function WishlistCardImageLink({ slug, title, image }: WishlistCardImageLinkProps) {
+function WishlistCardImageLink({ slug, title }: WishlistCardImageLinkProps) {
   return (
     <Link
       href={`/products/${slug}`}
       className="absolute inset-0 block outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
     >
-      {image ? (
-        <Image
-          src={image}
-          alt={title}
-          fill
-          className="object-cover transition-transform duration-500 ease-out group-hover/card:scale-[1.05]"
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
-          unoptimized
-        />
-      ) : (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-          <svg
-            className="h-14 w-14 text-brand/25"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            aria-hidden
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-            />
-          </svg>
-        </div>
-      )}
+      <Image
+        src={STOREFRONT_PRODUCT_IMAGE_PATH}
+        alt={title}
+        fill
+        className="object-cover transition-transform duration-500 ease-out group-hover/card:scale-[1.05]"
+        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
+        unoptimized
+      />
       <span
         className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-brand/35 via-brand/5 to-transparent opacity-0 transition-opacity duration-300 group-hover/card:opacity-100"
         aria-hidden

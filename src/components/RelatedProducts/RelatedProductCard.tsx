@@ -13,8 +13,8 @@ import { useWishlist } from '../hooks/useWishlist';
 import { useTranslation } from '../../lib/i18n-client';
 import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
 import { FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS } from '@/constants/mobile-figma-storefront';
+import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
 
-const FIGMA_CARD_IMAGE = '/api/r2/product/20260512-D3w_teddze.png';
 const FIGMA_HOT_ICON = '/api/r2/product/20260512-dWv7-ZfxP1.svg';
 const FIGMA_RIBBON_ICON = '/api/r2/product/20260512-lmzrYlGD39.svg';
 const FIGMA_STAR_ICON = '/api/r2/product/20260512-7jf6Wihrew.svg';
@@ -74,7 +74,7 @@ export function RelatedProductCard({
   const { isLoggedIn } = useAuth();
   const { t } = useTranslation();
   const { isInWishlist, toggleWishlist } = useWishlist(product.id);
-  const hasImage = product.image && !imageError;
+  const imageSrc = STOREFRONT_PRODUCT_IMAGE_PATH;
   const hasDiscount = typeof product.discountPercent === 'number' && product.discountPercent > 0;
   const discountText = hasDiscount ? `-${Math.round(product.discountPercent!)}%` : '';
 
@@ -126,7 +126,7 @@ export function RelatedProductCard({
               }
             >
               <Image
-                src={hasImage ? product.image! : FIGMA_CARD_IMAGE}
+                src={imageSrc}
                 alt={product.title}
                 fill
                 className="object-cover transition-transform duration-300 group-hover:scale-105"

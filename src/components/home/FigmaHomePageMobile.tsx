@@ -11,6 +11,7 @@ import { formatPrice } from '../../lib/currency';
 import { useCurrency } from '../hooks/useCurrency';
 import { getHomeCategoryHref } from './homeCategoryLinks';
 import type { HomeFeaturedProduct } from './FigmaHomePage';
+import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
 import { ShopMobileProductCard } from './ShopMobileProductCard';
 import type { MenuCard } from './menu-types';
 import {
@@ -40,7 +41,6 @@ const mobileAssets = {
   dailyOfferBackground: r2Asset('assets/20260512-Qr_pLoFG6x.svg'),
   dailyOfferPizza: r2Asset('assets/20260512-84Sj1kTqGo.png'),
   dailyOfferAddToCart: r2Asset('assets/20260512-AiLSWk8lFo.svg'),
-  productImage: r2Asset('product/20260512-lbgLHc4bPu.png'),
   productHot: r2Asset('product/20260512-Y6Ue4PwD26.svg'),
   productRibbon: r2Asset('product/20260512-vCDQ1I3ZtJ.svg'),
   productStar: r2Asset('product/20260512-4fThctFUPS.svg'),
@@ -73,7 +73,7 @@ function homeFeaturedProductToMenuCard(product: HomeFeaturedProduct): MenuCard {
     title: product.title,
     subtitle: product.subtitle,
     category: product.subtitle,
-    image: product.image,
+    image: STOREFRONT_PRODUCT_IMAGE_PATH,
     price,
     oldPrice,
     discount,
@@ -192,7 +192,7 @@ function MobileDailyOffer({ product }: { product: HomeFeaturedProduct }) {
     product.title === 'Double Cheeseburger'
       ? t('home.figma.mobile.product.title')
       : (product.title || t('home.figma.mobile.product.title'));
-  const imageSrc = product.image || mobileAssets.dailyOfferPizza;
+  const imageSrc = STOREFRONT_PRODUCT_IMAGE_PATH;
   const price = product.price ?? 0;
   const discountPercent = resolveMobileHomeDiscountPercent(product);
   const productHref = `/products/${product.slug}`;

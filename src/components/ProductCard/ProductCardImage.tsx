@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ProductLabels } from "../ProductLabels";
-import { ProductImagePlaceholder } from "../ProductImagePlaceholder";
+import { STOREFRONT_PRODUCT_IMAGE_PATH } from "@/constants/storefront-product-image";
 import type { ProductLabel } from "../ProductLabels";
 
 interface ProductCardImageProps {
@@ -18,7 +18,7 @@ interface ProductCardImageProps {
 
 /**
  * Component for displaying product image with labels.
- * Shows placeholder icon when no image or image failed to load.
+ * Uses the shared storefront product photo for every product card.
  */
 export function ProductCardImage({
   slug,
@@ -29,27 +29,22 @@ export function ProductCardImage({
   onImageError,
   isCompact = false,
 }: ProductCardImageProps) {
-  const showPlaceholder = !image || imageError;
+  void image;
+  void imageError;
+  const displaySrc = STOREFRONT_PRODUCT_IMAGE_PATH;
 
   return (
     <div data-product-fly-origin className="aspect-square bg-gray-100 relative overflow-hidden">
       <Link href={`/products/${slug}`} className="relative block w-full h-full">
-        {showPlaceholder ? (
-          <ProductImagePlaceholder
-            className="w-full h-full"
-            aria-label={title ? `No image for ${title}` : "No image"}
-          />
-        ) : (
-          <Image
-            src={image}
-            alt={title}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-            unoptimized
-            onError={onImageError}
-          />
-        )}
+        <Image
+          src={displaySrc}
+          alt={title}
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+          unoptimized
+          onError={onImageError}
+        />
       </Link>
       {labels && labels.length > 0 && <ProductLabels labels={labels} />}
     </div>

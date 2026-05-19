@@ -1,3 +1,4 @@
+import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
 import { HEADER_PUBLIC_ASSETS } from '@/constants/header-public-assets';
 import { r2Asset } from '@/lib/r2-public-url';
 
@@ -54,7 +55,7 @@ export const FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS = 'group-hover:bg-[#FFEA
 
 /** Mobile shop product card artwork (Figma 1:2235 / home mobile parity). */
 export const MOBILE_SHOP_PRODUCT_CARD_ASSETS = {
-  fallbackImage: r2Asset('product/20260512-lbgLHc4bPu.png'),
+  productImage: STOREFRONT_PRODUCT_IMAGE_PATH,
   addToCart: r2Asset('product/20260512-N6b8G5qARR.svg'),
   hot: r2Asset('product/20260512-Y6Ue4PwD26.svg'),
   ribbon: r2Asset('product/20260512-vCDQ1I3ZtJ.svg'),

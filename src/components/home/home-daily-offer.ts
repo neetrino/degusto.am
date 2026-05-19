@@ -1,4 +1,4 @@
-import { r2Asset } from '@/lib/r2-public-url';
+import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
 import type { HomeFeaturedProduct } from './FigmaHomePage';
 
 export const HOME_DAILY_OFFER_FALLBACK_PRODUCT: HomeFeaturedProduct = {
@@ -8,7 +8,7 @@ export const HOME_DAILY_OFFER_FALLBACK_PRODUCT: HomeFeaturedProduct = {
   subtitle: 'Բուրգեր',
   price: 1200,
   oldPrice: 1500,
-  image: r2Asset('product/20260512-5XM6tLjCRv.png'),
+  image: STOREFRONT_PRODUCT_IMAGE_PATH,
   discountPercent: 30,
   supportsSpicy: true,
   supportsGreens: true,

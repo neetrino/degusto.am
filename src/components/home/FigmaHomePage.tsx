@@ -20,14 +20,13 @@ import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges
 import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
 import { FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS } from '@/constants/mobile-figma-storefront';
 import { r2Asset } from '@/lib/r2-public-url';
+import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
 import { HomeOptimizedImage } from './HomeOptimizedImage';
 import { HOME_DAILY_OFFER_FALLBACK_PRODUCT, resolveHomeDailyOfferProduct } from './home-daily-offer';
 
 const assets = {
   heroBg: r2Asset('hero/20260512-tOKhBzyB6u.png'),
   offerBadge: r2Asset('assets/20260512-3dEN1cAZhG.svg'),
-  product: r2Asset('product/20260512-5XM6tLjCRv.png'),
-  productCardImage: r2Asset('product/20260512-D3w_teddze.png'),
   productCardAddToCart: r2Asset('product/20260512-g67zkm13ZH.svg'),
   productCardHot: r2Asset('product/20260512-dWv7-ZfxP1.svg'),
   productCardRibbon: r2Asset('product/20260512-lmzrYlGD39.svg'),
@@ -85,7 +84,7 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
   const keepCurrencySymbolAttached = (value: string): string => value.replace(/\s+(\S+)$/u, '\u00A0$1');
   const hasDiscount = typeof item.discountPercent === 'number' && item.discountPercent > 0;
   const discountPercent = typeof item.discountPercent === 'number' ? Math.round(item.discountPercent) : null;
-  const imageSrc = item.image || assets.product;
+  const imageSrc = STOREFRONT_PRODUCT_IMAGE_PATH;
   const title =
     item.title === 'Double Cheeseburger' ? t('home.figma.mobile.product.title') : (item.title || t('home.figma.mobile.product.title'));
   const subtitle = item.subtitle || t('home.figma.mobile.product.subtitle');
@@ -120,7 +119,7 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
     const card = button.closest('[data-home-product-card]');
     const origin =
       (card?.querySelector('[data-product-fly-origin]') as HTMLElement | null) ?? button;
-    void addToCart({ origin, imageUrl: item.image });
+    void addToCart({ origin, imageUrl: STOREFRONT_PRODUCT_IMAGE_PATH });
   };
 
   const handleWishlistToggle = (event: MouseEvent<HTMLButtonElement>) => {
@@ -143,13 +142,13 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
       tabIndex={0}
       aria-label={title}
     >
-      <div data-product-fly-origin className="absolute left-1/2 top-1 h-[147px] w-[227px] -translate-x-1/2">
+      <div data-product-fly-origin className="absolute left-1/2 top-1 h-[147px] w-[227px] -translate-x-1/2 overflow-hidden rounded-[18px]">
         <HomeOptimizedImage
           src={imageSrc}
           alt={title}
           width={227}
           height={147}
-          className="h-full w-full rounded-[18px] object-cover"
+          className="h-full w-full object-cover"
           loading="lazy"
           sizes="236px"
         />
@@ -317,13 +316,13 @@ export function FigmaHomePage({
             aria-label={heroProductTitle}
           >
             <div className="absolute inset-0 rounded-[20px] bg-white shadow-xl" />
-            <div className="absolute left-1/2 top-[5px] h-[147px] w-[227px] -translate-x-1/2">
+            <div className="absolute left-1/2 top-[5px] h-[147px] w-[227px] -translate-x-1/2 overflow-hidden rounded-[18px]">
               <HomeOptimizedImage
-                src={heroProduct?.image || assets.productCardImage}
+                src={STOREFRONT_PRODUCT_IMAGE_PATH}
                 alt={t('home.figma.mobile.dailyOfferImageAlt')}
                 width={227}
                 height={147}
-                className="h-full w-full rounded-[18px] object-cover"
+                className="h-full w-full object-cover"
                 priority
                 loading="eager"
                 sizes="236px"
