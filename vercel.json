@@ -1,7 +1,7 @@
 {
   "buildCommand": "pnpm run build:with-migrate",
   "framework": "nextjs",
-  "installCommand": "pnpm install && pnpm run db:generate",
+  "installCommand": "pnpm install && pnpm run db:generate && node src/scripts/ensure-prisma-rhel-engine.js",
   "devCommand": "pnpm run dev",
   "env": { "NODE_ENV": "production" },
   "functions": {

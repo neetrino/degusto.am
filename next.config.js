@@ -29,15 +29,8 @@ const nextConfig = {
   reactStrictMode: true,
   // Скрыть индикатор "Compiling..." в углу в dev — не мешает на экране
   devIndicators: false,
-  // Prisma: avoid Turbopack/webpack inlining `env("DATABASE_URL")` inside bundled client (empty URL at runtime).
-  serverExternalPackages: [
-    '@prisma/client',
-    'prisma',
-    '@white-shop/db',
-    '@prisma/adapter-neon',
-    '@neondatabase/serverless',
-    'ws',
-  ],
+  // Bundle Prisma + Neon adapter into serverless functions (externalizing breaks engine/adapter on Vercel).
+  serverExternalPackages: ['ws'],
   transpilePackages: ['@shop/ui', '@shop/design-tokens'],
   // Monorepo: trace generated Prisma client + query engine into standalone serverless bundle
   outputFileTracingRoot: __dirname,

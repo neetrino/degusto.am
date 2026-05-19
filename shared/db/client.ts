@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import path from "node:path";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import { neonConfig, Pool } from "@neondatabase/serverless";
 import { PrismaClient } from "./src/generated/prisma-client";
@@ -52,6 +54,37 @@ process.env.DATABASE_URL = resolvedDatabaseUrl;
 process.env.DIRECT_URL = resolvedDirectUrl;
 
 const useNeonDriverAdapter = shouldUseNeonDriverAdapterForRuntime(resolvedDatabaseUrl);
+
+const PRISMA_RHEL_ENGINE_FILENAME = "libquery_engine-rhel-openssl-3.0.x.so.node";
+
+/**
+ * Vercel serverless: Prisma still resolves the rhel query engine binary even with driver adapters.
+ * Point PRISMA_QUERY_ENGINE_LIBRARY at the generated engine if it exists in the bundle.
+ */
+function configurePrismaEngineLibraryPathForVercel(): void {
+  if (process.env.VERCEL !== "1" || process.env.PRISMA_QUERY_ENGINE_LIBRARY) {
+    return;
+  }
+  const moduleDir =
+    typeof __dirname !== "undefined" ? __dirname : path.join(process.cwd(), "shared/db");
+  const candidates = [
+    path.join(moduleDir, "src/generated/prisma-client", PRISMA_RHEL_ENGINE_FILENAME),
+    path.join(process.cwd(), "shared/db/src/generated/prisma-client", PRISMA_RHEL_ENGINE_FILENAME),
+    path.join(
+      process.cwd(),
+      "node_modules/@white-shop/db/src/generated/prisma-client",
+      PRISMA_RHEL_ENGINE_FILENAME
+    ),
+  ];
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) {
+      process.env.PRISMA_QUERY_ENGINE_LIBRARY = candidate;
+      return;
+    }
+  }
+}
+
+configurePrismaEngineLibraryPathForVercel();
 
 const devPrismaLogs: Array<"query" | "error" | "warn"> =
   process.env.NODE_ENV === "development" && process.env.PRISMA_LOG_QUERIES === "1"
