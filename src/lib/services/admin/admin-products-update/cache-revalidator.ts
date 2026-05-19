@@ -4,6 +4,7 @@ import {
   invalidateStorefrontProductRelatedCaches,
 } from "@/lib/cache/storefront-cache";
 import { HOME_PAGE_CACHE_TAG } from "@/lib/services/home-page-data.service";
+import { pdpPageCacheTag } from "@/lib/services/products-slug/get-product-page-data";
 import { SHOP_MENU_CACHE_TAG } from "@/lib/services/shop-page/shop-page-data.service";
 import { logger } from "../../../utils/logger";
 import { cacheService } from "../../cache.service";
@@ -19,6 +20,8 @@ export async function revalidateProductCache(
     logger.debug('Revalidating paths for product', { productId });
     if (productSlug) {
       revalidatePath(`/products/${productSlug}`);
+      // @ts-expect-error - revalidateTag type issue in Next.js
+      revalidateTag(pdpPageCacheTag(productSlug));
     }
     revalidatePath('/');
     revalidatePath('/shop');

@@ -25,7 +25,6 @@ export function mergeVisualIntoProduct(
       title: visual.title,
       media: visual.galleryImages,
       variants: [],
-      seo: visual.seo,
     };
   }
 

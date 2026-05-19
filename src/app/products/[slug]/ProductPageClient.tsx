@@ -1,7 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { useLayoutEffect } from 'react';
+import {
+  useLayoutEffect,
+  useMemo,
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+  type ReactNode,
+} from 'react';
+import { useLazyInView } from '../../../components/hooks/useLazyInView';
 import { apiClient } from '../../../lib/api-client';
 import { t } from '../../../lib/i18n';
 import { useAuth } from '../../../lib/auth/AuthContext';
@@ -9,6 +18,7 @@ import { RelatedProducts } from '../../../components/RelatedProducts';
 import { ProductReviews } from '../../../components/ProductReviews';
 import { ProductImageGallery } from './ProductImageGallery';
 import { ProductInfoAndActions } from './ProductInfoAndActions';
+import { ProductInfoColumnSkeleton } from './ProductInfoColumnSkeleton';
 import { ProductPageShell } from './ProductPageShell';
 import { useProductPage } from './useProductPage';
 import { playCartFlyAnimation } from '../../../lib/cart-fly-animation';
@@ -21,6 +31,13 @@ import {
 } from '../../../lib/cart/customizations';
 import type { Product } from './types';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
+import type { ProductReviewSummary } from '@/lib/services/reviews/product-review-summary';
+import {
+  mergeVisualIntoProduct,
+  type ProductVisualSnapshot,
+} from './utils/merge-visual-into-product';
+import { ProductPageHydrationProvider } from './ProductPageHydrationContext';
+import { useProductClientRefetch } from './hooks/useProductClientRefetch';
 
 function collectSelectedAttributeValueIdsForCart(
   product: Product,
@@ -39,7 +56,9 @@ function collectSelectedAttributeValueIdsForCart(
     if (!pa) {
       continue;
     }
-    const match = pa.attribute.values.find((v) => v.id === raw || v.value === raw || v.label === raw);
+    const match = pa.attribute.values.find(
+      (v) => v.id === raw || v.value === raw || v.label === raw
+    );
     if (match?.id) {
       ids.push(match.id);
     }
@@ -47,31 +66,84 @@ function collectSelectedAttributeValueIdsForCart(
   return ids;
 }
 
-/** White behind header on PDP so the UniversalHeader spacer matches the chrome, not orange. */
 const PDP_BODY_BACKGROUND = '#ffffff';
-/** Desktop: pull orange shell under the fixed header stack (104px spacer) like login layout. */
-const PDP_HEADER_DESKTOP_UNDERLAP_CLASS = 'lg:relative lg:z-10 lg:-mt-[104px] lg:pt-[104px]';
+const PDP_HEADER_DESKTOP_UNDERLAP_CLASS =
+  'lg:relative lg:z-10 lg:-mt-[104px] lg:pt-[104px]';
 
 export interface ProductPageClientProps {
   slug: string;
   variantIdFromUrl: string | null;
-  initialProduct: Product | null;
-  initialNotFound: boolean;
+  initialVisual: ProductVisualSnapshot | null;
   serverLocale: StorefrontLocale;
+  children: ReactNode;
 }
 
 export function ProductPageClient({
   slug,
   variantIdFromUrl,
-  initialProduct,
-  initialNotFound,
+  initialVisual,
   serverLocale,
+  children,
 }: ProductPageClientProps) {
+  const { ref: reviewsSectionRef, inView: reviewsInView } = useLazyInView('320px');
   const { isLoggedIn } = useAuth();
-  const {
+
+  const [fullProduct, setFullProduct] = useState<Product | null>(null);
+  const [reviewSummary, setReviewSummary] = useState<ProductReviewSummary>({
+    count: 0,
+    averageRating: 0,
+  });
+  const [notFound, setNotFound] = useState(false);
+
+  const partialProduct = useMemo(
+    () => (initialVisual ? mergeVisualIntoProduct(null, initialVisual) : null),
+    [initialVisual]
+  );
+
+  const product = fullProduct ?? partialProduct;
+  const detailsPending = Boolean(partialProduct && !fullProduct && !notFound);
+  const awaitingDetails = !product && !notFound;
+  const productRef = useRef<Product | null>(product);
+
+  useEffect(() => {
+    productRef.current = product;
+  }, [product]);
+
+  const hydrateDetails = useCallback((next: Product, summary: ProductReviewSummary) => {
+    setFullProduct(next);
+    setReviewSummary(summary);
+    setNotFound(false);
+    productRef.current = next;
+  }, []);
+
+  const markNotFound = useCallback(() => {
+    setFullProduct(null);
+    setNotFound(true);
+  }, []);
+
+  useProductClientRefetch({
+    slug,
+    serverLocale,
+    productRef,
+    skipMountFetch: Boolean(initialVisual),
+    onLoaded: (next) => {
+      setFullProduct(next);
+      productRef.current = next;
+    },
+    onNotFound: markNotFound,
+  });
+
+  const page = useProductPage({
+    slug,
+    variantIdFromUrl,
     product,
-    loading,
     notFound,
+    detailsPending,
+    reviewSummary,
+    fetchReviews: reviewsInView,
+  });
+
+  const {
     images,
     currentImageIndex,
     setCurrentImageIndex,
@@ -86,13 +158,12 @@ export function ProductPageClient({
     setIsAddingToCart,
     additions,
     exclusions,
-    setAdditions,
-    setExclusions,
     quantity,
     reviews,
     reviewsLoading,
     setReviews,
     averageRating,
+    reviewsCount,
     attributeGroups,
     colorGroups,
     sizeGroups,
@@ -111,13 +182,7 @@ export function ProductPageClient({
     handleColorSelect,
     handleSizeSelect,
     handleAttributeValueSelect,
-  } = useProductPage({
-    slug,
-    variantIdFromUrl,
-    initialProduct,
-    initialNotFound,
-    serverLocale,
-  });
+  } = page;
 
   useLayoutEffect(() => {
     if (!product) return;
@@ -126,7 +191,10 @@ export function ProductPageClient({
 
   const handleAddToCart = async () => {
     if (!canAddToCart || !product || !currentVariant) return;
-    const selectedIds = collectSelectedAttributeValueIdsForCart(product, selectedAttributeValues);
+    const selectedIds = collectSelectedAttributeValueIdsForCart(
+      product,
+      selectedAttributeValues
+    );
     const customizations = normalizeProductCustomizations({
       additions,
       exclusions,
@@ -191,24 +259,33 @@ export function ProductPageClient({
     }
   };
 
-  if (loading && !product) {
+  const shell = (
+    <>
+      <BodyBackground color={PDP_BODY_BACKGROUND} />
+      <div className={PDP_HEADER_DESKTOP_UNDERLAP_CLASS}>
+        <ProductPageShell />
+      </div>
+    </>
+  );
+
+  if (awaitingDetails) {
     return (
-      <>
-        <BodyBackground color={PDP_BODY_BACKGROUND} />
-        <div className={PDP_HEADER_DESKTOP_UNDERLAP_CLASS}>
-          <ProductPageShell />
-        </div>
-      </>
+      <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
+        {shell}
+        {children}
+      </ProductPageHydrationProvider>
     );
   }
 
   if (notFound && !product) {
     return (
-      <>
+      <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
         <BodyBackground color={PDP_BODY_BACKGROUND} />
         <div className={PDP_HEADER_DESKTOP_UNDERLAP_CLASS}>
           <div className="mx-auto max-w-7xl max-lg:px-0 px-4 py-16 text-center space-y-4">
-            <p className="text-lg text-neutral-600">{t(language, 'common.messages.noProductsFound')}</p>
+            <p className="text-lg text-neutral-600">
+              {t(language, 'common.messages.noProductsFound')}
+            </p>
             <Link
               href="/shop"
               className="inline-flex h-10 items-center rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-50"
@@ -217,31 +294,21 @@ export function ProductPageClient({
             </Link>
           </div>
         </div>
-      </>
+        {children}
+      </ProductPageHydrationProvider>
     );
   }
 
   if (!product) {
     return (
-      <>
-        <BodyBackground color={PDP_BODY_BACKGROUND} />
-        <div className={PDP_HEADER_DESKTOP_UNDERLAP_CLASS}>
-          <div className="mx-auto max-w-7xl max-lg:px-0 px-4 py-16 text-center space-y-4">
-            <p className="text-lg text-neutral-600">{t(language, 'common.messages.invalidProduct')}</p>
-            <Link
-              href="/shop"
-              className="inline-flex h-10 items-center rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-50"
-            >
-              {t(language, 'common.navigation.products')}
-            </Link>
-          </div>
-        </div>
-      </>
+      <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
+        {children}
+      </ProductPageHydrationProvider>
     );
   }
 
   return (
-    <>
+    <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
       <BodyBackground color={PDP_BODY_BACKGROUND} />
       <div
         className={`${PDP_HEADER_DESKTOP_UNDERLAP_CLASS} min-h-dvh overflow-x-hidden max-lg:min-h-0 lg:min-h-dvh lg:bg-[var(--project-color)]`}
@@ -264,62 +331,72 @@ export function ProductPageClient({
                 mainImagePriority={currentImageIndex === 0}
               />
 
-              <ProductInfoAndActions
-                product={product}
-                price={price}
-                originalPrice={originalPrice}
-                compareAtPrice={compareAtPrice}
-                discountPercent={discountPercent}
-                currency={currency}
-                language={language}
-                averageRating={averageRating}
-                reviewsCount={reviews.length}
-                quantity={quantity}
-                maxQuantity={maxQuantity}
-                isOutOfStock={isOutOfStock}
-                unavailableAttributes={unavailableAttributes}
-                canAddToCart={canAddToCart}
-                isAddingToCart={isAddingToCart}
-                currentVariant={currentVariant}
-                attributeGroups={attributeGroups}
-                selectedColor={selectedColor}
-                selectedSize={selectedSize}
-                selectedAttributeValues={selectedAttributeValues}
-                colorGroups={colorGroups}
-                sizeGroups={sizeGroups}
-                onQuantityAdjust={adjustQuantity}
-                onAddToCart={handleAddToCart}
-                onScrollToReviews={scrollToReviews}
-                onColorSelect={handleColorSelect}
-                onSizeSelect={handleSizeSelect}
-                onAttributeValueSelect={handleAttributeValueSelect}
-                getOptionValue={getOptionValue}
-              />
+              {detailsPending ? (
+                <ProductInfoColumnSkeleton />
+              ) : (
+                <ProductInfoAndActions
+                  product={product}
+                  price={price}
+                  originalPrice={originalPrice}
+                  compareAtPrice={compareAtPrice}
+                  discountPercent={discountPercent}
+                  currency={currency}
+                  language={language}
+                  averageRating={averageRating}
+                  reviewsCount={reviewsCount}
+                  quantity={quantity}
+                  maxQuantity={maxQuantity}
+                  isOutOfStock={isOutOfStock}
+                  unavailableAttributes={unavailableAttributes}
+                  canAddToCart={canAddToCart}
+                  isAddingToCart={isAddingToCart}
+                  currentVariant={currentVariant}
+                  attributeGroups={attributeGroups}
+                  selectedColor={selectedColor}
+                  selectedSize={selectedSize}
+                  selectedAttributeValues={selectedAttributeValues}
+                  colorGroups={colorGroups}
+                  sizeGroups={sizeGroups}
+                  onQuantityAdjust={adjustQuantity}
+                  onAddToCart={handleAddToCart}
+                  onScrollToReviews={scrollToReviews}
+                  onColorSelect={handleColorSelect}
+                  onSizeSelect={handleSizeSelect}
+                  onAttributeValueSelect={handleAttributeValueSelect}
+                  getOptionValue={getOptionValue}
+                />
+              )}
             </div>
           </section>
 
-          <div className="mt-8 rounded-3xl border border-neutral-200 bg-white p-3 shadow-[0_6px_22px_rgba(0,0,0,0.04)] max-lg:mt-8 max-lg:rounded-none max-lg:border-x-0 max-lg:border-b-0 max-lg:border-t max-lg:border-neutral-200 max-lg:bg-transparent max-lg:p-0 max-lg:pt-8 max-lg:shadow-none sm:mt-12 sm:p-4 lg:mt-10 lg:p-5">
-            <RelatedProducts
-              productSlug={slug}
-              categorySlug={product.categories?.[0]?.slug}
-              currentProductId={product.id}
-            />
-          </div>
+          {!detailsPending && (
+            <>
+              <div className="mt-8 rounded-3xl border border-neutral-200 bg-white p-3 shadow-[0_6px_22px_rgba(0,0,0,0.04)] max-lg:mt-8 max-lg:rounded-none max-lg:border-x-0 max-lg:border-b-0 max-lg:border-t max-lg:border-neutral-200 max-lg:bg-transparent max-lg:p-0 max-lg:pt-8 max-lg:shadow-none sm:mt-12 sm:p-4 lg:mt-10 lg:p-5">
+                <RelatedProducts
+                  productSlug={slug}
+                  categorySlug={product.categories?.[0]?.slug}
+                  currentProductId={product.id}
+                />
+              </div>
 
-          <div
-            id="product-reviews"
-            className="mt-8 scroll-mt-24 rounded-3xl border border-neutral-200 bg-white p-4 shadow-[0_6px_22px_rgba(0,0,0,0.04)] max-lg:mt-8 max-lg:rounded-none max-lg:border-x-0 max-lg:border-b-0 max-lg:border-t max-lg:border-neutral-200 max-lg:bg-transparent max-lg:pt-8 max-lg:shadow-none sm:mt-10 sm:p-6 lg:mt-10 lg:p-8"
-          >
-            <ProductReviews
-              productSlug={slug}
-              productId={product.id}
-              reviews={reviews}
-              reviewsLoading={reviewsLoading}
-              setReviews={setReviews}
-            />
-          </div>
+              <div
+                ref={reviewsSectionRef}
+                id="product-reviews"
+                className="mt-8 scroll-mt-24 rounded-3xl border border-neutral-200 bg-white p-4 shadow-[0_6px_22px_rgba(0,0,0,0.04)] max-lg:mt-8 max-lg:rounded-none max-lg:border-x-0 max-lg:border-b-0 max-lg:border-t max-lg:border-neutral-200 max-lg:bg-transparent max-lg:pt-8 max-lg:shadow-none sm:mt-10 sm:p-6 lg:mt-10 lg:p-8"
+              >
+                <ProductReviews
+                  productSlug={slug}
+                  productId={product.id}
+                  reviews={reviews}
+                  reviewsLoading={reviewsLoading}
+                  setReviews={setReviews}
+                />
+              </div>
+            </>
+          )}
         </div>
       </div>
-    </>
+      {children}
+    </ProductPageHydrationProvider>
   );
 }

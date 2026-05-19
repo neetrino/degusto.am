@@ -5,7 +5,6 @@ import { getStoredCurrency } from '../../../lib/currency';
 import { getStoredLanguage, type LanguageCode } from '../../../lib/language';
 import { useAttributeGroups } from './useAttributeGroups';
 import { useProductImages } from './hooks/useProductImages';
-import { useProductFetch } from './hooks/useProductFetch';
 import { useReviews } from '../../../components/ProductReviews/hooks/useReviews';
 import { calculateAverageRating } from '../../../components/ProductReviews/utils';
 import { useVariantSelection, otherAttributeSelectionsFromVariant } from './hooks/useVariantSelection';
@@ -13,21 +12,26 @@ import { useProductQuantity } from './hooks/useProductQuantity';
 import { useProductCalculations } from './hooks/useProductCalculations';
 import type { Product } from './types';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
+import type { ProductReviewSummary } from '@/lib/services/reviews/product-review-summary';
 
 export interface UseProductPageProps {
   slug: string;
   variantIdFromUrl: string | null;
-  initialProduct: Product | null;
-  initialNotFound: boolean;
-  serverLocale: StorefrontLocale;
+  product: Product | null;
+  notFound: boolean;
+  detailsPending: boolean;
+  reviewSummary: ProductReviewSummary;
+  fetchReviews: boolean;
 }
 
 export function useProductPage({
   slug,
   variantIdFromUrl,
-  initialProduct,
-  initialNotFound,
-  serverLocale,
+  product,
+  notFound,
+  detailsPending,
+  reviewSummary,
+  fetchReviews,
 }: UseProductPageProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currency, setCurrency] = useState(getStoredCurrency());
@@ -36,18 +40,6 @@ export function useProductPage({
   const [thumbnailStartIndex, setThumbnailStartIndex] = useState(0);
   const [additions, setAdditions] = useState('');
   const [exclusions, setExclusions] = useState('');
-
-  const {
-    product,
-    loading,
-    notFound,
-  } = useProductFetch({
-    slug,
-    variantIdFromUrl,
-    initialProduct,
-    initialNotFound,
-    serverLocale,
-  });
 
   const images = useProductImages(product);
 
@@ -102,10 +94,18 @@ export function useProductPage({
 
   const { reviews, loading: reviewsLoading, setReviews } = useReviews(
     product?.id,
-    slug || undefined
+    slug || undefined,
+    { enabled: fetchReviews && Boolean(product?.id) }
   );
 
-  const averageRating = useMemo(() => calculateAverageRating(reviews), [reviews]);
+  const averageRating = useMemo(() => {
+    if (reviews.length > 0) {
+      return calculateAverageRating(reviews);
+    }
+    return reviewSummary.averageRating;
+  }, [reviews, reviewSummary.averageRating]);
+
+  const reviewsCount = reviews.length > 0 ? reviews.length : reviewSummary.count;
 
   useEffect(() => {
     setLanguage(getStoredLanguage());
@@ -165,8 +165,8 @@ export function useProductPage({
 
   return {
     product,
-    loading,
     notFound,
+    detailsPending,
     images,
     currentImageIndex,
     setCurrentImageIndex,
@@ -189,6 +189,7 @@ export function useProductPage({
     reviewsLoading,
     setReviews,
     averageRating,
+    reviewsCount,
     slug,
     attributeGroups,
     colorGroups,

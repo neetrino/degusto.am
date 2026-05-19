@@ -1,11 +1,13 @@
+import { Suspense } from 'react';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { resolveStorefrontLocaleFromCookie } from '@/lib/i18n/locale';
-import { getProductPageData } from '@/lib/services/products-slug/get-product-page-data';
+import { getProductVisualCached } from '@/lib/services/products-slug/get-product-visual-cached';
 import { ProductPageClient } from './ProductPageClient';
+import { ProductDetailsServer } from './ProductDetailsServer';
 import { parseProductSlugParam } from './parse-product-slug-param';
 import { RESERVED_ROUTES } from './types';
-import type { Product } from './types';
+import type { ProductVisualSnapshot } from './utils/merge-visual-into-product';
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -24,15 +26,28 @@ export default async function ProductPage({ params }: PageProps) {
     cookieStore.get('shop_language')?.value
   );
 
-  const result = await getProductPageData(slug, serverLocale);
+  const visual = await getProductVisualCached(slug, serverLocale);
+
+  const initialVisual: ProductVisualSnapshot | null = visual
+    ? {
+        id: visual.id,
+        slug: visual.slug,
+        title: visual.title,
+        galleryImages: visual.galleryImages,
+        seo: visual.seo,
+      }
+    : null;
 
   return (
     <ProductPageClient
       slug={slug}
       variantIdFromUrl={variantIdFromUrl}
-      initialProduct={result.status === 'ok' ? (result.product as Product) : null}
-      initialNotFound={result.status === 'not_found'}
+      initialVisual={initialVisual}
       serverLocale={serverLocale}
-    />
+    >
+      <Suspense fallback={null}>
+        <ProductDetailsServer slug={slug} locale={serverLocale} />
+      </Suspense>
+    </ProductPageClient>
   );
 }

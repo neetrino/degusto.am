@@ -175,7 +175,6 @@ async function fetchWithProductAttributes(
         ...getProductAttributesInclude(lang),
       },
     });
-    logger.info('Successfully fetched product with productAttributes');
     const productAttrs = product && 'productAttributes' in product && Array.isArray(product.productAttributes) ? product.productAttributes : [];
     logger.debug('Product attributes count', { count: productAttrs.length });
     return product as unknown as ProductWithFullRelations | null;

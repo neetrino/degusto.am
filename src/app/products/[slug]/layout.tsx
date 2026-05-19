@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { resolveStorefrontLocaleFromCookie } from "@/lib/i18n/locale";
 import { getProductMetadataFallbackCopy } from "@/lib/i18n/metadata";
-import { getProductPageData } from "@/lib/services/products-slug/get-product-page-data";
+import { getProductVisualCached } from "@/lib/services/products-slug/get-product-visual-cached";
 import { parseProductSlugParam } from "./parse-product-slug-param";
 
 const SITE_NAME = "WhiteShop.am";
@@ -18,19 +18,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const locale = resolveStorefrontLocaleFromCookie(cookieStore.get("shop_language")?.value);
   const fallback = getProductMetadataFallbackCopy(locale);
   try {
-    const result = await getProductPageData(slug, locale);
-    if (result.status !== "ok") {
+    const visual = await getProductVisualCached(slug, locale);
+    if (!visual) {
       return {
         title: `${fallback.notFound} | ${SITE_NAME}`,
       };
     }
-    const product = result.product;
-    const title = product.seo?.title || product.title || fallback.title;
-    const description = product.seo?.description || product.description || null;
-    const firstImage =
-      Array.isArray(product.media) && product.media.length > 0
-        ? String(product.media[0])
-        : null;
+    const title = visual.seo.title || visual.title || fallback.title;
+    const description = visual.seo.description ?? null;
+    const firstImage = visual.mainImage ?? visual.galleryImages[0] ?? null;
 
     return {
       title: `${title} | ${SITE_NAME}`,
