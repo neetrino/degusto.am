@@ -24,6 +24,10 @@ import { useProductPage } from './useProductPage';
 import { playCartFlyAnimation } from '../../../lib/cart-fly-animation';
 import { BodyBackground } from '../../../components/BodyBackground';
 import { ProjectGreenStripes } from '../../../components/decor/ProjectGreenStripes';
+import { publishCartUpdated } from '@/lib/cart/cart-events';
+import { computeGuestCartSummary } from '@/lib/cart/guest-cart-summary';
+import { rememberCartLineId } from '@/lib/cart/cart-line-id-cache';
+import { readCartSummaryCache } from '@/lib/cartSummaryCache';
 import { logger } from '@/lib/utils/logger';
 import {
   buildCustomizationLineKey,
@@ -241,15 +245,29 @@ export function ProductPageClient({
           });
         }
         localStorage.setItem('shop_cart_guest', JSON.stringify(cart));
+        const { itemsCount, total } = computeGuestCartSummary();
+        publishCartUpdated(itemsCount, total);
       } else {
-        await apiClient.post('/api/v1/cart/items', {
+        const response = await apiClient.post<{
+          item: { id: string; quantity: number; price: number };
+          cartSummary?: { itemsCount: number; total: number };
+        }>('/api/v1/cart/items', {
           productId: product.id,
           variantId: currentVariant.id,
           quantity,
           customizations,
         });
+        rememberCartLineId(product.id, currentVariant.id, response.item.id, response.item.quantity);
+        if (response.cartSummary) {
+          publishCartUpdated(response.cartSummary.itemsCount, response.cartSummary.total);
+        } else {
+          const cache = readCartSummaryCache();
+          publishCartUpdated(
+            (cache?.itemsCount ?? 0) + quantity,
+            (cache?.total ?? 0) + currentVariant.price * quantity
+          );
+        }
       }
-      window.dispatchEvent(new Event('cart-updated'));
     } catch (error: unknown) {
       logger.warn('Add to cart failed', {
         error: error instanceof Error ? error.message : String(error),

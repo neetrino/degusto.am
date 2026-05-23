@@ -42,7 +42,6 @@ function CartItemVariantChips({ lines, appearance = 'page' }: { lines: DisplayLi
 
 interface CartItemQuantityStepperProps {
   item: CartItem;
-  updatingItems: Set<string>;
   onUpdateQuantity: (itemId: string, quantity: number) => void;
   t: (key: string) => string;
   appearance?: CartListAppearance;
@@ -50,7 +49,6 @@ interface CartItemQuantityStepperProps {
 
 function CartItemQuantityStepper({
   item,
-  updatingItems,
   onUpdateQuantity,
   t,
   appearance = 'page',
@@ -79,7 +77,6 @@ function CartItemQuantityStepper({
       <button
         type="button"
         onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
-        disabled={updatingItems.has(item.id)}
         className={btnClass}
         aria-label={t('common.ariaLabels.decreaseQuantity')}
       >
@@ -97,7 +94,6 @@ function CartItemQuantityStepper({
             const next = parseInt(e.target.value, 10) || 1;
             onUpdateQuantity(item.id, next);
           }}
-          disabled={updatingItems.has(item.id)}
           className={inputClass}
           aria-label={t('common.messages.quantity')}
         />
@@ -105,7 +101,7 @@ function CartItemQuantityStepper({
       <button
         type="button"
         onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-        disabled={updatingItems.has(item.id) || atMaxStock}
+        disabled={atMaxStock}
         className={btnClass}
         aria-label={t('common.ariaLabels.increaseQuantity')}
         title={
@@ -143,7 +139,6 @@ function cartItemImageLinkClassName(appearance: CartListAppearance): string {
 interface CartItemRowProps {
   item: CartItem;
   currency: string;
-  updatingItems: Set<string>;
   onRemove: (itemId: string) => void;
   onUpdateQuantity: (itemId: string, quantity: number) => void;
   t: (key: string) => string;
@@ -153,7 +148,6 @@ interface CartItemRowProps {
 export function CartItemRow({
   item,
   currency,
-  updatingItems,
   onRemove,
   onUpdateQuantity,
   t,
@@ -228,7 +222,6 @@ export function CartItemRow({
         </div>
         <CartItemQuantityStepper
           item={item}
-          updatingItems={updatingItems}
           onUpdateQuantity={onUpdateQuantity}
           t={t}
           appearance={appearance}
@@ -272,7 +265,6 @@ export function CartItemRow({
 interface CartTableProps {
   cart: Cart;
   currency: string;
-  updatingItems: Set<string>;
   onRemove: (itemId: string) => void;
   onUpdateQuantity: (itemId: string, quantity: number) => void;
   t: (key: string) => string;
@@ -282,7 +274,6 @@ interface CartTableProps {
 export function CartTable({
   cart,
   currency,
-  updatingItems,
   onRemove,
   onUpdateQuantity,
   t,
@@ -301,7 +292,6 @@ export function CartTable({
             key={item.id}
             item={item}
             currency={currency}
-            updatingItems={updatingItems}
             onRemove={onRemove}
             onUpdateQuantity={onUpdateQuantity}
             t={t}

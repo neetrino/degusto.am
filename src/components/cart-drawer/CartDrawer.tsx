@@ -1,6 +1,6 @@
 'use client';
 
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@shop/ui';
@@ -12,7 +12,7 @@ import { fetchCart } from '@/app/cart/cart-fetcher';
 import { handleRemoveItem, handleUpdateQuantity } from '@/app/cart/cart-handlers';
 import { CartTable, OrderSummary } from '@/app/cart/cart-components';
 import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
-import { useCartDrawer } from './cart-drawer-context';
+import { parseCartUpdatedDetail } from '@/lib/cart/cart-events';
 import {
   cartDrawerBackdropTransition,
   cartDrawerBackdropVariants,
@@ -22,6 +22,7 @@ import {
   cartDrawerPanelTransition,
   cartDrawerPanelVariants,
 } from './cart-drawer-motion-variants';
+import { useCartDrawer } from './cart-drawer-context';
 
 /** Header uses panel glass only — no separate tint (avoids dark band at top on mobile). */
 const DRAWER_HEADER_CLASS =
@@ -58,7 +59,7 @@ function CartDrawerBackdrop({
   );
 }
 
-function CartDrawerMounted({ onClose }: { onClose: () => void }) {
+function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisible: boolean }) {
   const router = useRouter();
   const isMobileViewport = useIsMobileViewport();
   const reduceMotion = useReducedMotion();
@@ -68,16 +69,23 @@ function CartDrawerMounted({ onClose }: { onClose: () => void }) {
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
   const [currency, setCurrency] = useState(getStoredCurrency());
-  const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set());
   const isLocalUpdateRef = useRef(false);
+  const cartRef = useRef<Cart | null>(null);
 
-  const loadCart = useCallback(async () => {
-    try {
+  cartRef.current = cart;
+
+  const loadCart = useCallback(async (options?: { silent?: boolean }) => {
+    const silent = options?.silent ?? false;
+    if (!silent) {
       setLoading(true);
+    }
+    try {
       const cartData = await fetchCart(isLoggedIn, t);
       setCart(cartData);
     } catch {
-      setCart(null);
+      if (!silent) {
+        setCart(null);
+      }
     } finally {
       setLoading(false);
     }
@@ -88,13 +96,34 @@ function CartDrawerMounted({ onClose }: { onClose: () => void }) {
   }, [loadCart]);
 
   useEffect(() => {
+    if (isVisible && cartRef.current) {
+      void loadCart({ silent: true });
+    }
+  }, [isVisible, loadCart]);
+
+  useEffect(() => {
     const onCurrency = () => setCurrency(getStoredCurrency());
-    const onCartUpdate = () => {
+    const onCartUpdate = (event: Event) => {
       if (isLocalUpdateRef.current) {
         isLocalUpdateRef.current = false;
         return;
       }
-      void loadCart();
+
+      const detail = parseCartUpdatedDetail(event);
+      if (detail?.forceReload) {
+        void loadCart({ silent: cartRef.current !== null });
+        return;
+      }
+
+      if (detail?.itemsCount !== undefined && detail?.total !== undefined) {
+        const currentCart = cartRef.current;
+        if (currentCart && detail.itemsCount !== currentCart.itemsCount) {
+          void loadCart({ silent: true });
+        }
+        return;
+      }
+
+      void loadCart({ silent: cartRef.current !== null });
     };
     const onAuth = () => {
       void loadCart();
@@ -141,7 +170,6 @@ function CartDrawerMounted({ onClose }: { onClose: () => void }) {
       cart,
       isLoggedIn,
       setCart,
-      setUpdatingItems,
       loadCart,
       t
     );
@@ -153,8 +181,22 @@ function CartDrawerMounted({ onClose }: { onClose: () => void }) {
   const bodyStagger = cartDrawerBodyStagger(reduceMotion);
   const fadeItem = cartDrawerFadeUpItem(reduceMotion);
 
+  if (!isVisible) {
+    return (
+      <div className="pointer-events-none invisible fixed inset-0 isolate z-[190]" aria-hidden />
+    );
+  }
+
   return (
-    <div className="fixed inset-0 isolate z-[190]" role="dialog" aria-modal="true" aria-labelledby="cart-drawer-title">
+    <motion.div
+      className="fixed inset-0 isolate z-[190]"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cart-drawer-title"
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+    >
       <CartDrawerBackdrop onClose={onClose} label={t('common.ariaLabels.closeMenu')} reduceMotion={reduceMotion} />
       <motion.div
         className={DRAWER_PANEL_CLASS}
@@ -236,7 +278,6 @@ function CartDrawerMounted({ onClose }: { onClose: () => void }) {
                 <CartTable
                   cart={cart}
                   currency={currency}
-                  updatingItems={updatingItems}
                   onRemove={onRemoveItem}
                   onUpdateQuantity={onUpdateQuantity}
                   t={t}
@@ -250,16 +291,25 @@ function CartDrawerMounted({ onClose }: { onClose: () => void }) {
           )}
         </motion.div>
       </motion.div>
-    </div>
+    </motion.div>
   );
 }
 
 export function CartDrawer() {
   const { isCartDrawerOpen, closeCartDrawer } = useCartDrawer();
+  const [hasBeenOpened, setHasBeenOpened] = useState(false);
+
+  useEffect(() => {
+    if (isCartDrawerOpen) {
+      setHasBeenOpened(true);
+    }
+  }, [isCartDrawerOpen]);
+
+  if (!hasBeenOpened) {
+    return null;
+  }
 
   return (
-    <AnimatePresence>
-      {isCartDrawerOpen ? <CartDrawerMounted key="cart-drawer" onClose={closeCartDrawer} /> : null}
-    </AnimatePresence>
+    <CartDrawerMounted onClose={closeCartDrawer} isVisible={isCartDrawerOpen} />
   );
 }

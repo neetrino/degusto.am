@@ -406,7 +406,15 @@ export function Header() {
     };
 
     const handleCartUpdate = (e: Event) => {
-      const detail = (e as CustomEvent)?.detail;
+      const detail = (e as CustomEvent)?.detail as
+        | { optimisticAdd?: { quantity?: number; price?: number }; itemsCount?: number; total?: number; forceReload?: boolean }
+        | undefined;
+
+      if (detail?.forceReload) {
+        fetchCart();
+        return;
+      }
+
       if (detail?.optimisticAdd) {
         const nextQuantity = detail.optimisticAdd.quantity ?? 1;
         const nextPrice = detail.optimisticAdd.price ?? 0;
