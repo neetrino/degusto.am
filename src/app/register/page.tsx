@@ -11,8 +11,7 @@ import type { IconType } from 'react-icons';
 import { FaCarrot, FaFish, FaHamburger, FaPepperHot, FaPizzaSlice } from 'react-icons/fa';
 import { Eye, EyeOff } from 'lucide-react';
 import { logger } from "@/lib/utils/logger";
-
-const registerSideAccentUrl = 'https://www.figma.com/api/mcp/asset/2e1ae4b8-0ffa-4da7-95de-6ed5e985904d';
+import { AUTH_SIDE_ACCENT_IMAGE_PATH } from '@/constants/auth-page-assets';
 
 const floatingFoodIcons: ReadonlyArray<{
   icon: IconType;
@@ -161,7 +160,7 @@ export default function RegisterPage() {
         />
       </svg>
       <img
-        src={registerSideAccentUrl}
+        src={AUTH_SIDE_ACCENT_IMAGE_PATH}
         alt=""
         aria-hidden="true"
         className="pointer-events-none absolute right-[-190px] top-[-10px] z-0 hidden h-[1160px] w-[460px] -rotate-[8deg] object-contain opacity-100 lg:block"
