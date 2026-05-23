@@ -128,7 +128,7 @@ export function OrderSummary({
   const hasDiscount = orderSummary.discountDisplay > 0;
 
   return (
-    <div className="w-full self-start rounded-2xl border border-gray-200 bg-white p-6 shadow-sm lg:sticky lg:top-24">
+    <div className="w-full self-start rounded-2xl border border-gray-200 bg-white p-6 shadow-sm lg:sticky lg:top-[116px]">
       <h2 className="mb-5 text-lg font-semibold text-gray-900">{t('checkout.orderSummary')}</h2>
 
       <div className="mb-5 space-y-3 border-b border-gray-100 pb-5">
