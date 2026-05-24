@@ -68,6 +68,7 @@ const MOBILE_BOTTOM_NAV_ROW: BottomNavRowCell[] = [
       const shop = isShopMobileBottomNavAssetSet(assets);
       return (
         <span
+          data-cart-fly-target
           className={
             active
               ? shop
@@ -217,7 +218,10 @@ export function MobileBottomNavigation({
   const flags = getMobileBottomNavActiveFlags(pathname, isLoggedIn, isAdmin);
 
   return (
-    <div className="pointer-events-none fixed bottom-0 left-1/2 z-40 h-[159px] w-[375px] -translate-x-1/2">
+    <div
+      data-mobile-bottom-nav
+      className="pointer-events-none fixed bottom-0 left-1/2 z-40 h-[159px] w-[375px] -translate-x-1/2"
+    >
       <img src={assets.bottomNavBackground} alt="" className="absolute bottom-0 left-0 h-20 w-[375px] object-cover" />
       <MobileBottomNavigationShopButton
         assets={assets}
