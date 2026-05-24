@@ -7,6 +7,8 @@ import { useAuth } from '../../lib/auth/AuthContext';
 import { getMobileBottomNavActiveFlags, type MobileBottomNavActiveFlags } from './mobileBottomNavigationActive';
 import { isShopMobileBottomNavAssetSet } from './mobileBottomNavAssets';
 import { useCartDrawer } from '../cart-drawer/cart-drawer-context';
+import { useMobileNavBadgeCounts } from '../hooks/useMobileNavBadgeCounts';
+import { MobileBottomNavCountBadge } from './MobileBottomNavCountBadge';
 
 export type MobileBottomNavigationAssets = {
   bottomNavBackground: string;
@@ -28,6 +30,8 @@ type BottomNavRowRenderContext = {
   assets: MobileBottomNavigationAssets;
   isLoggedIn: boolean;
   active: boolean;
+  cartCount: number;
+  wishlistCount: number;
 };
 
 type BottomNavRowCell =
@@ -64,23 +68,26 @@ const MOBILE_BOTTOM_NAV_ROW: BottomNavRowCell[] = [
     href: () => '/',
     rowClass: 'inline-flex h-[30px] w-[71px] items-start',
     isActive: (f) => f.isCartActive,
-    render: ({ assets, active }) => {
+    render: ({ assets, active, cartCount }) => {
       const shop = isShopMobileBottomNavAssetSet(assets);
       return (
-        <span
-          data-cart-fly-target
-          className={
-            active
-              ? shop
-                ? 'mobile-bottom-nav-fill-cart-shop'
-                : 'mobile-bottom-nav-fill-cart-home'
-              : shop
-                ? 'mobile-bottom-nav-fill-cart-shop-inactive'
-                : 'mobile-bottom-nav-fill-cart-home-inactive'
-          }
-          role="img"
-          aria-label="Cart"
-        />
+        <span className="relative inline-flex h-[30px] w-[71px] items-start">
+          <span
+            data-cart-fly-target
+            className={
+              active
+                ? shop
+                  ? 'mobile-bottom-nav-fill-cart-shop'
+                  : 'mobile-bottom-nav-fill-cart-home'
+                : shop
+                  ? 'mobile-bottom-nav-fill-cart-shop-inactive'
+                  : 'mobile-bottom-nav-fill-cart-home-inactive'
+            }
+            role="img"
+            aria-label="Cart"
+          />
+          <MobileBottomNavCountBadge count={cartCount} />
+        </span>
       );
     },
   },
@@ -91,22 +98,25 @@ const MOBILE_BOTTOM_NAV_ROW: BottomNavRowCell[] = [
     href: () => '/wishlist',
     rowClass: 'inline-flex h-[30px] w-[71px] items-start',
     isActive: (f) => f.isFavoritesActive,
-    render: ({ assets, active }) => {
+    render: ({ assets, active, wishlistCount }) => {
       const shop = isShopMobileBottomNavAssetSet(assets);
       return (
-        <span
-          className={
-            active
-              ? shop
-                ? 'mobile-bottom-nav-fill-fav-shop'
-                : 'mobile-bottom-nav-fill-fav-home'
-              : shop
-                ? 'mobile-bottom-nav-fill-fav-shop-inactive'
-                : 'mobile-bottom-nav-fill-fav-home-inactive'
-          }
-          role="img"
-          aria-label="Favorites"
-        />
+        <span className="relative inline-flex h-[30px] w-[71px] items-start">
+          <span
+            className={
+              active
+                ? shop
+                  ? 'mobile-bottom-nav-fill-fav-shop'
+                  : 'mobile-bottom-nav-fill-fav-home'
+                : shop
+                  ? 'mobile-bottom-nav-fill-fav-shop-inactive'
+                  : 'mobile-bottom-nav-fill-fav-home-inactive'
+            }
+            role="img"
+            aria-label="Favorites"
+          />
+          <MobileBottomNavCountBadge count={wishlistCount} />
+        </span>
       );
     },
   },
@@ -163,13 +173,18 @@ function MobileBottomNavigationLinks({
   assets,
   flags,
   isLoggedIn,
+  cartCount,
+  wishlistCount,
 }: {
   assets: MobileBottomNavigationAssets;
   flags: MobileBottomNavActiveFlags;
   isLoggedIn: boolean;
+  cartCount: number;
+  wishlistCount: number;
 }) {
   const { openCartDrawer, isCartDrawerOpen } = useCartDrawer();
   const cartSlotActive = flags.isCartActive || isCartDrawerOpen;
+  const renderContext = { assets, isLoggedIn, cartCount, wishlistCount };
 
   return (
     <nav className="pointer-events-auto absolute bottom-[25px] left-1/2 flex -translate-x-1/2 items-start">
@@ -186,19 +201,25 @@ function MobileBottomNavigationLinks({
               onClick={() => openCartDrawer()}
               className={mergeActiveClass(cell.rowClass, active)}
               aria-current={active ? 'page' : undefined}
+              aria-label={cartCount > 0 ? `Cart, ${cartCount} items` : 'Cart'}
             >
-              {cell.render({ assets, isLoggedIn, active })}
+              {cell.render({ ...renderContext, active })}
             </button>
           );
         }
+        const favoritesLabel =
+          cell.id === 'favorites' && wishlistCount > 0
+            ? `Favorites, ${wishlistCount}`
+            : undefined;
         return (
           <Link
             key={cell.id}
             href={cell.href(flags)}
             className={mergeActiveClass(cell.rowClass, active)}
             aria-current={active ? 'page' : undefined}
+            aria-label={favoritesLabel}
           >
-            {cell.render({ assets, isLoggedIn, active })}
+            {cell.render({ ...renderContext, active })}
           </Link>
         );
       })}
@@ -216,6 +237,7 @@ export function MobileBottomNavigation({
   const pathname = usePathname() ?? '';
   const { isLoggedIn, isAdmin } = useAuth();
   const flags = getMobileBottomNavActiveFlags(pathname, isLoggedIn, isAdmin);
+  const { cartCount, wishlistCount } = useMobileNavBadgeCounts();
 
   return (
     <div
@@ -228,7 +250,13 @@ export function MobileBottomNavigation({
         isShopActive={flags.isShopActive}
         onShopClick={onShopClick}
       />
-      <MobileBottomNavigationLinks assets={assets} flags={flags} isLoggedIn={isLoggedIn} />
+      <MobileBottomNavigationLinks
+        assets={assets}
+        flags={flags}
+        isLoggedIn={isLoggedIn}
+        cartCount={cartCount}
+        wishlistCount={wishlistCount}
+      />
     </div>
   );
 }
