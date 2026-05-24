@@ -60,13 +60,12 @@ function getHomeProductSelect(homeLang: StorefrontLocale) {
       orderBy: {
         price: 'asc' as const,
       },
-      take: 1,
       select: {
         id: true,
         published: true,
         price: true,
         compareAtPrice: true,
-        /** Spicy/greens badges use JSON buckets only on home (see product-food-attributes). */
+        /** Spicy/greens badges need all published variants (see product-food-attributes). */
         attributes: true,
       },
     },

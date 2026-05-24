@@ -36,7 +36,6 @@ type CategoryDbRow = {
 
 export type ShopMenuProductRow = {
   id: string;
-  media: unknown;
   discountPercent: number | null;
   categories: Array<{
     translations: CategoryTranslationRow[];
@@ -48,6 +47,7 @@ export type ShopMenuProductRow = {
     slug: string;
   }>;
   variants: Array<{
+    id: string;
     published: boolean;
     price: number;
     compareAtPrice: number | null;
@@ -148,11 +148,13 @@ export function mapShopProductRowsToMenuCards(
       subtitleKey: 'home.figma.mobile.product.subtitle',
       title: translation?.title || `Product ${index + 1}`,
       category: categoryTranslation ? resolveShopCategoryTitle(locale, categoryTranslation) : '',
-      image: toShopMenuImageUrl(row.media),
+      image: null,
       price,
       oldPrice,
       discount: '',
       discountPercent: row.discountPercent,
+      inStock: variant?.published ?? true,
+      defaultVariantId: variant?.id ?? null,
       supportsSpicy: foodAttrs.supportsSpicy,
       supportsGreens: foodAttrs.supportsGreens,
     };

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ViewMoreButton } from '../view-more/ViewMoreButton';
-import { getTranslation } from '@/lib/translations';
+import { t as translateKey } from '@/lib/i18n';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
 import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
 import { getHomeCategoryHref } from './homeCategoryLinks';
@@ -166,7 +166,7 @@ export function FigmaHomePageMobile({
   categories,
   featuredProducts,
 }: FigmaHomePageMobileProps) {
-  const t = (key: string) => getTranslation(key, lang);
+  const t = (key: string) => translateKey(lang, key);
   const dailyOfferProduct = resolveHomeDailyOfferProduct(featuredProducts);
   const { newArrivalProducts, categoryProductsA, categoryProductsB } =
     sliceMobileHomeProductSections(featuredProducts);

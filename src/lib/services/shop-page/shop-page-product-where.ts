@@ -103,7 +103,6 @@ export function getShopProductSelect(locale: StorefrontLocale): Prisma.ProductSe
 
   return {
     id: true,
-    media: true,
     discountPercent: true,
     categories: {
       where: {
@@ -146,10 +145,11 @@ export function getShopProductSelect(locale: StorefrontLocale): Prisma.ProductSe
         price: 'asc',
       },
       select: {
+        id: true,
         published: true,
         price: true,
         compareAtPrice: true,
-        /** Spicy/greens badges use JSON buckets only (see product-food-attributes). */
+        /** Spicy/greens badges need all published variants (see product-food-attributes). */
         attributes: true,
       },
     },

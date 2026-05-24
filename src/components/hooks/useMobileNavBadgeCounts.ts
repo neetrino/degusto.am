@@ -29,7 +29,12 @@ type CartUpdatedDetail = {
 };
 
 const HOME_PATH = '/';
-const HOME_DEFER_CART_FETCH_IDLE_TIMEOUT_MS = 2000;
+const SHOP_PATH = '/shop';
+const DEFER_CART_FETCH_IDLE_TIMEOUT_MS = 2000;
+
+function shouldDeferInitialCartFetch(pathname: string): boolean {
+  return pathname === HOME_PATH || pathname === SHOP_PATH;
+}
 
 /** Runs after idle (or timeout fallback); returns cancel for effect cleanup. */
 function scheduleIdleCartFetch(run: () => void): () => void {
@@ -41,14 +46,14 @@ function scheduleIdleCartFetch(run: () => void): () => void {
   };
 
   if (typeof window.requestIdleCallback === 'function') {
-    const idleId = window.requestIdleCallback(invoke, { timeout: HOME_DEFER_CART_FETCH_IDLE_TIMEOUT_MS });
+    const idleId = window.requestIdleCallback(invoke, { timeout: DEFER_CART_FETCH_IDLE_TIMEOUT_MS });
     return () => {
       cancelled = true;
       window.cancelIdleCallback(idleId);
     };
   }
 
-  const timeoutId = window.setTimeout(invoke, HOME_DEFER_CART_FETCH_IDLE_TIMEOUT_MS);
+  const timeoutId = window.setTimeout(invoke, DEFER_CART_FETCH_IDLE_TIMEOUT_MS);
   return () => {
     cancelled = true;
     window.clearTimeout(timeoutId);
@@ -60,7 +65,7 @@ function scheduleIdleCartFetch(run: () => void): () => void {
  */
 export function useMobileNavBadgeCounts(): { cartCount: number; wishlistCount: number } {
   const pathname = usePathname() ?? '';
-  const isHomePath = pathname === HOME_PATH;
+  const deferInitialCartFetch = shouldDeferInitialCartFetch(pathname);
   const { isLoggedIn } = useAuth();
   const [cartCount, setCartCount] = useState(0);
   const [wishlistCount, setWishlistCount] = useState(0);
@@ -107,7 +112,7 @@ export function useMobileNavBadgeCounts(): { cartCount: number; wishlistCount: n
     };
 
     const runInitialCartFetch = () => {
-      if (isHomePath && isLoggedIn) {
+      if (deferInitialCartFetch && isLoggedIn) {
         cancelDeferredCartFetch = scheduleIdleCartFetch(() => {
           void fetchCart();
         });
@@ -175,7 +180,7 @@ export function useMobileNavBadgeCounts(): { cartCount: number; wishlistCount: n
       window.removeEventListener('auth-updated', handleAuthForCartAndWishlist);
       window.removeEventListener('wishlist-updated', handleWishlistUpdated);
     };
-  }, [isLoggedIn, isHomePath]);
+  }, [isLoggedIn, deferInitialCartFetch]);
 
   return { cartCount, wishlistCount };
 }

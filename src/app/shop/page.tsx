@@ -65,29 +65,33 @@ export default async function ShopPage({
       mobileCategoryGridOnly: showMobileCategoryGrid && isMobileClient,
     });
 
+  const isMobileCategoryGridMode = showMobileCategoryGrid && isMobileClient;
+
   return (
     <div className="min-h-screen bg-white">
       <BodyBackground color="#ffffff" />
       {showMobileCategoryGrid ? (
         <MobileShopCategoriesView categories={mobileShopCategories} />
       ) : null}
-      <FigmaDesktopMenuPage
-        titleKey="home.figma.desktop.shop.menuTitle"
-        subtitleKey="home.figma.desktop.shop.menuSubtitle"
-        activeCategoryIndex={0}
-        cards={cards}
-        categories={categories}
-        activeCategorySlug={rawCategorySlug}
-        initialSearch={selectedSearchQuery}
-        initialMinPrice={minPriceAmd !== null ? String(minPriceAmd) : ''}
-        initialMaxPrice={maxPriceAmd !== null ? String(maxPriceAmd) : ''}
-        initialFoodFilter={tasteFilter ?? 'neutral'}
-        menuPagination={{
-          currentPage: effectivePage,
-          totalPages,
-        }}
-        showMobileProductsList={!showMobileCategoryGrid}
-      />
+      {!isMobileCategoryGridMode ? (
+        <FigmaDesktopMenuPage
+          titleKey="home.figma.desktop.shop.menuTitle"
+          subtitleKey="home.figma.desktop.shop.menuSubtitle"
+          activeCategoryIndex={0}
+          cards={cards}
+          categories={categories}
+          activeCategorySlug={rawCategorySlug}
+          initialSearch={selectedSearchQuery}
+          initialMinPrice={minPriceAmd !== null ? String(minPriceAmd) : ''}
+          initialMaxPrice={maxPriceAmd !== null ? String(maxPriceAmd) : ''}
+          initialFoodFilter={tasteFilter ?? 'neutral'}
+          menuPagination={{
+            currentPage: effectivePage,
+            totalPages,
+          }}
+          showMobileProductsList={!showMobileCategoryGrid}
+        />
+      ) : null}
     </div>
   );
 }
