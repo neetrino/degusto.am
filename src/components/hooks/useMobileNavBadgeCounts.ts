@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '../../lib/auth/AuthContext';
 import { apiClient } from '../../lib/api-client';
 import { CART_KEY, getWishlistCount } from '../../lib/storageCounts';
@@ -27,10 +28,39 @@ type CartUpdatedDetail = {
   forceReload?: boolean;
 };
 
+const HOME_PATH = '/';
+const HOME_DEFER_CART_FETCH_IDLE_TIMEOUT_MS = 2000;
+
+/** Runs after idle (or timeout fallback); returns cancel for effect cleanup. */
+function scheduleIdleCartFetch(run: () => void): () => void {
+  let cancelled = false;
+  const invoke = () => {
+    if (!cancelled) {
+      run();
+    }
+  };
+
+  if (typeof window.requestIdleCallback === 'function') {
+    const idleId = window.requestIdleCallback(invoke, { timeout: HOME_DEFER_CART_FETCH_IDLE_TIMEOUT_MS });
+    return () => {
+      cancelled = true;
+      window.cancelIdleCallback(idleId);
+    };
+  }
+
+  const timeoutId = window.setTimeout(invoke, HOME_DEFER_CART_FETCH_IDLE_TIMEOUT_MS);
+  return () => {
+    cancelled = true;
+    window.clearTimeout(timeoutId);
+  };
+}
+
 /**
  * Cart and wishlist item counts for mobile navigation badges (bottom bar).
  */
 export function useMobileNavBadgeCounts(): { cartCount: number; wishlistCount: number } {
+  const pathname = usePathname() ?? '';
+  const isHomePath = pathname === HOME_PATH;
   const { isLoggedIn } = useAuth();
   const [cartCount, setCartCount] = useState(0);
   const [wishlistCount, setWishlistCount] = useState(0);
@@ -40,6 +70,8 @@ export function useMobileNavBadgeCounts(): { cartCount: number; wishlistCount: n
     if (cached) {
       setCartCount(cached.itemsCount);
     }
+
+    let cancelDeferredCartFetch: (() => void) | undefined;
 
     const readGuestCart = () => {
       try {
@@ -74,10 +106,21 @@ export function useMobileNavBadgeCounts(): { cartCount: number; wishlistCount: n
       }
     };
 
+    const runInitialCartFetch = () => {
+      if (isHomePath && isLoggedIn) {
+        cancelDeferredCartFetch = scheduleIdleCartFetch(() => {
+          void fetchCart();
+        });
+        return;
+      }
+      void fetchCart();
+    };
+
     const handleCartUpdated = (event: Event) => {
       const detail = (event as CustomEvent<CartUpdatedDetail>).detail;
 
       if (detail?.forceReload) {
+        cancelDeferredCartFetch?.();
         void fetchCart();
         return;
       }
@@ -101,6 +144,7 @@ export function useMobileNavBadgeCounts(): { cartCount: number; wishlistCount: n
         return;
       }
 
+      cancelDeferredCartFetch?.();
       void fetchCart();
     };
 
@@ -109,7 +153,7 @@ export function useMobileNavBadgeCounts(): { cartCount: number; wishlistCount: n
     };
 
     refreshWishlistCount();
-    void fetchCart();
+    runInitialCartFetch();
 
     const handleWishlistUpdated = () => {
       refreshWishlistCount();
@@ -117,6 +161,7 @@ export function useMobileNavBadgeCounts(): { cartCount: number; wishlistCount: n
 
     const handleAuthForCartAndWishlist = () => {
       refreshWishlistCount();
+      cancelDeferredCartFetch?.();
       void fetchCart();
     };
 
@@ -125,11 +170,12 @@ export function useMobileNavBadgeCounts(): { cartCount: number; wishlistCount: n
     window.addEventListener('wishlist-updated', handleWishlistUpdated);
 
     return () => {
+      cancelDeferredCartFetch?.();
       window.removeEventListener('cart-updated', handleCartUpdated);
       window.removeEventListener('auth-updated', handleAuthForCartAndWishlist);
       window.removeEventListener('wishlist-updated', handleWishlistUpdated);
     };
-  }, [isLoggedIn]);
+  }, [isLoggedIn, isHomePath]);
 
   return { cartCount, wishlistCount };
 }
