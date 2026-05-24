@@ -18,7 +18,7 @@ export type MobileFriendlyInputProps = Omit<
   sheetFooter?: ReactNode;
   onSheetCommit?: (value: string) => void;
   onSheetOpen?: () => void;
-  /** When true, skip the mobile sheet (e.g. checkbox, file). */
+  /** When true, use a normal inline input on mobile instead of the sheet popup. Default: true (sheet only for search). */
   disableMobileSheet?: boolean;
 };
 
@@ -47,7 +47,7 @@ export const MobileFriendlyInput = forwardRef<HTMLInputElement, MobileFriendlyIn
       onSheetCommit,
       onSheetOpen,
       onKeyDown,
-      disableMobileSheet = false,
+      disableMobileSheet = true,
       id,
       name,
       required,
@@ -89,7 +89,7 @@ export const MobileFriendlyInput = forwardRef<HTMLInputElement, MobileFriendlyIn
           autoComplete={autoComplete}
           disabled={disabled}
           required={required}
-          className={className}
+          className={`text-base leading-6 ${className}`}
           {...rest}
         />
       );

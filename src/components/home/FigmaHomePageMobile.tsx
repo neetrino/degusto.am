@@ -390,6 +390,7 @@ export function FigmaHomePageMobile({
             loading="eager"
           />
           <MobileFriendlyInput
+            disableMobileSheet={false}
             type="text"
             value={searchQuery}
             onChange={(event) => {

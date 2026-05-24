@@ -16,6 +16,8 @@ export type MobileFriendlyTextareaProps = Omit<
   sheetDoneLabel?: string;
   sheetCancelLabel?: string;
   onSheetCommit?: (value: string) => void;
+  /** When true, use a normal inline textarea on mobile instead of the sheet popup. Default: true. */
+  disableMobileSheet?: boolean;
 };
 
 function buildSyntheticChange(value: string): ChangeEvent<HTMLTextAreaElement> {
@@ -38,6 +40,7 @@ export const MobileFriendlyTextarea = forwardRef<HTMLTextAreaElement, MobileFrie
       sheetDoneLabel,
       sheetCancelLabel,
       onSheetCommit,
+      disableMobileSheet = true,
       id,
       name,
       required,
@@ -50,7 +53,7 @@ export const MobileFriendlyTextarea = forwardRef<HTMLTextAreaElement, MobileFrie
     const isMobile = useIsMobileViewport();
     const [sheetOpen, setSheetOpen] = useState(false);
 
-    const useSheet = isMobile && !disabled;
+    const useSheet = isMobile && !disableMobileSheet && !disabled;
 
     const resolvedTitle = sheetTitle ?? placeholder ?? '';
     const doneLabel = sheetDoneLabel ?? t('common.buttons.done');
@@ -69,7 +72,7 @@ export const MobileFriendlyTextarea = forwardRef<HTMLTextAreaElement, MobileFrie
           disabled={disabled}
           required={required}
           autoComplete={autoComplete}
-          className={className}
+          className={`text-base leading-6 ${className}`}
           {...rest}
         />
       );
