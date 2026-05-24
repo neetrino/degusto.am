@@ -41,8 +41,18 @@ function buildR2CdnRemotePatterns() {
   return patterns;
 }
 
+/** @see src/constants/mobile-page-cache.ts — keep dynamic/static stale seconds in sync */
+const MOBILE_CLIENT_ROUTER_DYNAMIC_STALE_SECONDS = 300;
+const MOBILE_CLIENT_ROUTER_STATIC_STALE_SECONDS = 300;
+
 const nextConfig = {
   reactStrictMode: true,
+  experimental: {
+    staleTimes: {
+      dynamic: MOBILE_CLIENT_ROUTER_DYNAMIC_STALE_SECONDS,
+      static: MOBILE_CLIENT_ROUTER_STATIC_STALE_SECONDS,
+    },
+  },
   // Скрыть индикатор "Compiling..." в углу в dev — не мешает на экране
   devIndicators: false,
   // Bundle Prisma + Neon adapter into serverless functions (externalizing breaks engine/adapter on Vercel).
