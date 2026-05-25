@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { formatPrice, type CurrencyCode } from '../../lib/currency';
 import { MOBILE_SHOP_PRODUCT_CARD_ASSETS } from '@/constants/mobile-figma-storefront';
-import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
+import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 import type { WishlistProductCardProduct } from './WishlistProductCard';
 
 const MOBILE_WISHLIST_CARD_HEIGHT_PX = 240;
@@ -76,7 +76,7 @@ export function WishlistMobileProductCard({
 }: WishlistMobileProductCardProps) {
   const router = useRouter();
   const productHref = `/products/${product.slug}`;
-  const imageSrc = STOREFRONT_PRODUCT_IMAGE_PATH;
+  const imageSrc = resolveStorefrontProductImage(product.image);
   const formattedPrice = formatPrice(product.price, currency);
   const strikePrice = resolveStrikePrice(product);
   const formattedStrikePrice =

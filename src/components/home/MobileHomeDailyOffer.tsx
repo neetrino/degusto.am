@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslation } from '../../lib/i18n-client';
 import { formatPrice } from '../../lib/currency';
 import { useCurrency } from '../hooks/useCurrency';
-import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
+import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 import {
   MOBILE_HOME_DAILY_OFFER_GRADIENT_CLASS,
   MOBILE_HOME_DAILY_OFFER_PHOTO_LAYOUT_CLASS,
@@ -26,7 +26,7 @@ export function MobileHomeDailyOffer({ product, dailyOfferAddToCartSrc }: Mobile
     product.title === 'Double Cheeseburger'
       ? t('home.figma.mobile.product.title')
       : (product.title || t('home.figma.mobile.product.title'));
-  const imageSrc = STOREFRONT_PRODUCT_IMAGE_PATH;
+  const imageSrc = resolveStorefrontProductImage(product.image);
   const price = product.price ?? 0;
   const discountPercent = resolveMobileHomeDiscountPercent(product);
   const productHref = `/products/${product.slug}`;

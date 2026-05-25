@@ -191,7 +191,7 @@ const getShopMenuDataCached = unstable_cache(
       mobileCategoryGridOnly: mobileCategoryGridOnlyKey === '1',
     });
   },
-  ['shop-menu-data-v3'],
+  ['shop-menu-data-v4'],
   {
     revalidate: SHOP_MENU_REVALIDATE_SECONDS,
     tags: [SHOP_MENU_CACHE_TAG],

@@ -10,7 +10,7 @@ import { useAddToCart } from '../hooks/useAddToCart';
 import { useWishlist } from '../hooks/useWishlist';
 import { useAuth } from '../../lib/auth/AuthContext';
 import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
-import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
+import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
 import type { MenuCard, MenuCategory } from './menu-types';
 import { ShopMobileProductCard } from './ShopMobileProductCard';
@@ -209,7 +209,7 @@ function MenuCardItem({ card }: { card: MenuCard }) {
   const { isInWishlist, toggleWishlist } = useWishlist(card.id);
   const title = card.title || t(card.titleKey);
   const category = card.category || (card.categoryKey ? t(card.categoryKey) : '');
-  const imageSrc = STOREFRONT_PRODUCT_IMAGE_PATH;
+  const imageSrc = resolveStorefrontProductImage(card.image);
   const calculatedDiscountPercent =
     card.oldPrice > card.price && card.oldPrice > 0
       ? Math.round(((card.oldPrice - card.price) / card.oldPrice) * 100)
@@ -248,7 +248,7 @@ function MenuCardItem({ card }: { card: MenuCard }) {
     const cardRoot = button.closest('[data-home-product-card]');
     const origin =
       (cardRoot?.querySelector('[data-product-fly-origin]') as HTMLElement | null) ?? button;
-    void addToCart({ origin, imageUrl: STOREFRONT_PRODUCT_IMAGE_PATH });
+    void addToCart({ origin, imageUrl: resolveStorefrontProductImage(card.image) });
   };
 
   const handleWishlistToggle = (event: MouseEvent<HTMLButtonElement>) => {

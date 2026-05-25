@@ -159,15 +159,20 @@ type FigmaHomePageMobileProps = {
   lang: StorefrontLocale;
   categories: HomeCategoryItem[];
   featuredProducts: HomeFeaturedProduct[];
+  dailyOfferProduct?: HomeFeaturedProduct | null;
 };
 
 export function FigmaHomePageMobile({
   lang,
   categories,
   featuredProducts,
+  dailyOfferProduct,
 }: FigmaHomePageMobileProps) {
   const t = (key: string) => translateKey(lang, key);
-  const dailyOfferProduct = resolveHomeDailyOfferProduct(featuredProducts);
+  const resolvedDailyOfferProduct = resolveHomeDailyOfferProduct(
+    featuredProducts,
+    dailyOfferProduct
+  );
   const { newArrivalProducts, categoryProductsA, categoryProductsB } =
     sliceMobileHomeProductSections(featuredProducts);
   const displayCategories = buildMobileDisplayCategories(categories, mobileCategoryFallbacks);
@@ -236,7 +241,7 @@ export function FigmaHomePageMobile({
         />
         <div className={'mt-[22px] ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
           <MobileHomeDailyOffer
-            product={dailyOfferProduct}
+            product={resolvedDailyOfferProduct}
             dailyOfferAddToCartSrc={mobileAssets.dailyOfferAddToCart}
           />
         </div>

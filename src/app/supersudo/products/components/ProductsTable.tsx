@@ -23,6 +23,8 @@ import {
   ADMIN_TABLE_THEAD,
 } from '../../constants/admin-table-classes';
 import type { Product, ProductsResponse } from '../types';
+import type { DailyOfferSelection } from '@/lib/services/daily-offer/daily-offer.types';
+import { ProductFeaturedCell } from './ProductFeaturedCell';
 
 interface ProductsTableProps {
   loading: boolean;
@@ -39,6 +41,9 @@ interface ProductsTableProps {
   duplicatingProductId: string | null;
   handleTogglePublished: (productId: string, currentStatus: boolean, productTitle: string) => void;
   handleToggleFeatured: (productId: string, currentStatus: boolean, productTitle: string) => void;
+  handleToggleDailyOffer: (productId: string) => void;
+  dailyOfferSelection: DailyOfferSelection;
+  togglingDailyOfferProductId: string | null;
   meta: ProductsResponse['meta'] | null;
   page: number;
   setPage: (page: number | ((prev: number) => number)) => void;
@@ -83,6 +88,12 @@ function getVisiblePages(start: number, end: number) {
 
 const INTERACTIVE_CELL_SELECTOR = 'button, input, a, textarea, select, [role="button"]';
 
+function isProductDailyOffer(productId: string, selection: DailyOfferSelection): boolean {
+  return (
+    selection.mobileProductId === productId && selection.desktopProductId === productId
+  );
+}
+
 function handleProductRowClick(
   event: MouseEvent<HTMLTableRowElement>,
   productId: string,
@@ -109,6 +120,9 @@ interface ProductsTableLoadedViewProps {
   duplicatingProductId: string | null;
   handleTogglePublished: (productId: string, currentStatus: boolean, productTitle: string) => void;
   handleToggleFeatured: (productId: string, currentStatus: boolean, productTitle: string) => void;
+  handleToggleDailyOffer: (productId: string) => void;
+  dailyOfferSelection: DailyOfferSelection;
+  togglingDailyOfferProductId: string | null;
   meta: ProductsResponse['meta'] | null;
   page: number;
   t: (key: string) => string;
@@ -132,6 +146,9 @@ function ProductsTableLoadedView({
   duplicatingProductId,
   handleTogglePublished,
   handleToggleFeatured,
+  handleToggleDailyOffer,
+  dailyOfferSelection,
+  togglingDailyOfferProductId,
   meta,
   page,
   t,
@@ -380,28 +397,19 @@ function ProductsTableLoadedView({
                   )}
                 </td>
                 <td className={`${ADMIN_TABLE_TD} whitespace-nowrap text-center`}>
-                  <button
-                    onClick={() => handleToggleFeatured(product.id, product.featured || false, product.title)}
-                    className="inline-flex items-center justify-center w-8 h-8 transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
-                    title={product.featured ? t('admin.products.clickToRemoveFeatured') : t('admin.products.clickToMarkFeatured')}
-                  >
-                    <svg
-                      className={`w-6 h-6 transition-all duration-200 ${
-                        product.featured
-                          ? 'fill-blue-500 text-blue-500 drop-shadow-sm'
-                          : 'fill-none stroke-blue-400 text-blue-400 opacity-50 hover:opacity-75'
-                      }`}
-                      viewBox="0 0 24 24"
-                      strokeWidth="1.5"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                      />
-                    </svg>
-                  </button>
+                  <ProductFeaturedCell
+                    isDailyOffer={isProductDailyOffer(product.id, dailyOfferSelection)}
+                    featured={product.featured || false}
+                    togglingDailyOffer={togglingDailyOfferProductId === product.id}
+                    onToggleFeatured={(event) => {
+                      event.stopPropagation();
+                      handleToggleFeatured(product.id, product.featured || false, product.title);
+                    }}
+                    onToggleDailyOffer={(event) => {
+                      event.stopPropagation();
+                      void handleToggleDailyOffer(product.id);
+                    }}
+                  />
                 </td>
                 <td className={`${ADMIN_TABLE_TD} whitespace-nowrap text-center font-medium text-gray-900`}>
                   <div className="flex items-center justify-center gap-1 flex-wrap">
@@ -553,6 +561,9 @@ export function ProductsTable({
   duplicatingProductId,
   handleTogglePublished,
   handleToggleFeatured,
+  handleToggleDailyOffer,
+  dailyOfferSelection,
+  togglingDailyOfferProductId,
   meta,
   page,
   setPage,
@@ -598,6 +609,9 @@ export function ProductsTable({
           duplicatingProductId={duplicatingProductId}
           handleTogglePublished={handleTogglePublished}
           handleToggleFeatured={handleToggleFeatured}
+          handleToggleDailyOffer={handleToggleDailyOffer}
+          dailyOfferSelection={dailyOfferSelection}
+          togglingDailyOfferProductId={togglingDailyOfferProductId}
           meta={meta}
           page={page}
           t={t}

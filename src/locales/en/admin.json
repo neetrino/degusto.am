@@ -317,6 +317,11 @@
     "clickToPublished": "Click to switch to published",
     "clickToRemoveFeatured": "Click to remove from featured",
     "clickToMarkFeatured": "Click to mark as featured",
+    "dailyOffer": {
+      "setActive": "Set as daily offer (mobile + desktop)",
+      "removeActive": "Remove from daily offer",
+      "errorUpdating": "Error updating daily offer: {message}"
+    },
     "edit": "Edit",
     "duplicate": "Duplicate as draft",
     "duplicateHint": "Create a draft copy with 0 price and 0 quantity",

@@ -13,7 +13,7 @@ import {
   FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS,
   MOBILE_SHOP_PRODUCT_CARD_ASSETS,
 } from '@/constants/mobile-figma-storefront';
-import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
+import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 import { HomeOptimizedImage } from './HomeOptimizedImage';
 import { shouldShowMenuCardStrikethroughPrice } from '@/lib/storefront/menu-card-pricing';
 import type { MenuCard } from './menu-types';
@@ -45,7 +45,7 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
   const { isInWishlist, toggleWishlist } = useWishlist(card.id);
   const title = card.title || t(card.titleKey);
   const category = card.category || (card.categoryKey ? t(card.categoryKey) : '');
-  const imageSrc = STOREFRONT_PRODUCT_IMAGE_PATH;
+  const imageSrc = resolveStorefrontProductImage(card.image);
   const formattedPrice = formatPrice(card.price, currency);
   const formattedOldPrice = formatPrice(card.oldPrice, currency);
   const priceSizeClass = getShopMobileProductCardPriceSizeClass(formattedPrice);
@@ -93,7 +93,7 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
     const cardRoot = button.closest('[data-home-product-card]');
     const origin =
       (cardRoot?.querySelector('[data-product-fly-origin]') as HTMLElement | null) ?? button;
-    void addToCart({ origin, imageUrl: STOREFRONT_PRODUCT_IMAGE_PATH });
+    void addToCart({ origin, imageUrl: resolveStorefrontProductImage(card.image) });
   };
 
   const handleWishlistToggle = (event: MouseEvent<HTMLButtonElement>) => {

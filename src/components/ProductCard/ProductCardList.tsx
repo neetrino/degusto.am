@@ -14,7 +14,7 @@ import {
   FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS,
   FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS,
 } from '@/constants/mobile-figma-storefront';
-import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
+import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 
 interface ProductCardListProps {
   product: {
@@ -95,7 +95,7 @@ export function ProductCardList({
           className={`w-20 h-20 bg-gray-100 rounded-lg flex-shrink-0 relative overflow-hidden self-start sm:self-center transition-colors ${FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS}`}
         >
           <Image
-              src={STOREFRONT_PRODUCT_IMAGE_PATH}
+              src={imageError ? resolveStorefrontProductImage(null) : resolveStorefrontProductImage(product.image)}
               alt={product.title}
               fill
               className="object-cover"

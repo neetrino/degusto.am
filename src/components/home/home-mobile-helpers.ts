@@ -1,4 +1,3 @@
-import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
 import type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
 import type { MenuCard } from './menu-types';
 
@@ -31,7 +30,7 @@ export function homeFeaturedProductToMenuCard(product: HomeFeaturedProduct): Men
     title: product.title,
     subtitle: product.subtitle,
     category: product.subtitle,
-    image: STOREFRONT_PRODUCT_IMAGE_PATH,
+    image: product.image,
     price,
     oldPrice,
     discount,

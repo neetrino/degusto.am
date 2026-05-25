@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
+import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 import { Button } from '@shop/ui';
 import { formatPrice, type CurrencyCode } from '../../lib/currency';
 import { WishlistMobileProductCard } from './WishlistMobileProductCard';
@@ -38,14 +38,14 @@ interface WishlistCardImageLinkProps {
   image: string | null;
 }
 
-function WishlistCardImageLink({ slug, title }: WishlistCardImageLinkProps) {
+function WishlistCardImageLink({ slug, title, image }: WishlistCardImageLinkProps) {
   return (
     <Link
       href={`/products/${slug}`}
       className="absolute inset-0 block outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
     >
       <Image
-        src={STOREFRONT_PRODUCT_IMAGE_PATH}
+        src={resolveStorefrontProductImage(image)}
         alt={title}
         fill
         className="object-cover transition-transform duration-500 ease-out group-hover/card:scale-[1.05]"

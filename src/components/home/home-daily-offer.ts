@@ -16,7 +16,11 @@ export const HOME_DAILY_OFFER_FALLBACK_PRODUCT: HomeFeaturedProduct = {
 
 /** First featured product for «օրվա առաջարկ» hero / daily-offer card. */
 export function resolveHomeDailyOfferProduct(
-  featuredProducts: HomeFeaturedProduct[]
+  featuredProducts: HomeFeaturedProduct[],
+  scheduledProduct?: HomeFeaturedProduct | null
 ): HomeFeaturedProduct {
+  if (scheduledProduct) {
+    return scheduledProduct;
+  }
   return featuredProducts[0] ?? HOME_DAILY_OFFER_FALLBACK_PRODUCT;
 }

@@ -19,7 +19,7 @@ import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges
 import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
 import { FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS } from '@/constants/mobile-figma-storefront';
 import { r2Asset } from '@/lib/r2-public-url';
-import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
+import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 import { HomeOptimizedImage } from './HomeOptimizedImage';
 import { resolveHomeDailyOfferProduct } from './home-daily-offer';
 import type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
@@ -54,7 +54,7 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
   const keepCurrencySymbolAttached = (value: string): string => value.replace(/\s+(\S+)$/u, '\u00A0$1');
   const hasDiscount = typeof item.discountPercent === 'number' && item.discountPercent > 0;
   const discountPercent = typeof item.discountPercent === 'number' ? Math.round(item.discountPercent) : null;
-  const imageSrc = STOREFRONT_PRODUCT_IMAGE_PATH;
+  const imageSrc = resolveStorefrontProductImage(item.image);
   const title =
     item.title === 'Double Cheeseburger' ? t('home.figma.mobile.product.title') : (item.title || t('home.figma.mobile.product.title'));
   const subtitle = item.subtitle || t('home.figma.mobile.product.subtitle');
@@ -89,7 +89,7 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
     const card = button.closest('[data-home-product-card]');
     const origin =
       (card?.querySelector('[data-product-fly-origin]') as HTMLElement | null) ?? button;
-    void addToCart({ origin, imageUrl: STOREFRONT_PRODUCT_IMAGE_PATH });
+    void addToCart({ origin, imageUrl: resolveStorefrontProductImage(item.image) });
   };
 
   const handleWishlistToggle = (event: MouseEvent<HTMLButtonElement>) => {
@@ -223,15 +223,17 @@ function CategoryCard({ item }: { item: HomeCategoryItem }) {
 export function FigmaHomePage({
   featuredProducts,
   categories,
+  dailyOfferProduct,
 }: {
   featuredProducts: HomeFeaturedProduct[];
   categories: HomeCategoryItem[];
+  dailyOfferProduct?: HomeFeaturedProduct | null;
 }) {
   const { t, lang } = useTranslation();
   const currency = useCurrency();
   const router = useRouter();
   const specialOfferProducts = featuredProducts.slice(0, DESKTOP_HOME_SPECIAL_OFFERS_PRODUCT_COUNT);
-  const heroProduct = resolveHomeDailyOfferProduct(featuredProducts);
+  const heroProduct = resolveHomeDailyOfferProduct(featuredProducts, dailyOfferProduct);
   const heroProductTitle =
     heroProduct?.title === 'Double Cheeseburger'
       ? t('home.figma.mobile.product.title')
@@ -282,7 +284,7 @@ export function FigmaHomePage({
             <div className="absolute inset-0 rounded-[20px] bg-white shadow-xl" />
             <div className="absolute left-1/2 top-[5px] h-[147px] w-[227px] -translate-x-1/2 overflow-hidden rounded-[18px]">
               <HomeOptimizedImage
-                src={STOREFRONT_PRODUCT_IMAGE_PATH}
+                src={resolveStorefrontProductImage(heroProduct?.image)}
                 alt={t('home.figma.mobile.dailyOfferImageAlt')}
                 width={227}
                 height={147}

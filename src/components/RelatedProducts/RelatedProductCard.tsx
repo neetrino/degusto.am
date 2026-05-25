@@ -13,7 +13,7 @@ import { useWishlist } from '../hooks/useWishlist';
 import { useTranslation } from '../../lib/i18n-client';
 import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
 import { FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS } from '@/constants/mobile-figma-storefront';
-import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
+import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 
 const FIGMA_HOT_ICON = '/api/r2/product/20260512-dWv7-ZfxP1.svg';
 const FIGMA_RIBBON_ICON = '/api/r2/product/20260512-lmzrYlGD39.svg';
@@ -74,7 +74,9 @@ export function RelatedProductCard({
   const { isLoggedIn } = useAuth();
   const { t } = useTranslation();
   const { isInWishlist, toggleWishlist } = useWishlist(product.id);
-  const imageSrc = STOREFRONT_PRODUCT_IMAGE_PATH;
+  const imageSrc = imageError
+    ? resolveStorefrontProductImage(null)
+    : resolveStorefrontProductImage(product.image);
   const hasDiscount = typeof product.discountPercent === 'number' && product.discountPercent > 0;
   const discountText = hasDiscount ? `-${Math.round(product.discountPercent!)}%` : '';
 
