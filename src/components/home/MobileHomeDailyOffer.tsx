@@ -5,6 +5,10 @@ import { useTranslation } from '../../lib/i18n-client';
 import { formatPrice } from '../../lib/currency';
 import { useCurrency } from '../hooks/useCurrency';
 import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
+import {
+  MOBILE_HOME_DAILY_OFFER_GRADIENT_CLASS,
+  MOBILE_HOME_DAILY_OFFER_PHOTO_LAYOUT_CLASS,
+} from '@/constants/mobile-figma-storefront';
 import type { HomeFeaturedProduct } from './home-page-types';
 import { resolveMobileHomeDiscountPercent } from './home-mobile-helpers';
 import { HomeOptimizedImage } from './HomeOptimizedImage';
@@ -44,8 +48,11 @@ export function MobileHomeDailyOffer({ product, dailyOfferAddToCartSrc }: Mobile
       tabIndex={0}
       aria-label={title}
     >
-      <div className="absolute left-0 top-0 h-full w-[51.12%] bg-[#f66a13]" />
-      <div className="absolute right-0 top-0 h-full w-[48.88%] relative">
+      <div
+        className={`absolute inset-0 ${MOBILE_HOME_DAILY_OFFER_GRADIENT_CLASS}`}
+        aria-hidden
+      />
+      <div className={`${MOBILE_HOME_DAILY_OFFER_PHOTO_LAYOUT_CLASS} relative overflow-hidden`}>
         <HomeOptimizedImage
           src={imageSrc}
           alt={title}

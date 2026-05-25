@@ -7,6 +7,7 @@ import { useAuth } from '../../lib/auth/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '../../lib/i18n-client';
 import { resolveLoginApiError } from '../../lib/auth/client-api-error-messages';
+import { resolvePostLoginPath } from '../../lib/auth/resolve-post-login-path';
 import { logger } from '@/lib/utils/logger';
 import { AuthPageShell } from '@/components/auth/AuthPageShell';
 import {
@@ -68,7 +69,10 @@ function LoginPageContent() {
       const loggedInUser = await login(normalizedEmail, password);
       const isUserAdmin =
         Array.isArray(loggedInUser.roles) && loggedInUser.roles.includes('admin');
-      const destination = isUserAdmin ? '/supersudo' : redirectTo;
+      const destination = resolvePostLoginPath({
+        isAdmin: isUserAdmin,
+        redirectTo,
+      });
       logger.debug('✅ [LOGIN PAGE] Login successful, redirecting to:', destination);
       router.push(destination);
     } catch (err: unknown) {
@@ -82,7 +86,7 @@ function LoginPageContent() {
 
   useEffect(() => {
     if (isLoggedIn && !isLoading) {
-      router.push(isAdmin ? '/supersudo' : redirectTo);
+      router.push(resolvePostLoginPath({ isAdmin, redirectTo }));
     }
   }, [isLoggedIn, isLoading, isAdmin, redirectTo, router]);
 

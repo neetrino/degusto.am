@@ -53,6 +53,14 @@ export const FIGMA_PRODUCT_CARD_CREAM_BG_CLASS = 'bg-[#FFEACC]';
 export const FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS = 'hover:bg-[#FFEACC]';
 export const FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS = 'group-hover:bg-[#FFEACC]';
 
+/** Figma 1:1650 — daily offer card gradient (Frame 71, 356×128). */
+export const MOBILE_HOME_DAILY_OFFER_GRADIENT_CLASS =
+  'bg-gradient-to-r from-[#FF7A00] to-[#F3C4A5]';
+
+/** Figma 1:1651 — product photo on daily offer card (left 176px / width 184px on 356px frame). */
+export const MOBILE_HOME_DAILY_OFFER_PHOTO_LAYOUT_CLASS =
+  'absolute top-0 left-[49.44%] h-full w-[51.69%]';
+
 /** Mobile shop product card artwork (Figma 1:2235 / home mobile parity). */
 export const MOBILE_SHOP_PRODUCT_CARD_ASSETS = {
   productImage: STOREFRONT_PRODUCT_IMAGE_PATH,
