@@ -560,17 +560,7 @@ export function FigmaDesktopMenuPage({
                   })
                 );
               }}
-              onSheetCommit={(nextMinPrice) => {
-                router.replace(
-                  buildTargetPath(activeCategorySlug, {
-                    search: searchTerm,
-                    minPrice: nextMinPrice,
-                    maxPrice,
-                  })
-                );
-              }}
               placeholder={t('home.figma.desktop.shop.priceFrom')}
-              sheetTitle={t('home.figma.desktop.shop.priceFrom')}
               className="h-[46px] min-w-0 flex-1 rounded-[40px] bg-[#f3f3f5] px-4 text-left text-base text-[#7f7f80] sm:flex-none sm:basis-[109px]"
             />
             <MobileFriendlyInput
@@ -589,17 +579,7 @@ export function FigmaDesktopMenuPage({
                   })
                 );
               }}
-              onSheetCommit={(nextMaxPrice) => {
-                router.replace(
-                  buildTargetPath(activeCategorySlug, {
-                    search: searchTerm,
-                    minPrice,
-                    maxPrice: nextMaxPrice,
-                  })
-                );
-              }}
               placeholder={t('home.figma.desktop.shop.priceTo')}
-              sheetTitle={t('home.figma.desktop.shop.priceTo')}
               className="h-[46px] min-w-0 flex-1 rounded-[40px] bg-[#f3f3f5] px-4 text-left text-base text-[#7f7f80] sm:flex-none sm:basis-[109px]"
             />
             <FoodAttributeSwitcher

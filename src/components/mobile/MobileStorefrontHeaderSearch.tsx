@@ -194,49 +194,22 @@ export function MobileStorefrontHeaderSearch({ onFilterClick }: MobileStorefront
           className="absolute left-[15px] top-1/2 h-[17px] w-[17px] -translate-y-1/2 object-contain brightness-0"
         />
         <MobileFriendlyInput
-          disableMobileSheet={false}
           type="text"
           value={query}
           onChange={(event) => {
             onInputChange(event.target.value);
           }}
-          onSheetOpen={() => {
+          onFocus={() => {
             if (!menu && query.trim().length >= 1) {
               setIsOpen(true);
             }
           }}
-          onSheetCommit={(nextValue) => {
-            if (menu) {
-              flushMenuSearchUrlSync(nextValue);
-            }
-          }}
           onKeyDown={onInputKeyDown}
           placeholder={t('common.buttons.search')}
-          sheetTitle={t('common.buttons.search')}
-          className="h-full w-full rounded-[30px] bg-transparent pl-[39px] pr-[58px] text-[15px] leading-6 text-black outline-none placeholder:text-[#abb7c2]"
+          className="h-full w-full rounded-[30px] bg-transparent pl-[39px] pr-[58px] text-base leading-6 text-black outline-none placeholder:text-[#abb7c2]"
           aria-controls="search-results"
           aria-expanded={!menu && isOpen && results.length > 0}
           aria-autocomplete="list"
-          sheetFooter={
-            !menu ? (
-              <SearchDropdown
-                results={results}
-                loading={loading}
-                error={error}
-                isOpen={isOpen}
-                selectedIndex={selectedIndex}
-                query={query}
-                onResultClick={(result) => {
-                  router.push(`/products/${result.slug}`);
-                  setIsOpen(false);
-                  clearSearch();
-                }}
-                onClose={() => setIsOpen(false)}
-                onSeeAllClick={() => setIsOpen(false)}
-                className="relative z-[1] shadow-none"
-              />
-            ) : undefined
-          }
         />
         <button
           type="button"

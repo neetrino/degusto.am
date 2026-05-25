@@ -15,7 +15,6 @@ type MobileHomeHeaderSearchProps = {
   filterButtonSrc: string;
   filterAriaLabel: string;
   searchPlaceholder: string;
-  searchSheetTitle: string;
   headerSearchStackingClass: string;
 };
 
@@ -37,7 +36,6 @@ export function MobileHomeHeaderSearch({
   filterButtonSrc,
   filterAriaLabel,
   searchPlaceholder,
-  searchSheetTitle,
   headerSearchStackingClass,
 }: MobileHomeHeaderSearchProps) {
   const router = useRouter();
@@ -110,52 +108,23 @@ export function MobileHomeHeaderSearch({
           loading="eager"
         />
         <MobileFriendlyInput
-          disableMobileSheet={false}
           type="text"
           value={query}
           onChange={(event) => {
             setQuery(event.target.value);
             setIsOpen(event.target.value.trim().length >= 1);
           }}
-          onSheetOpen={() => {
+          onFocus={() => {
             if (query.trim().length >= 1) {
               setIsOpen(true);
             }
           }}
-          onSheetCommit={(nextValue) => {
-            navigateToShop(nextValue);
-            clearSearch();
-            setIsOpen(false);
-          }}
           onKeyDown={onInputKeyDown}
           placeholder={searchPlaceholder}
-          sheetTitle={searchSheetTitle}
-          className="h-full w-full rounded-[30px] bg-transparent pl-[39px] pr-[58px] text-[15px] leading-6 text-black outline-none placeholder:text-[#abb7c2]"
+          className="h-full w-full rounded-[30px] bg-transparent pl-[39px] pr-[58px] text-base leading-6 text-black outline-none placeholder:text-[#abb7c2]"
           aria-controls="home-search-results"
           aria-expanded={isOpen && results.length > 0}
           aria-autocomplete="list"
-          sheetFooter={
-            <SearchDropdown
-              results={results}
-              loading={loading}
-              error={error}
-              isOpen={isOpen}
-              selectedIndex={selectedIndex}
-              query={query}
-              onResultClick={(result) => {
-                router.push(`/products/${result.slug}`);
-                setIsOpen(false);
-                clearSearch();
-              }}
-              onClose={() => setIsOpen(false)}
-              onSeeAllClick={() => {
-                navigateToShop(query);
-                clearSearch();
-                setIsOpen(false);
-              }}
-              className="relative z-[1] shadow-none"
-            />
-          }
         />
         <button
           type="button"

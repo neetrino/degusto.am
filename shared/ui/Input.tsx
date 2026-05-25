@@ -6,9 +6,6 @@ import { MobileFriendlyInput } from '@/components/mobile/MobileFriendlyInput';
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
-  sheetTitle?: string;
-  sheetDoneLabel?: string;
-  sheetCancelLabel?: string;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
@@ -19,9 +16,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     onKeyDown,
     value,
     onChange,
-    sheetTitle,
-    sheetDoneLabel,
-    sheetCancelLabel,
     ...props
   },
   ref
@@ -47,9 +41,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         error ? 'border-error focus:ring-error' : 'border-gray-300'
       } ${className}`}
       onKeyDown={handleKeyDown}
-      sheetTitle={sheetTitle ?? label}
-      sheetDoneLabel={sheetDoneLabel}
-      sheetCancelLabel={sheetCancelLabel}
       {...props}
     />
   );

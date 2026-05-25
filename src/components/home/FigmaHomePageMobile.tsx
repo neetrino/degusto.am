@@ -222,7 +222,6 @@ export function FigmaHomePageMobile({
           filterButtonSrc={mobileAssets.searchFilterButton}
           filterAriaLabel={t('products.header.filters')}
           searchPlaceholder={t('common.buttons.search')}
-          searchSheetTitle={t('common.buttons.search')}
           headerSearchStackingClass={MOBILE_FIGMA_HEADER_SEARCH_STACKING_CLASS}
         />
       </header>

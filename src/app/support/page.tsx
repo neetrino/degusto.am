@@ -102,7 +102,6 @@ export default function SupportPage() {
               type="text"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              sheetTitle={t('support.sendMessage.form.name')}
               placeholder={t('support.sendMessage.form.namePlaceholder')}
               className="w-full"
             />
@@ -116,7 +115,6 @@ export default function SupportPage() {
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              sheetTitle={t('support.sendMessage.form.email')}
               placeholder={t('support.sendMessage.form.emailPlaceholder')}
               className="w-full"
             />
@@ -130,7 +128,6 @@ export default function SupportPage() {
               type="text"
               value={subject}
               onChange={(event) => setSubject(event.target.value)}
-              sheetTitle={t('support.sendMessage.form.subject')}
               placeholder={t('support.sendMessage.form.subjectPlaceholder')}
               className="w-full"
             />
@@ -144,7 +141,6 @@ export default function SupportPage() {
               rows={6}
               value={message}
               onChange={(event) => setMessage(event.target.value)}
-              sheetTitle={t('support.sendMessage.form.message')}
               placeholder={t('support.sendMessage.form.messagePlaceholder')}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
