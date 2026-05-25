@@ -41,6 +41,7 @@ import {
 } from './utils/merge-visual-into-product';
 import { ProductPageHydrationProvider } from './ProductPageHydrationContext';
 import { useProductClientRefetch } from './hooks/useProductClientRefetch';
+import { usePdpChrome } from './pdp-chrome-context';
 
 function collectSelectedAttributeValueIdsForCart(
   product: Product,
@@ -109,6 +110,15 @@ export function ProductPageClient({
   const detailsPending = Boolean(partialProduct && !fullProduct && !notFound);
   const awaitingDetails = !product && !notFound && !initialNotFound;
   const productRef = useRef<Product | null>(product);
+  const { setDesktopChromeReady } = usePdpChrome();
+
+  const isDesktopChromeReady =
+    Boolean(product) && !awaitingDetails && !detailsPending && !notFound;
+
+  useEffect(() => {
+    setDesktopChromeReady(isDesktopChromeReady);
+    return () => setDesktopChromeReady(false);
+  }, [isDesktopChromeReady, setDesktopChromeReady]);
 
   useEffect(() => {
     productRef.current = product;
@@ -328,7 +338,9 @@ export function ProductPageClient({
     <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
       <BodyBackground color={PDP_BODY_BACKGROUND} />
       <div
-        className={`${PDP_HEADER_DESKTOP_UNDERLAP_CLASS} min-h-dvh overflow-x-hidden max-lg:min-h-0 lg:min-h-dvh lg:bg-[var(--project-color)]`}
+        className={`${PDP_HEADER_DESKTOP_UNDERLAP_CLASS} min-h-dvh overflow-x-hidden max-lg:min-h-0 lg:min-h-dvh ${
+          isDesktopChromeReady ? 'lg:bg-[var(--project-color)]' : 'lg:bg-white'
+        }`}
       >
         <div className="hidden lg:block">
           <ProjectGreenStripes extendFirstStrokeUp />

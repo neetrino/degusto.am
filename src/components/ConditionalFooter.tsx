@@ -1,20 +1,24 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import { usePdpChrome } from '../app/products/[slug]/pdp-chrome-context';
 import { Footer } from './Footer';
 
-/** Footer outer wrapper: brand orange on auth + product detail (matches PDP orange rail). */
+/** Footer outer wrapper: brand orange on auth + loaded PDP (visible in rounded corner gutters). */
 const FOOTER_OUTER_ORANGE_CLASS = 'bg-[#F66812]';
+
+const PRODUCT_DETAIL_PATH = /^\/products\/[^/]+\/?$/;
 
 export function ConditionalFooter() {
   const pathname = usePathname();
+  const { isDesktopChromeReady } = usePdpChrome();
 
   if (pathname === '/' || pathname?.startsWith('/supersudo') || pathname?.startsWith('/admin-mobile')) {
     return null;
   }
 
   const isAuthPage = pathname === '/login' || pathname === '/register';
-  const isProductDetailPage = /^\/products\/[^/]+\/?$/.test(pathname ?? '');
+  const isProductDetailPage = PRODUCT_DETAIL_PATH.test(pathname ?? '');
   const isProfilePage = pathname?.startsWith('/profile');
 
   if (isProfilePage) {
@@ -25,8 +29,9 @@ export function ConditionalFooter() {
     );
   }
 
-  const backgroundClassName =
-    isAuthPage || isProductDetailPage ? FOOTER_OUTER_ORANGE_CLASS : 'bg-white';
+  const useOrangeGutter =
+    isAuthPage || (isProductDetailPage && isDesktopChromeReady);
+  const backgroundClassName = useOrangeGutter ? FOOTER_OUTER_ORANGE_CLASS : 'bg-white';
 
   return (
     <div className="hidden lg:block">

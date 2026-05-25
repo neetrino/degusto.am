@@ -1,15 +1,18 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
-import { Maximize2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { Maximize2, X } from "lucide-react";
 import { ProductLabels } from "../../../components/ProductLabels";
 import { resolveStorefrontProductImage } from "@/constants/storefront-product-image";
+import { PDP_PRODUCT_IMAGE_ZOOM_STACKING_CLASS } from "@/constants/ui-stacking";
 import { t } from "../../../lib/i18n";
 import type { LanguageCode } from "../../../lib/language";
 import type { Product } from "./types";
 
 const PDP_MAIN_IMAGE_SIZES = "(max-width: 1024px) 100vw, 55vw";
+const PDP_ZOOM_IMAGE_OFFSET_CLASS = "translate-y-8";
 
 interface ProductImageGalleryProps {
   images: string[];
@@ -32,6 +35,12 @@ export function ProductImageGallery({
   mainImagePriority = false,
 }: ProductImageGalleryProps) {
   const [showZoom, setShowZoom] = useState(false);
+  const [zoomPortalTarget, setZoomPortalTarget] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setZoomPortalTarget(document.body);
+  }, []);
+
   const mainImageSrc = resolveStorefrontProductImage(
     images[currentImageIndex] ?? images[0] ?? null
   );
@@ -76,29 +85,35 @@ export function ProductImageGallery({
         </div>
       </div>
 
-      {showZoom ? (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4"
-          onClick={() => setShowZoom(false)}
-        >
-          <img
-            src={mainImageSrc}
-            alt=""
-            className="max-h-full max-w-full object-contain"
-          />
-          <button
-            type="button"
-            className="absolute right-4 top-4 text-2xl text-white"
-            aria-label={t(language, 'common.buttons.close')}
-            onClick={(event) => {
-              event.stopPropagation();
-              setShowZoom(false);
-            }}
-          >
-            {t(language, 'common.buttons.close')}
-          </button>
-        </div>
-      ) : null}
+      {showZoom && zoomPortalTarget
+        ? createPortal(
+            <div
+              className={`fixed inset-0 ${PDP_PRODUCT_IMAGE_ZOOM_STACKING_CLASS} flex items-center justify-center bg-black/90 p-4`}
+              role="dialog"
+              aria-modal="true"
+              aria-label={t(language, 'common.ariaLabels.fullscreenImage')}
+              onClick={() => setShowZoom(false)}
+            >
+              <img
+                src={mainImageSrc}
+                alt={product.title}
+                className={`max-h-full max-w-full object-contain ${PDP_ZOOM_IMAGE_OFFSET_CLASS}`}
+              />
+              <button
+                type="button"
+                className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full text-white transition-colors hover:bg-white/10"
+                aria-label={t(language, 'common.buttons.close')}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setShowZoom(false);
+                }}
+              >
+                <X className="h-7 w-7" strokeWidth={2} aria-hidden />
+              </button>
+            </div>,
+            zoomPortalTarget
+          )
+        : null}
     </>
   );
 }
