@@ -10,7 +10,7 @@ import { useAddToCart } from '../hooks/useAddToCart';
 import { useWishlist } from '../hooks/useWishlist';
 import { useAuth } from '../../lib/auth/AuthContext';
 import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
-import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
+import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
 import type { MenuCard, MenuCategory } from './menu-types';
 import { ShopMobileProductCard } from './ShopMobileProductCard';
@@ -209,7 +209,7 @@ function MenuCardItem({ card }: { card: MenuCard }) {
   const { isInWishlist, toggleWishlist } = useWishlist(card.id);
   const title = card.title || t(card.titleKey);
   const category = card.category || (card.categoryKey ? t(card.categoryKey) : '');
-  const imageSrc = STOREFRONT_PRODUCT_IMAGE_PATH;
+  const imageSrc = resolveStorefrontProductImage(card.image);
   const calculatedDiscountPercent =
     card.oldPrice > card.price && card.oldPrice > 0
       ? Math.round(((card.oldPrice - card.price) / card.oldPrice) * 100)
@@ -248,7 +248,7 @@ function MenuCardItem({ card }: { card: MenuCard }) {
     const cardRoot = button.closest('[data-home-product-card]');
     const origin =
       (cardRoot?.querySelector('[data-product-fly-origin]') as HTMLElement | null) ?? button;
-    void addToCart({ origin, imageUrl: STOREFRONT_PRODUCT_IMAGE_PATH });
+    void addToCart({ origin, imageUrl: resolveStorefrontProductImage(card.image) });
   };
 
   const handleWishlistToggle = (event: MouseEvent<HTMLButtonElement>) => {
@@ -560,17 +560,7 @@ export function FigmaDesktopMenuPage({
                   })
                 );
               }}
-              onSheetCommit={(nextMinPrice) => {
-                router.replace(
-                  buildTargetPath(activeCategorySlug, {
-                    search: searchTerm,
-                    minPrice: nextMinPrice,
-                    maxPrice,
-                  })
-                );
-              }}
               placeholder={t('home.figma.desktop.shop.priceFrom')}
-              sheetTitle={t('home.figma.desktop.shop.priceFrom')}
               className="h-[46px] min-w-0 flex-1 rounded-[40px] bg-[#f3f3f5] px-4 text-left text-base text-[#7f7f80] sm:flex-none sm:basis-[109px]"
             />
             <MobileFriendlyInput
@@ -589,17 +579,7 @@ export function FigmaDesktopMenuPage({
                   })
                 );
               }}
-              onSheetCommit={(nextMaxPrice) => {
-                router.replace(
-                  buildTargetPath(activeCategorySlug, {
-                    search: searchTerm,
-                    minPrice,
-                    maxPrice: nextMaxPrice,
-                  })
-                );
-              }}
               placeholder={t('home.figma.desktop.shop.priceTo')}
-              sheetTitle={t('home.figma.desktop.shop.priceTo')}
               className="h-[46px] min-w-0 flex-1 rounded-[40px] bg-[#f3f3f5] px-4 text-left text-base text-[#7f7f80] sm:flex-none sm:basis-[109px]"
             />
             <FoodAttributeSwitcher

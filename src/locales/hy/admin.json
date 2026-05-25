@@ -317,6 +317,11 @@
     "clickToPublished": "Սեղմեք հրապարակելու համար",
     "clickToRemoveFeatured": "Սեղմեք առաջարկվածից հեռացնելու համար",
     "clickToMarkFeatured": "Սեղմեք առաջարկված նշելու համար",
+    "dailyOffer": {
+      "setActive": "Սահմանել որպես օրվա առաջարկ (mobile + desktop)",
+      "removeActive": "Հեռացնել օրվա առաջարկից",
+      "errorUpdating": "Սխալ օրվա առաջարկը թարմացնելիս: {message}"
+    },
     "edit": "Խմբագրել",
     "duplicate": "Կրկնօրինակել որպես սևագիր",
     "duplicateHint": "Ստեղծել սևագիր պատճեն՝ 0 գին և 0 քանակ",

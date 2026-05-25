@@ -2,6 +2,8 @@ import { HIDDEN_STOREFRONT_CATEGORY_SLUGS } from '@/constants/hidden-storefront-
 import type { MenuCard } from '@/components/home/menu-types';
 import { resolveFoodAttributeFlagsFromVariants } from '@/lib/product-food-attributes';
 import { resolveMenuCardCompareAtPrice } from '@/lib/storefront/menu-card-pricing';
+import { resolveStorefrontProductImageFromMedia } from '@/constants/storefront-product-image';
+import { processImageUrl, type ImageUrlInput } from '@/lib/utils/image-utils';
 
 const HY_CATEGORY_TITLE_BY_SLUG: Record<string, string> = {
   shawarma: 'Շաուրմա',
@@ -37,6 +39,7 @@ type CategoryDbRow = {
 export type ShopMenuProductRow = {
   id: string;
   discountPercent: number | null;
+  media: unknown;
   categories: Array<{
     translations: CategoryTranslationRow[];
   }>;
@@ -59,23 +62,7 @@ export function toShopMenuImageUrl(media: unknown): string | null {
   if (!Array.isArray(media) || media.length === 0) {
     return null;
   }
-  const first = media[0];
-  if (typeof first === 'string' && first.trim()) {
-    return first;
-  }
-  if (first && typeof first === 'object' && !Array.isArray(first)) {
-    const value = first as { url?: unknown; src?: unknown; value?: unknown };
-    if (typeof value.url === 'string' && value.url.trim()) {
-      return value.url;
-    }
-    if (typeof value.src === 'string' && value.src.trim()) {
-      return value.src;
-    }
-    if (typeof value.value === 'string' && value.value.trim()) {
-      return value.value;
-    }
-  }
-  return null;
+  return processImageUrl(media[0] as ImageUrlInput);
 }
 
 export function resolveShopCategoryTitle(
@@ -148,7 +135,7 @@ export function mapShopProductRowsToMenuCards(
       subtitleKey: 'home.figma.mobile.product.subtitle',
       title: translation?.title || `Product ${index + 1}`,
       category: categoryTranslation ? resolveShopCategoryTitle(locale, categoryTranslation) : '',
-      image: null,
+      image: resolveStorefrontProductImageFromMedia(row.media),
       price,
       oldPrice,
       discount: '',

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ProductLabels } from "../ProductLabels";
-import { STOREFRONT_PRODUCT_IMAGE_PATH } from "@/constants/storefront-product-image";
+import { resolveStorefrontProductImage } from "@/constants/storefront-product-image";
 import type { ProductLabel } from "../ProductLabels";
 
 interface ProductCardImageProps {
@@ -18,7 +18,6 @@ interface ProductCardImageProps {
 
 /**
  * Component for displaying product image with labels.
- * Uses the shared storefront product photo for every product card.
  */
 export function ProductCardImage({
   slug,
@@ -29,9 +28,8 @@ export function ProductCardImage({
   onImageError,
   isCompact = false,
 }: ProductCardImageProps) {
-  void image;
-  void imageError;
-  const displaySrc = STOREFRONT_PRODUCT_IMAGE_PATH;
+  void isCompact;
+  const displaySrc = imageError ? resolveStorefrontProductImage(null) : resolveStorefrontProductImage(image);
 
   return (
     <div data-product-fly-origin className="aspect-square bg-gray-100 relative overflow-hidden">

@@ -6,6 +6,8 @@ import { Prisma } from '@prisma/client';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
 import { withPrismaResilience } from '@/lib/db/with-prisma-resilience';
 import { resolveFoodAttributeFlagsFromVariants } from '@/lib/product-food-attributes';
+import { loadActiveDailyOffersForHome } from '@/lib/services/daily-offer/daily-offer.service';
+import { resolveStorefrontProductImageFromMedia } from '@/constants/storefront-product-image';
 import { r2Asset } from '@/lib/r2-public-url';
 
 /** Shared cache tag for `revalidateTag` on product/category admin writes. */
@@ -19,12 +21,15 @@ const HOME_CATEGORIES_LIMIT = 8;
 export type HomePageData = {
   featuredProducts: HomeFeaturedProduct[];
   categories: HomeCategoryItem[];
+  dailyOfferMobile: HomeFeaturedProduct | null;
+  dailyOfferDesktop: HomeFeaturedProduct | null;
 };
 
 function getHomeProductSelect(homeLang: StorefrontLocale) {
   return {
     id: true,
     discountPercent: true,
+    media: true,
     translations: {
       where: {
         locale: {
@@ -111,6 +116,7 @@ type HomeProductDbRow = {
   featured: boolean;
   updatedAt: Date;
   discountPercent: number | null;
+  media: unknown;
   translations: Array<{ locale: string; slug: string; title: string }>;
   categories: Array<{ translations: Array<{ locale: string; title: string }> }>;
   variants: Array<{
@@ -153,7 +159,7 @@ export async function loadHomePageData(homeLang: StorefrontLocale): Promise<Home
     updatedAt: true,
   };
 
-  const [homeProductRows, selectedCategories] = await Promise.all([
+  const [homeProductRows, selectedCategories, scheduledDailyOffers] = await Promise.all([
     withPrismaResilience(
       () =>
         db.product.findMany({
@@ -173,6 +179,12 @@ export async function loadHomePageData(homeLang: StorefrontLocale): Promise<Home
       [],
       'HOME',
       'home root categories'
+    ),
+    withPrismaResilience(
+      () => loadActiveDailyOffersForHome(homeLang),
+      { mobile: null, desktop: null },
+      'HOME',
+      'active daily offers'
     ),
   ]);
 
@@ -196,7 +208,7 @@ export async function loadHomePageData(homeLang: StorefrontLocale): Promise<Home
       subtitle: preferredCategoryTranslation?.title || 'Կատեգորիա',
       price: toPositiveNumber(mainVariant?.price),
       oldPrice: toPositiveNumber(mainVariant?.compareAtPrice),
-      image: null,
+      image: resolveStorefrontProductImageFromMedia(product.media),
       discountPercent: toPositiveNumber(product.discountPercent),
       inStock: mainVariant?.published ?? true,
       defaultVariantId: mainVariant?.id ?? null,
@@ -238,12 +250,17 @@ export async function loadHomePageData(homeLang: StorefrontLocale): Promise<Home
     image: resolveCategoryCardImage(index),
   }));
 
-  return { featuredProducts, categories };
+  return {
+    featuredProducts,
+    categories,
+    dailyOfferMobile: scheduledDailyOffers.mobile,
+    dailyOfferDesktop: scheduledDailyOffers.desktop,
+  };
 }
 
 const getHomePageDataCached = unstable_cache(
   async (homeLang: StorefrontLocale) => loadHomePageData(homeLang),
-  ['home-page-data-v4'],
+  ['home-page-data-v6'],
   {
     revalidate: HOME_PAGE_REVALIDATE_SECONDS,
     tags: [HOME_PAGE_CACHE_TAG],

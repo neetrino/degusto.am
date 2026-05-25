@@ -11,7 +11,7 @@ import { useCurrency } from './hooks/useCurrency';
 import { ProductCardList } from './ProductCard/ProductCardList';
 import { ProductCardGrid } from './ProductCard/ProductCardGrid';
 import { prefetchProductRoute } from '../lib/products/prefetch-product-route';
-import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
+import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 
 interface Product {
   id: string;
@@ -89,7 +89,7 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
     const card = button.closest('[data-product-card]');
     const origin =
       (card?.querySelector('[data-product-fly-origin]') as HTMLElement | null) ?? button;
-    addToCart({ origin, imageUrl: STOREFRONT_PRODUCT_IMAGE_PATH });
+    addToCart({ origin, imageUrl: resolveStorefrontProductImage(product.image) });
   };
 
   const handleDecreaseCart = (e: MouseEvent) => {

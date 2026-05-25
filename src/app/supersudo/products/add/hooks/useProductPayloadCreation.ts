@@ -43,13 +43,18 @@ export async function createAndSubmitPayload({
   setLoading,
   router,
 }: CreateAndSubmitPayloadProps): Promise<void> {
+  const categoryIds = [...formData.categoryIds];
+  if (finalPrimaryCategoryId && !categoryIds.includes(finalPrimaryCategoryId)) {
+    categoryIds.unshift(finalPrimaryCategoryId);
+  }
+
   const payload: any = {
       title: formData.title,
       slug: formData.slug,
       descriptionHtml: formData.descriptionHtml || undefined,
       brandId: finalBrandIds.length > 0 ? finalBrandIds[0] : undefined,
       primaryCategoryId: finalPrimaryCategoryId || undefined,
-      categoryIds: formData.categoryIds.length > 0 ? formData.categoryIds : undefined,
+      categoryIds: categoryIds.length > 0 ? categoryIds : undefined,
       published: isEditMode ? formData.published : true,
       featured: formData.featured,
       locale: 'en',

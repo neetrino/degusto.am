@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { Maximize2 } from "lucide-react";
 import { ProductLabels } from "../../../components/ProductLabels";
-import { STOREFRONT_PRODUCT_IMAGE_PATH } from "@/constants/storefront-product-image";
+import { resolveStorefrontProductImage } from "@/constants/storefront-product-image";
 import { t } from "../../../lib/i18n";
 import type { LanguageCode } from "../../../lib/language";
 import type { Product } from "./types";
@@ -24,12 +24,17 @@ interface ProductImageGalleryProps {
 }
 
 export function ProductImageGallery({
+  images,
   product,
   discountPercent,
   language,
+  currentImageIndex,
   mainImagePriority = false,
 }: ProductImageGalleryProps) {
   const [showZoom, setShowZoom] = useState(false);
+  const mainImageSrc = resolveStorefrontProductImage(
+    images[currentImageIndex] ?? images[0] ?? null
+  );
 
   return (
     <>
@@ -40,7 +45,7 @@ export function ProductImageGallery({
             className="group/main relative aspect-[6/5] w-full overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-50 shadow-[0_2px_8px_rgba(0,0,0,0.06)]"
           >
             <Image
-              src={STOREFRONT_PRODUCT_IMAGE_PATH}
+              src={mainImageSrc}
               alt={product.title}
               fill
               className="object-cover transition-transform duration-500 group-hover/main:scale-105"
@@ -77,7 +82,7 @@ export function ProductImageGallery({
           onClick={() => setShowZoom(false)}
         >
           <img
-            src={STOREFRONT_PRODUCT_IMAGE_PATH}
+            src={mainImageSrc}
             alt=""
             className="max-h-full max-w-full object-contain"
           />

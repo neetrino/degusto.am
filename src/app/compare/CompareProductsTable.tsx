@@ -3,7 +3,7 @@
 import type { MouseEvent } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
+import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 import { formatPrice, type CurrencyCode } from '../../lib/currency';
 
 export interface CompareProduct {
@@ -85,7 +85,7 @@ export function CompareProductsTable({
                   <Link href={`/products/${product.slug}`} className="inline-block">
                     <div className="w-32 h-32 mx-auto bg-gray-100 rounded-lg overflow-hidden relative">
                       <Image
-                        src={STOREFRONT_PRODUCT_IMAGE_PATH}
+                        src={resolveStorefrontProductImage(product.image)}
                         alt={product.title}
                         fill
                         className="object-cover"

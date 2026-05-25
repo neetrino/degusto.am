@@ -259,7 +259,6 @@ export default function ContactPage() {
                   required
                   value={formData.message}
                   onChange={handleChange}
-                  sheetTitle={t('contact.form.message')}
                   className="w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
                   placeholder={t('contact.form.messagePlaceholder')}
                 />

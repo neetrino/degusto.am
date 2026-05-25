@@ -12,6 +12,8 @@ import { ProductFilters } from './components/ProductFilters';
 import { ProductsTable } from './components/ProductsTable';
 import { useProductHandlers } from './hooks/useProductHandlers';
 import type { Product, ProductsResponse, Category } from './types';
+import type { DailyOfferSelection } from '@/lib/services/daily-offer/daily-offer.types';
+import { EMPTY_DAILY_OFFER_SELECTION } from '@/lib/services/daily-offer/daily-offer.types';
 import { logger } from "@/lib/utils/logger";
 
 export default function ProductsPage() {
@@ -35,6 +37,9 @@ export default function ProductsPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [togglingAllFeatured, setTogglingAllFeatured] = useState(false);
+  const [dailyOfferSelection, setDailyOfferSelection] = useState<DailyOfferSelection>(
+    EMPTY_DAILY_OFFER_SELECTION
+  );
   const [currency, setCurrency] = useState<CurrencyCode>('USD');
 
   useEffect(() => {
@@ -81,6 +86,19 @@ export default function ProductsPage() {
     if (isLoggedIn && isAdmin) {
       fetchCategories();
     }
+  }, [isLoggedIn, isAdmin]);
+
+  useEffect(() => {
+    if (!isLoggedIn || !isAdmin) {
+      return;
+    }
+
+    void apiClient
+      .get<DailyOfferSelection>('/api/v1/admin/daily-offers')
+      .then(setDailyOfferSelection)
+      .catch((error: unknown) => {
+        console.error('❌ [ADMIN] Error loading daily offer selection:', error);
+      });
   }, [isLoggedIn, isAdmin]);
 
   // Close category dropdown when clicking outside
@@ -302,6 +320,7 @@ export default function ProductsPage() {
     setPage,
     setBulkDeleting,
     setTogglingAllFeatured,
+    setDailyOfferSelection,
   });
 
   const handleClearFilters = () => {
@@ -403,6 +422,9 @@ export default function ProductsPage() {
               duplicatingProductId={handlers.duplicatingProductId}
               handleTogglePublished={handlers.handleTogglePublished}
               handleToggleFeatured={handlers.handleToggleFeatured}
+              handleToggleDailyOffer={handlers.handleToggleDailyOffer}
+              dailyOfferSelection={dailyOfferSelection}
+              togglingDailyOfferProductId={handlers.togglingDailyOfferProductId}
               meta={meta}
               page={page}
               setPage={setPage}

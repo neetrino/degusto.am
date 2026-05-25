@@ -11,7 +11,7 @@ import {
 export default async function HomePage() {
   const cookieStore = await cookies();
   const homeLang = resolveStorefrontLocaleFromCookie(cookieStore.get('shop_language')?.value);
-  const { featuredProducts, categories } = await getHomePageData(homeLang);
+  const { featuredProducts, categories, dailyOfferMobile, dailyOfferDesktop } = await getHomePageData(homeLang);
   const homeFeaturedProducts = resolveHomeFeaturedProducts(featuredProducts);
   const homeCategories = resolveHomeCategories(categories);
 
@@ -21,8 +21,13 @@ export default async function HomePage() {
         lang={homeLang}
         categories={homeCategories}
         featuredProducts={homeFeaturedProducts}
+        dailyOfferProduct={dailyOfferMobile}
       />
-      <FigmaHomePage categories={homeCategories} featuredProducts={homeFeaturedProducts} />
+      <FigmaHomePage
+        categories={homeCategories}
+        featuredProducts={homeFeaturedProducts}
+        dailyOfferProduct={dailyOfferDesktop}
+      />
     </>
   );
 }

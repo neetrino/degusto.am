@@ -7,7 +7,7 @@ import { formatPrice } from '../../lib/currency';
 import type { CurrencyCode } from '../../lib/currency';
 import type { Cart, CartItem } from './types';
 import type { CartListAppearance } from './constants';
-import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
+import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 
 type DisplayLine = NonNullable<CartItem['variant']['displayLines']>[number];
 
@@ -165,7 +165,7 @@ export function CartItemRow({
         aria-label={item.variant.product.title}
       >
         <Image
-          src={STOREFRONT_PRODUCT_IMAGE_PATH}
+          src={resolveStorefrontProductImage(item.variant.product.image)}
           alt=""
           fill
           className="object-cover"

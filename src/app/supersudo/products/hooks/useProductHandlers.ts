@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { apiClient } from '../../../../lib/api-client';
 import { useTranslation } from '../../../../lib/i18n-client';
 import type { Product, ProductsResponse } from '../types';
+import type { DailyOfferSelection } from '@/lib/services/daily-offer/daily-offer.types';
 import { logger } from "@/lib/utils/logger";
 import { useAdminDialogs } from '../../context/AdminDialogsContext';
 
@@ -15,6 +16,9 @@ interface UseProductHandlersProps {
   setPage: (page: number | ((prev: number) => number)) => void;
   setBulkDeleting: (deleting: boolean) => void;
   setTogglingAllFeatured: (toggling: boolean) => void;
+  setDailyOfferSelection: (
+    selection: DailyOfferSelection | ((prev: DailyOfferSelection) => DailyOfferSelection)
+  ) => void;
 }
 
 export function useProductHandlers({
@@ -26,10 +30,12 @@ export function useProductHandlers({
   setPage,
   setBulkDeleting,
   setTogglingAllFeatured,
+  setDailyOfferSelection,
 }: UseProductHandlersProps) {
   const { t } = useTranslation();
   const { confirm: confirmDialog } = useAdminDialogs();
   const [duplicatingProductId, setDuplicatingProductId] = useState<string | null>(null);
+  const [togglingDailyOfferProductId, setTogglingDailyOfferProductId] = useState<string | null>(null);
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -215,6 +221,27 @@ export function useProductHandlers({
     }
   };
 
+  const handleToggleDailyOffer = async (productId: string) => {
+    if (togglingDailyOfferProductId) {
+      return;
+    }
+
+    setTogglingDailyOfferProductId(productId);
+    try {
+      const selection = await apiClient.put<DailyOfferSelection>('/api/v1/admin/daily-offers', {
+        productId,
+      });
+      setDailyOfferSelection(selection);
+    } catch (err: unknown) {
+      console.error('❌ [ADMIN] Error toggling daily offer:', err);
+      const message =
+        err instanceof Error ? err.message : t('admin.common.unknownErrorFallback');
+      alert(t('admin.products.dailyOffer.errorUpdating').replace('{message}', message));
+    } finally {
+      setTogglingDailyOfferProductId(null);
+    }
+  };
+
   return {
     handleSearch,
     toggleSelect,
@@ -226,6 +253,8 @@ export function useProductHandlers({
     handleTogglePublished,
     handleToggleFeatured,
     handleToggleAllFeatured,
+    handleToggleDailyOffer,
+    togglingDailyOfferProductId,
   };
 }
 

@@ -11,6 +11,10 @@ import {
 import { logger } from "@/lib/utils/logger";
 import { revalidateStorefrontMenuCaches } from "@/lib/cache/revalidate-storefront-menu-caches";
 import { ensureUniqueProductSlug } from "./product-slug-utils";
+import {
+  buildProductCategoriesConnect,
+  resolveProductCategoryIds,
+} from "./product-category-utils";
 
 const PRODUCT_CREATE_TX_TIMEOUT_MS = 15000;
 const PRODUCT_CREATE_TX_MAX_WAIT_MS = 5000;
@@ -348,11 +352,21 @@ class AdminProductsCreateService {
         logger.debug('📸 [ADMIN PRODUCTS CREATE SERVICE] Final main media count:', finalMedia.length);
         logger.debug('📸 [ADMIN PRODUCTS CREATE SERVICE] Variant images excluded:', allVariantImages.length);
 
+        const resolvedCategoryIds = resolveProductCategoryIds(
+          data.categoryIds,
+          data.primaryCategoryId
+        );
+        const categoriesConnect = buildProductCategoriesConnect(
+          data.categoryIds,
+          data.primaryCategoryId
+        );
+
         const product = await tx.product.create({
           data: {
             brandId: data.brandId || undefined,
             primaryCategoryId: data.primaryCategoryId || undefined,
-            categoryIds: data.categoryIds || [],
+            categoryIds: resolvedCategoryIds,
+            ...(categoriesConnect ? { categories: categoriesConnect } : {}),
             media: finalMedia,
             published: data.published,
             featured: data.featured ?? false,

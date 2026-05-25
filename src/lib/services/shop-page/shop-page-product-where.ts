@@ -104,6 +104,7 @@ export function getShopProductSelect(locale: StorefrontLocale): Prisma.ProductSe
   return {
     id: true,
     discountPercent: true,
+    media: true,
     categories: {
       where: {
         deletedAt: null,

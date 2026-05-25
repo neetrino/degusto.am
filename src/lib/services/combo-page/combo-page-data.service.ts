@@ -164,7 +164,7 @@ const getComboMenuDataCached = unstable_cache(
       requestedPage: Number.isFinite(parsedPage) && parsedPage >= 1 ? parsedPage : 1,
     });
   },
-  ['combo-menu-data-v1'],
+  ['combo-menu-data-v2'],
   {
     revalidate: COMBO_MENU_REVALIDATE_SECONDS,
     tags: [COMBO_MENU_CACHE_TAG],

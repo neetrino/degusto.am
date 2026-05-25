@@ -8,6 +8,7 @@ import {
   shouldLogWarning,
   parseErrorResponse,
   createApiError,
+  isAbortError,
   isQuietCartStockValidationError,
   isQuietCartReadServerError,
   isQuietAdminDashboardReadServerError,
@@ -40,6 +41,10 @@ function combineAbortSignals(
  * Handle network errors
  */
 function handleNetworkError(error: unknown, baseUrl: string, url: string): never {
+  if (isAbortError(error)) {
+    throw error;
+  }
+
   const networkError = error as { message?: string; name?: string };
   
   // Check if it's a timeout error
@@ -199,6 +204,9 @@ export async function getRequest<T>(
       console.warn('⚠️ [API CLIENT] Failed to log response status');
     }
   } catch (networkError: unknown) {
+    if (isAbortError(networkError)) {
+      throw networkError;
+    }
     handleNetworkError(networkError, baseUrl, url);
   }
 
