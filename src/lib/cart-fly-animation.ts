@@ -1,7 +1,10 @@
 /**
- * Flies a small product thumbnail from a source element toward the header cart target.
+ * Flies a small product thumbnail from a source element toward the cart target.
+ * On mobile (below `lg`), targets the bottom navigation cart; on desktop, the header cart.
  * Respects `prefers-reduced-motion`. No-op on server or missing source.
  */
+
+import { isMobileViewport } from './viewport';
 
 export type CartFlyAnimationOptions = {
   fromElement?: Element | null;
@@ -9,6 +12,7 @@ export type CartFlyAnimationOptions = {
 };
 
 const CART_FLY_TARGET_SELECTOR = '[data-cart-fly-target]';
+const MOBILE_BOTTOM_NAV_SELECTOR = '[data-mobile-bottom-nav]';
 
 /** Public so Header can match suppress-scroll duration to the fly animation. */
 export const CART_FLY_ANIMATION_DURATION_MS = 680;
@@ -28,6 +32,8 @@ const FLY_ARC_BOOST_PX = 64;
 const FALLBACK_TOP_PX = 72;
 const FALLBACK_RIGHT_INSET_PX = 24;
 const FALLBACK_SIZE_PX = 40;
+const FALLBACK_MOBILE_BOTTOM_OFFSET_PX = 45;
+const FALLBACK_MOBILE_CART_X_RATIO = 0.35;
 
 function hasNonZeroSize(rect: DOMRect): boolean {
   return rect.width > 0 && rect.height > 0;
@@ -52,6 +58,15 @@ function findVisibleCartTargetRectWithin(root: ParentNode): DOMRect | null {
 }
 
 function getVisibleCartTargetRect(): DOMRect | null {
+  if (isMobileViewport()) {
+    const bottomNav = document.querySelector(MOBILE_BOTTOM_NAV_SELECTOR);
+    if (bottomNav) {
+      const inBottomNav = findVisibleCartTargetRectWithin(bottomNav);
+      if (inBottomNav) return inBottomNav;
+    }
+    return null;
+  }
+
   const mainNav = document.querySelector('header.fixed');
   if (mainNav) {
     const inMainNav = findVisibleCartTargetRectWithin(mainNav);
@@ -61,6 +76,12 @@ function getVisibleCartTargetRect(): DOMRect | null {
 }
 
 function getFallbackTargetRect(): DOMRect {
+  if (isMobileViewport()) {
+    const left = window.innerWidth * FALLBACK_MOBILE_CART_X_RATIO - FALLBACK_SIZE_PX / 2;
+    const top = window.innerHeight - FALLBACK_MOBILE_BOTTOM_OFFSET_PX - FALLBACK_SIZE_PX;
+    return new DOMRect(left, top, FALLBACK_SIZE_PX, FALLBACK_SIZE_PX);
+  }
+
   const left = window.innerWidth - FALLBACK_RIGHT_INSET_PX - FALLBACK_SIZE_PX;
   return new DOMRect(left, FALLBACK_TOP_PX, FALLBACK_SIZE_PX, FALLBACK_SIZE_PX);
 }
@@ -150,10 +171,14 @@ function appendFlyShell(
  * Plays the fly-to-cart animation. Safe to call from click handlers (client-only).
  */
 export function playCartFlyAnimation(options: CartFlyAnimationOptions): void {
-  dispatchHeaderRevealForCart();
-
   if (typeof document === 'undefined' || typeof window === 'undefined') {
     return;
+  }
+
+  const usesMobileBottomNav =
+    isMobileViewport() && document.querySelector(MOBILE_BOTTOM_NAV_SELECTOR) !== null;
+  if (!usesMobileBottomNav) {
+    dispatchHeaderRevealForCart();
   }
 
   if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {

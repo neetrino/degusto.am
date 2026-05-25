@@ -1,6 +1,6 @@
 import { unstable_cache } from 'next/cache';
 import { categoriesService } from '@/lib/services/categories.service';
-import type { HomeCategoryItem, HomeFeaturedProduct } from '@/components/home/FigmaHomePage';
+import type { HomeCategoryItem, HomeFeaturedProduct } from '@/components/home/home-page-types';
 import { db } from '@white-shop/db';
 import { Prisma } from '@prisma/client';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
@@ -16,13 +16,6 @@ export const HOME_PAGE_REVALIDATE_SECONDS = 60;
 const HOME_FEATURED_PRODUCTS_LIMIT = 12;
 const HOME_CATEGORIES_LIMIT = 8;
 
-type CategoryTreeItem = {
-  id: string;
-  slug: string;
-  title: string;
-  children: CategoryTreeItem[];
-};
-
 export type HomePageData = {
   featuredProducts: HomeFeaturedProduct[];
   categories: HomeCategoryItem[];
@@ -31,7 +24,6 @@ export type HomePageData = {
 function getHomeProductSelect(homeLang: StorefrontLocale) {
   return {
     id: true,
-    media: true,
     discountPercent: true,
     translations: {
       where: {
@@ -73,22 +65,11 @@ function getHomeProductSelect(homeLang: StorefrontLocale) {
         published: true,
         price: true,
         compareAtPrice: true,
-        /** Spicy/greens badges use JSON buckets only on home (see product-food-attributes). */
+        /** Spicy/greens badges need all published variants (see product-food-attributes). */
         attributes: true,
       },
     },
   };
-}
-
-function flattenCategoryTree(items: CategoryTreeItem[]): CategoryTreeItem[] {
-  const flattened: CategoryTreeItem[] = [];
-  for (const item of items) {
-    flattened.push(item);
-    if (item.children.length > 0) {
-      flattened.push(...flattenCategoryTree(item.children));
-    }
-  }
-  return flattened;
 }
 
 function toPositiveNumber(value: number | null | undefined): number | null {
@@ -125,62 +106,77 @@ function resolveCategoryCardImage(index: number): string {
   return r2Asset('category/20260512-j5QKmShMEM.png');
 }
 
+type HomeProductDbRow = {
+  id: string;
+  featured: boolean;
+  updatedAt: Date;
+  discountPercent: number | null;
+  translations: Array<{ locale: string; slug: string; title: string }>;
+  categories: Array<{ translations: Array<{ locale: string; title: string }> }>;
+  variants: Array<{
+    id: string;
+    published: boolean;
+    price: number;
+    compareAtPrice: number | null;
+    attributes: unknown;
+  }>;
+};
+
+/** Featured first (newest), then promo by discount — same slots as the former dual-query merge. */
+function mergeHomeFeaturedAndPromoRows(rows: HomeProductDbRow[]): HomeProductDbRow[] {
+  const featuredRows = rows
+    .filter((product) => product.featured)
+    .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
+    .slice(0, HOME_FEATURED_PRODUCTS_LIMIT);
+
+  const featuredIds = new Set(featuredRows.map((product) => product.id));
+  const promoRows = rows
+    .filter(
+      (product) =>
+        !featuredIds.has(product.id) &&
+        typeof product.discountPercent === 'number' &&
+        product.discountPercent > 0
+    )
+    .sort((a, b) => (b.discountPercent ?? 0) - (a.discountPercent ?? 0))
+    .slice(0, HOME_FEATURED_PRODUCTS_LIMIT);
+
+  return [...featuredRows, ...promoRows].slice(0, HOME_FEATURED_PRODUCTS_LIMIT);
+}
+
 /**
  * Loads home featured products and category blocks from the database (uncached).
  */
 export async function loadHomePageData(homeLang: StorefrontLocale): Promise<HomePageData> {
-  const homeProductSelect = getHomeProductSelect(homeLang);
+  const homeProductSelect = {
+    ...getHomeProductSelect(homeLang),
+    featured: true,
+    updatedAt: true,
+  };
 
-  const [selectedRows, promoRows, categoriesTreeResult] = await Promise.all([
+  const [homeProductRows, selectedCategories] = await Promise.all([
     withPrismaResilience(
       () =>
         db.product.findMany({
           where: {
             published: true,
             deletedAt: null,
-            featured: true,
+            OR: [{ featured: true }, { discountPercent: { gt: 0 } }],
           },
-          orderBy: {
-            updatedAt: 'desc',
-          },
-          take: HOME_FEATURED_PRODUCTS_LIMIT,
           select: homeProductSelect,
         }),
-      [],
+      [] as HomeProductDbRow[],
       'HOME',
-      'home featured products'
+      'home featured and promo products'
     ),
     withPrismaResilience(
-      () =>
-        db.product.findMany({
-          where: {
-            published: true,
-            deletedAt: null,
-            discountPercent: {
-              gt: 0,
-            },
-          },
-          orderBy: {
-            discountPercent: 'desc',
-          },
-          take: HOME_FEATURED_PRODUCTS_LIMIT,
-          select: homeProductSelect,
-        }),
+      () => categoriesService.getHomeRootCategories(homeLang, HOME_CATEGORIES_LIMIT),
       [],
       'HOME',
-      'home promo products'
-    ),
-    withPrismaResilience(
-      () => categoriesService.getTree(homeLang),
-      { data: [] as CategoryTreeItem[] },
-      'HOME',
-      'home categories tree'
+      'home root categories'
     ),
   ]);
 
-  const selectedProductIds = new Set(selectedRows.map((product) => product.id));
-  const selectedPromoRows = promoRows.filter((product) => !selectedProductIds.has(product.id));
-  const homeRows = [...selectedRows, ...selectedPromoRows].slice(0, HOME_FEATURED_PRODUCTS_LIMIT);
+  const homeRows = mergeHomeFeaturedAndPromoRows(homeProductRows);
 
   const featuredProducts: HomeFeaturedProduct[] = homeRows.map((product) => {
     const preferredTranslation =
@@ -192,13 +188,6 @@ export async function loadHomePageData(homeLang: StorefrontLocale): Promise<Home
       firstCategory?.translations[0];
     const mainVariant = product.variants[0];
     const foodAttrs = resolveFoodAttributeFlagsFromVariants(product.variants);
-    const imageUrlRaw = Array.isArray(product.media) && product.media.length > 0 ? product.media[0] : null;
-    const image =
-      imageUrlRaw && typeof imageUrlRaw === 'object' && 'url' in imageUrlRaw
-        ? String(imageUrlRaw.url)
-        : typeof imageUrlRaw === 'string'
-          ? imageUrlRaw
-          : null;
 
     return {
       id: product.id,
@@ -207,7 +196,7 @@ export async function loadHomePageData(homeLang: StorefrontLocale): Promise<Home
       subtitle: preferredCategoryTranslation?.title || 'Կատեգորիա',
       price: toPositiveNumber(mainVariant?.price),
       oldPrice: toPositiveNumber(mainVariant?.compareAtPrice),
-      image,
+      image: null,
       discountPercent: toPositiveNumber(product.discountPercent),
       inStock: mainVariant?.published ?? true,
       defaultVariantId: mainVariant?.id ?? null,
@@ -216,8 +205,6 @@ export async function loadHomePageData(homeLang: StorefrontLocale): Promise<Home
     };
   });
 
-  const flatCategories = flattenCategoryTree((categoriesTreeResult.data as CategoryTreeItem[]) ?? []);
-  const selectedCategories = flatCategories.slice(0, HOME_CATEGORIES_LIMIT);
   const selectedCategoryIds = selectedCategories.map((category) => category.id);
 
   const categoryTotals =
@@ -256,7 +243,7 @@ export async function loadHomePageData(homeLang: StorefrontLocale): Promise<Home
 
 const getHomePageDataCached = unstable_cache(
   async (homeLang: StorefrontLocale) => loadHomePageData(homeLang),
-  ['home-page-data-v3'],
+  ['home-page-data-v4'],
   {
     revalidate: HOME_PAGE_REVALIDATE_SECONDS,
     tags: [HOME_PAGE_CACHE_TAG],

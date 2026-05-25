@@ -2,7 +2,7 @@ import { apiClient } from '../../lib/api-client';
 import { logger } from '../../lib/utils/logger';
 import type { Cart, CartItem } from './types';
 import { CART_KEY } from './constants';
-import { writeCartSummaryCache } from '../../lib/cartSummaryCache';
+import { publishCartUpdated, publishCartForceReload } from '../../lib/cart/cart-events';
 import {
   buildCustomizationLineKey,
   normalizeProductCustomizations,
@@ -24,12 +24,6 @@ interface GuestCartItem {
   };
 }
 
-function publishCartSummary(itemsCount: number, total: number): void {
-  writeCartSummaryCache(itemsCount, total);
-  window.dispatchEvent(new CustomEvent('cart-updated', {
-    detail: { itemsCount, total },
-  }));
-}
 
 /**
  * Parse item ID to extract productId and lineId
@@ -82,7 +76,7 @@ function removeFromGuestCart(itemId: string): void {
   const itemsCount = updatedCart.reduce((sum, item) => sum + item.quantity, 0);
   const total = updatedCart.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
   localStorage.setItem(CART_KEY, JSON.stringify(updatedCart));
-  publishCartSummary(itemsCount, total);
+  publishCartUpdated(itemsCount, total);
 }
 
 /**
@@ -112,7 +106,7 @@ function updateGuestCartQuantity(itemId: string, quantity: number): void {
     const itemsCount = guestCart.reduce((sum, cartItem) => sum + cartItem.quantity, 0);
     const total = guestCart.reduce((sum, cartItem) => sum + (cartItem.price || 0) * cartItem.quantity, 0);
     localStorage.setItem(CART_KEY, JSON.stringify(guestCart));
-    publishCartSummary(itemsCount, total);
+    publishCartUpdated(itemsCount, total);
   }
 }
 
@@ -141,7 +135,7 @@ export async function handleRemoveItem(
     totals: updatedTotals,
     itemsCount: newItemsCount,
   });
-  publishCartSummary(newItemsCount, updatedTotals.total);
+  publishCartUpdated(newItemsCount, updatedTotals.total);
 
   try {
     if (!isLoggedIn) {
@@ -155,7 +149,7 @@ export async function handleRemoveItem(
     logger.error('Error removing item', { error, itemId });
     // Revert optimistic update on error
     await fetchCart();
-    window.dispatchEvent(new Event('cart-updated'));
+    publishCartForceReload();
   }
 }
 
@@ -168,7 +162,6 @@ export async function handleUpdateQuantity(
   cart: Cart | null,
   isLoggedIn: boolean,
   setCart: (cart: Cart | null) => void,
-  setUpdatingItems: (fn: (prev: Set<string>) => Set<string>) => void,
   fetchCart: () => Promise<void>,
   t: (key: string) => string
 ): Promise<void> {
@@ -206,10 +199,8 @@ export async function handleUpdateQuantity(
       totals: updatedTotals,
       itemsCount: newItemsCount,
     });
-    publishCartSummary(newItemsCount, updatedTotals.total);
+    publishCartUpdated(newItemsCount, updatedTotals.total);
   }
-
-  setUpdatingItems(prev => new Set(prev).add(itemId));
 
   try {
     if (!isLoggedIn) {
@@ -220,20 +211,10 @@ export async function handleUpdateQuantity(
         alert(`Մատչելի քանակը ${cartItem.variant.stock} հատ է: Դուք չեք կարող ավելացնել ավելի շատ քանակ:`);
         // Revert optimistic update
         await fetchCart();
-        setUpdatingItems(prev => {
-          const next = new Set(prev);
-          next.delete(itemId);
-          return next;
-        });
         return;
       }
       
       updateGuestCartQuantity(itemId, quantity);
-      setUpdatingItems(prev => {
-        const next = new Set(prev);
-        next.delete(itemId);
-        return next;
-      });
       return;
     }
 
@@ -247,7 +228,7 @@ export async function handleUpdateQuantity(
     logger.error('Error updating quantity', { error, itemId });
     // Revert optimistic update on error
     await fetchCart();
-    window.dispatchEvent(new Event('cart-updated'));
+    publishCartForceReload();
     
     // Show user-friendly error message
     const errorMessage = errorObj?.detail || errorObj?.message || t('common.messages.failedToUpdateQuantity');
@@ -256,12 +237,6 @@ export async function handleUpdateQuantity(
     } else {
       alert(errorMessage);
     }
-  } finally {
-    setUpdatingItems(prev => {
-      const next = new Set(prev);
-      next.delete(itemId);
-      return next;
-    });
   }
 }
 

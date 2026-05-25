@@ -1,6 +1,13 @@
 import { db } from "@white-shop/db";
 
 import { problemTypes } from "@/lib/http/problem-details";
+
+export type HomeRootCategoryItem = {
+  id: string;
+  slug: string;
+  title: string;
+};
+
 class CategoriesService {
   /**
    * Get category tree
@@ -70,6 +77,53 @@ class CategoriesService {
     return {
       data: rootCategories,
     };
+  }
+
+  /**
+   * Top-level published categories for the home page (no tree build, no children).
+   */
+  async getHomeRootCategories(lang: string, limit: number): Promise<HomeRootCategoryItem[]> {
+    const categories = await db.category.findMany({
+      where: {
+        published: true,
+        deletedAt: null,
+        parentId: null,
+      },
+      orderBy: {
+        position: "asc",
+      },
+      take: limit,
+      select: {
+        id: true,
+        translations: {
+          where: {
+            locale: {
+              in: [lang, "en"],
+            },
+          },
+          select: {
+            locale: true,
+            slug: true,
+            title: true,
+          },
+        },
+      },
+    });
+
+    const result: HomeRootCategoryItem[] = [];
+    for (const category of categories) {
+      const translation =
+        category.translations.find((entry) => entry.locale === lang) ?? category.translations[0];
+      if (!translation) {
+        continue;
+      }
+      result.push({
+        id: category.id,
+        slug: translation.slug,
+        title: translation.title,
+      });
+    }
+    return result;
   }
 
   /**

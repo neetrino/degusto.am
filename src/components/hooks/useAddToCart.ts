@@ -9,7 +9,14 @@ import { logger } from '../../lib/utils/logger';
 import { useAuth } from '../../lib/auth/AuthContext';
 import { useTranslation } from '../../lib/i18n-client';
 import { playCartFlyAnimation } from '../../lib/cart-fly-animation';
-import { writeCartSummaryCache } from '../../lib/cartSummaryCache';
+import { publishCartUpdated, publishCartForceReload } from '../../lib/cart/cart-events';
+import {
+  getCartLineId,
+  rememberCartLineId,
+  removeCachedLineId,
+  updateCachedLineQuantity,
+} from '../../lib/cart/cart-line-id-cache';
+import { readCartSummaryCache } from '../../lib/cartSummaryCache';
 
 interface ProductDetails {
   id: string;
@@ -88,11 +95,8 @@ export function useAddToCart({ productId, productSlug, inStock, defaultVariantId
 
   const publishGuestCartSummary = (cart: GuestCartItem[]) => {
     const itemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-    const total = cart.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
-    writeCartSummaryCache(itemsCount, total);
-    window.dispatchEvent(new CustomEvent('cart-updated', {
-      detail: { itemsCount, total },
-    }));
+    const total = cart.reduce((sum, item) => sum + (item.price ?? 0) * item.quantity, 0);
+    publishCartUpdated(itemsCount, total);
   };
 
   const addToCart = async (fly?: AddToCartFlyContext) => {
@@ -212,9 +216,16 @@ export function useAddToCart({ productId, productSlug, inStock, defaultVariantId
         }
       );
 
-      window.dispatchEvent(new CustomEvent('cart-updated', {
-        detail: response.cartSummary || null,
-      }));
+      rememberCartLineId(productId, variantId, response.item.id, response.item.quantity);
+      if (response.cartSummary) {
+        publishCartUpdated(response.cartSummary.itemsCount, response.cartSummary.total);
+      } else {
+        const cache = readCartSummaryCache();
+        publishCartUpdated(
+          (cache?.itemsCount ?? 0) + 1,
+          (cache?.total ?? 0) + (propPrice ?? response.item.price ?? 0)
+        );
+      }
       setQuantity(prev => prev + 1);
     } catch (error: unknown) {
       const err = error as {
@@ -232,7 +243,7 @@ export function useAddToCart({ productId, productSlug, inStock, defaultVariantId
 
       if (error instanceof ApiError && isQuietCartStockValidationError(error.status, error.data)) {
         alert(t('common.alerts.noMoreStockAvailable'));
-        window.dispatchEvent(new Event('cart-updated'));
+        publishCartForceReload();
         setIsAddingToCart(false);
         return;
       }
@@ -260,7 +271,7 @@ export function useAddToCart({ productId, productSlug, inStock, defaultVariantId
       } else {
         alert(t('common.alerts.failedToAddToCart'));
       }
-      window.dispatchEvent(new Event('cart-updated'));
+      publishCartForceReload();
     } finally {
       setIsAddingToCart(false);
     }
@@ -271,7 +282,10 @@ export function useAddToCart({ productId, productSlug, inStock, defaultVariantId
       return;
     }
 
-    setIsUpdatingQuantity(true);
+    const previousQuantity = quantity;
+    const nextQuantity = quantity - 1;
+    setQuantity(nextQuantity);
+
     try {
       if (!isLoggedIn) {
         const CART_KEY = 'shop_cart_guest';
@@ -279,6 +293,7 @@ export function useAddToCart({ productId, productSlug, inStock, defaultVariantId
         const cart: GuestCartItem[] = stored ? JSON.parse(stored) : [];
         const variantId = await resolveVariantId();
         if (!variantId) {
+          setQuantity(previousQuantity);
           return;
         }
 
@@ -292,20 +307,46 @@ export function useAddToCart({ productId, productSlug, inStock, defaultVariantId
           const nextCart = cart.filter(item => !(item.productId === productId && item.variantId === variantId));
           localStorage.setItem(CART_KEY, JSON.stringify(nextCart));
           publishGuestCartSummary(nextCart);
-          setQuantity(0);
           return;
         }
 
         existingItem.quantity -= 1;
         localStorage.setItem(CART_KEY, JSON.stringify(cart));
         publishGuestCartSummary(cart);
-        setQuantity(existingItem.quantity);
+        return;
+      }
+
+      const variantId = defaultVariantId ?? (await resolveVariantId());
+      if (!variantId) {
+        setQuantity(previousQuantity);
+        return;
+      }
+
+      const cachedLine = getCartLineId(productId, variantId);
+      const summaryCache = readCartSummaryCache();
+      const estimatedTotal = summaryCache
+        ? Math.max(0, summaryCache.total - (propPrice ?? 0))
+        : 0;
+      const estimatedCount = summaryCache
+        ? Math.max(0, summaryCache.itemsCount - 1)
+        : nextQuantity;
+      publishCartUpdated(estimatedCount, estimatedTotal);
+
+      if (cachedLine) {
+        if (cachedLine.quantity <= 1) {
+          await apiClient.delete(`/api/v1/cart/items/${cachedLine.cartItemId}`);
+          removeCachedLineId(productId, variantId);
+        } else {
+          const patchedQty = cachedLine.quantity - 1;
+          await apiClient.patch(`/api/v1/cart/items/${cachedLine.cartItemId}`, { quantity: patchedQty });
+          updateCachedLineQuantity(productId, variantId, patchedQty);
+        }
         return;
       }
 
       const cartResponse = await apiClient.get<ServerCartResponse>('/api/v1/cart');
       const cartItem = cartResponse.cart.items.find(
-        item => item.variant.product.id === productId && item.variant.id === (defaultVariantId ?? item.variant.id)
+        item => item.variant.product.id === productId && item.variant.id === variantId
       );
 
       if (!cartItem) {
@@ -315,19 +356,17 @@ export function useAddToCart({ productId, productSlug, inStock, defaultVariantId
 
       if (cartItem.quantity <= 1) {
         await apiClient.delete(`/api/v1/cart/items/${cartItem.id}`);
-        setQuantity(0);
+        removeCachedLineId(productId, variantId);
       } else {
-        const nextQty = cartItem.quantity - 1;
-        await apiClient.patch(`/api/v1/cart/items/${cartItem.id}`, { quantity: nextQty });
-        setQuantity(nextQty);
+        const patchedQty = cartItem.quantity - 1;
+        await apiClient.patch(`/api/v1/cart/items/${cartItem.id}`, { quantity: patchedQty });
+        rememberCartLineId(productId, variantId, cartItem.id, patchedQty);
       }
-      window.dispatchEvent(new Event('cart-updated'));
     } catch (error: unknown) {
       logger.error('[PRODUCT CARD] Error removing from cart', { error });
+      setQuantity(previousQuantity);
       alert(t('common.messages.failedToUpdateQuantity'));
-      window.dispatchEvent(new Event('cart-updated'));
-    } finally {
-      setIsUpdatingQuantity(false);
+      publishCartForceReload();
     }
   };
 

@@ -144,8 +144,13 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
 
     const handleCartUpdated = (event: Event) => {
       const detail = (event as CustomEvent)?.detail as
-        | { optimisticAdd?: { quantity?: number; price?: number }; itemsCount?: number; total?: number }
+        | { optimisticAdd?: { quantity?: number; price?: number }; itemsCount?: number; total?: number; forceReload?: boolean }
         | undefined;
+
+      if (detail?.forceReload) {
+        void fetchCart();
+        return;
+      }
 
       if (detail?.optimisticAdd) {
         const nextQuantity = detail.optimisticAdd.quantity ?? 1;

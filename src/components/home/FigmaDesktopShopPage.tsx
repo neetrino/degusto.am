@@ -823,15 +823,5 @@ export function FigmaDesktopMenuPage({
   );
 }
 
-export function FigmaDesktopShopPage() {
-  return (
-    <FigmaDesktopMenuPage
-      titleKey="home.figma.desktop.shop.menuTitle"
-      subtitleKey="home.figma.desktop.shop.menuSubtitle"
-      activeCategoryIndex={0}
-    />
-  );
-}
-
 export type { MenuCard, MenuCategory } from './menu-types';
 

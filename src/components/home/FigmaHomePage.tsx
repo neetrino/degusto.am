@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { ViewMoreButton } from '../view-more/ViewMoreButton';
 import { useRouter } from 'next/navigation';
 import type { KeyboardEvent, MouseEvent } from 'react';
-import { FigmaHomePageMobile } from './FigmaHomePageMobile';
 import { UniversalHeader } from '../UniversalHeader';
 import { ProjectGreenStripes } from '../decor/ProjectGreenStripes';
 import { Footer } from '../Footer';
@@ -22,7 +21,10 @@ import { FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS } from '@/constants/mobile-figma-s
 import { r2Asset } from '@/lib/r2-public-url';
 import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
 import { HomeOptimizedImage } from './HomeOptimizedImage';
-import { HOME_DAILY_OFFER_FALLBACK_PRODUCT, resolveHomeDailyOfferProduct } from './home-daily-offer';
+import { resolveHomeDailyOfferProduct } from './home-daily-offer';
+import type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
+
+export type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
 
 const assets = {
   heroBg: r2Asset('hero/20260512-tOKhBzyB6u.png'),
@@ -36,38 +38,6 @@ const assets = {
   categoryShawarma: r2Asset('category/20260512-UOlekxqQyh.png'),
   categoryPizza: r2Asset('category/20260512-j5QKmShMEM.png'),
 };
-
-export type HomeFeaturedProduct = {
-  id: string;
-  slug: string;
-  title: string;
-  subtitle: string;
-  price: number | null;
-  oldPrice: number | null;
-  image: string | null;
-  discountPercent: number | null;
-  inStock?: boolean;
-  defaultVariantId?: string | null;
-  supportsSpicy?: boolean;
-  supportsGreens?: boolean;
-};
-
-export type HomeCategoryItem = {
-  id: string;
-  slug: string;
-  title: string;
-  count: number;
-  image: string;
-};
-
-const fallbackFeaturedProducts: HomeFeaturedProduct[] = [HOME_DAILY_OFFER_FALLBACK_PRODUCT];
-
-const fallbackCategories: HomeCategoryItem[] = [
-  { id: 'cat-fallback-1', slug: 'soups', title: 'Ապուրներ եւ տաք ուտեստներ', count: 78, image: assets.categorySoup },
-  { id: 'cat-fallback-2', slug: 'salads', title: 'Աղցաններ', count: 41, image: assets.categorySalad },
-  { id: 'cat-fallback-3', slug: 'shawarma', title: 'Շաուրմա', count: 18, image: assets.categoryShawarma },
-  { id: 'cat-fallback-4', slug: 'pizza', title: 'Պիցցա', count: 44, image: assets.categoryPizza },
-];
 
 /** Desktop home categories block surface; footer outer wrapper uses the same for a continuous edge. */
 const HOME_DESKTOP_CATEGORY_SURFACE_CLASS = 'bg-[#e6e6e8]';
@@ -260,10 +230,8 @@ export function FigmaHomePage({
   const { t, lang } = useTranslation();
   const currency = useCurrency();
   const router = useRouter();
-  const homeFeaturedProducts = featuredProducts.length > 0 ? featuredProducts : fallbackFeaturedProducts;
-  const homeCategories = categories.length > 0 ? categories : fallbackCategories;
-  const specialOfferProducts = homeFeaturedProducts.slice(0, DESKTOP_HOME_SPECIAL_OFFERS_PRODUCT_COUNT);
-  const heroProduct = resolveHomeDailyOfferProduct(homeFeaturedProducts);
+  const specialOfferProducts = featuredProducts.slice(0, DESKTOP_HOME_SPECIAL_OFFERS_PRODUCT_COUNT);
+  const heroProduct = resolveHomeDailyOfferProduct(featuredProducts);
   const heroProductTitle =
     heroProduct?.title === 'Double Cheeseburger'
       ? t('home.figma.mobile.product.title')
@@ -282,11 +250,7 @@ export function FigmaHomePage({
   };
 
   return (
-    <>
-      <div className="lg:hidden">
-        <FigmaHomePageMobile categories={homeCategories} featuredProducts={homeFeaturedProducts} />
-      </div>
-      <div className="hidden min-h-screen overflow-x-hidden bg-[var(--project-color)] lg:block">
+    <div className="hidden min-h-screen overflow-x-hidden bg-[var(--project-color)] lg:block">
       <section className="relative w-full overflow-hidden bg-[var(--project-color)] pb-56 pt-8 lg:h-[930px] lg:pb-0 lg:[aspect-ratio:231/130]">
         <div
           className={`pointer-events-none absolute inset-x-0 ${HOME_DESKTOP_HERO_BG_TOP_CLASS} z-0 h-[900px] w-full lg:h-full`}
@@ -438,7 +402,7 @@ export function FigmaHomePage({
               {t('home.figma.desktop.categoriesTitle')}
             </h2>
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {homeCategories.map((item) => (
+              {categories.map((item) => (
                 <CategoryCard key={item.id} item={item} />
               ))}
             </div>
@@ -446,7 +410,6 @@ export function FigmaHomePage({
         </section>
       </div>
       <Footer outerBackgroundClassName={HOME_DESKTOP_CATEGORY_SURFACE_CLASS} />
-      </div>
-    </>
+    </div>
   );
 }

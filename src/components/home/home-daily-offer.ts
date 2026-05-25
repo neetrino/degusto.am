@@ -1,5 +1,5 @@
 import { STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
-import type { HomeFeaturedProduct } from './FigmaHomePage';
+import type { HomeFeaturedProduct } from './home-page-types';
 
 export const HOME_DAILY_OFFER_FALLBACK_PRODUCT: HomeFeaturedProduct = {
   id: 'featured-fallback-1',

@@ -1,12 +1,12 @@
-import { Suspense } from 'react';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { resolveStorefrontLocaleFromCookie } from '@/lib/i18n/locale';
+import { getProductPageData } from '@/lib/services/products-slug/get-product-page-data';
 import { getProductVisualCached } from '@/lib/services/products-slug/get-product-visual-cached';
 import { ProductPageClient } from './ProductPageClient';
-import { ProductDetailsServer } from './ProductDetailsServer';
 import { parseProductSlugParam } from './parse-product-slug-param';
 import { RESERVED_ROUTES } from './types';
+import type { Product } from './types';
 import type { ProductVisualSnapshot } from './utils/merge-visual-into-product';
 
 type PageProps = {
@@ -26,7 +26,10 @@ export default async function ProductPage({ params }: PageProps) {
     cookieStore.get('shop_language')?.value
   );
 
-  const visual = await getProductVisualCached(slug, serverLocale);
+  const [visual, pageData] = await Promise.all([
+    getProductVisualCached(slug, serverLocale),
+    getProductPageData(slug, serverLocale),
+  ]);
 
   const initialVisual: ProductVisualSnapshot | null = visual
     ? {
@@ -38,16 +41,23 @@ export default async function ProductPage({ params }: PageProps) {
       }
     : null;
 
+  const initialProduct =
+    pageData.status === 'ok' ? (pageData.product as Product) : null;
+  const initialReviewSummary =
+    pageData.status === 'ok'
+      ? pageData.reviewSummary
+      : { count: 0, averageRating: 0 };
+  const initialNotFound = pageData.status === 'not_found';
+
   return (
     <ProductPageClient
       slug={slug}
       variantIdFromUrl={variantIdFromUrl}
       initialVisual={initialVisual}
+      initialProduct={initialProduct}
+      initialReviewSummary={initialReviewSummary}
+      initialNotFound={initialNotFound}
       serverLocale={serverLocale}
-    >
-      <Suspense fallback={null}>
-        <ProductDetailsServer slug={slug} locale={serverLocale} />
-      </Suspense>
-    </ProductPageClient>
+    />
   );
 }

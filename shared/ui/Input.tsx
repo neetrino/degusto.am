@@ -43,8 +43,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       onChange={(event) => {
         onChange?.(event);
       }}
-      disableMobileSheet={!hasValueProp && onChange === undefined}
-      className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent disabled:bg-gray-50 disabled:cursor-not-allowed ${
+      className={`w-full px-4 py-2 text-base leading-6 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent disabled:bg-gray-50 disabled:cursor-not-allowed ${
         error ? 'border-error focus:ring-error' : 'border-gray-300'
       } ${className}`}
       onKeyDown={handleKeyDown}

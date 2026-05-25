@@ -7,6 +7,8 @@ import { LanguageHtmlUpdater } from './LanguageHtmlUpdater';
 import { CartDrawerProvider } from './cart-drawer/cart-drawer-context';
 import { CartDrawer } from './cart-drawer/CartDrawer';
 import { DisableMobileZoomGuard } from './mobile/DisableMobileZoomGuard';
+import { MobilePageScrollCache } from './mobile/MobilePageScrollCache';
+import { MobileRoutePrefetcher } from './mobile/MobileRoutePrefetcher';
 
 /**
  * ClientProviders component
@@ -17,6 +19,8 @@ export function ClientProviders({ children }: { children: ReactNode }) {
     <AuthProvider>
       <CartDrawerProvider>
         <DisableMobileZoomGuard />
+        <MobileRoutePrefetcher />
+        <MobilePageScrollCache />
         <LanguageHtmlUpdater />
         {children}
         <CartDrawer />
