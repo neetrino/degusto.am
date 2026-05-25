@@ -1,5 +1,11 @@
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
+import {
+  readJsonCache,
+  STOREFRONT_CACHE_KEYS,
+  STOREFRONT_CACHE_TTL,
+  writeJsonCache,
+} from "@/lib/cache/storefront-cache";
 import { productsSlugService } from "@/lib/services/products-slug.service";
 import { getProductReviewSummary } from "@/lib/services/reviews/product-review-summary";
 import type { ProductReviewSummary } from "@/lib/services/reviews/product-review-summary";
@@ -14,7 +20,7 @@ export type ProductPageLoadResult =
   | { status: "ok"; product: ProductPageData; reviewSummary: ProductReviewSummary }
   | { status: "not_found" };
 
-const PDP_PAGE_REVALIDATE_SECONDS = 60;
+const PDP_PAGE_REVALIDATE_SECONDS = STOREFRONT_CACHE_TTL.productDetails;
 
 /** `revalidateTag(\`pdp-page:${slug}\`)` on admin product writes. */
 export function pdpPageCacheTag(slug: string): string {
@@ -29,8 +35,16 @@ async function loadProductPageDataUncached(
 
   for (let index = 0; index < fallbacks.length; index += 1) {
     const candidateLocale = fallbacks[index];
+    const cacheKey = STOREFRONT_CACHE_KEYS.productDetails(candidateLocale, slug);
+    const cached = await readJsonCache<ProductPageData>(cacheKey);
+    if (cached) {
+      const reviewSummary = await getProductReviewSummary(cached.id);
+      return { status: "ok", product: cached, reviewSummary };
+    }
+
     try {
       const product = await productsSlugService.findBySlug(slug, candidateLocale);
+      await writeJsonCache(cacheKey, STOREFRONT_CACHE_TTL.productDetails, product);
       const reviewSummary = await getProductReviewSummary(product.id);
       return { status: "ok", product, reviewSummary };
     } catch (error: unknown) {
@@ -45,23 +59,21 @@ async function loadProductPageDataUncached(
   return { status: "not_found" };
 }
 
-const getProductPageDataCached = unstable_cache(
-  async (slug: string, locale: StorefrontLocale) => loadProductPageDataUncached(slug, locale),
-  ["pdp-page-data-v2"],
-  {
-    revalidate: PDP_PAGE_REVALIDATE_SECONDS,
-  }
-);
-
 /**
- * Per-request deduped + Data Cache (60s) for PDP server components and metadata.
+ * Per-request deduped + Data Cache + Redis for PDP server render.
  */
 export function getProductPageData(
   slug: string,
   locale: StorefrontLocale
 ): Promise<ProductPageLoadResult> {
   return cache(async (s: string, l: StorefrontLocale) => {
-    const data = await getProductPageDataCached(s, l);
-    return data;
+    return unstable_cache(
+      () => loadProductPageDataUncached(s, l),
+      ["pdp-page-data-v3", s, l],
+      {
+        revalidate: PDP_PAGE_REVALIDATE_SECONDS,
+        tags: [pdpPageCacheTag(s)],
+      }
+    )();
   })(slug, locale);
 }

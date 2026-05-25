@@ -8,7 +8,6 @@ import {
   useCallback,
   useRef,
   useEffect,
-  type ReactNode,
 } from 'react';
 import { useLazyInView } from '../../../components/hooks/useLazyInView';
 import { apiClient } from '../../../lib/api-client';
@@ -78,26 +77,28 @@ export interface ProductPageClientProps {
   slug: string;
   variantIdFromUrl: string | null;
   initialVisual: ProductVisualSnapshot | null;
+  initialProduct: Product | null;
+  initialReviewSummary: ProductReviewSummary;
+  initialNotFound: boolean;
   serverLocale: StorefrontLocale;
-  children: ReactNode;
 }
 
 export function ProductPageClient({
   slug,
   variantIdFromUrl,
   initialVisual,
+  initialProduct,
+  initialReviewSummary,
+  initialNotFound,
   serverLocale,
-  children,
 }: ProductPageClientProps) {
   const { ref: reviewsSectionRef, inView: reviewsInView } = useLazyInView('320px');
   const { isLoggedIn } = useAuth();
 
-  const [fullProduct, setFullProduct] = useState<Product | null>(null);
-  const [reviewSummary, setReviewSummary] = useState<ProductReviewSummary>({
-    count: 0,
-    averageRating: 0,
-  });
-  const [notFound, setNotFound] = useState(false);
+  const [fullProduct, setFullProduct] = useState<Product | null>(initialProduct);
+  const [reviewSummary, setReviewSummary] =
+    useState<ProductReviewSummary>(initialReviewSummary);
+  const [notFound, setNotFound] = useState(initialNotFound);
 
   const partialProduct = useMemo(
     () => (initialVisual ? mergeVisualIntoProduct(null, initialVisual) : null),
@@ -106,7 +107,7 @@ export function ProductPageClient({
 
   const product = fullProduct ?? partialProduct;
   const detailsPending = Boolean(partialProduct && !fullProduct && !notFound);
-  const awaitingDetails = !product && !notFound;
+  const awaitingDetails = !product && !notFound && !initialNotFound;
   const productRef = useRef<Product | null>(product);
 
   useEffect(() => {
@@ -129,7 +130,7 @@ export function ProductPageClient({
     slug,
     serverLocale,
     productRef,
-    skipMountFetch: Boolean(initialVisual),
+    skipMountFetch: Boolean(initialProduct),
     onLoaded: (next) => {
       setFullProduct(next);
       productRef.current = next;
@@ -290,7 +291,6 @@ export function ProductPageClient({
     return (
       <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
         {shell}
-        {children}
       </ProductPageHydrationProvider>
     );
   }
@@ -312,7 +312,6 @@ export function ProductPageClient({
             </Link>
           </div>
         </div>
-        {children}
       </ProductPageHydrationProvider>
     );
   }
@@ -320,7 +319,7 @@ export function ProductPageClient({
   if (!product) {
     return (
       <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
-        {children}
+        {null}
       </ProductPageHydrationProvider>
     );
   }
@@ -414,7 +413,6 @@ export function ProductPageClient({
           )}
         </div>
       </div>
-      {children}
     </ProductPageHydrationProvider>
   );
 }
