@@ -2,6 +2,10 @@ import { Prisma } from "@prisma/client";
 import { logger } from "../../../utils/logger";
 import { cleanImageUrls, separateMainAndVariantImages, smartSplitUrls } from "../../../utils/image-utils";
 import type { UpdateProductData } from "./types";
+import {
+  buildProductCategoriesSet,
+  resolveProductCategoryIds,
+} from "../product-category-utils";
 
 /**
  * Collect variant images from data or existing variants
@@ -48,6 +52,7 @@ export function buildProductUpdateData(
   brandId?: string | null;
   primaryCategoryId?: string | null;
   categoryIds?: string[];
+  categories?: { set: Array<{ id: string }> };
   media?: string[];
   published?: boolean;
   publishedAt?: Date;
@@ -58,6 +63,7 @@ export function buildProductUpdateData(
     brandId?: string | null;
     primaryCategoryId?: string | null;
     categoryIds?: string[];
+    categories?: { set: Array<{ id: string }> };
     media?: string[];
     published?: boolean;
     publishedAt?: Date;
@@ -67,7 +73,17 @@ export function buildProductUpdateData(
   
   if (data.brandId !== undefined) updateData.brandId = data.brandId || null;
   if (data.primaryCategoryId !== undefined) updateData.primaryCategoryId = data.primaryCategoryId || null;
-  if (data.categoryIds !== undefined) updateData.categoryIds = data.categoryIds || [];
+  if (data.categoryIds !== undefined || data.primaryCategoryId !== undefined) {
+    const resolvedCategoryIds = resolveProductCategoryIds(
+      data.categoryIds,
+      data.primaryCategoryId
+    );
+    updateData.categoryIds = resolvedCategoryIds;
+    updateData.categories = buildProductCategoriesSet(
+      data.categoryIds,
+      data.primaryCategoryId
+    );
+  }
   
   if (data.media !== undefined) {
     // Separate main images from variant images and clean them

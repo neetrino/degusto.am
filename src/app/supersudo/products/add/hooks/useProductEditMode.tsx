@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
+import { isAbortError } from '@/lib/api-client/error-handler';
 import { convertPrice, type CurrencyCode } from '@/lib/currency';
 import { cleanImageUrls, separateMainAndVariantImages } from '@/lib/utils/image-utils';
 import type { Attribute, ProductData, ColorData, Variant, GeneratedVariant, PendingVariantHydration } from '../types';
@@ -22,6 +23,8 @@ import { buildFormData, getEmptyProductFormData } from '../utils/productFormData
 
 /** Admin product detail can include many variants/options; allow slow DB / cold Turbopack. */
 const ADMIN_PRODUCT_GET_TIMEOUT_MS = 120_000;
+
+const PRODUCT_EDIT_LOAD_ABORT_REASON = 'Product edit load cancelled';
 
 interface UseProductEditModeProps {
   productId: string | null;
@@ -361,10 +364,7 @@ export function useProductEditMode({
 
           logger.debug('✅ [ADMIN] Product loaded for edit');
         } catch (err: unknown) {
-          if (err instanceof DOMException && err.name === 'AbortError') {
-            return;
-          }
-          if (err instanceof Error && err.name === 'AbortError') {
+          if (isAbortError(err) || loadId !== loadGenerationRef.current) {
             return;
           }
           console.error('❌ [ADMIN] Error loading product:', err);
@@ -376,10 +376,18 @@ export function useProductEditMode({
         }
       };
 
-    void loadProduct();
+    void loadProduct().catch((err: unknown) => {
+      if (isAbortError(err) || loadId !== loadGenerationRef.current) {
+        return;
+      }
+      console.error('❌ [ADMIN] Unhandled error loading product:', err);
+    });
 
     return () => {
-      abortController.abort();
+      loadGenerationRef.current += 1;
+      abortController.abort(
+        new DOMException(PRODUCT_EDIT_LOAD_ABORT_REASON, 'AbortError')
+      );
     };
   }, [
     productId,
