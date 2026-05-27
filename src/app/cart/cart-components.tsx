@@ -186,8 +186,8 @@ export function CartItemRow({
           >
             {item.variant.product.title}
           </Link>
-          {lines.length > 0 ? <CartItemVariantChips lines={lines} appearance={appearance} /> : null}
-          {lines.length === 0 && (item.customizations?.additions || item.customizations?.exclusions) ? (
+          {!isDrawer && lines.length > 0 ? <CartItemVariantChips lines={lines} appearance={appearance} /> : null}
+          {!isDrawer && lines.length === 0 && (item.customizations?.additions || item.customizations?.exclusions) ? (
             <ul
               className={`mt-1.5 list-none space-y-0.5 pl-0 text-xs ${isDrawer ? 'text-white/75' : 'text-gray-600'}`}
             >
@@ -209,12 +209,12 @@ export function CartItemRow({
               ) : null}
             </ul>
           ) : null}
-          {lines.length > 0 && item.customizations?.additions ? (
+          {!isDrawer && lines.length > 0 && item.customizations?.additions ? (
             <p className={`mt-2 text-xs ${isDrawer ? 'text-white/75' : 'text-gray-600'}`}>
               {t('product.additionsLabel')}: {item.customizations.additions}
             </p>
           ) : null}
-          {lines.length > 0 && item.customizations?.exclusions ? (
+          {!isDrawer && lines.length > 0 && item.customizations?.exclusions ? (
             <p className={`text-xs ${isDrawer ? 'text-white/75' : 'text-gray-600'}`}>
               {t('product.exclusionsLabel')}: {item.customizations.exclusions}
             </p>

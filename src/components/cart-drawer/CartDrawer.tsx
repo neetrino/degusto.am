@@ -236,7 +236,7 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
         </motion.div>
 
         <motion.div
-          className="relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pt-4 pb-8"
+          className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden px-4 pt-4 pb-8"
           variants={bodyStagger}
           initial="hidden"
           animate="visible"
@@ -273,8 +273,8 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
               </Button>
             </motion.div>
           ) : (
-            <motion.div key="cart" variants={fadeItem} className="flex min-h-full flex-col">
-              <motion.div variants={fadeItem} className="shrink-0">
+            <motion.div key="cart" variants={fadeItem} className="flex min-h-0 flex-1 flex-col">
+              <motion.div variants={fadeItem} className="scrollbar-hide min-h-0 flex-1 overflow-y-auto">
                 <CartTable
                   cart={cart}
                   currency={currency}
