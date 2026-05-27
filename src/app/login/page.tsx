@@ -2,7 +2,7 @@
 
 import { useState, FormEvent, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Card } from '@shop/ui';
+import { ChefHat, LockKeyhole, Mail } from 'lucide-react';
 import { useAuth } from '../../lib/auth/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '../../lib/i18n-client';
@@ -22,7 +22,6 @@ import {
   AuthFormTextInput,
   AuthFormWrapper,
 } from '@/components/auth/auth-form-ui';
-import { AUTH_PAGE_CARD_CLASS } from '@/constants/auth-page-layout';
 
 function LoginPageContent() {
   const { t } = useTranslation();
@@ -93,12 +92,21 @@ function LoginPageContent() {
   const fieldsDisabled = isSubmitting || isLoading;
 
   return (
-    <AuthPageShell>
+    <AuthPageShell contentMaxWidthClass="max-w-[520px]">
       <AuthFormWrapper>
-        <AuthFormHeader title={t('login.title')} subtitle={t('login.subtitle')} />
+        <AuthFormHeader
+          title={t('login.title')}
+          subtitle={t('login.subtitle')}
+          icon={<ChefHat className="h-8 w-8" aria-hidden="true" />}
+        />
         {error ? <AuthFormError message={error} /> : null}
         <AuthForm onSubmit={handleSubmit}>
-          <AuthFormField id="email" label={t('login.form.emailOrPhone')} required>
+          <AuthFormField
+            id="email"
+            label={t('login.form.emailOrPhone')}
+            required
+            prefixIcon={<Mail className="h-[15px] w-[15px]" aria-hidden="true" />}
+          >
             <AuthFormTextInput
               id="email"
               type="email"
@@ -107,16 +115,23 @@ function LoginPageContent() {
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
               disabled={fieldsDisabled}
+              leadingIcon={null}
               required
             />
           </AuthFormField>
-          <AuthFormField id="password" label={t('login.form.password')} required>
+          <AuthFormField
+            id="password"
+            label={t('login.form.password')}
+            required
+            prefixIcon={<LockKeyhole className="h-[15px] w-[15px]" aria-hidden="true" />}
+          >
             <AuthFormPasswordInput
               id="password"
               placeholder={t('login.form.passwordPlaceholder')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={fieldsDisabled}
+              leadingIcon={null}
               required
             />
           </AuthFormField>
@@ -131,6 +146,7 @@ function LoginPageContent() {
           <AuthFormSubmitButton disabled={fieldsDisabled}>
             {fieldsDisabled ? t('login.form.submitting') : t('login.form.submit')}
           </AuthFormSubmitButton>
+          <p className="py-0.5 text-center text-sm text-[#3d5848]/80">{t('login.form.or')}</p>
         </AuthForm>
         <AuthFormFooter
           text={t('login.form.noAccount')}
@@ -144,21 +160,20 @@ function LoginPageContent() {
 
 function LoginPageFallback() {
   return (
-    <div className="min-h-dvh bg-white px-4 py-6 lg:bg-[#F66812]">
-      <div className="mx-auto max-w-lg">
-        <Card className={AUTH_PAGE_CARD_CLASS}>
-          <div className="animate-pulse">
-            <div className="mx-auto mb-4 h-8 w-3/4 rounded bg-gray-200" />
-            <div className="mx-auto mb-8 h-4 w-1/2 rounded bg-gray-200" />
-            <div className="space-y-5">
-              <div className="h-12 rounded-[30px] bg-gray-200" />
-              <div className="h-12 rounded-[30px] bg-gray-200" />
-              <div className="h-12 rounded-[30px] bg-gray-200" />
-            </div>
+    <AuthPageShell contentMaxWidthClass="max-w-[520px]">
+      <AuthFormWrapper>
+        <div className="animate-pulse">
+          <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-[#f2dec7]" />
+          <div className="mx-auto mb-3 h-8 w-3/4 rounded bg-[#f2dec7]" />
+          <div className="mx-auto mb-8 h-4 w-1/2 rounded bg-[#f2dec7]" />
+          <div className="space-y-5">
+            <div className="h-12 rounded-2xl bg-[#f2dec7]" />
+            <div className="h-12 rounded-2xl bg-[#f2dec7]" />
+            <div className="h-12 rounded-2xl bg-[#f2dec7]" />
           </div>
-        </Card>
-      </div>
-    </div>
+        </div>
+      </AuthFormWrapper>
+    </AuthPageShell>
   );
 }
 

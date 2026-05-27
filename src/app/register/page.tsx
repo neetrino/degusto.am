@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from 'react';
 import Link from 'next/link';
+import { Soup } from 'lucide-react';
 import { useAuth } from '../../lib/auth/AuthContext';
 import { useTranslation } from '../../lib/i18n-client';
 import { resolveRegisterApiError } from '../../lib/auth/client-api-error-messages';
@@ -100,7 +101,11 @@ export default function RegisterPage() {
   return (
     <AuthPageShell>
       <AuthFormWrapper>
-        <AuthFormHeader title={t('register.title')} subtitle={t('register.subtitle')} />
+        <AuthFormHeader
+          title={t('register.title')}
+          subtitle={t('register.subtitle')}
+          icon={<Soup className="h-8 w-8" aria-hidden="true" />}
+        />
         {error ? <AuthFormError message={error} /> : null}
         <AuthForm onSubmit={handleSubmit}>
           <div className={authFormLayout.nameGrid}>

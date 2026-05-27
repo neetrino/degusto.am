@@ -6,6 +6,7 @@ import { Footer } from './Footer';
 
 /** Footer outer wrapper: brand orange on auth + loaded PDP (visible in rounded corner gutters). */
 const FOOTER_OUTER_ORANGE_CLASS = 'bg-[#F66812]';
+const AUTH_FOOTER_BACKGROUND_CLASS = 'bg-[#102313]';
 
 const PRODUCT_DETAIL_PATH = /^\/products\/[^/]+\/?$/;
 
@@ -30,8 +31,16 @@ export function ConditionalFooter() {
     );
   }
 
+  if (isAuthPage) {
+    return (
+      <div className={`hidden lg:block ${AUTH_FOOTER_BACKGROUND_CLASS}`}>
+        <Footer outerBackgroundClassName="bg-transparent" />
+      </div>
+    );
+  }
+
   const useOrangeGutter =
-    isAuthPage || (isProductDetailPage && isDesktopChromeReady);
+    isProductDetailPage && isDesktopChromeReady;
   const backgroundClassName = useOrangeGutter
     ? FOOTER_OUTER_ORANGE_CLASS
     : isAboutPage
