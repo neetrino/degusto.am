@@ -105,7 +105,7 @@
     "invalidCashChangeAmount": "Please enter a valid cash change amount",
     "notesTooLong": "Order notes must be 500 characters or less",
     "fillShippingAddress": "Please fill in all shipping address fields",
-    "deliveryOnlyYerevan": "Delivery is available only in Yerevan",
+    "deliveryOnlyYerevan": "Delivery is unavailable for selected city",
     "cartEmpty": "Cart is empty",
     "failedToLoadCart": "Failed to load cart",
     "failedToCreateOrder": "Failed to create order. Please try again."

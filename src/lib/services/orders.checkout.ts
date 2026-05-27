@@ -4,9 +4,9 @@ import { Prisma } from "@prisma/client";
 import { customAlphabet } from "nanoid";
 import type { CheckoutData } from "../types/checkout";
 import { logger } from "../utils/logger";
-import { resolveFixedDeliveryFees } from "../delivery-rules";
 import { COUPON_CODE_REGEX } from "../coupon-code-format";
 import { extractMediaUrl } from "../utils/extractMediaUrl";
+import { adminService } from "./admin.service";
 import {
   formatCustomizationsForVariantTitle,
   normalizeProductCustomizations,
@@ -499,16 +499,16 @@ async function computeCheckout(params: {
   let deliveryPriceAmount = 0;
   if (shippingMethod === "delivery") {
     const city = shippingAddress?.city?.trim() || "";
-    const fixedDelivery = resolveFixedDeliveryFees("delivery", city);
-    if (!fixedDelivery.isAllowed) {
+    const resolvedDeliveryPrice = await adminService.getDeliveryPrice(city, "Հայաստան");
+    if (resolvedDeliveryPrice <= 0) {
       throw {
         status: 422,
         type: problemTypes.validationError,
         title: "Validation Error",
-        detail: "Delivery is available only in Yerevan",
+        detail: "Delivery is unavailable for selected city",
       };
     }
-    deliveryPriceAmount = fixedDelivery.deliveryPriceAmd;
+    deliveryPriceAmount = resolvedDeliveryPrice;
     shippingAmount = deliveryPriceAmount + bagFeeAmount;
   } else {
     shippingAmount = bagFeeAmount;
