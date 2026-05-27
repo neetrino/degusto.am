@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useTranslation } from '../lib/i18n-client';
 import { formatPrice, getStoredCurrency } from '../lib/currency';
 import type { InstantSearchResultItem } from './hooks/useInstantSearch';
+import { resolveStorefrontProductImage } from '../constants/storefront-product-image';
 
 export interface SearchDropdownProps {
   results: InstantSearchResultItem[];
@@ -66,62 +67,48 @@ export function SearchDropdown({
 
         {!loading && !error && results.length > 0 && (
           <ul className="py-1" role="group">
-            {results.map((result, index) => (
-              <li key={result.id} role="option" aria-selected={index === selectedIndex}>
-                <button
-                  type="button"
-                  onClick={() => onResultClick(result)}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
-                    index === selectedIndex ? 'bg-gray-100' : 'hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="w-12 h-12 flex-shrink-0 rounded-lg bg-gray-100 overflow-hidden relative">
-                    {result.image ? (
+            {results.map((result, index) => {
+              const imageSrc = resolveStorefrontProductImage(result.image);
+
+              return (
+                <li key={result.id} role="option" aria-selected={index === selectedIndex}>
+                  <button
+                    type="button"
+                    onClick={() => onResultClick(result)}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
+                      index === selectedIndex ? 'bg-gray-100' : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="w-12 h-12 flex-shrink-0 rounded-lg bg-gray-100 overflow-hidden relative">
                       <Image
-                        src={result.image}
+                        src={imageSrc}
                         alt={result.title}
                         fill
                         className="object-cover"
                         sizes="48px"
                         unoptimized
                       />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <svg
-                          className="w-6 h-6 text-gray-400"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                          />
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 line-clamp-2">
-                      {result.title}
-                    </p>
-                    {result.category && (
-                      <p className="text-xs text-gray-500 mt-0.5">{result.category}</p>
-                    )}
-                    <p className="text-sm font-semibold text-gray-700 mt-0.5">
-                      {formatPrice(result.price, currency)}
-                      {result.compareAtPrice != null && result.compareAtPrice > result.price && (
-                        <span className="ml-2 text-xs text-gray-500 line-through">
-                          {formatPrice(result.compareAtPrice, currency)}
-                        </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 line-clamp-2">
+                        {result.title}
+                      </p>
+                      {result.category && (
+                        <p className="text-xs text-gray-500 mt-0.5">{result.category}</p>
                       )}
-                    </p>
-                  </div>
-                </button>
-              </li>
-            ))}
+                      <p className="text-sm font-semibold text-gray-700 mt-0.5">
+                        {formatPrice(result.price, currency)}
+                        {result.compareAtPrice != null && result.compareAtPrice > result.price && (
+                          <span className="ml-2 text-xs text-gray-500 line-through">
+                            {formatPrice(result.compareAtPrice, currency)}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

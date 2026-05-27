@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 import { db } from '@white-shop/db';
 import { logger } from '@/lib/utils/logger';
 import { resolveStorefrontLocaleFromSearchParams } from '@/lib/i18n/locale';
-import { extractMediaUrl } from '@/lib/utils/extractMediaUrl';
+import { extractMediaUrl, extractVariantImageUrl } from '@/lib/utils/extractMediaUrl';
 import { processImageUrl } from '@/lib/utils/image-utils';
 
 const DEFAULT_LIMIT = 8;
@@ -116,9 +116,9 @@ export async function GET(req: NextRequest) {
       const price = firstVariant?.price ?? 0;
       const compareAtPrice = firstVariant?.compareAtPrice ?? null;
 
-      let image: string | null = extractMediaUrl(product.media);
-      if (!image && firstVariant?.imageUrl) {
-        image = processImageUrl(firstVariant.imageUrl);
+      let image: string | null = processImageUrl(extractMediaUrl(product.media));
+      if (!image) {
+        image = processImageUrl(extractVariantImageUrl(firstVariant?.imageUrl));
       }
 
       const categories = Array.isArray(product.categories) ? product.categories : [];
