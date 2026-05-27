@@ -4,7 +4,7 @@ import { logger } from "@/lib/utils/logger";
  */
 
 import type { ChangeEvent } from 'react';
-import type { Brand, Category, Attribute, GeneratedVariant } from '../types';
+import type { Category, GeneratedVariant } from '../types';
 import { generateSlug } from '../utils/productUtils';
 
 interface UseProductFormCallbacksProps {

@@ -9,14 +9,13 @@ class AdminSettingsService {
     const settings = await db.settings.findMany({
       where: {
         key: {
-          in: ['globalDiscount', 'categoryDiscounts', 'brandDiscounts', 'defaultCurrency', 'currencyRates'],
+          in: ['globalDiscount', 'categoryDiscounts', 'defaultCurrency', 'currencyRates'],
         },
       },
     });
     
     const globalDiscountSetting = settings.find((s) => s.key === 'globalDiscount');
     const categoryDiscountsSetting = settings.find((s) => s.key === 'categoryDiscounts');
-    const brandDiscountsSetting = settings.find((s) => s.key === 'brandDiscounts');
     const defaultCurrencySetting = settings.find((s) => s.key === 'defaultCurrency');
     const currencyRatesSetting = settings.find((s) => s.key === 'currencyRates');
     
@@ -32,7 +31,6 @@ class AdminSettingsService {
     return {
       globalDiscount: globalDiscountSetting ? Number(globalDiscountSetting.value) : 0,
       categoryDiscounts: categoryDiscountsSetting ? (categoryDiscountsSetting.value as Record<string, number>) : {},
-      brandDiscounts: brandDiscountsSetting ? (brandDiscountsSetting.value as Record<string, number>) : {},
       defaultCurrency: defaultCurrencySetting ? (defaultCurrencySetting.value as string) : 'AMD',
       currencyRates: currencyRatesSetting ? (currencyRatesSetting.value as Record<string, number>) : defaultCurrencyRates,
     };
@@ -77,23 +75,6 @@ class AdminSettingsService {
         },
       });
       logger.debug('✅ [ADMIN SERVICE] Category discounts updated:', data.categoryDiscounts);
-    }
-    
-    // Update brand discounts
-    if (data.brandDiscounts !== undefined) {
-      await db.settings.upsert({
-        where: { key: 'brandDiscounts' },
-        update: {
-          value: data.brandDiscounts,
-          updatedAt: new Date(),
-        },
-        create: {
-          key: 'brandDiscounts',
-          value: data.brandDiscounts,
-          description: 'Discount percentages by brand ID',
-        },
-      });
-      logger.debug('✅ [ADMIN SERVICE] Brand discounts updated:', data.brandDiscounts);
     }
     
     // Update default currency

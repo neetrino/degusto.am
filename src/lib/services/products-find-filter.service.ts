@@ -24,14 +24,14 @@ const normalizeFilterList = (
 
 class ProductsFindFilterService {
   /**
-   * Filter products by price, colors, sizes, brand in memory
+   * Filter products by price, colors and sizes in memory.
    */
   filterProducts(
     products: ProductWithRelations[],
     filters: ProductFilters,
     bestsellerProductIds: string[]
   ): ProductWithRelations[] {
-    const { minPrice, maxPrice, colors, sizes, brand } = filters;
+    const { minPrice, maxPrice, colors, sizes } = filters;
 
     // Filter by price
     if (minPrice || maxPrice) {
@@ -45,15 +45,6 @@ class ProductsFindFilterService {
         const minPrice = Math.min(...prices);
         return minPrice >= min && minPrice <= max;
       });
-    }
-
-    // Filter by brand(s) - support multiple brands (comma-separated)
-    const brandList = normalizeFilterList(brand);
-    if (brandList.length > 0) {
-      products = products.filter(
-        (product: ProductWithRelations) => 
-          product.brandId && brandList.includes(product.brandId)
-      );
     }
 
     // Filter by colors and sizes together if both are provided.

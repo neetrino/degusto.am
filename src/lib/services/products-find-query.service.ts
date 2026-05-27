@@ -31,7 +31,7 @@ class ProductsFindQueryService {
       Boolean(filters.category || filters.search) ||
       filters.minPrice != null ||
       filters.maxPrice != null ||
-      Boolean(filters.colors || filters.sizes || filters.brand);
+      Boolean(filters.colors || filters.sizes);
 
     if (!needOverFetch) {
       const [total, products] = await Promise.all([

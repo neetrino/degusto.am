@@ -16,7 +16,6 @@ interface CreateAndSubmitPayloadProps {
     mainProductImage: string;
     labels: any[];
   };
-  finalBrandIds: string[];
   finalPrimaryCategoryId: string;
   variants: any[];
   attributeIds: string[];
@@ -31,7 +30,6 @@ interface CreateAndSubmitPayloadProps {
 
 export async function createAndSubmitPayload({
   formData,
-  finalBrandIds,
   finalPrimaryCategoryId,
   variants,
   attributeIds,
@@ -52,7 +50,6 @@ export async function createAndSubmitPayload({
       title: formData.title,
       slug: formData.slug,
       descriptionHtml: formData.descriptionHtml || undefined,
-      brandId: finalBrandIds.length > 0 ? finalBrandIds[0] : undefined,
       primaryCategoryId: finalPrimaryCategoryId || undefined,
       categoryIds: categoryIds.length > 0 ? categoryIds : undefined,
       published: isEditMode ? formData.published : true,

@@ -13,7 +13,6 @@ interface Settings {
   defaultCurrency?: string;
   globalDiscount?: number;
   categoryDiscounts?: Record<string, number>;
-  brandDiscounts?: Record<string, number>;
   currencyRates?: Record<string, number>;
 }
 
@@ -58,7 +57,6 @@ export default function SettingsPage() {
         defaultCurrency: data.defaultCurrency || 'AMD',
         globalDiscount: data.globalDiscount,
         categoryDiscounts: data.categoryDiscounts,
-        brandDiscounts: data.brandDiscounts,
         currencyRates: data.currencyRates || {
           USD: 1,
           AMD: 400,

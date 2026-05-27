@@ -11,19 +11,12 @@ import { logger } from "@/lib/utils/logger";
 interface AdminSettingsResponse {
   globalDiscount: number;
   categoryDiscounts?: Record<string, number>;
-  brandDiscounts?: Record<string, number>;
 }
 
 interface AdminCategory {
   id: string;
   title: string;
   parentId: string | null;
-}
-
-interface AdminBrand {
-  id: string;
-  name: string;
-  logoUrl?: string;
 }
 
 interface AdminProduct {
@@ -60,13 +53,9 @@ export default function QuickSettingsPage() {
   const [productsTotal, setProductsTotal] = useState(0);
   const [productsSearch, setProductsSearch] = useState('');
   const [categoryDiscounts, setCategoryDiscounts] = useState<Record<string, number>>({});
-  const [brandDiscounts, setBrandDiscounts] = useState<Record<string, number>>({});
   const [categories, setCategories] = useState<AdminCategory[]>([]);
-  const [brands, setBrands] = useState<AdminBrand[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
-  const [brandsLoading, setBrandsLoading] = useState(false);
   const [categorySaving, setCategorySaving] = useState(false);
-  const [brandSaving, setBrandSaving] = useState(false);
 
   const fetchSettings = useCallback(async () => {
     try {
@@ -75,7 +64,6 @@ export default function QuickSettingsPage() {
       const settings = await apiClient.get<AdminSettingsResponse>('/api/v1/admin/settings');
       setGlobalDiscount(settings.globalDiscount || 0);
       setCategoryDiscounts(settings.categoryDiscounts || {});
-      setBrandDiscounts(settings.brandDiscounts || {});
       logger.debug('✅ [QUICK SETTINGS] Settings loaded:', settings);
     } catch (err: any) {
       console.error('❌ [QUICK SETTINGS] Error fetching settings:', err);
@@ -160,25 +148,6 @@ export default function QuickSettingsPage() {
     }
   }, []);
 
-  const fetchBrands = useCallback(async () => {
-    try {
-      logger.debug('🏷️ [QUICK SETTINGS] Fetching brands...');
-      setBrandsLoading(true);
-      const response = await apiClient.get<{ data: AdminBrand[] }>('/api/v1/admin/brands');
-      if (response?.data && Array.isArray(response.data)) {
-        setBrands(response.data);
-        logger.debug('✅ [QUICK SETTINGS] Brands loaded:', response.data.length);
-      } else {
-        setBrands([]);
-      }
-    } catch (err: any) {
-      console.error('❌ [QUICK SETTINGS] Error fetching brands:', err);
-      setBrands([]);
-    } finally {
-      setBrandsLoading(false);
-    }
-  }, []);
-
   const clampDiscountValue = (value: number) => {
     if (isNaN(value)) {
       return 0;
@@ -202,34 +171,10 @@ export default function QuickSettingsPage() {
     }));
   };
 
-  const updateBrandDiscountValue = (brandId: string, value: string) => {
-    if (value === '') {
-      setBrandDiscounts((prev) => {
-        const updated = { ...prev };
-        delete updated[brandId];
-        return updated;
-      });
-      return;
-    }
-    const numericValue = clampDiscountValue(parseFloat(value));
-    setBrandDiscounts((prev) => ({
-      ...prev,
-      [brandId]: numericValue,
-    }));
-  };
-
   const clearCategoryDiscount = (categoryId: string) => {
     setCategoryDiscounts((prev) => {
       const updated = { ...prev };
       delete updated[categoryId];
-      return updated;
-    });
-  };
-
-  const clearBrandDiscount = (brandId: string) => {
-    setBrandDiscounts((prev) => {
-      const updated = { ...prev };
-      delete updated[brandId];
       return updated;
     });
   };
@@ -245,7 +190,6 @@ export default function QuickSettingsPage() {
 
     return {
       categoryDiscounts: filterMap(categoryDiscounts),
-      brandDiscounts: filterMap(brandDiscounts),
     };
   };
 
@@ -298,26 +242,6 @@ export default function QuickSettingsPage() {
     }
   };
 
-  const handleBrandDiscountSave = async () => {
-    setBrandSaving(true);
-    try {
-      logger.debug('⚙️ [QUICK SETTINGS] Saving brand discounts...');
-      await apiClient.put('/api/v1/admin/settings', {
-        globalDiscount,
-        ...buildDiscountPayload(),
-      });
-      await fetchProducts(productsPage, productsSearch);
-      alert(t('admin.quickSettings.savedSuccess'));
-      logger.debug('✅ [QUICK SETTINGS] Brand discounts saved');
-    } catch (err: any) {
-      console.error('❌ [QUICK SETTINGS] Error saving brand discounts:', err);
-      const errorMessage = err.response?.data?.detail || err.message || 'Failed to save';
-      alert(t('admin.quickSettings.errorSaving').replace('{message}', errorMessage));
-    } finally {
-      setBrandSaving(false);
-    }
-  };
-
   const handleProductDiscountSave = async (productId: string) => {
     const discountValue = productDiscounts[productId] || 0;
     if (isNaN(discountValue) || discountValue < 0 || discountValue > 100) {
@@ -357,9 +281,8 @@ export default function QuickSettingsPage() {
     if (!isLoading && isLoggedIn && isAdmin) {
       fetchSettings();
       fetchCategories();
-      fetchBrands();
     }
-  }, [isLoading, isLoggedIn, isAdmin, fetchSettings, fetchCategories, fetchBrands]);
+  }, [isLoading, isLoggedIn, isAdmin, fetchSettings, fetchCategories]);
 
   useEffect(() => {
     if (!isLoading && isLoggedIn && isAdmin) {
@@ -411,13 +334,6 @@ export default function QuickSettingsPage() {
       clearCategoryDiscount={clearCategoryDiscount}
       handleCategoryDiscountSave={handleCategoryDiscountSave}
       categorySaving={categorySaving}
-      brands={brands}
-      brandsLoading={brandsLoading}
-      brandDiscounts={brandDiscounts}
-      updateBrandDiscountValue={updateBrandDiscountValue}
-      clearBrandDiscount={clearBrandDiscount}
-      handleBrandDiscountSave={handleBrandDiscountSave}
-      brandSaving={brandSaving}
       products={products}
       productsLoading={productsLoading}
       productsPage={productsPage}

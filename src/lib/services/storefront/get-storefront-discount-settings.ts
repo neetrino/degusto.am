@@ -9,14 +9,13 @@ const REVALIDATE_SECONDS = 60;
 export interface StorefrontDiscountSettings {
   globalDiscount: number;
   categoryDiscounts: Record<string, number>;
-  brandDiscounts: Record<string, number>;
 }
 
 async function loadStorefrontDiscountSettings(): Promise<StorefrontDiscountSettings> {
   const discountSettings = await db.settings.findMany({
     where: {
       key: {
-        in: ["globalDiscount", "categoryDiscounts", "brandDiscounts"],
+        in: ["globalDiscount", "categoryDiscounts"],
       },
     },
   });
@@ -29,12 +28,7 @@ async function loadStorefrontDiscountSettings(): Promise<StorefrontDiscountSetti
     ? ((categoryDiscountsSetting.value as Record<string, number>) || {})
     : {};
 
-  const brandDiscountsSetting = discountSettings.find((s) => s.key === "brandDiscounts");
-  const brandDiscounts = brandDiscountsSetting
-    ? ((brandDiscountsSetting.value as Record<string, number>) || {})
-    : {};
-
-  return { globalDiscount, categoryDiscounts, brandDiscounts };
+  return { globalDiscount, categoryDiscounts };
 }
 
 const getStorefrontDiscountSettingsCached = unstable_cache(

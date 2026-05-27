@@ -133,11 +133,6 @@ class ProductsFiltersService {
           where,
           take: FILTERS_PRODUCTS_LIMIT,
           include: {
-            brand: {
-              include: {
-                translations: true,
-              },
-            },
             variants: {
               where: {
                 published: true,
@@ -206,20 +201,12 @@ class ProductsFiltersService {
       colors?: string[] | null;
     }>();
     const sizeMap = new Map<string, number>();
-    const brandMap = new Map<string, { id: string; name: string; count: number }>();
     let rangeMin = Infinity;
     let rangeMax = 0;
 
     products.forEach((product: ProductWithRelations & { brand?: { id: string; translations?: Array<{ locale: string; name?: string }>; name?: string } | null }) => {
       if (!product || !product.variants || !Array.isArray(product.variants)) {
         return;
-      }
-      if (product.brand?.id) {
-        const name = (product.brand as { translations?: Array<{ locale: string; name?: string }>; name?: string }).translations?.find((t: { locale: string }) => t.locale === lang)?.name || (product.brand as { name?: string }).name || '';
-        if (name) {
-          const existing = brandMap.get(product.brand.id);
-          brandMap.set(product.brand.id, { id: product.brand.id, name, count: (existing?.count || 0) + 1 });
-        }
       }
       product.variants.forEach((v: { price?: number }) => {
         if (typeof v?.price === 'number') {
@@ -369,7 +356,6 @@ class ProductsFiltersService {
       // Sort colors alphabetically
       colors.sort((a: { label: string }, b: { label: string }) => a.label.localeCompare(b.label));
 
-      const brands = Array.from(brandMap.values()).sort((a, b) => a.name.localeCompare(b.name));
       const priceMin = rangeMin === Infinity ? 0 : Math.floor(rangeMin / 1000) * 1000;
       const priceMax = rangeMax === 0 ? 100000 : Math.ceil(rangeMax / 1000) * 1000;
       let stepSize: number | null = null;
@@ -392,7 +378,6 @@ class ProductsFiltersService {
       return {
         colors,
         sizes,
-        brands,
         priceRange: { min: priceMin, max: priceMax, stepSize, stepSizePerCurrency },
       };
     } catch (error) {
@@ -400,7 +385,6 @@ class ProductsFiltersService {
       return {
         colors: [],
         sizes: [],
-        brands: [],
         priceRange: { min: 0, max: 100000, stepSize: null, stepSizePerCurrency: null },
       };
     }

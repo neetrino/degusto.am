@@ -14,7 +14,6 @@ interface UseProductFormHandlersProps {
     title: string;
     slug: string;
     descriptionHtml: string;
-    brandIds: string[];
     primaryCategoryId: string;
     categoryIds: string[];
     published: boolean;
@@ -27,7 +26,6 @@ interface UseProductFormHandlersProps {
   };
   setFormData: (updater: (prev: any) => any) => void;
   setLoading: (loading: boolean) => void;
-  setBrands: (updater: (prev: any[]) => any[]) => void;
   setCategories: (updater: (prev: any[]) => any[]) => void;
   productType: 'simple' | 'variable';
   simpleProductData: {
@@ -40,8 +38,6 @@ interface UseProductFormHandlersProps {
   generatedVariants: GeneratedVariant[];
   attributes: Attribute[];
   defaultCurrency: CurrencyCode;
-  useNewBrand: boolean;
-  newBrandName: string;
   useNewCategory: boolean;
   newCategoryName: string;
   isEditMode: boolean;
@@ -55,7 +51,6 @@ export function useProductFormHandlers({
   formData,
   setFormData,
   setLoading,
-  setBrands,
   setCategories,
   productType,
   simpleProductData,
@@ -63,8 +58,6 @@ export function useProductFormHandlers({
   generatedVariants,
   attributes,
   defaultCurrency,
-  useNewBrand,
-  newBrandName,
   useNewCategory,
   newCategoryName,
   isEditMode,
@@ -84,11 +77,8 @@ export function useProductFormHandlers({
   
   const { createBrandAndCategory } = useBrandAndCategoryCreation({
     formData,
-    useNewBrand,
-    newBrandName,
     useNewCategory,
     newCategoryName,
-    setBrands,
     setCategories,
     setLoading,
   });
@@ -123,7 +113,7 @@ export function useProductFormHandlers({
       if (brandCategoryResult.error) {
         return;
       }
-      const { finalBrandIds, finalPrimaryCategoryId, creationMessages } = brandCategoryResult;
+      const { finalPrimaryCategoryId, creationMessages } = brandCategoryResult;
 
       // Convert generated variants to formData format
       convertGeneratedVariantsToFormData();
@@ -459,7 +449,6 @@ export function useProductFormHandlers({
       // Create and submit payload
       await createAndSubmitPayload({
         formData: currentFormData,
-        finalBrandIds,
         finalPrimaryCategoryId,
         variants: finalVariants,
         attributeIds,

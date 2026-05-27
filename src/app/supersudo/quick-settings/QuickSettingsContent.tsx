@@ -5,7 +5,6 @@ import { useTranslation } from '../../../lib/i18n-client';
 import { GlobalDiscountCard } from './components/GlobalDiscountCard';
 import { QuickInfoCard } from './components/QuickInfoCard';
 import { CategoryDiscountsCard } from './components/CategoryDiscountsCard';
-import { BrandDiscountsCard } from './components/BrandDiscountsCard';
 import { ProductDiscountsCard } from './components/ProductDiscountsCard';
 import { QUICK_SETTINGS_SECTION_CARD } from './quick-settings-ui-classes';
 
@@ -13,12 +12,6 @@ interface AdminCategory {
   id: string;
   title: string;
   parentId: string | null;
-}
-
-interface AdminBrand {
-  id: string;
-  name: string;
-  logoUrl?: string;
 }
 
 interface AdminProduct {
@@ -42,13 +35,6 @@ interface QuickSettingsContentProps {
   clearCategoryDiscount: (categoryId: string) => void;
   handleCategoryDiscountSave: () => void;
   categorySaving: boolean;
-  brands: AdminBrand[];
-  brandsLoading: boolean;
-  brandDiscounts: Record<string, number>;
-  updateBrandDiscountValue: (brandId: string, value: string) => void;
-  clearBrandDiscount: (brandId: string) => void;
-  handleBrandDiscountSave: () => void;
-  brandSaving: boolean;
   products: AdminProduct[];
   productsLoading: boolean;
   productsPage: number;
@@ -76,13 +62,6 @@ export function QuickSettingsContent({
   clearCategoryDiscount,
   handleCategoryDiscountSave,
   categorySaving,
-  brands,
-  brandsLoading,
-  brandDiscounts,
-  updateBrandDiscountValue,
-  clearBrandDiscount,
-  handleBrandDiscountSave,
-  brandSaving,
   products,
   productsLoading,
   productsPage,
@@ -136,16 +115,6 @@ export function QuickSettingsContent({
         clearCategoryDiscount={clearCategoryDiscount}
         handleCategoryDiscountSave={handleCategoryDiscountSave}
         categorySaving={categorySaving}
-      />
-
-      <BrandDiscountsCard
-        brands={brands}
-        brandsLoading={brandsLoading}
-        brandDiscounts={brandDiscounts}
-        updateBrandDiscountValue={updateBrandDiscountValue}
-        clearBrandDiscount={clearBrandDiscount}
-        handleBrandDiscountSave={handleBrandDiscountSave}
-        brandSaving={brandSaving}
       />
 
       <ProductDiscountsCard

@@ -25,12 +25,6 @@ export interface SizeOption {
   count: number;
 }
 
-export interface BrandOption {
-  id: string;
-  name: string;
-  count: number;
-}
-
 export interface PriceRangeOption {
   min: number;
   max: number;
@@ -41,7 +35,6 @@ export interface PriceRangeOption {
 export interface ProductsFiltersData {
   colors: ColorOption[];
   sizes: SizeOption[];
-  brands: BrandOption[];
   priceRange: PriceRangeOption;
 }
 
@@ -57,7 +50,6 @@ const ProductsFiltersContext = createContext<ProductsFiltersContextValue | null>
 const DEFAULT_FILTERS: ProductsFiltersData = {
   colors: [],
   sizes: [],
-  brands: [],
   priceRange: { min: 0, max: 100000, stepSize: null, stepSizePerCurrency: null },
 };
 
@@ -94,7 +86,6 @@ export function ProductsFiltersProvider({
       setData({
         colors: res.colors ?? [],
         sizes: res.sizes ?? [],
-        brands: res.brands ?? [],
         priceRange: res.priceRange ?? DEFAULT_FILTERS.priceRange,
       });
     } catch {

@@ -9,7 +9,6 @@ export interface ProductAddFormData {
   title: string;
   slug: string;
   descriptionHtml: string;
-  brandIds: string[];
   primaryCategoryId: string;
   categoryIds: string[];
   published: boolean;
@@ -29,7 +28,6 @@ export function getEmptyProductFormData(): ProductAddFormData {
     title: '',
     slug: '',
     descriptionHtml: '',
-    brandIds: [],
     primaryCategoryId: '',
     categoryIds: [],
     published: false,
@@ -52,13 +50,10 @@ export function buildFormData(
   mainProductImage: string,
   mergedVariant: Variant
 ): ProductAddFormData {
-  const brandIds = product.brandId ? [product.brandId] : [];
-
   return {
     title: product.title || '',
     slug: product.slug || '',
     descriptionHtml: product.descriptionHtml || '',
-    brandIds: brandIds,
     primaryCategoryId: product.primaryCategoryId || '',
     categoryIds: product.categoryIds || [],
     published: product.published || false,
