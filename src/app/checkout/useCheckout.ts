@@ -44,7 +44,7 @@ export function useCheckout() {
       lastName: '',
       email: '',
       phone: '',
-      shippingMethod: 'pickup',
+      shippingMethod: 'delivery',
       paymentMethod: 'cash_on_delivery',
       shippingAddress: '',
       shippingCity: '',
