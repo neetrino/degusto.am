@@ -81,7 +81,7 @@ export function AdminMenuDrawer({ tabs, currentPath }: AdminMenuDrawerProps) {
         aria-expanded={open}
         aria-controls="admin-menu-drawer-panel"
         onClick={() => setOpen((prev) => !prev)}
-        className="inline-flex items-center gap-2 rounded-full border border-[#e85c0a] bg-[#f66812] px-4 py-2 text-sm font-semibold uppercase tracking-wide text-white shadow-sm"
+        className="inline-flex items-center gap-2 rounded-full border border-[#186340] bg-[#1f7a4d] px-4 py-2 text-sm font-semibold uppercase tracking-wide text-white shadow-sm"
       >
         <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M4 6H20M4 12H16M4 18H12" />
@@ -96,12 +96,12 @@ export function AdminMenuDrawer({ tabs, currentPath }: AdminMenuDrawerProps) {
         >
           <div
             id="admin-menu-drawer-panel"
-            className="admin-sidebar-home-bg flex h-full min-h-screen w-1/2 min-w-[16rem] max-w-full flex-col bg-[#f66812] text-white shadow-2xl"
+            className="admin-sidebar-home-bg flex h-full min-h-screen w-1/2 min-w-[16rem] max-w-full flex-col bg-[#1f7a4d] text-white shadow-2xl"
             role="dialog"
             aria-modal="true"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-center justify-between gap-3 border-b border-[#e85c0a] px-4 py-4">
+            <div className="flex items-center justify-between gap-3 border-b border-[#186340] px-4 py-4">
               <BrandLogoLink onDark className="min-w-0" />
               <button
                 type="button"
@@ -127,21 +127,21 @@ export function AdminMenuDrawer({ tabs, currentPath }: AdminMenuDrawerProps) {
                   return (
                     <div
                       key={tab.id}
-                      className={`flex w-full min-w-0 items-stretch ${isActive ? 'bg-white text-[#f66812] shadow-sm' : ''}`}
+                      className={`flex w-full min-w-0 items-stretch ${isActive ? 'bg-white text-[#1f7a4d] shadow-sm' : ''}`}
                     >
                       <button
                         type="button"
                         onClick={() => handleNavigate(tab.path)}
                         className={`flex min-w-0 flex-1 items-center justify-between gap-3 px-4 py-3 text-left text-sm font-medium ${
-                          isActive ? 'text-[#f66812] hover:bg-[#fff4eb]' : 'text-white/95 hover:bg-black/10 hover:text-white'
+                          isActive ? 'text-[#1f7a4d] hover:bg-[#eaf6ef]' : 'text-white/95 hover:bg-black/10 hover:text-white'
                         }`}
                       >
                         <span className="flex min-w-0 items-center gap-3">
-                          <span className={isActive ? 'text-[#f66812]' : 'text-white/85'}>{tab.icon}</span>
+                          <span className={isActive ? 'text-[#1f7a4d]' : 'text-white/85'}>{tab.icon}</span>
                           <span className="min-w-0 truncate">{tab.label}</span>
                         </span>
                         <svg
-                          className={`h-4 w-4 shrink-0 ${isActive ? 'text-[#f66812]' : 'text-white/75'}`}
+                          className={`h-4 w-4 shrink-0 ${isActive ? 'text-[#1f7a4d]' : 'text-white/75'}`}
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -161,7 +161,7 @@ export function AdminMenuDrawer({ tabs, currentPath }: AdminMenuDrawerProps) {
                         }}
                         className={`shrink-0 border-l px-3 py-3 ${
                           isActive
-                            ? 'border-[#ffd9c0] text-[#f66812] hover:bg-[#fff4eb]'
+                            ? 'border-[#cbe6d7] text-[#1f7a4d] hover:bg-[#eaf6ef]'
                             : 'border-white/20 text-white/85 hover:bg-black/10 hover:text-white'
                         }`}
                       >
@@ -186,14 +186,14 @@ export function AdminMenuDrawer({ tabs, currentPath }: AdminMenuDrawerProps) {
                     onClick={() => handleNavigate(tab.path)}
                     className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium ${
                       tab.isSubCategory ? 'pl-8' : ''
-                    } ${isActive ? 'bg-white text-[#f66812] shadow-sm' : 'text-white/95 hover:bg-black/10 hover:text-white'}`}
+                    } ${isActive ? 'bg-white text-[#1f7a4d] shadow-sm' : 'text-white/95 hover:bg-black/10 hover:text-white'}`}
                   >
                     <span className="flex items-center gap-3">
-                      <span className={isActive ? 'text-[#f66812]' : 'text-white/85'}>{tab.icon}</span>
+                      <span className={isActive ? 'text-[#1f7a4d]' : 'text-white/85'}>{tab.icon}</span>
                       {tab.label}
                     </span>
                     <svg
-                      className={`h-4 w-4 shrink-0 ${isActive ? 'text-[#f66812]' : 'text-white/75'}`}
+                      className={`h-4 w-4 shrink-0 ${isActive ? 'text-[#1f7a4d]' : 'text-white/75'}`}
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"

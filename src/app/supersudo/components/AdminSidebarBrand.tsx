@@ -10,7 +10,7 @@ export function AdminSidebarBrand() {
 
   return (
     <div
-      className={`flex shrink-0 border-b border-[#dd5a0b] pb-3 pt-2 ${
+      className={`flex shrink-0 border-b border-[#186340] pb-3 pt-2 ${
         collapsed
           ? 'flex-col items-center gap-2 px-1'
           : 'items-center gap-1 px-2'

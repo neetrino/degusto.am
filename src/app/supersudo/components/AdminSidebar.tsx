@@ -75,7 +75,7 @@ export function AdminSidebar() {
               collapsed ? 'justify-center px-0 py-3' : 'gap-3 px-4 py-3'
             } ${tab.isSubCategory && !collapsed ? 'pl-12' : ''} ${
               isActive
-                ? 'bg-white text-[#f66812] shadow-sm'
+                ? 'bg-white text-[#1f7a4d] shadow-sm'
                 : 'text-white/95 hover:bg-black/10 hover:text-white'
             }`;
 
@@ -84,7 +84,7 @@ export function AdminSidebar() {
                 <div
                   key={tab.id}
                   className={`flex w-full min-w-0 overflow-hidden rounded-md ${
-                    isActive ? 'bg-white text-[#f66812] shadow-sm' : 'bg-transparent'
+                    isActive ? 'bg-white text-[#1f7a4d] shadow-sm' : 'bg-transparent'
                   }`}
                 >
                   <button
@@ -95,11 +95,11 @@ export function AdminSidebar() {
                     }}
                     className={`flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left text-sm font-semibold transition-all ${
                       isActive
-                        ? 'text-[#f66812] hover:bg-[#fff4eb]'
+                        ? 'text-[#1f7a4d] hover:bg-[#eaf6ef]'
                         : 'text-white/95 hover:bg-black/10 hover:text-white'
                     }`}
                   >
-                    <span className={`shrink-0 ${isActive ? 'text-[#f66812]' : 'text-white/85'}`}>{tab.icon}</span>
+                    <span className={`shrink-0 ${isActive ? 'text-[#1f7a4d]' : 'text-white/85'}`}>{tab.icon}</span>
                     <span className="min-w-0 truncate">{tab.label}</span>
                   </button>
                   <button
@@ -113,7 +113,7 @@ export function AdminSidebar() {
                     }}
                     className={`shrink-0 border-l px-2 py-3 transition-colors ${
                       isActive
-                        ? 'border-[#ffd9c0] text-[#f66812] hover:bg-[#fff4eb]'
+                        ? 'border-[#cbe6d7] text-[#1f7a4d] hover:bg-[#eaf6ef]'
                         : 'border-white/20 text-white/85 hover:bg-black/10 hover:text-white'
                     }`}
                   >
@@ -141,7 +141,7 @@ export function AdminSidebar() {
                 }}
                 className={rowClasses}
               >
-                <span className={`flex-shrink-0 ${isActive ? 'text-[#f66812]' : 'text-white/85'}`}>
+                <span className={`flex-shrink-0 ${isActive ? 'text-[#1f7a4d]' : 'text-white/85'}`}>
                   {tab.icon}
                 </span>
                 {!collapsed ? <span className="min-w-0 text-left">{tab.label}</span> : null}
