@@ -20,6 +20,7 @@ export function ConditionalFooter() {
   const isAuthPage = pathname === '/login' || pathname === '/register';
   const isProductDetailPage = PRODUCT_DETAIL_PATH.test(pathname ?? '');
   const isProfilePage = pathname?.startsWith('/profile');
+  const isAboutPage = pathname?.startsWith('/about');
 
   if (isProfilePage) {
     return (
@@ -31,7 +32,11 @@ export function ConditionalFooter() {
 
   const useOrangeGutter =
     isAuthPage || (isProductDetailPage && isDesktopChromeReady);
-  const backgroundClassName = useOrangeGutter ? FOOTER_OUTER_ORANGE_CLASS : 'bg-white';
+  const backgroundClassName = useOrangeGutter
+    ? FOOTER_OUTER_ORANGE_CLASS
+    : isAboutPage
+      ? 'bg-[#F2EBDD]'
+      : 'bg-white';
 
   return (
     <div className="hidden lg:block">
