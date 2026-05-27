@@ -11,7 +11,7 @@ const SITE_METADATA_COPY: Record<StorefrontLocale, SiteMetadataCopy> = {
     description: 'Modern e-commerce platform',
   },
   hy: {
-    title: 'Degusto - Պրոֆեսիոնալ օնլայն խանութ',
+    title: 'Degusto - Հանրային սննդի կազմակերպություն',
     description: 'Ժամանակակից էլեկտրոնային առևտրի հարթակ',
   },
   ru: {
