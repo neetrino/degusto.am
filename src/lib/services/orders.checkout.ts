@@ -13,6 +13,7 @@ import {
   type ProductCustomizations,
 } from "../cart/customizations";
 import { sumVerifiedAttributePriceAdjustment } from "../cart/attribute-price-adjustment";
+import { calculateBagAmountByUniqueCategories } from "../cart/bag-fee";
 
 const orderNumberId = customAlphabet("0123456789ABCDEFGHJKLMNPQRSTUVWXYZ", 10);
 const ALLOWED_SHIPPING_METHODS = ["pickup", "delivery"] as const;
@@ -23,6 +24,11 @@ type CartItemWithRelations = Prisma.CartItemGetPayload<{
     product: {
       include: {
         translations: true;
+        categories: {
+          include: {
+            translations: true;
+          };
+        };
       };
     };
     variant: {
@@ -43,6 +49,12 @@ type CheckoutCartItem = {
   sku: string;
   imageUrl?: string;
   customizations?: ProductCustomizations;
+  categoryId?: string | null;
+  category?: {
+    id?: string | null;
+    slug?: string | null;
+    name?: string | null;
+  };
 };
 
 type AppliedCouponResult = {
@@ -214,6 +226,11 @@ async function getUserCartItems(cartId: string, userId: string): Promise<Checkou
               product: {
                 include: {
                   translations: true,
+                  categories: {
+                    include: {
+                      translations: true,
+                    },
+                  },
                 },
               },
               options: true,
@@ -222,6 +239,11 @@ async function getUserCartItems(cartId: string, userId: string): Promise<Checkou
           product: {
             include: {
               translations: true,
+              categories: {
+                include: {
+                  translations: true,
+                },
+              },
             },
           },
         },
@@ -269,6 +291,10 @@ async function getUserCartItems(cartId: string, userId: string): Promise<Checkou
       const customizations = normalizeProductCustomizations(item.customizations);
       const customizationsSuffix = formatCustomizationsForVariantTitle(customizations);
       const imageUrl = extractMediaUrl(product.media) ?? undefined;
+      const primaryCategory =
+        product.categories?.find((category) => category.id === product.primaryCategoryId) ??
+        product.categories?.[0];
+      const categoryTranslation = primaryCategory?.translations?.[0];
 
       const snapshotRaw = item.priceSnapshot != null ? Number(item.priceSnapshot) : NaN;
       const unitPrice =
@@ -286,6 +312,14 @@ async function getUserCartItems(cartId: string, userId: string): Promise<Checkou
         sku: variant.sku || "",
         imageUrl,
         customizations,
+        categoryId: product.primaryCategoryId,
+        category: primaryCategory
+          ? {
+              id: primaryCategory.id,
+              slug: categoryTranslation?.slug,
+              name: categoryTranslation?.title,
+            }
+          : undefined,
       };
     })
   );
@@ -323,7 +357,16 @@ async function getGuestCartItems(
       },
     },
     include: {
-      product: { include: { translations: true } },
+      product: {
+        include: {
+          translations: true,
+          categories: {
+            include: {
+              translations: true,
+            },
+          },
+        },
+      },
       options: true,
     },
   });
@@ -360,6 +403,11 @@ async function getGuestCartItems(
       const customizations = normalizeProductCustomizations(item.customizations);
       const customizationsSuffix = formatCustomizationsForVariantTitle(customizations);
       const imageUrl = extractMediaUrl(variant.product.media) ?? undefined;
+      const primaryCategory =
+        variant.product.categories?.find(
+          (category) => category.id === variant.product.primaryCategoryId
+        ) ?? variant.product.categories?.[0];
+      const categoryTranslation = primaryCategory?.translations?.[0];
 
       const adj = await sumVerifiedAttributePriceAdjustment(
         item.variantId,
@@ -379,6 +427,14 @@ async function getGuestCartItems(
         sku: variant.sku ?? "",
         imageUrl,
         customizations,
+        categoryId: variant.product.primaryCategoryId,
+        category: primaryCategory
+          ? {
+              id: primaryCategory.id,
+              slug: categoryTranslation?.slug,
+              name: categoryTranslation?.title,
+            }
+          : undefined,
       };
     })
   );
@@ -434,10 +490,13 @@ async function computeCheckout(params: {
   const normalizedCouponCode = normalizeCouponCode(couponCode);
   const appliedCoupon = await resolveCouponDiscount(subtotal, normalizedCouponCode);
   const discountAmount = appliedCoupon?.discountAmount ?? 0;
+  const bagFeeAmount = calculateBagAmountByUniqueCategories(cartItems, (item) => ({
+    categoryId: item.categoryId,
+    category: item.category,
+  }));
 
   let shippingAmount = 0;
   let deliveryPriceAmount = 0;
-  let bagFeeAmount = 0;
   if (shippingMethod === "delivery") {
     const city = shippingAddress?.city?.trim() || "";
     const fixedDelivery = resolveFixedDeliveryFees("delivery", city);
@@ -450,8 +509,9 @@ async function computeCheckout(params: {
       };
     }
     deliveryPriceAmount = fixedDelivery.deliveryPriceAmd;
-    bagFeeAmount = fixedDelivery.bagFeeAmd;
-    shippingAmount = fixedDelivery.totalShippingAmd;
+    shippingAmount = deliveryPriceAmount + bagFeeAmount;
+  } else {
+    shippingAmount = bagFeeAmount;
   }
 
   const taxAmount = 0;

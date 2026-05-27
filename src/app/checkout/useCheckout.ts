@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,6 +14,7 @@ import { useUserProfile } from './hooks/useUserProfile';
 import { useOrderSubmission } from './hooks/useOrderSubmission';
 import { useOrderSummary } from './hooks/useOrderSummary';
 import type { CheckoutFormData } from './types';
+import { calculateBagAmountByUniqueCategories } from '@/lib/cart/bag-fee';
 
 export function useCheckout() {
   const router = useRouter();
@@ -62,12 +63,20 @@ export function useCheckout() {
 
   const {
     deliveryPrice,
-    bagFee,
     deliveryUnavailable,
     loadingDeliveryPrice,
   } = useDeliveryPrice(shippingMethod, shippingCity);
   const { cart, loading, fetchCart } = useCart(isLoggedIn);
   useUserProfile(isLoggedIn, isLoading, setValue);
+  const bagFee = useMemo(() => {
+    if (!cart) {
+      return 0;
+    }
+    return calculateBagAmountByUniqueCategories(cart.items, (item) => ({
+      categoryId: item.variant.product.categoryId,
+      category: item.variant.product.category,
+    }));
+  }, [cart]);
 
   const { submitOrder } = useOrderSubmission({
     cart,
