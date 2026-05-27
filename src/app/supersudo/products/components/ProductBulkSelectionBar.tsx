@@ -19,15 +19,15 @@ export function ProductBulkSelectionBar({
   const deleteDisabled = !hasSelection || bulkDeleting;
 
   return (
-    <Card className="mb-6 w-full min-w-0 rounded-xl border border-[#f2d8c6] bg-gradient-to-r from-[#fff4ea] to-[#edf8f1] p-4 shadow-[0_8px_24px_rgba(245,104,20,0.08)]">
+    <Card className="mb-6 w-full min-w-0 rounded-2xl border border-[#dfe6e0] bg-white p-4 shadow-[0_5px_14px_rgba(22,45,32,0.05)]">
       <div className="flex w-full min-w-0 flex-wrap items-center justify-between gap-4">
-        <div className="min-w-0 flex-1 text-sm text-gray-700">
+        <div className="min-w-0 flex-1 text-sm font-medium text-[#53675b]">
           {t('admin.products.selectedProducts').replace('{count}', selectedCount.toString())}
         </div>
         <Button
           variant="outline"
           type="button"
-          className="shrink-0 border-[#ebb58d] bg-white text-[#1f5f44] hover:border-[#f66812] hover:bg-[#fff3ea] hover:text-[#d7590e]"
+          className="shrink-0 rounded-xl border-[#d8dfd8] bg-white text-[#2e4f3f] hover:bg-[#eff4ef]"
           onClick={onBulkDelete}
           disabled={deleteDisabled}
         >

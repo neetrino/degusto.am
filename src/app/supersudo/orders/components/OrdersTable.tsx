@@ -101,10 +101,10 @@ export function OrdersTable({
 
   if (loading) {
     return (
-      <Card className={ADMIN_TABLE_STATE_INSET}>
+      <Card className="rounded-2xl border border-[#dfe6e0] bg-white p-6 shadow-[0_5px_14px_rgba(22,45,32,0.05)]">
         <div className="py-8 text-center">
-          <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900" />
-          <p className="text-sm text-gray-600">{t('admin.orders.loadingOrders')}</p>
+          <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-b-2 border-[#1f6c4b]" />
+          <p className="text-sm text-[#5b6f63]">{t('admin.orders.loadingOrders')}</p>
         </div>
       </Card>
     );
@@ -112,40 +112,40 @@ export function OrdersTable({
 
   if (orders.length === 0) {
     return (
-      <Card className={ADMIN_TABLE_STATE_INSET}>
+      <Card className="rounded-2xl border border-[#dfe6e0] bg-white p-6 shadow-[0_5px_14px_rgba(22,45,32,0.05)]">
         <div className="py-8 text-center">
-          <p className="text-sm text-gray-600">{t('admin.orders.noOrders')}</p>
+          <p className="text-sm text-[#5b6f63]">{t('admin.orders.noOrders')}</p>
         </div>
       </Card>
     );
   }
 
   return (
-    <Card className={ADMIN_TABLE_CARD}>
+    <Card className="overflow-hidden rounded-2xl border border-[#dfe6e0] bg-white p-0 shadow-[0_8px_20px_rgba(22,45,32,0.07)]">
       <div className={ADMIN_TABLE_OUTER_CLIP}>
         <table className={ADMIN_TABLE}>
-          <thead className={ADMIN_TABLE_THEAD}>
+          <thead className="border-b border-[#15543a] bg-gradient-to-r from-[#0f5a3d] to-[#0b6a45]">
             <tr>
               <th className={ADMIN_TABLE_TH_CHECK}>
                 <input
                   type="checkbox"
-                  className={ADMIN_TABLE_CHECKBOX}
+                  className={`${ADMIN_TABLE_CHECKBOX} border-white/60 bg-white/20`}
                   aria-label={t('admin.orders.selectAllOrders')}
                   checked={orders.length > 0 && orders.every((o) => selectedIds.has(o.id))}
                   onChange={onToggleSelectAll}
                 />
               </th>
-              <th className={ADMIN_TABLE_TH} title={t('admin.orders.orderNumber')}>
+              <th className="min-w-0 whitespace-nowrap px-3 py-3 text-left align-middle text-xs font-semibold uppercase tracking-wide text-[#eef9f2]" title={t('admin.orders.orderNumber')}>
                 <span className="whitespace-nowrap">{t('admin.orders.orderNumber')}</span>
               </th>
               <th
-                className={`${ADMIN_TABLE_TH} min-w-[10rem] max-w-xs sm:max-w-sm`}
+                className="min-w-[10rem] max-w-xs whitespace-nowrap px-3 py-3 text-left align-middle text-xs font-semibold uppercase tracking-wide text-[#eef9f2] sm:max-w-sm"
                 title={t('admin.orders.customer')}
               >
                 <span className="block min-w-0 truncate">{t('admin.orders.customer')}</span>
               </th>
               <th
-                className={ADMIN_TABLE_TH_SORTABLE}
+                className="min-w-0 whitespace-nowrap cursor-pointer select-none px-3 py-3 text-left align-middle text-xs font-semibold uppercase tracking-wide text-[#eef9f2] hover:bg-white/10"
                 title={t('admin.orders.total')}
                 onClick={() => onSort('total')}
               >
@@ -154,17 +154,17 @@ export function OrdersTable({
                   <SortChevrons active={sortBy === 'total'} direction={sortOrder} />
                 </div>
               </th>
-              <th className={ADMIN_TABLE_TH_CENTER} title={t('admin.orders.items')}>
+              <th className="min-w-0 whitespace-nowrap px-3 py-3 text-center align-middle text-xs font-semibold uppercase tracking-wide text-[#eef9f2]" title={t('admin.orders.items')}>
                 <span className="whitespace-nowrap">{t('admin.orders.itemsQtyHeader')}</span>
               </th>
-              <th className={ADMIN_TABLE_TH} title={t('admin.orders.status')}>
+              <th className="min-w-0 whitespace-nowrap px-3 py-3 text-left align-middle text-xs font-semibold uppercase tracking-wide text-[#eef9f2]" title={t('admin.orders.status')}>
                 <span className="whitespace-nowrap">{t('admin.orders.status')}</span>
               </th>
-              <th className={ADMIN_TABLE_TH} title={t('admin.orders.payment')}>
+              <th className="min-w-0 whitespace-nowrap px-3 py-3 text-left align-middle text-xs font-semibold uppercase tracking-wide text-[#eef9f2]" title={t('admin.orders.payment')}>
                 <span className="whitespace-nowrap">{t('admin.orders.payment')}</span>
               </th>
               <th
-                className={ADMIN_TABLE_TH_SORTABLE}
+                className="min-w-0 whitespace-nowrap cursor-pointer select-none px-3 py-3 text-left align-middle text-xs font-semibold uppercase tracking-wide text-[#eef9f2] hover:bg-white/10"
                 title={t('admin.orders.date')}
                 onClick={() => onSort('createdAt')}
               >
@@ -175,7 +175,7 @@ export function OrdersTable({
               </th>
             </tr>
           </thead>
-          <tbody className={ADMIN_TABLE_TBODY}>
+          <tbody className="divide-y divide-[#edf1ee] bg-white [&_td]:align-middle">
             {orders.map((order) => (
               <OrderRow
                 key={order.id}
@@ -195,7 +195,7 @@ export function OrdersTable({
       </div>
 
       {meta && meta.totalPages > 1 && (
-        <div className={ADMIN_TABLE_FOOTER_ROUNDED_B}>
+        <div className={`${ADMIN_TABLE_FOOTER_ROUNDED_B} border-t border-[#e8ede8] bg-[#fbfdfb]`}>
           <OrdersPagination
             page={page}
             totalPages={meta.totalPages}

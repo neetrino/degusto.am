@@ -53,18 +53,19 @@ export function OrdersPagination({
 
   return (
     <div className="flex w-full min-w-0 flex-wrap items-center justify-between gap-3">
-      <div className="text-sm text-gray-700">
+      <div className="text-sm font-medium text-[#5a6f62]">
         {t('admin.orders.showingPage')
           .replace('{page}', page.toString())
           .replace('{totalPages}', totalPages.toString())
           .replace('{total}', total.toString())}
       </div>
-      <div className="flex items-center gap-2 flex-wrap justify-end">
+      <div className="flex flex-wrap items-center justify-end gap-2">
         {totalPages > 10 && (
           <Button
             variant="ghost"
             onClick={() => goToPage(paginationWindow.start - PAGE_CHUNK_SIZE)}
             disabled={paginationWindow.start <= 1}
+            className="rounded-lg border border-[#dce3dd] bg-white text-[#365744] hover:bg-[#eef3ef]"
           >
             -{PAGE_CHUNK_SIZE}
           </Button>
@@ -73,6 +74,7 @@ export function OrdersPagination({
           variant="ghost"
           onClick={() => goToPage(page - 1)}
           disabled={page === 1}
+          className="rounded-lg border border-[#dce3dd] bg-white text-[#365744] hover:bg-[#eef3ef]"
         >
           {t('admin.orders.previous')}
         </Button>
@@ -81,6 +83,11 @@ export function OrdersPagination({
             key={visiblePage}
             variant={page === visiblePage ? 'primary' : 'ghost'}
             onClick={() => goToPage(visiblePage)}
+            className={
+              page === visiblePage
+                ? 'rounded-lg border border-[#0f5a3d] bg-[#0f5a3d] text-white'
+                : 'rounded-lg border border-[#dce3dd] bg-white text-[#365744] hover:bg-[#eef3ef]'
+            }
           >
             {visiblePage}
           </Button>
@@ -89,6 +96,7 @@ export function OrdersPagination({
           variant="ghost"
           onClick={() => goToPage(page + 1)}
           disabled={page === totalPages}
+          className="rounded-lg border border-[#dce3dd] bg-white text-[#365744] hover:bg-[#eef3ef]"
         >
           {t('admin.orders.next')}
         </Button>
@@ -97,6 +105,7 @@ export function OrdersPagination({
             variant="ghost"
             onClick={() => goToPage(paginationWindow.end + 1)}
             disabled={paginationWindow.end >= totalPages}
+            className="rounded-lg border border-[#dce3dd] bg-white text-[#365744] hover:bg-[#eef3ef]"
           >
             +{PAGE_CHUNK_SIZE}
           </Button>

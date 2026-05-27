@@ -297,7 +297,7 @@
     "deleteSelected": "Ջնջել ընտրվածները",
     "deleting": "Ջնջվում է...",
     "addNewProduct": "Ավելացնել նոր ապրանք",
-    "totalProductsCount": "Ընդամենը ապրանքներ՝ {count}",
+    "totalProductsCount": "Ընդհանուր ապրանքներ՝ {count}",
     "loadingProducts": "Բեռնվում են ապրանքները...",
     "noProducts": "Ապրանքներ չեն գտնվել",
     "selectAll": "Ընտրել բոլոր ապրանքները",
