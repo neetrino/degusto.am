@@ -8,7 +8,8 @@
   "cashDenominations": {
     "hint": "Выберите купюру, с которой нужна сдача.",
     "noteAlt": "Банкнота {amount} драм",
-    "groupAria": "Выбор купюры драм"
+    "groupAria": "Выбор купюры драм",
+    "noChangeNeeded": "Сдача не нужна"
   },
   "form": {
     "firstName": "Имя",

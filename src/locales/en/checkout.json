@@ -8,7 +8,8 @@
   "cashDenominations": {
     "hint": "Tap the bill you will pay with so we can prepare change.",
     "noteAlt": "{amount} dram banknote",
-    "groupAria": "Choose a dram banknote"
+    "groupAria": "Choose a dram banknote",
+    "noChangeNeeded": "No change needed"
   },
   "form": {
     "firstName": "First Name",

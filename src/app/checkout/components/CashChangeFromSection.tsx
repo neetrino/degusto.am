@@ -59,6 +59,7 @@ export function CashChangeFromSection({
             disabled={isSubmitting}
             noteAlt={noteAlt}
             groupAriaLabel={t('checkout.cashDenominations.groupAria')}
+            noChangeLabel={t('checkout.cashDenominations.noChangeNeeded')}
           />
           {errors.cashChangeFrom?.message ? (
             <p className="mt-3 text-sm text-red-600" role="alert">
