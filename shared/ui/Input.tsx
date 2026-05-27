@@ -28,7 +28,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   };
 
   const hasValueProp = value !== undefined && value !== null;
-  const stringValue = hasValueProp ? String(value) : '';
+  const stringValue = hasValueProp ? String(value) : undefined;
 
   const inputElement = (
     <MobileFriendlyInput

@@ -135,7 +135,6 @@ export default function RegisterPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={fieldsDisabled}
-              required
             />
           </AuthFormField>
           <AuthFormField id="phone" label={t('register.form.phone')}>

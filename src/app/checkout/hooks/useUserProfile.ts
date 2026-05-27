@@ -72,6 +72,10 @@ export function useUserProfile(
             const defaultAddress = profile.addresses.find(addr => addr.isDefault) || profile.addresses[0];
             
             if (defaultAddress) {
+              if (!profile.phone && !user?.phone && defaultAddress.phone) {
+                setValue('phone', defaultAddress.phone);
+              }
+
               if (defaultAddress.addressLine1) {
                 const fullAddress = defaultAddress.addressLine2 
                   ? `${defaultAddress.addressLine1}, ${defaultAddress.addressLine2}`

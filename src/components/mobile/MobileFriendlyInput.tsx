@@ -4,12 +4,9 @@ import { forwardRef } from 'react';
 import type { ChangeEvent, InputHTMLAttributes } from 'react';
 import { MOBILE_INPUT_TEXT_CLASS } from '@/constants/mobile-input';
 
-export type MobileFriendlyInputProps = Omit<
-  InputHTMLAttributes<HTMLInputElement>,
-  'value' | 'onChange' | 'readOnly'
-> & {
-  value: string;
-  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+export type MobileFriendlyInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'readOnly'> & {
+  value?: string;
+  onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
 };
 
 export const MobileFriendlyInput = forwardRef<HTMLInputElement, MobileFriendlyInputProps>(
