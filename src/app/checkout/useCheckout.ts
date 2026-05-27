@@ -15,6 +15,7 @@ import { useOrderSubmission } from './hooks/useOrderSubmission';
 import { useOrderSummary } from './hooks/useOrderSummary';
 import type { CheckoutFormData } from './types';
 import { calculateBagAmountByUniqueCategories } from '@/lib/cart/bag-fee';
+import { apiClient } from '../../lib/api-client';
 
 export function useCheckout() {
   const router = useRouter();
@@ -27,6 +28,7 @@ export function useCheckout() {
   const [showShippingModal, setShowShippingModal] = useState(false);
   const [showCardModal, setShowCardModal] = useState(false);
   const [checkoutCouponDiscountUsd, setCheckoutCouponDiscountUsd] = useState(0);
+  const [deliveryCities, setDeliveryCities] = useState<string[]>([]);
 
   const paymentMethods = usePaymentMethods();
   const checkoutSchema = useCheckoutSchema();
@@ -125,6 +127,38 @@ export function useCheckout() {
     };
   }, [isLoggedIn, isLoading, fetchCart]);
 
+  useEffect(() => {
+    async function fetchDeliveryCities() {
+      try {
+        const response = await apiClient.get<{ cities: string[] }>('/api/v1/delivery/locations');
+        setDeliveryCities(response.cities ?? []);
+      } catch {
+        setDeliveryCities([]);
+      }
+    }
+
+    fetchDeliveryCities();
+  }, []);
+
+  useEffect(() => {
+    if (shippingMethod !== 'delivery') {
+      return;
+    }
+
+    if (deliveryCities.length === 0) {
+      return;
+    }
+
+    const normalizedCurrentCity = shippingCity?.trim().toLowerCase();
+    const cityExists = normalizedCurrentCity
+      ? deliveryCities.some((city) => city.toLowerCase() === normalizedCurrentCity)
+      : false;
+
+    if (!cityExists) {
+      setValue('shippingCity', deliveryCities[0]);
+    }
+  }, [deliveryCities, setValue, shippingCity, shippingMethod]);
+
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -193,6 +227,7 @@ export function useCheckout() {
     shippingMethod,
     shippingCity,
     paymentMethods,
+    deliveryCities,
     orderSummary,
     setCheckoutCouponDiscountUsd,
     // Actions

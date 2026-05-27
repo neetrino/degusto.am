@@ -36,6 +36,7 @@ interface CheckoutFormProps {
   setError: Dispatch<SetStateAction<string | null>>;
   currency: CurrencyCode;
   cashChangeFrom: string | undefined;
+  deliveryCities: string[];
 }
 
 export function CheckoutForm({
@@ -52,6 +53,7 @@ export function CheckoutForm({
   setError,
   currency,
   cashChangeFrom,
+  deliveryCities,
 }: CheckoutFormProps) {
   const { t } = useTranslation();
 
@@ -131,20 +133,31 @@ export function CheckoutForm({
               />
             </div>
             <div>
-              <Input
-                label={t('checkout.form.city')}
-                type="text"
-                placeholder={t('checkout.placeholders.city')}
+              <label htmlFor="shippingCity" className={`mb-1 block text-sm font-medium ${CHECKOUT_TEXT_INK}`}>
+                {t('checkout.form.city')}
+              </label>
+              <select
+                id="shippingCity"
                 {...register('shippingCity', {
                   onChange: () => {
                     if (error && error.includes('shipping address')) {
                       setError(null);
                     }
-                  }
+                  },
                 })}
-                error={errors.shippingCity?.message}
-                disabled={isSubmitting}
-              />
+                className={`w-full rounded-lg border border-[#F66812]/25 bg-white px-3 py-2 text-sm ${CHECKOUT_TEXT_INK} focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#F66812] disabled:cursor-not-allowed disabled:opacity-60`}
+                disabled={isSubmitting || deliveryCities.length === 0}
+              >
+                <option value="">{t('checkout.placeholders.city')}</option>
+                {deliveryCities.map((city) => (
+                  <option key={city} value={city}>
+                    {city}
+                  </option>
+                ))}
+              </select>
+              {errors.shippingCity?.message ? (
+                <p className="mt-1 text-sm text-red-600">{errors.shippingCity.message}</p>
+              ) : null}
             </div>
           </div>
         </Card>

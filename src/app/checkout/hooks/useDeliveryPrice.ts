@@ -17,7 +17,7 @@ export function useDeliveryPrice(
           const response = await apiClient.get<{ price: number }>('/api/v1/delivery/price', {
             params: {
               city: shippingCity.trim(),
-              country: 'Armenia',
+              country: 'Հայաստան',
             },
           });
           setDeliveryPrice(response.price);

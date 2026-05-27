@@ -39,6 +39,7 @@ export default function CheckoutPage() {
     shippingMethod,
     shippingCity,
     paymentMethods,
+    deliveryCities,
     orderSummary,
     handlePlaceOrder,
     onSubmit,
@@ -108,6 +109,7 @@ export default function CheckoutPage() {
             setError={setError}
             currency={currency}
             cashChangeFrom={watch('cashChangeFrom')}
+            deliveryCities={deliveryCities}
           />
 
           {/* Order Summary */}
@@ -149,6 +151,7 @@ export default function CheckoutPage() {
         shippingMethod={shippingMethod}
         paymentMethod={paymentMethod}
         shippingCity={shippingCity}
+        deliveryCities={deliveryCities}
         cart={cart}
         orderSummary={orderSummary}
         currency={currency}

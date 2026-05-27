@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { problemTypes } from "@/lib/http/problem-details";
-import { resolveFixedDeliveryFees } from "@/lib/delivery-rules";
+import { adminService } from "@/lib/services/admin.service";
 import { logger } from "@/lib/utils/logger";
 
 /**
@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
   try {
     const searchParams = req.nextUrl.searchParams;
     const city = searchParams.get('city');
+    const country = searchParams.get('country')?.trim() || "Հայաստան";
     if (!city) {
       return NextResponse.json(
         {
@@ -24,15 +25,15 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    logger.debug("Delivery price request", { city });
-    const fixed = resolveFixedDeliveryFees('delivery', city);
-    if (!fixed.isAllowed) {
+    logger.debug("Delivery price request", { city, country });
+    const price = await adminService.getDeliveryPrice(city, country);
+    if (price <= 0) {
       return NextResponse.json(
         {
           type: problemTypes.validationError,
           title: "Validation Error",
           status: 422,
-          detail: "Delivery is available only in Yerevan",
+          detail: "Delivery is unavailable for selected city",
           instance: req.url,
         },
         { status: 422 }
@@ -40,11 +41,8 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json({
-      price: fixed.deliveryPriceAmd,
-      bagFee: fixed.bagFeeAmd,
-      totalShipping: fixed.totalShippingAmd,
-      city: fixed.normalizedCity,
-      fixedRule: true,
+      price,
+      city: city.trim(),
     });
   } catch (error: unknown) {
     const err = error as { message?: string; stack?: string; code?: string; type?: string; title?: string; status?: number; detail?: string; meta?: unknown };

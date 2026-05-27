@@ -20,6 +20,8 @@ interface DeliverySettings {
   locations: DeliveryLocation[];
 }
 
+const DEFAULT_DELIVERY_COUNTRY = 'Հայաստան';
+
 export default function DeliveryPage() {
   const { t } = useTranslation();
   const { confirm: confirmDialog } = useAdminDialogs();
@@ -64,8 +66,12 @@ export default function DeliveryPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      logger.debug('🚚 [ADMIN] Saving delivery settings...', { locations });
-      await apiClient.put('/api/v1/admin/delivery', { locations });
+      const normalizedLocations = locations.map((location) => ({
+        ...location,
+        country: DEFAULT_DELIVERY_COUNTRY,
+      }));
+      logger.debug('🚚 [ADMIN] Saving delivery settings...', { locations: normalizedLocations });
+      await apiClient.put('/api/v1/admin/delivery', { locations: normalizedLocations });
       alert(t('admin.delivery.savedSuccess'));
       logger.debug('✅ [ADMIN] Delivery settings saved');
       setEditingId(null);
@@ -80,7 +86,7 @@ export default function DeliveryPage() {
   };
 
   const handleAddLocation = () => {
-    setLocations([...locations, { country: '', city: '', price: 1000 }]);
+    setLocations([...locations, { country: DEFAULT_DELIVERY_COUNTRY, city: '', price: 1000 }]);
     setEditingId(`new-${Date.now()}`);
   };
 
@@ -143,19 +149,7 @@ export default function DeliveryPage() {
                 <div className="space-y-4">
                   {locations.map((location, index) => (
                     <div key={index} className="rounded-lg border border-[#f1d7c6] bg-gradient-to-r from-[#fff4ea] to-[#edf8f1] p-4">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            {t('admin.delivery.country')}
-                          </label>
-                          <input
-                            type="text"
-                            value={location.country}
-                            onChange={(e) => handleUpdateLocation(index, 'country', e.target.value)}
-                            className="w-full rounded-md border border-[#ebd3c1] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#f7bc95]"
-                            placeholder={t('admin.delivery.countryPlaceholder')}
-                          />
-                        </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             {t('admin.delivery.city')}
