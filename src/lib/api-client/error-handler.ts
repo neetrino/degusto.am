@@ -51,6 +51,16 @@ export function isQuietCartStockValidationError(status: number, errorData: unkno
 }
 
 /**
+ * Checkout 422 means validation/business rule failure (expected user-facing flow).
+ * It should surface in form UI, not as a noisy console error.
+ */
+export function isQuietCheckoutValidationError(status: number, url: string): boolean {
+  const isValidationError = status === 422;
+  const isCheckoutEndpoint = /\/api\/v1\/orders\/checkout(?:\?|$)/.test(url);
+  return isValidationError && isCheckoutEndpoint;
+}
+
+/**
  * Cart read is non-critical for page rendering.
  * When backend is temporarily unstable, avoid noisy console errors for this endpoint.
  */

@@ -18,6 +18,7 @@ interface CheckoutModalsProps {
   shippingMethod: 'pickup' | 'delivery';
   paymentMethod: 'idram' | 'arca' | 'cash_on_delivery';
   shippingCity: string | undefined;
+  deliveryCities: string[];
   cart: Cart | null;
   orderSummary: {
     subtotalDisplay: number;
@@ -50,6 +51,7 @@ export function CheckoutModals({
   shippingMethod,
   paymentMethod,
   shippingCity,
+  deliveryCities,
   cart,
   orderSummary,
   currency,
@@ -75,6 +77,7 @@ export function CheckoutModals({
         shippingMethod={shippingMethod}
         paymentMethod={paymentMethod}
         cart={cart}
+        deliveryCities={deliveryCities}
         orderSummary={orderSummary}
         currency={currency}
         shippingCity={shippingCity}

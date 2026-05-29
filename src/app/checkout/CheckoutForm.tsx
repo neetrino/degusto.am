@@ -36,6 +36,7 @@ interface CheckoutFormProps {
   setError: Dispatch<SetStateAction<string | null>>;
   currency: CurrencyCode;
   cashChangeFrom: string | undefined;
+  deliveryCities: string[];
 }
 
 export function CheckoutForm({
@@ -52,6 +53,7 @@ export function CheckoutForm({
   setError,
   currency,
   cashChangeFrom,
+  deliveryCities,
 }: CheckoutFormProps) {
   const { t } = useTranslation();
 
@@ -97,59 +99,7 @@ export function CheckoutForm({
         </div>
       </Card>
 
-      {/* Shipping Method */}
-      <Card className={`p-6 ${CHECKOUT_CARD_FRAME}`}>
-        <h2 className={CHECKOUT_SECTION_TITLE}>{t('checkout.shippingMethod')}</h2>
-        {errors.shippingMethod && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-600">{errors.shippingMethod.message}</p>
-          </div>
-        )}
-        <div className="space-y-3">
-          <label
-            className={`flex cursor-pointer items-center rounded-xl border-2 p-4 transition-all ${
-              shippingMethod === 'pickup' ? CHECKOUT_OPTION_SELECTED : CHECKOUT_OPTION_IDLE
-            }`}
-          >
-            <input
-              type="radio"
-              {...register('shippingMethod')}
-              value="pickup"
-              checked={shippingMethod === 'pickup'}
-              onChange={(e) => setValue('shippingMethod', e.target.value as 'pickup' | 'delivery')}
-              className="mr-4"
-              disabled={isSubmitting}
-            />
-            <div className="flex-1">
-              <div className={`font-medium ${CHECKOUT_TEXT_INK}`}>{t('checkout.shipping.storePickup')}</div>
-              <div className={`text-sm ${CHECKOUT_TEXT_INK_MUTED}`}>
-                {t('checkout.shipping.storePickupDescription')}
-              </div>
-            </div>
-          </label>
-          <label
-            className={`flex cursor-pointer items-center rounded-xl border-2 p-4 transition-all ${
-              shippingMethod === 'delivery' ? CHECKOUT_OPTION_SELECTED : CHECKOUT_OPTION_IDLE
-            }`}
-          >
-            <input
-              type="radio"
-              {...register('shippingMethod')}
-              value="delivery"
-              checked={shippingMethod === 'delivery'}
-              onChange={(e) => setValue('shippingMethod', e.target.value as 'pickup' | 'delivery')}
-              className="mr-4"
-              disabled={isSubmitting}
-            />
-            <div className="flex-1">
-              <div className={`font-medium ${CHECKOUT_TEXT_INK}`}>{t('checkout.shipping.delivery')}</div>
-              <div className={`text-sm ${CHECKOUT_TEXT_INK_MUTED}`}>
-                {t('checkout.shipping.deliveryDescription')}
-              </div>
-            </div>
-          </label>
-        </div>
-      </Card>
+      <input type="hidden" {...register('shippingMethod')} value="delivery" />
 
       {/* Shipping Address - Only show for delivery */}
       {shippingMethod === 'delivery' && (
@@ -183,20 +133,31 @@ export function CheckoutForm({
               />
             </div>
             <div>
-              <Input
-                label={t('checkout.form.city')}
-                type="text"
-                placeholder={t('checkout.placeholders.city')}
+              <label htmlFor="shippingCity" className={`mb-1 block text-sm font-medium ${CHECKOUT_TEXT_INK}`}>
+                {t('checkout.form.city')}
+              </label>
+              <select
+                id="shippingCity"
                 {...register('shippingCity', {
                   onChange: () => {
                     if (error && error.includes('shipping address')) {
                       setError(null);
                     }
-                  }
+                  },
                 })}
-                error={errors.shippingCity?.message}
-                disabled={isSubmitting}
-              />
+                className={`w-full rounded-lg border border-[#F66812]/25 bg-white px-3 py-2 text-sm ${CHECKOUT_TEXT_INK} focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#F66812] disabled:cursor-not-allowed disabled:opacity-60`}
+                disabled={isSubmitting || deliveryCities.length === 0}
+              >
+                <option value="">{t('checkout.placeholders.city')}</option>
+                {deliveryCities.map((city) => (
+                  <option key={city} value={city}>
+                    {city}
+                  </option>
+                ))}
+              </select>
+              {errors.shippingCity?.message ? (
+                <p className="mt-1 text-sm text-red-600">{errors.shippingCity.message}</p>
+              ) : null}
             </div>
           </div>
         </Card>

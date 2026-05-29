@@ -19,6 +19,7 @@ interface ShippingAddressModalProps {
   isSubmitting: boolean;
   shippingMethod: 'pickup' | 'delivery';
   paymentMethod: 'idram' | 'arca' | 'cash_on_delivery';
+  deliveryCities: string[];
   cart: Cart | null;
   orderSummary: {
     subtotalDisplay: number;
@@ -46,6 +47,7 @@ export function ShippingAddressModal({
   isSubmitting,
   shippingMethod,
   paymentMethod,
+  deliveryCities,
   cart,
   orderSummary,
   currency,
@@ -121,14 +123,25 @@ export function ShippingAddressModal({
                   />
                 </div>
                 <div>
-                  <Input
-                    label={t('checkout.form.city')}
-                    type="text"
-                    placeholder={t('checkout.placeholders.city')}
+                  <label htmlFor="shippingCityModal" className="mb-1 block text-sm font-medium text-[#1F2E1F]">
+                    {t('checkout.form.city')}
+                  </label>
+                  <select
+                    id="shippingCityModal"
                     {...register('shippingCity')}
-                    error={errors.shippingCity?.message}
-                    disabled={isSubmitting}
-                  />
+                    className="w-full rounded-lg border border-[#F66812]/25 bg-white px-3 py-2 text-sm text-[#1F2E1F] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#F66812] disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={isSubmitting || deliveryCities.length === 0}
+                  >
+                    <option value="">{t('checkout.placeholders.city')}</option>
+                    {deliveryCities.map((city) => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.shippingCity?.message ? (
+                    <p className="mt-1 text-sm text-red-600">{errors.shippingCity.message}</p>
+                  ) : null}
                 </div>
               </div>
             </div>

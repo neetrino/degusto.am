@@ -3,7 +3,6 @@
 import type { ChangeEvent } from 'react';
 import { Card } from '@shop/ui';
 import type {
-  Brand,
   Category,
   Attribute,
   Variant,
@@ -26,7 +25,6 @@ interface AddProductFormContentProps {
     title: string;
     slug: string;
     descriptionHtml: string;
-    brandIds: string[];
     categoryIds: string[];
     primaryCategoryId: string;
     imageUrls: string[];
@@ -43,7 +41,6 @@ interface AddProductFormContentProps {
     quantity: string;
   };
   categories: Category[];
-  brands: Brand[];
   attributes: Attribute[];
   defaultCurrency: CurrencyCode;
   isEditMode: boolean;
@@ -51,11 +48,8 @@ interface AddProductFormContentProps {
   imageUploadLoading: boolean;
   imageUploadError: string | null;
   categoriesExpanded: boolean;
-  brandsExpanded: boolean;
   useNewCategory: boolean;
-  useNewBrand: boolean;
   newCategoryName: string;
-  newBrandName: string;
   selectedAttributesForVariants: Set<string>;
   selectedAttributeValueIds: Record<string, string[]>;
   attributesDropdownOpen: boolean;
@@ -72,13 +66,9 @@ interface AddProductFormContentProps {
   onRemoveImage: (index: number) => void;
   onSetFeaturedImage: (index: number) => void;
   onCategoriesExpandedChange: (expanded: boolean) => void;
-  onBrandsExpandedChange: (expanded: boolean) => void;
   onUseNewCategoryChange: (use: boolean) => void;
-  onUseNewBrandChange: (use: boolean) => void;
   onNewCategoryNameChange: (name: string) => void;
-  onNewBrandNameChange: (name: string) => void;
   onCategoryIdsChange: (ids: string[]) => void;
-  onBrandIdsChange: (ids: string[]) => void;
   onPrimaryCategoryIdChange: (id: string) => void;
   onPriceChange: (value: string) => void;
   onCompareAtPriceChange: (value: string) => void;
@@ -108,7 +98,6 @@ export function AddProductFormContent({
   productType,
   simpleProductData,
   categories,
-  brands,
   attributes,
   defaultCurrency,
   isEditMode,
@@ -116,11 +105,8 @@ export function AddProductFormContent({
   imageUploadLoading,
   imageUploadError,
   categoriesExpanded,
-  brandsExpanded,
   useNewCategory,
-  useNewBrand,
   newCategoryName,
-  newBrandName,
   selectedAttributesForVariants,
   selectedAttributeValueIds,
   attributesDropdownOpen,
@@ -137,13 +123,9 @@ export function AddProductFormContent({
   onRemoveImage,
   onSetFeaturedImage,
   onCategoriesExpandedChange,
-  onBrandsExpandedChange,
   onUseNewCategoryChange,
-  onUseNewBrandChange,
   onNewCategoryNameChange,
-  onNewBrandNameChange,
   onCategoryIdsChange,
-  onBrandIdsChange,
   onPrimaryCategoryIdChange,
   onPriceChange,
   onCompareAtPriceChange,
@@ -201,23 +183,14 @@ export function AddProductFormContent({
 
         <CategoriesBrands
           categories={categories}
-          brands={brands}
           categoryIds={formData.categoryIds}
-          brandIds={formData.brandIds}
           categoriesExpanded={categoriesExpanded}
-          brandsExpanded={brandsExpanded}
           useNewCategory={useNewCategory}
-          useNewBrand={useNewBrand}
           newCategoryName={newCategoryName}
-          newBrandName={newBrandName}
           onCategoriesExpandedChange={onCategoriesExpandedChange}
-          onBrandsExpandedChange={onBrandsExpandedChange}
           onUseNewCategoryChange={onUseNewCategoryChange}
-          onUseNewBrandChange={onUseNewBrandChange}
           onNewCategoryNameChange={onNewCategoryNameChange}
-          onNewBrandNameChange={onNewBrandNameChange}
           onCategoryIdsChange={onCategoryIdsChange}
-          onBrandIdsChange={onBrandIdsChange}
           onPrimaryCategoryIdChange={onPrimaryCategoryIdChange}
           isClothingCategory={isClothingCategory}
           onVariantsUpdate={onVariantsUpdate}

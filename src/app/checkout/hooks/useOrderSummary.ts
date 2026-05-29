@@ -39,7 +39,7 @@ export function useOrderSummary({
     const subtotalAMD = convertPrice(cart.totals.subtotal, 'USD', 'AMD');
     const taxAMD = convertPrice(cart.totals.tax, 'USD', 'AMD');
     const shippingAMD = shippingMethod === 'delivery' && deliveryPrice !== null ? deliveryPrice : 0;
-    const bagFeeAMD = shippingMethod === 'delivery' ? bagFee : 0;
+    const bagFeeAMD = bagFee;
     const discountAMD = convertPrice(Math.max(0, couponDiscountUsd), 'USD', 'AMD');
     const discountedSubtotalAMD = Math.max(0, subtotalAMD - discountAMD);
     const totalAMD = discountedSubtotalAMD + taxAMD + shippingAMD + bagFeeAMD;

@@ -4,7 +4,7 @@ import type { InputHTMLAttributes, ReactNode } from 'react';
 import { useState } from 'react';
 import Link from 'next/link';
 import { Input } from '@shop/ui';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, LockKeyhole, Mail, Phone, UserRound } from 'lucide-react';
 import {
   AUTH_FORM_CHECKBOX_CLASS,
   AUTH_FORM_CHECKBOX_LABEL_CLASS,
@@ -38,11 +38,21 @@ export function AuthFormWrapper({ children }: { children: ReactNode }) {
 type AuthFormHeaderProps = {
   title: string;
   subtitle: string;
+  icon?: ReactNode;
 };
 
-export function AuthFormHeader({ title, subtitle }: AuthFormHeaderProps) {
+export function AuthFormHeader({ title, subtitle, icon }: AuthFormHeaderProps) {
   return (
     <header className={AUTH_FORM_HEADER_CLASS}>
+      {icon ? (
+        <div className="mb-4 flex justify-center">
+          <div className="rounded-full bg-[#f4dfbf] p-1 shadow-[0_10px_22px_rgba(49,27,0,0.2)]">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#1f3a22] text-[#fff2d8] shadow-[inset_0_0_0_1px_rgba(255,235,200,0.28)]">
+              {icon}
+            </div>
+          </div>
+        </div>
+      ) : null}
       <h1 className={AUTH_FORM_TITLE_CLASS}>{title}</h1>
       <p className={AUTH_FORM_SUBTITLE_CLASS}>{subtitle}</p>
     </header>
@@ -65,44 +75,95 @@ type AuthFormFieldProps = {
   id: string;
   label: string;
   required?: boolean;
+  prefixIcon?: ReactNode;
   children: ReactNode;
 };
 
-export function AuthFormField({ id, label, required, children }: AuthFormFieldProps) {
+export function AuthFormField({ id, label, required, prefixIcon, children }: AuthFormFieldProps) {
   return (
     <div className={AUTH_FORM_FIELD_CLASS}>
       <label htmlFor={id} className={AUTH_FORM_LABEL_CLASS}>
         {label}
         {required ? <span className={AUTH_FORM_REQUIRED_MARK_CLASS}>*</span> : null}
       </label>
-      {children}
+      {prefixIcon ? (
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f7e8d3] text-[#cf8a2c] shadow-[0_4px_10px_rgba(161,95,14,0.14)]">
+            {prefixIcon}
+          </span>
+          <div className="min-w-0 flex-1">{children}</div>
+        </div>
+      ) : (
+        children
+      )}
     </div>
   );
 }
 
 type AuthFormTextInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'className'> & {
   id: string;
+  leadingIcon?: ReactNode | null;
 };
 
 export function AuthFormTextInput(props: AuthFormTextInputProps) {
-  return <Input {...props} className={AUTH_FORM_INPUT_CLASS} />;
+  const { leadingIcon, ...inputProps } = props;
+  const inputType = inputProps.type ?? 'text';
+  const icon =
+    leadingIcon !== undefined
+      ? leadingIcon
+      : inputType === 'email'
+        ? (
+      <Mail className="h-[18px] w-[18px]" />
+          )
+        : inputType === 'tel'
+          ? (
+      <Phone className="h-[18px] w-[18px]" />
+            )
+          : (
+      <UserRound className="h-[18px] w-[18px]" />
+            );
+
+  if (!icon) {
+    return <Input {...inputProps} className={AUTH_FORM_INPUT_CLASS} />;
+  }
+
+  return (
+    <div className="relative">
+      <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#3b5845]/75">
+        {icon}
+      </span>
+      <Input {...inputProps} className={`${AUTH_FORM_INPUT_CLASS} pl-11`} />
+    </div>
+  );
 }
 
-type AuthFormPasswordInputProps = Omit<AuthFormTextInputProps, 'type'>;
+type AuthFormPasswordInputProps = Omit<AuthFormTextInputProps, 'type'> & {
+  leadingIcon?: ReactNode | null;
+};
 
 export function AuthFormPasswordInput({
   disabled,
+  leadingIcon,
   ...props
 }: AuthFormPasswordInputProps) {
   const [visible, setVisible] = useState(false);
 
   return (
     <div className="relative">
+      {leadingIcon !== null ? (
+        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#3b5845]/75">
+          {leadingIcon ?? <LockKeyhole className="h-[18px] w-[18px]" />}
+        </span>
+      ) : null}
       <Input
         {...props}
         type={visible ? 'text' : 'password'}
         disabled={disabled}
-        className={AUTH_FORM_INPUT_PASSWORD_CLASS}
+        className={
+          leadingIcon === null
+            ? AUTH_FORM_INPUT_PASSWORD_CLASS
+            : `${AUTH_FORM_INPUT_PASSWORD_CLASS} pl-11`
+        }
       />
       <button
         type="button"

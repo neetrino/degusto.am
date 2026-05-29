@@ -15,9 +15,7 @@ import type { ProductWithFullRelations, ProductVariantWithOptions } from "./type
 function calculateActualDiscount(
   productDiscount: number,
   primaryCategoryId: string | null,
-  brandId: string | null,
   categoryDiscounts: Record<string, number>,
-  brandDiscounts: Record<string, number>,
   globalDiscount: number
 ): number {
   if (productDiscount > 0) {
@@ -27,11 +25,6 @@ function calculateActualDiscount(
   // Check category discounts
   if (primaryCategoryId && categoryDiscounts[primaryCategoryId]) {
     return categoryDiscounts[primaryCategoryId];
-  }
-
-  // Check brand discounts
-  if (brandId && brandDiscounts[brandId]) {
-    return brandDiscounts[brandId];
   }
 
   if (globalDiscount > 0) {
@@ -322,7 +315,7 @@ export async function transformProduct(
     : null;
 
   // Get discount settings
-  const { globalDiscount, categoryDiscounts, brandDiscounts } =
+  const { globalDiscount, categoryDiscounts } =
     await getStorefrontDiscountSettings();
   
   const productDiscount = product.discountPercent || 0;
@@ -331,9 +324,7 @@ export async function transformProduct(
   const actualDiscount = calculateActualDiscount(
     productDiscount,
     product.primaryCategoryId,
-    product.brandId,
     categoryDiscounts,
-    brandDiscounts,
     globalDiscount
   );
 

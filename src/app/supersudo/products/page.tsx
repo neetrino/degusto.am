@@ -268,6 +268,24 @@ export default function ProductsPage() {
     return cloned;
   }, [products, sortBy]);
 
+  const summary = useMemo(() => {
+    const safeProducts = sortedProducts ?? [];
+    const publishedCount = safeProducts.filter((product) => product.published).length;
+    const featuredCount = safeProducts.filter((product) => product.featured).length;
+    const outOfStockCount = safeProducts.filter((product) => {
+      if (product.colorStocks && product.colorStocks.length > 0) {
+        return product.colorStocks.reduce((sum, colorStock) => sum + (colorStock.stock || 0), 0) === 0;
+      }
+      return (product.stock ?? 0) === 0;
+    }).length;
+    return {
+      total: meta?.total ?? safeProducts.length,
+      publishedCount,
+      featuredCount,
+      outOfStockCount,
+    };
+  }, [meta?.total, sortedProducts]);
+
   const handleHeaderSort = (field: 'price' | 'createdAt' | 'title' | 'stock') => {
     setPage(1);
 
@@ -349,7 +367,15 @@ export default function ProductsPage() {
   const totalProductsCount = meta?.total ?? products.length;
 
   return (
-    <>
+    <div className="relative overflow-hidden rounded-[26px] border border-[#dde4de] bg-[#f7faf7] p-5 shadow-[0_12px_34px_rgba(31,54,41,0.08)] sm:p-6">
+      <div className="pointer-events-none absolute -top-16 -right-12 z-0 h-52 w-52 rounded-full bg-[radial-gradient(circle,rgba(41,123,85,0.14)_0%,rgba(41,123,85,0)_70%)]" />
+      <div className="relative z-10 mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <h1 className="text-[2rem] font-semibold leading-none text-[#1d392b]">{t('admin.products.title')}</h1>
+          <span className="rounded-full bg-[#e2f1e7] px-3 py-1 text-sm font-semibold text-[#2f8a57]">{summary.total}</span>
+        </div>
+      </div>
+
       {(search || selectedCategories.size > 0 || skuSearch || stockFilter !== 'all') && (
         <div className="mb-6 flex justify-end">
           <button
@@ -361,74 +387,74 @@ export default function ProductsPage() {
           </button>
         </div>
       )}
-            <div className="mb-4 text-sm text-[#4f5f56]">
-              {t('admin.products.totalProductsCount').replace('{count}', totalProductsCount.toString())}
-            </div>
+      <ProductFilters
+        search={search}
+        setSearch={setSearch}
+        skuSearch={skuSearch}
+        setSkuSearch={setSkuSearch}
+        selectedCategories={selectedCategories}
+        setSelectedCategories={setSelectedCategories}
+        categories={categories}
+        categoriesLoading={categoriesLoading}
+        categoriesExpanded={categoriesExpanded}
+        setCategoriesExpanded={setCategoriesExpanded}
+        stockFilter={stockFilter}
+        setStockFilter={setStockFilter}
+        minPrice={minPrice}
+        setMinPrice={setMinPrice}
+        maxPrice={maxPrice}
+        setMaxPrice={setMaxPrice}
+        handleSearch={handlers.handleSearch}
+        setPage={setPage}
+      />
 
-            <ProductFilters
-              search={search}
-              setSearch={setSearch}
-              skuSearch={skuSearch}
-              setSkuSearch={setSkuSearch}
-              selectedCategories={selectedCategories}
-              setSelectedCategories={setSelectedCategories}
-              categories={categories}
-              categoriesLoading={categoriesLoading}
-              categoriesExpanded={categoriesExpanded}
-              setCategoriesExpanded={setCategoriesExpanded}
-              stockFilter={stockFilter}
-              setStockFilter={setStockFilter}
-              minPrice={minPrice}
-              setMinPrice={setMinPrice}
-              maxPrice={maxPrice}
-              setMaxPrice={setMaxPrice}
-              handleSearch={handlers.handleSearch}
-              setPage={setPage}
-            />
+      <div className="relative z-10 mb-6">
+        <Button
+          type="button"
+          onClick={() => router.push('/supersudo/products/add')}
+          className="relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-2xl border border-[#e2a16f] bg-gradient-to-r from-[#64b062] via-[#7db654] to-[#ef8a28] px-5 py-4 text-lg font-semibold text-white shadow-[0_10px_22px_rgba(70,133,55,0.28)] transition-transform hover:-translate-y-0.5"
+        >
+          <span className="absolute inset-y-0 left-4 flex items-center text-white/45">✦</span>
+          <span className="absolute inset-y-0 right-4 flex items-center text-white/45">✦</span>
+          <span className="grid h-9 w-9 place-items-center rounded-full border border-white/60 bg-black/15 text-2xl leading-none">+</span>
+          {t('admin.products.addNewProduct')}
+        </Button>
+      </div>
 
-            {/* Add New Product Button */}
-            <div className="mb-6">
-              <Button
-                type="button"
-                onClick={() => router.push('/supersudo/products/add')}
-                className="relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-lg border border-[#e7a97e] bg-gradient-to-r from-[#f66812] to-[#2f7d4a] px-4 py-3 text-sm font-medium text-white transition-colors hover:from-[#e85d0b] hover:to-[#25653c]"
-              >
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                {t('admin.products.addNewProduct')}
-              </Button>
-            </div>
+      {selectedIds.size > 0 ? (
+        <div className="relative z-10">
+          <ProductBulkSelectionBar
+            selectedCount={selectedIds.size}
+            onBulkDelete={handlers.handleBulkDelete}
+            bulkDeleting={bulkDeleting}
+          />
+        </div>
+      ) : null}
 
-            <ProductBulkSelectionBar
-              selectedCount={selectedIds.size}
-              onBulkDelete={handlers.handleBulkDelete}
-              bulkDeleting={bulkDeleting}
-            />
-
-            {/* Products Table */}
-            <ProductsTable
-              loading={loading}
-              sortedProducts={sortedProducts}
-              products={products}
-              selectedIds={selectedIds}
-              toggleSelect={handlers.toggleSelect}
-              toggleSelectAll={handlers.toggleSelectAll}
-              sortBy={sortBy}
-              handleHeaderSort={handleHeaderSort}
-              currency={currency}
-              handleDeleteProduct={handlers.handleDeleteProduct}
-              handleDuplicateProduct={handlers.handleDuplicateProduct}
-              duplicatingProductId={handlers.duplicatingProductId}
-              handleTogglePublished={handlers.handleTogglePublished}
-              handleToggleFeatured={handlers.handleToggleFeatured}
-              handleToggleDailyOffer={handlers.handleToggleDailyOffer}
-              dailyOfferSelection={dailyOfferSelection}
-              togglingDailyOfferProductId={handlers.togglingDailyOfferProductId}
-              meta={meta}
-              page={page}
-              setPage={setPage}
-            />
-    </>
+      <div className="relative z-10">
+        <ProductsTable
+          loading={loading}
+          sortedProducts={sortedProducts}
+          products={products}
+          selectedIds={selectedIds}
+          toggleSelect={handlers.toggleSelect}
+          toggleSelectAll={handlers.toggleSelectAll}
+          sortBy={sortBy}
+          handleHeaderSort={handleHeaderSort}
+          currency={currency}
+          handleDeleteProduct={handlers.handleDeleteProduct}
+          handleDuplicateProduct={handlers.handleDuplicateProduct}
+          duplicatingProductId={handlers.duplicatingProductId}
+          handleTogglePublished={handlers.handleTogglePublished}
+          handleToggleFeatured={handlers.handleToggleFeatured}
+          handleToggleDailyOffer={handlers.handleToggleDailyOffer}
+          dailyOfferSelection={dailyOfferSelection}
+          togglingDailyOfferProductId={handlers.togglingDailyOfferProductId}
+          meta={meta}
+          page={page}
+          setPage={setPage}
+        />
+      </div>
+    </div>
   );
 }

@@ -16,7 +16,12 @@ export function ConditionalHeader() {
     return null;
   }
 
-  const universalSpacerClass = isAuthPage ? 'bg-[#F66812]' : 'bg-white';
+  const isAboutPage = pathname?.startsWith('/about');
+  const universalSpacerClass = isAuthPage
+    ? 'bg-[#F66812]'
+    : isAboutPage
+      ? "bg-[url('/images/about-page-botanical-bg.png')] bg-cover bg-center"
+      : 'bg-white';
   const showLegacyMobileHeader = !usesStorefrontMobileChrome(pathname);
 
   return (

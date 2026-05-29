@@ -16,8 +16,6 @@ const assets = {
   footerTelegramIcon: '/api/r2/footer/20260512-qN7ozBdLsp.svg',
   footerWhatsappIcon: '/api/r2/footer/20260512-JrBQyAbN2Y.svg',
   footerViberIcon: '/api/r2/footer/20260512-WH7iCNEGQ0.svg',
-  footerAppStoreBadge: '/api/r2/footer/20260512-7Y0hstI5iZ.png',
-  footerGooglePlayBadge: '/api/r2/footer/20260512-5Bpvj-I9_s.png',
   footerIdramLogo: '/api/r2/footer/20260512-ub3JHF7EFG.png',
   footerFastshiftLogo: '/api/r2/footer/20260512-qDCxMfAZhD.png',
   footerArcaLogo: '/api/r2/footer/20260512-x5wZihjF6c.png',
@@ -229,11 +227,6 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
                 <img src={assets.footerViberIcon} alt="Viber" className="h-[22px] w-[22px] object-contain" />
               </a>
             </div>
-          </div>
-
-          <div className="relative z-10 mt-6 flex flex-wrap justify-start gap-[5px] lg:absolute lg:bottom-[164px] lg:right-0 lg:mt-0">
-            <img src={assets.footerAppStoreBadge} alt="Download on the App Store" className="h-10 w-auto object-contain" />
-            <img src={assets.footerGooglePlayBadge} alt="Get it on Google Play" className="h-10 w-auto object-contain" />
           </div>
 
           <div className="relative z-10 mt-8 border-t border-white/20 pt-4 lg:absolute lg:bottom-[52px] lg:left-0 lg:right-0 lg:mt-0 lg:pt-[18px]">

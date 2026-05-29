@@ -30,6 +30,18 @@ describe("extractMediaUrl", () => {
     expect(extractMediaUrl([{ src: "https://cdn.example/2.jpg" }])).toBe("https://cdn.example/2.jpg");
   });
 
+  it("supports media stored as serialized JSON array", () => {
+    expect(extractMediaUrl('[{"url":"https://cdn.example/3.jpg"}]')).toBe("https://cdn.example/3.jpg");
+  });
+
+  it("supports media stored as direct object", () => {
+    expect(extractMediaUrl({ url: "https://cdn.example/4.jpg" })).toBe("https://cdn.example/4.jpg");
+  });
+
+  it("returns first valid URL when leading entries are invalid", () => {
+    expect(extractMediaUrl([{ foo: "bar" }, { src: "https://cdn.example/5.jpg" }])).toBe("https://cdn.example/5.jpg");
+  });
+
   it("prefers url over src when both present", () => {
     expect(extractMediaUrl([{ url: "/u.jpg", src: "/s.jpg" }])).toBe("/u.jpg");
   });

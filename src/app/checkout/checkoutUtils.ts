@@ -26,6 +26,11 @@ export async function fetchCartForGuest(): Promise<Cart | null> {
           id: string;
           slug: string;
           translations?: Array<{ title: string; locale: string }>;
+          categories?: Array<{
+            id?: string;
+            slug?: string;
+            title?: string;
+          }>;
           media?: Array<{ url?: string; src?: string } | string>;
           variants?: Array<{
             _id: string;
@@ -44,6 +49,7 @@ export async function fetchCartForGuest(): Promise<Cart | null> {
         }
 
         const translation = productData.translations?.[0];
+        const primaryCategory = productData.categories?.[0];
         const imageUrl = productData.media?.[0] 
           ? (typeof productData.media[0] === 'string' 
               ? productData.media[0] 
@@ -61,6 +67,14 @@ export async function fetchCartForGuest(): Promise<Cart | null> {
                 title: translation?.title || 'Product',
                 slug: productData.slug,
                 image: imageUrl,
+                categoryId: primaryCategory?.id ?? null,
+                category: primaryCategory
+                  ? {
+                      id: primaryCategory.id ?? null,
+                      slug: primaryCategory.slug ?? null,
+                      name: primaryCategory.title ?? null,
+                    }
+                  : undefined,
               },
             },
             quantity: item.quantity,

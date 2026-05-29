@@ -52,7 +52,7 @@ class CartService {
     const discountSettings = await db.settings.findMany({
       where: {
         key: {
-          in: ["globalDiscount", "categoryDiscounts", "brandDiscounts"],
+          in: ["globalDiscount", "categoryDiscounts"],
         },
       },
     });
@@ -65,8 +65,6 @@ class CartService {
     const categoryDiscountsSetting = discountSettings.find((s: { key: string; value: unknown }) => s.key === "categoryDiscounts");
     const categoryDiscounts = categoryDiscountsSetting ? (categoryDiscountsSetting.value as Record<string, number>) || {} : {};
     
-    const brandDiscountsSetting = discountSettings.find((s: { key: string; value: unknown }) => s.key === "brandDiscounts");
-    const brandDiscounts = brandDiscountsSetting ? (brandDiscountsSetting.value as Record<string, number>) || {} : {};
     const findCart = async () =>
       db.cart.findFirst({
         where: {
@@ -90,6 +88,11 @@ class CartService {
                   product: {
                     include: {
                       translations: true,
+                      categories: {
+                        include: {
+                          translations: true,
+                        },
+                      },
                     },
                   },
                 },
@@ -97,6 +100,11 @@ class CartService {
               product: {
                 include: {
                   translations: true,
+                  categories: {
+                    include: {
+                      translations: true,
+                    },
+                  },
                 },
               },
             },
@@ -151,6 +159,11 @@ class CartService {
                 product: {
                   include: {
                     translations: true,
+                    categories: {
+                      include: {
+                        translations: true,
+                      },
+                    },
                   },
                 },
               },
@@ -192,6 +205,12 @@ class CartService {
           product?.translations?.[0];
 
         const imageUrl = this.extractVariantImageUrl(variant?.imageUrl) ?? extractMediaUrl(product?.media);
+        const primaryCategory =
+          product?.categories?.find((category) => category.id === product?.primaryCategoryId) ??
+          product?.categories?.[0];
+        const categoryTranslation =
+          primaryCategory?.translations?.find((translation) => translation.locale === locale) ??
+          primaryCategory?.translations?.[0];
 
         const productDiscount = product?.discountPercent ?? 0;
         let appliedDiscount = 0;
@@ -201,13 +220,8 @@ class CartService {
           const primaryCategoryId = product?.primaryCategoryId;
           if (primaryCategoryId && categoryDiscounts[primaryCategoryId]) {
             appliedDiscount = categoryDiscounts[primaryCategoryId];
-          } else {
-            const brandId = product?.brandId;
-            if (brandId && brandDiscounts[brandId]) {
-              appliedDiscount = brandDiscounts[brandId];
-            } else if (globalDiscount > 0) {
-              appliedDiscount = globalDiscount;
-            }
+          } else if (globalDiscount > 0) {
+            appliedDiscount = globalDiscount;
           }
         }
 
@@ -243,6 +257,14 @@ class CartService {
               title: translation?.title ?? "",
               slug: translation?.slug ?? "",
               image: imageUrl,
+              categoryId: product?.primaryCategoryId ?? null,
+              category: primaryCategory
+                ? {
+                    id: primaryCategory.id,
+                    slug: categoryTranslation?.slug ?? null,
+                    name: categoryTranslation?.title ?? null,
+                  }
+                : undefined,
             },
           },
           quantity: item.quantity,

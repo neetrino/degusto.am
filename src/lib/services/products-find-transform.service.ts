@@ -24,7 +24,7 @@ class ProductsFindTransformService {
     const discountSettings = await db.settings.findMany({
       where: {
         key: {
-          in: ["globalDiscount", "categoryDiscounts", "brandDiscounts"],
+          in: ["globalDiscount", "categoryDiscounts"],
         },
       },
     });
@@ -37,9 +37,6 @@ class ProductsFindTransformService {
     const categoryDiscountsSetting = discountSettings.find((s: { key: string; value: unknown }) => s.key === "categoryDiscounts");
     const categoryDiscounts = categoryDiscountsSetting ? (categoryDiscountsSetting.value as Record<string, number>) || {} : {};
     
-    const brandDiscountsSetting = discountSettings.find((s: { key: string; value: unknown }) => s.key === "brandDiscounts");
-    const brandDiscounts = brandDiscountsSetting ? (brandDiscountsSetting.value as Record<string, number>) || {} : {};
-
     // Format response
     const data = products.map((product: ProductWithRelations) => {
       // Безопасное получение translation с проверкой на существование массива
@@ -182,14 +179,8 @@ class ProductsFindTransformService {
         const primaryCategoryId = product.primaryCategoryId;
         if (primaryCategoryId && categoryDiscounts[primaryCategoryId]) {
           appliedDiscount = categoryDiscounts[primaryCategoryId];
-        } else {
-          // Check brand discounts
-          const brandId = product.brandId;
-          if (brandId && brandDiscounts[brandId]) {
-            appliedDiscount = brandDiscounts[brandId];
-          } else if (globalDiscount > 0) {
-            appliedDiscount = globalDiscount;
-          }
+        } else if (globalDiscount > 0) {
+          appliedDiscount = globalDiscount;
         }
       }
 

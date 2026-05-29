@@ -8,7 +8,8 @@
   "cashDenominations": {
     "hint": "Выберите купюру, с которой нужна сдача.",
     "noteAlt": "Банкнота {amount} драм",
-    "groupAria": "Выбор купюры драм"
+    "groupAria": "Выбор купюры драм",
+    "noChangeNeeded": "Сдача не нужна"
   },
   "form": {
     "firstName": "Имя",
@@ -104,7 +105,7 @@
     "invalidCashChangeAmount": "Введите корректную сумму для сдачи",
     "notesTooLong": "Комментарий к заказу должен быть не длиннее 500 символов",
     "fillShippingAddress": "Пожалуйста, заполните все поля адреса доставки",
-    "deliveryOnlyYerevan": "Доставка доступна только в Ереване",
+    "deliveryOnlyYerevan": "Доставка недоступна для выбранного города",
     "cartEmpty": "Корзина пуста",
     "failedToLoadCart": "Не удалось загрузить корзину",
     "failedToCreateOrder": "Не удалось создать заказ. Пожалуйста, попробуйте снова."

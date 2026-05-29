@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { apiClient } from '@/lib/api-client';
 import { CURRENCIES, type CurrencyCode } from '@/lib/currency';
-import type { Brand, Category, Attribute } from '../types';
+import type { Category, Attribute } from '../types';
 import { logger } from "@/lib/utils/logger";
 
 interface UseProductDataLoadingProps {
@@ -11,7 +11,6 @@ interface UseProductDataLoadingProps {
   isAdmin: boolean;
   isLoading: boolean;
   setReferenceCatalogReady: (ready: boolean) => void;
-  setBrands: (brands: Brand[]) => void;
   setCategories: (categories: Category[]) => void;
   setAttributes: (attributes: Attribute[]) => void;
   setDefaultCurrency: (currency: CurrencyCode) => void;
@@ -20,8 +19,6 @@ interface UseProductDataLoadingProps {
   attributesDropdownRef: React.RefObject<HTMLDivElement>;
   categoriesExpanded: boolean;
   setCategoriesExpanded: (expanded: boolean) => void;
-  brandsExpanded: boolean;
-  setBrandsExpanded: (expanded: boolean) => void;
 }
 
 export function useProductDataLoading({
@@ -29,7 +26,6 @@ export function useProductDataLoading({
   isAdmin,
   isLoading,
   setReferenceCatalogReady,
-  setBrands,
   setCategories,
   setAttributes,
   setDefaultCurrency,
@@ -38,8 +34,6 @@ export function useProductDataLoading({
   attributesDropdownRef,
   categoriesExpanded,
   setCategoriesExpanded,
-  brandsExpanded,
-  setBrandsExpanded,
 }: UseProductDataLoadingProps) {
   const router = useRouter();
 
@@ -70,14 +64,13 @@ export function useProductDataLoading({
     };
   }, [attributesDropdownOpen, attributesDropdownRef, setAttributesDropdownOpen]);
 
-  // Fetch settings (currency) + brands, categories, and attributes together so edit load runs once with correct currency
+  // Fetch settings (currency), categories and attributes together so edit load runs once with correct currency
   useEffect(() => {
     const fetchData = async () => {
       try {
-        logger.debug('📥 [ADMIN] Fetching settings, brands, categories, and attributes...');
-        const [settingsRes, brandsRes, categoriesRes, attributesRes] = await Promise.all([
+        logger.debug('📥 [ADMIN] Fetching settings, categories, and attributes...');
+        const [settingsRes, categoriesRes, attributesRes] = await Promise.all([
           apiClient.get<{ defaultCurrency?: string }>('/api/v1/admin/settings'),
-          apiClient.get<{ data: Brand[] }>('/api/v1/admin/brands'),
           apiClient.get<{ data: Category[] }>('/api/v1/admin/categories'),
           apiClient.get<{ data: Attribute[] }>('/api/v1/admin/attributes'),
         ]);
@@ -88,11 +81,9 @@ export function useProductDataLoading({
         } else {
           setDefaultCurrency('AMD');
         }
-        setBrands(brandsRes.data || []);
         setCategories(categoriesRes.data || []);
         setAttributes(attributesRes.data || []);
         logger.debug('✅ [ADMIN] Data fetched:', {
-          brands: brandsRes.data?.length || 0,
           categories: categoriesRes.data?.length || 0,
           attributes: attributesRes.data?.length || 0,
         });
@@ -146,7 +137,7 @@ export function useProductDataLoading({
       }
     };
     fetchData();
-  }, [setBrands, setCategories, setAttributes, setReferenceCatalogReady, setDefaultCurrency]);
+  }, [setCategories, setAttributes, setReferenceCatalogReady, setDefaultCurrency]);
 
   // Close category dropdown when clicking outside
   useEffect(() => {
@@ -165,22 +156,6 @@ export function useProductDataLoading({
     }
   }, [categoriesExpanded, setCategoriesExpanded]);
 
-  // Close brand dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (brandsExpanded && !target.closest('[data-brand-dropdown]')) {
-        setBrandsExpanded(false);
-      }
-    };
-
-    if (brandsExpanded) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
-  }, [brandsExpanded, setBrandsExpanded]);
 }
 
 

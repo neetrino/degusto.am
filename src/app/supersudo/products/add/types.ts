@@ -1,9 +1,3 @@
-export interface Brand {
-  id: string;
-  name: string;
-  slug: string;
-}
-
 export interface Category {
   id: string;
   title: string;

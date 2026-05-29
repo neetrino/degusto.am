@@ -19,7 +19,7 @@ interface OrderRowProps {
 }
 
 const selectClass =
-  'inline-block w-auto max-w-full min-w-0 cursor-pointer rounded-md border-0 px-2 py-1.5 text-left text-xs font-medium leading-snug focus:outline-none focus:ring-2 focus:ring-blue-500';
+  'inline-block w-auto max-w-full min-w-0 cursor-pointer rounded-lg border border-transparent px-2 py-1.5 text-left text-xs font-medium leading-snug focus:outline-none focus:ring-2 focus:ring-[#1f6c4b]/20';
 
 export function OrderRow({
   order,
@@ -55,7 +55,7 @@ export function OrderRow({
 
   return (
     <tr
-      className="cursor-pointer transition-colors hover:bg-gradient-to-r hover:from-[#fff4ea] hover:to-[#eef9f1]"
+      className="cursor-pointer transition-colors hover:bg-[#f7faf7]"
       onClick={onViewDetails}
       aria-label={rowDetailsLabel}
     >
@@ -74,11 +74,11 @@ export function OrderRow({
           />
         </div>
       </td>
-      <td className="min-w-0 whitespace-nowrap px-3 py-2.5 text-left align-middle" title={order.number}>
-        <span className="text-sm font-semibold text-gray-900">{order.number}</span>
+      <td className="min-w-0 whitespace-nowrap px-3 py-3 text-left align-middle" title={order.number}>
+        <span className="text-sm font-semibold text-[#28392f]">{order.number}</span>
       </td>
-      <td className="min-w-[10rem] max-w-xs px-3 py-2.5 text-left align-middle sm:max-w-sm">
-        <div className="min-w-0 max-w-full space-y-1">
+      <td className="min-w-[10rem] max-w-xs px-3 py-3 text-left align-middle sm:max-w-sm">
+        <div className="min-w-0 max-w-full space-y-0.5">
           <div className="min-w-0 max-w-full truncate text-left text-sm font-medium text-gray-900" title={customerName}>
             {customerName}
           </div>
@@ -90,17 +90,14 @@ export function OrderRow({
           </div>
         </div>
       </td>
-      <td
-        className="min-w-0 whitespace-nowrap px-3 py-2.5 text-left align-middle text-sm font-semibold text-gray-900"
-        title={calculateTotalWithoutShipping()}
-      >
+      <td className="min-w-0 whitespace-nowrap px-3 py-3 text-left align-middle text-sm font-semibold text-[#293a30]" title={calculateTotalWithoutShipping()}>
         {calculateTotalWithoutShipping()}
       </td>
-      <td className="min-w-0 whitespace-nowrap px-3 py-2.5 text-center align-middle text-sm tabular-nums text-gray-600">
+      <td className="min-w-0 whitespace-nowrap px-3 py-3 text-center align-middle text-sm tabular-nums text-[#5b6f63]">
         {order.itemsCount}
       </td>
       <td
-        className="min-w-0 px-3 py-2.5 text-left align-middle"
+        className="min-w-0 px-3 py-3 text-left align-middle"
         onClick={(e) => e.stopPropagation()}
         onMouseDown={(e) => e.stopPropagation()}
       >
@@ -129,7 +126,7 @@ export function OrderRow({
         )}
       </td>
       <td
-        className="min-w-0 px-3 py-2.5 text-left align-middle"
+        className="min-w-0 px-3 py-3 text-left align-middle"
         onClick={(e) => e.stopPropagation()}
         onMouseDown={(e) => e.stopPropagation()}
       >
@@ -156,7 +153,7 @@ export function OrderRow({
           </div>
         )}
       </td>
-      <td className="min-w-0 whitespace-nowrap px-3 py-2.5 text-left align-middle text-xs tabular-nums text-gray-600 sm:text-sm">
+      <td className="min-w-0 whitespace-nowrap px-3 py-3 text-left align-middle text-xs tabular-nums text-[#5e7266] sm:text-sm">
         {new Date(order.createdAt).toLocaleDateString(undefined, {
           year: '2-digit',
           month: 'numeric',

@@ -42,17 +42,12 @@ export interface RelatedCardPayload {
 function pickAppliedDiscount(
   productDiscount: number,
   primaryCategoryId: string | null,
-  brandId: string | null,
   categoryDiscounts: Record<string, number>,
-  brandDiscounts: Record<string, number>,
   globalDiscount: number
 ): number {
   if (productDiscount > 0) return productDiscount;
   if (primaryCategoryId && categoryDiscounts[primaryCategoryId]) {
     return categoryDiscounts[primaryCategoryId];
-  }
-  if (brandId && brandDiscounts[brandId]) {
-    return brandDiscounts[brandId];
   }
   if (globalDiscount > 0) return globalDiscount;
   return 0;
@@ -71,7 +66,7 @@ export async function transformRelatedProductRows(
 ): Promise<RelatedCardPayload[]> {
   if (rows.length === 0) return [];
 
-  const { globalDiscount, categoryDiscounts, brandDiscounts } =
+  const { globalDiscount, categoryDiscounts } =
     await getStorefrontDiscountSettings();
 
   return rows.map((product) => {
@@ -84,9 +79,7 @@ export async function transformRelatedProductRows(
     const appliedDiscount = pickAppliedDiscount(
       productDiscount,
       product.primaryCategoryId,
-      product.brandId,
       categoryDiscounts,
-      brandDiscounts,
       globalDiscount
     );
 

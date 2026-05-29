@@ -4,20 +4,66 @@
  */
 export type MediaItem = string | { url?: string; src?: string } | unknown;
 
+function normalizeMediaItems(media: unknown): unknown[] {
+  if (Array.isArray(media)) {
+    return media;
+  }
+
+  if (typeof media === 'string') {
+    const trimmed = media.trim();
+    if (!trimmed) {
+      return [];
+    }
+
+    try {
+      const parsed = JSON.parse(trimmed) as unknown;
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+      if (parsed && typeof parsed === 'object') {
+        return [parsed];
+      }
+    } catch {
+      // Not a JSON payload, treat as direct URL value.
+    }
+
+    return [trimmed];
+  }
+
+  if (media && typeof media === 'object') {
+    return [media];
+  }
+
+  return [];
+}
+
 export function extractMediaUrl(media: unknown): string | null {
-  if (!media || !Array.isArray(media) || media.length === 0) {
+  const items = normalizeMediaItems(media);
+  if (items.length === 0) {
     return null;
   }
-  const first = media[0];
-  if (typeof first === "string") {
-    return first;
+
+  for (const item of items) {
+    if (typeof item === 'string' && item.trim().length > 0) {
+      return item.trim();
+    }
+
+    if (!item || typeof item !== 'object') {
+      continue;
+    }
+
+    const withUrl = item as { url?: unknown; src?: unknown; value?: unknown };
+    if (typeof withUrl.url === 'string' && withUrl.url.trim().length > 0) {
+      return withUrl.url.trim();
+    }
+    if (typeof withUrl.src === 'string' && withUrl.src.trim().length > 0) {
+      return withUrl.src.trim();
+    }
+    if (typeof withUrl.value === 'string' && withUrl.value.trim().length > 0) {
+      return withUrl.value.trim();
+    }
   }
-  if (first && typeof first === "object" && "url" in first && typeof (first as { url?: string }).url === "string") {
-    return (first as { url: string }).url;
-  }
-  if (first && typeof first === "object" && "src" in first && typeof (first as { src?: string }).src === "string") {
-    return (first as { src: string }).src;
-  }
+
   return null;
 }
 

@@ -15,16 +15,41 @@ const loginSchema = z
     password: data.password,
   }));
 
-const registerSchema = z.object({
-  email: z.string().email().optional(),
-  phone: z.string().min(1).optional(),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
-}).refine((data) => data.email ?? data.phone, {
-  message: "Either email or phone is required",
-  path: ["email"],
-});
+const registerSchema = z
+  .object({
+    email: z.string().optional(),
+    phone: z.string().optional(),
+    password: z.string().min(6, "Password must be at least 6 characters"),
+    firstName: z.string().optional(),
+    lastName: z.string().optional(),
+  })
+  .transform((data) => {
+    const emailTrimmed = data.email?.trim().toLowerCase() ?? "";
+    const phoneTrimmed = data.phone?.trim() ?? "";
+    const firstNameTrimmed = data.firstName?.trim() ?? "";
+    const lastNameTrimmed = data.lastName?.trim() ?? "";
+
+    return {
+      email: emailTrimmed.length > 0 ? emailTrimmed : undefined,
+      phone: phoneTrimmed.length > 0 ? phoneTrimmed : undefined,
+      password: data.password,
+      firstName: firstNameTrimmed.length > 0 ? firstNameTrimmed : undefined,
+      lastName: lastNameTrimmed.length > 0 ? lastNameTrimmed : undefined,
+    };
+  })
+  .refine((data) => Boolean(data.email || data.phone), {
+    message: "Either email or phone is required",
+    path: ["email"],
+  })
+  .refine((data) => {
+    if (!data.email) {
+      return true;
+    }
+    return z.string().email().safeParse(data.email).success;
+  }, {
+    message: "Invalid email address",
+    path: ["email"],
+  });
 
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;

@@ -2,27 +2,18 @@
 
 import { Input } from '@shop/ui';
 import { useTranslation } from '../../../../../lib/i18n-client';
-import type { Category, Brand } from '../types';
+import type { Category } from '../types';
 
 interface CategoriesBrandsProps {
   categories: Category[];
-  brands: Brand[];
   categoryIds: string[];
-  brandIds: string[];
   categoriesExpanded: boolean;
-  brandsExpanded: boolean;
   useNewCategory: boolean;
-  useNewBrand: boolean;
   newCategoryName: string;
-  newBrandName: string;
   onCategoriesExpandedChange: (expanded: boolean) => void;
-  onBrandsExpandedChange: (expanded: boolean) => void;
   onUseNewCategoryChange: (useNew: boolean) => void;
-  onUseNewBrandChange: (useNew: boolean) => void;
   onNewCategoryNameChange: (name: string) => void;
-  onNewBrandNameChange: (name: string) => void;
   onCategoryIdsChange: (ids: string[]) => void;
-  onBrandIdsChange: (ids: string[]) => void;
   onPrimaryCategoryIdChange: (id: string) => void;
   isClothingCategory: () => boolean;
   onVariantsUpdate?: (updater: (prev: any[]) => any[]) => void;
@@ -30,23 +21,14 @@ interface CategoriesBrandsProps {
 
 export function CategoriesBrands({
   categories,
-  brands,
   categoryIds,
-  brandIds,
   categoriesExpanded,
-  brandsExpanded,
   useNewCategory,
-  useNewBrand,
   newCategoryName,
-  newBrandName,
   onCategoriesExpandedChange,
-  onBrandsExpandedChange,
   onUseNewCategoryChange,
-  onUseNewBrandChange,
   onNewCategoryNameChange,
-  onNewBrandNameChange,
   onCategoryIdsChange,
-  onBrandIdsChange,
   onPrimaryCategoryIdChange,
   isClothingCategory,
   onVariantsUpdate,
@@ -127,8 +109,8 @@ export function CategoriesBrands({
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('admin.products.add.categoriesAndBrands')}</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('admin.products.add.categories')}</h2>
+      <div className="grid grid-cols-1 gap-4">
         {/* Categories - Multi-select */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -232,108 +214,6 @@ export function CategoriesBrands({
                   className="w-full"
                 />
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Brands - Multi-select */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            {t('admin.products.add.brands')} <span className="text-gray-500 font-normal">{t('admin.products.add.selectMultiple')}</span>
-          </label>
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 mb-2">
-              <input
-                type="radio"
-                id="select-brand"
-                name="brand-mode"
-                checked={!useNewBrand}
-                onChange={() => {
-                  onUseNewBrandChange(false);
-                  onNewBrandNameChange('');
-                }}
-                className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-              />
-              <label htmlFor="select-brand" className="text-sm text-gray-700">
-                {t('admin.products.add.selectExistingBrands')}
-              </label>
-            </div>
-            <div className="flex items-center gap-2 mb-2">
-              <input
-                type="radio"
-                id="new-brand"
-                name="brand-mode"
-                checked={useNewBrand}
-                onChange={() => {
-                  onUseNewBrandChange(true);
-                }}
-                className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-              />
-              <label htmlFor="new-brand" className="text-sm text-gray-700">
-                {t('admin.products.add.addNewBrand')}
-              </label>
-            </div>
-            {!useNewBrand ? (
-              <div className="relative" data-brand-dropdown>
-                <button
-                  type="button"
-                  onClick={() => onBrandsExpandedChange(!brandsExpanded)}
-                  className="w-full px-3 py-2 text-left border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm flex items-center justify-between"
-                >
-                  <span className="text-gray-700">
-                    {brandIds.length === 0
-                      ? t('admin.products.add.selectBrands')
-                      : brandIds.length === 1
-                        ? t('admin.products.add.brandSelected').replace('{count}', brandIds.length.toString())
-                        : t('admin.products.add.brandsSelected').replace('{count}', brandIds.length.toString())}
-                  </span>
-                  <svg
-                    className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
-                      brandsExpanded ? 'transform rotate-180' : ''
-                    }`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                {brandsExpanded && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                    <div className="p-2">
-                      <div className="space-y-1">
-                        {brands.map((brand) => (
-                          <label
-                            key={brand.id}
-                            className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={brandIds.includes(brand.id)}
-                              onChange={(e) => {
-                                const newBrandIds = e.target.checked
-                                  ? [...brandIds, brand.id]
-                                  : brandIds.filter((id) => id !== brand.id);
-                                onBrandIdsChange(newBrandIds);
-                              }}
-                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                            />
-                            <span className="text-sm text-gray-700">{brand.name}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <Input
-                type="text"
-                value={newBrandName}
-                onChange={(e) => onNewBrandNameChange(e.target.value)}
-                placeholder={t('admin.products.add.enterNewBrandName')}
-                className="w-full"
-              />
             )}
           </div>
         </div>

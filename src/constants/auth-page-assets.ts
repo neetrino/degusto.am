@@ -1,2 +1,2 @@
-/** Decorative right-panel image on login/register (desktop, lg+). */
-export const AUTH_SIDE_ACCENT_IMAGE_PATH = '/images/auth-side-accent.png';
+/** Full-page background used on login/register surfaces. */
+export const AUTH_PAGE_BACKGROUND_IMAGE_PATH = '/images/auth-bg-reference.png';

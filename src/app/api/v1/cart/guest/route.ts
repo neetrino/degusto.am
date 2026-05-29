@@ -42,6 +42,12 @@ interface GuestCartProduct {
   title: string;
   slug: string;
   image: string | null;
+  categoryId?: string | null;
+  category?: {
+    id?: string | null;
+    slug?: string | null;
+    name?: string | null;
+  };
 }
 
 interface GuestCartLine {
@@ -148,11 +154,24 @@ export async function POST(req: NextRequest) {
       select: {
         id: true,
         media: true,
+        primaryCategoryId: true,
         translations: {
           select: {
             locale: true,
             title: true,
             slug: true,
+          },
+        },
+        categories: {
+          select: {
+            id: true,
+            translations: {
+              select: {
+                locale: true,
+                slug: true,
+                title: true,
+              },
+            },
           },
         },
         variants: {
@@ -205,6 +224,12 @@ export async function POST(req: NextRequest) {
         (preferredTranslation?.slug && preferredTranslation.slug.trim()) ||
         (item.productSlug && item.productSlug.trim()) ||
         "";
+      const primaryCategory =
+        product.categories.find((category) => category.id === product.primaryCategoryId) ??
+        product.categories[0];
+      const categoryTranslation =
+        primaryCategory?.translations.find((translation) => translation.locale === lang) ??
+        primaryCategory?.translations[0];
 
       const adj = await sumVerifiedAttributePriceAdjustment(
         selectedVariant.id,
@@ -239,6 +264,14 @@ export async function POST(req: NextRequest) {
             title: preferredTranslation?.title || "Product",
             slug: productSlug,
             image: pickVariantImage(selectedVariant.imageUrl) ?? pickFirstImage(product.media),
+            categoryId: product.primaryCategoryId,
+            category: primaryCategory
+              ? {
+                  id: primaryCategory.id,
+                  slug: categoryTranslation?.slug ?? null,
+                  name: categoryTranslation?.title ?? null,
+                }
+              : undefined,
           },
         },
         quantity: item.quantity,

@@ -80,9 +80,7 @@ export function OrderSummaryModal({
       <div className="flex justify-between gap-2 text-sm">
         <span className={CHECKOUT_TEXT_LABEL}>{t('checkout.summary.bagFee')}:</span>
         <span className={CHECKOUT_TEXT_VALUE}>
-          {shippingMethod === 'delivery'
-            ? formatPriceInCurrency(orderSummary.bagFeeDisplay, currency)
-            : formatPriceInCurrency(0, currency)}
+          {formatPriceInCurrency(orderSummary.bagFeeDisplay, currency)}
         </span>
       </div>
       <div className="mt-2 border-t border-[#F66812]/15 pt-2">

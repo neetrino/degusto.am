@@ -12,7 +12,6 @@ export interface ProductFilters {
   maxPrice?: number;
   colors?: string;
   sizes?: string;
-  brand?: string;
   sort?: string;
   page?: number;
   limit?: number;

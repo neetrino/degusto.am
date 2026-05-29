@@ -7,12 +7,9 @@ import { useTranslation } from '../../../../lib/i18n-client';
 import { formatPrice, type CurrencyCode } from '../../../../lib/currency';
 import {
   ADMIN_TABLE,
-  ADMIN_TABLE_CARD,
   ADMIN_TABLE_CHECKBOX,
   ADMIN_TABLE_FOOTER_ROUNDED_B,
   ADMIN_TABLE_OUTER_SCROLL,
-  ADMIN_TABLE_ROW,
-  ADMIN_TABLE_STATE_INSET,
   ADMIN_TABLE_TBODY,
   ADMIN_TABLE_TD,
   ADMIN_TABLE_TD_CHECK,
@@ -20,7 +17,6 @@ import {
   ADMIN_TABLE_TH_CENTER,
   ADMIN_TABLE_TH_CHECK,
   ADMIN_TABLE_TH_SORTABLE,
-  ADMIN_TABLE_THEAD,
 } from '../../constants/admin-table-classes';
 import type { Product, ProductsResponse } from '../types';
 import type { DailyOfferSelection } from '@/lib/services/daily-offer/daily-offer.types';
@@ -131,7 +127,6 @@ interface ProductsTableLoadedViewProps {
   paginationWindow: { start: number; end: number };
   visiblePages: number[];
 }
-
 function ProductsTableLoadedView({
   sortedProducts,
   products,
@@ -161,12 +156,12 @@ function ProductsTableLoadedView({
     <>
       <div className={ADMIN_TABLE_OUTER_SCROLL}>
         <table className={ADMIN_TABLE}>
-          <thead className={ADMIN_TABLE_THEAD}>
+          <thead className="border-b border-[#15543a] bg-gradient-to-r from-[#0f5a3d] to-[#0b6a45]">
             <tr>
               <th className={ADMIN_TABLE_TH_CHECK}>
                 <input
                   type="checkbox"
-                  className={ADMIN_TABLE_CHECKBOX}
+                  className={`${ADMIN_TABLE_CHECKBOX} border-white/60 bg-white/20`}
                   aria-label={t('admin.products.selectAll')}
                   checked={products.length > 0 && products.every(p => selectedIds.has(p.id))}
                   onChange={toggleSelectAll}
@@ -176,7 +171,7 @@ function ProductsTableLoadedView({
                 <button
                   type="button"
                   onClick={() => handleHeaderSort('title')}
-                  className={`${ADMIN_TABLE_TH_SORTABLE} inline-flex w-full items-center gap-1`}
+                  className={`${ADMIN_TABLE_TH_SORTABLE} inline-flex w-full items-center gap-1 text-[#eef9f2] hover:bg-white/10`}
                 >
                   <span>{t('admin.products.product')}</span>
                   <span className="flex flex-col gap-0.5">
@@ -211,7 +206,7 @@ function ProductsTableLoadedView({
                 <button
                   type="button"
                   onClick={() => handleHeaderSort('stock')}
-                  className={`${ADMIN_TABLE_TH_SORTABLE} inline-flex w-full items-center gap-1`}
+                  className={`${ADMIN_TABLE_TH_SORTABLE} inline-flex w-full items-center gap-1 text-[#eef9f2] hover:bg-white/10`}
                 >
                   <span>{t('admin.products.stock')}</span>
                   <span className="flex flex-col gap-0.5">
@@ -246,7 +241,7 @@ function ProductsTableLoadedView({
                 <button
                   type="button"
                   onClick={() => handleHeaderSort('price')}
-                  className={`${ADMIN_TABLE_TH_SORTABLE} inline-flex w-full items-center gap-1`}
+                  className={`${ADMIN_TABLE_TH_SORTABLE} inline-flex w-full items-center gap-1 text-[#eef9f2] hover:bg-white/10`}
                 >
                   <span>{t('admin.products.price')}</span>
                   <span className="flex flex-col gap-0.5">
@@ -277,14 +272,14 @@ function ProductsTableLoadedView({
                   </span>
                 </button>
               </th>
-              <th className={ADMIN_TABLE_TH}>{t('admin.products.category')}</th>
-              <th className={ADMIN_TABLE_TH_CENTER}>{t('admin.products.featured')}</th>
-              <th className={ADMIN_TABLE_TH_CENTER}>{t('admin.products.actions')}</th>
+              <th className={`${ADMIN_TABLE_TH} text-[#eef9f2]`}>{t('admin.products.category')}</th>
+              <th className={`${ADMIN_TABLE_TH_CENTER} text-[#eef9f2]`}>{t('admin.products.featured')}</th>
+              <th className={`${ADMIN_TABLE_TH_CENTER} text-[#eef9f2]`}>{t('admin.products.actions')}</th>
               <th className="p-0 align-middle">
                 <button
                   type="button"
                   onClick={() => handleHeaderSort('createdAt')}
-                  className={`${ADMIN_TABLE_TH_SORTABLE} inline-flex w-full items-center gap-1`}
+                  className={`${ADMIN_TABLE_TH_SORTABLE} inline-flex w-full items-center gap-1 text-[#eef9f2] hover:bg-white/10`}
                 >
                   <span>{t('admin.products.created')}</span>
                   <span className="flex flex-col gap-0.5">
@@ -317,11 +312,11 @@ function ProductsTableLoadedView({
               </th>
             </tr>
           </thead>
-          <tbody className={ADMIN_TABLE_TBODY}>
+          <tbody className={`${ADMIN_TABLE_TBODY} [&>tr:hover]:bg-[#f7faf7]`}>
             {sortedProducts.map((product) => (
               <tr
                 key={product.id}
-                className={`${ADMIN_TABLE_ROW} cursor-pointer`}
+                className="cursor-pointer transition-colors"
                 onClick={(event) => handleProductRowClick(event, product.id, openProductEditor)}
               >
                 <td className={ADMIN_TABLE_TD_CHECK}>
@@ -335,7 +330,7 @@ function ProductsTableLoadedView({
                     />
                   </div>
                 </td>
-                <td className={`${ADMIN_TABLE_TD} whitespace-nowrap text-left text-gray-900`}>
+                <td className={`${ADMIN_TABLE_TD} whitespace-nowrap text-left text-[#22352a]`}>
                   <div className="flex items-center">
                     {product.image && (
                       <img
@@ -345,8 +340,8 @@ function ProductsTableLoadedView({
                       />
                     )}
                     <div>
-                      <div className="text-sm font-medium text-gray-900">{product.title}</div>
-                      <div className="text-sm text-gray-500">{product.slug}</div>
+                      <div className="text-sm font-semibold text-[#22352a]">{product.title}</div>
+                      <div className="text-sm text-[#6b7f73]">{product.slug}</div>
                     </div>
                   </div>
                 </td>
@@ -369,13 +364,12 @@ function ProductsTableLoadedView({
                     </span>
                   )}
                 </td>
-                <td className={`${ADMIN_TABLE_TD} whitespace-nowrap text-left font-semibold text-gray-900`}>
+                <td className={`${ADMIN_TABLE_TD} whitespace-nowrap text-left font-semibold text-[#22352a]`}>
                   <div className="flex flex-col">
-                    <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-[#22352a]">
                       {formatPrice(product.price, currency)}
                     </div>
-                    {(product.compareAtPrice && product.compareAtPrice > product.price) || 
-                     (product.discountPercent && product.discountPercent > 0) ? (
+                    {(product.compareAtPrice && product.compareAtPrice > product.price) || (product.discountPercent && product.discountPercent > 0) ? (
                       <div className="text-xs text-gray-500 line-through mt-0.5">
                         {formatPrice(
                           product.compareAtPrice && product.compareAtPrice > product.price
@@ -387,7 +381,7 @@ function ProductsTableLoadedView({
                     ) : null}
                   </div>
                 </td>
-                <td className={`${ADMIN_TABLE_TD} min-w-0 max-w-[14rem] text-left text-gray-900`}>
+                <td className={`${ADMIN_TABLE_TD} min-w-0 max-w-[14rem] text-left text-[#22352a]`}>
                   {product.categorySummary ? (
                     <span className="block truncate" title={product.categorySummary}>
                       {product.categorySummary}
@@ -411,7 +405,7 @@ function ProductsTableLoadedView({
                     }}
                   />
                 </td>
-                <td className={`${ADMIN_TABLE_TD} whitespace-nowrap text-center font-medium text-gray-900`}>
+                <td className={`${ADMIN_TABLE_TD} whitespace-nowrap text-center font-medium text-[#22352a]`}>
                   <div className="flex items-center justify-center gap-1 flex-wrap">
                     <Button
                       type="button"
@@ -483,7 +477,7 @@ function ProductsTableLoadedView({
                     </button>
                   </div>
                 </td>
-                <td className={`${ADMIN_TABLE_TD} whitespace-nowrap text-left tabular-nums text-gray-600`}>
+                <td className={`${ADMIN_TABLE_TD} whitespace-nowrap text-left tabular-nums text-[#60766a]`}>
                   {new Date(product.createdAt).toLocaleDateString('hy-AM')}
                 </td>
               </tr>
@@ -491,10 +485,9 @@ function ProductsTableLoadedView({
           </tbody>
         </table>
       </div>
-
       {meta && meta.totalPages > 1 && (
-        <div className={`${ADMIN_TABLE_FOOTER_ROUNDED_B} flex items-center justify-between`}>
-          <div className="text-sm text-gray-700">
+        <div className={`${ADMIN_TABLE_FOOTER_ROUNDED_B} flex items-center justify-between border-t border-[#e8ede8] bg-[#fbfdfb]`}>
+          <div className="text-sm text-[#5a6f62]">
             {t('admin.products.showingPage').replace('{page}', meta.page.toString()).replace('{totalPages}', meta.totalPages.toString()).replace('{total}', meta.total.toString())}
           </div>
           <div className="flex items-center gap-2 flex-wrap justify-end">
@@ -503,6 +496,7 @@ function ProductsTableLoadedView({
                 variant="ghost"
                 onClick={() => goToPage(paginationWindow.start - PAGE_CHUNK_SIZE)}
                 disabled={paginationWindow.start <= 1}
+                className="rounded-lg border border-[#dce3dd] bg-white text-[#365744] hover:bg-[#eef3ef]"
               >
                 -{PAGE_CHUNK_SIZE}
               </Button>
@@ -511,6 +505,7 @@ function ProductsTableLoadedView({
               variant="ghost"
               onClick={() => goToPage(page - 1)}
               disabled={page === 1}
+              className="rounded-lg border border-[#dce3dd] bg-white text-[#365744] hover:bg-[#eef3ef]"
             >
               {t('admin.products.previous')}
             </Button>
@@ -519,6 +514,11 @@ function ProductsTableLoadedView({
                 key={visiblePage}
                 variant={page === visiblePage ? 'primary' : 'ghost'}
                 onClick={() => goToPage(visiblePage)}
+                className={
+                  page === visiblePage
+                    ? 'rounded-lg border border-[#0f5a3d] bg-[#0f5a3d] text-white'
+                    : 'rounded-lg border border-[#dce3dd] bg-white text-[#365744] hover:bg-[#eef3ef]'
+                }
               >
                 {visiblePage}
               </Button>
@@ -527,6 +527,7 @@ function ProductsTableLoadedView({
               variant="ghost"
               onClick={() => goToPage(page + 1)}
               disabled={page === meta.totalPages}
+              className="rounded-lg border border-[#dce3dd] bg-white text-[#365744] hover:bg-[#eef3ef]"
             >
               {t('admin.products.next')}
             </Button>
@@ -535,6 +536,7 @@ function ProductsTableLoadedView({
                 variant="ghost"
                 onClick={() => goToPage(paginationWindow.end + 1)}
                 disabled={paginationWindow.end >= meta.totalPages}
+                className="rounded-lg border border-[#dce3dd] bg-white text-[#365744] hover:bg-[#eef3ef]"
               >
                 +{PAGE_CHUNK_SIZE}
               </Button>
@@ -584,15 +586,15 @@ export function ProductsTable({
   };
 
   return (
-    <Card className={loading || sortedProducts.length === 0 ? ADMIN_TABLE_STATE_INSET : ADMIN_TABLE_CARD}>
+    <Card className={loading || sortedProducts.length === 0 ? 'rounded-2xl border border-[#dfe6e0] bg-white p-6 shadow-[0_5px_14px_rgba(22,45,32,0.05)]' : 'overflow-hidden rounded-2xl border border-[#dfe6e0] bg-white p-0 shadow-[0_8px_20px_rgba(22,45,32,0.07)]'}>
       {loading ? (
         <div className="py-8 text-center">
-          <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900" />
-          <p className="text-sm text-gray-600">{t('admin.products.loadingProducts')}</p>
+          <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-b-2 border-[#1f6c4b]" />
+          <p className="text-sm text-[#5b6f63]">{t('admin.products.loadingProducts')}</p>
         </div>
       ) : sortedProducts.length === 0 ? (
         <div className="py-8 text-center">
-          <p className="text-sm text-gray-600">{t('admin.products.noProducts')}</p>
+          <p className="text-sm text-[#5b6f63]">{t('admin.products.noProducts')}</p>
         </div>
       ) : (
         <ProductsTableLoadedView

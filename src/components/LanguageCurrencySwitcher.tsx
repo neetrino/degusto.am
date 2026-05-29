@@ -28,6 +28,8 @@ const SWITCHER_DROPDOWN_OPTION_BUTTON_CLASS =
 
 type SwitcherVariant = 'desktop' | 'mobile';
 
+const SWITCHER_ARROW_DOWN_CLASS = 'object-contain';
+
 interface LanguageCurrencySwitcherProps {
   variant: SwitcherVariant;
   iconSrc: string;
@@ -39,15 +41,15 @@ function SwitcherChevronIcon({ className }: { className: string }) {
   return (
     <svg
       width={8}
-      height={12}
-      viewBox="0 0 8 12"
+      height={5}
+      viewBox="0 0 8 5"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       aria-hidden
     >
       <path
-        d="M1 1.5L4 6L7 1.5"
+        d="M1 1L4 4L7 1"
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
@@ -122,8 +124,8 @@ export function LanguageCurrencySwitcher({
       : 'inline-flex items-center justify-center';
   const arrowClassName =
     variant === 'desktop'
-      ? 'absolute right-[18px] h-3 w-2 shrink-0 rotate-90 object-contain'
-      : 'absolute right-[20px] h-[10px] w-[4px] rotate-90 object-contain';
+      ? `absolute right-[18px] h-[5px] w-2 shrink-0 ${SWITCHER_ARROW_DOWN_CLASS}`
+      : `absolute right-[20px] h-[5px] w-2 ${SWITCHER_ARROW_DOWN_CLASS}`;
 
   const dropdownPositionClassName =
     variant === 'mobile'

@@ -7,7 +7,6 @@ import { t } from '../../lib/i18n';
 import { PriceFilter } from '../../components/PriceFilter';
 import { ColorFilter } from '../../components/ColorFilter';
 import { SizeFilter } from '../../components/SizeFilter';
-import { BrandFilter } from '../../components/BrandFilter';
 import { ProductsHeader } from '../../components/ProductsHeader';
 import { ProductsGrid } from '../../components/ProductsGrid';
 import { MobileFiltersDrawer } from '../../components/MobileFiltersDrawer';
@@ -66,7 +65,6 @@ const getProductsCached = unstable_cache(
     maxPrice?: number,
     colors?: string,
     sizes?: string,
-    brand?: string,
     sort?: string
   ): Promise<ProductsResponse> =>
     productsService.findAll({
@@ -79,7 +77,6 @@ const getProductsCached = unstable_cache(
       maxPrice,
       colors,
       sizes,
-      brand,
       sort,
     }) as Promise<ProductsResponse>,
   ['products-catalog-db-v1'],
@@ -102,7 +99,6 @@ async function getProducts(
   maxPrice?: string,
   colors?: string,
   sizes?: string,
-  brand?: string,
   sort?: string,
   limit: number = 12
 ): Promise<ProductsResponse> {
@@ -118,7 +114,6 @@ async function getProducts(
       parseOptionalPrice(maxPrice),
       colors?.trim() || undefined,
       sizes?.trim() || undefined,
-      brand?.trim() || undefined,
       sort?.trim() || undefined
     );
     if (!Array.isArray(response.data)) {
@@ -161,7 +156,6 @@ export async function ProductsCatalog({
     typeof params.maxPrice === 'string' ? params.maxPrice : undefined,
     typeof params.colors === 'string' ? params.colors : undefined,
     typeof params.sizes === 'string' ? params.sizes : undefined,
-    typeof params.brand === 'string' ? params.brand : undefined,
     typeof params.sort === 'string' ? params.sort : undefined,
     perPage
   );
@@ -182,10 +176,8 @@ export async function ProductsCatalog({
 
   const colors = typeof params.colors === 'string' ? params.colors : undefined;
   const sizes = typeof params.sizes === 'string' ? params.sizes : undefined;
-  const brands = typeof params.brand === 'string' ? params.brand : undefined;
   const selectedColors = colors ? colors.split(',').map((c: string) => c.trim().toLowerCase()) : [];
   const selectedSizes = sizes ? sizes.split(',').map((s: string) => s.trim()) : [];
-  const selectedBrands = brands ? brands.split(',').map((b: string) => b.trim()) : [];
 
   const buildPaginationUrl = (num: number) => {
     const q = new URLSearchParams();
@@ -236,13 +228,6 @@ export async function ProductsCatalog({
                   minPrice={typeof params.minPrice === 'string' ? params.minPrice : undefined}
                   maxPrice={typeof params.maxPrice === 'string' ? params.maxPrice : undefined}
                   selectedSizes={selectedSizes}
-                />
-                <BrandFilter
-                  category={typeof params.category === 'string' ? params.category : undefined}
-                  search={typeof params.search === 'string' ? params.search : undefined}
-                  minPrice={typeof params.minPrice === 'string' ? params.minPrice : undefined}
-                  maxPrice={typeof params.maxPrice === 'string' ? params.maxPrice : undefined}
-                  selectedBrands={selectedBrands}
                 />
               </Suspense>
             </div>
@@ -347,13 +332,6 @@ export async function ProductsCatalog({
                   minPrice={typeof params.minPrice === 'string' ? params.minPrice : undefined}
                   maxPrice={typeof params.maxPrice === 'string' ? params.maxPrice : undefined}
                   selectedSizes={selectedSizes}
-                />
-                <BrandFilter
-                  category={typeof params.category === 'string' ? params.category : undefined}
-                  search={typeof params.search === 'string' ? params.search : undefined}
-                  minPrice={typeof params.minPrice === 'string' ? params.minPrice : undefined}
-                  maxPrice={typeof params.maxPrice === 'string' ? params.maxPrice : undefined}
-                  selectedBrands={selectedBrands}
                 />
               </Suspense>
             </div>

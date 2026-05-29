@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react';
 import type {
-  Brand,
   Category,
   Attribute,
   Variant,
@@ -14,12 +13,10 @@ import { getEmptyProductFormData } from '../utils/productFormDataBuilder';
 export function useProductFormState() {
   const [loading, setLoading] = useState(false);
   const [loadingProduct, setLoadingProduct] = useState(false);
-  const [brands, setBrands] = useState<Brand[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [formData, setFormData] = useState(() => getEmptyProductFormData());
   const [categoriesExpanded, setCategoriesExpanded] = useState(false);
-  const [brandsExpanded, setBrandsExpanded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const variantImageInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const attributesDropdownRef = useRef<HTMLDivElement | null>(null);
@@ -27,9 +24,7 @@ export function useProductFormState() {
   const [colorImageTarget, setColorImageTarget] = useState<{ variantId: string; colorValue: string } | null>(null);
   const [imageUploadLoading, setImageUploadLoading] = useState(false);
   const [imageUploadError, setImageUploadError] = useState<string | null>(null);
-  const [newBrandName, setNewBrandName] = useState('');
   const [newCategoryName, setNewCategoryName] = useState('');
-  const [useNewBrand, setUseNewBrand] = useState(false);
   const [useNewCategory, setUseNewCategory] = useState(false);
   const [newColorName, setNewColorName] = useState('');
   const [newSizeName, setNewSizeName] = useState('');
@@ -56,7 +51,7 @@ export function useProductFormState() {
   const [pendingVariantHydration, setPendingVariantHydration] = useState<PendingVariantHydration | null>(
     null
   );
-  /** True after brands/categories/attributes reference fetch finishes (success or error). */
+  /** True after categories/attributes reference fetch finishes (success or error). */
   const [referenceCatalogReady, setReferenceCatalogReady] = useState(false);
 
   return {
@@ -66,8 +61,6 @@ export function useProductFormState() {
     loadingProduct,
     setLoadingProduct,
     // Data states
-    brands,
-    setBrands,
     categories,
     setCategories,
     attributes,
@@ -78,8 +71,6 @@ export function useProductFormState() {
     // UI states
     categoriesExpanded,
     setCategoriesExpanded,
-    brandsExpanded,
-    setBrandsExpanded,
     attributesDropdownOpen,
     setAttributesDropdownOpen,
     // Refs
@@ -94,12 +85,8 @@ export function useProductFormState() {
     imageUploadError,
     setImageUploadError,
     // New entity states
-    newBrandName,
-    setNewBrandName,
     newCategoryName,
     setNewCategoryName,
-    useNewBrand,
-    setUseNewBrand,
     useNewCategory,
     setUseNewCategory,
     // Color/Size management

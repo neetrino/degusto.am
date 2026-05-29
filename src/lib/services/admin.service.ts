@@ -8,7 +8,6 @@ import { adminUsersService } from "./admin/admin-users.service";
 import { adminOrdersService } from "./admin/admin-orders.service";
 import { adminSettingsService } from "./admin/admin-settings.service";
 import { adminDeliveryService } from "./admin/admin-delivery.service";
-import { adminBrandsService } from "./admin/admin-brands.service";
 import { adminCategoriesService } from "./admin/admin-categories.service";
 import { adminProductsService } from "./admin/admin-products.service";
 import { adminAttributesService } from "./admin/admin-attributes.service";
@@ -45,14 +44,9 @@ class AdminService {
 
   // Delivery methods
   getDeliverySettings = adminDeliveryService.getDeliverySettings.bind(adminDeliveryService);
+  getPublicDeliveryLocations = adminDeliveryService.getPublicDeliveryLocations.bind(adminDeliveryService);
   getDeliveryPrice = adminDeliveryService.getDeliveryPrice.bind(adminDeliveryService);
   updateDeliverySettings = adminDeliveryService.updateDeliverySettings.bind(adminDeliveryService);
-
-  // Brands methods
-  getBrands = adminBrandsService.getBrands.bind(adminBrandsService);
-  createBrand = adminBrandsService.createBrand.bind(adminBrandsService);
-  updateBrand = adminBrandsService.updateBrand.bind(adminBrandsService);
-  deleteBrand = adminBrandsService.deleteBrand.bind(adminBrandsService);
 
   // Categories methods
   getCategories = adminCategoriesService.getCategories.bind(adminCategoriesService);

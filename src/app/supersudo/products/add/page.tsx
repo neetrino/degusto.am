@@ -34,7 +34,6 @@ function AddProductPageContent() {
     isAdmin,
     isLoading,
     setReferenceCatalogReady: formState.setReferenceCatalogReady,
-    setBrands: formState.setBrands,
     setCategories: formState.setCategories,
     setAttributes: formState.setAttributes,
     setDefaultCurrency: formState.setDefaultCurrency,
@@ -43,8 +42,6 @@ function AddProductPageContent() {
     attributesDropdownRef: formState.attributesDropdownRef,
     categoriesExpanded: formState.categoriesExpanded,
     setCategoriesExpanded: formState.setCategoriesExpanded,
-    brandsExpanded: formState.brandsExpanded,
-    setBrandsExpanded: formState.setBrandsExpanded,
   });
 
   useProductEditMode({
@@ -56,9 +53,7 @@ function AddProductPageContent() {
     defaultCurrency: formState.defaultCurrency,
     setLoadingProduct: formState.setLoadingProduct,
     setFormData: formState.setFormData,
-    setUseNewBrand: formState.setUseNewBrand,
     setUseNewCategory: formState.setUseNewCategory,
-    setNewBrandName: formState.setNewBrandName,
     setNewCategoryName: formState.setNewCategoryName,
     setHasVariantsToLoad: formState.setHasVariantsToLoad,
     setProductType: formState.setProductType,
@@ -173,7 +168,6 @@ function AddProductPageContent() {
     formData: formState.formData,
     setFormData: formState.setFormData,
     setLoading: formState.setLoading,
-    setBrands: formState.setBrands,
     setCategories: formState.setCategories,
     productType: formState.productType,
     simpleProductData: formState.simpleProductData,
@@ -181,8 +175,6 @@ function AddProductPageContent() {
     generatedVariants: formState.generatedVariants,
     attributes: formState.attributes,
     defaultCurrency: formState.defaultCurrency,
-    useNewBrand: formState.useNewBrand,
-    newBrandName: formState.newBrandName,
     useNewCategory: formState.useNewCategory,
     newCategoryName: formState.newCategoryName,
     isEditMode,
@@ -216,7 +208,6 @@ function AddProductPageContent() {
             productType={formState.productType}
             simpleProductData={formState.simpleProductData}
             categories={formState.categories}
-            brands={formState.brands}
             attributes={formState.attributes}
             defaultCurrency={formState.defaultCurrency}
             isEditMode={isEditMode}
@@ -224,11 +215,8 @@ function AddProductPageContent() {
             imageUploadLoading={formState.imageUploadLoading}
             imageUploadError={formState.imageUploadError}
             categoriesExpanded={formState.categoriesExpanded}
-            brandsExpanded={formState.brandsExpanded}
             useNewCategory={formState.useNewCategory}
-            useNewBrand={formState.useNewBrand}
             newCategoryName={formState.newCategoryName}
-            newBrandName={formState.newBrandName}
             selectedAttributesForVariants={formState.selectedAttributesForVariants}
             selectedAttributeValueIds={formState.selectedAttributeValueIds}
             attributesDropdownOpen={formState.attributesDropdownOpen}
@@ -245,13 +233,9 @@ function AddProductPageContent() {
             onRemoveImage={removeImageUrl}
             onSetFeaturedImage={setFeaturedImage}
             onCategoriesExpandedChange={formState.setCategoriesExpanded}
-            onBrandsExpandedChange={formState.setBrandsExpanded}
             onUseNewCategoryChange={formState.setUseNewCategory}
-            onUseNewBrandChange={formState.setUseNewBrand}
             onNewCategoryNameChange={formState.setNewCategoryName}
-            onNewBrandNameChange={formState.setNewBrandName}
             onCategoryIdsChange={(ids) => formState.setFormData((prev) => ({ ...prev, categoryIds: ids }))}
-            onBrandIdsChange={(ids) => formState.setFormData((prev) => ({ ...prev, brandIds: ids }))}
             onPrimaryCategoryIdChange={(id) => formState.setFormData((prev) => ({ ...prev, primaryCategoryId: id }))}
             onPriceChange={(value) => formState.setSimpleProductData((prev) => ({ ...prev, price: value }))}
             onCompareAtPriceChange={(value) => formState.setSimpleProductData((prev) => ({ ...prev, compareAtPrice: value }))}

@@ -10,6 +10,7 @@ import {
   createApiError,
   isAbortError,
   isQuietCartStockValidationError,
+  isQuietCheckoutValidationError,
   isQuietCartReadServerError,
   isQuietAdminDashboardReadServerError,
 } from "./error-handler";
@@ -96,6 +97,7 @@ async function handleErrorResponse(
 
   const { errorText, errorData } = await parseErrorResponse(response);
   const quietStock422 = isQuietCartStockValidationError(response.status, errorData);
+  const quietCheckoutValidationError = isQuietCheckoutValidationError(response.status, url);
   const quietCartReadServerError = isQuietCartReadServerError(response.status, url);
   const quietAdminDashboardReadServerError = isQuietAdminDashboardReadServerError(response.status, url);
 
@@ -105,6 +107,7 @@ async function handleErrorResponse(
   } else if (
     !isUnauthorized &&
     !quietStock422 &&
+    !quietCheckoutValidationError &&
     !quietCartReadServerError &&
     !quietAdminDashboardReadServerError &&
     shouldLogError(response.status)
@@ -117,6 +120,8 @@ async function handleErrorResponse(
     });
   } else if (quietStock422) {
     logger.debug("[API CLIENT] Cart stock limit (422)", { url, errorData });
+  } else if (quietCheckoutValidationError) {
+    logger.debug("[API CLIENT] Checkout validation failed (422)", { url, errorData });
   } else if (quietCartReadServerError) {
     logger.warn("[API CLIENT] Cart read failed with server error; using fallback cart state", {
       url,
@@ -140,6 +145,7 @@ async function handleErrorResponse(
   } else if (
     !isUnauthorized &&
     !quietStock422 &&
+    !quietCheckoutValidationError &&
     !quietCartReadServerError &&
     !quietAdminDashboardReadServerError &&
     shouldLogError(response.status)

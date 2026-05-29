@@ -212,7 +212,7 @@ function CategoryCard({ item }: { item: HomeCategoryItem }) {
         alt={item.title}
         width={240}
         height={190}
-        className="mx-auto h-[190px] w-full max-w-[240px] object-contain"
+        className="mx-auto h-auto w-full max-w-[240px] object-contain"
         loading="lazy"
         sizes="240px"
       />

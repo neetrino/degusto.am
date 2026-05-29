@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,6 +14,8 @@ import { useUserProfile } from './hooks/useUserProfile';
 import { useOrderSubmission } from './hooks/useOrderSubmission';
 import { useOrderSummary } from './hooks/useOrderSummary';
 import type { CheckoutFormData } from './types';
+import { calculateBagAmountByUniqueCategories } from '@/lib/cart/bag-fee';
+import { apiClient } from '../../lib/api-client';
 
 export function useCheckout() {
   const router = useRouter();
@@ -26,6 +28,7 @@ export function useCheckout() {
   const [showShippingModal, setShowShippingModal] = useState(false);
   const [showCardModal, setShowCardModal] = useState(false);
   const [checkoutCouponDiscountUsd, setCheckoutCouponDiscountUsd] = useState(0);
+  const [deliveryCities, setDeliveryCities] = useState<string[]>([]);
 
   const paymentMethods = usePaymentMethods();
   const checkoutSchema = useCheckoutSchema();
@@ -43,7 +46,7 @@ export function useCheckout() {
       lastName: '',
       email: '',
       phone: '',
-      shippingMethod: 'pickup',
+      shippingMethod: 'delivery',
       paymentMethod: 'cash_on_delivery',
       shippingAddress: '',
       shippingCity: '',
@@ -62,12 +65,20 @@ export function useCheckout() {
 
   const {
     deliveryPrice,
-    bagFee,
     deliveryUnavailable,
     loadingDeliveryPrice,
   } = useDeliveryPrice(shippingMethod, shippingCity);
   const { cart, loading, fetchCart } = useCart(isLoggedIn);
   useUserProfile(isLoggedIn, isLoading, setValue);
+  const bagFee = useMemo(() => {
+    if (!cart) {
+      return 0;
+    }
+    return calculateBagAmountByUniqueCategories(cart.items, (item) => ({
+      categoryId: item.variant.product.categoryId,
+      category: item.variant.product.category,
+    }));
+  }, [cart]);
 
   const { submitOrder } = useOrderSubmission({
     cart,
@@ -115,6 +126,38 @@ export function useCheckout() {
       window.removeEventListener('currency-rates-updated', handleCurrencyRatesUpdate);
     };
   }, [isLoggedIn, isLoading, fetchCart]);
+
+  useEffect(() => {
+    async function fetchDeliveryCities() {
+      try {
+        const response = await apiClient.get<{ cities: string[] }>('/api/v1/delivery/locations');
+        setDeliveryCities(response.cities ?? []);
+      } catch {
+        setDeliveryCities([]);
+      }
+    }
+
+    fetchDeliveryCities();
+  }, []);
+
+  useEffect(() => {
+    if (shippingMethod !== 'delivery') {
+      return;
+    }
+
+    if (deliveryCities.length === 0) {
+      return;
+    }
+
+    const normalizedCurrentCity = shippingCity?.trim().toLowerCase();
+    const cityExists = normalizedCurrentCity
+      ? deliveryCities.some((city) => city.toLowerCase() === normalizedCurrentCity)
+      : false;
+
+    if (!cityExists) {
+      setValue('shippingCity', deliveryCities[0]);
+    }
+  }, [deliveryCities, setValue, shippingCity, shippingMethod]);
 
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,6 +227,7 @@ export function useCheckout() {
     shippingMethod,
     shippingCity,
     paymentMethods,
+    deliveryCities,
     orderSummary,
     setCheckoutCouponDiscountUsd,
     // Actions
