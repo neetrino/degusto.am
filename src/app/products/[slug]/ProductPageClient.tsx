@@ -8,16 +8,16 @@ import {
   useCallback,
   useRef,
   useEffect,
+  type ReactNode,
 } from 'react';
 import { useLazyInView } from '../../../components/hooks/useLazyInView';
 import { apiClient } from '../../../lib/api-client';
 import { t } from '../../../lib/i18n';
 import { useAuth } from '../../../lib/auth/AuthContext';
-import { RelatedProducts } from '../../../components/RelatedProducts';
-import { ProductReviews } from '../../../components/ProductReviews';
 import { ProductImageGallery } from './ProductImageGallery';
 import { ProductInfoAndActions } from './ProductInfoAndActions';
 import { ProductInfoColumnSkeleton } from './ProductInfoColumnSkeleton';
+import { ProductPageBelowFold } from './ProductPageBelowFold';
 import { ProductPageShell } from './ProductPageShell';
 import { useProductPage } from './useProductPage';
 import { playCartFlyAnimation } from '../../../lib/cart-fly-animation';
@@ -34,21 +34,19 @@ import {
 import type { Product } from './types';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
 import type { ProductReviewSummary } from '@/lib/services/reviews/product-review-summary';
-import type { ProductReviewListItem } from '@/lib/services/reviews.service';
-import type { RelatedCardPayload } from '@/lib/services/products-slug/product-related-transform';
 import {
   mergeVisualIntoProduct,
   type ProductVisualSnapshot,
 } from './utils/merge-visual-into-product';
 import { ProductPageHydrationProvider } from './ProductPageHydrationContext';
 import { useProductClientRefetch } from './hooks/useProductClientRefetch';
+import { useProductReviewSummary } from './hooks/useProductReviewSummary';
 import { usePdpChrome } from './pdp-chrome-context';
 import {
   PDP_HERO_FRAME_CLASS,
   PDP_HERO_GRID_CLASS,
   PDP_HERO_IMAGE_OFFSET_CLASS,
   PDP_HERO_INFO_OFFSET_CLASS,
-  PDP_RELATED_SECTION_GAP_CLASS,
   STOREFRONT_DESKTOP_CONTENT_CLASS,
 } from '@/constants/pdp-figma-tokens';
 
@@ -92,10 +90,11 @@ export interface ProductPageClientProps {
   initialVisual: ProductVisualSnapshot | null;
   initialProduct: Product | null;
   initialReviewSummary: ProductReviewSummary;
-  initialReviews: ProductReviewListItem[];
-  initialRelatedProducts: RelatedCardPayload[];
   initialNotFound: boolean;
   serverLocale: StorefrontLocale;
+  /** Full product streams via `children` (ProductDetailsServer). */
+  streamDetails?: boolean;
+  children?: ReactNode;
 }
 
 export function ProductPageClient({
@@ -104,10 +103,10 @@ export function ProductPageClient({
   initialVisual,
   initialProduct,
   initialReviewSummary,
-  initialReviews,
-  initialRelatedProducts,
   initialNotFound,
   serverLocale,
+  streamDetails = false,
+  children,
 }: ProductPageClientProps) {
   const { ref: reviewsSectionRef, inView: reviewsInView } = useLazyInView('320px');
   const { isLoggedIn } = useAuth();
@@ -115,11 +114,6 @@ export function ProductPageClient({
   const [fullProduct, setFullProduct] = useState<Product | null>(initialProduct);
   const [reviewSummary, setReviewSummary] =
     useState<ProductReviewSummary>(initialReviewSummary);
-  const [serverReviews, setServerReviews] =
-    useState<ProductReviewListItem[]>(initialReviews);
-  const [reviewsHydratedFromServer, setReviewsHydratedFromServer] = useState(
-    Boolean(initialProduct)
-  );
   const [notFound, setNotFound] = useState(initialNotFound);
 
   const partialProduct = useMemo(
@@ -129,7 +123,8 @@ export function ProductPageClient({
 
   const product = fullProduct ?? partialProduct;
   const detailsPending = Boolean(partialProduct && !fullProduct && !notFound);
-  const awaitingDetails = !product && !notFound && !initialNotFound;
+  const awaitingDetails =
+    !product && !notFound && !initialNotFound && !streamDetails;
   const productRef = useRef<Product | null>(product);
   const { setDesktopChromeReady } = usePdpChrome();
 
@@ -147,13 +142,10 @@ export function ProductPageClient({
 
   const hydrateDetails = useCallback((
     next: Product,
-    summary: ProductReviewSummary,
-    reviews: ProductReviewListItem[]
+    summary: ProductReviewSummary
   ) => {
     setFullProduct(next);
     setReviewSummary(summary);
-    setServerReviews(reviews);
-    setReviewsHydratedFromServer(true);
     setNotFound(false);
     productRef.current = next;
   }, []);
@@ -163,11 +155,21 @@ export function ProductPageClient({
     setNotFound(true);
   }, []);
 
+  const applyReviewSummary = useCallback((summary: ProductReviewSummary) => {
+    setReviewSummary(summary);
+  }, []);
+
+  useProductReviewSummary(
+    slug,
+    !notFound && !initialNotFound && initialReviewSummary.count === 0,
+    applyReviewSummary
+  );
+
   useProductClientRefetch({
     slug,
     serverLocale,
     productRef,
-    skipMountFetch: Boolean(initialProduct),
+    skipMountFetch: Boolean(initialProduct) || streamDetails,
     onLoaded: (next) => {
       setFullProduct(next);
       productRef.current = next;
@@ -183,7 +185,6 @@ export function ProductPageClient({
     detailsPending,
     reviewSummary,
     fetchReviews: reviewsInView,
-    initialReviews: reviewsHydratedFromServer ? serverReviews : undefined,
   });
 
   const {
@@ -340,6 +341,7 @@ export function ProductPageClient({
     return (
       <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
         {shell}
+        {children}
       </ProductPageHydrationProvider>
     );
   }
@@ -361,6 +363,7 @@ export function ProductPageClient({
             </Link>
           </div>
         </div>
+        {children}
       </ProductPageHydrationProvider>
     );
   }
@@ -368,7 +371,8 @@ export function ProductPageClient({
   if (!product) {
     return (
       <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
-        {null}
+        {streamDetails ? shell : null}
+        {children}
       </ProductPageHydrationProvider>
     );
   }
@@ -442,35 +446,17 @@ export function ProductPageClient({
         </div>
 
           {!detailsPending && (
-            <>
-              <div className={PDP_RELATED_SECTION_GAP_CLASS}>
-                <RelatedProducts
-                  productSlug={slug}
-                  categorySlug={product.categories?.[0]?.slug}
-                  currentProductId={product.id}
-                  initialProducts={initialRelatedProducts}
-                  initialLanguage={serverLocale}
-                />
-              </div>
-
-              <div className={PDP_CONTENT_SHELL_CLASS}>
-              <div
-                ref={reviewsSectionRef}
-                id="product-reviews"
-                className="mt-8 scroll-mt-24 max-lg:mt-8 lg:mt-10"
-              >
-                <ProductReviews
-                  productSlug={slug}
-                  productId={product.id}
-                  reviews={reviews}
-                  reviewsLoading={reviewsLoading}
-                  setReviews={setReviews}
-                />
-              </div>
-              </div>
-            </>
+            <ProductPageBelowFold
+              slug={slug}
+              product={product}
+              reviewsSectionRef={reviewsSectionRef}
+              reviews={reviews}
+              reviewsLoading={reviewsLoading}
+              setReviews={setReviews}
+            />
           )}
       </div>
+      {children}
     </ProductPageHydrationProvider>
   );
 }

@@ -71,7 +71,7 @@ export function HomeDailyOfferHeroCard({
       data-home-daily-offer-hero
       className="relative z-20 h-[284px] w-[236px] cursor-pointer rounded-[20px] sm:ml-[45px]"
     >
-      <StorefrontProductOverlayLink href={productHref} label={title} />
+      <StorefrontProductOverlayLink slug={product.slug || 'products'} label={title} />
       <div className="absolute inset-0 rounded-[20px] bg-white shadow-xl" />
       <div
         data-product-fly-origin

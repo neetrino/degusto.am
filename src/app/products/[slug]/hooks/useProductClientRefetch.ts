@@ -1,10 +1,18 @@
 import { useCallback, useEffect, useRef, type MutableRefObject } from 'react';
 import { useRouter } from 'next/navigation';
-import { getStoredLanguage } from '../../../../lib/language';
+import {
+  alignClientLanguageWithServer,
+  getStoredLanguage,
+  type LanguageCode,
+} from '../../../../lib/language';
 import { logger } from '@/lib/utils/logger';
 import { RESERVED_ROUTES } from '../types';
 import type { Product } from '../types';
-import { isNotFoundError, loadProductProgressive } from './fetch-product-client';
+import {
+  fetchProductDetails,
+  isNotFoundError,
+  loadProductProgressive,
+} from './fetch-product-client';
 
 interface UseProductClientRefetchProps {
   slug: string;
@@ -14,6 +22,10 @@ interface UseProductClientRefetchProps {
   onNotFound: () => void;
   /** Skip mount fetch when server streams full details (visual shell first). */
   skipMountFetch: boolean;
+}
+
+function hasFullProductDetails(product: Product | null): boolean {
+  return Boolean(product && product.variants.length > 0);
 }
 
 export function useProductClientRefetch({
@@ -37,6 +49,14 @@ export function useProductClientRefetch({
     const isStale = () => gen !== generationRef.current;
 
     try {
+      if (hasFullProductDetails(productRef.current)) {
+        const data = await fetchProductDetails(slug, currentLang);
+        if (isStale()) return;
+        productRef.current = data;
+        onLoaded(data);
+        return;
+      }
+
       const data = await loadProductProgressive({
         slug,
         lang: currentLang,
@@ -75,9 +95,15 @@ export function useProductClientRefetch({
   useEffect(() => {
     if (!slug || RESERVED_ROUTES.includes(slug.toLowerCase())) return;
 
-    const storedLang = getStoredLanguage();
-    if (skipMountFetch && storedLang === serverLocale) {
-      return;
+    if (skipMountFetch) {
+      alignClientLanguageWithServer(serverLocale as LanguageCode);
+      const handleLanguageUpdate = () => {
+        void runLoad();
+      };
+      window.addEventListener('language-updated', handleLanguageUpdate);
+      return () => {
+        window.removeEventListener('language-updated', handleLanguageUpdate);
+      };
     }
 
     void runLoad();

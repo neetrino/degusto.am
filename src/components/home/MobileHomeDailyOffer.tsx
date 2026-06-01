@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { ProductPageLink } from '@/components/products/ProductPageLink';
 import type { MouseEvent } from 'react';
 import { useTranslation } from '../../lib/i18n-client';
 import { formatPrice } from '../../lib/currency';
@@ -54,8 +54,8 @@ export function MobileHomeDailyOffer({ product, dailyOfferAddToCartSrc }: Mobile
       data-mobile-daily-offer
       className="relative h-32 w-full max-w-full cursor-pointer overflow-hidden rounded-[20px]"
     >
-      <Link
-        href={productHref}
+      <ProductPageLink
+        slug={product.slug}
         className="absolute inset-0 z-[1] rounded-[inherit] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f66913]"
         aria-label={title}
       />

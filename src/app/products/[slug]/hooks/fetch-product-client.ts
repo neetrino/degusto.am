@@ -45,6 +45,15 @@ async function fetchDetails(slug: string, lang: string): Promise<Product> {
   }
 }
 
+/** Full PDP payload only (skip progressive /visual when SSR already hydrated hero). */
+export async function fetchProductDetails(slug: string, lang: string): Promise<Product> {
+  try {
+    return await fetchDetails(slug, lang);
+  } catch (detailsError: unknown) {
+    return fetchDetailsLegacy(slug, lang);
+  }
+}
+
 async function fetchDetailsLegacy(slug: string, lang: string): Promise<Product> {
   return apiClient.get<Product>(`/api/v1/products/${encodedSlug(slug)}`, {
     params: { lang },

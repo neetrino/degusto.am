@@ -4,6 +4,7 @@ import type { MouseEvent } from 'react';
 import { ProductCardImage } from './ProductCardImage';
 import { ProductCardInfo } from './ProductCardInfo';
 import { ProductCardActions } from './ProductCardActions';
+import { usePrefetchProductWhenVisible } from '../hooks/usePrefetchProductWhenVisible';
 import { ProductCardOverlayLink } from './ProductCardOverlayLink';
 import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
 import { useTranslation } from '../../lib/i18n-client';
@@ -68,17 +69,19 @@ export function ProductCardGrid({
   onPrefetchNavigate,
 }: ProductCardGridProps) {
   const { t } = useTranslation();
+  const visibilityRef = usePrefetchProductWhenVisible(product.slug);
   const wishlistButtonSize = isCompact ? 'w-10 h-10' : 'w-12 h-12';
   const wishlistIconSize = isCompact ? 18 : 20;
 
   return (
     <div
+      ref={visibilityRef}
       data-product-card
       className={`relative overflow-hidden rounded-lg border border-gray-200 bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} group cursor-pointer hover:shadow-md`}
       onMouseEnter={onPrefetchNavigate}
       onFocus={onPrefetchNavigate}
     >
-      <ProductCardOverlayLink href={productHref} label={product.title} />
+      <ProductCardOverlayLink slug={product.slug} label={product.title} />
       {/* Product Image */}
       <div
         className={`relative aspect-square overflow-hidden bg-gray-100 transition-colors ${FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS}`}

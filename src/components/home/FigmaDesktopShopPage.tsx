@@ -256,7 +256,7 @@ function MenuCardItem({ card }: { card: MenuCard }) {
       data-home-product-card
       className={`relative h-[284px] w-[236px] shrink-0 cursor-pointer rounded-[20px] border-[1.5px] border-[#dedede] bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} hover:shadow-md`}
     >
-      <StorefrontProductOverlayLink href={productHref} label={title} />
+      <StorefrontProductOverlayLink slug={card.slug} label={title} />
       <div data-product-fly-origin className="absolute left-1/2 top-1 h-[147px] w-[227px] -translate-x-1/2">
         <img src={imageSrc} alt={title} className="h-full w-full rounded-[18px] object-cover" />
       </div>

@@ -1,22 +1,22 @@
 'use client';
 
-import Link from 'next/link';
+import { ProductPageLink } from '@/components/products/ProductPageLink';
 
 export type StorefrontProductOverlayLinkProps = {
-  href: string;
+  slug: string;
   label: string;
   className?: string;
 };
 
-/** Stretched link for Figma/mobile product cards with overlay action buttons. */
+/** Stretched Next.js Link for Figma/mobile product cards (overlay action buttons). */
 export function StorefrontProductOverlayLink({
-  href,
+  slug,
   label,
   className = '',
 }: StorefrontProductOverlayLinkProps) {
   return (
-    <Link
-      href={href}
+    <ProductPageLink
+      slug={slug}
       className={[
         'absolute inset-0 z-[1] rounded-[inherit]',
         'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f66913]',

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { ProductPageLink } from '@/components/products/ProductPageLink';
 import { useTranslation } from '../lib/i18n-client';
 import { formatPrice, getStoredCurrency } from '../lib/currency';
 import type { InstantSearchResultItem } from './hooks/useInstantSearch';
@@ -14,7 +15,7 @@ export interface SearchDropdownProps {
   isOpen: boolean;
   selectedIndex: number;
   query: string;
-  onResultClick: (result: InstantSearchResultItem) => void;
+  onResultClick?: (result: InstantSearchResultItem) => void;
   onClose: () => void;
   onSeeAllClick?: () => void;
   className?: string;
@@ -72,14 +73,17 @@ export function SearchDropdown({
 
               return (
                 <li key={result.id} role="option" aria-selected={index === selectedIndex}>
-                  <button
-                    type="button"
-                    onClick={() => onResultClick(result)}
-                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
+                  <ProductPageLink
+                    slug={result.slug}
+                    onClick={() => {
+                      onClose();
+                      onResultClick?.(result);
+                    }}
+                    className={`flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors ${
                       index === selectedIndex ? 'bg-gray-100' : 'hover:bg-gray-50'
                     }`}
                   >
-                    <div className="w-12 h-12 flex-shrink-0 rounded-lg bg-gray-100 overflow-hidden relative">
+                    <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
                       <Image
                         src={imageSrc}
                         alt={result.title}
@@ -89,23 +93,23 @@ export function SearchDropdown({
                         unoptimized
                       />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 line-clamp-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="line-clamp-2 text-sm font-medium text-gray-900">
                         {result.title}
                       </p>
-                      {result.category && (
-                        <p className="text-xs text-gray-500 mt-0.5">{result.category}</p>
-                      )}
-                      <p className="text-sm font-semibold text-gray-700 mt-0.5">
+                      {result.category ? (
+                        <p className="mt-0.5 text-xs text-gray-500">{result.category}</p>
+                      ) : null}
+                      <p className="mt-0.5 text-sm font-semibold text-gray-700">
                         {formatPrice(result.price, currency)}
-                        {result.compareAtPrice != null && result.compareAtPrice > result.price && (
+                        {result.compareAtPrice != null && result.compareAtPrice > result.price ? (
                           <span className="ml-2 text-xs text-gray-500 line-through">
                             {formatPrice(result.compareAtPrice, currency)}
                           </span>
-                        )}
+                        ) : null}
                       </p>
                     </div>
-                  </button>
+                  </ProductPageLink>
                 </li>
               );
             })}

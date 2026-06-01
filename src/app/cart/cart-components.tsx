@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { ProductPageLink } from '@/components/products/ProductPageLink';
 import Image from 'next/image';
 import { formatPrice } from '../../lib/currency';
 import type { CurrencyCode } from '../../lib/currency';
@@ -158,8 +159,8 @@ export function CartItemRow({
 
   return (
     <div className={cartItemRowClassName(appearance)}>
-      <Link
-        href={`/products/${item.variant.product.slug}`}
+      <ProductPageLink
+        slug={item.variant.product.slug}
         className={cartItemImageLinkClassName(appearance)}
         aria-label={item.variant.product.title}
       >
@@ -171,12 +172,12 @@ export function CartItemRow({
           sizes="84px"
           unoptimized
         />
-      </Link>
+      </ProductPageLink>
 
       <div className="flex min-w-0 flex-1 flex-col justify-between gap-3">
         <div className="min-w-0 pr-1">
-          <Link
-            href={`/products/${item.variant.product.slug}`}
+          <ProductPageLink
+            slug={item.variant.product.slug}
             className={
               isDrawer
                 ? 'line-clamp-2 text-base font-bold text-white transition-colors hover:text-white/90'
@@ -184,7 +185,7 @@ export function CartItemRow({
             }
           >
             {item.variant.product.title}
-          </Link>
+          </ProductPageLink>
           {!isDrawer && lines.length > 0 ? <CartItemVariantChips lines={lines} appearance={appearance} /> : null}
           {!isDrawer && lines.length === 0 && (item.customizations?.additions || item.customizations?.exclusions) ? (
             <ul

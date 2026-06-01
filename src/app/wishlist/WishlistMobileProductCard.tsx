@@ -106,7 +106,7 @@ export function WishlistMobileProductCard({
       className="relative w-full cursor-pointer rounded-[20px] bg-[#ffeacc]"
       style={{ height: MOBILE_WISHLIST_CARD_HEIGHT_PX }}
     >
-      <StorefrontProductOverlayLink href={productHref} label={product.title} />
+      <StorefrontProductOverlayLink slug={product.slug} label={product.title} />
       <div
         className={`absolute left-1 right-1 top-[5px] overflow-hidden rounded-[18px] ${
           product.inStock ? '' : 'opacity-70'

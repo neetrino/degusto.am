@@ -100,7 +100,7 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
       data-home-product-card
       className={`relative h-[240px] w-full cursor-pointer rounded-[20px] border-[1.5px] border-[#dedede] bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS}`}
     >
-      <StorefrontProductOverlayLink href={productHref} label={title} />
+      <StorefrontProductOverlayLink slug={card.slug} label={title} />
       <div
         data-product-fly-origin
         className="absolute left-1 right-1 top-[5px] h-[143px] overflow-hidden rounded-[18px] relative"

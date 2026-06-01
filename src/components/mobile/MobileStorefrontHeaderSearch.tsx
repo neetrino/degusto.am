@@ -13,6 +13,7 @@ import {
   MOBILE_FIGMA_STOREFRONT_ASSETS,
   MOBILE_STORE_MENU_SEARCH_URL_DEBOUNCE_MS,
 } from '@/constants/mobile-figma-storefront';
+import { navigateToProductPage, prefetchProductRoute } from '@/lib/products/prefetch-product-route';
 import { MobileFriendlyInput } from '@/components/mobile/MobileFriendlyInput';
 
 function isStoreMenuPath(pathname: string | null): boolean {
@@ -135,6 +136,13 @@ export function MobileStorefrontHeaderSearch({ onFilterClick }: MobileStorefront
     clearSearch();
   }, [menu, clearSearch]);
 
+  useEffect(() => {
+    const selected = results[selectedIndex];
+    if (selected?.slug) {
+      prefetchProductRoute(router, selected.slug);
+    }
+  }, [router, results, selectedIndex]);
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (menu) {
@@ -144,7 +152,7 @@ export function MobileStorefrontHeaderSearch({ onFilterClick }: MobileStorefront
     }
     const selected = selectedIndex >= 0 && results[selectedIndex];
     if (selected) {
-      router.push(`/products/${selected.slug}`);
+      navigateToProductPage(router, selected.slug);
       clearSearch();
       return;
     }
@@ -167,7 +175,7 @@ export function MobileStorefrontHeaderSearch({ onFilterClick }: MobileStorefront
       if (!menu && selectedIndex >= 0 && results[selectedIndex]) {
         event.preventDefault();
         const selected = results[selectedIndex];
-        router.push(`/products/${selected.slug}`);
+        navigateToProductPage(router, selected.slug);
         clearSearch();
         setIsOpen(false);
         return;
@@ -234,8 +242,7 @@ export function MobileStorefrontHeaderSearch({ onFilterClick }: MobileStorefront
           isOpen={isOpen}
           selectedIndex={selectedIndex}
           query={query}
-          onResultClick={(result) => {
-            router.push(`/products/${result.slug}`);
+          onResultClick={() => {
             setIsOpen(false);
             clearSearch();
           }}

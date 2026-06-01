@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import type { MouseEvent } from 'react';
+import { usePrefetchProductWhenVisible } from '../hooks/usePrefetchProductWhenVisible';
 import { ProductCardOverlayLink } from './ProductCardOverlayLink';
 import { formatPrice } from '../../lib/currency';
 import { useTranslation } from '../../lib/i18n-client';
@@ -68,15 +69,17 @@ export function ProductCardList({
   onPrefetchNavigate,
 }: ProductCardListProps) {
   const { t } = useTranslation();
+  const visibilityRef = usePrefetchProductWhenVisible(product.slug);
 
   return (
     <div
+      ref={visibilityRef}
       data-product-card
       className={`relative overflow-hidden rounded-lg border border-gray-200 bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} group cursor-pointer`}
       onMouseEnter={onPrefetchNavigate}
       onFocus={onPrefetchNavigate}
     >
-      <ProductCardOverlayLink href={productHref} label={product.title} />
+      <ProductCardOverlayLink slug={product.slug} label={product.title} />
       <div className="relative z-10 flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:px-6">
         <div
           data-product-fly-origin

@@ -67,7 +67,6 @@ export function ProductImageGallery({
               className="object-cover transition-transform duration-500 group-hover/main:scale-105"
               sizes={PDP_MAIN_IMAGE_SIZES}
               priority={mainImagePriority}
-              unoptimized
             />
 
             {discountPercent != null && discountPercent > 0 ? (

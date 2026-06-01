@@ -42,3 +42,22 @@ export function setStoredLanguage(language: LanguageCode, options?: { forceReloa
   }
 }
 
+/**
+ * Align client storage with SSR cookie without dispatching `language-updated`
+ * (avoids redundant PDP refetch when localStorage and cookie were out of sync).
+ */
+export function alignClientLanguageWithServer(language: LanguageCode): void {
+  if (typeof window === 'undefined') return;
+  if (!(language in LANGUAGES)) return;
+  try {
+    const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    if (stored === language) {
+      return;
+    }
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+    document.cookie = `${LANGUAGE_COOKIE_KEY}=${language}; path=/; max-age=31536000; samesite=lax`;
+  } catch {
+    // Ignore storage errors
+  }
+}
+

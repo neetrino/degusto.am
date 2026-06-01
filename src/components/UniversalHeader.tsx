@@ -17,6 +17,7 @@ import { SearchDropdown } from './SearchDropdown';
 import { useCartDrawer } from './cart-drawer/cart-drawer-context';
 import { WishlistHeaderHeartIcon } from './icons/WishlistHeaderHeartIcon';
 import { HEADER_PUBLIC_ASSETS } from '@/constants/header-public-assets';
+import { navigateToProductPage, prefetchProductRoute } from '@/lib/products/prefetch-product-route';
 
 function universalWishlistNavClassName(active: boolean): string {
   const base =
@@ -81,11 +82,18 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
     setSearchDropdownOpen(false);
   }, [searchParams, setSearchQuery, setSearchDropdownOpen]);
 
+  useEffect(() => {
+    const selected = searchResults[searchSelectedIndex];
+    if (selected?.slug) {
+      prefetchProductRoute(router, selected.slug);
+    }
+  }, [router, searchResults, searchSelectedIndex]);
+
   const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const selected = searchSelectedIndex >= 0 ? searchResults[searchSelectedIndex] : null;
     if (selected) {
-      router.push(`/products/${selected.slug}`);
+      navigateToProductPage(router, selected.slug);
       clearSearch();
       return;
     }
@@ -256,8 +264,7 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
             isOpen={searchDropdownOpen}
             selectedIndex={searchSelectedIndex}
             query={searchQuery}
-            onResultClick={(result) => {
-              router.push(`/products/${result.slug}`);
+            onResultClick={() => {
               setSearchDropdownOpen(false);
               clearSearch();
             }}

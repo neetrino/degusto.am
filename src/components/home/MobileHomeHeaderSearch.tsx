@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useCallback } from 'react';
+import { FormEvent, useCallback, useEffect } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { MobileFriendlyInput } from '@/components/mobile/MobileFriendlyInput';
@@ -8,6 +8,7 @@ import { useInstantSearch } from '../hooks/useInstantSearch';
 import { SearchDropdown } from '../SearchDropdown';
 import { getStoredLanguage } from '../../lib/language';
 import { MOBILE_FIGMA_HEADER_SEARCH_RESULTS_STACKING_CLASS } from '@/constants/mobile-figma-storefront';
+import { navigateToProductPage, prefetchProductRoute } from '@/lib/products/prefetch-product-route';
 import { HomeOptimizedImage } from './HomeOptimizedImage';
 
 type MobileHomeHeaderSearchProps = {
@@ -57,6 +58,13 @@ export function MobileHomeHeaderSearch({
     lang: getStoredLanguage(),
   });
 
+  useEffect(() => {
+    const selected = results[selectedIndex];
+    if (selected?.slug) {
+      prefetchProductRoute(router, selected.slug);
+    }
+  }, [router, results, selectedIndex]);
+
   const navigateToShop = useCallback(
     (search: string, openFilters = false) => {
       router.push(buildShopSearchHref(search, openFilters));
@@ -67,7 +75,7 @@ export function MobileHomeHeaderSearch({
   const submitSearch = useCallback(() => {
     const selected = selectedIndex >= 0 && results[selectedIndex];
     if (selected) {
-      router.push(`/products/${selected.slug}`);
+      navigateToProductPage(router, selected.slug);
       clearSearch();
       setIsOpen(false);
       return;
@@ -153,8 +161,7 @@ export function MobileHomeHeaderSearch({
         isOpen={isOpen}
         selectedIndex={selectedIndex}
         query={query}
-        onResultClick={(result) => {
-          router.push(`/products/${result.slug}`);
+        onResultClick={() => {
           setIsOpen(false);
           clearSearch();
         }}

@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { ProductPageLink } from '@/components/products/ProductPageLink';
 import Image from 'next/image';
 import type { MouseEvent } from 'react';
 import { formatPrice } from '../../lib/currency';
@@ -126,8 +126,8 @@ export function RelatedProductCard({
       style={{ width }}
     >
       <div data-related-product-card className="group relative flex h-full flex-col items-center py-[7px]">
-        <Link
-          href={`/products/${product.slug}`}
+        <ProductPageLink
+          slug={product.slug}
           className={
             compact
               ? 'flex w-full flex-1 cursor-pointer flex-col'
@@ -252,7 +252,7 @@ export function RelatedProductCard({
               </div>
             </div>
           </div>
-        </Link>
+        </ProductPageLink>
 
         <button
           type="button"
