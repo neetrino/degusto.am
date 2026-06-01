@@ -12,6 +12,7 @@ import { useAuth } from '../../lib/auth/AuthContext';
 import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
 import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
+import { StorefrontProductOverlayLink } from './StorefrontProductOverlayLink';
 import type { MenuCard, MenuCategory } from './menu-types';
 import { ShopMobileProductCard } from './ShopMobileProductCard';
 import { StoreMenuPagination } from './StoreMenuPagination';
@@ -230,17 +231,6 @@ function MenuCardItem({ card }: { card: MenuCard }) {
     defaultVariantId: card.defaultVariantId ?? undefined,
     price: card.price,
   });
-  const handleOpenProduct = () => {
-    router.push(productHref);
-  };
-  const handleCardKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    if (event.key !== 'Enter' && event.key !== ' ') {
-      return;
-    }
-    event.preventDefault();
-    handleOpenProduct();
-  };
-
   const handleAddToCart = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
@@ -264,13 +254,9 @@ function MenuCardItem({ card }: { card: MenuCard }) {
   return (
     <article
       data-home-product-card
-      className={`relative h-[284px] w-[236px] shrink-0 rounded-[20px] border-[1.5px] border-[#dedede] bg-white cursor-pointer transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} hover:shadow-md`}
-      onClick={handleOpenProduct}
-      onKeyDown={handleCardKeyDown}
-      role="link"
-      tabIndex={0}
-      aria-label={title}
+      className={`relative h-[284px] w-[236px] shrink-0 cursor-pointer rounded-[20px] border-[1.5px] border-[#dedede] bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} hover:shadow-md`}
     >
+      <StorefrontProductOverlayLink href={productHref} label={title} />
       <div data-product-fly-origin className="absolute left-1/2 top-1 h-[147px] w-[227px] -translate-x-1/2">
         <img src={imageSrc} alt={title} className="h-full w-full rounded-[18px] object-cover" />
       </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useTranslation } from '../../lib/i18n-client';
 import { formatPrice } from '../../lib/currency';
 import { useCurrency } from '../hooks/useCurrency';
@@ -21,7 +21,6 @@ type MobileHomeDailyOfferProps = {
 export function MobileHomeDailyOffer({ product, dailyOfferAddToCartSrc }: MobileHomeDailyOfferProps) {
   const { t } = useTranslation();
   const currency = useCurrency();
-  const router = useRouter();
   const title =
     product.title === 'Double Cheeseburger'
       ? t('home.figma.mobile.product.title')
@@ -32,22 +31,12 @@ export function MobileHomeDailyOffer({ product, dailyOfferAddToCartSrc }: Mobile
   const productHref = `/products/${product.slug}`;
 
   return (
-    <article
-      className="relative h-32 w-full max-w-full cursor-pointer overflow-hidden rounded-[20px]"
-      onClick={() => {
-        router.push(productHref);
-      }}
-      onKeyDown={(event) => {
-        if (event.key !== 'Enter' && event.key !== ' ') {
-          return;
-        }
-        event.preventDefault();
-        router.push(productHref);
-      }}
-      role="link"
-      tabIndex={0}
-      aria-label={title}
-    >
+    <article className="relative h-32 w-full max-w-full cursor-pointer overflow-hidden rounded-[20px]">
+      <Link
+        href={productHref}
+        className="absolute inset-0 z-[1] rounded-[inherit] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f66913]"
+        aria-label={title}
+      />
       <div
         className={`absolute inset-0 ${MOBILE_HOME_DAILY_OFFER_GRADIENT_CLASS}`}
         aria-hidden
@@ -77,13 +66,9 @@ export function MobileHomeDailyOffer({ product, dailyOfferAddToCartSrc }: Mobile
           -{discountPercent}%
         </span>
       ) : null}
-      <button
-        type="button"
-        className="absolute left-[35.95%] top-[76px] inline-flex h-[41.669px] w-[41.096px] items-center justify-center"
-        onClick={(event) => {
-          event.stopPropagation();
-          router.push(productHref);
-        }}
+      <Link
+        href={productHref}
+        className="absolute left-[35.95%] top-[76px] z-10 inline-flex h-[41.669px] w-[41.096px] items-center justify-center"
         aria-label={t('common.buttons.addToCart')}
       >
         <HomeOptimizedImage
@@ -94,7 +79,7 @@ export function MobileHomeDailyOffer({ product, dailyOfferAddToCartSrc }: Mobile
           className="h-[41.7px] w-[41.1px] object-contain"
           loading="lazy"
         />
-      </button>
+      </Link>
     </article>
   );
 }

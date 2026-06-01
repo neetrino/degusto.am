@@ -1,9 +1,10 @@
 'use client';
 
-import type { KeyboardEvent, MouseEvent } from 'react';
+import type { MouseEvent } from 'react';
 import { ProductCardImage } from './ProductCardImage';
 import { ProductCardInfo } from './ProductCardInfo';
 import { ProductCardActions } from './ProductCardActions';
+import { ProductCardOverlayLink } from './ProductCardOverlayLink';
 import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
 import { useTranslation } from '../../lib/i18n-client';
 import type { CurrencyCode } from '../../lib/currency';
@@ -41,7 +42,7 @@ interface ProductCardGridProps {
   onCompareToggle: (e: MouseEvent) => void;
   onAddToCart: (e: MouseEvent) => void;
   onDecreaseCart: (e: MouseEvent) => void;
-  onProductClick: () => void;
+  productHref: string;
   onPrefetchNavigate?: () => void;
 }
 
@@ -63,37 +64,26 @@ export function ProductCardGrid({
   onCompareToggle,
   onAddToCart,
   onDecreaseCart,
-  onProductClick,
+  productHref,
   onPrefetchNavigate,
 }: ProductCardGridProps) {
   const { t } = useTranslation();
   const wishlistButtonSize = isCompact ? 'w-10 h-10' : 'w-12 h-12';
   const wishlistIconSize = isCompact ? 18 : 20;
-  const handleCardKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key !== 'Enter' && event.key !== ' ') {
-      return;
-    }
-    event.preventDefault();
-    onProductClick();
-  };
 
   return (
     <div
       data-product-card
-      className={`bg-white rounded-lg border border-gray-200 overflow-hidden transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} hover:shadow-md relative group cursor-pointer`}
-      onClick={onProductClick}
+      className={`relative overflow-hidden rounded-lg border border-gray-200 bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} group cursor-pointer hover:shadow-md`}
       onMouseEnter={onPrefetchNavigate}
       onFocus={onPrefetchNavigate}
-      onKeyDown={handleCardKeyDown}
-      role="link"
-      tabIndex={0}
     >
+      <ProductCardOverlayLink href={productHref} label={product.title} />
       {/* Product Image */}
       <div
-        className={`aspect-square bg-gray-100 relative overflow-hidden transition-colors ${FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS}`}
+        className={`relative aspect-square overflow-hidden bg-gray-100 transition-colors ${FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS}`}
       >
         <ProductCardImage
-          slug={product.slug}
           image={product.image}
           title={product.title}
           labels={product.labels}
@@ -135,10 +125,10 @@ export function ProductCardGrid({
           showWishlist={false}
         />
       </div>
-      
+
+      <div className="relative z-10">
       {/* Product Info */}
       <ProductCardInfo
-        slug={product.slug}
         title={product.title}
         brandName={product.brand?.name}
         brandLogoUrl={product.brand?.logoUrl}
@@ -176,6 +166,7 @@ export function ProductCardGrid({
             +
           </button>
         </div>
+      </div>
       </div>
     </div>
   );

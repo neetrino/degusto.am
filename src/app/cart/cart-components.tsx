@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Button } from '@shop/ui';
 import { formatPrice } from '../../lib/currency';
 import type { CurrencyCode } from '../../lib/currency';
 import type { Cart, CartItem } from './types';
@@ -352,16 +351,12 @@ export function OrderSummary({ cart, currency, t, appearance = 'page' }: OrderSu
             </div>
           </div>
         </div>
-        <Button
-          variant="primary"
-          className="w-full !bg-[#F66812] hover:!bg-[#e45f10] focus:!ring-[#F66812]"
-          size="lg"
-          onClick={() => {
-            window.location.href = '/checkout';
-          }}
+        <Link
+          href="/checkout"
+          className="inline-flex w-full items-center justify-center rounded-xl px-6 py-3 text-lg font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#F66812] focus:ring-offset-2 bg-[#F66812] hover:bg-[#e45f10]"
         >
           {t('common.buttons.proceedToCheckout')}
-        </Button>
+        </Link>
       </div>
     </div>
   );

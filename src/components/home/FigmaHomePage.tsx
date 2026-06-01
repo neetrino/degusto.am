@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { ViewMoreButton } from '../view-more/ViewMoreButton';
 import { useRouter } from 'next/navigation';
-import type { KeyboardEvent, MouseEvent } from 'react';
+import type { MouseEvent } from 'react';
 import { UniversalHeader } from '../UniversalHeader';
 import { ProjectGreenStripes } from '../decor/ProjectGreenStripes';
 import { Footer } from '../Footer';
@@ -21,6 +21,7 @@ import { FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS } from '@/constants/mobile-figma-s
 import { r2Asset } from '@/lib/r2-public-url';
 import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 import { HomeOptimizedImage } from './HomeOptimizedImage';
+import { StorefrontProductOverlayLink } from './StorefrontProductOverlayLink';
 import { resolveHomeDailyOfferProduct } from './home-daily-offer';
 import type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
 
@@ -71,17 +72,6 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
     defaultVariantId: item.defaultVariantId ?? undefined,
     price: item.price ?? undefined,
   });
-  const openProduct = () => {
-    router.push(productHref);
-  };
-  const handleCardKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    if (event.key !== 'Enter' && event.key !== ' ') {
-      return;
-    }
-    event.preventDefault();
-    openProduct();
-  };
-
   const handleAddToCart = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
@@ -105,13 +95,9 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
   return (
     <article
       data-home-product-card
-      className={`relative h-[284px] w-[236px] shrink-0 rounded-[20px] border-[1.5px] border-[#dedede] bg-white cursor-pointer transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} hover:shadow-md`}
-      onClick={openProduct}
-      onKeyDown={handleCardKeyDown}
-      role="link"
-      tabIndex={0}
-      aria-label={title}
+      className={`relative h-[284px] w-[236px] shrink-0 cursor-pointer rounded-[20px] border-[1.5px] border-[#dedede] bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} hover:shadow-md`}
     >
+      <StorefrontProductOverlayLink href={productHref} label={title} />
       <div data-product-fly-origin className="absolute left-1/2 top-1 h-[147px] w-[227px] -translate-x-1/2 overflow-hidden rounded-[18px]">
         <HomeOptimizedImage
           src={imageSrc}
@@ -231,7 +217,6 @@ export function FigmaHomePage({
 }) {
   const { t, lang } = useTranslation();
   const currency = useCurrency();
-  const router = useRouter();
   const specialOfferProducts = featuredProducts.slice(0, DESKTOP_HOME_SPECIAL_OFFERS_PRODUCT_COUNT);
   const heroProduct = resolveHomeDailyOfferProduct(featuredProducts, dailyOfferProduct);
   const heroProductTitle =
@@ -240,16 +225,6 @@ export function FigmaHomePage({
       : (heroProduct?.title || t('home.figma.mobile.product.title'));
   const heroProductSubtitle = heroProduct?.subtitle || t('home.figma.mobile.product.subtitle');
   const heroProductHref = `/products/${heroProduct?.slug || 'products'}`;
-  const openHeroProduct = () => {
-    router.push(heroProductHref);
-  };
-  const handleHeroProductKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    if (event.key !== 'Enter' && event.key !== ' ') {
-      return;
-    }
-    event.preventDefault();
-    openHeroProduct();
-  };
 
   return (
     <div className="hidden min-h-screen overflow-x-hidden bg-[var(--project-color)] lg:block">
@@ -273,14 +248,8 @@ export function FigmaHomePage({
         <UniversalHeader spacerBackgroundClassName="bg-[#F66812]" />
 
         <div className="relative z-20 mx-auto mt-14 w-full max-w-[1450px] px-4 lg:mt-16 lg:px-6">
-          <article
-            className="relative z-20 h-[284px] w-[236px] cursor-pointer sm:ml-[45px]"
-            onClick={openHeroProduct}
-            onKeyDown={handleHeroProductKeyDown}
-            role="link"
-            tabIndex={0}
-            aria-label={heroProductTitle}
-          >
+          <article className="relative z-20 h-[284px] w-[236px] cursor-pointer rounded-[20px] sm:ml-[45px]">
+            <StorefrontProductOverlayLink href={heroProductHref} label={heroProductTitle} />
             <div className="absolute inset-0 rounded-[20px] bg-white shadow-xl" />
             <div className="absolute left-1/2 top-[5px] h-[147px] w-[227px] -translate-x-1/2 overflow-hidden rounded-[18px]">
               <HomeOptimizedImage

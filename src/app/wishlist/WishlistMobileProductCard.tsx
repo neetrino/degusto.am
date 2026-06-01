@@ -1,8 +1,7 @@
 'use client';
 
-import type { KeyboardEvent, MouseEvent } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import type { MouseEvent } from 'react';
+import { StorefrontProductOverlayLink } from '@/components/home/StorefrontProductOverlayLink';
 import { formatPrice, type CurrencyCode } from '../../lib/currency';
 import { MOBILE_SHOP_PRODUCT_CARD_ASSETS } from '@/constants/mobile-figma-storefront';
 import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
@@ -74,7 +73,6 @@ export function WishlistMobileProductCard({
   onAddToCart,
   t,
 }: WishlistMobileProductCardProps) {
-  const router = useRouter();
   const productHref = `/products/${product.slug}`;
   const imageSrc = resolveStorefrontProductImage(product.image);
   const formattedPrice = formatPrice(product.price, currency);
@@ -89,18 +87,6 @@ export function WishlistMobileProductCard({
   const discountPercent = resolveDiscountPercent(product);
   const hasDiscount = discountPercent > 0;
   const discountText = hasDiscount ? `-${discountPercent}%` : '';
-
-  const handleOpenProduct = () => {
-    router.push(productHref);
-  };
-
-  const handleCardKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    if (event.key !== 'Enter' && event.key !== ' ') {
-      return;
-    }
-    event.preventDefault();
-    handleOpenProduct();
-  };
 
   const handleRemove = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -119,12 +105,8 @@ export function WishlistMobileProductCard({
       data-wishlist-mobile-card
       className="relative w-full cursor-pointer rounded-[20px] bg-[#ffeacc]"
       style={{ height: MOBILE_WISHLIST_CARD_HEIGHT_PX }}
-      onClick={handleOpenProduct}
-      onKeyDown={handleCardKeyDown}
-      role="link"
-      tabIndex={0}
-      aria-label={product.title}
     >
+      <StorefrontProductOverlayLink href={productHref} label={product.title} />
       <div
         className={`absolute left-1 right-1 top-[5px] overflow-hidden rounded-[18px] ${
           product.inStock ? '' : 'opacity-70'
@@ -151,20 +133,14 @@ export function WishlistMobileProductCard({
       </button>
 
       <div className="absolute left-[9px] top-[150px] w-[calc(100%-18px)] pr-[72px]">
-        <Link
-          href={productHref}
-          onClick={(event) => event.stopPropagation()}
-          className="block rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-[#f66a13] focus-visible:ring-offset-2"
-        >
-          <h3 className="text-sm font-bold leading-[1.15] text-[#3c2f2f]">
-            <span className="line-clamp-2">{product.title}</span>
-          </h3>
-          {product.brand?.name ? (
-            <p className="mt-[2px] truncate text-sm font-medium leading-[1.2] text-[#a1a1a1]">
-              {product.brand.name}
-            </p>
-          ) : null}
-        </Link>
+        <h3 className="text-sm font-bold leading-[1.15] text-[#3c2f2f]">
+          <span className="line-clamp-2">{product.title}</span>
+        </h3>
+        {product.brand?.name ? (
+          <p className="mt-[2px] truncate text-sm font-medium leading-[1.2] text-[#a1a1a1]">
+            {product.brand.name}
+          </p>
+        ) : null}
       </div>
 
       {hasDiscount ? (
