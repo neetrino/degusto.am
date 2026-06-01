@@ -28,6 +28,9 @@
   "additionsPlaceholder": "Extra ingredients or requests",
   "exclusionsLabel": "Exclusions",
   "exclusionsPlaceholder": "Ingredients to remove",
+  "customizationAddShort": "Add",
+  "customizationExcludeShort": "Exclude",
+  "resetOptionsAria": "Reset selections",
   "preferencePlaceholder": "Select preference",
   "preferenceAria": {
     "spicy": "Spiciness",

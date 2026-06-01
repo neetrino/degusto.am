@@ -3,7 +3,7 @@
 import { processImageUrl } from '../../../lib/utils/image-utils';
 import { t, getAttributeLabel } from '../../../lib/i18n';
 import type { LanguageCode } from '../../../lib/language';
-import type { Product, ProductVariant, AttributeGroupValue } from './types';
+import type { Product, ProductVariant, AttributeGroupValue, VariantOption } from './types';
 import { getOptionValue as getVariantOptionValue } from './utils/variant-helpers';
 import { PDP_CARD_PREFERENCE_ORDER, PDP_PREFERENCE_ATTR_ORDER } from './constants/pdp-preference-attr-order';
 import { isPdpCheckboxPreferenceKey } from './constants/pdp-checkbox-preference-keys';
@@ -25,12 +25,11 @@ interface ProductAttributesSelectorProps {
   onColorSelect: (color: string) => void;
   onSizeSelect: (size: string) => void;
   onAttributeValueSelect: (attrKey: string, value: string) => void;
-  getOptionValue: (options: unknown[] | undefined, key: string) => string | null;
+  getOptionValue: (options: VariantOption[] | undefined, key: string) => string | null;
 }
 
-/** PDP attribute blocks — soft card, consistent with product chrome. */
-const PDP_ATTR_SECTION_CARD =
-  'rounded-2xl border border-neutral-200/80 bg-gradient-to-b from-white to-neutral-50/60 p-4 shadow-sm ring-1 ring-neutral-950/[0.04] sm:p-5';
+/** PDP attribute blocks — minimal spacing per Figma. */
+const PDP_ATTR_SECTION_CARD = 'flex flex-col gap-4';
 
 const getColorValue = (colorName: string): string => {
   const colorMap: Record<string, string> = {

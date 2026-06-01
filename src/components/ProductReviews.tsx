@@ -1,7 +1,6 @@
 'use client';
 
 import type { Dispatch, SetStateAction } from 'react';
-import { Button } from '@shop/ui';
 import { useAuth } from '../lib/auth/AuthContext';
 import { useTranslation } from '../lib/i18n-client';
 import { useReviewForm } from './ProductReviews/hooks/useReviewForm';
@@ -10,6 +9,12 @@ import { ReviewSummary } from './ProductReviews/ReviewSummary';
 import { ReviewForm } from './ProductReviews/ReviewForm';
 import { ReviewList } from './ProductReviews/ReviewList';
 import { ProductReviewsLoading } from './ProductReviews/ProductReviewsLoading';
+import {
+  PDP_FIGMA_ORANGE,
+  PDP_FIGMA_TEXT,
+  PDP_MAIN_RADIUS_CLASS,
+  PDP_PILL_RADIUS_CLASS,
+} from '@/constants/pdp-figma-tokens';
 
 interface ProductReviewsProps {
   productId: string;
@@ -71,24 +76,26 @@ export function ProductReviews({
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-gray-200">
+    <div className={`mx-auto max-w-7xl bg-white px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12 ${PDP_MAIN_RADIUS_CLASS}`}>
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">
+        <h2
+          className="mb-6 text-[28px] font-bold sm:text-[29px]"
+          style={{ color: PDP_FIGMA_TEXT }}
+        >
           {t('common.reviews.title')}
         </h2>
 
-        {/* Rating Summary */}
         <ReviewSummary reviews={reviews} />
 
-        {/* Write Review Button */}
         {!showForm && (
-          <Button
-            variant="primary"
+          <button
+            type="button"
             onClick={handleShowForm}
-            className="mb-8"
+            className={`mb-8 h-12 px-8 text-base font-medium text-white transition hover:brightness-95 ${PDP_PILL_RADIUS_CLASS}`}
+            style={{ backgroundColor: PDP_FIGMA_ORANGE }}
           >
             {t('common.reviews.writeReview')}
-          </Button>
+          </button>
         )}
 
         {/* Review Form */}

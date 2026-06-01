@@ -28,6 +28,9 @@
   "additionsPlaceholder": "Լրացուցիչ բաղադրիչներ կամ նշումներ",
   "exclusionsLabel": "Բացառություններ",
   "exclusionsPlaceholder": "Ինչ բաղադրիչներ հանել",
+  "customizationAddShort": "Ավելացնել",
+  "customizationExcludeShort": "Բացառել",
+  "resetOptionsAria": "Մաքրել ընտրությունները",
   "preferencePlaceholder": "Ընտրեք նախընտրությունը",
   "preferenceAria": {
     "spicy": "Կծուություն",

@@ -3,64 +3,66 @@
 import { ReviewRating } from './ReviewRating';
 import { calculateAverageRating, calculateRatingDistribution, type Review } from './utils';
 import { useTranslation } from '../../lib/i18n-client';
+import {
+  PDP_FIGMA_MUTED,
+  PDP_FIGMA_ORANGE,
+  PDP_FIGMA_PROGRESS_TRACK,
+  PDP_FIGMA_TEXT,
+} from '@/constants/pdp-figma-tokens';
 
 interface ReviewSummaryProps {
   reviews: Review[];
 }
 
 /**
- * Rating summary and distribution component
+ * Rating summary and distribution — Figma PDP layout (bars left, score right).
  */
 export function ReviewSummary({ reviews }: ReviewSummaryProps) {
   const { t } = useTranslation();
   const averageRating = calculateAverageRating(reviews);
   const ratingDistribution = calculateRatingDistribution(reviews);
+  const displayRating = reviews.length > 0 ? averageRating : 5;
 
   return (
-    <div className="flex flex-col md:flex-row gap-8 mb-8">
-      <div className="flex flex-col items-center md:items-start">
-        <div className="text-5xl font-bold text-gray-900 mb-2">
-          {averageRating.toFixed(1)}
+    <div className="mb-8 grid grid-cols-1 items-start gap-8 md:grid-cols-[1fr_auto] md:gap-12">
+      <div className="order-2 md:order-1">
+        {ratingDistribution.map(({ star, percentage }) => (
+          <div key={star} className="mb-2 flex items-center gap-5 last:mb-0">
+            <span className="w-4 shrink-0 text-center text-lg font-bold text-[#aaa]">{star}</span>
+            <div
+              className="h-[14px] flex-1 overflow-hidden rounded-full"
+              style={{ backgroundColor: PDP_FIGMA_PROGRESS_TRACK }}
+            >
+              <div
+                className="h-full rounded-full transition-[width] duration-500"
+                style={{ width: `${percentage}%`, backgroundColor: PDP_FIGMA_ORANGE }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="order-1 flex flex-col items-center md:order-2 md:items-end md:text-right">
+        <div
+          className="text-[64px] font-semibold leading-none sm:text-[80px]"
+          style={{ color: PDP_FIGMA_TEXT }}
+        >
+          {displayRating.toFixed(1)}
         </div>
         <ReviewRating
-          rating={Math.round(averageRating)}
+          rating={Math.round(displayRating)}
           hoveredRating={0}
           onRatingChange={() => {}}
           onHover={() => {}}
-          size="md"
+          size="lg"
           interactive={false}
+          starColor={PDP_FIGMA_ORANGE}
         />
-        <div className="text-sm text-gray-600 mt-2">
-          {reviews.length} {reviews.length === 1 
-            ? t('common.reviews.review')
-            : t('common.reviews.reviews')}
+        <div className="mt-3 text-lg" style={{ color: PDP_FIGMA_MUTED }}>
+          {reviews.length}{' '}
+          {reviews.length === 1 ? t('common.reviews.review') : t('common.reviews.reviews')}
         </div>
-      </div>
-
-      {/* Rating Distribution */}
-      <div className="flex-1">
-        {ratingDistribution.map(({ star, count, percentage }) => (
-          <div key={star} className="flex items-center gap-3 mb-2">
-            <div className="flex items-center gap-1 w-20">
-              <span className="text-sm text-gray-600 w-4">{star}</span>
-              <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-            </div>
-            <div className="flex-1 bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-yellow-400 h-2 rounded-full"
-                style={{ width: `${percentage}%` }}
-              />
-            </div>
-            <span className="text-sm text-gray-600 w-12 text-right">{count}</span>
-          </div>
-        ))}
       </div>
     </div>
   );
 }
-
-
-
-

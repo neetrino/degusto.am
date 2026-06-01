@@ -16,6 +16,10 @@ import { RelatedProductCard } from './RelatedProducts/RelatedProductCard';
 import { CarouselNavigation } from './RelatedProducts/CarouselNavigation';
 import { CarouselDots } from './RelatedProducts/CarouselDots';
 import { ViewMoreButton } from './view-more/ViewMoreButton';
+import {
+  PDP_FIGMA_DARK_SECTION,
+  PDP_MAIN_RADIUS_CLASS,
+} from '@/constants/pdp-figma-tokens';
 
 interface RelatedProductsProps {
   categorySlug?: string;
@@ -164,14 +168,20 @@ export function RelatedProducts({ categorySlug, currentProductId, productSlug }:
   return (
     <section
       ref={lazyRef}
-      className="rounded-t-[40px] bg-white pb-6 pt-4 sm:pb-7 sm:pt-5"
+      className={`px-4 py-10 sm:px-8 sm:py-12 lg:px-[82px] lg:py-[77px] ${PDP_MAIN_RADIUS_CLASS}`}
+      style={{ backgroundColor: PDP_FIGMA_DARK_SECTION }}
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-5 flex items-center justify-between sm:mb-6">
-          <h2 className="text-2xl font-black text-black sm:text-3xl">
-            {t(language, 'product.related_products_title')}
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-8 flex items-start justify-between gap-4 sm:mb-10">
+          <h2 className="max-w-[min(100%,720px)] font-black leading-none">
+            <span className="text-[32px] text-[#f66913] sm:text-[48px] lg:text-[60px]">
+              {t(language, 'home.figma.desktop.specialOffersTitleAccent')}
+            </span>
+            <span className="text-[32px] text-white sm:text-[48px] lg:text-[60px]">
+              {t(language, 'home.figma.desktop.specialOffersTitleMain')}
+            </span>
           </h2>
-          <ViewMoreButton href="/shop" className="shrink-0">
+          <ViewMoreButton href="/shop" className="mt-2 shrink-0" size="md">
             {t(language, 'home.figma.desktop.moreButton')} →
           </ViewMoreButton>
         </div>
@@ -200,7 +210,7 @@ export function RelatedProducts({ categorySlug, currentProductId, productSlug }:
           </div>
         ) : products.length === 0 ? (
           <div className="py-12 text-center">
-            <p className="text-lg text-gray-500">{t(language, 'product.noRelatedProducts')}</p>
+            <p className="text-lg text-neutral-400">{t(language, 'product.noRelatedProducts')}</p>
           </div>
         ) : (
           <div className="relative pb-2">

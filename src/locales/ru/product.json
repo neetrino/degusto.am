@@ -28,6 +28,9 @@
   "additionsPlaceholder": "Дополнительные ингредиенты или комментарий",
   "exclusionsLabel": "Исключить",
   "exclusionsPlaceholder": "Ингредиенты, которые нужно убрать",
+  "customizationAddShort": "Добавить",
+  "customizationExcludeShort": "Исключить",
+  "resetOptionsAria": "Сбросить выбор",
   "preferencePlaceholder": "Выберите предпочтение",
   "preferenceAria": {
     "spicy": "Острота",

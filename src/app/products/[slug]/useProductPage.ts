@@ -185,6 +185,7 @@ export function useProductPage({
     setAdditions,
     setExclusions,
     quantity,
+    setQuantity,
     reviews,
     reviewsLoading,
     setReviews,
