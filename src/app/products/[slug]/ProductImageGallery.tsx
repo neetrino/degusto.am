@@ -9,7 +9,7 @@ import { resolveStorefrontProductImage } from "@/constants/storefront-product-im
 import { PDP_PRODUCT_IMAGE_ZOOM_STACKING_CLASS } from "@/constants/ui-stacking";
 import { t } from "../../../lib/i18n";
 import {
-  PDP_FIGMA_ORANGE,
+  PDP_IMAGE_DISCOUNT_BADGE_CLASS,
   PDP_IMAGE_RADIUS_CLASS,
   PDP_MAIN_IMAGE_ASPECT_CLASS,
   PDP_MAIN_IMAGE_MAX_WIDTH_CLASS,
@@ -70,13 +70,8 @@ export function ProductImageGallery({
               unoptimized
             />
 
-            {discountPercent ? (
-              <div
-                className="absolute right-4 top-4 z-10 flex h-[30px] min-w-[72px] items-center justify-center px-4 text-sm font-bold text-black"
-                style={{ backgroundColor: PDP_FIGMA_ORANGE, borderRadius: '60px' }}
-              >
-                -{discountPercent}%
-              </div>
+            {discountPercent != null && discountPercent > 0 ? (
+              <div className={PDP_IMAGE_DISCOUNT_BADGE_CLASS}>-{discountPercent}%</div>
             ) : null}
 
             {product.labels ? <ProductLabels labels={product.labels} /> : null}

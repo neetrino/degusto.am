@@ -12,7 +12,11 @@ function resolveVisibleCards(width: number): number {
   if (width < 1280) {
     return 3;
   }
-  return 4;
+  if (width < 1470) {
+    return 4;
+  }
+  /** Figma node 10:1975 — five product cards across. */
+  return 5;
 }
 
 /**
@@ -20,9 +24,8 @@ function resolveVisibleCards(width: number): number {
  * @returns Number of visible cards
  */
 export function useVisibleCards() {
-  const [visibleCards, setVisibleCards] = useState(() =>
-    typeof window === 'undefined' ? 2 : resolveVisibleCards(window.innerWidth),
-  );
+  /** Stable SSR/first-paint value; updated after mount from viewport width. */
+  const [visibleCards, setVisibleCards] = useState(2);
 
   useEffect(() => {
     const updateVisibleCards = () => {

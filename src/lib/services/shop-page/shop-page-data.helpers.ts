@@ -2,6 +2,7 @@ import { HIDDEN_STOREFRONT_CATEGORY_SLUGS } from '@/constants/hidden-storefront-
 import type { MenuCard } from '@/components/home/menu-types';
 import { resolveFoodAttributeFlagsFromVariants } from '@/lib/product-food-attributes';
 import { resolveMenuCardCompareAtPrice } from '@/lib/storefront/menu-card-pricing';
+import { isPublishedVariantInStock } from '@/lib/storefront/variant-in-stock';
 import { resolveStorefrontProductImageFromMedia } from '@/constants/storefront-product-image';
 import { processImageUrl, type ImageUrlInput } from '@/lib/utils/image-utils';
 
@@ -54,6 +55,7 @@ export type ShopMenuProductRow = {
     published: boolean;
     price: number;
     compareAtPrice: number | null;
+    stock: number;
     attributes: unknown;
   }>;
 };
@@ -140,7 +142,7 @@ export function mapShopProductRowsToMenuCards(
       oldPrice,
       discount: '',
       discountPercent: row.discountPercent,
-      inStock: variant?.published ?? true,
+      inStock: isPublishedVariantInStock(variant),
       defaultVariantId: variant?.id ?? null,
       supportsSpicy: foodAttrs.supportsSpicy,
       supportsGreens: foodAttrs.supportsGreens,

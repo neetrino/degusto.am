@@ -8,6 +8,7 @@ import { parseProductSlugParam } from './parse-product-slug-param';
 import { RESERVED_ROUTES } from './types';
 import type { Product } from './types';
 import type { ProductVisualSnapshot } from './utils/merge-visual-into-product';
+import type { RelatedCardPayload } from '@/lib/services/products-slug/product-related-transform';
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -47,6 +48,10 @@ export default async function ProductPage({ params }: PageProps) {
     pageData.status === 'ok'
       ? pageData.reviewSummary
       : { count: 0, averageRating: 0 };
+  const initialReviews =
+    pageData.status === 'ok' ? pageData.initialReviews : [];
+  const initialRelatedProducts: RelatedCardPayload[] =
+    pageData.status === 'ok' ? pageData.initialRelatedProducts : [];
   const initialNotFound = pageData.status === 'not_found';
 
   return (
@@ -56,6 +61,8 @@ export default async function ProductPage({ params }: PageProps) {
       initialVisual={initialVisual}
       initialProduct={initialProduct}
       initialReviewSummary={initialReviewSummary}
+      initialReviews={initialReviews}
+      initialRelatedProducts={initialRelatedProducts}
       initialNotFound={initialNotFound}
       serverLocale={serverLocale}
     />

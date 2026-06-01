@@ -1,9 +1,11 @@
 'use client';
 
 import Link from 'next/link';
+import type { MouseEvent } from 'react';
 import { useTranslation } from '../../lib/i18n-client';
 import { formatPrice } from '../../lib/currency';
 import { useCurrency } from '../hooks/useCurrency';
+import { useAddToCart } from '../hooks/useAddToCart';
 import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 import {
   MOBILE_HOME_DAILY_OFFER_GRADIENT_CLASS,
@@ -29,9 +31,29 @@ export function MobileHomeDailyOffer({ product, dailyOfferAddToCartSrc }: Mobile
   const price = product.price ?? 0;
   const discountPercent = resolveMobileHomeDiscountPercent(product);
   const productHref = `/products/${product.slug}`;
+  const { isAddingToCart, addToCart } = useAddToCart({
+    productId: product.id,
+    productSlug: product.slug,
+    inStock: product.inStock ?? true,
+    defaultVariantId: product.defaultVariantId ?? undefined,
+    price: product.price ?? undefined,
+  });
+
+  const handleAddToCart = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const button = event.currentTarget as HTMLElement;
+    const card = button.closest('[data-mobile-daily-offer]');
+    const origin =
+      (card?.querySelector('[data-product-fly-origin]') as HTMLElement | null) ?? button;
+    void addToCart({ origin, imageUrl: imageSrc });
+  };
 
   return (
-    <article className="relative h-32 w-full max-w-full cursor-pointer overflow-hidden rounded-[20px]">
+    <article
+      data-mobile-daily-offer
+      className="relative h-32 w-full max-w-full cursor-pointer overflow-hidden rounded-[20px]"
+    >
       <Link
         href={productHref}
         className="absolute inset-0 z-[1] rounded-[inherit] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f66913]"
@@ -41,7 +63,10 @@ export function MobileHomeDailyOffer({ product, dailyOfferAddToCartSrc }: Mobile
         className={`absolute inset-0 ${MOBILE_HOME_DAILY_OFFER_GRADIENT_CLASS}`}
         aria-hidden
       />
-      <div className={`${MOBILE_HOME_DAILY_OFFER_PHOTO_LAYOUT_CLASS} relative overflow-hidden`}>
+      <div
+        data-product-fly-origin
+        className={`${MOBILE_HOME_DAILY_OFFER_PHOTO_LAYOUT_CLASS} relative overflow-hidden`}
+      >
         <HomeOptimizedImage
           src={imageSrc}
           alt={title}
@@ -66,9 +91,11 @@ export function MobileHomeDailyOffer({ product, dailyOfferAddToCartSrc }: Mobile
           -{discountPercent}%
         </span>
       ) : null}
-      <Link
-        href={productHref}
-        className="absolute left-[35.95%] top-[76px] z-10 inline-flex h-[41.669px] w-[41.096px] items-center justify-center"
+      <button
+        type="button"
+        onClick={handleAddToCart}
+        disabled={isAddingToCart || product.inStock === false}
+        className="absolute left-[35.95%] top-[76px] z-10 inline-flex h-[41.669px] w-[41.096px] items-center justify-center disabled:opacity-50"
         aria-label={t('common.buttons.addToCart')}
       >
         <HomeOptimizedImage
@@ -79,7 +106,7 @@ export function MobileHomeDailyOffer({ product, dailyOfferAddToCartSrc }: Mobile
           className="h-[41.7px] w-[41.1px] object-contain"
           loading="lazy"
         />
-      </Link>
+      </button>
     </article>
   );
 }

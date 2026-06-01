@@ -312,7 +312,7 @@ function MenuCardItem({ card }: { card: MenuCard }) {
         onClick={handleAddToCart}
         disabled={isAddingToCart || (card.inStock === false)}
         aria-label={t('common.buttons.addToCart')}
-        className="absolute -bottom-[25px] left-1/2 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center"
+        className="absolute -bottom-[25px] left-1/2 z-20 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center"
       >
         <img src={assets.productCardAddToCart} alt="" className="h-[52px] w-[51px] object-contain" />
       </button>

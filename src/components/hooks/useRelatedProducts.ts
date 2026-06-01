@@ -2,35 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { apiClient } from '../../lib/api-client';
-import { getStoredLanguage, type LanguageCode } from '../../lib/language';
-import { logger } from "@/lib/utils/logger";
-
-interface RelatedProduct {
-  id: string;
-  slug: string;
-  title: string;
-  price: number;
-  originalPrice?: number | null;
-  compareAtPrice: number | null;
-  discountPercent?: number | null;
-  image: string | null;
-  inStock: boolean;
-  brand?: {
-    id: string;
-    name: string;
-  } | null;
-  categories?: Array<{
-    id: string;
-    slug: string;
-    title: string;
-  }>;
-  variants?: Array<{
-    options?: Array<{
-      key: string;
-      value: string;
-    }>;
-  }>;
-}
+import type { LanguageCode } from '../../lib/language';
+import { logger } from '@/lib/utils/logger';
+import type { RelatedCardPayload } from '@/lib/services/products-slug/product-related-transform';
 
 interface UseRelatedProductsProps {
   categorySlug?: string;
@@ -40,6 +14,16 @@ interface UseRelatedProductsProps {
   productSlug?: string;
   /** When false, skips fetch until the block is near the viewport. */
   enabled?: boolean;
+  /** SSR payload — skips client fetch while language matches `initialLanguage`. */
+  initialProducts?: RelatedCardPayload[];
+  initialLanguage?: LanguageCode;
+}
+
+function filterRelatedProducts(
+  items: RelatedCardPayload[],
+  currentProductId: string
+): RelatedCardPayload[] {
+  return items.filter((p) => p.id !== currentProductId).slice(0, 10);
 }
 
 /**
@@ -51,12 +35,27 @@ export function useRelatedProducts({
   language,
   productSlug,
   enabled = true,
+  initialProducts,
+  initialLanguage,
 }: UseRelatedProductsProps) {
-  const [products, setProducts] = useState<RelatedProduct[]>([]);
-  const [loading, setLoading] = useState(false);
+  const hasServerSnapshot =
+    initialProducts != null &&
+    initialLanguage != null &&
+    language === initialLanguage;
+
+  const [products, setProducts] = useState<RelatedCardPayload[]>(() =>
+    hasServerSnapshot ? filterRelatedProducts(initialProducts, currentProductId) : []
+  );
+  const [loading, setLoading] = useState(!hasServerSnapshot);
 
   useEffect(() => {
     if (!enabled) {
+      return;
+    }
+
+    if (hasServerSnapshot) {
+      setProducts(filterRelatedProducts(initialProducts, currentProductId));
+      setLoading(false);
       return;
     }
 
@@ -67,13 +66,12 @@ export function useRelatedProducts({
         if (productSlug) {
           const encoded = encodeURIComponent(productSlug.trim());
           const response = await apiClient.get<{
-            data: RelatedProduct[];
+            data: RelatedCardPayload[];
             meta: { total: number };
           }>(`/api/v1/products/${encoded}/related`, {
             params: { lang: language },
           });
-          const filtered = response.data.filter((p) => p.id !== currentProductId);
-          setProducts(filtered.slice(0, 10));
+          setProducts(filterRelatedProducts(response.data, currentProductId));
           return;
         }
 
@@ -90,7 +88,7 @@ export function useRelatedProducts({
         }
 
         const response = await apiClient.get<{
-          data: RelatedProduct[];
+          data: RelatedCardPayload[];
           meta: {
             total: number;
           };
@@ -98,12 +96,7 @@ export function useRelatedProducts({
           params,
         });
 
-        logger.debug('[RelatedProducts] Received products:', response.data.length);
-        const filtered = response.data.filter((p) => p.id !== currentProductId);
-        logger.debug('[RelatedProducts] After filtering current product:', filtered.length);
-        const finalProducts = filtered.slice(0, 10);
-        logger.debug('[RelatedProducts] Final products to display:', finalProducts.length);
-        setProducts(finalProducts);
+        setProducts(filterRelatedProducts(response.data, currentProductId));
       } catch (error: unknown) {
         logger.warn('[RelatedProducts] Error fetching related products', {
           error: error instanceof Error ? error.message : String(error),
@@ -115,11 +108,15 @@ export function useRelatedProducts({
     };
 
     void fetchRelatedProducts();
-  }, [categorySlug, currentProductId, language, productSlug, enabled]);
+  }, [
+    categorySlug,
+    currentProductId,
+    enabled,
+    hasServerSnapshot,
+    initialProducts,
+    language,
+    productSlug,
+  ]);
 
   return { products, loading };
 }
-
-
-
-

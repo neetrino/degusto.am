@@ -34,6 +34,8 @@ import {
 import type { Product } from './types';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
 import type { ProductReviewSummary } from '@/lib/services/reviews/product-review-summary';
+import type { ProductReviewListItem } from '@/lib/services/reviews.service';
+import type { RelatedCardPayload } from '@/lib/services/products-slug/product-related-transform';
 import {
   mergeVisualIntoProduct,
   type ProductVisualSnapshot,
@@ -46,6 +48,7 @@ import {
   PDP_HERO_GRID_CLASS,
   PDP_HERO_IMAGE_OFFSET_CLASS,
   PDP_HERO_INFO_OFFSET_CLASS,
+  PDP_RELATED_SECTION_GAP_CLASS,
   STOREFRONT_DESKTOP_CONTENT_CLASS,
 } from '@/constants/pdp-figma-tokens';
 
@@ -89,6 +92,8 @@ export interface ProductPageClientProps {
   initialVisual: ProductVisualSnapshot | null;
   initialProduct: Product | null;
   initialReviewSummary: ProductReviewSummary;
+  initialReviews: ProductReviewListItem[];
+  initialRelatedProducts: RelatedCardPayload[];
   initialNotFound: boolean;
   serverLocale: StorefrontLocale;
 }
@@ -99,6 +104,8 @@ export function ProductPageClient({
   initialVisual,
   initialProduct,
   initialReviewSummary,
+  initialReviews,
+  initialRelatedProducts,
   initialNotFound,
   serverLocale,
 }: ProductPageClientProps) {
@@ -108,6 +115,11 @@ export function ProductPageClient({
   const [fullProduct, setFullProduct] = useState<Product | null>(initialProduct);
   const [reviewSummary, setReviewSummary] =
     useState<ProductReviewSummary>(initialReviewSummary);
+  const [serverReviews, setServerReviews] =
+    useState<ProductReviewListItem[]>(initialReviews);
+  const [reviewsHydratedFromServer, setReviewsHydratedFromServer] = useState(
+    Boolean(initialProduct)
+  );
   const [notFound, setNotFound] = useState(initialNotFound);
 
   const partialProduct = useMemo(
@@ -133,9 +145,15 @@ export function ProductPageClient({
     productRef.current = product;
   }, [product]);
 
-  const hydrateDetails = useCallback((next: Product, summary: ProductReviewSummary) => {
+  const hydrateDetails = useCallback((
+    next: Product,
+    summary: ProductReviewSummary,
+    reviews: ProductReviewListItem[]
+  ) => {
     setFullProduct(next);
     setReviewSummary(summary);
+    setServerReviews(reviews);
+    setReviewsHydratedFromServer(true);
     setNotFound(false);
     productRef.current = next;
   }, []);
@@ -165,6 +183,7 @@ export function ProductPageClient({
     detailsPending,
     reviewSummary,
     fetchReviews: reviewsInView,
+    initialReviews: reviewsHydratedFromServer ? serverReviews : undefined,
   });
 
   const {
@@ -386,7 +405,6 @@ export function ProductPageClient({
                   price={price}
                   originalPrice={originalPrice}
                   compareAtPrice={compareAtPrice}
-                  discountPercent={discountPercent}
                   currency={currency}
                   language={language}
                   averageRating={averageRating}
@@ -421,17 +439,21 @@ export function ProductPageClient({
               </div>
             </div>
           </section>
+        </div>
 
           {!detailsPending && (
             <>
-              <div className="mt-8 max-lg:mt-8 lg:mt-10">
+              <div className={PDP_RELATED_SECTION_GAP_CLASS}>
                 <RelatedProducts
                   productSlug={slug}
                   categorySlug={product.categories?.[0]?.slug}
                   currentProductId={product.id}
+                  initialProducts={initialRelatedProducts}
+                  initialLanguage={serverLocale}
                 />
               </div>
 
+              <div className={PDP_CONTENT_SHELL_CLASS}>
               <div
                 ref={reviewsSectionRef}
                 id="product-reviews"
@@ -445,9 +467,9 @@ export function ProductPageClient({
                   setReviews={setReviews}
                 />
               </div>
+              </div>
             </>
           )}
-        </div>
       </div>
     </ProductPageHydrationProvider>
   );

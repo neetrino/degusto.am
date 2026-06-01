@@ -1,18 +1,28 @@
 'use client';
 
 import { Button } from '@shop/ui';
+import { useTranslation } from '../../lib/i18n-client';
 import { formatDate, type Review } from './utils';
 
 interface ReviewItemProps {
   review: Review;
   currentUserId?: string;
   onEdit: (review: Review) => void;
+  onDelete: (review: Review) => void;
+  isDeleting?: boolean;
 }
 
 /**
  * Single review item component
  */
-export function ReviewItem({ review, currentUserId, onEdit }: ReviewItemProps) {
+export function ReviewItem({
+  review,
+  currentUserId,
+  onEdit,
+  onDelete,
+  isDeleting = false,
+}: ReviewItemProps) {
+  const { t, lang } = useTranslation();
   const isOwnReview = currentUserId && review.userId === currentUserId;
 
   return (
@@ -40,20 +50,32 @@ export function ReviewItem({ review, currentUserId, onEdit }: ReviewItemProps) {
               ))}
             </div>
             <span className="text-sm text-gray-500">
-              {formatDate(review.createdAt)}
+              {formatDate(review.createdAt, lang)}
             </span>
           </div>
         </div>
         {isOwnReview && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => onEdit(review)}
-            className="ml-4"
-          >
-            Edit
-          </Button>
+          <div className="ml-4 flex shrink-0 items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => onEdit(review)}
+              disabled={isDeleting}
+            >
+              {t('common.reviews.editReview')}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => onDelete(review)}
+              disabled={isDeleting}
+              className="text-red-600 hover:text-red-700"
+            >
+              {isDeleting ? t('common.reviews.deletingReview') : t('common.reviews.deleteReview')}
+            </Button>
+          </div>
         )}
       </div>
       <p className="text-gray-700 whitespace-pre-wrap">{review.comment}</p>

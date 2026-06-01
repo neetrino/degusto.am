@@ -9,15 +9,25 @@ import {
 import { productsSlugService } from "@/lib/services/products-slug.service";
 import { getProductReviewSummary } from "@/lib/services/reviews/product-review-summary";
 import type { ProductReviewSummary } from "@/lib/services/reviews/product-review-summary";
+import { reviewsService } from "@/lib/services/reviews.service";
+import type { ProductReviewListItem } from "@/lib/services/reviews.service";
 import {
   getStorefrontLocaleFallbackChain,
   type StorefrontLocale,
 } from "@/lib/i18n/locale";
+import { findRelatedByProductSlug } from "@/lib/services/products-slug/product-related.service";
+import type { RelatedCardPayload } from "@/lib/services/products-slug/product-related-transform";
 
 export type ProductPageData = Awaited<ReturnType<typeof productsSlugService.findBySlug>>;
 
 export type ProductPageLoadResult =
-  | { status: "ok"; product: ProductPageData; reviewSummary: ProductReviewSummary }
+  | {
+      status: "ok";
+      product: ProductPageData;
+      reviewSummary: ProductReviewSummary;
+      initialReviews: ProductReviewListItem[];
+      initialRelatedProducts: RelatedCardPayload[];
+    }
   | { status: "not_found" };
 
 const PDP_PAGE_REVALIDATE_SECONDS = STOREFRONT_CACHE_TTL.productDetails;
@@ -38,15 +48,35 @@ async function loadProductPageDataUncached(
     const cacheKey = STOREFRONT_CACHE_KEYS.productDetails(candidateLocale, slug);
     const cached = await readJsonCache<ProductPageData>(cacheKey);
     if (cached) {
-      const reviewSummary = await getProductReviewSummary(cached.id);
-      return { status: "ok", product: cached, reviewSummary };
+      const [reviewSummary, initialReviews, relatedResult] = await Promise.all([
+        getProductReviewSummary(cached.id),
+        reviewsService.getProductReviews(cached.id, { publishedOnly: true }),
+        findRelatedByProductSlug(slug, candidateLocale),
+      ]);
+      return {
+        status: "ok",
+        product: cached,
+        reviewSummary,
+        initialReviews,
+        initialRelatedProducts: relatedResult.data,
+      };
     }
 
     try {
       const product = await productsSlugService.findBySlug(slug, candidateLocale);
       await writeJsonCache(cacheKey, STOREFRONT_CACHE_TTL.productDetails, product);
-      const reviewSummary = await getProductReviewSummary(product.id);
-      return { status: "ok", product, reviewSummary };
+      const [reviewSummary, initialReviews, relatedResult] = await Promise.all([
+        getProductReviewSummary(product.id),
+        reviewsService.getProductReviews(product.id, { publishedOnly: true }),
+        findRelatedByProductSlug(slug, candidateLocale),
+      ]);
+      return {
+        status: "ok",
+        product,
+        reviewSummary,
+        initialReviews,
+        initialRelatedProducts: relatedResult.data,
+      };
     } catch (error: unknown) {
       const err = error as { status?: number };
       const isLastLocale = index === fallbacks.length - 1;

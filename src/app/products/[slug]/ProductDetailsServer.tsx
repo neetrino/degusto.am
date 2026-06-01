@@ -22,6 +22,7 @@ export async function ProductDetailsServer({ slug, locale }: ProductDetailsServe
     <ProductDetailsSetter
       product={result.product as Product}
       reviewSummary={result.reviewSummary}
+      initialReviews={result.initialReviews}
     />
   );
 }

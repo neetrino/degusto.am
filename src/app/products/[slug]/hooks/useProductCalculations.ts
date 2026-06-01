@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { resolveStorefrontDiscountPercent } from '@/lib/storefront/discount-percent';
 import type { Product, ProductVariant, AttributeGroupValue } from '../types';
 
 interface UseProductCalculationsProps {
@@ -45,7 +46,12 @@ export function useProductCalculations({
     currentVariant?.compareAtPrice != null
       ? currentVariant.compareAtPrice + attributePriceAdjustment
       : undefined;
-  const discountPercent = currentVariant?.productDiscount || product?.productDiscount || null;
+  const discountPercent = resolveStorefrontDiscountPercent({
+    price,
+    originalPrice,
+    compareAtPrice: compareAtPrice ?? null,
+    productDiscount: currentVariant?.productDiscount ?? product?.productDiscount ?? null,
+  });
   const isOutOfStock = !currentVariant || currentVariant.stock <= 0;
 
   const colorGroups = useMemo(() => {

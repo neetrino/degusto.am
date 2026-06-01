@@ -33,6 +33,7 @@ export function useReviewForm({
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [deletingReviewId, setDeletingReviewId] = useState<string | null>(null);
   const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
 
   const handleEditReview = (review: Review) => {
@@ -109,7 +110,7 @@ export function useReviewForm({
         try {
           const identifier = productSlug || productId;
           if (!identifier) {
-            alert(t('common.reviews.alreadyReviewed') || 'You have already reviewed this product');
+            alert(t('common.reviews.alreadyReviewed'));
             return;
           }
 
@@ -125,19 +126,18 @@ export function useReviewForm({
             
             // Show in edit mode
             handleEditReview(existingReview);
-            alert(t('common.reviews.alreadyReviewed') || 'You have already reviewed this product. You can update your review below.');
+            alert(t('common.reviews.alreadyReviewedEditable'));
           } else {
-            alert(t('common.reviews.alreadyReviewed') || 'You have already reviewed this product');
+            alert(t('common.reviews.alreadyReviewed'));
           }
         } catch (loadError: unknown) {
           console.error('❌ [PRODUCT REVIEWS] Error loading existing review:', loadError);
-          // Fallback to checking local reviews
           const userReview = user ? reviews.find(r => r.userId === user.id) : null;
           if (userReview) {
             handleEditReview(userReview);
-            alert(t('common.reviews.alreadyReviewed') || 'You have already reviewed this product. You can update your review below.');
+            alert(t('common.reviews.alreadyReviewedEditable'));
           } else {
-            alert(t('common.reviews.alreadyReviewed') || 'You have already reviewed this product');
+            alert(t('common.reviews.alreadyReviewed'));
           }
         }
       } else if (err.status === 401) {
@@ -201,12 +201,62 @@ export function useReviewForm({
       if (err.status === 401) {
         alert(t('common.reviews.loginRequired'));
       } else if (err.status === 403) {
-        alert('You can only update your own reviews');
+        alert(t('common.reviews.updateOwnReviewOnly'));
       } else {
         alert(t('common.reviews.submitError'));
       }
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDeleteReview = async (review: Review) => {
+    if (!isLoggedIn) {
+      alert(t('common.reviews.loginRequired'));
+      return;
+    }
+
+    if (!window.confirm(t('common.reviews.confirmDeleteReview'))) {
+      return;
+    }
+
+    setDeletingReviewId(review.id);
+
+    try {
+      logger.debug('📝 [PRODUCT REVIEWS] Deleting review:', { reviewId: review.id });
+
+      await apiClient.delete<{ success: boolean }>(`/api/v1/reviews/${review.id}`);
+
+      logger.debug('✅ [PRODUCT REVIEWS] Review deleted successfully:', review.id);
+
+      setReviews((prev) => prev.filter((r) => r.id !== review.id));
+
+      if (editingReviewId === review.id) {
+        setEditingReviewId(null);
+        setRating(0);
+        setComment('');
+        setShowForm(false);
+      }
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('review-updated'));
+      }
+
+      onReviewUpdated?.();
+    } catch (error: unknown) {
+      console.error('❌ [PRODUCT REVIEWS] Error deleting review:', error);
+
+      const err = error as { status?: number };
+
+      if (err.status === 401) {
+        alert(t('common.reviews.loginRequired'));
+      } else if (err.status === 403) {
+        alert(t('common.reviews.deleteOwnReviewOnly'));
+      } else {
+        alert(t('common.reviews.deleteReviewError'));
+      }
+    } finally {
+      setDeletingReviewId(null);
     }
   };
 
@@ -220,11 +270,13 @@ export function useReviewForm({
     comment,
     setComment,
     submitting,
+    deletingReviewId,
     editingReviewId,
     handleEditReview,
     handleCancelEdit,
     handleSubmit,
     handleUpdateReview,
+    handleDeleteReview,
   };
 }
 

@@ -3,11 +3,18 @@
 import { ReviewRating } from './ReviewRating';
 import { calculateAverageRating, calculateRatingDistribution, type Review } from './utils';
 import { useTranslation } from '../../lib/i18n-client';
+import { montserratArmFont } from '@/fonts/montserrat-arm-font';
 import {
-  PDP_FIGMA_MUTED,
   PDP_FIGMA_ORANGE,
   PDP_FIGMA_PROGRESS_TRACK,
-  PDP_FIGMA_TEXT,
+  PDP_REVIEWS_BAR_HEIGHT_CLASS,
+  PDP_REVIEWS_BAR_LABEL_CLASS,
+  PDP_REVIEWS_BAR_LABEL_GAP_CLASS,
+  PDP_REVIEWS_BAR_RADIUS_CLASS,
+  PDP_REVIEWS_BAR_ROWS_GAP_CLASS,
+  PDP_REVIEWS_BARS_OFFSET_CLASS,
+  PDP_REVIEWS_COUNT_CLASS,
+  PDP_REVIEWS_SCORE_CLASS,
 } from '@/constants/pdp-figma-tokens';
 
 interface ReviewSummaryProps {
@@ -15,26 +22,28 @@ interface ReviewSummaryProps {
 }
 
 /**
- * Rating summary and distribution — Figma PDP layout (bars left, score right).
+ * Rating summary and distribution — Figma node 10:2231 (bars left, score right).
  */
 export function ReviewSummary({ reviews }: ReviewSummaryProps) {
   const { t } = useTranslation();
   const averageRating = calculateAverageRating(reviews);
-  const ratingDistribution = calculateRatingDistribution(reviews);
+  const ratingDistribution = calculateRatingDistribution(reviews).reverse();
   const displayRating = reviews.length > 0 ? averageRating : 5;
 
   return (
-    <div className="mb-8 grid grid-cols-1 items-start gap-8 md:grid-cols-[1fr_auto] md:gap-12">
-      <div className="order-2 md:order-1">
+    <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-[minmax(0,1fr)_auto] md:gap-x-12 lg:gap-x-16">
+      <div
+        className={`order-2 flex flex-col ${PDP_REVIEWS_BAR_ROWS_GAP_CLASS} ${PDP_REVIEWS_BARS_OFFSET_CLASS} md:order-1`}
+      >
         {ratingDistribution.map(({ star, percentage }) => (
-          <div key={star} className="mb-2 flex items-center gap-5 last:mb-0">
-            <span className="w-4 shrink-0 text-center text-lg font-bold text-[#aaa]">{star}</span>
+          <div key={star} className={`flex items-center ${PDP_REVIEWS_BAR_LABEL_GAP_CLASS}`}>
+            <span className={PDP_REVIEWS_BAR_LABEL_CLASS}>{star}</span>
             <div
-              className="h-[14px] flex-1 overflow-hidden rounded-full"
+              className={`${PDP_REVIEWS_BAR_HEIGHT_CLASS} min-w-0 flex-1 overflow-hidden ${PDP_REVIEWS_BAR_RADIUS_CLASS}`}
               style={{ backgroundColor: PDP_FIGMA_PROGRESS_TRACK }}
             >
               <div
-                className="h-full rounded-full transition-[width] duration-500"
+                className={`${PDP_REVIEWS_BAR_HEIGHT_CLASS} ${PDP_REVIEWS_BAR_RADIUS_CLASS} transition-[width] duration-500`}
                 style={{ width: `${percentage}%`, backgroundColor: PDP_FIGMA_ORANGE }}
               />
             </div>
@@ -43,12 +52,7 @@ export function ReviewSummary({ reviews }: ReviewSummaryProps) {
       </div>
 
       <div className="order-1 flex flex-col items-center md:order-2 md:items-end md:text-right">
-        <div
-          className="text-[64px] font-semibold leading-none sm:text-[80px]"
-          style={{ color: PDP_FIGMA_TEXT }}
-        >
-          {displayRating.toFixed(1)}
-        </div>
+        <div className={PDP_REVIEWS_SCORE_CLASS}>{displayRating.toFixed(1)}</div>
         <ReviewRating
           rating={Math.round(displayRating)}
           hoveredRating={0}
@@ -58,7 +62,7 @@ export function ReviewSummary({ reviews }: ReviewSummaryProps) {
           interactive={false}
           starColor={PDP_FIGMA_ORANGE}
         />
-        <div className="mt-3 text-lg" style={{ color: PDP_FIGMA_MUTED }}>
+        <div className={`${PDP_REVIEWS_COUNT_CLASS} ${montserratArmFont.className}`}>
           {reviews.length}{' '}
           {reviews.length === 1 ? t('common.reviews.review') : t('common.reviews.reviews')}
         </div>

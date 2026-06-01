@@ -1,25 +1,31 @@
 'use client';
 
-import { Minus, Plus, Trash2 } from 'lucide-react';
+import { Minus, Plus } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import type { MouseEvent } from 'react';
 import { useWishlist } from '../../../components/hooks/useWishlist';
-import { WishlistHeartIcon } from '../../../components/icons/WishlistHeartIcon';
 import { useAuth } from '../../../lib/auth/AuthContext';
+import { montserratArmFont } from '../../../fonts/montserrat-arm-font';
 import { formatPrice, type CurrencyCode } from '../../../lib/currency';
 import { t, getProductText } from '../../../lib/i18n';
 import type { LanguageCode } from '../../../lib/language';
 import { sanitizeHtml } from '../../../lib/utils/sanitize';
+import { PdpActionHeartIcon } from './PdpActionHeartIcon';
+import { PdpActionTrashIcon } from './PdpActionTrashIcon';
 import { PdpCustomizationPills } from './PdpCustomizationPills';
 import { PdpSecondaryIconButton } from './PdpSecondaryIconButton';
 import { ProductAttributesSelector } from './ProductAttributesSelector';
 import { ProductRatingSummary } from './ProductRatingSummary';
 import {
   PDP_FIGMA_ORANGE,
-  PDP_FIGMA_TEXT,
   PDP_DESCRIPTION_CLASS,
+  PDP_TITLE_CLASS,
   PDP_PRICE_CLASS,
+  PDP_COMPARE_PRICE_CLASS,
+  PDP_PRICE_ROW_CLASS,
+  PDP_ADD_TO_CART_BUTTON_CLASS,
+  PDP_QUANTITY_SELECTOR_CLASS,
   PDP_PILL_RADIUS_CLASS,
 } from '@/constants/pdp-figma-tokens';
 import type { Product, ProductVariant, AttributeGroupValue, VariantOption } from './types';
@@ -29,7 +35,6 @@ interface ProductInfoAndActionsProps {
   price: number;
   originalPrice: number | null;
   compareAtPrice: number | null;
-  discountPercent: number | null;
   currency: string;
   language: LanguageCode;
   averageRating: number;
@@ -66,7 +71,6 @@ export function ProductInfoAndActions({
   price,
   originalPrice,
   compareAtPrice,
-  discountPercent,
   currency,
   language,
   averageRating,
@@ -110,10 +114,16 @@ export function ProductInfoAndActions({
     void toggleWishlist();
   };
 
+  const comparePrice =
+    originalPrice != null && originalPrice > price
+      ? originalPrice
+      : compareAtPrice != null && compareAtPrice > price
+        ? compareAtPrice
+        : null;
+
   return (
-    <div className="flex w-full max-w-full flex-col self-start max-lg:px-0 max-lg:py-0 lg:px-0 lg:py-0">
-      <div className="flex min-h-0 flex-col">
-        <div>
+    <div className="flex w-full max-w-full flex-col self-start max-lg:px-0 max-lg:py-0 lg:h-full lg:min-h-0 lg:justify-between lg:self-stretch lg:px-0 lg:py-0">
+      <div>
           {product.brand ? (
             <div className="mb-3 flex items-center gap-2">
               {product.brand.logo || product.brand.logoUrl ? (
@@ -131,10 +141,7 @@ export function ProductInfoAndActions({
               <p className="text-sm text-[#868686]">{product.brand.name}</p>
             </div>
           ) : null}
-          <h1
-            className="mb-2 text-[28px] font-bold leading-tight sm:text-[32px] lg:text-[36px]"
-            style={{ color: PDP_FIGMA_TEXT }}
-          >
+          <h1 className={`${PDP_TITLE_CLASS} ${montserratArmFont.className}`}>
             {getProductText(language, product.id, 'title') || product.title}
           </h1>
           <ProductRatingSummary
@@ -143,19 +150,16 @@ export function ProductInfoAndActions({
             onReviewsClick={onScrollToReviews}
             language={language}
           />
-          <p className={PDP_PRICE_CLASS}>
-            {formatPrice(price, currency as CurrencyCode)}
-            {discountPercent && discountPercent > 0 ? (
-              <span className="ml-3 text-lg font-semibold" style={{ color: PDP_FIGMA_ORANGE }}>
-                -{discountPercent}%
+          <div className={PDP_PRICE_ROW_CLASS}>
+            <span className={`${PDP_PRICE_CLASS} ${montserratArmFont.className}`}>
+              {formatPrice(price, currency as CurrencyCode)}
+            </span>
+            {comparePrice != null ? (
+              <span className={`${PDP_COMPARE_PRICE_CLASS} ${montserratArmFont.className}`}>
+                {formatPrice(comparePrice, currency as CurrencyCode)}
               </span>
             ) : null}
-          </p>
-          {originalPrice || (compareAtPrice && compareAtPrice > price) ? (
-            <p className="-mt-2 mb-4 text-lg leading-normal line-through text-[#3c2f2f]">
-              {formatPrice(originalPrice || compareAtPrice || 0, currency as CurrencyCode)}
-            </p>
-          ) : null}
+          </div>
           <div
             className={PDP_DESCRIPTION_CLASS}
             dangerouslySetInnerHTML={{
@@ -166,6 +170,7 @@ export function ProductInfoAndActions({
           />
 
           <PdpCustomizationPills
+            product={product}
             language={language}
             additions={additions}
             exclusions={exclusions}
@@ -193,11 +198,10 @@ export function ProductInfoAndActions({
           </div>
         </div>
 
-        <div className="mt-6 pt-2 lg:mt-8">
+      <div className="mt-6 pt-2 lg:mt-auto lg:pt-0">
           <div className="flex items-center gap-2.5 sm:gap-3">
             <div
-              className={`inline-flex h-12 shrink-0 items-center gap-1 border-2 bg-white px-1 ${PDP_PILL_RADIUS_CLASS}`}
-              style={{ borderColor: PDP_FIGMA_ORANGE }}
+              className={PDP_QUANTITY_SELECTOR_CLASS}
               role="group"
               aria-label={t(language, 'common.messages.quantity')}
             >
@@ -212,7 +216,7 @@ export function ProductInfoAndActions({
                 <Minus className="h-5 w-5" strokeWidth={2.5} aria-hidden />
               </button>
               <span
-                className="min-w-[1.75rem] select-none px-1 text-center text-lg font-medium tabular-nums"
+                className="min-w-[1.75rem] select-none text-center text-lg font-medium tabular-nums"
                 style={{ color: PDP_FIGMA_ORANGE }}
               >
                 {quantity}
@@ -231,8 +235,7 @@ export function ProductInfoAndActions({
             <button
               type="button"
               disabled={!canAddToCart || isAddingToCart}
-              className={`h-12 flex-1 px-6 text-base font-medium text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-500 ${PDP_PILL_RADIUS_CLASS}`}
-              style={{ backgroundColor: canAddToCart && !isAddingToCart ? PDP_FIGMA_ORANGE : undefined }}
+              className={`${PDP_ADD_TO_CART_BUTTON_CLASS} ${PDP_PILL_RADIUS_CLASS} ${montserratArmFont.className}`}
               onClick={onAddToCart}
             >
               {isAddingToCart
@@ -254,8 +257,8 @@ export function ProductInfoAndActions({
                   : t(language, 'common.messages.addedToWishlist')
               }
             >
-              <span className={isInWishlist ? 'text-[#ff7f20]' : 'text-[#3c2f2f]'}>
-                <WishlistHeartIcon filled={isInWishlist} size={29} />
+              <span className={isInWishlist ? 'text-[#ff7f20]' : 'text-[#494949]'}>
+                <PdpActionHeartIcon />
               </span>
             </PdpSecondaryIconButton>
             <PdpSecondaryIconButton
@@ -263,11 +266,12 @@ export function ProductInfoAndActions({
               aria-label={t(language, 'product.resetOptionsAria')}
               title={t(language, 'product.resetOptionsAria')}
             >
-              <Trash2 className="h-[30px] w-[30px] text-[#3c2f2f]" strokeWidth={1.75} aria-hidden />
+              <span className="text-[#494949]">
+                <PdpActionTrashIcon />
+              </span>
             </PdpSecondaryIconButton>
           </div>
         </div>
-      </div>
     </div>
   );
 }

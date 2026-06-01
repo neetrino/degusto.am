@@ -1,8 +1,10 @@
 'use client';
 
+import { useTranslation } from '../../../lib/i18n-client';
 import { ProductInfoColumnSkeleton } from './ProductInfoColumnSkeleton';
 import {
   PDP_HERO_FRAME_CLASS,
+  PDP_HERO_FRAME_SKELETON_MIN_HEIGHT_CLASS,
   PDP_HERO_GRID_CLASS,
   PDP_HERO_IMAGE_OFFSET_CLASS,
   PDP_HERO_INFO_OFFSET_CLASS,
@@ -16,13 +18,15 @@ import {
  * Initial PDP skeleton before first visual payload (stable min-height to limit CLS).
  */
 export function ProductPageShell() {
+  const { t } = useTranslation();
+
   return (
     <div
       className={`${STOREFRONT_DESKTOP_CONTENT_CLASS} max-lg:px-4 max-lg:py-6 px-4 py-12 min-h-[min(100dvh,720px)] sm:px-6 lg:px-0 lg:py-10`}
       aria-busy="true"
-      aria-label="Product loading"
+      aria-label={t('product.loadingAria')}
     >
-      <section className={`${PDP_HERO_FRAME_CLASS} max-lg:p-4 sm:max-lg:p-6 lg:p-0`}>
+      <section className={`${PDP_HERO_FRAME_CLASS} ${PDP_HERO_FRAME_SKELETON_MIN_HEIGHT_CLASS} max-lg:p-4 sm:max-lg:p-6 lg:p-0`}>
         <div className={PDP_HERO_GRID_CLASS}>
           <div className={`${PDP_HERO_IMAGE_OFFSET_CLASS} flex w-full flex-col gap-4`} aria-hidden>
             <div

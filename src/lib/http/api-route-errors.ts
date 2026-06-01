@@ -35,7 +35,7 @@ export function parseRouteCatchError(error: unknown): RouteCatchFields {
   return {};
 }
 
-const PRISMA_CONNECTION_CODES = new Set(["P1001", "P1002", "P1017"]);
+const PRISMA_CONNECTION_CODES = new Set(["P1001", "P1002", "P1017", "P2024"]);
 
 /** Avoid importing `@prisma/client` here — it pulls the query engine into Turbopack NFT tracing. */
 function isPrismaKnownRequestError(error: unknown): error is { code: string } {

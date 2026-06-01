@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { problemTypes } from "@/lib/http/problem-details";
+import { apiRouteErrorResponse } from "@/lib/http/api-route-errors";
 import { resolveStorefrontLocaleFromSearchParams } from "@/lib/i18n/locale";
-import { parseRouteCatchError } from "@/lib/http/api-route-errors";
 import { reviewsService } from "@/lib/services/reviews.service";
 import { resolveReviewsProductId } from "@/lib/services/reviews/resolve-reviews-product-id";
 import { authenticateToken } from "@/lib/middleware/auth";
@@ -29,6 +29,28 @@ export async function GET(
     const productIdParam = searchParams.get("productId");
 
     logger.debug("[REVIEWS API] GET", { slug, myReview, hasProductId: Boolean(productIdParam?.trim()) });
+
+    const trimmedProductId = productIdParam?.trim();
+
+    if (!myReview && trimmedProductId) {
+      const fastPath = await reviewsService.getPublishedReviewsForSlugAndProductId(
+        slug,
+        trimmedProductId
+      );
+      if (fastPath.status === "not_found") {
+        return NextResponse.json(
+          {
+            type: problemTypes.notFound,
+            title: "Product not found",
+            status: 404,
+            detail: `Product with slug '${slug}' does not exist`,
+            instance: req.url,
+          },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json(fastPath.reviews);
+    }
 
     const productId = await resolveReviewsProductId(slug, lang, productIdParam);
     if (!productId) {
@@ -71,18 +93,7 @@ export async function GET(
 
     return NextResponse.json(reviews);
   } catch (error: unknown) {
-    logger.error("[REVIEWS API] GET Error", error);
-    const e = parseRouteCatchError(error);
-    return NextResponse.json(
-      {
-        type: e.type ?? problemTypes.internalError,
-        title: e.title ?? "Internal Server Error",
-        status: e.status ?? 500,
-        detail: e.detail ?? e.message ?? "An error occurred",
-        instance: req.url,
-      },
-      { status: e.status ?? 500 }
-    );
+    return apiRouteErrorResponse(req, error, "[REVIEWS API] GET Error");
   }
 }
 
@@ -169,18 +180,7 @@ export async function POST(
 
     return NextResponse.json(review, { status: 201 });
   } catch (error: unknown) {
-    logger.error("[REVIEWS API] POST Error", error);
-    const e = parseRouteCatchError(error);
-    return NextResponse.json(
-      {
-        type: e.type ?? problemTypes.internalError,
-        title: e.title ?? "Internal Server Error",
-        status: e.status ?? 500,
-        detail: e.detail ?? e.message ?? "An error occurred",
-        instance: req.url,
-      },
-      { status: e.status ?? 500 }
-    );
+    return apiRouteErrorResponse(req, error, "[REVIEWS API] POST Error");
   }
 }
 

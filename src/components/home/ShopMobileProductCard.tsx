@@ -201,7 +201,7 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
         onClick={handleAddToCart}
         disabled={isAddingToCart || card.inStock === false}
         aria-label={t('common.buttons.addToCart')}
-        className="absolute -bottom-[14px] left-1/2 inline-flex h-[42px] w-[42px] -translate-x-1/2 items-center justify-center"
+        className="absolute -bottom-[14px] left-1/2 z-20 inline-flex h-[42px] w-[42px] -translate-x-1/2 items-center justify-center disabled:opacity-50"
       >
         <HomeOptimizedImage
           src={MOBILE_SHOP_PRODUCT_CARD_ASSETS.addToCart}

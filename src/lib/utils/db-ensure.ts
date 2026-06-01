@@ -8,6 +8,7 @@ let tableExists = false;
 // Cache for product_reviews table
 let reviewsTableChecked = false;
 let reviewsTableExists = false;
+let reviewsTableEnsureInFlight: Promise<boolean> | null = null;
 
 // Cache for product_variants.attributes column
 let attributesColumnChecked = false;
@@ -180,6 +181,19 @@ export async function ensureProductReviewsTable(): Promise<boolean> {
   if (reviewsTableChecked && reviewsTableExists) {
     return true;
   }
+  if (reviewsTableEnsureInFlight) {
+    return reviewsTableEnsureInFlight;
+  }
+
+  reviewsTableEnsureInFlight = ensureProductReviewsTableInner();
+  try {
+    return await reviewsTableEnsureInFlight;
+  } finally {
+    reviewsTableEnsureInFlight = null;
+  }
+}
+
+async function ensureProductReviewsTableInner(): Promise<boolean> {
   try {
     // Try to query the table to check if it exists
     await db.$queryRaw`SELECT 1 FROM "product_reviews" LIMIT 1`;

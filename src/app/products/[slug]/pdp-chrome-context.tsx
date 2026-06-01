@@ -10,7 +10,7 @@ import {
 } from 'react';
 
 interface PdpChromeContextValue {
-  /** Desktop PDP side rails + footer gutter: orange when true, white while loading. */
+  /** Reserved for future PDP desktop chrome sync (footer/side rails). */
   isDesktopChromeReady: boolean;
   setDesktopChromeReady: (ready: boolean) => void;
 }
