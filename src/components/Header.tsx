@@ -338,15 +338,6 @@ export function Header() {
       return;
     }
 
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('auth_token');
-      if (!token) {
-        setCartCount(0);
-        setCartTotal(0);
-        return;
-      }
-    }
-
     try {
       const response = await apiClient.get<{
         cart: {
