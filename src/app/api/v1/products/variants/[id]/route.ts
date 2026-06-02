@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { problemTypes } from "@/lib/http/problem-details";
 import { parseRouteCatchError } from "@/lib/http/api-route-errors";
 import { db } from "@white-shop/db";
+import { hasSellableStock } from "@/lib/product-stock";
 import { logger } from "@/lib/utils/logger";
 
 export async function GET(
@@ -34,8 +35,7 @@ export async function GET(
       );
     }
 
-    // Calculate available based on stock > 0 and published === true
-    const available = variant.stock > 0 && variant.published === true;
+    const available = hasSellableStock(variant.stock) && variant.published === true;
 
     return NextResponse.json({
       id: variant.id,

@@ -91,7 +91,7 @@ export function SimpleProductFields({
           {/* Quantity */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('admin.products.add.quantity')} *
+              {t('admin.products.add.quantity')}
             </label>
             <Input
               type="number"
@@ -100,7 +100,6 @@ export function SimpleProductFields({
               placeholder={t('admin.products.add.quantityPlaceholder')}
               className="w-full"
               min="0"
-              required
             />
           </div>
         </div>

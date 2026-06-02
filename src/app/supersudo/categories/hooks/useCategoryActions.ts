@@ -4,6 +4,7 @@ import { logger } from '../../../../lib/utils/logger';
 import { showToast } from '../../../../components/Toast';
 import { useTranslation } from '../../../../lib/i18n-client';
 import type { Category, CategoryFormData } from '../types';
+import type { FetchCategoriesFn } from './useCategories';
 
 interface UseCategoryActionsReturn {
   showAddModal: boolean;
@@ -19,12 +20,12 @@ interface UseCategoryActionsReturn {
   setFormData: (data: CategoryFormData) => void;
   handleImageUpload: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;
   removeImage: () => void;
-  handleAddCategory: (fetchCategories: () => Promise<void>) => Promise<void>;
+  handleAddCategory: (fetchCategories: FetchCategoriesFn) => Promise<void>;
   handleEditCategory: (category: Category) => Promise<void>;
-  handleUpdateCategory: (fetchCategories: () => Promise<void>) => Promise<void>;
+  handleUpdateCategory: (fetchCategories: FetchCategoriesFn) => Promise<void>;
   handleDeleteCategory: (categoryId: string, categoryTitle: string) => void;
   cancelDeleteCategory: () => void;
-  confirmDeleteCategory: (fetchCategories: () => Promise<void>) => Promise<void>;
+  confirmDeleteCategory: (fetchCategories: FetchCategoriesFn) => Promise<void>;
   resetForm: () => void;
 }
 
@@ -63,7 +64,7 @@ export function useCategoryActions(): UseCategoryActionsReturn {
     setFormData(initialFormData);
   };
 
-  const handleAddCategory = async (fetchCategories: () => Promise<void>) => {
+  const handleAddCategory = async (fetchCategories: FetchCategoriesFn) => {
     if (!formData.title.trim()) {
       showToast(t('admin.categories.titleRequired'), 'warning');
       return;
@@ -81,7 +82,7 @@ export function useCategoryActions(): UseCategoryActionsReturn {
       });
       setShowAddModal(false);
       resetForm();
-      await fetchCategories();
+      await fetchCategories({ silent: true });
       showToast(t('admin.categories.createdSuccess'), 'success');
     } catch (err: unknown) {
       logger.error('Error creating category', { error: err });
@@ -126,7 +127,7 @@ export function useCategoryActions(): UseCategoryActionsReturn {
     setShowEditModal(true);
   };
 
-  const handleUpdateCategory = async (fetchCategories: () => Promise<void>) => {
+  const handleUpdateCategory = async (fetchCategories: FetchCategoriesFn) => {
     if (!editingCategory || !formData.title.trim()) {
       showToast(t('admin.categories.titleRequired'), 'warning');
       return;
@@ -151,7 +152,7 @@ export function useCategoryActions(): UseCategoryActionsReturn {
       setShowEditModal(false);
       setEditingCategory(null);
       resetForm();
-      await fetchCategories();
+      await fetchCategories({ silent: true });
       showToast(t('admin.categories.updatedSuccess'), 'success');
     } catch (err: unknown) {
       logger.error('Error updating category', { error: err });
@@ -210,7 +211,7 @@ export function useCategoryActions(): UseCategoryActionsReturn {
     setPendingDeleteCategory(null);
   };
 
-  const confirmDeleteCategory = async (fetchCategories: () => Promise<void>) => {
+  const confirmDeleteCategory = async (fetchCategories: FetchCategoriesFn) => {
     if (!pendingDeleteCategory) {
       return;
     }
@@ -223,7 +224,7 @@ export function useCategoryActions(): UseCategoryActionsReturn {
       });
       await apiClient.delete(`/api/v1/admin/categories/${pendingDeleteCategory.id}`);
       logger.info('Category deleted successfully');
-      await fetchCategories();
+      await fetchCategories({ silent: true });
       setPendingDeleteCategory(null);
       showToast(t('admin.categories.deletedSuccess'), 'success');
     } catch (err: unknown) {

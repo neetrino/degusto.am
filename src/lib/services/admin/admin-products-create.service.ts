@@ -8,6 +8,7 @@ import {
   cleanImageUrls,
   separateMainAndVariantImages,
 } from "../../utils/image-utils";
+import { parseAdminStockInput } from '@/lib/product-stock';
 import { logger } from "@/lib/utils/logger";
 import { revalidateStorefrontMenuCaches } from "@/lib/cache/revalidate-storefront-menu-caches";
 import { ensureUniqueProductSlug } from "./product-slug-utils";
@@ -247,7 +248,7 @@ class AdminProductsCreateService {
             }
 
             const price = typeof variant.price === 'number' ? variant.price : parseFloat(String(variant.price));
-            const stock = typeof variant.stock === 'number' ? variant.stock : parseInt(String(variant.stock), 10);
+            const stock = parseAdminStockInput(variant.stock);
             const compareAtPrice = variant.compareAtPrice !== undefined && variant.compareAtPrice !== null && variant.compareAtPrice !== ''
               ? (typeof variant.compareAtPrice === 'number' ? variant.compareAtPrice : parseFloat(String(variant.compareAtPrice)))
               : undefined;
@@ -280,7 +281,7 @@ class AdminProductsCreateService {
               sku: uniqueSku,
               price,
               compareAtPrice,
-              stock: isNaN(stock) ? 0 : stock,
+              stock,
               imageUrl: processedVariantImageUrl,
               published: variant.published !== false,
               attributes: attributesJson, // JSONB column

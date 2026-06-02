@@ -30,6 +30,16 @@ export function buildCategoryTree(categories: Category[]): CategoryWithLevel[] {
     }
   });
 
+  const sortByPosition = (nodes: CategoryWithLevelInternal[]): CategoryWithLevelInternal[] =>
+    [...nodes].sort((left, right) => (left.position ?? 0) - (right.position ?? 0));
+
+  rootCategories.splice(0, rootCategories.length, ...sortByPosition(rootCategories));
+  categoryMap.forEach((node) => {
+    if (node.children) {
+      node.children = sortByPosition(node.children);
+    }
+  });
+
   // Flatten tree for display
   const flattenTree = (
     nodes: CategoryWithLevelInternal[], 

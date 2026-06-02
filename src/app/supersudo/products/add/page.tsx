@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect } from 'react';
+import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../../../../lib/auth/AuthContext';
 import { useTranslation } from '../../../../lib/i18n-client';
@@ -62,7 +62,6 @@ function AddProductPageContent() {
     setSelectedAttributesForVariants: formState.setSelectedAttributesForVariants,
     setSelectedAttributeValueIds: formState.setSelectedAttributeValueIds,
     setOpenValueModal: formState.setOpenValueModal,
-    productFetchNonce: formState.productFetchNonce,
     setPendingVariantHydration: formState.setPendingVariantHydration,
   });
 
@@ -77,19 +76,6 @@ function AddProductPageContent() {
     setGeneratedVariants: formState.setGeneratedVariants,
     setHasVariantsToLoad: formState.setHasVariantsToLoad,
   });
-
-  useEffect(() => {
-    if (!isEditMode || !productId) {
-      return undefined;
-    }
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') {
-        formState.setProductFetchNonce((n) => n + 1);
-      }
-    };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
-  }, [isEditMode, productId, formState.setProductFetchNonce]);
 
   const { applyToAllVariants } = useVariantGeneration({
     selectedAttributesForVariants: formState.selectedAttributesForVariants,

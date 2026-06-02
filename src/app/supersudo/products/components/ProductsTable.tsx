@@ -20,6 +20,7 @@ import {
 } from '../../constants/admin-table-classes';
 import type { Product, ProductsResponse } from '../types';
 import type { DailyOfferSelection } from '@/lib/services/daily-offer/daily-offer.types';
+import { hasSellableStock, isUnlimitedStock } from '@/lib/product-stock';
 import { ProductFeaturedCell } from './ProductFeaturedCell';
 
 interface ProductsTableProps {
@@ -354,13 +355,21 @@ function ProductsTableLoadedView({
                           className="px-3 py-1 bg-gray-100 rounded-lg text-sm"
                         >
                           <span className="font-medium text-gray-900">{colorStock.color}:</span>
-                          <span className="ml-1 text-gray-600">{colorStock.stock} {t('admin.products.pcs')}</span>
+                          <span className="ml-1 text-gray-600">
+                            {isUnlimitedStock(colorStock.stock)
+                              ? t('admin.promocode.unlimited')
+                              : `${colorStock.stock} ${t('admin.products.pcs')}`}
+                          </span>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <span className="text-sm text-gray-500">
-                      {product.stock > 0 ? `${product.stock} ${t('admin.products.pcs')}` : `0 ${t('admin.products.pcs')}`}
+                      {isUnlimitedStock(product.stock)
+                        ? t('admin.promocode.unlimited')
+                        : hasSellableStock(product.stock)
+                          ? `${product.stock} ${t('admin.products.pcs')}`
+                          : `0 ${t('admin.products.pcs')}`}
                     </span>
                   )}
                 </td>

@@ -7,6 +7,7 @@ import {
   buildCustomizationLineKey,
   normalizeProductCustomizations,
 } from '../../lib/cart/customizations';
+import { isStockSufficient } from '@/lib/product-stock';
 
 /**
  * Guest cart item
@@ -177,7 +178,7 @@ export async function handleUpdateQuantity(
   if (!cartItem) return;
 
   if (cartItem.variant.stock !== undefined) {
-    if (quantity > cartItem.variant.stock) {
+    if (!isStockSufficient(cartItem.variant.stock, quantity)) {
       alert(`Մատչելի քանակը ${cartItem.variant.stock} հատ է: Դուք չեք կարող ավելացնել ավելի շատ քանակ:`);
       return;
     }
@@ -207,7 +208,7 @@ export async function handleUpdateQuantity(
       if (typeof window === 'undefined') return;
 
       // Check stock for guest cart
-      if (cartItem.variant.stock !== undefined && quantity > cartItem.variant.stock) {
+      if (cartItem.variant.stock !== undefined && !isStockSufficient(cartItem.variant.stock, quantity)) {
         alert(`Մատչելի քանակը ${cartItem.variant.stock} հատ է: Դուք չեք կարող ավելացնել ավելի շատ քանակ:`);
         // Revert optimistic update
         await fetchCart();

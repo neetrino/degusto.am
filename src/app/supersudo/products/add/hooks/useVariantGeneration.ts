@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { Attribute, GeneratedVariant } from '../types';
 import { generateSlug } from '../utils/productUtils';
 import { logger } from "@/lib/utils/logger";
@@ -31,6 +31,11 @@ export function useVariantGeneration({
   hasVariantsToLoad,
   setGeneratedVariants,
 }: UseVariantGenerationProps) {
+  const slugRef = useRef(formDataSlug);
+  const titleRef = useRef(formDataTitle);
+  slugRef.current = formDataSlug;
+  titleRef.current = formDataTitle;
+
   const generateVariantsFromAttributes = () => {
     logger.debug('🚀 [VARIANT BUILDER] Generating single variant with all attributes...');
 
@@ -57,7 +62,7 @@ export function useVariantGeneration({
         allSelectedValueIds.push(...selectedIds);
       });
 
-      const baseSlug = formDataSlug || generateSlug(formDataTitle) || 'PROD';
+      const baseSlug = slugRef.current || generateSlug(titleRef.current) || 'PROD';
       let sku = `${baseSlug}`;
 
       if (allSelectedValueIds.length > 0) {
@@ -128,8 +133,6 @@ export function useVariantGeneration({
     selectedAttributesForVariants,
     selectedAttributeValueIds,
     attributes,
-    formDataSlug,
-    formDataTitle,
     isEditMode,
     productId,
     hasVariantsToLoad,

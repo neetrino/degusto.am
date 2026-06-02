@@ -1,5 +1,13 @@
+import { isUnlimitedStock, UNLIMITED_STOCK } from '@/lib/product-stock';
 import type { ProductVariant } from '../types';
 import { isVariantCompatible } from './variant-compatibility';
+
+function sumVariantStocks(variants: ProductVariant[]): number {
+  if (variants.some((variant) => isUnlimitedStock(variant.stock))) {
+    return UNLIMITED_STOCK;
+  }
+  return variants.reduce((sum, variant) => sum + variant.stock, 0);
+}
 
 /**
  * Calculate stock for attribute value based on current selections
@@ -12,15 +20,12 @@ export function calculateStock(
   attrKey: string
 ): number {
   if (currentSelections.size > 0) {
-    // Filter variants by compatibility and sum their stock
     const compatibleVariants = variants.filter((v) =>
       isVariantCompatible(v, currentSelections, attrKey)
     );
-    return compatibleVariants.reduce((sum, v) => sum + v.stock, 0);
-  } else {
-    // No selections, show total stock
-    return variants.reduce((sum, v) => sum + v.stock, 0);
+    return sumVariantStocks(compatibleVariants);
   }
+  return sumVariantStocks(variants);
 }
 
 

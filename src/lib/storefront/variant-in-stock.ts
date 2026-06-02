@@ -1,3 +1,5 @@
+import { hasSellableStock } from '@/lib/product-stock';
+
 type VariantStockInput = {
   stock?: number | null;
   published?: boolean | null;
@@ -8,5 +10,5 @@ export function isPublishedVariantInStock(variant: VariantStockInput): boolean {
   if (!variant || variant.published === false) {
     return false;
   }
-  return (variant.stock ?? 0) > 0;
+  return hasSellableStock(variant.stock);
 }

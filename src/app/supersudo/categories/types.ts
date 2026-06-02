@@ -3,6 +3,7 @@ export interface Category {
   slug: string;
   title: string;
   parentId: string | null;
+  position?: number;
   requiresSizes?: boolean;
   imageUrl?: string | null;
   published?: boolean;

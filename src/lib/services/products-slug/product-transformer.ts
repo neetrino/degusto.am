@@ -6,6 +6,7 @@ import {
 } from "../../utils/image-utils";
 import { getStorefrontDiscountSettings } from "../storefront/get-storefront-discount-settings";
 import { logger } from "../../utils/logger";
+import { hasSellableStock } from "../../product-stock";
 import { getOutOfStockLabel } from "./utils";
 import type { ProductWithFullRelations, ProductVariantWithOptions } from "./types";
 
@@ -220,7 +221,7 @@ function transformVariants(
             };
           }
         }) : [],
-        available: variant.stock > 0,
+        available: hasSellableStock(variant.stock),
       };
     });
 }

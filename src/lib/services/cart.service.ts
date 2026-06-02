@@ -10,6 +10,7 @@ import {
 } from "../cart/customizations";
 import { sumVerifiedAttributePriceAdjustment } from "../cart/attribute-price-adjustment";
 import { cartVariantDisplayLinesFromPrismaOptions } from "../cart/cart-variant-display-lines";
+import { isStockSufficient } from "../product-stock";
 import { ensureCartItemCustomizationsColumn } from "../utils/db-ensure";
 
 class CartService {
@@ -388,7 +389,7 @@ class CartService {
     const totalQuantity = existingItem ? existingItem.quantity + quantity : quantity;
 
     // Check if total quantity exceeds available stock
-    if (totalQuantity > variant.stock) {
+    if (!isStockSufficient(variant.stock, totalQuantity)) {
       logger.warn("Cart: stock limit exceeded", {
         variantId,
         currentInCart: existingItem?.quantity ?? 0,
@@ -539,7 +540,7 @@ class CartService {
       where: { id: item.variantId },
     });
 
-    if (!variant || variant.stock < quantity) {
+    if (!variant || !isStockSufficient(variant.stock, quantity)) {
       throw {
         status: 422,
         type: problemTypes.validationError,

@@ -18,6 +18,19 @@ class AdminCategoriesService {
     }
   }
 
+  private async getNextCategoryPosition(_parentId: string | null): Promise<number> {
+    const aggregate = await db.category.aggregate({
+      where: {
+        deletedAt: null,
+      },
+      _max: {
+        position: true,
+      },
+    });
+
+    return (aggregate._max.position ?? -1) + 1;
+  }
+
   private extractImageUrl(media: unknown): string | null {
     if (!Array.isArray(media)) {
       return null;
@@ -99,7 +112,7 @@ class AdminCategoriesService {
     });
 
     return {
-      data: categories.map((category: { id: string; parentId: string | null; requiresSizes: boolean | null; published: boolean | null; media: unknown[]; translations?: Array<{ title: string; slug: string }> }) => {
+      data: categories.map((category: { id: string; parentId: string | null; position: number; requiresSizes: boolean | null; published: boolean | null; media: unknown[]; translations?: Array<{ title: string; slug: string }> }) => {
         const translations = Array.isArray(category.translations) ? category.translations : [];
         const translation = translations[0] || null;
         return {
@@ -107,12 +120,93 @@ class AdminCategoriesService {
           title: translation?.title || "",
           slug: translation?.slug || "",
           parentId: category.parentId,
+          position: category.position,
           requiresSizes: category.requiresSizes || false,
           published: Boolean(category.published),
           imageUrl: this.extractImageUrl(category.media),
         };
       }),
     };
+  }
+
+  /**
+   * Reorder sibling categories and rebalance global position values depth-first.
+   */
+  async reorderCategories(data: { parentId: string | null; orderedIds: string[] }) {
+    const { parentId, orderedIds } = data;
+    const normalizedParentId = parentId ?? null;
+
+    const categories = await db.category.findMany({
+      where: { deletedAt: null },
+      select: { id: true, parentId: true },
+      orderBy: { position: "asc" },
+    });
+
+    const siblingIds = categories
+      .filter((category) => (category.parentId ?? null) === normalizedParentId)
+      .map((category) => category.id);
+    const orderedIdSet = new Set(orderedIds);
+
+    if (siblingIds.length !== orderedIds.length) {
+      throw {
+        status: 400,
+        type: problemTypes.badRequest,
+        title: "Invalid reorder payload",
+        detail: "orderedIds must include every sibling category exactly once",
+      };
+    }
+
+    if (!siblingIds.every((id) => orderedIdSet.has(id))) {
+      throw {
+        status: 400,
+        type: problemTypes.badRequest,
+        title: "Invalid reorder payload",
+        detail: "orderedIds must only contain sibling categories under the same parent",
+      };
+    }
+
+    const siblingOrderByParent = new Map<string | null, string[]>();
+    for (const category of categories) {
+      const key = category.parentId ?? null;
+      if (!siblingOrderByParent.has(key)) {
+        siblingOrderByParent.set(key, []);
+      }
+      siblingOrderByParent.get(key)!.push(category.id);
+    }
+
+    siblingOrderByParent.set(normalizedParentId, orderedIds);
+
+    const depthFirstIds = this.buildDepthFirstCategoryOrder(categories, siblingOrderByParent);
+
+    await db.$transaction(
+      depthFirstIds.map((id, index) =>
+        db.category.update({
+          where: { id },
+          data: { position: index },
+        }),
+      ),
+    );
+
+    void this.revalidateStorefrontAfterCategoryChange();
+
+    return { success: true };
+  }
+
+  private buildDepthFirstCategoryOrder(
+    categories: Array<{ id: string; parentId: string | null }>,
+    siblingOrderByParent: Map<string | null, string[]>,
+  ): string[] {
+    const visit = (currentParentId: string | null): string[] => {
+      const childIds =
+        siblingOrderByParent.get(currentParentId) ??
+        categories
+          .filter((category) => (category.parentId ?? null) === currentParentId)
+          .map((category) => category.id);
+
+      return childIds.flatMap((id) => [id, ...visit(id)]);
+    };
+
+    return visit(null);
   }
 
   /**
@@ -147,9 +241,12 @@ class AdminCategoriesService {
     // Generate slug from title (ReDoS-safe)
     const slug = toSlug(data.title);
 
+    const nextPosition = await this.getNextCategoryPosition(data.parentId ?? null);
+
     const category = await db.category.create({
       data: {
         parentId: data.parentId || undefined,
+        position: nextPosition,
         requiresSizes: data.requiresSizes || false,
         published: data.published ?? true,
         media: data.imageUrl

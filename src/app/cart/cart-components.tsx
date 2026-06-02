@@ -8,6 +8,7 @@ import type { CurrencyCode } from '../../lib/currency';
 import type { Cart, CartItem } from './types';
 import type { CartListAppearance } from './constants';
 import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
+import { getEffectiveMaxQuantity, isUnlimitedStock } from '@/lib/product-stock';
 
 type DisplayLine = NonNullable<CartItem['variant']['displayLines']>[number];
 
@@ -54,12 +55,17 @@ function CartItemQuantityStepper({
   appearance = 'page',
 }: CartItemQuantityStepperProps) {
   const isDrawer = appearance === 'drawer';
+  const variantStock = item.variant.stock;
+  const maxOrderQuantity =
+    variantStock !== undefined ? getEffectiveMaxQuantity(variantStock) : undefined;
   const stockTitle =
-    item.variant.stock !== undefined
-      ? t('common.messages.availableQuantity').replace('{stock}', item.variant.stock.toString())
+    variantStock !== undefined && !isUnlimitedStock(variantStock)
+      ? t('common.messages.availableQuantity').replace('{stock}', variantStock.toString())
       : '';
   const atMaxStock =
-    item.variant.stock !== undefined && item.quantity >= item.variant.stock;
+    variantStock !== undefined &&
+    !isUnlimitedStock(variantStock) &&
+    item.quantity >= variantStock;
 
   const shellClass = isDrawer
     ? 'inline-grid h-8 w-[6.25rem] shrink-0 grid-cols-3 divide-x divide-white/25 overflow-hidden rounded-full border border-white/30 bg-white/10 shadow-none sm:h-9 sm:w-[6.75rem]'
@@ -88,7 +94,7 @@ function CartItemQuantityStepper({
         <input
           type="number"
           min={1}
-          max={item.variant.stock !== undefined ? item.variant.stock : undefined}
+          max={maxOrderQuantity}
           value={item.quantity}
           onChange={(e) => {
             const next = parseInt(e.target.value, 10) || 1;
@@ -105,8 +111,8 @@ function CartItemQuantityStepper({
         className={btnClass}
         aria-label={t('common.ariaLabels.increaseQuantity')}
         title={
-          atMaxStock && item.variant.stock !== undefined
-            ? t('common.messages.availableQuantity').replace('{stock}', item.variant.stock.toString())
+          atMaxStock && variantStock !== undefined && !isUnlimitedStock(variantStock)
+            ? t('common.messages.availableQuantity').replace('{stock}', variantStock.toString())
             : t('common.messages.addQuantity')
         }
       >

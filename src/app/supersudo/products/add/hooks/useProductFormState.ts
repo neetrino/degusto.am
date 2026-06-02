@@ -45,8 +45,6 @@ export function useProductFormState() {
   const [openValueModal, setOpenValueModal] = useState<{ variantId: string; attributeId: string } | null>(null);
   const [generatedVariants, setGeneratedVariants] = useState<GeneratedVariant[]>([]);
   const [hasVariantsToLoad, setHasVariantsToLoad] = useState(false);
-  /** Bumps to re-fetch the same product from the API (e.g. tab visible again). */
-  const [productFetchNonce, setProductFetchNonce] = useState(0);
   /** Variants + attribute ids from last GET, consumed by variant-builder conversion. */
   const [pendingVariantHydration, setPendingVariantHydration] = useState<PendingVariantHydration | null>(
     null
@@ -120,8 +118,6 @@ export function useProductFormState() {
     setGeneratedVariants,
     hasVariantsToLoad,
     setHasVariantsToLoad,
-    productFetchNonce,
-    setProductFetchNonce,
     pendingVariantHydration,
     setPendingVariantHydration,
     referenceCatalogReady,

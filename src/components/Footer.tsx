@@ -162,10 +162,10 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
                   {t('common.navigation.home')}
                 </Link>
                 <Link href="/shop" className="block hover:text-[#ff7f20]">
-                  {t('common.navigation.delivery')}
+                  {t('common.navigation.shop')}
                 </Link>
-                <Link href="/shop" className="block hover:text-[#ff7f20]">
-                  {t('common.navigation.products')}
+                <Link href="/combo" className="block hover:text-[#ff7f20]">
+                  {t('common.navigation.combo')}
                 </Link>
                 <Link href="/about" className="block hover:text-[#ff7f20]">
                   {t('common.navigation.about')}

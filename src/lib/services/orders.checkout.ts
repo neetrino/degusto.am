@@ -12,6 +12,7 @@ import {
   normalizeProductCustomizations,
   type ProductCustomizations,
 } from "../cart/customizations";
+import { isStockSufficient } from "../product-stock";
 import { sumVerifiedAttributePriceAdjustment } from "../cart/attribute-price-adjustment";
 import { calculateBagAmountByUniqueCategories } from "../cart/bag-fee";
 
@@ -274,7 +275,7 @@ async function getUserCartItems(cartId: string, userId: string): Promise<Checkou
       }
 
       const safeQuantity = normalizeQuantity(item.quantity);
-      if (variant.stock < safeQuantity) {
+      if (!isStockSufficient(variant.stock, safeQuantity)) {
         const translation = product.translations?.[0] || product.translations?.[0];
         throw {
           status: 422,
@@ -384,7 +385,7 @@ async function getGuestCartItems(
           detail: `Variant ${item.variantId} not found for product ${item.productId}`,
         };
       }
-      if (variant.stock < safeQuantity) {
+      if (!isStockSufficient(variant.stock, safeQuantity)) {
         throw {
           status: 422,
           type: problemTypes.validationError,
