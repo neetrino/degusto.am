@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from '../lib/i18n-client';
 
 export interface ProfileMenuItem {
   id: string;
@@ -19,6 +20,7 @@ interface ProfileMenuDrawerProps {
  * Mobile drawer for navigating profile dashboard tabs.
  */
 export function ProfileMenuDrawer({ tabs, activeTab, onSelect }: ProfileMenuDrawerProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -53,7 +55,7 @@ export function ProfileMenuDrawer({ tabs, activeTab, onSelect }: ProfileMenuDraw
         <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M4 6H20M4 12H16M4 18H12" />
         </svg>
-        Menu
+        {t('profile.menu.open')}
       </button>
 
       {open && (
@@ -71,7 +73,7 @@ export function ProfileMenuDrawer({ tabs, activeTab, onSelect }: ProfileMenuDraw
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
-              <p className="text-lg font-semibold text-gray-900">Profile Navigation</p>
+              <p className="text-lg font-semibold text-gray-900">{t('profile.menu.title')}</p>
               <button
                 type="button"
                 onClick={() => {
@@ -79,7 +81,7 @@ export function ProfileMenuDrawer({ tabs, activeTab, onSelect }: ProfileMenuDraw
                   setOpen(false);
                 }}
                 className="h-10 w-10 rounded-full border border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-900"
-                aria-label="Close profile menu"
+                aria-label={t('profile.menu.close')}
               >
                 <svg className="mx-auto h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />

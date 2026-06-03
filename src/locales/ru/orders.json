@@ -53,6 +53,27 @@
     "size": "Размер:",
     "sku": "Артикул: {sku}",
     "quantity": "Количество: {qty} × {price} = {total}"
+  },
+  "status": {
+    "pending": "В ожидании",
+    "processing": "В обработке",
+    "completed": "Завершён",
+    "cancelled": "Отменён",
+    "confirmed": "Подтверждён",
+    "shipped": "Отправлен",
+    "delivered": "Доставлен"
+  },
+  "paymentStatus": {
+    "pending": "В ожидании",
+    "paid": "Оплачен",
+    "failed": "Не удалось",
+    "refunded": "Возвращён"
+  },
+  "fulfillmentStatus": {
+    "unfulfilled": "Не выполнен",
+    "fulfilled": "Выполнен",
+    "shipped": "Отправлен",
+    "delivered": "Доставлен"
   }
 }
 

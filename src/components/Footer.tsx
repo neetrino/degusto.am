@@ -32,6 +32,16 @@ const socialLinks = {
   viber: 'viber://chat?number=%2B37460388080',
 };
 
+const footerStoreAddresses = [
+  'Պարույր Սևակի 92',
+  'Բագրատունյաց 11Ա',
+  'Ազատության 24/19, Coffee Studio by Degusto',
+] as const;
+
+function buildGoogleMapsSearchUrl(address: string): string {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${address}, Yerevan, Armenia`)}`;
+}
+
 const footerOrangeHeadingFontProps: { className: string; style: CSSProperties } = {
   className: `${bigFatBoiiFont.className} ${mirageExpandedFont.className}`,
   style: {
@@ -122,9 +132,17 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
                 <img src={assets.footerAddressPinIcon} alt="" className="h-6 w-[18px] object-contain" />
                 <span>{t('profile.tabs.addresses')}</span>
               </h3>
-              <p className="text-sm leading-[27px]">Պարույր Սևակի 92</p>
-              <p className="text-sm leading-[27px]">Բագրատունյաց 11Ա</p>
-              <p className="max-w-[246px] text-sm leading-[27px]">Ազատության 24/19, Coffee Studio by Degusto</p>
+              {footerStoreAddresses.map((address, index) => (
+                <a
+                  key={address}
+                  href={buildGoogleMapsSearchUrl(address)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={`block text-sm leading-[27px] hover:text-[#ff7f20] ${index === footerStoreAddresses.length - 1 ? 'max-w-[246px]' : ''}`}
+                >
+                  {address}
+                </a>
+              ))}
             </div>
 
             <div>

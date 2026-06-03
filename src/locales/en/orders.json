@@ -53,6 +53,27 @@
     "size": "Size:",
     "sku": "SKU: {sku}",
     "quantity": "Quantity: {qty} × {price} = {total}"
+  },
+  "status": {
+    "pending": "Pending",
+    "processing": "Processing",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "confirmed": "Confirmed",
+    "shipped": "Shipped",
+    "delivered": "Delivered"
+  },
+  "paymentStatus": {
+    "pending": "Pending",
+    "paid": "Paid",
+    "failed": "Failed",
+    "refunded": "Refunded"
+  },
+  "fulfillmentStatus": {
+    "unfulfilled": "Unfulfilled",
+    "fulfilled": "Fulfilled",
+    "shipped": "Shipped",
+    "delivered": "Delivered"
   }
 }
 

@@ -2,6 +2,7 @@
 
 import { Card } from '@shop/ui';
 import { useTranslation } from '../../../../lib/i18n-client';
+import { formatOrderStatusLabel } from '../../../../lib/order-status-labels';
 
 interface OrderStatusProps {
   status: string;
@@ -38,13 +39,13 @@ export function OrderStatus({ status, paymentStatus, fulfillmentStatus }: OrderS
       <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('orders.orderStatus.title')}</h2>
       <div className="flex items-center gap-4">
         <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(status)}`}>
-          {status}
+          {formatOrderStatusLabel(t, status, 'order')}
         </span>
         <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(paymentStatus)}`}>
-          {t('orders.orderStatus.payment').replace('{status}', paymentStatus)}
+          {t('orders.orderStatus.payment').replace('{status}', formatOrderStatusLabel(t, paymentStatus, 'payment'))}
         </span>
         <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(fulfillmentStatus)}`}>
-          {t('orders.orderStatus.fulfillment').replace('{status}', fulfillmentStatus)}
+          {t('orders.orderStatus.fulfillment').replace('{status}', formatOrderStatusLabel(t, fulfillmentStatus, 'fulfillment'))}
         </span>
       </div>
     </Card>

@@ -53,6 +53,27 @@
     "size": "Չափ:",
     "sku": "SKU: {sku}",
     "quantity": "Քանակ: {qty} × {price} = {total}"
+  },
+  "status": {
+    "pending": "Սպասման մեջ",
+    "processing": "Մշակվում է",
+    "completed": "Ավարտված",
+    "cancelled": "Չեղարկված",
+    "confirmed": "Հաստատված",
+    "shipped": "Ուղարկված",
+    "delivered": "Առաքված"
+  },
+  "paymentStatus": {
+    "pending": "Սպասման մեջ",
+    "paid": "Վճարված",
+    "failed": "Չհաջողվեց",
+    "refunded": "Վերադարձված"
+  },
+  "fulfillmentStatus": {
+    "unfulfilled": "Կատարված չէ",
+    "fulfilled": "Կատարված",
+    "shipped": "Ուղարկված",
+    "delivered": "Առաքված"
   }
 }
 

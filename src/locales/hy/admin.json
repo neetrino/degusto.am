@@ -517,7 +517,7 @@
     "productDiscounts": "Ապրանքի զեղչեր",
     "productDiscountsSubtitle": "Սահմանել անհատական զեղչի տոկոս յուրաքանչյուր ապրանքի համար",
     "loadingProducts": "Բեռնվում են ապրանքները...",
-    "noProducts": "No products found",
+    "noProducts": "Ապրանքներ չեն գտնվել",
     "discountMustBeValid": "Զեղչը պետք է լինի 0-100 միջակայքում",
     "productDiscountSaved": "Ապրանքի զեղչը հաջողությամբ պահվեց:",
     "errorSavingProduct": "Սխալ: {message}",

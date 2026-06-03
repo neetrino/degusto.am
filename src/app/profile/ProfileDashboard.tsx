@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Button, Card } from '@shop/ui';
 import { formatPriceInCurrency, convertPrice, type CurrencyCode } from '../../lib/currency';
 import { getStatusColor, getPaymentStatusColor } from './utils';
+import { formatOrderStatusLabel } from '../../lib/order-status-labels';
 import type { DashboardData, ProfileTab } from './types';
 
 interface ProfileDashboardProps {
@@ -159,7 +160,7 @@ export function ProfileDashboard({
                             {t('profile.dashboard.orderStatus')}
                           </p>
                           <span className={`inline-block rounded-md px-2 py-1 text-xs font-medium capitalize ${getStatusColor(order.status)}`}>
-                            {order.status}
+                            {formatOrderStatusLabel(t, order.status, 'order')}
                           </span>
                         </div>
                         <div>
@@ -167,7 +168,7 @@ export function ProfileDashboard({
                             {t('profile.dashboard.paymentStatus')}
                           </p>
                           <span className={`inline-block rounded-md px-2 py-1 text-xs font-medium capitalize ${getPaymentStatusColor(order.paymentStatus)}`}>
-                            {order.paymentStatus}
+                            {formatOrderStatusLabel(t, order.paymentStatus, 'payment')}
                           </span>
                         </div>
                       </div>

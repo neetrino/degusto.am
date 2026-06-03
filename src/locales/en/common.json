@@ -15,7 +15,8 @@
     "shopNow": "Shop Now",
     "viewMore": "View More",
     "close": "Close",
-    "done": "Done"
+    "done": "Done",
+    "tryAgain": "Try again"
   },
   "navigation": {
     "home": "Home",
@@ -222,7 +223,7 @@
     "termsOfService": "Terms of Service",
     "refundPolicy": "Refund Policy",
     "deliveryTerms": "Delivery Terms",
-    "copyright": "© {year} Shop. All rights reserved.",
+    "copyright": "© {year} Degusto. All rights reserved.",
     "paymentMethods": "Payment Methods:"
   },
   "product": {
@@ -233,6 +234,10 @@
     "previous": "Previous",
     "next": "Next",
     "pageOf": "Page {page} of {totalPages}"
+  },
+  "errors": {
+    "title": "Something went wrong",
+    "description": "An error occurred. Please try again or return to the home page."
   },
   "notFound": {
     "title": "Page Not Found",
