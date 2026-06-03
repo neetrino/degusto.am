@@ -1,77 +1,48 @@
 {
   "title": "Privacy Policy",
   "lastUpdated": "Last Updated:",
-  "introduction": {
-    "title": "Introduction",
-    "description1": "At Degusto, we are committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose and protect your information when you visit our website and use our services.",
-    "description2": "Please read this privacy policy carefully. If you do not agree with the terms of this privacy policy, please do not access the site."
+  "welcome": {
+    "lead": "Your privacy is critically important to us.",
+    "paragraph1": "It is degusto.am policy to respect your privacy regarding any information we may collect while operating our website. This Privacy Policy applies to degusto.am (hereinafter, \"us\", \"we\", or \"degusto.am\"). We respect your privacy and are committed to protecting personally identifiable information you may provide us through the Website. We have adopted this privacy policy (\"Privacy Policy\") to explain what information may be collected on our Website, how we use this information, and under what circumstances we may disclose the information to third parties. This Privacy Policy applies only to information we collect through the Website and does not apply to our collection of information from other sources. This Privacy Policy, together with the Terms and conditions posted on our Website, set forth the general rules and policies governing your use of our Website."
   },
-  "informationWeCollect": {
-    "title": "Information We Collect",
-    "personalInformation": {
-      "title": "Personal Information",
-      "description": "We may collect personal information that you voluntarily provide to us when you:",
-      "items": {
-        "register": "Register for an account",
-        "order": "Place an order",
-        "newsletter": "Subscribe to our newsletter",
-        "contact": "Contact us for customer support",
-        "surveys": "Participate in surveys or promotions"
-      },
-      "details": "This information may include your name, email address, phone number, shipping address, billing address and payment information."
-    },
-    "automaticallyCollected": {
-      "title": "Automatically Collected Information",
-      "description": "When you visit our website, we automatically collect certain information about your device, including information about your web browser, IP address and time zone."
-    }
+  "websiteVisitors": {
+    "title": "Website Visitors",
+    "paragraph1": "Like most website operators, degusto.am collects non-personally-identifying information of the sort that web browsers and servers typically make available, such as the browser type, language preference, referring site, and the date and time of each visitor request. degusto.am purpose in collecting non-personally identifying information is to better understand how degusto.am visitors use its website. From time to time, degusto.am may release non-personally-identifying information in the aggregate, e.g., by publishing a report on trends in the usage of its website.",
+    "paragraph2": "degusto.am also collects potentially personally-identifying information like Internet Protocol (IP) addresses for logged in users and for users leaving comments on degusto.am blog posts. degusto.am only discloses logged in user and commenter IP addresses under the same circumstances that it uses and discloses personally-identifying information as described below."
   },
-  "howWeUse": {
-    "title": "How We Use Your Information",
-    "description": "We use the collected information to:",
-    "items": {
-      "process": "Process and fulfill your orders",
-      "confirmations": "Send you order confirmations and updates",
-      "support": "Respond to your customer service requests",
-      "marketing": "Send you marketing communications (with your consent)",
-      "improve": "Improve our website and services",
-      "fraud": "Detect and prevent fraud",
-      "legal": "Comply with legal obligations"
-    }
+  "gatheringPersonallyIdentifying": {
+    "title": "Gathering of Personally-Identifying Information",
+    "paragraph1": "Certain visitors to degusto.am's websites choose to interact with degusto.am in ways that require degusto.am to gather personally-identifying information. The amount and type of information that degusto.am gathers depends on the nature of the interaction. For example, we ask visitors who sign up for a blog at degusto.am to provide a username and email address."
   },
-  "informationSharing": {
-    "title": "Information Sharing and Disclosure",
-    "description": "We do not sell, trade or rent your personal information to third parties. We may share your information only in the following circumstances:",
-    "items": {
-      "providers": "With service providers who help us operate our website and conduct our business",
-      "law": "When required by law or to protect our rights",
-      "transfer": "In connection with a business transfer or merger",
-      "consent": "With your explicit consent"
-    }
+  "security": {
+    "title": "Security",
+    "paragraph1": "The security of your Personal Information is important to us, but remember that no method of transmission over the Internet, or method of electronic storage is 100% secure. While we strive to use commercially acceptable means to protect your Personal Information, we cannot guarantee its absolute security."
   },
-  "dataSecurity": {
-    "title": "Data Security",
-    "description": "We implement appropriate technical and organizational security measures to protect your personal information from unauthorized access, alteration, disclosure or destruction. However, no method of transmission over the Internet or electronic storage is 100% secure."
+  "protectionPersonallyIdentifying": {
+    "title": "Protection of Certain Personally-Identifying Information",
+    "paragraph1": "degusto.am discloses potentially personally-identifying and personally-identifying information only to those of its employees, contractors and affiliated organizations that need to know that information in order to process it on degusto.am's behalf or to provide services available at degusto.am's website, and that have agreed not to disclose it to others. Some of those employees, contractors and affiliated organizations may be located outside of your home country; by using degusto.am's website, you consent to the transfer of such information to them. degusto.am will not rent or sell potentially personally-identifying and personally-identifying information to anyone. Other than to its employees, contractors and affiliated organizations, as described above, degusto.am discloses potentially personally-identifying and personally-identifying information only in response to a subpoena, court order or other governmental request, or when degusto.am believes in good faith that disclosure is reasonably necessary to protect the property or rights of degusto.am, third parties or the public at large.",
+    "paragraph2": "If you are a registered user of degusto.am and have supplied your email address, degusto.am may occasionally send you an email to tell you about new features, solicit your feedback, or just keep you up to date with what's going on with degusto.am and our products. We primarily use our blog to communicate this type of information, so we expect to keep this type of email to a minimum. If you send us a request (for example via a support email or via one of our feedback mechanisms), we reserve the right to publish it in order to help us clarify or respond to your request or to help us support other users. degusto.am takes all measures reasonably necessary to protect against the unauthorized access, use, alteration or destruction of potentially personally-identifying and personally-identifying information."
   },
-  "yourRights": {
-    "title": "Your Rights",
-    "description": "You have the right to:",
-    "items": {
-      "access": "Access your personal information",
-      "correct": "Correct inaccurate information",
-      "delete": "Request deletion of your information",
-      "object": "Object to processing of your information",
-      "portability": "Request data portability",
-      "withdraw": "Withdraw consent at any time"
-    }
+  "aggregatedStatistics": {
+    "title": "Aggregated Statistics",
+    "paragraph1": "degusto.am may collect statistics about the behavior of visitors to its website. degusto.am may display this information publicly or provide it to others. However, degusto.am does not disclose your personally-identifying information."
   },
-  "contact": {
-    "title": "Contact Us",
-    "description": "If you have questions about this Privacy Policy, please contact us at:"
+  "cookies": {
+    "title": "Cookies",
+    "paragraph1": "To enrich and perfect your online experience, degusto.am uses \"Cookies\", similar technologies and services provided by others to display personalized content, appropriate advertising and store your preferences on your computer.",
+    "paragraph2": "A cookie is a string of information that a website stores on a visitor's computer, and that the visitor's browser provides to the website each time the visitor returns. degusto.am uses cookies to help degusto.am identify and track visitors, their usage of degusto.am, and their website access preferences. degusto.am visitors who do not wish to have cookies placed on their computers should set their browsers to refuse cookies before using degusto.am's websites, with the drawback that certain features of degusto.am's websites may not function properly without the aid of cookies.",
+    "paragraph3": "By continuing to navigate our website without changing your cookie settings, you hereby acknowledge and agree to degusto.am's use of cookies."
+  },
+  "ecommerce": {
+    "title": "E-commerce",
+    "paragraph1": "Those who engage in transactions with degusto.am – by purchasing degusto.am's services or products, are asked to provide additional information, including as necessary the personal and financial information required to process those transactions. In each case, degusto.am collects such information only insofar as is necessary or appropriate to fulfill the purpose of the visitor's interaction with degusto.am. degusto.am does not disclose personally-identifying information other than as described below. And visitors can always refuse to supply personally-identifying information, with the caveat that it may prevent them from engaging in certain website-related activities."
+  },
+  "privacyPolicyChanges": {
+    "title": "Privacy Policy Changes",
+    "paragraph1": "Although most changes are likely to be minor, degusto.am may change its Privacy Policy from time to time, and in degusto.am's sole discretion. degusto.am encourages visitors to frequently check this page for any changes to its Privacy Policy. Your continued use of this site after any change in this Privacy Policy will constitute your acceptance of such change."
+  },
+  "childrensPrivacy": {
+    "title": "Children's Privacy",
+    "paragraph1": "We do not knowingly collect or solicit information online from children under 13 and we do not specifically target children under 13 in our marketing materials or other advertising."
   }
 }
-
-
-
-
-
-
