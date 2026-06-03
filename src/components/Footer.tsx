@@ -107,10 +107,9 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
           </div>
 
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <Link href="/privacy">{t('common.footer.privacyPolicy')}</Link>
-            <Link href="/delivery-policy">{t('common.footer.deliveryTerms')}</Link>
-            <Link href="/refund-policy">{t('common.footer.refundPolicy')}</Link>
             <Link href="/terms">{t('common.footer.termsOfService')}</Link>
+            <Link href="/returns">{t('common.footer.returnPolicy')}</Link>
+            <Link href="/privacy">{t('common.footer.privacyPolicy')}</Link>
           </div>
         </div>
       </div>
@@ -153,17 +152,14 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
                 {t('common.footer.legal')}
               </h3>
               <div className="space-y-2 text-sm text-white">
-                <Link href="/privacy" className="block leading-5 hover:text-[#ff7f20]">
-                  {t('common.footer.privacyPolicy')}
-                </Link>
-                <Link href="/delivery-policy" className="block leading-7 hover:text-[#ff7f20]">
-                  {t('common.footer.deliveryTerms')}
-                </Link>
-                <Link href="/refund-policy" className="block leading-5 hover:text-[#ff7f20]">
-                  {t('common.footer.refundPolicy')}
-                </Link>
                 <Link href="/terms" className="block leading-5 hover:text-[#ff7f20]">
                   {t('common.footer.termsOfService')}
+                </Link>
+                <Link href="/returns" className="block leading-5 hover:text-[#ff7f20]">
+                  {t('common.footer.returnPolicy')}
+                </Link>
+                <Link href="/privacy" className="block leading-5 hover:text-[#ff7f20]">
+                  {t('common.footer.privacyPolicy')}
                 </Link>
               </div>
             </div>

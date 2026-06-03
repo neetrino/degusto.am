@@ -4,140 +4,157 @@ import { Card } from '@shop/ui';
 import { useTranslation } from '../../lib/i18n-client';
 import { SITE_CONTACT_EMAIL } from '../../lib/site-contact';
 
+type TermsParagraphSectionKey =
+  | 'welcome'
+  | 'cookies'
+  | 'iframes'
+  | 'reservationOfRights'
+  | 'removalOfLinks'
+  | 'contentLiability';
+
+const TERMS_PARAGRAPH_SECTIONS: ReadonlyArray<{
+  key: TermsParagraphSectionKey;
+  paragraphKeys: ReadonlyArray<'paragraph1' | 'paragraph2' | 'paragraph3'>;
+}> = [
+  { key: 'welcome', paragraphKeys: ['paragraph1', 'paragraph2', 'paragraph3'] },
+  { key: 'cookies', paragraphKeys: ['paragraph1', 'paragraph2', 'paragraph3'] },
+  { key: 'iframes', paragraphKeys: ['paragraph1'] },
+  { key: 'reservationOfRights', paragraphKeys: ['paragraph1'] },
+  { key: 'removalOfLinks', paragraphKeys: ['paragraph1'] },
+  { key: 'contentLiability', paragraphKeys: ['paragraph1'] },
+];
+
+const LICENSE_ITEM_KEYS = ['republish', 'sell', 'reproduce', 'redistribute'] as const;
+const HYPERLINKING_ORG_KEYS = ['government', 'searchEngines', 'news', 'directories'] as const;
+const LINK_REQUIREMENT_KEYS = ['notMisleading', 'noFalseEndorsement', 'fitsContext'] as const;
+const APPROVAL_CRITERIA_KEYS = ['notUnfavorable', 'satisfactoryRecord', 'visibilityBenefit', 'consistentContent'] as const;
+const APPROVED_LINKING_KEYS = ['corporateName', 'url', 'description'] as const;
+const DISCLAIMER_ITEM_KEYS = ['deathInjury', 'fraud', 'notPermitted', 'notExcluded'] as const;
+const DISCLAIMER_LIMITATION_KEYS = ['preceding', 'govern'] as const;
+
+function TermsSectionTitle({ children }: { children: string }) {
+  return <h2 className="text-2xl font-semibold text-gray-900">{children}</h2>;
+}
+
+function TermsParagraph({ children }: { children: string }) {
+  return <p className="text-gray-600">{children}</p>;
+}
+
+function TermsList({ items }: { items: readonly string[] }) {
+  return (
+    <ul className="ml-4 list-disc list-inside space-y-1 text-gray-600">
+      {items.map((item) => (
+        <li key={item}>{item}</li>
+      ))}
+    </ul>
+  );
+}
+
 /**
- * Terms of Service page - displays terms and conditions
+ * Terms page — content from locale `terms` namespace (hy / en / ru).
  */
 export default function TermsPage() {
   const { t } = useTranslation();
+
   return (
     <div className="policy-page">
       <div className="policy-page-inner">
         <h1 className="text-4xl font-bold text-gray-900">{t('terms.title')}</h1>
-        <p className="text-gray-600">
-          {t('terms.lastUpdated')}{' '}
-          {new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
-        </p>
-      
+
         <div className="mt-8 space-y-6">
-        <Card className="p-6">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('terms.agreementToTerms.title')}</h2>
-          <p className="text-gray-600 mb-4">
-            {t('terms.agreementToTerms.description1')}
-          </p>
-          <p className="text-gray-600">
-            {t('terms.agreementToTerms.description2')}
-          </p>
-     
+          <Card className="space-y-8 p-6">
+            {TERMS_PARAGRAPH_SECTIONS.slice(0, 2).map((section) => (
+              <section key={section.key} className="space-y-3">
+                <TermsSectionTitle>{t(`terms.${section.key}.title`)}</TermsSectionTitle>
+                {section.paragraphKeys.map((paragraphKey) => (
+                  <TermsParagraph key={paragraphKey}>
+                    {t(`terms.${section.key}.${paragraphKey}`)}
+                  </TermsParagraph>
+                ))}
+              </section>
+            ))}
 
-      
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('terms.useLicense.title')}</h2>
-          <p className="text-gray-600 mb-4">
-            {t('terms.useLicense.description')}
-          </p>
-          <ul className="list-disc list-inside text-gray-600 space-y-1 ml-4">
-            <li>{t('terms.useLicense.restrictions.modify')}</li>
-            <li>{t('terms.useLicense.restrictions.commercial')}</li>
-            <li>{t('terms.useLicense.restrictions.reverse')}</li>
-            <li>{t('terms.useLicense.restrictions.copyright')}</li>
-            <li>{t('terms.useLicense.restrictions.transfer')}</li>
-          </ul>
-       
+            <section className="space-y-3">
+              <TermsSectionTitle>{t('terms.license.title')}</TermsSectionTitle>
+              <TermsParagraph>{t('terms.license.paragraph1')}</TermsParagraph>
+              <TermsParagraph>{t('terms.license.restrictionsIntro')}</TermsParagraph>
+              <TermsList
+                items={LICENSE_ITEM_KEYS.map((itemKey) => t(`terms.license.items.${itemKey}`))}
+              />
+            </section>
 
-       
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('terms.accountRegistration.title')}</h2>
-          <p className="text-gray-600 mb-4">
-            {t('terms.accountRegistration.description')}
-          </p>
-          <ul className="list-disc list-inside text-gray-600 space-y-1 ml-4">
-            <li>{t('terms.accountRegistration.requirements.accurate')}</li>
-            <li>{t('terms.accountRegistration.requirements.maintain')}</li>
-            <li>{t('terms.accountRegistration.requirements.security')}</li>
-            <li>{t('terms.accountRegistration.requirements.responsibility')}</li>
-            <li>{t('terms.accountRegistration.requirements.notify')}</li>
-          </ul>
-   
+            <section className="space-y-3">
+              <TermsSectionTitle>{t('terms.hyperlinking.title')}</TermsSectionTitle>
+              <TermsParagraph>{t('terms.hyperlinking.paragraph1')}</TermsParagraph>
+              <TermsList
+                items={HYPERLINKING_ORG_KEYS.map((itemKey) =>
+                  t(`terms.hyperlinking.approvedOrganizations.${itemKey}`),
+                )}
+              />
+              <TermsParagraph>{t('terms.hyperlinking.paragraph2')}</TermsParagraph>
+              <TermsParagraph>{t('terms.hyperlinking.linkRequirementsIntro')}</TermsParagraph>
+              <TermsList
+                items={LINK_REQUIREMENT_KEYS.map((itemKey) =>
+                  t(`terms.hyperlinking.linkRequirements.${itemKey}`),
+                )}
+              />
+              <TermsParagraph>{t('terms.hyperlinking.paragraph3')}</TermsParagraph>
+              <TermsList
+                items={APPROVAL_CRITERIA_KEYS.map((itemKey) =>
+                  t(`terms.hyperlinking.approvalCriteria.${itemKey}`),
+                )}
+              />
+              <TermsParagraph>{t('terms.hyperlinking.linkRequirementsIntro2')}</TermsParagraph>
+              <TermsList
+                items={LINK_REQUIREMENT_KEYS.map((itemKey) =>
+                  t(`terms.hyperlinking.linkRequirements.${itemKey}`),
+                )}
+              />
+              <p className="text-gray-600">
+                {t('terms.hyperlinking.contactBeforeEmail')}{' '}
+                <a href={`mailto:${SITE_CONTACT_EMAIL}`} className="text-blue-600 hover:underline">
+                  {SITE_CONTACT_EMAIL}
+                </a>
+                {t('terms.hyperlinking.contactAfterEmail')}
+              </p>
+              <TermsParagraph>{t('terms.hyperlinking.paragraph4')}</TermsParagraph>
+              <TermsParagraph>{t('terms.hyperlinking.approvedLinkingIntro')}</TermsParagraph>
+              <TermsList
+                items={APPROVED_LINKING_KEYS.map((itemKey) =>
+                  t(`terms.hyperlinking.approvedLinking.${itemKey}`),
+                )}
+              />
+              <TermsParagraph>{t('terms.hyperlinking.paragraph5')}</TermsParagraph>
+            </section>
 
-      
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('terms.productInformation.title')}</h2>
-          <p className="text-gray-600 mb-4">
-            {t('terms.productInformation.description1')}
-          </p>
-          <p className="text-gray-600">
-            {t('terms.productInformation.description2')}
-          </p>
-     
+            {TERMS_PARAGRAPH_SECTIONS.slice(2).map((section) => (
+              <section key={section.key} className="space-y-3">
+                <TermsSectionTitle>{t(`terms.${section.key}.title`)}</TermsSectionTitle>
+                {section.paragraphKeys.map((paragraphKey) => (
+                  <TermsParagraph key={paragraphKey}>
+                    {t(`terms.${section.key}.${paragraphKey}`)}
+                  </TermsParagraph>
+                ))}
+              </section>
+            ))}
 
-      
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('terms.pricingAndPayment.title')}</h2>
-          <p className="text-gray-600 mb-4">
-            {t('terms.pricingAndPayment.description1')}
-          </p>
-          <p className="text-gray-600 mb-4">
-            {t('terms.pricingAndPayment.description2')}
-          </p>
-          <p className="text-gray-600">
-            {t('terms.pricingAndPayment.description3')}
-          </p>
-     
-
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('terms.shippingAndDelivery.title')}</h2>
-          <p className="text-gray-600 mb-4">
-            {t('terms.shippingAndDelivery.description1')}
-          </p>
-          <p className="text-gray-600">
-            {t('terms.shippingAndDelivery.description2')}
-          </p>
-
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('terms.returnsAndRefunds.title')}</h2>
-          <p className="text-gray-600 mb-4">
-            {t('terms.returnsAndRefunds.description1')}
-          </p>
-          <p className="text-gray-600">
-            {t('terms.returnsAndRefunds.description2')}
-          </p>
-
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('terms.prohibitedUses.title')}</h2>
-          <p className="text-gray-600 mb-2">{t('terms.prohibitedUses.description')}</p>
-          <ul className="list-disc list-inside text-gray-600 space-y-1 ml-4">
-            <li>{t('terms.prohibitedUses.items.violate')}</li>
-            <li>{t('terms.prohibitedUses.items.transmit')}</li>
-            <li>{t('terms.prohibitedUses.items.impersonate')}</li>
-            <li>{t('terms.prohibitedUses.items.infringe')}</li>
-            <li>{t('terms.prohibitedUses.items.automated')}</li>
-          </ul>
-    
-
-       
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('terms.limitationOfLiability.title')}</h2>
-          <p className="text-gray-600">
-            {t('terms.limitationOfLiability.description')}
-          </p>
-    
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('terms.revisionsAndErrata.title')}</h2>
-          <p className="text-gray-600">
-            {t('terms.revisionsAndErrata.description')}
-          </p>
- 
-
-        
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('terms.governingLaw.title')}</h2>
-          <p className="text-gray-600">
-            {t('terms.governingLaw.description')}
-          </p>
-     
-
-       
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('terms.contactInformation.title')}</h2>
-          <p className="text-gray-600">
-            {t('terms.contactInformation.description')}{' '}
-            <a href={`mailto:${SITE_CONTACT_EMAIL}`} className="text-blue-600 hover:underline">
-              {SITE_CONTACT_EMAIL}
-            </a>
-          </p>
-        </Card>
+            <section className="space-y-3">
+              <TermsSectionTitle>{t('terms.disclaimer.title')}</TermsSectionTitle>
+              <TermsParagraph>{t('terms.disclaimer.paragraph1')}</TermsParagraph>
+              <TermsList
+                items={DISCLAIMER_ITEM_KEYS.map((itemKey) => t(`terms.disclaimer.items.${itemKey}`))}
+              />
+              <TermsParagraph>{t('terms.disclaimer.paragraph2')}</TermsParagraph>
+              <TermsList
+                items={DISCLAIMER_LIMITATION_KEYS.map((itemKey) =>
+                  t(`terms.disclaimer.limitations.${itemKey}`),
+                )}
+              />
+              <TermsParagraph>{t('terms.disclaimer.paragraph3')}</TermsParagraph>
+            </section>
+          </Card>
         </div>
       </div>
     </div>
   );
 }
-
