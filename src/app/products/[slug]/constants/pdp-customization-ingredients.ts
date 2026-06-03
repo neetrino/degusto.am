@@ -1,4 +1,4 @@
-/** Product attribute keys that expose selectable PDP ingredient options. */
+/** Product attribute keys whose values appear in Add / Exclude pills on PDP. */
 export const PDP_CUSTOMIZATION_INGREDIENT_ATTR_KEYS = [
   'ingredient',
   'ingredients',
@@ -6,23 +6,23 @@ export const PDP_CUSTOMIZATION_INGREDIENT_ATTR_KEYS = [
   'components',
   'topping',
   'toppings',
-] as const;
-
-/** Fallback catalog when product has no ingredient attributes. */
-export const PDP_DEFAULT_CUSTOMIZATION_INGREDIENT_IDS = [
-  'cheese',
-  'bacon',
-  'egg',
-  'onion',
-  'tomato',
-  'lettuce',
-  'pickles',
   'sauce',
   'garlic',
-  'greens',
-  'mushroom',
-  'pepper',
 ] as const;
 
-export type PdpDefaultCustomizationIngredientId =
-  (typeof PDP_DEFAULT_CUSTOMIZATION_INGREDIENT_IDS)[number];
+/** Variant default slugs — not offered as Add / Exclude choices. */
+export const PDP_CUSTOMIZATION_EXCLUDED_VALUE_SLUGS = [
+  'no-sauce',
+  'without-garlic',
+  'not-spicy',
+  'without-greens',
+] as const;
+
+export type PdpCustomizationIngredientAttrKey =
+  (typeof PDP_CUSTOMIZATION_INGREDIENT_ATTR_KEYS)[number];
+
+export function isPdpCustomizationAttributeKey(attrKey: string): boolean {
+  return PDP_CUSTOMIZATION_INGREDIENT_ATTR_KEYS.includes(
+    attrKey as PdpCustomizationIngredientAttrKey,
+  );
+}

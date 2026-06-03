@@ -275,6 +275,10 @@ export function PdpCustomizationPills({
   onExclusionsChange,
 }: PdpCustomizationPillsProps) {
   const ingredientOptions = resolvePdpCustomizationIngredients(product, language);
+  if (ingredientOptions.length === 0) {
+    return null;
+  }
+
   const additionLabels = parseCustomizationSelection(additions);
   const exclusionLabels = parseCustomizationSelection(exclusions);
 

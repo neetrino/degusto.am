@@ -43,11 +43,45 @@
   "sauce": {
     "ketchup": "Կետչուպ",
     "mayonnaise": "Մայոնեզ",
+    "barbecue": "Բարբեկյու սոուս",
+    "garlic-sauce": "Սխտորային սոուս",
     "no-sauce": "Առանց սոուսի"
   },
   "garlic": {
     "with-garlic": "Սխտորով",
     "without-garlic": "Առանց սխտորի"
+  },
+  "ingredient": {
+    "cheese": "Պանիր",
+    "bacon": "Բեկոն",
+    "egg": "Ձու",
+    "onion": "Սոխ",
+    "tomato": "Տոմատ",
+    "lettuce": "Մաղադանոս",
+    "pickles": "Մարինացված վարունգ",
+    "mushroom": "Սունկ",
+    "pepper": "Պղպեղ",
+    "olives": "Ձիթապտղ",
+    "jalapeno": "Խաչեմոր",
+    "corn": "Ցորեն",
+    "cucumber": "Վարունգ",
+    "avocado": "Ավոկադո",
+    "ham": "Խոզի միս",
+    "chicken": "Հավի միս",
+    "beef": "Տավարի միս",
+    "potato": "Կարտոֆիլ"
+  },
+  "topping": {
+    "extra-cheese": "Լրացուցիչ պանիր",
+    "mozzarella": "Մոցարելլա",
+    "parmesan": "Պարմեզան",
+    "bacon-bits": "Բեկոնի կտորներ",
+    "fried-onion": "Տապակած սոխ",
+    "sesame": "Քնձութ",
+    "herbs": "Թարմ կանաչիներ",
+    "chili-flakes": "Չիլիի փշրանք",
+    "sun-dried-tomato": "Արևի չոր տոմատ",
+    "pesto": "Պեստո"
   }
 }
 
