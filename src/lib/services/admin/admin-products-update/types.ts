@@ -21,6 +21,7 @@ export interface UpdateProductData {
     color?: string | null;
   }>;
   attributeIds?: string[];
+  pdpCustomization?: { items: Array<{ valueId: string; role: 'default' | 'addon' }> } | null;
   variants?: Array<{
     id?: string;
     price: string | number;

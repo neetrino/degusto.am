@@ -6,6 +6,7 @@ import type { UpdateProductData } from "./types";
 import { collectVariantImages, buildProductUpdateData, updateProductTranslation, updateProductLabels, updateProductAttributes } from "./product-updater";
 import { updateOrCreateVariant } from "./variant-updater";
 import { updateAttributeValueImageUrls } from "./attribute-value-updater";
+import { saveProductPdpCustomization } from "@/lib/products/pdp-customization-persistence";
 import { ensureUniqueProductSlug } from "../product-slug-utils";
 
 /**
@@ -111,6 +112,14 @@ export async function updateProduct(
 
       // Update attribute value imageUrls from variant images
       await updateAttributeValueImageUrls(productId, tx);
+
+      if (dataToPersist.pdpCustomization !== undefined) {
+        await saveProductPdpCustomization(
+          productId,
+          dataToPersist.pdpCustomization,
+          tx,
+        );
+      }
 
       // 5. Finally update the product record itself
       return await tx.product.update({

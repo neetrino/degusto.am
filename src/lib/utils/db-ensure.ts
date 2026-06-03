@@ -22,6 +22,10 @@ let cartCustomizationsColumnExists = false;
 let attributeValuePriceAdjustmentChecked = false;
 let attributeValuePriceAdjustmentExists = false;
 
+// Cache for products.pdpCustomization column
+let pdpCustomizationColumnChecked = false;
+let pdpCustomizationColumnExists = false;
+
 /**
  * Ensures the product_attributes table exists in the database
  * This is a fallback mechanism for Vercel deployments where migrations might not run automatically
@@ -512,6 +516,57 @@ export async function ensureAttributeValuePriceAdjustmentColumn(): Promise<boole
     });
     attributeValuePriceAdjustmentChecked = true;
     attributeValuePriceAdjustmentExists = false;
+    return false;
+  }
+}
+
+/** Ensures `pdpCustomization` exists on `products` (migration drift / partial deploys). */
+export async function ensureProductPdpCustomizationColumn(): Promise<boolean> {
+  if (pdpCustomizationColumnChecked && pdpCustomizationColumnExists) {
+    return true;
+  }
+
+  try {
+    await db.$queryRaw`SELECT "pdpCustomization" FROM "products" LIMIT 1`;
+    pdpCustomizationColumnChecked = true;
+    pdpCustomizationColumnExists = true;
+    return true;
+  } catch (error: unknown) {
+    const prismaError = error as { code?: string; message?: string };
+    const msg = (prismaError?.message ?? '').toLowerCase();
+    const isMissingColumn =
+      prismaError?.code === 'P2022' ||
+      (msg.includes('pdpcustomization') && msg.includes('does not exist')) ||
+      (msg.includes('column') && msg.includes('pdpcustomization'));
+
+    if (isMissingColumn) {
+      logger.info('products."pdpCustomization" column not found, creating...');
+      try {
+        await db.$executeRaw`
+          ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "pdpCustomization" JSONB
+        `;
+        logger.info('products."pdpCustomization" column created successfully');
+        pdpCustomizationColumnChecked = true;
+        pdpCustomizationColumnExists = true;
+        return true;
+      } catch (createError: unknown) {
+        const prismaCreateError = createError as { message?: string; code?: string };
+        logger.error('Failed to create products."pdpCustomization" column', {
+          message: prismaCreateError?.message,
+          code: prismaCreateError?.code,
+        });
+        pdpCustomizationColumnChecked = true;
+        pdpCustomizationColumnExists = false;
+        return false;
+      }
+    }
+
+    logger.error('Unexpected error checking products."pdpCustomization" column', {
+      message: prismaError?.message,
+      code: prismaError?.code,
+    });
+    pdpCustomizationColumnChecked = true;
+    pdpCustomizationColumnExists = false;
     return false;
   }
 }

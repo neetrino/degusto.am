@@ -21,6 +21,13 @@ import {
 } from '../utils/variantImageCollector';
 import { hasVariantsWithAttributes } from '../utils/productTypeDetector';
 import { buildFormData, getEmptyProductFormData } from '../utils/productFormDataBuilder';
+import {
+  collectVariantDefaultCustomizationValueIds,
+  hydrateCustomizationFormState,
+  inferSelectedCustomizationAttributeIds,
+  parseProductPdpCustomization,
+  type PdpCustomizationFormState,
+} from '../utils/pdp-customization-form';
 
 /** Admin product detail can include many variants/options; allow slow DB / cold Turbopack. */
 const ADMIN_PRODUCT_GET_TIMEOUT_MS = 120_000;
@@ -50,6 +57,8 @@ interface UseProductEditModeProps {
   ) => void;
   setOpenValueModal: (v: { variantId: string; attributeId: string } | null) => void;
   setPendingVariantHydration: (payload: PendingVariantHydration | null) => void;
+  setPdpCustomizationForm: (state: PdpCustomizationFormState) => void;
+  setSelectedPdpCustomizationAttributeIds: (ids: Set<string>) => void;
 }
 
 export function useProductEditMode({
@@ -71,6 +80,8 @@ export function useProductEditMode({
   setSelectedAttributeValueIds,
   setOpenValueModal,
   setPendingVariantHydration,
+  setPdpCustomizationForm,
+  setSelectedPdpCustomizationAttributeIds,
 }: UseProductEditModeProps) {
   const router = useRouter();
   const { t } = useTranslation();
@@ -271,6 +282,28 @@ export function useProductEditMode({
 
           const variantList = Array.isArray(product.variants) ? product.variants : [];
           const attributeIdList = Array.isArray(product.attributeIds) ? product.attributeIds : [];
+
+          const pdpConfig = parseProductPdpCustomization(
+            (product as ProductData).pdpCustomization,
+          );
+          const variantDefaultIds = collectVariantDefaultCustomizationValueIds(
+            variantList,
+            attributesRef.current,
+          );
+          const hydratedForm = hydrateCustomizationFormState(
+            attributesRef.current,
+            pdpConfig,
+            variantDefaultIds,
+          );
+          setPdpCustomizationForm(hydratedForm);
+          setSelectedPdpCustomizationAttributeIds(
+            inferSelectedCustomizationAttributeIds(
+              attributesRef.current,
+              hydratedForm,
+              pdpConfig,
+            ),
+          );
+
           setPendingVariantHydration({
             productId: product.id ?? productId,
             variants: variantList,

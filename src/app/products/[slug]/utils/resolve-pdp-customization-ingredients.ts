@@ -1,4 +1,9 @@
 import { normalizePriceAdjustment } from '@/lib/attributes/price-adjustment';
+import {
+  parsePdpCustomizationConfig,
+  roleByValueId,
+  type PdpCustomizationRole,
+} from '@/lib/products/pdp-customization-config';
 import { getAttributeLabel } from '../../../../lib/i18n';
 import type { LanguageCode } from '../../../../lib/language';
 import type { Product, ProductVariant } from '../types';
@@ -68,6 +73,7 @@ type RawCustomizationRow = {
   valueSlug: string;
   attrKey: string;
   priceAdjustment: number;
+  configuredRole?: PdpCustomizationRole;
 };
 
 function buildRawRows(product: Product, language: LanguageCode): RawCustomizationRow[] {
@@ -76,18 +82,31 @@ function buildRawRows(product: Product, language: LanguageCode): RawCustomizatio
     return [];
   }
 
+  const config = parsePdpCustomizationConfig(product.pdpCustomization);
+  const configuredRoles = roleByValueId(config);
+  const configuredValueIds =
+    config && config.items.length > 0
+      ? new Set(config.items.map((item) => item.valueId))
+      : null;
+
   const rows: RawCustomizationRow[] = [];
   const seenLabels = new Set<string>();
 
+  const useConfigOnly = configuredValueIds !== null && configuredValueIds.size > 0;
+
   for (const productAttr of attrs) {
     const attrKey = productAttr.attribute.key;
-    if (!isPdpCustomizationAttributeKey(attrKey)) {
+    if (!useConfigOnly && !isPdpCustomizationAttributeKey(attrKey)) {
       continue;
     }
 
     for (const value of productAttr.attribute.values) {
+      const valueId = value.id?.trim() ?? '';
       const valueSlug = value.value?.trim() ?? '';
       if (!valueSlug || isExcludedCustomizationValueSlug(valueSlug)) {
+        continue;
+      }
+      if (configuredValueIds && valueId && !configuredValueIds.has(valueId)) {
         continue;
       }
 
@@ -98,11 +117,12 @@ function buildRawRows(product: Product, language: LanguageCode): RawCustomizatio
       seenLabels.add(label);
 
       rows.push({
-        id: value.id || `${attrKey}:${valueSlug}`,
+        id: valueId || `${attrKey}:${valueSlug}`,
         label,
         valueSlug,
         attrKey,
         priceAdjustment: normalizePriceAdjustment(value.priceAdjustment),
+        configuredRole: valueId ? configuredRoles.get(valueId) : undefined,
       });
     }
   }
@@ -115,6 +135,13 @@ function classifyRow(
   variantValueIds: Set<string>,
   variantHasCustomizationOptions: boolean,
 ): 'default' | 'optional' {
+  if (row.configuredRole === 'default') {
+    return 'default';
+  }
+  if (row.configuredRole === 'addon') {
+    return 'optional';
+  }
+
   if (isOptionalAttrKey(row.attrKey) || row.priceAdjustment > 0) {
     return 'optional';
   }

@@ -8,6 +8,7 @@ import { getStorefrontDiscountSettings } from "../storefront/get-storefront-disc
 import { logger } from "../../utils/logger";
 import { hasSellableStock } from "../../product-stock";
 import { getOutOfStockLabel } from "./utils";
+import { loadProductPdpCustomization } from "@/lib/products/pdp-customization-persistence";
 import type { ProductWithFullRelations, ProductVariantWithOptions } from "./types";
 
 /**
@@ -303,12 +304,15 @@ export async function transformProduct(
   product: ProductWithFullRelations,
   lang: string = "en"
 ) {
-  const { globalDiscount, categoryDiscounts } =
-    await getStorefrontDiscountSettings();
-  return transformProductWithDiscountSettings(product, lang, {
+  const [{ globalDiscount, categoryDiscounts }, pdpCustomization] = await Promise.all([
+    getStorefrontDiscountSettings(),
+    loadProductPdpCustomization(product.id),
+  ]);
+  const transformed = transformProductWithDiscountSettings(product, lang, {
     globalDiscount,
     categoryDiscounts,
   });
+  return { ...transformed, pdpCustomization };
 }
 
 /**

@@ -217,6 +217,8 @@ model Product {
   categoryIds       String[]
   primaryCategoryId String?
   attributeIds      String[]
+  /// PDP Exclude/Add: { items: [{ valueId, role: "default" | "addon" }] }
+  pdpCustomization  Json?
   variants          ProductVariant[]
   labels            ProductLabel[]
   productAttributes ProductAttribute[]

@@ -1,75 +1,78 @@
 import type { Variant } from '../types';
 
 interface UseVariantValidationProps {
-  productType: 'simple' | 'variable';
   variants: Variant[];
   simpleProductData: {
     price: string;
     sku: string;
     quantity: string;
   };
-  isClothingCategory: () => boolean;
   setLoading: (loading: boolean) => void;
+  t: (key: string) => string;
 }
 
 export function useVariantValidation({
-  productType,
   variants,
   simpleProductData,
-  isClothingCategory,
   setLoading,
+  t,
 }: UseVariantValidationProps) {
-  const validateVariants = (): boolean => {
-    // Skip variant validation for Simple products - they create variants later in the process
-    if (productType === 'variable' && variants.length === 0) {
+  const validateVariants = (submitAsSimple: boolean): boolean => {
+    if (!submitAsSimple && variants.length === 0) {
       setLoading(false);
+      alert(t('admin.products.add.variableVariantsRequired'));
       return false;
     }
 
-    // Validate all variants (skip for simple products - validation is done in variant creation)
-    if (productType === 'variable') {
+    if (!submitAsSimple) {
       const skuSet = new Set<string>();
       for (const variant of variants) {
         const variantSku = variant.sku ? variant.sku.trim() : '';
         if (variantSku !== '' && skuSet.has(variantSku)) {
           setLoading(false);
+          alert(t('admin.products.add.duplicateSku'));
           return false;
         }
         if (variantSku !== '') {
           skuSet.add(variantSku);
         }
-        
-        const categoryRequiresSizes = isClothingCategory();
+
         const colorData = variant.colors && variant.colors.length > 0 ? variant.colors : [];
-        
+
         if (colorData.length > 0) {
           for (const colorDataItem of colorData) {
             const colorSizes = colorDataItem.sizes || [];
             const colorSizeStocks = colorDataItem.sizeStocks || {};
-            
             const hasColor = colorDataItem.colorValue && colorDataItem.colorValue.trim() !== '';
-            
+
             if (hasColor) {
               const colorPriceValue = parseFloat(colorDataItem.price || '0');
-              if (!colorDataItem.price || isNaN(colorPriceValue) || colorPriceValue <= 0) {
+              if (!colorDataItem.price || Number.isNaN(colorPriceValue) || colorPriceValue <= 0) {
                 setLoading(false);
+                alert(t('admin.products.add.priceRequired'));
                 return false;
               }
-            } else {
-              if (colorData.indexOf(colorDataItem) === 0) {
-                const variantPriceValue = parseFloat(variant.price || '0');
-                if (!variant.price || isNaN(variantPriceValue) || variantPriceValue <= 0) {
-                  setLoading(false);
-                  return false;
-                }
+            } else if (colorData.indexOf(colorDataItem) === 0) {
+              const variantPriceValue = parseFloat(variant.price || '0');
+              if (!variant.price || Number.isNaN(variantPriceValue) || variantPriceValue <= 0) {
+                setLoading(false);
+                alert(t('admin.products.add.priceRequired'));
+                return false;
               }
             }
 
             if (colorSizes.length > 0) {
               for (const size of colorSizes) {
                 const stock = colorSizeStocks[size];
-                if (stock !== undefined && stock !== null && typeof stock === 'string' && stock.trim() !== '' && parseInt(stock, 10) < 0) {
+                if (
+                  stock !== undefined &&
+                  stock !== null &&
+                  typeof stock === 'string' &&
+                  stock.trim() !== '' &&
+                  Number.parseInt(stock, 10) < 0
+                ) {
                   setLoading(false);
+                  alert(t('admin.products.add.invalidStock'));
                   return false;
                 }
               }
@@ -78,9 +81,10 @@ export function useVariantValidation({
               colorDataItem.stock !== null &&
               typeof colorDataItem.stock === 'string' &&
               colorDataItem.stock.trim() !== '' &&
-              parseInt(colorDataItem.stock, 10) < 0
+              Number.parseInt(colorDataItem.stock, 10) < 0
             ) {
               setLoading(false);
+              alert(t('admin.products.add.invalidStock'));
               return false;
             }
           }
@@ -88,17 +92,24 @@ export function useVariantValidation({
       }
     }
 
-    // Validate simple product fields
-    if (productType === 'simple') {
+    if (submitAsSimple) {
       if (!simpleProductData.price || simpleProductData.price.trim() === '') {
         setLoading(false);
+        alert(t('admin.products.add.priceRequired'));
+        return false;
+      }
+      const priceValue = Number.parseFloat(simpleProductData.price);
+      if (Number.isNaN(priceValue) || priceValue <= 0) {
+        setLoading(false);
+        alert(t('admin.products.add.priceRequired'));
         return false;
       }
       if (
         simpleProductData.quantity.trim() !== '' &&
-        parseInt(simpleProductData.quantity, 10) < 0
+        Number.parseInt(simpleProductData.quantity, 10) < 0
       ) {
         setLoading(false);
+        alert(t('admin.products.add.invalidStock'));
         return false;
       }
     }
@@ -108,6 +119,3 @@ export function useVariantValidation({
 
   return { validateVariants };
 }
-
-
-

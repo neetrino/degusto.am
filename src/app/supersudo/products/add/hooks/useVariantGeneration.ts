@@ -6,7 +6,7 @@ import {
   sumAttributeValuePriceAdjustments,
 } from '@/lib/attributes/price-adjustment';
 import type { Attribute, GeneratedVariant } from '../types';
-import { generateSlug } from '../utils/productUtils';
+import { generateSkuFromSlug, slugifyProductTitle } from '../utils/productUtils';
 import { logger } from "@/lib/utils/logger";
 
 interface UseVariantGenerationProps {
@@ -61,8 +61,8 @@ export function useVariantGeneration({
         allSelectedValueIds.push(...selectedIds);
       });
 
-      const baseSlug = formDataSlug || generateSlug(formDataTitle) || 'PROD';
-      let sku = `${baseSlug}`;
+      const baseSlug = formDataSlug || slugifyProductTitle(formDataTitle) || 'prod';
+      let sku = generateSkuFromSlug(baseSlug);
 
       if (allSelectedValueIds.length > 0) {
         const valueParts: string[] = [];
@@ -80,7 +80,7 @@ export function useVariantGeneration({
         });
 
         if (valueParts.length > 0) {
-          sku = `${baseSlug}-${valueParts.join('-')}`;
+          sku = `${generateSkuFromSlug(baseSlug)}-${valueParts.join('-')}`;
         }
       }
 

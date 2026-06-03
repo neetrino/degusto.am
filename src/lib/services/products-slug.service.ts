@@ -3,11 +3,7 @@ import {
   buildProductQueryById,
 } from "./products-slug/product-query-builder";
 import { problemTypes } from "@/lib/http/problem-details";
-import {
-  transformProduct,
-  transformProductWithDiscountSettings,
-} from "./products-slug/product-transformer";
-import { getStorefrontDiscountSettings } from "./storefront/get-storefront-discount-settings";
+import { transformProduct } from "./products-slug/product-transformer";
 
 /**
  * Service for fetching products by slug
@@ -35,10 +31,7 @@ class ProductsSlugService {
    * Get product by id (PK lookup — used when slug is already resolved).
    */
   async findById(productId: string, lang: string = "en") {
-    const [product, discountSettings] = await Promise.all([
-      buildProductQueryById(productId, lang),
-      getStorefrontDiscountSettings(),
-    ]);
+    const product = await buildProductQueryById(productId, lang);
 
     if (!product) {
       throw {
@@ -49,7 +42,7 @@ class ProductsSlugService {
       };
     }
 
-    return transformProductWithDiscountSettings(product, lang, discountSettings);
+    return transformProduct(product, lang);
   }
 }
 

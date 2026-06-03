@@ -69,6 +69,7 @@ export interface ProductData {
   primaryCategoryId?: string | null;
   categoryIds?: string[];
   attributeIds?: string[]; // All attribute IDs that this product has
+  pdpCustomization?: { items: Array<{ valueId: string; role: 'default' | 'addon' }> } | null;
   published: boolean;
   featured?: boolean;
   media?: string[];
