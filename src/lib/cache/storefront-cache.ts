@@ -17,6 +17,8 @@ export const STOREFRONT_CACHE_TTL = {
   productVisual: 300,
   /** PDP full product JSON for info column. */
   productDetails: 300,
+  /** PDP bundle: product + review summary (SSR critical path). */
+  productPdpBundle: 300,
   /** PDP related carousel (same shape as list items). */
   productRelated: 180,
 } as const;
@@ -30,7 +32,9 @@ export const STOREFRONT_CACHE_KEYS = {
   productsPriceRange: (stableQuery: string) => `products:price-range:${stableQuery}`,
   productVisual: (lang: string, slug: string) => `product:visual:${lang}:${slug}`,
   productDetails: (lang: string, slug: string) => `product:details:v2:${lang}:${slug}`,
+  productPdpBundle: (lang: string, slug: string) => `product:pdp-bundle:v1:${lang}:${slug}`,
   productRelated: (lang: string, slug: string) => `product:related:${lang}:${slug}`,
+  productSlugId: (slug: string) => `product:slug-id:${slug}`,
 } as const;
 
 /** Deterministic cache key fragment from URL search params (sorted keys). */
@@ -99,7 +103,9 @@ export async function invalidateStorefrontAfterAdminSettingsUpdate(): Promise<vo
   await Promise.all([
     cacheService.deletePattern("product:visual:*"),
     cacheService.deletePattern("product:details:*"),
+    cacheService.deletePattern("product:pdp-bundle:*"),
     cacheService.deletePattern("product:related:*"),
+    cacheService.deletePattern("product:slug-id:*"),
   ]);
   await invalidateStorefrontProductRelatedCaches();
 }
@@ -109,6 +115,8 @@ export async function invalidateProductPageCaches(): Promise<void> {
   await Promise.all([
     cacheService.deletePattern("product:visual:*"),
     cacheService.deletePattern("product:details:*"),
+    cacheService.deletePattern("product:pdp-bundle:*"),
     cacheService.deletePattern("product:related:*"),
+    cacheService.deletePattern("product:slug-id:*"),
   ]);
 }

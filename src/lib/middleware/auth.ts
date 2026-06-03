@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import * as jwt from "jsonwebtoken";
 import { db } from "@white-shop/db";
+import { extractAuthTokenFromRequest } from "@/lib/auth/auth-cookies";
 
 export interface AuthUser {
   id: string;
@@ -11,14 +12,13 @@ export interface AuthUser {
 }
 
 /**
- * Authenticate JWT token from request headers
+ * Authenticate JWT from Authorization header or HttpOnly auth cookie.
  */
 export async function authenticateToken(
   request: NextRequest
 ): Promise<AuthUser | null> {
   try {
-    const authHeader = request.headers.get("authorization");
-    const token = authHeader?.split(" ")[1]; // Bearer TOKEN
+    const token = extractAuthTokenFromRequest(request);
 
     if (!token) {
       return null;

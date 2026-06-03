@@ -1,8 +1,9 @@
 'use client';
 
-import Link from 'next/link';
 import Image from 'next/image';
-import type { KeyboardEvent, MouseEvent } from 'react';
+import type { MouseEvent } from 'react';
+import { usePrefetchProductWhenVisible } from '../hooks/usePrefetchProductWhenVisible';
+import { ProductCardOverlayLink } from './ProductCardOverlayLink';
 import { formatPrice } from '../../lib/currency';
 import { useTranslation } from '../../lib/i18n-client';
 import { CompareIcon } from '../icons/CompareIcon';
@@ -43,7 +44,7 @@ interface ProductCardListProps {
   onCompareToggle: (e: MouseEvent) => void;
   onAddToCart: (e: MouseEvent) => void;
   onDecreaseCart: (e: MouseEvent) => void;
-  onProductClick: () => void;
+  productHref: string;
   onPrefetchNavigate?: () => void;
 }
 
@@ -64,68 +65,55 @@ export function ProductCardList({
   onCompareToggle,
   onAddToCart,
   onDecreaseCart,
-  onProductClick,
+  productHref,
   onPrefetchNavigate,
 }: ProductCardListProps) {
   const { t } = useTranslation();
-  const handleCardKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key !== 'Enter' && event.key !== ' ') {
-      return;
-    }
-    event.preventDefault();
-    onProductClick();
-  };
+  const visibilityRef = usePrefetchProductWhenVisible(product.slug);
 
   return (
     <div
+      ref={visibilityRef}
       data-product-card
-      className={`bg-white rounded-lg border border-gray-200 overflow-hidden transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} group cursor-pointer`}
-      onClick={onProductClick}
+      className={`relative overflow-hidden rounded-lg border border-gray-200 bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} group cursor-pointer`}
       onMouseEnter={onPrefetchNavigate}
       onFocus={onPrefetchNavigate}
-      onKeyDown={handleCardKeyDown}
-      role="link"
-      tabIndex={0}
     >
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4 px-4 sm:px-6 py-4">
-        {/* Product Image */}
-        <Link
-          href={`/products/${product.slug}`}
+      <ProductCardOverlayLink slug={product.slug} label={product.title} />
+      <div className="relative z-10 flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:px-6">
+        <div
           data-product-fly-origin
-          className={`w-20 h-20 bg-gray-100 rounded-lg flex-shrink-0 relative overflow-hidden self-start sm:self-center transition-colors ${FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS}`}
+          className={`relative h-20 w-20 flex-shrink-0 self-start overflow-hidden rounded-lg bg-gray-100 transition-colors sm:self-center ${FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS}`}
         >
           <Image
-              src={imageError ? resolveStorefrontProductImage(null) : resolveStorefrontProductImage(product.image)}
-              alt={product.title}
-              fill
-              className="object-cover"
-              sizes="80px"
-              unoptimized
-              onError={onImageError}
-            />
-        </Link>
+            src={imageError ? resolveStorefrontProductImage(null) : resolveStorefrontProductImage(product.image)}
+            alt={product.title}
+            fill
+            className="object-cover"
+            sizes="80px"
+            unoptimized
+            onError={onImageError}
+          />
+        </div>
 
-        {/* Product Info */}
-        <div className="flex-1 min-w-0 w-full sm:w-auto">
-          <Link href={`/products/${product.slug}`} className="block">
-            <h3 className="text-lg sm:text-xl font-medium text-gray-900 hover:text-blue-600 transition-colors line-clamp-2">
-              {product.title}
-            </h3>
-            {product.brand?.logoUrl ? (
-              <div className="mt-1">
-                <div className="relative h-6 w-6">
-                  <Image
-                    src={product.brand.logoUrl}
-                    alt={product.brand?.name || 'Brand logo'}
-                    fill
-                    className="object-contain"
-                    sizes="24px"
-                    unoptimized
-                  />
-                </div>
+        <div className="min-w-0 w-full flex-1 sm:w-auto">
+          <h3 className="line-clamp-2 text-lg font-medium text-gray-900 transition-colors group-hover:text-blue-600 sm:text-xl">
+            {product.title}
+          </h3>
+          {product.brand?.logoUrl ? (
+            <div className="mt-1">
+              <div className="relative h-6 w-6">
+                <Image
+                  src={product.brand.logoUrl}
+                  alt={product.brand?.name || 'Brand logo'}
+                  fill
+                  className="object-contain"
+                  sizes="24px"
+                  unoptimized
+                />
               </div>
-            ) : null}
-          </Link>
+            </div>
+          ) : null}
           {/* Available Colors */}
           {product.colors && product.colors.length > 0 && (
             <div className="flex items-center gap-1.5 mt-2 flex-wrap">

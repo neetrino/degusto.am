@@ -158,7 +158,8 @@
     "discount": "discount",
     "order": "Order",
     "discountUsed": "Discount used",
-    "code": "Code"
+    "code": "Code",
+    "failedToLoad": "Failed to load coupons"
   },
   "orderDetails": {
     "title": "Order #",
@@ -196,6 +197,11 @@
   "common": {
     "loading": "Loading profile...",
     "loadingProfile": "Loading profile..."
+  },
+  "menu": {
+    "open": "Menu",
+    "title": "Profile Navigation",
+    "close": "Close profile menu"
   }
 }
 

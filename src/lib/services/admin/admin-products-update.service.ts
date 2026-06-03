@@ -17,7 +17,10 @@ class AdminProductsUpdateService {
 
     // Revalidate cache for this product and related pages
     const productSlug = result.translations[0]?.slug;
-    await revalidateProductCache(productId, productSlug);
+    const translationSlugs = result.translations
+      .map((translation) => translation.slug)
+      .filter((slug): slug is string => Boolean(slug));
+    await revalidateProductCache(productId, productSlug, translationSlugs);
 
     return result;
   }

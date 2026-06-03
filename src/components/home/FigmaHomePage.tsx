@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { ViewMoreButton } from '../view-more/ViewMoreButton';
 import { useRouter } from 'next/navigation';
-import type { KeyboardEvent, MouseEvent } from 'react';
+import type { MouseEvent } from 'react';
 import { UniversalHeader } from '../UniversalHeader';
 import { ProjectGreenStripes } from '../decor/ProjectGreenStripes';
 import { Footer } from '../Footer';
@@ -21,6 +21,8 @@ import { FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS } from '@/constants/mobile-figma-s
 import { r2Asset } from '@/lib/r2-public-url';
 import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 import { HomeOptimizedImage } from './HomeOptimizedImage';
+import { StorefrontProductOverlayLink } from './StorefrontProductOverlayLink';
+import { HomeDailyOfferHeroCard } from './HomeDailyOfferHeroCard';
 import { resolveHomeDailyOfferProduct } from './home-daily-offer';
 import type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
 
@@ -55,9 +57,8 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
   const hasDiscount = typeof item.discountPercent === 'number' && item.discountPercent > 0;
   const discountPercent = typeof item.discountPercent === 'number' ? Math.round(item.discountPercent) : null;
   const imageSrc = resolveStorefrontProductImage(item.image);
-  const title =
-    item.title === 'Double Cheeseburger' ? t('home.figma.mobile.product.title') : (item.title || t('home.figma.mobile.product.title'));
-  const subtitle = item.subtitle || t('home.figma.mobile.product.subtitle');
+  const title = item.title;
+  const subtitle = item.subtitle ?? '';
   const formattedPrice = keepCurrencySymbolAttached(formatPrice(item.price || 0, currency));
   const formattedOldPrice = item.oldPrice ? keepCurrencySymbolAttached(formatPrice(item.oldPrice, currency)) : null;
   const mainPriceClassName = formattedPrice.length > 12 ? 'text-[18px]' : 'text-[20px]';
@@ -71,17 +72,6 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
     defaultVariantId: item.defaultVariantId ?? undefined,
     price: item.price ?? undefined,
   });
-  const openProduct = () => {
-    router.push(productHref);
-  };
-  const handleCardKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    if (event.key !== 'Enter' && event.key !== ' ') {
-      return;
-    }
-    event.preventDefault();
-    openProduct();
-  };
-
   const handleAddToCart = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
@@ -105,13 +95,9 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
   return (
     <article
       data-home-product-card
-      className={`relative h-[284px] w-[236px] shrink-0 rounded-[20px] border-[1.5px] border-[#dedede] bg-white cursor-pointer transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} hover:shadow-md`}
-      onClick={openProduct}
-      onKeyDown={handleCardKeyDown}
-      role="link"
-      tabIndex={0}
-      aria-label={title}
+      className={`relative h-[284px] w-[236px] shrink-0 cursor-pointer rounded-[20px] border-[1.5px] border-[#dedede] bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} hover:shadow-md`}
     >
+      <StorefrontProductOverlayLink slug={item.slug} label={title} />
       <div data-product-fly-origin className="absolute left-1/2 top-1 h-[147px] w-[227px] -translate-x-1/2 overflow-hidden rounded-[18px]">
         <HomeOptimizedImage
           src={imageSrc}
@@ -183,7 +169,7 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
         type="button"
         onClick={handleAddToCart}
         disabled={isAddingToCart || (item.inStock === false)}
-        className="absolute -bottom-[25px] left-1/2 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center"
+        className="absolute -bottom-[25px] left-1/2 z-20 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center"
       >
         <HomeOptimizedImage
           src={assets.productCardAddToCart}
@@ -230,26 +216,8 @@ export function FigmaHomePage({
   dailyOfferProduct?: HomeFeaturedProduct | null;
 }) {
   const { t, lang } = useTranslation();
-  const currency = useCurrency();
-  const router = useRouter();
   const specialOfferProducts = featuredProducts.slice(0, DESKTOP_HOME_SPECIAL_OFFERS_PRODUCT_COUNT);
   const heroProduct = resolveHomeDailyOfferProduct(featuredProducts, dailyOfferProduct);
-  const heroProductTitle =
-    heroProduct?.title === 'Double Cheeseburger'
-      ? t('home.figma.mobile.product.title')
-      : (heroProduct?.title || t('home.figma.mobile.product.title'));
-  const heroProductSubtitle = heroProduct?.subtitle || t('home.figma.mobile.product.subtitle');
-  const heroProductHref = `/products/${heroProduct?.slug || 'products'}`;
-  const openHeroProduct = () => {
-    router.push(heroProductHref);
-  };
-  const handleHeroProductKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    if (event.key !== 'Enter' && event.key !== ' ') {
-      return;
-    }
-    event.preventDefault();
-    openHeroProduct();
-  };
 
   return (
     <div className="hidden min-h-screen overflow-x-hidden bg-[var(--project-color)] lg:block">
@@ -272,96 +240,18 @@ export function FigmaHomePage({
         <ProjectGreenStripes />
         <UniversalHeader spacerBackgroundClassName="bg-[#F66812]" />
 
-        <div className="relative z-20 mx-auto mt-14 w-full max-w-[1450px] px-4 lg:mt-16 lg:px-6">
-          <article
-            className="relative z-20 h-[284px] w-[236px] cursor-pointer sm:ml-[45px]"
-            onClick={openHeroProduct}
-            onKeyDown={handleHeroProductKeyDown}
-            role="link"
-            tabIndex={0}
-            aria-label={heroProductTitle}
-          >
-            <div className="absolute inset-0 rounded-[20px] bg-white shadow-xl" />
-            <div className="absolute left-1/2 top-[5px] h-[147px] w-[227px] -translate-x-1/2 overflow-hidden rounded-[18px]">
-              <HomeOptimizedImage
-                src={resolveStorefrontProductImage(heroProduct?.image)}
-                alt={t('home.figma.mobile.dailyOfferImageAlt')}
-                width={227}
-                height={147}
-                className="h-full w-full object-cover"
-                priority
-                loading="eager"
-                sizes="236px"
-              />
-              <HomeProductFoodAttributeBadges
-                variant="desktop-hero"
-                supportsSpicy={heroProduct?.supportsSpicy ?? false}
-                supportsGreens={heroProduct?.supportsGreens ?? false}
-                hotIconSrc={assets.productCardHot}
-                greensIconSrc={assets.productCardRibbon}
-              />
-            </div>
-            <div className="absolute left-[14px] top-[172px] flex items-center gap-1.5">
-              <HomeOptimizedImage
-                src={assets.productCardStar}
-                alt=""
-                width={20}
-                height={20}
-                className="h-5 w-5 object-contain"
-                loading="lazy"
-              />
-              <p className="text-base font-medium leading-none text-[rgba(60,47,47,0.62)]">4.7</p>
-            </div>
-            <div className="absolute left-[14px] top-[194px] w-[130px]">
-              <h2 className="text-base font-bold leading-none text-[#3c2f2f]">
-                <span className="block">{heroProductTitle}</span>
-              </h2>
-              <p className="mt-1 text-base font-medium leading-[1.2] text-[#a1a1a1]">{heroProductSubtitle}</p>
-            </div>
-            <span className="absolute right-[12px] top-[165px] inline-flex items-center rounded-[60px] bg-[#ff7f20] px-[17px] py-[8px] text-sm font-bold leading-none text-black">
-              -{Math.round(heroProduct?.discountPercent || 30)}%
-            </span>
-            <span className="absolute right-[14px] top-[228px] font-['Montserrat_arm','Montserrat',sans-serif] text-[22px] font-[1000] leading-none tracking-[-0.3px] text-[#3c2f2f]">
-              {formatPrice(heroProduct?.price || 1200, currency)}
-            </span>
-            <button
-              type="button"
-              onClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-              }}
-              className="absolute bottom-[-25px] left-1/2 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center"
-            >
-              <HomeOptimizedImage
-                src={assets.productCardAddToCart}
-                alt="Add to cart"
-                width={51}
-                height={52}
-                className="h-[52px] w-[51px] object-contain"
-                loading="lazy"
-              />
-            </button>
-            <div className="absolute -right-[88px] -top-[46px] h-[132px] w-[132px]">
-              <HomeOptimizedImage
-                src={assets.offerBadge}
-                alt=""
-                width={132}
-                height={132}
-                className="absolute inset-0 h-full w-full object-contain"
-                loading="lazy"
-              />
-              <div
-                className={`absolute inset-0 flex items-center justify-center text-center font-black text-white ${
-                  lang === 'ru' ? 'text-[11px] leading-[1.05]' : 'text-[16px] leading-[1.1]'
-                }`}
-              >
-                <span className={`whitespace-pre-line ${lang === 'ru' ? '-translate-x-[4px] max-w-[72px]' : ''}`}>
-                  {t('home.figma.mobile.dailyOfferTitle')}
-                </span>
-              </div>
-            </div>
-          </article>
-        </div>
+        {heroProduct ? (
+          <div className="relative z-20 mx-auto mt-14 w-full max-w-[1450px] px-4 lg:mt-16 lg:px-6">
+            <HomeDailyOfferHeroCard
+              product={heroProduct}
+              offerBadgeSrc={assets.offerBadge}
+              hotIconSrc={assets.productCardHot}
+              greensIconSrc={assets.productCardRibbon}
+              starIconSrc={assets.productCardStar}
+              addToCartIconSrc={assets.productCardAddToCart}
+            />
+          </div>
+        ) : null}
       </section>
 
       <section className="h-[700px] w-full rounded-t-[40px] bg-[#0c0d12] pb-14 pt-6">
@@ -383,13 +273,19 @@ export function FigmaHomePage({
               {t('home.figma.desktop.moreButton')} →
             </ViewMoreButton>
           </div>
-          <div className="mt-[150px] overflow-x-auto pb-8">
-            <div className="mx-auto flex w-max flex-nowrap justify-center gap-[10px]">
-              {specialOfferProducts.map((item) => (
-                <NewsCard key={item.id} item={item} />
-              ))}
+          {specialOfferProducts.length > 0 ? (
+            <div className="mt-[150px] overflow-x-auto pb-8">
+              <div className="mx-auto flex w-max flex-nowrap justify-center gap-[10px]">
+                {specialOfferProducts.map((item) => (
+                  <NewsCard key={item.id} item={item} />
+                ))}
+              </div>
             </div>
-          </div>
+          ) : (
+            <p className="mt-[150px] text-center text-lg text-white/70">
+              {t('home.featured_products.noProducts')}
+            </p>
+          )}
         </div>
       </section>
 
@@ -411,7 +307,7 @@ export function FigmaHomePage({
           </div>
         </section>
       </div>
-      <Footer outerBackgroundClassName={HOME_DESKTOP_CATEGORY_SURFACE_CLASS} />
+      <Footer outerBackgroundClassName="bg-white" />
     </div>
   );
 }

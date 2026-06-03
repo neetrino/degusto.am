@@ -12,6 +12,7 @@ import { useAuth } from '../../lib/auth/AuthContext';
 import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
 import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
+import { StorefrontProductOverlayLink } from './StorefrontProductOverlayLink';
 import type { MenuCard, MenuCategory } from './menu-types';
 import { ShopMobileProductCard } from './ShopMobileProductCard';
 import { StoreMenuPagination } from './StoreMenuPagination';
@@ -58,24 +59,6 @@ type DesktopMenuPageProps = {
   /** When false, hides the mobile product list (e.g. mobile shop category grid on `/shop`). */
   showMobileProductsList?: boolean;
 };
-
-const fallbackCategoryKeys = [
-  'home.figma.desktop.categories.all',
-  'home.figma.desktop.categories.soupsAndHotDishes',
-  'home.figma.desktop.categories.salads',
-  'home.figma.desktop.categories.shawarma',
-  'home.figma.desktop.categories.pizza',
-  'home.figma.desktop.categories.lahmajo',
-  'home.figma.desktop.categories.georgianKhachapuri',
-  'home.figma.desktop.categories.bbq',
-  'home.figma.desktop.categories.khinkali',
-  'home.figma.desktop.categories.stuffedPotato',
-  'home.figma.desktop.categories.burgersAndSandwiches',
-  'home.figma.desktop.categories.piesAndPancakes',
-  'home.figma.desktop.categories.comboSets',
-  'home.figma.desktop.categories.lunchBoxes',
-  'home.figma.desktop.categories.grillAndSmokedProducts',
-] as const;
 
 type BuildMenuTargetPathFn = (
   categorySlug: string,
@@ -183,31 +166,13 @@ function formatCategoryLabelWithCount(category: MenuCategory): string {
   return `${category.title} (${category.productCount})`;
 }
 
-const categoryIconUrls: readonly string[] = [
-  'https://www.figma.com/api/mcp/asset/8de80153-582c-4bef-9266-5891b9fbdab3',
-  'https://www.figma.com/api/mcp/asset/e3d4fcad-c674-4414-95c8-ca012568b13e',
-  'https://www.figma.com/api/mcp/asset/d370b052-6fd2-42a3-851d-f586d3a23b3a',
-  'https://www.figma.com/api/mcp/asset/619909ac-77cf-4117-b141-aa71f293b6eb',
-  'https://www.figma.com/api/mcp/asset/6d232edf-6c5c-4e86-9e11-50dd95b37b14',
-  'https://www.figma.com/api/mcp/asset/c0ac7ff0-bf52-4391-b6e0-b747cd18ba51',
-  'https://www.figma.com/api/mcp/asset/4cfc22ad-568a-4915-a3dd-00cb3776095d',
-  'https://www.figma.com/api/mcp/asset/3154f92a-318f-447b-b519-4534c7b191fa',
-  'https://www.figma.com/api/mcp/asset/bc9f1772-5cce-4796-98ac-45e4b00bee54',
-  'https://www.figma.com/api/mcp/asset/2b326ae0-288b-422c-9a6f-43801b37f863',
-  'https://www.figma.com/api/mcp/asset/0e7f6a80-7542-4046-9fde-4575adcfe996',
-  'https://www.figma.com/api/mcp/asset/7b8393a5-e7d3-47c5-8674-84a5c2ebaaff',
-  'https://www.figma.com/api/mcp/asset/77042696-4258-446a-a60c-61e7d439626e',
-  'https://www.figma.com/api/mcp/asset/9abad853-0a02-45c4-bfad-b2db812cf47e',
-  'https://www.figma.com/api/mcp/asset/f753dcb8-0d13-4c01-a132-9640f1282ad7',
-];
-
 function MenuCardItem({ card }: { card: MenuCard }) {
   const { t } = useTranslation();
   const currency = useCurrency();
   const router = useRouter();
   const { isLoggedIn } = useAuth();
   const { isInWishlist, toggleWishlist } = useWishlist(card.id);
-  const title = card.title || t(card.titleKey);
+  const title = card.title || (card.titleKey ? t(card.titleKey) : '');
   const category = card.category || (card.categoryKey ? t(card.categoryKey) : '');
   const imageSrc = resolveStorefrontProductImage(card.image);
   const calculatedDiscountPercent =
@@ -230,17 +195,6 @@ function MenuCardItem({ card }: { card: MenuCard }) {
     defaultVariantId: card.defaultVariantId ?? undefined,
     price: card.price,
   });
-  const handleOpenProduct = () => {
-    router.push(productHref);
-  };
-  const handleCardKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    if (event.key !== 'Enter' && event.key !== ' ') {
-      return;
-    }
-    event.preventDefault();
-    handleOpenProduct();
-  };
-
   const handleAddToCart = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
@@ -264,13 +218,9 @@ function MenuCardItem({ card }: { card: MenuCard }) {
   return (
     <article
       data-home-product-card
-      className={`relative h-[284px] w-[236px] shrink-0 rounded-[20px] border-[1.5px] border-[#dedede] bg-white cursor-pointer transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} hover:shadow-md`}
-      onClick={handleOpenProduct}
-      onKeyDown={handleCardKeyDown}
-      role="link"
-      tabIndex={0}
-      aria-label={title}
+      className={`relative h-[284px] w-[236px] shrink-0 cursor-pointer rounded-[20px] border-[1.5px] border-[#dedede] bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} hover:shadow-md`}
     >
+      <StorefrontProductOverlayLink slug={card.slug} label={title} />
       <div data-product-fly-origin className="absolute left-1/2 top-1 h-[147px] w-[227px] -translate-x-1/2">
         <img src={imageSrc} alt={title} className="h-full w-full rounded-[18px] object-cover" />
       </div>
@@ -326,7 +276,7 @@ function MenuCardItem({ card }: { card: MenuCard }) {
         onClick={handleAddToCart}
         disabled={isAddingToCart || (card.inStock === false)}
         aria-label={t('common.buttons.addToCart')}
-        className="absolute -bottom-[25px] left-1/2 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center"
+        className="absolute -bottom-[25px] left-1/2 z-20 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center"
       >
         <img src={assets.productCardAddToCart} alt="" className="h-[52px] w-[51px] object-contain" />
       </button>
@@ -689,24 +639,9 @@ export function FigmaDesktopMenuPage({
                       </button>
                     );
                   })
-                : fallbackCategoryKeys.map((categoryKey, index) => {
-                    const isActive = index === activeCategoryIndex;
-                    const iconUrl = categoryIconUrls[index];
-                    return (
-                      <button
-                        key={categoryKey}
-                        type="button"
-                        className={`flex h-10 w-full items-center rounded-[10px] px-3 py-[10px] text-left text-[14px] font-medium leading-5 tracking-[-0.15px] ${
-                          isActive ? 'rounded-[30px] bg-[#ff7f20] text-white' : 'text-white hover:bg-white/10'
-                        }`}
-                      >
-                        <span className="mr-3 inline-flex h-6 w-6 shrink-0 items-center justify-center" aria-hidden="true">
-                          {iconUrl ? <img src={iconUrl} alt="" className="h-6 w-6 object-contain" /> : null}
-                        </span>
-                        <span>{t(categoryKey)}</span>
-                      </button>
-                    );
-                  })}
+                : (
+                    <p className="px-1 py-2 text-sm text-white/60">{t('home.featured_products.noProducts')}</p>
+                  )}
             </div>
           </div>
         </aside>

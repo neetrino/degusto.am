@@ -109,6 +109,20 @@
     "cartEmpty": "Cart is empty",
     "failedToLoadCart": "Failed to load cart",
     "failedToCreateOrder": "Failed to create order. Please try again."
+  },
+  "pageError": {
+    "title": "Checkout error",
+    "description": "Something went wrong. Please try again or check your cart."
+  },
+  "success": {
+    "orderNumber": "Your order number is {number}.",
+    "generic": "Your order has been created successfully.",
+    "contactNote": "Our team will contact you shortly to confirm the order details."
+  },
+  "paymentGateway": {
+    "title": "Redirecting to payment...",
+    "description": "Please wait while we prepare your secure {provider} payment session.",
+    "providerCard": "card"
   }
 }
 

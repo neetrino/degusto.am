@@ -13,6 +13,7 @@ import {
   createColorData,
   updateColorData,
 } from '../utils/colorDataBuilder';
+import { isUnlimitedStock } from '@/lib/product-stock';
 import { logger } from "@/lib/utils/logger";
 import {
   collectVariantImagesFromColors,
@@ -48,7 +49,6 @@ interface UseProductEditModeProps {
     v: Record<string, string[]> | ((prev: Record<string, string[]>) => Record<string, string[]>)
   ) => void;
   setOpenValueModal: (v: { variantId: string; attributeId: string } | null) => void;
-  productFetchNonce: number;
   setPendingVariantHydration: (payload: PendingVariantHydration | null) => void;
 }
 
@@ -70,7 +70,6 @@ export function useProductEditMode({
   setSelectedAttributesForVariants,
   setSelectedAttributeValueIds,
   setOpenValueModal,
-  productFetchNonce,
   setPendingVariantHydration,
 }: UseProductEditModeProps) {
   const router = useRouter();
@@ -83,6 +82,7 @@ export function useProductEditMode({
   tRef.current = t;
   const loadGenerationRef = useRef(0);
   const lastLoadedProductIdRef = useRef<string | null>(null);
+  const productLoadedRef = useRef(false);
 
   useEffect(() => {
     if (!isLoggedIn || !isAdmin || !referenceCatalogReady) {
@@ -90,6 +90,7 @@ export function useProductEditMode({
     }
     if (!productId) {
       lastLoadedProductIdRef.current = null;
+      productLoadedRef.current = false;
       setPendingVariantHydration(null);
       return;
     }
@@ -97,6 +98,7 @@ export function useProductEditMode({
     const productChanged = lastLoadedProductIdRef.current !== productId;
     if (productChanged) {
       lastLoadedProductIdRef.current = productId;
+      productLoadedRef.current = false;
       setPendingVariantHydration(null);
       setGeneratedVariants([]);
       setSelectedAttributesForVariants(new Set());
@@ -104,6 +106,8 @@ export function useProductEditMode({
       setOpenValueModal(null);
       setFormData(() => getEmptyProductFormData());
       setHasVariantsToLoad(false);
+    } else if (productLoadedRef.current) {
+      return;
     }
 
     setLoadingProduct(true);
@@ -150,7 +154,11 @@ export function useProductEditMode({
             logger.debug(`📊 [ADMIN] Extracted from variant ${index}:`, { color, size });
 
             const stockValue =
-              variant.stock !== undefined && variant.stock !== null ? String(variant.stock) : '';
+              variant.stock !== undefined &&
+              variant.stock !== null &&
+              !isUnlimitedStock(variant.stock)
+                ? String(variant.stock)
+                : '';
 
             if (!color) {
               const defaultColor = 'default';
@@ -333,14 +341,19 @@ export function useProductEditMode({
                     )
                   : '',
                 sku: firstVariant.sku || '',
-                quantity: String(firstVariant.stock || 0),
+                quantity:
+                  firstVariant.stock !== undefined &&
+                  firstVariant.stock !== null &&
+                  !isUnlimitedStock(firstVariant.stock)
+                    ? String(firstVariant.stock)
+                    : '',
               });
             } else {
               setSimpleProductData({
                 price: '',
                 compareAtPrice: '',
                 sku: '',
-                quantity: '0',
+                quantity: '',
               });
             }
           } else {
@@ -357,6 +370,7 @@ export function useProductEditMode({
           }
 
           logger.debug('✅ [ADMIN] Product loaded for edit');
+          productLoadedRef.current = true;
         } catch (err: unknown) {
           if (isAbortError(err) || loadId !== loadGenerationRef.current) {
             return;
@@ -401,6 +415,5 @@ export function useProductEditMode({
     setSelectedAttributeValueIds,
     setOpenValueModal,
     setPendingVariantHydration,
-    productFetchNonce,
   ]);
 }

@@ -1,8 +1,8 @@
 export type MenuCard = {
   id: string;
   slug: string;
-  titleKey: string;
-  subtitleKey: string;
+  titleKey?: string;
+  subtitleKey?: string;
   title?: string;
   subtitle?: string;
   category?: string;

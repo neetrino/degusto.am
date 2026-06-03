@@ -135,6 +135,8 @@ export function LanguageCurrencySwitcher({
   const mobileOpenStackingClassName =
     variant === 'mobile' && isOpen ? MOBILE_FIGMA_HEADER_SWITCHER_OPEN_STACKING_CLASS : '';
 
+  const currencyDisplayLabel = `${currency} ${currentCurrencyInfo.symbol}`;
+
   return (
     <div className={`relative ${mobileOpenStackingClassName}`.trim()} ref={switcherRef}>
       <button
@@ -155,7 +157,7 @@ export function LanguageCurrencySwitcher({
             }`}
           />
           <span className={labelClassName}>
-            {language.toUpperCase()} / {currency} {currentCurrencyInfo.symbol}
+            {language.toUpperCase()} / {currencyDisplayLabel}
           </span>
         </span>
         {arrowSrc ? (
@@ -220,7 +222,7 @@ export function LanguageCurrencySwitcher({
                         : 'bg-[#f4f4f5] text-[#2f2f2f] hover:bg-[#e9e9eb]'
                     }`}
                   >
-                    {code} {CURRENCIES[code].symbol}
+                    {`${code} ${CURRENCIES[code].symbol}`}
                   </button>
                 );
               })}

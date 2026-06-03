@@ -13,6 +13,7 @@ import { useProductCalculations } from './hooks/useProductCalculations';
 import type { Product } from './types';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
 import type { ProductReviewSummary } from '@/lib/services/reviews/product-review-summary';
+import type { ProductReviewListItem } from '@/lib/services/reviews.service';
 
 export interface UseProductPageProps {
   slug: string;
@@ -22,6 +23,7 @@ export interface UseProductPageProps {
   detailsPending: boolean;
   reviewSummary: ProductReviewSummary;
   fetchReviews: boolean;
+  initialReviews?: ProductReviewListItem[];
 }
 
 export function useProductPage({
@@ -32,6 +34,7 @@ export function useProductPage({
   detailsPending,
   reviewSummary,
   fetchReviews,
+  initialReviews,
 }: UseProductPageProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currency, setCurrency] = useState(getStoredCurrency());
@@ -95,7 +98,10 @@ export function useProductPage({
   const { reviews, loading: reviewsLoading, setReviews } = useReviews(
     product?.id,
     slug || undefined,
-    { enabled: fetchReviews && Boolean(product?.id) }
+    {
+      enabled: fetchReviews && Boolean(product?.id),
+      initialReviews,
+    }
   );
 
   const averageRating = useMemo(() => {
@@ -185,6 +191,7 @@ export function useProductPage({
     setAdditions,
     setExclusions,
     quantity,
+    setQuantity,
     reviews,
     reviewsLoading,
     setReviews,

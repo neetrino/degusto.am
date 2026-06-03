@@ -28,21 +28,8 @@ import { MobileHomeProductGrid } from './MobileHomeProductGrid';
 const mobileAssets = {
   ...MOBILE_FIGMA_STOREFRONT_ASSETS,
   categoryFrame: r2Asset('category/20260512-uqGTJqCe88.svg'),
-  categoryPizza: r2Asset('category/20260512-w5zllSSAIo.png'),
-  categoryBurger: r2Asset('category/20260512-1bbwOOTncy.png'),
-  categorySushi: r2Asset('category/20260512-fVYeOn2udd.png'),
-  categorySalad: r2Asset('category/20260512-5hRi9b8irf.png'),
-  categorySoup: r2Asset('category/20260512-n-C21lLLfT.png'),
   dailyOfferAddToCart: r2Asset('assets/20260512-AiLSWk8lFo.svg'),
 };
-
-const mobileCategoryFallbacks: MobileHomeCategory[] = [
-  { id: 'pizza', slug: 'pizza', titleKey: 'home.figma.mobile.category.pizza', image: mobileAssets.categoryPizza, framed: true },
-  { id: 'burger', slug: 'burger', titleKey: 'home.figma.mobile.category.burger', image: mobileAssets.categoryBurger },
-  { id: 'sushi', slug: 'sushi', titleKey: 'home.figma.mobile.category.sushi', image: mobileAssets.categorySushi },
-  { id: 'salad', slug: 'salads', titleKey: 'home.figma.mobile.category.salad', image: mobileAssets.categorySalad },
-  { id: 'soup', slug: 'soups', titleKey: 'home.figma.mobile.category.soup', image: mobileAssets.categorySoup },
-];
 
 const MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS = 'px-3';
 
@@ -175,7 +162,7 @@ export function FigmaHomePageMobile({
   );
   const { newArrivalProducts, categoryProductsA, categoryProductsB } =
     sliceMobileHomeProductSections(featuredProducts);
-  const displayCategories = buildMobileDisplayCategories(categories, mobileCategoryFallbacks);
+  const displayCategories = buildMobileDisplayCategories(categories);
   const categoriesTitleClassName = lang === 'hy' ? mirageExpandedFont.className : undefined;
   const viewMoreLabel = t('common.buttons.viewMore');
 
@@ -190,15 +177,17 @@ export function FigmaHomePageMobile({
         <div
           className={`relative overflow-visible ${MOBILE_FIGMA_HEADER_TOP_ROW_STACKING_CLASS} flex translate-y-[20px] items-start justify-between`}
         >
-          <HomeOptimizedImage
-            src={mobileAssets.logo}
-            alt="Degusto"
-            width={129}
-            height={46}
-            className="h-[46px] w-[129px] object-contain"
-            priority
-            loading="eager"
-          />
+          <Link href="/" className="inline-flex shrink-0" aria-label={t('common.navigation.home')}>
+            <HomeOptimizedImage
+              src={mobileAssets.logo}
+              alt="Degusto"
+              width={129}
+              height={46}
+              className="h-[46px] w-[129px] object-contain"
+              priority
+              loading="eager"
+            />
+          </Link>
           <div className="flex items-center gap-1">
             <button type="button" className="relative inline-flex h-12 w-12 items-center justify-center">
               <HomeOptimizedImage
@@ -232,19 +221,23 @@ export function FigmaHomePageMobile({
       </header>
 
       <main className="relative z-10 mt-[87px] rounded-t-[30px] bg-white px-0 pb-[110px] pt-8">
-        <MobileCategoryStrip
-          categories={displayCategories}
-          categoriesTitle={t('common.navigation.categories')}
-          categoriesTitleClassName={categoriesTitleClassName}
-          viewMoreLabel={viewMoreLabel}
-          translate={t}
-        />
-        <div className={'mt-[22px] ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
-          <MobileHomeDailyOffer
-            product={resolvedDailyOfferProduct}
-            dailyOfferAddToCartSrc={mobileAssets.dailyOfferAddToCart}
+        {displayCategories.length > 0 ? (
+          <MobileCategoryStrip
+            categories={displayCategories}
+            categoriesTitle={t('common.navigation.categories')}
+            categoriesTitleClassName={categoriesTitleClassName}
+            viewMoreLabel={viewMoreLabel}
+            translate={t}
           />
-        </div>
+        ) : null}
+        {resolvedDailyOfferProduct ? (
+          <div className={'mt-[22px] ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
+            <MobileHomeDailyOffer
+              product={resolvedDailyOfferProduct}
+              dailyOfferAddToCartSrc={mobileAssets.dailyOfferAddToCart}
+            />
+          </div>
+        ) : null}
         <div className={'mt-[19px] ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
           <MobileCategorySliderIndicator />
         </div>

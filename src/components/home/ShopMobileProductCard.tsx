@@ -1,6 +1,6 @@
 'use client';
 
-import type { KeyboardEvent, MouseEvent } from 'react';
+import type { MouseEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '../../lib/i18n-client';
 import { useCurrency } from '../hooks/useCurrency';
@@ -15,6 +15,7 @@ import {
 } from '@/constants/mobile-figma-storefront';
 import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 import { HomeOptimizedImage } from './HomeOptimizedImage';
+import { StorefrontProductOverlayLink } from './StorefrontProductOverlayLink';
 import { shouldShowMenuCardStrikethroughPrice } from '@/lib/storefront/menu-card-pricing';
 import type { MenuCard } from './menu-types';
 
@@ -43,7 +44,7 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
   const router = useRouter();
   const { isLoggedIn } = useAuth();
   const { isInWishlist, toggleWishlist } = useWishlist(card.id);
-  const title = card.title || t(card.titleKey);
+  const title = card.title || (card.titleKey ? t(card.titleKey) : '');
   const category = card.category || (card.categoryKey ? t(card.categoryKey) : '');
   const imageSrc = resolveStorefrontProductImage(card.image);
   const formattedPrice = formatPrice(card.price, currency);
@@ -74,18 +75,6 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
     price: card.price,
   });
 
-  const handleOpenProduct = () => {
-    router.push(productHref);
-  };
-
-  const handleCardKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    if (event.key !== 'Enter' && event.key !== ' ') {
-      return;
-    }
-    event.preventDefault();
-    handleOpenProduct();
-  };
-
   const handleAddToCart = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
@@ -110,12 +99,8 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
     <article
       data-home-product-card
       className={`relative h-[240px] w-full cursor-pointer rounded-[20px] border-[1.5px] border-[#dedede] bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS}`}
-      onClick={handleOpenProduct}
-      onKeyDown={handleCardKeyDown}
-      role="link"
-      tabIndex={0}
-      aria-label={title}
     >
+      <StorefrontProductOverlayLink slug={card.slug} label={title} />
       <div
         data-product-fly-origin
         className="absolute left-1 right-1 top-[5px] h-[143px] overflow-hidden rounded-[18px] relative"
@@ -216,7 +201,7 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
         onClick={handleAddToCart}
         disabled={isAddingToCart || card.inStock === false}
         aria-label={t('common.buttons.addToCart')}
-        className="absolute -bottom-[14px] left-1/2 inline-flex h-[42px] w-[42px] -translate-x-1/2 items-center justify-center"
+        className="absolute -bottom-[14px] left-1/2 z-20 inline-flex h-[42px] w-[42px] -translate-x-1/2 items-center justify-center disabled:opacity-50"
       >
         <HomeOptimizedImage
           src={MOBILE_SHOP_PRODUCT_CARD_ASSETS.addToCart}

@@ -1,9 +1,8 @@
 'use client';
 
 import { motion, useReducedMotion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Button } from '@shop/ui';
 import { getStoredCurrency } from '@/lib/currency';
 import { useTranslation } from '@/lib/i18n-client';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -60,7 +59,6 @@ function CartDrawerBackdrop({
 }
 
 function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisible: boolean }) {
-  const router = useRouter();
   const isMobileViewport = useIsMobileViewport();
   const reduceMotion = useReducedMotion();
   const panelTransition = cartDrawerPanelTransition(reduceMotion);
@@ -260,17 +258,13 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
               className="flex flex-col items-center justify-center px-2 py-16 text-center"
             >
               <p className="text-base font-semibold text-white">{t('common.cart.empty')}</p>
-              <Button
-                variant="primary"
-                size="md"
-                className="mt-6"
-                onClick={() => {
-                  onClose();
-                  router.push('/shop');
-                }}
+              <Link
+                href="/shop"
+                onClick={onClose}
+                className="mt-6 inline-flex items-center justify-center rounded-xl bg-gray-900 px-4 py-2 text-base font-medium text-white transition-colors hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
               >
                 {t('checkout.buttons.continueShopping')}
-              </Button>
+              </Link>
             </motion.div>
           ) : (
             <motion.div key="cart" variants={fadeItem} className="flex min-h-0 flex-1 flex-col">

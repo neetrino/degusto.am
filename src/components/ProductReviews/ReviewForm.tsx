@@ -38,7 +38,7 @@ export function ReviewForm({
   return (
     <form onSubmit={onSubmit} className="mb-8 p-6 bg-gray-50 rounded-lg">
       <h3 className="text-xl font-semibold text-gray-900 mb-4">
-        {editingReviewId ? 'Update Your Review' : t('common.reviews.writeReview')}
+        {editingReviewId ? t('common.reviews.updateReviewTitle') : t('common.reviews.writeReview')}
       </h3>
 
       {/* Rating Selector */}
@@ -81,7 +81,7 @@ export function ReviewForm({
           {submitting
             ? t('common.reviews.submitting')
             : editingReviewId
-              ? 'Update Review'
+              ? t('common.reviews.updateReviewButton')
               : t('common.reviews.submitReview')}
         </Button>
         <Button

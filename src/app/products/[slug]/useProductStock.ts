@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { getEffectiveMaxQuantity, hasSellableStock } from '@/lib/product-stock';
 import type { Product, ProductVariant, AttributeGroupValue } from './types';
 import type { LanguageCode } from '../../../lib/language';
 import { t } from '../../../lib/i18n';
@@ -44,21 +45,22 @@ export function useProductStock({
 
   // Calculate max quantity based on current variant stock
   const maxQuantity = useMemo(() => {
-    return currentVariant?.stock && currentVariant.stock > 0 ? currentVariant.stock : 0;
-  }, [currentVariant?.stock]);
-
-  // Check if current variant is out of stock
-  const isOutOfStock = useMemo(() => {
-    return !currentVariant || currentVariant.stock <= 0;
+    if (!currentVariant) {
+      return 0;
+    }
+    return getEffectiveMaxQuantity(currentVariant.stock);
   }, [currentVariant]);
 
-  // Check which attributes are available and required
+  const isOutOfStock = useMemo(() => {
+    return !currentVariant || !hasSellableStock(currentVariant.stock);
+  }, [currentVariant]);
+
   const hasColorAttribute = useMemo(() => {
-    return colorGroups.length > 0 && colorGroups.some((g) => g.stock > 0);
+    return colorGroups.length > 0 && colorGroups.some((g) => hasSellableStock(g.stock));
   }, [colorGroups]);
 
   const hasSizeAttribute = useMemo(() => {
-    return sizeGroups.length > 0 && sizeGroups.some((g) => g.stock > 0);
+    return sizeGroups.length > 0 && sizeGroups.some((g) => hasSellableStock(g.stock));
   }, [sizeGroups]);
 
   const needsColor = hasColorAttribute && !selectedColor;
@@ -102,7 +104,7 @@ export function useProductStock({
       });
 
       // If attribute value found and has no stock, mark as unavailable
-      if (attrValue && attrValue.stock <= 0) {
+      if (attrValue && !hasSellableStock(attrValue.stock)) {
         unavailable.set(attrKey, true);
       }
     });
@@ -122,24 +124,23 @@ export function useProductStock({
 
   // Update quantity when variant changes
   useEffect(() => {
-    if (!currentVariant || currentVariant.stock <= 0) {
+    if (!currentVariant || !hasSellableStock(currentVariant.stock)) {
       setQuantity(0);
       return;
     }
     setQuantity((prev) => {
-      const currentStock = currentVariant.stock;
-      if (prev > currentStock) return currentStock;
-      if (prev <= 0 && currentStock > 0) return 1;
+      const currentMax = getEffectiveMaxQuantity(currentVariant.stock);
+      if (prev > currentMax) return currentMax;
+      if (prev <= 0) return 1;
       return prev;
     });
   }, [currentVariant?.id, currentVariant?.stock]);
 
-  // Adjust quantity with validation
   const adjustQuantity = (delta: number) => {
     if (isOutOfStock || isVariationRequired) return;
     setQuantity((prev) => {
       const next = prev + delta;
-      if (next < 1) return currentVariant && currentVariant.stock > 0 ? 1 : 0;
+      if (next < 1) return currentVariant && hasSellableStock(currentVariant.stock) ? 1 : 0;
       return next > maxQuantity ? maxQuantity : next;
     });
   };

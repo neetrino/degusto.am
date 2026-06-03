@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { ProductPageLink } from '@/components/products/ProductPageLink';
 import Image from 'next/image';
 import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 import { Button } from '@shop/ui';
@@ -40,8 +40,8 @@ interface WishlistCardImageLinkProps {
 
 function WishlistCardImageLink({ slug, title, image }: WishlistCardImageLinkProps) {
   return (
-    <Link
-      href={`/products/${slug}`}
+    <ProductPageLink
+      slug={slug}
       className="absolute inset-0 block outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
     >
       <Image
@@ -56,7 +56,7 @@ function WishlistCardImageLink({ slug, title, image }: WishlistCardImageLinkProp
         className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-brand/35 via-brand/5 to-transparent opacity-0 transition-opacity duration-300 group-hover/card:opacity-100"
         aria-hidden
       />
-    </Link>
+    </ProductPageLink>
   );
 }
 
@@ -139,8 +139,8 @@ function WishlistCardInfoPanel({
 }: WishlistCardInfoPanelProps) {
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-2.5 border-t border-brand/10 bg-white px-4 pb-4 pt-3">
-      <Link
-        href={`/products/${product.slug}`}
+      <ProductPageLink
+        slug={product.slug}
         className="block rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
       >
         <h3 className="line-clamp-2 text-[0.9375rem] font-semibold leading-snug tracking-tight text-gray-900 transition-colors group-hover/card:text-brand">
@@ -151,7 +151,7 @@ function WishlistCardInfoPanel({
             {product.brand.name}
           </p>
         ) : null}
-      </Link>
+      </ProductPageLink>
 
       <WishlistCardPriceRow product={product} currency={currency} />
 

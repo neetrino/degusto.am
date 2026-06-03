@@ -1,3 +1,4 @@
+import { parseAdminStockInput } from '@/lib/product-stock';
 import { findOrCreateAttributeValue } from "../../../utils/variant-generator";
 import type { Prisma } from "@prisma/client";
 
@@ -139,11 +140,7 @@ export function parseVariantPrices(variant: {
   compareAtPrice?: number;
 } {
   const price = typeof variant.price === 'number' ? variant.price : parseFloat(String(variant.price));
-  let stock =
-    typeof variant.stock === 'number' ? variant.stock : parseInt(String(variant.stock), 10);
-  if (Number.isNaN(stock) || stock < 0) {
-    stock = 0;
-  }
+  const stock = parseAdminStockInput(variant.stock);
   let compareAtPrice: number | undefined =
     variant.compareAtPrice !== undefined &&
     variant.compareAtPrice !== null &&

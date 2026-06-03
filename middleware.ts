@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { extractAuthTokenFromRequest } from "@/lib/auth/auth-cookies";
 import { problemTypes } from "@/lib/http/problem-details";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
@@ -6,8 +7,7 @@ import * as jose from "jose";
 
 /** Protect /api/v1/admin/* — require valid JWT (signature + expiry). DB check (blocked/deleted) remains in route. */
 async function requireAdminAuth(request: NextRequest): Promise<NextResponse | null> {
-  const authHeader = request.headers.get("authorization");
-  const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+  const token = extractAuthTokenFromRequest(request);
 
   if (!token) {
     return NextResponse.json(

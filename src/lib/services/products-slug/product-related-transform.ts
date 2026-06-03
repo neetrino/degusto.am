@@ -1,3 +1,4 @@
+import { resolveStorefrontDiscountPercent } from "../../storefront/discount-percent";
 import { processImageUrl } from "../../utils/image-utils";
 import { getStorefrontDiscountSettings } from "../storefront/get-storefront-discount-settings";
 
@@ -33,6 +34,7 @@ export interface RelatedCardPayload {
   originalPrice: number | null;
   compareAtPrice: number | null;
   discountPercent: number | null;
+  defaultVariantId: string | null;
   image: string | null;
   inStock: boolean;
   brand: { id: string; name: string } | null;
@@ -103,14 +105,25 @@ export async function transformRelatedProductRows(
       image = processImageUrl(product.media[0] as string | { url?: string; src?: string; value?: string }) || null;
     }
 
+    const compareAtPrice = variant?.compareAtPrice ?? null;
+    const displayOriginalPrice =
+      appliedDiscount > 0 ? originalPrice : compareAtPrice;
+    const discountPercent = resolveStorefrontDiscountPercent({
+      price: finalPrice,
+      originalPrice: displayOriginalPrice,
+      compareAtPrice,
+      productDiscount: appliedDiscount > 0 ? appliedDiscount : null,
+    });
+
     return {
       id: product.id,
       slug: tr?.slug ?? "",
       title: tr?.title ?? "",
       price: finalPrice,
-      originalPrice: appliedDiscount > 0 ? originalPrice : variant?.compareAtPrice ?? null,
-      compareAtPrice: variant?.compareAtPrice ?? null,
-      discountPercent: appliedDiscount > 0 ? appliedDiscount : null,
+      originalPrice: displayOriginalPrice,
+      compareAtPrice,
+      discountPercent,
+      defaultVariantId: variant?.id ?? null,
       image,
       inStock: (variant?.stock ?? 0) > 0,
       brand: product.brand

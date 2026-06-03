@@ -15,7 +15,8 @@
     "shopNow": "Купить сейчас",
     "viewMore": "Узнать больше",
     "close": "Закрыть",
-    "done": "Готово"
+    "done": "Готово",
+    "tryAgain": "Попробовать снова"
   },
   "navigation": {
     "home": "Главная",
@@ -114,6 +115,16 @@
     "commentRequired": "Пожалуйста, напишите комментарий",
     "submitError": "Не удалось отправить отзыв",
     "alreadyReviewed": "Вы уже оставили отзыв на этот товар",
+    "alreadyReviewedEditable": "Вы уже оставили отзыв. Вы можете обновить его ниже.",
+    "updateReviewTitle": "Обновить отзыв",
+    "updateReviewButton": "Обновить отзыв",
+    "editReview": "Изменить",
+    "deleteReview": "Удалить",
+    "confirmDeleteReview": "Вы уверены, что хотите удалить свой отзыв?",
+    "deleteReviewError": "Не удалось удалить отзыв",
+    "deleteOwnReviewOnly": "Вы можете удалить только свой отзыв",
+    "deletingReview": "Удаление...",
+    "updateOwnReviewOnly": "Вы можете изменить только свой отзыв",
     "noReviews": "Пока нет отзывов. Будьте первым, кто оставит отзыв об этом товаре!",
     "review": "отзыв",
     "reviews": "отзывов",
@@ -212,7 +223,7 @@
     "termsOfService": "Условия использования",
     "refundPolicy": "Политика возврата",
     "deliveryTerms": "Условия доставки",
-    "copyright": "© {year} Shop. Все права защищены.",
+    "copyright": "© {year} Degusto. Все права защищены.",
     "paymentMethods": "Способы оплаты:"
   },
   "product": {
@@ -223,6 +234,10 @@
     "previous": "Предыдущая",
     "next": "Следующая",
     "pageOf": "Страница {page} из {totalPages}"
+  },
+  "errors": {
+    "title": "Что-то пошло не так",
+    "description": "Произошла ошибка. Пожалуйста, попробуйте снова или вернитесь на главную страницу."
   },
   "notFound": {
     "title": "Страница не найдена",

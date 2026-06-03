@@ -25,8 +25,6 @@ export function homeFeaturedProductToMenuCard(product: HomeFeaturedProduct): Men
   return {
     id: product.id,
     slug: product.slug,
-    titleKey: 'home.figma.mobile.product.title',
-    subtitleKey: 'home.figma.mobile.product.subtitle',
     title: product.title,
     subtitle: product.subtitle,
     category: product.subtitle,
@@ -72,17 +70,13 @@ export function sliceMobileHomeProductSections(featuredProducts: HomeFeaturedPro
   };
 }
 
-export function buildMobileDisplayCategories(
-  categories: HomeCategoryItem[],
-  fallbackCategories: MobileHomeCategory[]
-): MobileHomeCategory[] {
-  if (categories.length === 0) {
-    return fallbackCategories;
-  }
-
-  return categories.slice(0, fallbackCategories.length).map((category, index) => ({
-    ...category,
-    titleKey: fallbackCategories[index]?.titleKey ?? 'common.navigation.categories',
+export function buildMobileDisplayCategories(categories: HomeCategoryItem[]): MobileHomeCategory[] {
+  return categories.map((category, index) => ({
+    id: category.id,
+    slug: category.slug,
+    title: category.title,
+    titleKey: 'common.navigation.categories',
+    image: category.image,
     framed: index === 0,
   }));
 }

@@ -1,4 +1,6 @@
 import { useMemo } from 'react';
+import { hasSellableStock } from '@/lib/product-stock';
+import { resolveStorefrontDiscountPercent } from '@/lib/storefront/discount-percent';
 import type { Product, ProductVariant, AttributeGroupValue } from '../types';
 
 interface UseProductCalculationsProps {
@@ -45,8 +47,13 @@ export function useProductCalculations({
     currentVariant?.compareAtPrice != null
       ? currentVariant.compareAtPrice + attributePriceAdjustment
       : undefined;
-  const discountPercent = currentVariant?.productDiscount || product?.productDiscount || null;
-  const isOutOfStock = !currentVariant || currentVariant.stock <= 0;
+  const discountPercent = resolveStorefrontDiscountPercent({
+    price,
+    originalPrice,
+    compareAtPrice: compareAtPrice ?? null,
+    productDiscount: currentVariant?.productDiscount ?? product?.productDiscount ?? null,
+  });
+  const isOutOfStock = !currentVariant || !hasSellableStock(currentVariant.stock);
 
   const colorGroups = useMemo(() => {
     const groups: Array<{ color: string; stock: number; variants: ProductVariant[] }> = [];
@@ -90,7 +97,7 @@ export function useProductCalculations({
         return g.value?.toLowerCase().trim() === option.value?.toLowerCase().trim();
       });
       
-      if (attrValue && attrValue.stock <= 0) {
+      if (attrValue && !hasSellableStock(attrValue.stock)) {
         unavailable.set(attrKey, true);
       }
     });

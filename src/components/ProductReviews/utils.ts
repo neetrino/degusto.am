@@ -1,3 +1,5 @@
+import type { LanguageCode } from '../../lib/language';
+
 export interface Review {
   id: string;
   userId: string;
@@ -7,22 +9,24 @@ export interface Review {
   createdAt: string;
 }
 
-/**
- * Format date string to localized date
- */
-export function formatDate(dateString: string): string {
+const REVIEW_DATE_LOCALE: Record<LanguageCode, string> = {
+  hy: 'hy-AM',
+  en: 'en-US',
+  ru: 'ru-RU',
+};
+
+/** Format date string to localized date */
+export function formatDate(dateString: string, language?: LanguageCode): string {
   const date = new Date(dateString);
-  // Use browser's default locale for date formatting
-  return date.toLocaleDateString(undefined, {
+  const locale = language ? REVIEW_DATE_LOCALE[language] : undefined;
+  return date.toLocaleDateString(locale, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
 }
 
-/**
- * Calculate average rating from reviews
- */
+/** Calculate average rating from reviews */
 export function calculateAverageRating(reviews: Review[]): number {
   if (reviews.length === 0) {
     return 0;
@@ -36,9 +40,7 @@ export interface RatingDistribution {
   percentage: number;
 }
 
-/**
- * Calculate rating distribution
- */
+/** Calculate rating distribution */
 export function calculateRatingDistribution(reviews: Review[]): RatingDistribution[] {
   return [5, 4, 3, 2, 1].map((star) => ({
     star,
@@ -48,4 +50,3 @@ export function calculateRatingDistribution(reviews: Review[]): RatingDistributi
       : 0,
   }));
 }
-

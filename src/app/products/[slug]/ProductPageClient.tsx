@@ -8,21 +8,20 @@ import {
   useCallback,
   useRef,
   useEffect,
+  type ReactNode,
 } from 'react';
 import { useLazyInView } from '../../../components/hooks/useLazyInView';
 import { apiClient } from '../../../lib/api-client';
 import { t } from '../../../lib/i18n';
 import { useAuth } from '../../../lib/auth/AuthContext';
-import { RelatedProducts } from '../../../components/RelatedProducts';
-import { ProductReviews } from '../../../components/ProductReviews';
 import { ProductImageGallery } from './ProductImageGallery';
 import { ProductInfoAndActions } from './ProductInfoAndActions';
 import { ProductInfoColumnSkeleton } from './ProductInfoColumnSkeleton';
+import { ProductPageBelowFold } from './ProductPageBelowFold';
 import { ProductPageShell } from './ProductPageShell';
 import { useProductPage } from './useProductPage';
 import { playCartFlyAnimation } from '../../../lib/cart-fly-animation';
 import { BodyBackground } from '../../../components/BodyBackground';
-import { ProjectGreenStripes } from '../../../components/decor/ProjectGreenStripes';
 import { publishCartUpdated } from '@/lib/cart/cart-events';
 import { computeGuestCartSummary } from '@/lib/cart/guest-cart-summary';
 import { rememberCartLineId } from '@/lib/cart/cart-line-id-cache';
@@ -41,7 +40,15 @@ import {
 } from './utils/merge-visual-into-product';
 import { ProductPageHydrationProvider } from './ProductPageHydrationContext';
 import { useProductClientRefetch } from './hooks/useProductClientRefetch';
+import { useProductReviewSummary } from './hooks/useProductReviewSummary';
 import { usePdpChrome } from './pdp-chrome-context';
+import {
+  PDP_HERO_FRAME_CLASS,
+  PDP_HERO_GRID_CLASS,
+  PDP_HERO_IMAGE_OFFSET_CLASS,
+  PDP_HERO_INFO_OFFSET_CLASS,
+  STOREFRONT_DESKTOP_CONTENT_CLASS,
+} from '@/constants/pdp-figma-tokens';
 
 function collectSelectedAttributeValueIdsForCart(
   product: Product,
@@ -74,6 +81,9 @@ const PDP_BODY_BACKGROUND = '#ffffff';
 const PDP_HEADER_DESKTOP_UNDERLAP_CLASS =
   'lg:relative lg:z-10 lg:-mt-[104px] lg:pt-[104px]';
 
+/** Same horizontal box as UniversalHeader; no extra lg padding so image starts at header left edge. */
+const PDP_CONTENT_SHELL_CLASS = `${STOREFRONT_DESKTOP_CONTENT_CLASS} relative z-10 max-lg:px-4 max-lg:py-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-0 lg:py-10`;
+
 export interface ProductPageClientProps {
   slug: string;
   variantIdFromUrl: string | null;
@@ -82,6 +92,9 @@ export interface ProductPageClientProps {
   initialReviewSummary: ProductReviewSummary;
   initialNotFound: boolean;
   serverLocale: StorefrontLocale;
+  /** Full product streams via `children` (ProductDetailsServer). */
+  streamDetails?: boolean;
+  children?: ReactNode;
 }
 
 export function ProductPageClient({
@@ -92,6 +105,8 @@ export function ProductPageClient({
   initialReviewSummary,
   initialNotFound,
   serverLocale,
+  streamDetails = false,
+  children,
 }: ProductPageClientProps) {
   const { ref: reviewsSectionRef, inView: reviewsInView } = useLazyInView('320px');
   const { isLoggedIn } = useAuth();
@@ -108,7 +123,8 @@ export function ProductPageClient({
 
   const product = fullProduct ?? partialProduct;
   const detailsPending = Boolean(partialProduct && !fullProduct && !notFound);
-  const awaitingDetails = !product && !notFound && !initialNotFound;
+  const awaitingDetails =
+    !product && !notFound && !initialNotFound && !streamDetails;
   const productRef = useRef<Product | null>(product);
   const { setDesktopChromeReady } = usePdpChrome();
 
@@ -124,7 +140,10 @@ export function ProductPageClient({
     productRef.current = product;
   }, [product]);
 
-  const hydrateDetails = useCallback((next: Product, summary: ProductReviewSummary) => {
+  const hydrateDetails = useCallback((
+    next: Product,
+    summary: ProductReviewSummary
+  ) => {
     setFullProduct(next);
     setReviewSummary(summary);
     setNotFound(false);
@@ -136,11 +155,21 @@ export function ProductPageClient({
     setNotFound(true);
   }, []);
 
+  const applyReviewSummary = useCallback((summary: ProductReviewSummary) => {
+    setReviewSummary(summary);
+  }, []);
+
+  useProductReviewSummary(
+    slug,
+    !notFound && !initialNotFound && initialReviewSummary.count === 0,
+    applyReviewSummary
+  );
+
   useProductClientRefetch({
     slug,
     serverLocale,
     productRef,
-    skipMountFetch: Boolean(initialProduct),
+    skipMountFetch: Boolean(initialProduct) || streamDetails,
     onLoaded: (next) => {
       setFullProduct(next);
       productRef.current = next;
@@ -173,6 +202,8 @@ export function ProductPageClient({
     setIsAddingToCart,
     additions,
     exclusions,
+    setAdditions,
+    setExclusions,
     quantity,
     reviews,
     reviewsLoading,
@@ -194,6 +225,7 @@ export function ProductPageClient({
     scrollToReviews,
     getOptionValue,
     adjustQuantity,
+    setQuantity,
     handleColorSelect,
     handleSizeSelect,
     handleAttributeValueSelect,
@@ -203,6 +235,14 @@ export function ProductPageClient({
     if (!product) return;
     window.scrollTo(0, 0);
   }, [product?.id]);
+
+  const handleResetProductOptions = useCallback(() => {
+    setAdditions('');
+    setExclusions('');
+    if (!isOutOfStock) {
+      setQuantity(1);
+    }
+  }, [isOutOfStock, setAdditions, setExclusions, setQuantity]);
 
   const handleAddToCart = async () => {
     if (!canAddToCart || !product || !currentVariant) return;
@@ -301,6 +341,7 @@ export function ProductPageClient({
     return (
       <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
         {shell}
+        {children}
       </ProductPageHydrationProvider>
     );
   }
@@ -310,7 +351,7 @@ export function ProductPageClient({
       <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
         <BodyBackground color={PDP_BODY_BACKGROUND} />
         <div className={PDP_HEADER_DESKTOP_UNDERLAP_CLASS}>
-          <div className="mx-auto max-w-7xl max-lg:px-0 px-4 py-16 text-center space-y-4">
+          <div className={`${PDP_HEADER_DESKTOP_UNDERLAP_CLASS} mx-auto max-w-7xl max-lg:px-0 px-4 py-16 text-center space-y-4 lg:max-w-[1450px] lg:px-0`}>
             <p className="text-lg text-neutral-600">
               {t(language, 'common.messages.noProductsFound')}
             </p>
@@ -322,6 +363,7 @@ export function ProductPageClient({
             </Link>
           </div>
         </div>
+        {children}
       </ProductPageHydrationProvider>
     );
   }
@@ -329,7 +371,8 @@ export function ProductPageClient({
   if (!product) {
     return (
       <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
-        {null}
+        {streamDetails ? shell : null}
+        {children}
       </ProductPageHydrationProvider>
     );
   }
@@ -338,28 +381,26 @@ export function ProductPageClient({
     <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
       <BodyBackground color={PDP_BODY_BACKGROUND} />
       <div
-        className={`${PDP_HEADER_DESKTOP_UNDERLAP_CLASS} min-h-dvh overflow-x-hidden max-lg:min-h-0 lg:min-h-dvh ${
-          isDesktopChromeReady ? 'lg:bg-[var(--project-color)]' : 'lg:bg-white'
-        }`}
+        className={`${PDP_HEADER_DESKTOP_UNDERLAP_CLASS} min-h-dvh overflow-x-hidden bg-white max-lg:min-h-0 lg:min-h-dvh`}
       >
-        <div className="hidden lg:block">
-          <ProjectGreenStripes extendFirstStrokeUp />
-        </div>
-        <div className="relative z-10 mx-auto max-w-7xl max-lg:px-0 max-lg:py-0 px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
-          <section className="rounded-3xl border border-neutral-200 bg-white p-4 shadow-[0_8px_28px_rgba(0,0,0,0.06)] max-lg:rounded-none max-lg:border-0 max-lg:bg-transparent max-lg:p-0 max-lg:shadow-none sm:p-6 lg:p-8">
-            <div className="grid grid-cols-1 items-start gap-6 max-lg:gap-5 lg:grid-cols-[55%_45%] lg:gap-12">
-              <ProductImageGallery
-                images={images}
-                product={product}
-                discountPercent={discountPercent}
-                language={language}
-                currentImageIndex={currentImageIndex}
-                onImageIndexChange={setCurrentImageIndex}
-                thumbnailStartIndex={thumbnailStartIndex}
-                onThumbnailStartIndexChange={setThumbnailStartIndex}
-                mainImagePriority={currentImageIndex === 0}
-              />
+        <div className={PDP_CONTENT_SHELL_CLASS}>
+          <section className={`${PDP_HERO_FRAME_CLASS} max-lg:p-4 sm:max-lg:p-6 lg:p-0`}>
+            <div className={PDP_HERO_GRID_CLASS}>
+              <div className={PDP_HERO_IMAGE_OFFSET_CLASS}>
+                <ProductImageGallery
+                  images={images}
+                  product={product}
+                  discountPercent={discountPercent}
+                  language={language}
+                  currentImageIndex={currentImageIndex}
+                  onImageIndexChange={setCurrentImageIndex}
+                  thumbnailStartIndex={thumbnailStartIndex}
+                  onThumbnailStartIndexChange={setThumbnailStartIndex}
+                  mainImagePriority={currentImageIndex === 0}
+                />
+              </div>
 
+              <div className={PDP_HERO_INFO_OFFSET_CLASS}>
               {detailsPending ? (
                 <ProductInfoColumnSkeleton />
               ) : (
@@ -368,7 +409,6 @@ export function ProductPageClient({
                   price={price}
                   originalPrice={originalPrice}
                   compareAtPrice={compareAtPrice}
-                  discountPercent={discountPercent}
                   currency={currency}
                   language={language}
                   averageRating={averageRating}
@@ -393,38 +433,30 @@ export function ProductPageClient({
                   onSizeSelect={handleSizeSelect}
                   onAttributeValueSelect={handleAttributeValueSelect}
                   getOptionValue={getOptionValue}
+                  additions={additions}
+                  exclusions={exclusions}
+                  onAdditionsChange={setAdditions}
+                  onExclusionsChange={setExclusions}
+                  onResetOptions={handleResetProductOptions}
                 />
               )}
+              </div>
             </div>
           </section>
+        </div>
 
           {!detailsPending && (
-            <>
-              <div className="mt-8 rounded-3xl border border-neutral-200 bg-white p-3 shadow-[0_6px_22px_rgba(0,0,0,0.04)] max-lg:mt-8 max-lg:rounded-none max-lg:border-x-0 max-lg:border-b-0 max-lg:border-t max-lg:border-neutral-200 max-lg:bg-transparent max-lg:p-0 max-lg:pt-8 max-lg:shadow-none sm:mt-12 sm:p-4 lg:mt-10 lg:p-5">
-                <RelatedProducts
-                  productSlug={slug}
-                  categorySlug={product.categories?.[0]?.slug}
-                  currentProductId={product.id}
-                />
-              </div>
-
-              <div
-                ref={reviewsSectionRef}
-                id="product-reviews"
-                className="mt-8 scroll-mt-24 rounded-3xl border border-neutral-200 bg-white p-4 shadow-[0_6px_22px_rgba(0,0,0,0.04)] max-lg:mt-8 max-lg:rounded-none max-lg:border-x-0 max-lg:border-b-0 max-lg:border-t max-lg:border-neutral-200 max-lg:bg-transparent max-lg:pt-8 max-lg:shadow-none sm:mt-10 sm:p-6 lg:mt-10 lg:p-8"
-              >
-                <ProductReviews
-                  productSlug={slug}
-                  productId={product.id}
-                  reviews={reviews}
-                  reviewsLoading={reviewsLoading}
-                  setReviews={setReviews}
-                />
-              </div>
-            </>
+            <ProductPageBelowFold
+              slug={slug}
+              product={product}
+              reviewsSectionRef={reviewsSectionRef}
+              reviews={reviews}
+              reviewsLoading={reviewsLoading}
+              setReviews={setReviews}
+            />
           )}
-        </div>
       </div>
+      {children}
     </ProductPageHydrationProvider>
   );
 }

@@ -8,6 +8,8 @@ function translationLocaleWhere(lang: string) {
   return { locale: { in: [lang, "en"] } };
 }
 
+const LOCALE_TRANSLATION_TAKE = 2;
+
 /**
  * Base include configuration for product queries (locale-scoped translations).
  */
@@ -16,11 +18,13 @@ function getBaseInclude(lang: string) {
   return {
     translations: {
       where: localeWhere,
+      take: LOCALE_TRANSLATION_TAKE,
     },
     brand: {
       include: {
         translations: {
           where: localeWhere,
+          take: LOCALE_TRANSLATION_TAKE,
         },
       },
     },
@@ -28,6 +32,7 @@ function getBaseInclude(lang: string) {
       include: {
         translations: {
           where: localeWhere,
+          take: LOCALE_TRANSLATION_TAKE,
         },
       },
     },
@@ -47,11 +52,13 @@ function getBaseInclude(lang: string) {
                   include: {
                     translations: {
                       where: localeWhere,
+                      take: LOCALE_TRANSLATION_TAKE,
                     },
                   },
                 },
                 translations: {
                   where: localeWhere,
+                  take: LOCALE_TRANSLATION_TAKE,
                 },
               },
             },
@@ -95,11 +102,13 @@ function getProductAttributesInclude(lang: string) {
           include: {
             translations: {
               where: localeWhere,
+              take: LOCALE_TRANSLATION_TAKE,
             },
             values: {
               include: {
                 translations: {
                   where: localeWhere,
+                  take: LOCALE_TRANSLATION_TAKE,
                 },
               },
             },
@@ -126,6 +135,25 @@ export function getBaseWhere(slug: string, lang: string) {
     published: true,
     deletedAt: null,
   };
+}
+
+function getPublishedProductWhere(productId: string) {
+  return {
+    id: productId,
+    published: true,
+    deletedAt: null,
+  };
+}
+
+/**
+ * Lightweight slug → id lookup (indexed translation slug); used before PK-based PDP fetch.
+ */
+export async function resolveProductIdBySlug(slug: string): Promise<string | null> {
+  const row = await db.product.findFirst({
+    where: getBaseWhere(slug, "en"),
+    select: { id: true },
+  });
+  return row?.id ?? null;
 }
 
 /**
@@ -161,11 +189,11 @@ function isAttributeValuesColorsError(error: unknown): boolean {
  * Fetch product with productAttributes (with fallback handling)
  */
 async function fetchWithProductAttributes(
-  slug: string,
+  productId: string,
   lang: string
 ): Promise<ProductWithFullRelations | null> {
   const baseInclude = getBaseInclude(lang);
-  const baseWhere = getBaseWhere(slug, lang);
+  const baseWhere = getPublishedProductWhere(productId);
 
   try {
     const product = await db.product.findFirst({
@@ -183,7 +211,7 @@ async function fetchWithProductAttributes(
       logger.warn('product_attributes table not found, fetching without it', { 
         error: error instanceof Error ? error.message : String(error) 
       });
-      return fetchWithoutProductAttributes(slug, lang);
+      return fetchWithoutProductAttributes(productId, lang);
     }
 
     if (isVariantAttributesError(error)) {
@@ -196,7 +224,7 @@ async function fetchWithProductAttributes(
         });
         return product as unknown as ProductWithFullRelations | null;
       } catch (attributesError: unknown) {
-        return handleAttributesError(attributesError, slug, lang);
+        return handleAttributesError(attributesError, productId, lang);
       }
     }
 
@@ -204,7 +232,7 @@ async function fetchWithProductAttributes(
       logger.warn('attribute_values.colors column not found, fetching without attributeValue', { 
         error: error instanceof Error ? error.message : String(error) 
       });
-      return fetchWithoutAttributeValue(slug, lang);
+      return fetchWithoutAttributeValue(productId, lang);
     }
 
     throw error;
@@ -215,11 +243,11 @@ async function fetchWithProductAttributes(
  * Fetch product without productAttributes (fallback)
  */
 async function fetchWithoutProductAttributes(
-  slug: string,
+  productId: string,
   lang: string
 ): Promise<ProductWithFullRelations | null> {
   const baseInclude = getBaseInclude(lang);
-  const baseWhere = getBaseWhere(slug, lang);
+  const baseWhere = getPublishedProductWhere(productId);
 
   try {
     const product = await db.product.findFirst({
@@ -240,7 +268,7 @@ async function fetchWithoutProductAttributes(
         });
         return product as unknown as ProductWithFullRelations | null;
       } catch (attributesError: unknown) {
-        return handleAttributesError(attributesError, slug, lang);
+        return handleAttributesError(attributesError, productId, lang);
       }
     }
 
@@ -248,7 +276,7 @@ async function fetchWithoutProductAttributes(
       logger.warn('attribute_values.colors column not found, fetching without attributeValue', { 
         error: retryError instanceof Error ? retryError.message : String(retryError) 
       });
-      return fetchWithoutAttributeValue(slug, lang);
+      return fetchWithoutAttributeValue(productId, lang);
     }
 
     throw retryError;
@@ -260,14 +288,14 @@ async function fetchWithoutProductAttributes(
  */
 async function handleAttributesError(
   error: unknown,
-  slug: string,
+  productId: string,
   lang: string
 ): Promise<ProductWithFullRelations | null> {
   if (isAttributeValuesColorsError(error)) {
     logger.warn('attribute_values.colors column not found, fetching without attributeValue', { 
       error: error instanceof Error ? error.message : String(error) 
     });
-    return fetchWithoutAttributeValue(slug, lang);
+    return fetchWithoutAttributeValue(productId, lang);
   }
   throw error;
 }
@@ -276,11 +304,11 @@ async function handleAttributesError(
  * Fetch product without attributeValue relation (fallback)
  */
 async function fetchWithoutAttributeValue(
-  slug: string,
+  productId: string,
   lang: string
 ): Promise<ProductWithFullRelations | null> {
   const baseIncludeWithoutAttributeValue = getBaseIncludeWithoutAttributeValue(lang);
-  const baseWhere = getBaseWhere(slug, lang);
+  const baseWhere = getPublishedProductWhere(productId);
 
   // Try to include productAttributes even in fallback
   try {
@@ -306,20 +334,107 @@ async function fetchWithoutAttributeValue(
 }
 
 /**
- * Build and execute product query by slug with comprehensive error handling
+ * Fetch published product by primary key (faster than slug + deep join filter).
+ * Runs core PDP query and productAttributes in parallel (shallower variant includes).
+ */
+export async function buildProductQueryById(
+  productId: string,
+  lang: string = "en"
+): Promise<ProductWithFullRelations | null> {
+  const [coreProduct, productAttributes] = await Promise.all([
+    fetchCoreProductById(productId, lang),
+    fetchProductAttributesSlice(productId, lang),
+  ]);
+
+  if (!coreProduct) {
+    return null;
+  }
+
+  if (productAttributes !== undefined) {
+    return {
+      ...coreProduct,
+      productAttributes,
+    } as unknown as ProductWithFullRelations;
+  }
+
+  return coreProduct;
+}
+
+async function fetchProductAttributesSlice(
+  productId: string,
+  lang: string
+): Promise<unknown[] | undefined> {
+  const baseWhere = getPublishedProductWhere(productId);
+
+  try {
+    const row = await db.product.findFirst({
+      where: baseWhere,
+      select: {
+        productAttributes: getProductAttributesInclude(lang).productAttributes,
+      },
+    });
+    return row?.productAttributes;
+  } catch (error: unknown) {
+    if (isProductAttributesError(error)) {
+      return undefined;
+    }
+    throw error;
+  }
+}
+
+async function fetchCoreProductById(
+  productId: string,
+  lang: string
+): Promise<ProductWithFullRelations | null> {
+  const baseInclude = getBaseIncludeWithoutAttributeValue(lang);
+  const baseWhere = getPublishedProductWhere(productId);
+
+  try {
+    const product = await db.product.findFirst({
+      where: baseWhere,
+      include: baseInclude,
+    });
+    return product as unknown as ProductWithFullRelations | null;
+  } catch (error: unknown) {
+    if (isVariantAttributesError(error)) {
+      logger.warn('product_variants.attributes column not found, attempting to create it');
+      try {
+        await ensureProductVariantAttributesColumn();
+        const product = await db.product.findFirst({
+          where: baseWhere,
+          include: getBaseInclude(lang),
+        });
+        return product as unknown as ProductWithFullRelations | null;
+      } catch (attributesError: unknown) {
+        return handleAttributesError(attributesError, productId, lang);
+      }
+    }
+
+    if (isAttributeValuesColorsError(error)) {
+      logger.warn('attribute_values.colors column not found, fetching without attributeValue', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return fetchWithoutAttributeValue(productId, lang);
+    }
+
+    throw error;
+  }
+}
+
+/**
+ * Resolve slug → id, then PK fetch with comprehensive error handling.
  */
 export async function buildProductQuery(
   slug: string,
   lang: string = "en"
 ): Promise<ProductWithFullRelations | null> {
-  const product = await fetchWithProductAttributes(slug, lang);
-  
-  // If product not found, log diagnostic information
-  if (!product) {
+  const productId = await resolveProductIdBySlug(slug);
+  if (!productId) {
     await logProductNotFoundDiagnostics(slug, lang);
+    return null;
   }
-  
-  return product as unknown as ProductWithFullRelations | null;
+
+  return buildProductQueryById(productId, lang);
 }
 
 /**

@@ -6,6 +6,7 @@ import {
 } from "../../utils/image-utils";
 import { getStorefrontDiscountSettings } from "../storefront/get-storefront-discount-settings";
 import { logger } from "../../utils/logger";
+import { hasSellableStock } from "../../product-stock";
 import { getOutOfStockLabel } from "./utils";
 import type { ProductWithFullRelations, ProductVariantWithOptions } from "./types";
 
@@ -220,7 +221,7 @@ function transformVariants(
             };
           }
         }) : [],
-        available: variant.stock > 0,
+        available: hasSellableStock(variant.stock),
       };
     });
 }
@@ -296,12 +297,30 @@ function transformProductAttributes(
 }
 
 /**
- * Transform product data to response format
+ * Transform product data to response format (loads discount settings from DB/cache).
  */
 export async function transformProduct(
   product: ProductWithFullRelations,
   lang: string = "en"
 ) {
+  const { globalDiscount, categoryDiscounts } =
+    await getStorefrontDiscountSettings();
+  return transformProductWithDiscountSettings(product, lang, {
+    globalDiscount,
+    categoryDiscounts,
+  });
+}
+
+/**
+ * Transform product when discount settings are already loaded (enables parallel fetch).
+ */
+export function transformProductWithDiscountSettings(
+  product: ProductWithFullRelations,
+  lang: string = "en",
+  discountSettings: { globalDiscount: number; categoryDiscounts: Record<string, number> }
+) {
+  const { globalDiscount, categoryDiscounts } = discountSettings;
+
   // Get translations
   const translations = Array.isArray(product.translations) ? product.translations : [];
   const translation = translations.find((t: { locale: string }) => t.locale === lang) || translations[0] || null;
@@ -314,10 +333,6 @@ export async function transformProduct(
     ? brandTranslations.find((t: { locale: string }) => t.locale === lang) || brandTranslations[0]
     : null;
 
-  // Get discount settings
-  const { globalDiscount, categoryDiscounts } =
-    await getStorefrontDiscountSettings();
-  
   const productDiscount = product.discountPercent || 0;
   
   // Calculate actual discount

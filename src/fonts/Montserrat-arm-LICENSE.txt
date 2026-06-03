@@ -1,0 +1,6 @@
+Montserrat Armenian (Bold) — SIL Open Font License 1.1
+
+Source: https://github.com/greghub/montserrat-arm
+Original Montserrat by Julieta Ulanovsky; Armenian letterforms by Vahan Hovhannisyan.
+
+Bundled file: Montserrat_am3-Bold.woff (Figma family name: "Montserrat arm").

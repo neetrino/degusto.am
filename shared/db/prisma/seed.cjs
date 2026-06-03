@@ -24,47 +24,15 @@ loadEnv(path.join(process.cwd(), ".env"));
 
 const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcryptjs");
+const {
+  FIGMA_MENU_CATEGORIES,
+  LEGACY_CATEGORY_SLUGS_TO_UNPUBLISH,
+  PRODUCTS_PER_CATEGORY,
+} = require("./data/figma-menu-categories.cjs");
+const { buildProductsForCategory } = require("./data/figma-menu-products.cjs");
+const { resolveCategoryIconUrl } = require("./seed-category-icons.cjs");
 
 const prisma = new PrismaClient();
-
-const CATEGORIES = [
-  {
-    slug: "shawarma",
-    titles: { en: "Shawarma", hy: "Շաուրմա", ru: "Шаурма" },
-  },
-  {
-    slug: "burger",
-    titles: { en: "Burger", hy: "Բուրգեր", ru: "Бургер" },
-  },
-  {
-    slug: "kebab",
-    titles: { en: "Kebab", hy: "Քեբաբ", ru: "Кебаб" },
-  },
-  {
-    slug: "wraps",
-    titles: { en: "Wraps", hy: "Ռոլլեր", ru: "Роллы" },
-  },
-  {
-    slug: "plates",
-    titles: { en: "Plates", hy: "Ափսեներ", ru: "Тарелки" },
-  },
-  {
-    slug: "snacks",
-    titles: { en: "Snacks", hy: "Խորտիկներ", ru: "Закуски" },
-  },
-  {
-    slug: "sandwiches",
-    titles: { en: "Sandwiches", hy: "Սենդվիչներ", ru: "Сэндвичи" },
-  },
-  {
-    slug: "pasta",
-    titles: { en: "Pasta", hy: "Պաստա", ru: "Паста" },
-  },
-  {
-    slug: "combo",
-    titles: { en: "Combo", hy: "Կոմբո", ru: "Комбо" },
-  },
-];
 
 const BRANDS = [
   { slug: "acme", name: "Acme" },
@@ -72,66 +40,9 @@ const BRANDS = [
   { slug: "prime", name: "Prime" },
 ];
 
-const FOOD_PRODUCTS_LEGACY = [
-  "Classic Shawarma",
-  "Spicy Chicken Shawarma",
-  "Beef Shawarma Plate",
-  "Chicken Wrap Deluxe",
-  "Falafel Wrap",
-  "Mixed Grill Plate",
-  "Beef Burger",
-  "Chicken Burger",
-  "Double Cheese Burger",
-  "Spicy Crispy Chicken Burger",
-  "Doner Kebab",
-  "Adana Kebab",
-  "Lahmacun",
-  "Pita Sandwich",
-  "Caesar Wrap",
-  "Greek Wrap",
-  "Chicken Nuggets Box",
-  "French Fries Box",
-  "Loaded Fries",
-  "Rice Bowl Chicken",
-  "Rice Bowl Beef",
-  "Pilaf with Chicken",
-  "Pilaf with Beef",
-  "BBQ Wings",
-  "Spicy Wings",
-  "Chicken Tenders",
-  "Beef Quesadilla",
-  "Chicken Quesadilla",
-  "Mexican Burrito",
-  "Veggie Burrito",
-  "Hot Dog Classic",
-  "Cheese Hot Dog",
-  "Spicy Hot Dog",
-  "Club Sandwich",
-  "Tuna Sandwich",
-  "Chicken Panini",
-  "Beef Panini",
-  "Pasta Alfredo Chicken",
-  "Pasta Bolognese",
-  "Family Combo Box",
-];
-
-/** New menu items — all get ProductLabels so storefront taste badges (hot / new) appear after seed. */
-const FOOD_PRODUCTS_WITH_TASTE_OPTIONS = [
-  "Armenian Style Losh Kebab",
-  "Herb Garden Falafel Bowl",
-  "Spicy Adana Wrap XL",
-  "Grilled Veggie Mezze Plate",
-  "Citrus Tahini Chicken Bowl",
-  "Smoky BBQ Beef Skewer Plate",
-  "Garlic Yogurt Lamb Shawarma",
-  "Fresh Herb Chicken Pita",
-  "Chili Lime Shrimp Tacos",
-  "Sumac Onion Beef Wrap",
-  "Charred Eggplant & Pepper Plate",
-  "Pomegranate Molasses Chicken Plate",
-];
-
-const FOOD_PRODUCTS = [...FOOD_PRODUCTS_LEGACY, ...FOOD_PRODUCTS_WITH_TASTE_OPTIONS];
+const START_PRICE = 8;
+const END_PRICE = 28;
+const STOCK_BASE = 24;
 
 const FOOD_OPTION_PRESETS = [
   { spicy: "not-spicy", greens: "without-greens", priceDelta: 0 },
@@ -201,14 +112,60 @@ async function seedAdmin() {
   }
 }
 
+function buildCategoryMedia(iconUrl) {
+  if (!iconUrl) {
+    return [];
+  }
+  return [{ url: iconUrl }];
+}
+
+async function unpublishLegacyCategories() {
+  if (LEGACY_CATEGORY_SLUGS_TO_UNPUBLISH.length === 0) {
+    return;
+  }
+  const legacyCategories = await prisma.category.findMany({
+    where: {
+      translations: {
+        some: {
+          slug: { in: LEGACY_CATEGORY_SLUGS_TO_UNPUBLISH },
+          locale: "en",
+        },
+      },
+    },
+    select: { id: true },
+  });
+  if (legacyCategories.length === 0) {
+    return;
+  }
+  await prisma.category.updateMany({
+    where: { id: { in: legacyCategories.map((row) => row.id) } },
+    data: { published: false },
+  });
+  console.log("[Seed] Legacy categories unpublished:", legacyCategories.length);
+}
+
 async function seedCategories() {
   const idsBySlug = {};
-  for (let i = 0; i < CATEGORIES.length; i++) {
-    const { slug, titles } = CATEGORIES[i];
+
+  for (let i = 0; i < FIGMA_MENU_CATEGORIES.length; i++) {
+    const { slug, titles, iconUrl: remoteIconUrl, localIconOnly } = FIGMA_MENU_CATEGORIES[i];
+    const iconUrl = await resolveCategoryIconUrl(slug, remoteIconUrl, {
+      localIconOnly: Boolean(localIconOnly),
+    });
+    const media = buildCategoryMedia(iconUrl);
     const existing = await prisma.category.findFirst({
       where: { translations: { some: { slug, locale: "en" } } },
     });
+
     if (existing) {
+      await prisma.category.update({
+        where: { id: existing.id },
+        data: {
+          position: i,
+          published: true,
+          media,
+        },
+      });
       idsBySlug[slug] = existing.id;
       for (const [locale, title] of Object.entries(titles)) {
         await prisma.categoryTranslation.upsert({
@@ -234,11 +191,12 @@ async function seedCategories() {
       }
       continue;
     }
+
     const cat = await prisma.category.create({
       data: {
         position: i,
         published: true,
-        media: [],
+        media,
         translations: {
           create: Object.entries(titles).map(([locale, title]) => ({
             locale,
@@ -251,6 +209,8 @@ async function seedCategories() {
     });
     idsBySlug[slug] = cat.id;
   }
+
+  await unpublishLegacyCategories();
   console.log("[Seed] Categories:", Object.keys(idsBySlug).length);
   return idsBySlug;
 }
@@ -447,18 +407,7 @@ async function seedFoodAttributes() {
   return result;
 }
 
-async function seedProducts(categoryIdsBySlug, brandIds, foodAttributes) {
-  const titles = FOOD_PRODUCTS;
-  const START_PRICE = 8;
-  const END_PRICE = 22;
-  const PRICE_STEP = titles.length > 1 ? (END_PRICE - START_PRICE) / (titles.length - 1) : 0;
-  const STOCK_BASE = 24;
-  const comboCategoryId = categoryIdsBySlug.combo;
-  const menuCategoryIds = Object.entries(categoryIdsBySlug)
-    .filter(([slug]) => slug !== "combo")
-    .map(([, id]) => id);
-
-  // Reuse the currently existing product image so all new products share it.
+async function resolveSharedProductMedia() {
   const productsForImage = await prisma.product.findMany({
     select: { media: true },
     take: 100,
@@ -473,9 +422,65 @@ async function seedProducts(categoryIdsBySlug, brandIds, foodAttributes) {
       }
       return false;
     });
-  const sharedMedia = existingImageEntry ? [existingImageEntry] : [];
+  return existingImageEntry ? [existingImageEntry] : [{ url: "/images/default-product.png" }];
+}
 
-  // Remove old incorrect seeded products before creating the new catalog.
+function buildVariantRows(productIndex, basePrice, stock, foodAttributes) {
+  const spicyAttributeId = foodAttributes.spicy.id;
+  const greensAttributeId = foodAttributes.greens.id;
+  const sauceAttributeId = foodAttributes.sauce.id;
+  const garlicAttributeId = foodAttributes.garlic.id;
+  const presetRows = getFoodVariantPresets(productIndex);
+
+  return presetRows.map((preset, variantIndex) => {
+    const spicyValueId = foodAttributes.spicy.valueIds[preset.spicy];
+    const greensValueId = foodAttributes.greens.valueIds[preset.greens];
+    const sauceKey = FOOD_SAUCE_BY_VARIANT_INDEX[variantIndex % FOOD_SAUCE_BY_VARIANT_INDEX.length];
+    const garlicKey = FOOD_GARLIC_BY_VARIANT_INDEX[variantIndex % FOOD_GARLIC_BY_VARIANT_INDEX.length];
+    const sauceValueId = foodAttributes.sauce.valueIds[sauceKey];
+    const garlicValueId = foodAttributes.garlic.valueIds[garlicKey];
+    const variantPrice = Number((basePrice + preset.priceDelta).toFixed(2));
+    const compareAtPrice = Number((variantPrice * 1.18).toFixed(2));
+
+    return {
+      sku: `FOOD-${1000 + productIndex}-${variantIndex + 1}`,
+      price: variantPrice,
+      compareAtPrice,
+      stock: Math.max(0, stock - variantIndex * 2),
+      position: variantIndex,
+      published: true,
+      attributes: {
+        spicy: [{ valueId: spicyValueId, value: preset.spicy, attributeKey: "spicy" }],
+        greens: [{ valueId: greensValueId, value: preset.greens, attributeKey: "greens" }],
+        sauce: [{ valueId: sauceValueId, value: sauceKey, attributeKey: "sauce" }],
+        garlic: [{ valueId: garlicValueId, value: garlicKey, attributeKey: "garlic" }],
+      },
+      options: {
+        create: [
+          { valueId: spicyValueId },
+          { valueId: greensValueId },
+          { valueId: sauceValueId },
+          { valueId: garlicValueId },
+        ],
+      },
+      attributeIds: {
+        spicy: spicyAttributeId,
+        greens: greensAttributeId,
+        sauce: sauceAttributeId,
+        garlic: garlicAttributeId,
+      },
+      isFixedSingleTaste: presetRows.length === 1,
+    };
+  });
+}
+
+async function seedProducts(categoryIdsBySlug, brandIds, foodAttributes) {
+  const sharedMedia = await resolveSharedProductMedia();
+  const totalProducts =
+    FIGMA_MENU_CATEGORIES.length * PRODUCTS_PER_CATEGORY;
+  const priceStep =
+    totalProducts > 1 ? (END_PRICE - START_PRICE) / (totalProducts - 1) : 0;
+
   await prisma.product.deleteMany({
     where: {
       OR: [
@@ -486,110 +491,110 @@ async function seedProducts(categoryIdsBySlug, brandIds, foodAttributes) {
   });
 
   const created = [];
+  let productIndex = 0;
+
   console.log(
-    "[Seed] Taste variants: index%4 → 0=spicy+greens choice, 1=spicy only, 2=greens only, 3=fixed (none)"
+    `[Seed] Creating ${PRODUCTS_PER_CATEGORY} products for each of ${FIGMA_MENU_CATEGORIES.length} Figma categories`
   );
-  for (let i = 0; i < titles.length; i++) {
-    const title = titles[i] || `Product ${i + 1}`;
-    const slug = `seed-food-${slugify(title)}-${i + 1}`;
-    const isComboProduct = title.toLowerCase().includes("combo");
-    const catIndex = i % menuCategoryIds.length;
-    const primaryCategoryId = isComboProduct ? comboCategoryId : menuCategoryIds[catIndex];
-    const categoryIdsList = [primaryCategoryId];
-    const brandId = i % 3 === 0 ? brandIds[i % brandIds.length] : null;
-    const basePrice = Number((START_PRICE + PRICE_STEP * i).toFixed(2));
-    const stock = STOCK_BASE + (i % 27);
-    const featured = i < 8;
-    const spicyAttributeId = foodAttributes.spicy.id;
-    const greensAttributeId = foodAttributes.greens.id;
-    const sauceAttributeId = foodAttributes.sauce.id;
-    const garlicAttributeId = foodAttributes.garlic.id;
 
-    const presetRows = getFoodVariantPresets(i);
-    const isFixedSingleTaste = presetRows.length === 1;
+  for (const category of FIGMA_MENU_CATEGORIES) {
+    const primaryCategoryId = categoryIdsBySlug[category.slug];
+    if (!primaryCategoryId) {
+      console.warn(`[Seed] Missing category id for slug: ${category.slug}`);
+      continue;
+    }
 
-    const variantRows = presetRows.map((preset, variantIndex) => {
-      const spicyValueId = foodAttributes.spicy.valueIds[preset.spicy];
-      const greensValueId = foodAttributes.greens.valueIds[preset.greens];
-      const sauceKey = FOOD_SAUCE_BY_VARIANT_INDEX[variantIndex % FOOD_SAUCE_BY_VARIANT_INDEX.length];
-      const garlicKey = FOOD_GARLIC_BY_VARIANT_INDEX[variantIndex % FOOD_GARLIC_BY_VARIANT_INDEX.length];
-      const sauceValueId = foodAttributes.sauce.valueIds[sauceKey];
-      const garlicValueId = foodAttributes.garlic.valueIds[garlicKey];
-      const variantPrice = Number((basePrice + preset.priceDelta).toFixed(2));
-      const compareAtPrice = Number((variantPrice * 1.18).toFixed(2));
+    const productTitles = buildProductsForCategory(category.slug, category.titles.en);
 
-      return {
-        sku: `FOOD-${1000 + i}-${variantIndex + 1}`,
-        price: variantPrice,
-        compareAtPrice,
-        stock: Math.max(0, stock - variantIndex * 2),
-        position: variantIndex,
-        published: true,
-        attributes: {
-          spicy: [{ valueId: spicyValueId, value: preset.spicy, attributeKey: "spicy" }],
-          greens: [{ valueId: greensValueId, value: preset.greens, attributeKey: "greens" }],
-          sauce: [{ valueId: sauceValueId, value: sauceKey, attributeKey: "sauce" }],
-          garlic: [{ valueId: garlicValueId, value: garlicKey, attributeKey: "garlic" }],
-        },
-        options: {
-          create: [
-            { valueId: spicyValueId },
-            { valueId: greensValueId },
-            { valueId: sauceValueId },
-            { valueId: garlicValueId },
-          ],
-        },
-      };
-    });
+    for (let itemIndex = 0; itemIndex < productTitles.length; itemIndex++) {
+      const title = productTitles[itemIndex];
+      const slug = `seed-${category.slug}-${slugify(title)}-${itemIndex + 1}`;
+      const brandId = productIndex % 3 === 0 ? brandIds[productIndex % brandIds.length] : null;
+      const basePrice = Number((START_PRICE + priceStep * productIndex).toFixed(2));
+      const stock = STOCK_BASE + (productIndex % 27);
+      const featured = productIndex < 12;
+      const variantRows = buildVariantRows(productIndex, basePrice, stock, foodAttributes);
+      const isFixedSingleTaste = variantRows[0]?.isFixedSingleTaste ?? false;
+      const spicyAttributeId = foodAttributes.spicy.id;
+      const greensAttributeId = foodAttributes.greens.id;
+      const sauceAttributeId = foodAttributes.sauce.id;
+      const garlicAttributeId = foodAttributes.garlic.id;
 
-    const product = await prisma.product.create({
-      data: {
-        brandId,
-        media: sharedMedia,
-        published: true,
-        featured,
-        publishedAt: new Date(),
-        categoryIds: categoryIdsList,
-        primaryCategoryId,
-        attributeIds: isFixedSingleTaste
-          ? [sauceAttributeId, garlicAttributeId]
-          : [spicyAttributeId, greensAttributeId, sauceAttributeId, garlicAttributeId],
-        categories: { connect: categoryIdsList.map((id) => ({ id })) },
-        translations: {
-          create: {
-            locale: "en",
-            title,
-            slug,
-            subtitle: `Freshly prepared ${title.toLowerCase()}`,
-            descriptionHtml: isFixedSingleTaste
-              ? `<p>${title} — fixed recipe (no spicy or greens customization).</p>`
-              : `<p>${title} with customizable spicy level and greens preference.</p>`,
+      const product = await prisma.product.create({
+        data: {
+          brandId,
+          media: sharedMedia,
+          published: true,
+          featured,
+          publishedAt: new Date(),
+          categoryIds: [primaryCategoryId],
+          primaryCategoryId,
+          attributeIds: isFixedSingleTaste
+            ? [sauceAttributeId, garlicAttributeId]
+            : [spicyAttributeId, greensAttributeId, sauceAttributeId, garlicAttributeId],
+          categories: { connect: [{ id: primaryCategoryId }] },
+          translations: {
+            create: [
+              {
+                locale: "en",
+                title,
+                slug,
+                subtitle: `${category.titles.en} — ${title}`,
+                descriptionHtml: isFixedSingleTaste
+                  ? `<p>${title} — fixed recipe.</p>`
+                  : `<p>${title} with customizable spicy level and greens preference.</p>`,
+              },
+              {
+                locale: "hy",
+                title,
+                slug: `${slug}-hy`,
+                subtitle: category.titles.hy,
+                descriptionHtml: `<p>${category.titles.hy} — ${title}</p>`,
+              },
+              {
+                locale: "ru",
+                title,
+                slug: `${slug}-ru`,
+                subtitle: category.titles.ru,
+                descriptionHtml: `<p>${category.titles.ru} — ${title}</p>`,
+              },
+            ],
+          },
+          ...(isFixedSingleTaste
+            ? {
+                productAttributes: {
+                  create: [
+                    { attributeId: sauceAttributeId },
+                    { attributeId: garlicAttributeId },
+                  ],
+                },
+              }
+            : {
+                productAttributes: {
+                  create: [
+                    { attributeId: spicyAttributeId },
+                    { attributeId: greensAttributeId },
+                    { attributeId: sauceAttributeId },
+                    { attributeId: garlicAttributeId },
+                  ],
+                },
+              }),
+          variants: {
+            create: variantRows.map((row) => {
+              const { attributeIds, isFixedSingleTaste, ...variant } = row;
+              void attributeIds;
+              void isFixedSingleTaste;
+              return variant;
+            }),
           },
         },
-        ...(isFixedSingleTaste
-          ? {
-              productAttributes: {
-                create: [
-                  { attributeId: sauceAttributeId },
-                  { attributeId: garlicAttributeId },
-                ],
-              },
-            }
-          : {
-              productAttributes: {
-                create: [
-                  { attributeId: spicyAttributeId },
-                  { attributeId: greensAttributeId },
-                  { attributeId: sauceAttributeId },
-                  { attributeId: garlicAttributeId },
-                ],
-              },
-            }),
-        variants: { create: variantRows },
-      },
-    });
-    created.push(product.id);
+      });
+
+      created.push(product.id);
+      productIndex += 1;
+    }
   }
+
   console.log("[Seed] Products created:", created.length);
   return created;
 }

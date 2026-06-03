@@ -1,4 +1,8 @@
 import { db } from "@white-shop/db";
+import {
+  getStorefrontLocaleFallbackChain,
+  type StorefrontLocale,
+} from "@/lib/i18n/locale";
 import { logger } from "../../utils/logger";
 import { computeProductGalleryUrls } from "./product-gallery-urls";
 import { getBaseWhere } from "./product-query-builder";
@@ -18,21 +22,37 @@ export interface ProductVisualPayload {
   imageHeight: number | null;
 }
 
+function pickTranslation<T extends { locale: string }>(
+  translations: T[],
+  lang: string
+): T | null {
+  const fallbacks = getStorefrontLocaleFallbackChain(lang as StorefrontLocale);
+  for (const locale of fallbacks) {
+    const match = translations.find((row) => row.locale === locale);
+    if (match) {
+      return match;
+    }
+  }
+  return translations[0] ?? null;
+}
+
 async function fetchVisualRow(slug: string, lang: string) {
+  const fallbacks = getStorefrontLocaleFallbackChain(lang as StorefrontLocale);
   return db.product.findFirst({
     where: getBaseWhere(slug, lang),
     select: {
       id: true,
       media: true,
       translations: {
-        where: { locale: lang },
+        where: { locale: { in: fallbacks } },
         select: {
+          locale: true,
           slug: true,
           title: true,
           seoTitle: true,
           seoDescription: true,
         },
-        take: 1,
+        take: fallbacks.length,
       },
       variants: {
         where: { published: true },
@@ -47,8 +67,11 @@ async function fetchVisualRow(slug: string, lang: string) {
   });
 }
 
-function mapRowToPayload(row: NonNullable<Awaited<ReturnType<typeof fetchVisualRow>>>): ProductVisualPayload | null {
-  const tr = row.translations[0];
+function mapRowToPayload(
+  row: NonNullable<Awaited<ReturnType<typeof fetchVisualRow>>>,
+  lang: string
+): ProductVisualPayload | null {
+  const tr = pickTranslation(row.translations, lang);
   if (!tr) {
     return null;
   }
@@ -78,15 +101,11 @@ export async function findVisualBySlug(
   lang: string
 ): Promise<ProductVisualPayload | null> {
   try {
-    let row = await fetchVisualRow(slug, lang);
-    if (!row && lang !== "en") {
-      row = await fetchVisualRow(slug, "en");
-    }
+    const row = await fetchVisualRow(slug, lang);
     if (!row) {
       return null;
     }
-    const mapped = mapRowToPayload(row);
-    return mapped;
+    return mapRowToPayload(row, lang);
   } catch (error: unknown) {
     logger.warn("findVisualBySlug failed", {
       slug,

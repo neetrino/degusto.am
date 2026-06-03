@@ -2,6 +2,7 @@ import { resolveStorefrontProductImageFromMedia } from '@/constants/storefront-p
 import type { HomeFeaturedProduct } from '@/components/home/home-page-types';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
 import { resolveFoodAttributeFlagsFromVariants } from '@/lib/product-food-attributes';
+import { isPublishedVariantInStock } from '@/lib/storefront/variant-in-stock';
 import { db } from '@white-shop/db';
 import { revalidateStorefrontMenuCaches } from '@/lib/cache/revalidate-storefront-menu-caches';
 import {
@@ -22,6 +23,7 @@ type DailyOfferProductRow = {
     published: boolean;
     price: number;
     compareAtPrice: number | null;
+    stock: number;
     attributes: unknown;
   }>;
 };
@@ -78,6 +80,7 @@ function getHomeProductSelect(homeLang: StorefrontLocale) {
         published: true,
         price: true,
         compareAtPrice: true,
+        stock: true,
         attributes: true,
       },
     },
@@ -107,7 +110,7 @@ function mapProductRowToHomeFeatured(
     oldPrice: toPositiveNumber(mainVariant?.compareAtPrice),
     image: resolveStorefrontProductImageFromMedia(product.media),
     discountPercent: toPositiveNumber(product.discountPercent),
-    inStock: mainVariant?.published ?? true,
+    inStock: isPublishedVariantInStock(mainVariant),
     defaultVariantId: mainVariant?.id ?? null,
     supportsSpicy: foodAttrs.supportsSpicy,
     supportsGreens: foodAttrs.supportsGreens,

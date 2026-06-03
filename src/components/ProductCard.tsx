@@ -98,9 +98,7 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
     void removeFromCart();
   };
 
-  const handleProductClick = () => {
-    router.push(`/products/${product.slug}`);
-  };
+  const productHref = `/products/${product.slug}`;
 
   const handlePrefetchNavigate = useCallback(() => {
     prefetchProductRoute(router, product.slug);
@@ -123,7 +121,7 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
         onCompareToggle={handleCompareToggle}
         onAddToCart={handleAddToCart}
         onDecreaseCart={handleDecreaseCart}
-        onProductClick={handleProductClick}
+        productHref={productHref}
         onPrefetchNavigate={handlePrefetchNavigate}
       />
     );
@@ -146,7 +144,7 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
       onCompareToggle={handleCompareToggle}
       onAddToCart={handleAddToCart}
       onDecreaseCart={handleDecreaseCart}
-      onProductClick={handleProductClick}
+      productHref={productHref}
       onPrefetchNavigate={handlePrefetchNavigate}
     />
   );

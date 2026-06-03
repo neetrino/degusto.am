@@ -2,20 +2,40 @@ import { HIDDEN_STOREFRONT_CATEGORY_SLUGS } from '@/constants/hidden-storefront-
 import type { MenuCard } from '@/components/home/menu-types';
 import { resolveFoodAttributeFlagsFromVariants } from '@/lib/product-food-attributes';
 import { resolveMenuCardCompareAtPrice } from '@/lib/storefront/menu-card-pricing';
+import { isPublishedVariantInStock } from '@/lib/storefront/variant-in-stock';
 import { resolveStorefrontProductImageFromMedia } from '@/constants/storefront-product-image';
 import { processImageUrl, type ImageUrlInput } from '@/lib/utils/image-utils';
 
 const HY_CATEGORY_TITLE_BY_SLUG: Record<string, string> = {
-  shawarma: 'Շաուրմա',
-  burger: 'Բուրգեր',
-  kebab: 'Քեբաբ',
-  wraps: 'Ռոլլեր',
-  plates: 'Ափսեներ',
-  snacks: 'Խորտիկներ',
-  sandwiches: 'Սենդվիչներ',
-  pasta: 'Պաստա',
-  combo: 'Կոմբո',
+  "soups-hot-dishes": "Ապուրներ եւ տաք ուտեստներ",
+  salads: "Աղցաններ",
+  shawarma: "Շաուրմա",
+  pizza: "Պիցցա",
+  lahmajoun: "Լահմաջո",
+  khachapuri: "Վրացական Խաչապուրի",
+  khorovats: "Խորոված",
+  khinkali: "Խինկալի",
+  "stuffed-potato": "Լցոնած կարտոֆիլ",
+  "burgers-sandwiches": "Բուրգերներ եւ սենդվիչներ",
+  "cakes-pancakes": "Կարկանդակներ եւ նրբաբլիթներ",
+  "combo-packages": "Կոմբո փաթեթներ",
+  "lunch-boxes": "Լանչ Բոքսեր",
+  "grill-smoked": "Գրիլ եւ ապխտած արտադրանքներ",
+  bread: "Հաց",
+  pastry: "Խմորեղեն",
+  "fried-eggs": "Ձվածեղ",
+  "lenten-dishes": "Պահքի ուտեստներ",
+  "asian-sushi": "Ասիական խոհանոց (Սուշի)",
+  pasta: "Պաստաներ",
+  sauces: "Սոուսներ",
+  restaurant: "Ռեստորան",
+  "bar-alcohol": "Բար (Ալկոհոլ)",
+  "juices-drinks": "Հյութեր և Ըմպելիքներ",
+  "semi-finished": "Կիսաֆաբրիկատներ",
+  mexican: "Մեքսիկական խոհանոց",
 };
+
+const SHOP_ALL_CATEGORY_ICON_URL = '/categories/figma/all.svg';
 
 export type ShopCategoryEntry = {
   id: string;
@@ -54,6 +74,7 @@ export type ShopMenuProductRow = {
     published: boolean;
     price: number;
     compareAtPrice: number | null;
+    stock: number;
     attributes: unknown;
   }>;
 };
@@ -88,7 +109,7 @@ export function buildShopCategoryEntries(
       id: 'all',
       slug: '',
       title: allCategoriesLabel,
-      iconUrl: null,
+      iconUrl: SHOP_ALL_CATEGORY_ICON_URL,
     },
   ];
 
@@ -140,7 +161,7 @@ export function mapShopProductRowsToMenuCards(
       oldPrice,
       discount: '',
       discountPercent: row.discountPercent,
-      inStock: variant?.published ?? true,
+      inStock: isPublishedVariantInStock(variant),
       defaultVariantId: variant?.id ?? null,
       supportsSpicy: foodAttrs.supportsSpicy,
       supportsGreens: foodAttrs.supportsGreens,

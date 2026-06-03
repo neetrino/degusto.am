@@ -1,13 +1,11 @@
 'use client';
 
-import Link from 'next/link';
 import Image from 'next/image';
 import { formatPrice } from '../../lib/currency';
 import { ProductColors } from './ProductColors';
 import type { CurrencyCode } from '../../lib/currency';
 
 interface ProductCardInfoProps {
-  slug: string;
   title: string;
   brandName?: string | null;
   brandLogoUrl?: string | null;
@@ -24,7 +22,6 @@ interface ProductCardInfoProps {
  * Component for displaying product information (title, brand, price, colors)
  */
 export function ProductCardInfo({
-  slug,
   title,
   brandName,
   brandLogoUrl,
@@ -38,28 +35,24 @@ export function ProductCardInfo({
 }: ProductCardInfoProps) {
   return (
     <div className={isCompact ? 'p-2.5' : 'p-4'}>
-      <Link href={`/products/${slug}`} className="block">
-        {/* Product Title */}
-        <h3 className={`${isCompact ? 'text-base' : 'text-xl'} font-medium text-gray-900 ${isCompact ? 'mb-0.5' : 'mb-1'} line-clamp-2`}>
-          {title}
-        </h3>
-        
-        {/* Brand */}
-        {brandLogoUrl ? (
-          <div className={`${isCompact ? 'mb-1' : 'mb-2'}`}>
-            <div className={`relative ${isCompact ? 'h-4 w-4' : 'h-6 w-6'}`}>
-              <Image
-                src={brandLogoUrl}
-                alt={brandName || 'Brand logo'}
-                fill
-                className="object-contain"
-                sizes={isCompact ? '16px' : '24px'}
-                unoptimized
-              />
-            </div>
+      <h3 className={`${isCompact ? 'text-base' : 'text-xl'} font-medium text-gray-900 ${isCompact ? 'mb-0.5' : 'mb-1'} line-clamp-2`}>
+        {title}
+      </h3>
+
+      {brandLogoUrl ? (
+        <div className={`${isCompact ? 'mb-1' : 'mb-2'}`}>
+          <div className={`relative ${isCompact ? 'h-4 w-4' : 'h-6 w-6'}`}>
+            <Image
+              src={brandLogoUrl}
+              alt={brandName || 'Brand logo'}
+              fill
+              className="object-contain"
+              sizes={isCompact ? '16px' : '24px'}
+              unoptimized
+            />
           </div>
-        ) : null}
-      </Link>
+        </div>
+      ) : null}
 
       {/* Available Colors */}
       {colors && colors.length > 0 && (

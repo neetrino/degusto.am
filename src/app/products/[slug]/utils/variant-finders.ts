@@ -1,3 +1,4 @@
+import { hasSellableStock } from '@/lib/product-stock';
 import type { Product, ProductVariant, VariantOption } from '../types';
 import { variantHasColor } from './variant-helpers';
 import { getOptionValue } from './variant-helpers';
@@ -39,7 +40,7 @@ export function findVariantByColorAndSize(
     );
 
     if (colorVariants.length > 0) {
-      return colorVariants.find((v) => v.stock > 0) || colorVariants[0];
+      return colorVariants.find((v) => hasSellableStock(v.stock)) || colorVariants[0];
     }
   }
 
@@ -51,12 +52,12 @@ export function findVariantByColorAndSize(
     });
 
     if (sizeVariants.length > 0) {
-      return sizeVariants.find((v) => v.stock > 0) || sizeVariants[0];
+      return sizeVariants.find((v) => hasSellableStock(v.stock)) || sizeVariants[0];
     }
   }
 
   // 4. Ultimate fallback
-  return product.variants.find((v) => v.stock > 0) || product.variants[0] || null;
+  return product.variants.find((v) => hasSellableStock(v.stock)) || product.variants[0] || null;
 }
 
 /**
@@ -159,7 +160,7 @@ export function findVariantByAllAttributes(
   }
 
   // 4. Ultimate fallback
-  return product.variants.find((v) => v.stock > 0) || product.variants[0] || null;
+  return product.variants.find((v) => hasSellableStock(v.stock)) || product.variants[0] || null;
 }
 
 

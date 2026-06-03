@@ -12,8 +12,8 @@ import { ProductFilters } from './components/ProductFilters';
 import { ProductsTable } from './components/ProductsTable';
 import { useProductHandlers } from './hooks/useProductHandlers';
 import type { Product, ProductsResponse, Category } from './types';
-import type { DailyOfferSelection } from '@/lib/services/daily-offer/daily-offer.types';
-import { EMPTY_DAILY_OFFER_SELECTION } from '@/lib/services/daily-offer/daily-offer.types';
+import { aggregateStockValues, hasSellableStock } from '@/lib/product-stock';
+import { EMPTY_DAILY_OFFER_SELECTION, type DailyOfferSelection } from '@/lib/services/daily-offer/daily-offer.types';
 import { logger } from "@/lib/utils/logger";
 
 export default function ProductsPage() {
@@ -197,15 +197,15 @@ export default function ProductsPage() {
         filteredProducts = filteredProducts.filter(product => {
           const getTotalStock = (p: Product) => {
             if (p.colorStocks && p.colorStocks.length > 0) {
-              return p.colorStocks.reduce((sum, cs) => sum + (cs.stock || 0), 0);
+              return aggregateStockValues(p.colorStocks.map((cs) => cs.stock || 0));
             }
             return p.stock ?? 0;
           };
           const totalStock = getTotalStock(product);
           if (stockFilter === 'inStock') {
-            return totalStock > 0;
+            return hasSellableStock(totalStock);
           } else if (stockFilter === 'outOfStock') {
-            return totalStock === 0;
+            return !hasSellableStock(totalStock);
           }
           return true;
         });
@@ -254,7 +254,7 @@ export default function ProductsPage() {
       cloned.sort((a, b) => {
         const getTotalStock = (product: Product) => {
           if (product.colorStocks && product.colorStocks.length > 0) {
-            return product.colorStocks.reduce((sum, cs) => sum + (cs.stock || 0), 0);
+            return aggregateStockValues(product.colorStocks.map((cs) => cs.stock || 0));
           }
           return product.stock ?? 0;
         };
@@ -274,9 +274,10 @@ export default function ProductsPage() {
     const featuredCount = safeProducts.filter((product) => product.featured).length;
     const outOfStockCount = safeProducts.filter((product) => {
       if (product.colorStocks && product.colorStocks.length > 0) {
-        return product.colorStocks.reduce((sum, colorStock) => sum + (colorStock.stock || 0), 0) === 0;
+        const total = aggregateStockValues(product.colorStocks.map((cs) => cs.stock || 0));
+        return !hasSellableStock(total);
       }
-      return (product.stock ?? 0) === 0;
+      return !hasSellableStock(product.stock ?? 0);
     }).length;
     return {
       total: meta?.total ?? safeProducts.length,

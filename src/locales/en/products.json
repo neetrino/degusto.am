@@ -56,6 +56,10 @@
       "new": "NEW",
       "sale": "SALE"
     }
+  },
+  "errors": {
+    "loadFailed": "Failed to load products",
+    "tryAgain": "Please try again."
   }
 }
 

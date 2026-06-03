@@ -32,6 +32,16 @@ const socialLinks = {
   viber: 'viber://chat?number=%2B37460388080',
 };
 
+const footerStoreAddresses = [
+  'Պարույր Սևակի 92',
+  'Բագրատունյաց 11Ա',
+  'Ազատության 24/19, Coffee Studio by Degusto',
+] as const;
+
+function buildGoogleMapsSearchUrl(address: string): string {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${address}, Yerevan, Armenia`)}`;
+}
+
 const footerOrangeHeadingFontProps: { className: string; style: CSSProperties } = {
   className: `${bigFatBoiiFont.className} ${mirageExpandedFont.className}`,
   style: {
@@ -122,9 +132,17 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
                 <img src={assets.footerAddressPinIcon} alt="" className="h-6 w-[18px] object-contain" />
                 <span>{t('profile.tabs.addresses')}</span>
               </h3>
-              <p className="text-sm leading-[27px]">Պարույր Սևակի 92</p>
-              <p className="text-sm leading-[27px]">Բագրատունյաց 11Ա</p>
-              <p className="max-w-[246px] text-sm leading-[27px]">Ազատության 24/19, Coffee Studio by Degusto</p>
+              {footerStoreAddresses.map((address, index) => (
+                <a
+                  key={address}
+                  href={buildGoogleMapsSearchUrl(address)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={`block text-sm leading-[27px] hover:text-[#ff7f20] ${index === footerStoreAddresses.length - 1 ? 'max-w-[246px]' : ''}`}
+                >
+                  {address}
+                </a>
+              ))}
             </div>
 
             <div>
@@ -158,14 +176,11 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
                 {t('common.footer.quickLinks')}
               </h3>
               <div className="space-y-0 text-sm leading-[30px]">
-                <Link href="/" className="block hover:text-[#ff7f20]">
-                  {t('common.navigation.home')}
-                </Link>
                 <Link href="/shop" className="block hover:text-[#ff7f20]">
-                  {t('common.navigation.delivery')}
+                  {t('common.navigation.shop')}
                 </Link>
-                <Link href="/shop" className="block hover:text-[#ff7f20]">
-                  {t('common.navigation.products')}
+                <Link href="/combo" className="block hover:text-[#ff7f20]">
+                  {t('common.navigation.combo')}
                 </Link>
                 <Link href="/about" className="block hover:text-[#ff7f20]">
                   {t('common.navigation.about')}
@@ -231,7 +246,9 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
 
           <div className="relative z-10 mt-8 border-t border-white/20 pt-4 lg:absolute lg:bottom-[52px] lg:left-0 lg:right-0 lg:mt-0 lg:pt-[18px]">
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <img src={assets.footerBrandLogo} alt="Degusto" className="h-[42px] w-[117px] object-contain" />
+              <Link href="/" className="inline-flex shrink-0" aria-label={t('common.navigation.home')}>
+                <img src={assets.footerBrandLogo} alt="Degusto" className="h-[42px] w-[117px] object-contain" />
+              </Link>
               <p className="text-[14px] leading-[23px] text-white lg:pr-[24px]">
                 Copyright © 2026 | All rights reserved | Created by{' '}
                 <span

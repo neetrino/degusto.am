@@ -1,7 +1,7 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { Card, Button } from '@shop/ui';
+import Link from 'next/link';
+import { Card } from '@shop/ui';
 import { BodyBackground } from '../../components/BodyBackground';
 import { useTranslation } from '../../lib/i18n-client';
 import { CHECKOUT_CARD_FRAME, CHECKOUT_PAGE_TITLE, CHECKOUT_PRIMARY_BUTTON, CHECKOUT_TEXT_INK_MUTED } from './checkout-ui';
@@ -11,7 +11,6 @@ import { OrderSummary } from './OrderSummary';
 import { useCheckout } from './useCheckout';
 
 export default function CheckoutPage() {
-  const router = useRouter();
   const { t } = useTranslation();
   
   const {
@@ -77,9 +76,12 @@ export default function CheckoutPage() {
           <h1 className={`mb-6 lg:mb-8 ${CHECKOUT_PAGE_TITLE}`}>{t('checkout.title')}</h1>
           <Card className={`p-6 text-center ${CHECKOUT_CARD_FRAME}`}>
             <p className={`mb-4 ${CHECKOUT_TEXT_INK_MUTED}`}>{t('checkout.errors.cartEmpty')}</p>
-            <Button variant="primary" className={CHECKOUT_PRIMARY_BUTTON} onClick={() => router.push('/shop')}>
+            <Link
+              href="/shop"
+              className={`inline-flex items-center justify-center rounded-xl px-4 py-2 text-base font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${CHECKOUT_PRIMARY_BUTTON}`}
+            >
               {t('checkout.buttons.continueShopping')}
-            </Button>
+            </Link>
           </Card>
         </div>
       </>

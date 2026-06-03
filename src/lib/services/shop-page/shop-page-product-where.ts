@@ -150,6 +150,7 @@ export function getShopProductSelect(locale: StorefrontLocale): Prisma.ProductSe
         published: true,
         price: true,
         compareAtPrice: true,
+        stock: true,
         /** Spicy/greens badges need all published variants (see product-food-attributes). */
         attributes: true,
       },

@@ -15,7 +15,8 @@
     "shopNow": "Գնել հիմա",
     "viewMore": "Դիտել ավելին",
     "close": "Փակել",
-    "done": "Պատրաստ"
+    "done": "Պատրաստ",
+    "tryAgain": "Կրկին փորձել"
   },
   "navigation": {
     "home": "Գլխավոր",
@@ -114,9 +115,19 @@
     "commentRequired": "Խնդրում ենք գրել կարծիք",
     "submitError": "Չհաջողվեց ուղարկել կարծիքը",
     "alreadyReviewed": "Դուք արդեն գրել եք կարծիք այս ապրանքի մասին",
+    "alreadyReviewedEditable": "Դուք արդեն գրել եք կարծիք: Կարող եք թարմացնել ստորև:",
+    "updateReviewTitle": "Թարմացնել կարծիքը",
+    "updateReviewButton": "Թարմացնել",
+    "editReview": "Խմբագրել",
+    "deleteReview": "Ջնջել",
+    "confirmDeleteReview": "Վստա՞հ եք, որ ցանկանում եք ջնջել ձեր կարծիքը:",
+    "deleteReviewError": "Չհաջողվեց ջնջել կարծիքը",
+    "deleteOwnReviewOnly": "Դուք կարող եք ջնջել միայն ձեր կարծիքը",
+    "deletingReview": "Ջնջվում է...",
+    "updateOwnReviewOnly": "Դուք կարող եք թարմացնել միայն ձեր կարծիքը",
     "noReviews": "Կարծիքներ դեռ չկան: Դարձեք առաջինը, ով կգրի կարծիք:",
     "review": "կարծիք",
-    "reviews": "կարծիք",
+    "reviews": "կարծիքներ",
     "cancel": "Չեղարկել"
   },
   "messages": {
@@ -212,7 +223,7 @@
     "termsOfService": "Ծառայությունների պայմաններ",
     "refundPolicy": "Փոխհատուցման քաղաքականություն",
     "deliveryTerms": "Առաքման պայմաններ",
-    "copyright": "© {year} Խանութ: Բոլոր իրավունքները պաշտպանված են:",
+    "copyright": "© {year} Degusto. Բոլոր իրավունքները պաշտպանված են:",
     "paymentMethods": "Վճարման եղանակներ:"
   },
   "product": {
@@ -223,6 +234,10 @@
     "previous": "Նախորդ",
     "next": "Հաջորդ",
     "pageOf": "Էջ {page} {totalPages}-ից"
+  },
+  "errors": {
+    "title": "Ինչ-որ բան սխալ է",
+    "description": "Սխալ է տեղի ունեցել։ Խնդրում ենք կրկին փորձել կամ վերադառնալ գլխավոր էջ:"
   },
   "notFound": {
     "title": "Էջը չի գտնվել",

@@ -1,5 +1,7 @@
 const STOREFRONT_LOCALES = ["hy", "ru", "en"] as const;
 
+export { STOREFRONT_LOCALES };
+
 export type StorefrontLocale = (typeof STOREFRONT_LOCALES)[number];
 
 const PRIMARY_LOCALE: StorefrontLocale = "hy";

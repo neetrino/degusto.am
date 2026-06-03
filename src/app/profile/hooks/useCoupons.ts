@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiClient } from "../../../lib/api-client";
+import { useTranslation } from "../../../lib/i18n-client";
 import type { CouponHistoryItem, ProfileTab, UserCoupon } from "../types";
 
 interface UseCouponsProps {
@@ -20,6 +21,7 @@ export function useCoupons({
   activeTab,
   onError,
 }: UseCouponsProps) {
+  const { t } = useTranslation();
   const [couponsLoading, setCouponsLoading] = useState(false);
   const [availableCoupons, setAvailableCoupons] = useState<UserCoupon[]>([]);
   const [couponHistory, setCouponHistory] = useState<CouponHistoryItem[]>([]);
@@ -33,11 +35,11 @@ export function useCoupons({
       setCouponHistory(response.history ?? []);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : String(err);
-      onError(errorMessage || "Failed to load coupons");
+      onError(errorMessage || t('profile.coupons.failedToLoad'));
     } finally {
       setCouponsLoading(false);
     }
-  }, [onError]);
+  }, [onError, t]);
 
   useEffect(() => {
     if (isLoggedIn && !authLoading && activeTab === "coupons") {

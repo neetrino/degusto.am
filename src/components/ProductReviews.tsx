@@ -1,7 +1,6 @@
 'use client';
 
 import type { Dispatch, SetStateAction } from 'react';
-import { Button } from '@shop/ui';
 import { useAuth } from '../lib/auth/AuthContext';
 import { useTranslation } from '../lib/i18n-client';
 import { useReviewForm } from './ProductReviews/hooks/useReviewForm';
@@ -10,6 +9,14 @@ import { ReviewSummary } from './ProductReviews/ReviewSummary';
 import { ReviewForm } from './ProductReviews/ReviewForm';
 import { ReviewList } from './ProductReviews/ReviewList';
 import { ProductReviewsLoading } from './ProductReviews/ProductReviewsLoading';
+import {
+  PDP_REVIEWS_PANEL_CLASS,
+  PDP_REVIEWS_SUMMARY_GAP_CLASS,
+  PDP_REVIEWS_TITLE_CLASS,
+  PDP_REVIEWS_WRITE_BUTTON_CLASS,
+  PDP_REVIEWS_WRITE_BUTTON_WRAP_CLASS,
+} from '@/constants/pdp-figma-tokens';
+import { montserratArmFont } from '@/fonts/montserrat-arm-font';
 
 interface ProductReviewsProps {
   productId: string;
@@ -44,6 +51,8 @@ export function ProductReviews({
     handleCancelEdit,
     handleSubmit,
     handleUpdateReview,
+    handleDeleteReview,
+    deletingReviewId,
   } = useReviewForm({
     productId,
     productSlug,
@@ -66,29 +75,23 @@ export function ProductReviews({
     setShowForm(true);
   };
 
-  const handleLoginRequired = () => {
-    alert(t('common.reviews.loginRequired'));
-  };
-
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-gray-200">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">
-          {t('common.reviews.title')}
-        </h2>
+    <div className={`${PDP_REVIEWS_PANEL_CLASS} ${montserratArmFont.className}`}>
+      <div className={`mb-8 flex flex-col ${PDP_REVIEWS_SUMMARY_GAP_CLASS}`}>
+        <h2 className={PDP_REVIEWS_TITLE_CLASS}>{t('common.reviews.title')}</h2>
 
-        {/* Rating Summary */}
         <ReviewSummary reviews={reviews} />
 
-        {/* Write Review Button */}
         {!showForm && (
-          <Button
-            variant="primary"
-            onClick={handleShowForm}
-            className="mb-8"
-          >
-            {t('common.reviews.writeReview')}
-          </Button>
+          <div className={PDP_REVIEWS_WRITE_BUTTON_WRAP_CLASS}>
+            <button
+              type="button"
+              onClick={handleShowForm}
+              className={PDP_REVIEWS_WRITE_BUTTON_CLASS}
+            >
+              {t('common.reviews.writeReview')}
+            </button>
+          </div>
         )}
 
         {/* Review Form */}
@@ -116,10 +119,9 @@ export function ProductReviews({
       <ReviewList
         reviews={reviews}
         currentUserId={user?.id}
-        showForm={showForm}
         onEditReview={handleEditReview}
-        onShowForm={handleShowForm}
-        onLoginRequired={handleLoginRequired}
+        onDeleteReview={handleDeleteReview}
+        deletingReviewId={deletingReviewId}
       />
     </div>
   );

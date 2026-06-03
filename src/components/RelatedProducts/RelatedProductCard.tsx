@@ -1,19 +1,25 @@
 'use client';
 
-import Link from 'next/link';
+import { ProductPageLink } from '@/components/products/ProductPageLink';
 import Image from 'next/image';
 import type { MouseEvent } from 'react';
-import { useRouter } from 'next/navigation';
 import { formatPrice } from '../../lib/currency';
 import type { CurrencyCode } from '../../lib/currency';
 import type { LanguageCode } from '../../lib/language';
 import { logger } from '@/lib/utils/logger';
-import { useAuth } from '../../lib/auth/AuthContext';
-import { useWishlist } from '../hooks/useWishlist';
-import { useTranslation } from '../../lib/i18n-client';
-import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
+import { useAddToCart } from '../hooks/useAddToCart';
 import { FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS } from '@/constants/mobile-figma-storefront';
 import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
+import { montserratArmFont } from '@/fonts/montserrat-arm-font';
+import {
+  PDP_RELATED_CARD_DISCOUNT_BADGE_CLASS,
+  PDP_RELATED_CARD_DISCOUNT_BADGE_COMPACT_CLASS,
+  PDP_RELATED_CARD_IMAGE_TOP_CLASS,
+  PDP_RELATED_CARD_PRICE_BLOCK_CLASS,
+  PDP_RELATED_CARD_PRICE_COLUMN_CLASS,
+} from '@/constants/pdp-figma-tokens';
+import { resolveStorefrontDiscountPercent } from '@/lib/storefront/discount-percent';
+import { t } from '../../lib/i18n';
 
 const FIGMA_HOT_ICON = '/api/r2/product/20260512-dWv7-ZfxP1.svg';
 const FIGMA_RIBBON_ICON = '/api/r2/product/20260512-lmzrYlGD39.svg';
@@ -28,6 +34,7 @@ interface RelatedProduct {
   originalPrice?: number | null;
   compareAtPrice: number | null;
   discountPercent?: number | null;
+  defaultVariantId?: string | null;
   image: string | null;
   inStock: boolean;
   brand?: {
@@ -45,9 +52,7 @@ interface RelatedProductCardProps {
   product: RelatedProduct;
   currency: CurrencyCode;
   language: LanguageCode;
-  isAddingToCart: boolean;
   hasMoved: boolean;
-  onAddToCart: (e: MouseEvent, product: RelatedProduct) => void;
   onImageError: (productId: string) => void;
   imageError: boolean;
   width?: string;
@@ -55,56 +60,80 @@ interface RelatedProductCardProps {
   compact?: boolean;
 }
 
+function resolveCategoryLabel(product: RelatedProduct): string {
+  return product.categories?.[0]?.title ?? product.brand?.name ?? '';
+}
+
+function resolveComparePrice(product: RelatedProduct): number | null {
+  if (product.originalPrice && product.originalPrice > product.price) {
+    return product.originalPrice;
+  }
+  if (product.compareAtPrice && product.compareAtPrice > product.price) {
+    return product.compareAtPrice;
+  }
+  return null;
+}
+
 /**
- * Single product card component for RelatedProducts carousel
+ * Single product card component for RelatedProducts carousel (Figma node 1:634 / 10:1983).
  */
 export function RelatedProductCard({
   product,
   currency,
   language,
-  isAddingToCart,
   hasMoved,
-  onAddToCart,
   onImageError,
   imageError,
   width,
   compact = false,
 }: RelatedProductCardProps) {
-  const router = useRouter();
-  const { isLoggedIn } = useAuth();
-  const { t } = useTranslation();
-  const { isInWishlist, toggleWishlist } = useWishlist(product.id);
   const imageSrc = imageError
     ? resolveStorefrontProductImage(null)
     : resolveStorefrontProductImage(product.image);
-  const hasDiscount = typeof product.discountPercent === 'number' && product.discountPercent > 0;
-  const discountText = hasDiscount ? `-${Math.round(product.discountPercent!)}%` : '';
+  const categoryLabel = resolveCategoryLabel(product);
+  const comparePrice = resolveComparePrice(product);
+  const resolvedDiscountPercent = resolveStorefrontDiscountPercent({
+    price: product.price,
+    originalPrice: product.originalPrice,
+    compareAtPrice: comparePrice,
+    productDiscount: product.discountPercent,
+  });
+  const showDiscountBadge =
+    resolvedDiscountPercent != null && resolvedDiscountPercent > 0;
+  const discountText = showDiscountBadge ? `-${resolvedDiscountPercent}%` : '';
+  const cardFontClass = montserratArmFont.className;
+  const { isAddingToCart, addToCart } = useAddToCart({
+    productId: product.id,
+    productSlug: product.slug,
+    inStock: product.inStock,
+    defaultVariantId: product.defaultVariantId ?? undefined,
+    price: product.price,
+  });
 
-  const handleWishlistClick = (e: MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!isLoggedIn) {
-      router.push(`/login?redirect=/products/${encodeURIComponent(product.slug)}`);
-      return;
-    }
-    void toggleWishlist();
+  const handleAddToCart = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const button = event.currentTarget as HTMLElement;
+    const cardRoot = button.closest('[data-related-product-card]');
+    const origin =
+      (cardRoot?.querySelector('[data-product-fly-origin]') as HTMLElement | null) ?? button;
+    void addToCart({ origin, imageUrl: imageSrc });
   };
 
   return (
     <div
-      className={compact ? 'flex-shrink-0 px-[7px] pb-5' : 'flex-shrink-0 px-[15px] pb-[30px]'}
+      className={compact ? 'flex-shrink-0 px-[7px] pb-5' : 'flex-shrink-0 px-[16.5px] pb-[30px]'}
       style={{ width }}
     >
-      <div className="group relative flex h-full flex-col items-center">
-        <Link
-          href={`/products/${product.slug}`}
+      <div data-related-product-card className="group relative flex h-full flex-col items-center py-[7px]">
+        <ProductPageLink
+          slug={product.slug}
           className={
             compact
               ? 'flex w-full flex-1 cursor-pointer flex-col'
               : 'flex w-[236px] flex-1 cursor-pointer flex-col'
           }
           onClick={(e) => {
-            // Prevent navigation only if we actually dragged (moved more than threshold)
             if (hasMoved) {
               e.preventDefault();
               e.stopPropagation();
@@ -121,17 +150,18 @@ export function RelatedProductCard({
             }
           >
             <div
+              data-product-fly-origin
               className={
                 compact
-                  ? 'absolute left-1/2 top-1 h-[143px] w-[calc(100%-8px)] max-w-[227px] -translate-x-1/2 overflow-hidden rounded-[18px] bg-gray-100'
-                  : 'absolute left-1/2 top-1 h-[147px] w-[227px] -translate-x-1/2 overflow-hidden rounded-[18px] bg-gray-100'
+                  ? `absolute left-1/2 ${PDP_RELATED_CARD_IMAGE_TOP_CLASS} h-[143px] w-[calc(100%-8px)] max-w-[227px] -translate-x-1/2 overflow-hidden rounded-[18px] bg-gray-100`
+                  : `absolute left-1/2 ${PDP_RELATED_CARD_IMAGE_TOP_CLASS} h-[147px] w-[227px] -translate-x-1/2 overflow-hidden rounded-[18px] bg-gray-100`
               }
             >
               <Image
                 src={imageSrc}
                 alt={product.title}
                 fill
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                className="object-cover object-top transition-transform duration-300 group-hover:scale-105"
                 sizes={compact ? '(max-width: 1024px) 50vw, 227px' : '227px'}
                 unoptimized
                 onError={() => onImageError(product.id)}
@@ -141,169 +171,116 @@ export function RelatedProductCard({
             <div
               className={
                 compact
-                  ? 'absolute left-3 top-4 flex h-7 w-7 items-center justify-center rounded-full bg-[#ff2b2e] p-1'
-                  : 'absolute left-4 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-[#ff2b2e] p-1'
+                  ? 'absolute left-4 top-5 flex size-8 items-center justify-center rounded-full bg-[#ff2b2e] p-1'
+                  : 'absolute left-4 top-5 flex size-8 items-center justify-center rounded-full bg-[#ff2b2e] p-1'
               }
             >
               <img
                 src={FIGMA_HOT_ICON}
                 alt=""
-                className={`${compact ? 'h-4 w-4' : 'h-[19px] w-[19px]'} -rotate-[13deg] object-contain`}
+                className="size-[19px] -rotate-[13deg] object-contain"
               />
             </div>
-            <div
-              className={
-                compact
-                  ? 'absolute left-3 top-[50px] flex h-7 w-7 items-center justify-center overflow-hidden rounded-full'
-                  : 'absolute left-4 top-[58px] flex h-8 w-8 items-center justify-center overflow-hidden rounded-full'
-              }
-            >
-              <img
-                src={FIGMA_RIBBON_ICON}
-                alt=""
-                className={`${compact ? 'h-7 w-7' : 'h-8 w-8'} scale-110 object-cover`}
-              />
+            <div className="absolute left-4 top-[58px] flex size-8 items-center justify-center overflow-hidden rounded-full">
+              <img src={FIGMA_RIBBON_ICON} alt="" className="size-8 scale-110 object-cover" />
             </div>
 
-            <button
-              type="button"
-              onClick={handleWishlistClick}
-              className={`absolute right-3 top-3 z-30 flex h-9 w-9 items-center justify-center rounded-full border shadow-md transition-colors sm:h-10 sm:w-10 ${
-                isInWishlist
-                  ? 'border-red-600 bg-red-600 text-white hover:bg-red-700'
-                  : 'border-[#dedede]/90 bg-white/95 text-gray-700 hover:bg-white'
-              }`}
-              title={
-                isInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')
-              }
-              aria-label={
-                isInWishlist ? t('common.ariaLabels.removeFromWishlist') : t('common.ariaLabels.addToWishlist')
-              }
-            >
-              <WishlistHeartIcon filled={isInWishlist} size={18} />
-            </button>
-
             <div
               className={
                 compact
-                  ? 'absolute left-3 top-[150px] flex items-center gap-1.5'
-                  : 'absolute left-[14px] top-[170px] flex items-center gap-[6px]'
+                  ? `absolute left-3 top-[150px] flex w-[calc(100%-24px)] items-start justify-between gap-2 ${cardFontClass}`
+                  : `absolute left-[14px] top-[170px] flex h-[90px] w-[209px] items-start justify-between ${cardFontClass}`
               }
             >
-              <img
-                src={FIGMA_STAR_ICON}
-                alt=""
-                className={`${compact ? 'h-4 w-4' : 'h-5 w-5'} object-contain`}
-              />
-              <p
-                className={
-                  compact
-                    ? 'text-sm font-medium leading-none text-[rgba(60,47,47,0.62)]'
-                    : 'text-base font-medium leading-[1.35] text-[rgba(60,47,47,0.62)]'
-                }
-              >
-                4.7
-              </p>
-            </div>
-            <div
-              className={
-                compact
-                  ? 'absolute left-3 top-[172px] w-[calc(100%-72px)] min-w-0'
-                  : 'absolute left-[14px] top-[194px] w-[130px]'
-              }
-            >
-              <h3
-                className={
-                  compact
-                    ? 'text-sm font-bold leading-[1.15] text-[#3c2f2f]'
-                    : 'text-base font-bold leading-[1.05] text-[#3c2f2f]'
-                }
-              >
-                <span className={compact ? 'line-clamp-2' : 'block max-h-[34px] overflow-hidden break-words'}>
-                  {product.title}
-                </span>
-              </h3>
-            </div>
+              <div className={compact ? 'min-w-0 flex-1' : 'w-[120px] shrink-0'}>
+                <div className="mb-[5px] flex items-center gap-1.5">
+                  <img src={FIGMA_STAR_ICON} alt="" className="size-5 object-contain" />
+                  <p className="text-base font-medium leading-[1.35] text-[rgba(60,47,47,0.62)]">
+                    4.7
+                  </p>
+                </div>
+                <h3 className="text-base font-bold leading-normal text-[#3c2f2f]">
+                  <span className={compact ? 'line-clamp-2' : 'line-clamp-2'}>{product.title}</span>
+                </h3>
+                {categoryLabel ? (
+                  <p className="mt-[5px] text-base font-normal leading-normal text-[#a1a1a1]">
+                    {categoryLabel}
+                  </p>
+                ) : null}
+              </div>
 
-            {hasDiscount ? (
-              <span
+              <div
                 className={
                   compact
-                    ? 'absolute right-2 top-[152px] inline-flex h-[25px] items-center rounded-[60px] bg-[#ff7f20] px-3 text-xs font-bold leading-none text-black'
-                    : 'absolute right-px top-[170px] inline-flex h-[30px] items-center rounded-[60px] bg-[#ff7f20] px-[17px] text-sm font-bold leading-none text-black'
+                    ? 'flex shrink-0 flex-col items-end text-right pt-2'
+                    : PDP_RELATED_CARD_PRICE_COLUMN_CLASS
                 }
               >
-                {discountText}
-              </span>
-            ) : null}
-
-            <div
-              className={
-                compact
-                  ? 'absolute right-3 top-[190px] flex max-w-[76px] flex-col items-end text-right'
-                  : 'absolute right-[14px] top-[228px] flex max-w-[112px] flex-col items-end text-right'
-              }
-            >
-              <p
-                className={
-                  compact
-                    ? 'w-full break-words text-sm font-black leading-tight tabular-nums text-[#3c2f2f]'
-                    : 'w-full whitespace-nowrap text-[20px] font-black leading-none tabular-nums text-[#3c2f2f]'
-                }
-              >
-                {formatPrice(product.price, currency)}
-              </p>
-              {(product.originalPrice && product.originalPrice > product.price) ||
-              (product.compareAtPrice && product.compareAtPrice > product.price) ? (
-                <p
-                  className={
-                    compact
-                      ? 'mt-0.5 w-full break-words text-xs font-light leading-tight tabular-nums text-[#3c2f2f] line-through'
-                      : 'mt-2 w-full translate-x-[8px] whitespace-nowrap text-sm font-light leading-none tabular-nums text-[#3c2f2f] line-through'
-                  }
-                >
-                  {formatPrice(
-                    (product.originalPrice && product.originalPrice > product.price) 
-                      ? product.originalPrice 
-                      : (product.compareAtPrice || 0),
-                    currency
-                  )}
-                </p>
-              ) : null}
+                {showDiscountBadge ? (
+                  <span
+                    className={
+                      compact
+                        ? PDP_RELATED_CARD_DISCOUNT_BADGE_COMPACT_CLASS
+                        : PDP_RELATED_CARD_DISCOUNT_BADGE_CLASS
+                    }
+                  >
+                    {discountText}
+                  </span>
+                ) : null}
+                <div className={compact ? 'mt-1 flex flex-col items-end' : PDP_RELATED_CARD_PRICE_BLOCK_CLASS}>
+                  <p
+                    className={
+                      compact
+                        ? 'whitespace-nowrap text-sm font-black leading-none tabular-nums text-[#3c2f2f]'
+                        : 'whitespace-nowrap text-[20px] font-black leading-none tabular-nums text-[#3c2f2f]'
+                    }
+                  >
+                    {formatPrice(product.price, currency)}
+                  </p>
+                  {comparePrice !== null ? (
+                    <p
+                      className={
+                        compact
+                          ? 'mt-0.5 whitespace-nowrap text-xs font-light leading-none tabular-nums text-[#3c2f2f] line-through'
+                          : 'mt-1 whitespace-nowrap text-sm font-light leading-none tabular-nums text-[#3c2f2f] line-through'
+                      }
+                    >
+                      {formatPrice(comparePrice, currency)}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
             </div>
           </div>
-        </Link>
+        </ProductPageLink>
 
-        {/* Cart Icon Button */}
         <button
-          onClick={(e) => onAddToCart(e, product)}
+          type="button"
+          onClick={handleAddToCart}
           disabled={!product.inStock || isAddingToCart}
           className={`absolute left-1/2 z-20 inline-flex -translate-x-1/2 items-center justify-center disabled:cursor-not-allowed disabled:opacity-50 ${
             compact
-              ? '-bottom-[14px] h-[42px] w-[42px]'
+              ? '-bottom-[14px] size-[42px]'
               : '-bottom-[18px] h-[52px] w-[51px]'
           }`}
-          title={product.inStock ? 'Add to cart' : 'Out of stock'}
-          aria-label={product.inStock ? 'Add to cart' : 'Out of stock'}
+          title={
+            product.inStock
+              ? t(language, 'product.addToCart')
+              : t(language, 'product.outOfStock')
+          }
+          aria-label={
+            product.inStock
+              ? t(language, 'product.addToCart')
+              : t(language, 'product.outOfStock')
+          }
         >
-          {isAddingToCart ? (
-            <svg className="animate-spin h-5 w-5 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-          ) : (
-            <img
-              src={FIGMA_ADD_TO_CART_ICON}
-              alt=""
-              className={compact ? 'h-[42px] w-[42px] object-contain' : 'h-[52px] w-[51px] object-contain'}
-            />
-          )}
+          <img
+            src={FIGMA_ADD_TO_CART_ICON}
+            alt=""
+            className={compact ? 'size-[42px] object-contain' : 'h-[52px] w-[51px] object-contain'}
+          />
         </button>
       </div>
     </div>
   );
 }
-
-
-
-

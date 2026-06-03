@@ -1,13 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import { ProductPageLink } from '@/components/products/ProductPageLink';
 import Image from 'next/image';
-import { Button } from '@shop/ui';
 import { formatPrice } from '../../lib/currency';
 import type { CurrencyCode } from '../../lib/currency';
 import type { Cart, CartItem } from './types';
 import type { CartListAppearance } from './constants';
 import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
+import { getEffectiveMaxQuantity, isUnlimitedStock } from '@/lib/product-stock';
 
 type DisplayLine = NonNullable<CartItem['variant']['displayLines']>[number];
 
@@ -54,12 +55,17 @@ function CartItemQuantityStepper({
   appearance = 'page',
 }: CartItemQuantityStepperProps) {
   const isDrawer = appearance === 'drawer';
+  const variantStock = item.variant.stock;
+  const maxOrderQuantity =
+    variantStock !== undefined ? getEffectiveMaxQuantity(variantStock) : undefined;
   const stockTitle =
-    item.variant.stock !== undefined
-      ? t('common.messages.availableQuantity').replace('{stock}', item.variant.stock.toString())
+    variantStock !== undefined && !isUnlimitedStock(variantStock)
+      ? t('common.messages.availableQuantity').replace('{stock}', variantStock.toString())
       : '';
   const atMaxStock =
-    item.variant.stock !== undefined && item.quantity >= item.variant.stock;
+    variantStock !== undefined &&
+    !isUnlimitedStock(variantStock) &&
+    item.quantity >= variantStock;
 
   const shellClass = isDrawer
     ? 'inline-grid h-8 w-[6.25rem] shrink-0 grid-cols-3 divide-x divide-white/25 overflow-hidden rounded-full border border-white/30 bg-white/10 shadow-none sm:h-9 sm:w-[6.75rem]'
@@ -88,7 +94,7 @@ function CartItemQuantityStepper({
         <input
           type="number"
           min={1}
-          max={item.variant.stock !== undefined ? item.variant.stock : undefined}
+          max={maxOrderQuantity}
           value={item.quantity}
           onChange={(e) => {
             const next = parseInt(e.target.value, 10) || 1;
@@ -105,8 +111,8 @@ function CartItemQuantityStepper({
         className={btnClass}
         aria-label={t('common.ariaLabels.increaseQuantity')}
         title={
-          atMaxStock && item.variant.stock !== undefined
-            ? t('common.messages.availableQuantity').replace('{stock}', item.variant.stock.toString())
+          atMaxStock && variantStock !== undefined && !isUnlimitedStock(variantStock)
+            ? t('common.messages.availableQuantity').replace('{stock}', variantStock.toString())
             : t('common.messages.addQuantity')
         }
       >
@@ -159,8 +165,8 @@ export function CartItemRow({
 
   return (
     <div className={cartItemRowClassName(appearance)}>
-      <Link
-        href={`/products/${item.variant.product.slug}`}
+      <ProductPageLink
+        slug={item.variant.product.slug}
         className={cartItemImageLinkClassName(appearance)}
         aria-label={item.variant.product.title}
       >
@@ -172,12 +178,12 @@ export function CartItemRow({
           sizes="84px"
           unoptimized
         />
-      </Link>
+      </ProductPageLink>
 
       <div className="flex min-w-0 flex-1 flex-col justify-between gap-3">
         <div className="min-w-0 pr-1">
-          <Link
-            href={`/products/${item.variant.product.slug}`}
+          <ProductPageLink
+            slug={item.variant.product.slug}
             className={
               isDrawer
                 ? 'line-clamp-2 text-base font-bold text-white transition-colors hover:text-white/90'
@@ -185,7 +191,7 @@ export function CartItemRow({
             }
           >
             {item.variant.product.title}
-          </Link>
+          </ProductPageLink>
           {!isDrawer && lines.length > 0 ? <CartItemVariantChips lines={lines} appearance={appearance} /> : null}
           {!isDrawer && lines.length === 0 && (item.customizations?.additions || item.customizations?.exclusions) ? (
             <ul
@@ -352,16 +358,12 @@ export function OrderSummary({ cart, currency, t, appearance = 'page' }: OrderSu
             </div>
           </div>
         </div>
-        <Button
-          variant="primary"
-          className="w-full !bg-[#F66812] hover:!bg-[#e45f10] focus:!ring-[#F66812]"
-          size="lg"
-          onClick={() => {
-            window.location.href = '/checkout';
-          }}
+        <Link
+          href="/checkout"
+          className="inline-flex w-full items-center justify-center rounded-xl px-6 py-3 text-lg font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#F66812] focus:ring-offset-2 bg-[#F66812] hover:bg-[#e45f10]"
         >
           {t('common.buttons.proceedToCheckout')}
-        </Button>
+        </Link>
       </div>
     </div>
   );

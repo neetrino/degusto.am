@@ -5,22 +5,36 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import type { MouseEvent } from 'react';
 import { useWishlist } from '../../../components/hooks/useWishlist';
-import { WishlistHeartIcon } from '../../../components/icons/WishlistHeartIcon';
 import { useAuth } from '../../../lib/auth/AuthContext';
+import { montserratArmFont } from '../../../fonts/montserrat-arm-font';
 import { formatPrice, type CurrencyCode } from '../../../lib/currency';
 import { t, getProductText } from '../../../lib/i18n';
 import type { LanguageCode } from '../../../lib/language';
 import { sanitizeHtml } from '../../../lib/utils/sanitize';
+import { PdpActionHeartIcon } from './PdpActionHeartIcon';
+import { PdpActionTrashIcon } from './PdpActionTrashIcon';
+import { PdpCustomizationPills } from './PdpCustomizationPills';
+import { PdpSecondaryIconButton } from './PdpSecondaryIconButton';
 import { ProductAttributesSelector } from './ProductAttributesSelector';
 import { ProductRatingSummary } from './ProductRatingSummary';
-import type { Product, ProductVariant } from './types';
+import {
+  PDP_FIGMA_ORANGE,
+  PDP_DESCRIPTION_CLASS,
+  PDP_TITLE_CLASS,
+  PDP_PRICE_CLASS,
+  PDP_COMPARE_PRICE_CLASS,
+  PDP_PRICE_ROW_CLASS,
+  PDP_ADD_TO_CART_BUTTON_CLASS,
+  PDP_QUANTITY_SELECTOR_CLASS,
+  PDP_PILL_RADIUS_CLASS,
+} from '@/constants/pdp-figma-tokens';
+import type { Product, ProductVariant, AttributeGroupValue, VariantOption } from './types';
 
 interface ProductInfoAndActionsProps {
   product: Product;
   price: number;
   originalPrice: number | null;
   compareAtPrice: number | null;
-  discountPercent: number | null;
   currency: string;
   language: LanguageCode;
   averageRating: number;
@@ -32,19 +46,24 @@ interface ProductInfoAndActionsProps {
   canAddToCart: boolean;
   isAddingToCart: boolean;
   currentVariant: ProductVariant | null;
-  attributeGroups: Map<string, any[]>;
+  attributeGroups: Map<string, AttributeGroupValue[]>;
   selectedColor: string | null;
   selectedSize: string | null;
   selectedAttributeValues: Map<string, string>;
   colorGroups: Array<{ color: string; stock: number; variants: ProductVariant[] }>;
   sizeGroups: Array<{ size: string; stock: number; variants: ProductVariant[] }>;
+  additions: string;
+  exclusions: string;
+  onAdditionsChange: (value: string) => void;
+  onExclusionsChange: (value: string) => void;
+  onResetOptions: () => void;
   onQuantityAdjust: (delta: number) => void;
   onAddToCart: () => Promise<void>;
   onScrollToReviews: () => void;
   onColorSelect: (color: string) => void;
   onSizeSelect: (size: string) => void;
   onAttributeValueSelect: (attrKey: string, value: string) => void;
-  getOptionValue: (options: any[] | undefined, key: string) => string | null;
+  getOptionValue: (options: VariantOption[] | undefined, key: string) => string | null;
 }
 
 export function ProductInfoAndActions({
@@ -52,7 +71,6 @@ export function ProductInfoAndActions({
   price,
   originalPrice,
   compareAtPrice,
-  discountPercent,
   currency,
   language,
   averageRating,
@@ -70,6 +88,11 @@ export function ProductInfoAndActions({
   selectedAttributeValues,
   colorGroups,
   sizeGroups,
+  additions,
+  exclusions,
+  onAdditionsChange,
+  onExclusionsChange,
+  onResetOptions,
   onQuantityAdjust,
   onAddToCart,
   onScrollToReviews,
@@ -91,13 +114,19 @@ export function ProductInfoAndActions({
     void toggleWishlist();
   };
 
+  const comparePrice =
+    originalPrice != null && originalPrice > price
+      ? originalPrice
+      : compareAtPrice != null && compareAtPrice > price
+        ? compareAtPrice
+        : null;
+
   return (
-    <div className="flex w-full max-w-full flex-col self-start max-lg:px-0 max-lg:py-0 p-4 sm:p-5 lg:p-6">
-      <div className="flex min-h-0 flex-col lg:-translate-x-[30px]">
-        <div>
-          {product.brand && (
+    <div className="flex w-full max-w-full flex-col self-start max-lg:px-0 max-lg:py-0 lg:h-full lg:min-h-0 lg:justify-between lg:self-stretch lg:px-0 lg:py-0">
+      <div>
+          {product.brand ? (
             <div className="mb-3 flex items-center gap-2">
-              {(product.brand.logo || product.brand.logoUrl) ? (
+              {product.brand.logo || product.brand.logoUrl ? (
                 <div className="relative h-5 w-5 overflow-hidden rounded-full border border-gray-200">
                   <Image
                     src={product.brand.logo || product.brand.logoUrl || ''}
@@ -109,10 +138,10 @@ export function ProductInfoAndActions({
                   />
                 </div>
               ) : null}
-              <p className="text-sm text-gray-500">{product.brand.name}</p>
+              <p className="text-sm text-[#868686]">{product.brand.name}</p>
             </div>
-          )}
-          <h1 className="mb-2 text-2xl font-semibold tracking-tight text-gray-900 max-lg:leading-tight sm:text-3xl lg:text-4xl">
+          ) : null}
+          <h1 className={`${PDP_TITLE_CLASS} ${montserratArmFont.className}`}>
             {getProductText(language, product.id, 'title') || product.title}
           </h1>
           <ProductRatingSummary
@@ -121,26 +150,32 @@ export function ProductInfoAndActions({
             onReviewsClick={onScrollToReviews}
             language={language}
           />
-          <div className="mb-6 flex flex-col gap-1">
-            <div className="flex items-center gap-2">
-              <p className="text-2xl font-bold text-gray-900 sm:text-3xl">{formatPrice(price, currency as CurrencyCode)}</p>
-              {discountPercent && discountPercent > 0 && (
-                <span className="text-lg font-semibold text-blue-600">
-                  -{discountPercent}%
-                </span>
-              )}
-            </div>
-            {(originalPrice || (compareAtPrice && compareAtPrice > price)) && (
-              <p className="mt-1 text-xl text-gray-500 line-through decoration-gray-400">
-                {formatPrice(originalPrice || compareAtPrice || 0, currency as CurrencyCode)}
-              </p>
-            )}
+          <div className={PDP_PRICE_ROW_CLASS}>
+            <span className={`${PDP_PRICE_CLASS} ${montserratArmFont.className}`}>
+              {formatPrice(price, currency as CurrencyCode)}
+            </span>
+            {comparePrice != null ? (
+              <span className={`${PDP_COMPARE_PRICE_CLASS} ${montserratArmFont.className}`}>
+                {formatPrice(comparePrice, currency as CurrencyCode)}
+              </span>
+            ) : null}
           </div>
           <div
-            className="mb-4 prose prose-sm text-gray-600"
+            className={PDP_DESCRIPTION_CLASS}
             dangerouslySetInnerHTML={{
-              __html: sanitizeHtml(getProductText(language, product.id, 'longDescription') || product.description || ''),
+              __html: sanitizeHtml(
+                getProductText(language, product.id, 'longDescription') || product.description || ''
+              ),
             }}
+          />
+
+          <PdpCustomizationPills
+            product={product}
+            language={language}
+            additions={additions}
+            exclusions={exclusions}
+            onAdditionsChange={onAdditionsChange}
+            onExclusionsChange={onExclusionsChange}
           />
 
           <div className="mb-4">
@@ -163,70 +198,80 @@ export function ProductInfoAndActions({
           </div>
         </div>
 
-        <div className="mt-6 pt-2 lg:mt-[50px] lg:pt-4">
-        <div className="flex items-center gap-2.5 sm:gap-3">
-          <div
-            className="inline-flex h-9 shrink-0 items-center gap-0 rounded-full border border-neutral-200 bg-white px-0.5 sm:h-10"
-            role="group"
-            aria-label={t(language, 'common.messages.quantity')}
-          >
+      <div className="mt-6 pt-2 lg:mt-auto lg:pt-0">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div
+              className={PDP_QUANTITY_SELECTOR_CLASS}
+              role="group"
+              aria-label={t(language, 'common.messages.quantity')}
+            >
+              <button
+                type="button"
+                onClick={() => onQuantityAdjust(-1)}
+                disabled={quantity <= 1}
+                className="flex h-8 w-8 shrink-0 items-center justify-center disabled:pointer-events-none disabled:opacity-35"
+                style={{ color: PDP_FIGMA_ORANGE }}
+                aria-label={t(language, 'common.ariaLabels.decreaseQuantity')}
+              >
+                <Minus className="h-5 w-5" strokeWidth={2.5} aria-hidden />
+              </button>
+              <span
+                className="min-w-[1.75rem] select-none text-center text-lg font-medium tabular-nums"
+                style={{ color: PDP_FIGMA_ORANGE }}
+              >
+                {quantity}
+              </span>
+              <button
+                type="button"
+                onClick={() => onQuantityAdjust(1)}
+                disabled={quantity >= maxQuantity}
+                className="flex h-8 w-8 shrink-0 items-center justify-center disabled:pointer-events-none disabled:opacity-35"
+                style={{ color: PDP_FIGMA_ORANGE }}
+                aria-label={t(language, 'common.ariaLabels.increaseQuantity')}
+              >
+                <Plus className="h-5 w-5" strokeWidth={2.5} aria-hidden />
+              </button>
+            </div>
             <button
               type="button"
-              onClick={() => onQuantityAdjust(-1)}
-              disabled={quantity <= 1}
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-35 sm:h-8 sm:w-8"
-              aria-label={t(language, 'common.ariaLabels.decreaseQuantity')}
+              disabled={!canAddToCart || isAddingToCart}
+              className={`${PDP_ADD_TO_CART_BUTTON_CLASS} ${PDP_PILL_RADIUS_CLASS} ${montserratArmFont.className}`}
+              onClick={onAddToCart}
             >
-              <Minus className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2.25} aria-hidden />
+              {isAddingToCart
+                ? t(language, 'product.adding')
+                : isOutOfStock
+                  ? t(language, 'product.outOfStock')
+                  : t(language, 'product.addToCart')}
             </button>
-            <span className="min-w-[1.75rem] select-none px-0.5 text-center text-xs font-semibold tabular-nums text-neutral-900 sm:min-w-[2rem] sm:text-sm">
-              {quantity}
-            </span>
-            <button
-              type="button"
-              onClick={() => onQuantityAdjust(1)}
-              disabled={quantity >= maxQuantity}
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-35 sm:h-8 sm:w-8"
-              aria-label={t(language, 'common.ariaLabels.increaseQuantity')}
+            <PdpSecondaryIconButton
+              onClick={handleWishlistToggle}
+              aria-label={
+                isInWishlist
+                  ? t(language, 'common.ariaLabels.removeFromWishlist')
+                  : t(language, 'common.ariaLabels.addToWishlist')
+              }
+              title={
+                isInWishlist
+                  ? t(language, 'common.messages.removedFromWishlist')
+                  : t(language, 'common.messages.addedToWishlist')
+              }
             >
-              <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2.25} aria-hidden />
-            </button>
+              <span className={isInWishlist ? 'text-[#ff7f20]' : 'text-[#494949]'}>
+                <PdpActionHeartIcon />
+              </span>
+            </PdpSecondaryIconButton>
+            <PdpSecondaryIconButton
+              onClick={onResetOptions}
+              aria-label={t(language, 'product.resetOptionsAria')}
+              title={t(language, 'product.resetOptionsAria')}
+            >
+              <span className="text-[#494949]">
+                <PdpActionTrashIcon />
+              </span>
+            </PdpSecondaryIconButton>
           </div>
-          <button
-            type="button"
-            disabled={!canAddToCart || isAddingToCart}
-            className="h-9 flex-1 rounded-xl bg-orange-500 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-500 sm:h-10 sm:text-sm"
-            onClick={onAddToCart}
-          >
-            {isAddingToCart ? t(language, 'product.adding') : (isOutOfStock ? t(language, 'product.outOfStock') : t(language, 'product.addToCart'))}
-          </button>
-          <button
-            type="button"
-            onClick={handleWishlistToggle}
-            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition-colors sm:h-10 sm:w-10 ${
-              isInWishlist
-                ? 'border-red-600 bg-red-600 text-white hover:bg-red-700'
-                : 'border-neutral-200 bg-white text-gray-700 hover:bg-neutral-50'
-            }`}
-            title={
-              isInWishlist
-                ? t(language, 'common.messages.removedFromWishlist')
-                : t(language, 'common.messages.addedToWishlist')
-            }
-            aria-label={
-              isInWishlist
-                ? t(language, 'common.ariaLabels.removeFromWishlist')
-                : t(language, 'common.ariaLabels.addToWishlist')
-            }
-          >
-            <WishlistHeartIcon filled={isInWishlist} size={20} />
-          </button>
         </div>
-        </div>
-      </div>
     </div>
   );
 }
-
-
-

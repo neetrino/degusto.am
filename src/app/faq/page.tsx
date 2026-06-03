@@ -16,7 +16,7 @@ export default function FAQPage() {
   
   const faqs = [
     {
-      category: faqData?.categories?.ordersShipping?.title || 'Orders & Shipping',
+      category: faqData?.categories?.ordersShipping?.title || t('faq.categories.ordersShipping.title'),
       questions: [
         {
           q: faqData?.categories?.ordersShipping?.questions?.shippingTime?.q || '',
@@ -37,7 +37,7 @@ export default function FAQPage() {
       ],
     },
     {
-      category: faqData?.categories?.returnsRefunds?.title || 'Returns & Refunds',
+      category: faqData?.categories?.returnsRefunds?.title || t('faq.categories.returnsRefunds.title'),
       questions: [
         {
           q: faqData?.categories?.returnsRefunds?.questions?.returnPolicy?.q || '',
@@ -58,7 +58,7 @@ export default function FAQPage() {
       ],
     },
     {
-      category: faqData?.categories?.payment?.title || 'Payment',
+      category: faqData?.categories?.payment?.title || t('faq.categories.payment.title'),
       questions: [
         {
           q: faqData?.categories?.payment?.questions?.paymentMethods?.q || '',
@@ -75,7 +75,7 @@ export default function FAQPage() {
       ],
     },
     {
-      category: faqData?.categories?.accountPrivacy?.title || 'Account & Privacy',
+      category: faqData?.categories?.accountPrivacy?.title || t('faq.categories.accountPrivacy.title'),
       questions: [
         {
           q: faqData?.categories?.accountPrivacy?.questions?.createAccount?.q || '',
@@ -92,7 +92,7 @@ export default function FAQPage() {
       ],
     },
     {
-      category: faqData?.categories?.products?.title || 'Products',
+      category: faqData?.categories?.products?.title || t('faq.categories.products.title'),
       questions: [
         {
           q: faqData?.categories?.products?.questions?.authenticProducts?.q || '',

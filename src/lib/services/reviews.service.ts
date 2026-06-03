@@ -3,6 +3,12 @@ import { problemTypes } from "@/lib/http/problem-details";
 import { Prisma } from "@prisma/client";
 import { ensureProductReviewsTable } from "../utils/db-ensure";
 import { logger } from "@/lib/utils/logger";
+import {
+  formatProductReview,
+  type ProductReviewListItem,
+} from "./reviews/format-product-review";
+
+export type { ProductReviewListItem };
 
 type ProductReviewWithUser = Prisma.ProductReviewGetPayload<{
   include: {
@@ -21,21 +27,71 @@ type ReviewWithRating = { rating: number };
 
 class ReviewsService {
   /**
+   * PDP fast path: verify slug + productId and load published reviews in one query.
+   */
+  async getPublishedReviewsForSlugAndProductId(
+    slug: string,
+    productId: string
+  ): Promise<{ status: "ok"; reviews: ProductReviewListItem[] } | { status: "not_found" }> {
+    await ensureProductReviewsTable();
+
+    logger.debug("[REVIEWS SERVICE] Fast path slug+productId", { slug, productId });
+
+    const product = await db.product.findFirst({
+      where: {
+        id: productId,
+        published: true,
+        deletedAt: null,
+        translations: {
+          some: { slug },
+        },
+      },
+      select: {
+        id: true,
+        reviews: {
+          where: { published: true },
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+        },
+      },
+    });
+
+    if (!product) {
+      return { status: "not_found" };
+    }
+
+    return {
+      status: "ok",
+      reviews: product.reviews.map((review) => formatProductReview(review)),
+    };
+  }
+
+  /**
    * Get all reviews for a product
    * @param productId - Product ID
    * @param options - Query options (published only, sorting, etc.)
    */
-  async getProductReviews(productId: string, options?: { publishedOnly?: boolean }) {
-    // Ensure table exists before querying
+  async getProductReviews(
+    productId: string,
+    options?: { publishedOnly?: boolean }
+  ): Promise<ProductReviewListItem[]> {
     await ensureProductReviewsTable();
-    
-    logger.debug('📝 [REVIEWS SERVICE] Getting reviews for product:', productId);
-    
-    const where: any = {
+
+    logger.debug("📝 [REVIEWS SERVICE] Getting reviews for product:", productId);
+
+    const where: Prisma.ProductReviewWhereInput = {
       productId,
     };
 
-    // Filter by published status if needed
     if (options?.publishedOnly !== false) {
       where.published = true;
     }
@@ -53,24 +109,13 @@ class ReviewsService {
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
 
     logger.debug(`✅ [REVIEWS SERVICE] Found ${reviews.length} reviews for product ${productId}`);
 
-    // Format response to match frontend expectations
-    return reviews.map((review: ProductReviewWithUser) => ({
-      id: review.id,
-      userId: review.userId,
-      userName: review.user.firstName && review.user.lastName
-        ? `${review.user.firstName} ${review.user.lastName}`
-        : review.user.firstName || review.user.lastName || review.user.email || 'Anonymous',
-      rating: review.rating,
-      comment: review.comment || '',
-      createdAt: review.createdAt.toISOString(),
-      published: review.published,
-    }));
+    return reviews.map((review: ProductReviewWithUser) => formatProductReview(review));
   }
 
   /**

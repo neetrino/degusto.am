@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { hasSellableStock } from '@/lib/product-stock';
 import { getOptionValue } from '../utils/variant-helpers';
 import { findVariantByColorAndSize, findVariantByAllAttributes } from '../utils/variant-finders';
 import { switchToVariantImage, handleColorSelect as handleColorSelectUtil } from '../utils/image-switching';
@@ -74,7 +75,7 @@ export function useVariantSelection({
     const relaxed =
       findVariantByAllAttributesFn(selectedColor, selectedSize, selectedAttributeValues) ??
       findVariantByColorAndSizeFn(selectedColor, selectedSize) ??
-      product.variants.find((v) => v.stock > 0) ??
+      product.variants.find((v) => hasSellableStock(v.stock)) ??
       product.variants[0] ??
       null;
     if (!relaxed) return;
@@ -138,7 +139,7 @@ export function useVariantSelection({
       findVariantByAllAttributesFn(selectedColor, selectedSize, selectedAttributeValues) ??
       findVariantByColorAndSizeFn(selectedColor, selectedSize) ??
       selectedVariant ??
-      product.variants.find((v) => v.stock > 0) ??
+      product.variants.find((v) => hasSellableStock(v.stock)) ??
       product.variants[0] ??
       null
     );

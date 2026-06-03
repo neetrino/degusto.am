@@ -9,8 +9,12 @@ import { logger } from '@/lib/utils/logger';
  * Fetches product reviews once per slug + productId pair.
  * Pass `productId` to use the PDP fast path (`?productId=` on the API).
  */
+import type { ProductReviewListItem } from '@/lib/services/reviews.service';
+
 interface UseReviewsOptions {
   enabled?: boolean;
+  /** When set, skips the initial client fetch (server-rendered list). */
+  initialReviews?: ProductReviewListItem[];
 }
 
 export function useReviews(
@@ -19,8 +23,15 @@ export function useReviews(
   options?: UseReviewsOptions
 ) {
   const enabled = options?.enabled ?? true;
-  const [reviews, setReviews] = useState<Review[]>([]);
+  const serverReviews = options?.initialReviews;
+  const [reviews, setReviews] = useState<Review[]>(() => serverReviews ?? []);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (serverReviews !== undefined) {
+      setReviews(serverReviews);
+    }
+  }, [productId, serverReviews]);
 
   const loadReviews = useCallback(async () => {
     const slug = productSlug?.trim();
@@ -63,8 +74,11 @@ export function useReviews(
     if (!enabled) {
       return;
     }
+    if (serverReviews !== undefined) {
+      return;
+    }
     void loadReviews();
-  }, [loadReviews, enabled]);
+  }, [loadReviews, enabled, serverReviews]);
 
   useEffect(() => {
     const handleReviewUpdate = () => {

@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { convertPrice, type CurrencyCode } from '@/lib/currency';
+import { isUnlimitedStock } from '@/lib/product-stock';
 import type { Attribute, GeneratedVariant, PendingVariantHydration } from '../types';
 import { logger } from "@/lib/utils/logger";
 
@@ -28,7 +29,13 @@ export function useProductVariantConversion({
   setGeneratedVariants,
   setHasVariantsToLoad,
 }: UseProductVariantConversionProps) {
+  const hydratedProductIdRef = useRef<string | null>(null);
+
   useEffect(() => {
+    if (productId !== hydratedProductIdRef.current?.split(':')[0]) {
+      hydratedProductIdRef.current = null;
+    }
+
     const pending = pendingVariantHydration;
 
     if (
@@ -38,6 +45,11 @@ export function useProductVariantConversion({
       pending.productId === productId &&
       Array.isArray(pending.variants)
     ) {
+      const hydrationKey = `${productId}:${pending.variants.length}`;
+      if (hydratedProductIdRef.current === hydrationKey) {
+        return;
+      }
+
       const productVariants = pending.variants as unknown[];
       logger.debug('🔄 [ADMIN] Converting product variants to generatedVariants format:', {
         variantsCount: productVariants.length,
@@ -295,7 +307,10 @@ export function useProductVariantConversion({
           selectedValueIds: Array.from(allValueIds).sort(),
           price: firstVariant.price.toString(),
           compareAtPrice: firstVariant.compareAtPrice !== null ? firstVariant.compareAtPrice.toString() : '',
-          stock: stockValue.toString(),
+          stock:
+            isUnlimitedStock(stockValue) || stockValue === null || stockValue === undefined
+              ? ''
+              : String(stockValue),
           sku: combinedSku,
           image: combinedImage,
         });
@@ -325,6 +340,7 @@ export function useProductVariantConversion({
         });
         setHasVariantsToLoad(false);
         setPendingVariantHydration(null);
+        hydratedProductIdRef.current = hydrationKey;
       } else {
         const first = productVariants[0] as { options?: unknown } | undefined;
         console.warn('⚠️ [ADMIN] No variants converted. Check variant options structure:', {

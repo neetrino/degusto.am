@@ -17,6 +17,7 @@ import {
 import { logger } from "@/lib/utils/logger";
 
 const DEFAULT_GET_TIMEOUT_MS = 30_000;
+const FETCH_CREDENTIALS: RequestCredentials = "include";
 
 /**
  * Abort when any source aborts (timeout + caller cleanup).
@@ -187,6 +188,7 @@ export async function getRequest<T>(
         cache: 'no-store', // Disable caching for server components
         ...fetchRest,
         signal: combinedSignal,
+        credentials: FETCH_CREDENTIALS,
       });
       clearTimeout(timeoutId);
     } catch (fetchError: unknown) {
@@ -285,6 +287,7 @@ export async function postRequest<T>(
       headers: getHeaders(options),
       body: data ? JSON.stringify(data) : undefined,
       ...options,
+      credentials: FETCH_CREDENTIALS,
     });
 
     logger.debug('📥 [API CLIENT] Response status:', response.status, response.statusText);
@@ -353,6 +356,7 @@ export async function putRequest<T>(
     headers: getHeaders(options),
     body: data ? JSON.stringify(data) : undefined,
     ...options,
+    credentials: FETCH_CREDENTIALS,
   });
 
   logger.debug('📥 [API CLIENT] PUT response status:', response.status, response.statusText);
@@ -391,6 +395,7 @@ export async function patchRequest<T>(
     headers: getHeaders(options),
     body: data ? JSON.stringify(data) : undefined,
     ...options,
+    credentials: FETCH_CREDENTIALS,
   });
 
   if (!response.ok) {
@@ -419,6 +424,7 @@ export async function deleteRequest<T>(
     method: 'DELETE',
     headers: getHeaders(options),
     ...options,
+    credentials: FETCH_CREDENTIALS,
   });
 
   if (!response.ok) {

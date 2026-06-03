@@ -26,6 +26,7 @@ import { CartIcon } from './icons/CartIcon';
 import { readCartSummaryCache, writeCartSummaryCache } from '../lib/cartSummaryCache';
 import { useCartDrawer } from './cart-drawer/cart-drawer-context';
 import { SITE_CONTACT_PHONES } from '../lib/site-contact';
+import { navigateToProductPage, prefetchProductRoute } from '@/lib/products/prefetch-product-route';
 
 // Navigation links will be translated dynamically using useTranslation hook
 const primaryNavLinks = [
@@ -306,6 +307,13 @@ export function Header() {
     lang: getStoredLanguage(),
   });
 
+  useEffect(() => {
+    const selected = searchResults[searchSelectedIndex];
+    if (selected?.slug) {
+      prefetchProductRoute(router, selected.slug);
+    }
+  }, [router, searchResults, searchSelectedIndex]);
+
   const fetchCart = async () => {
     if (!isLoggedIn) {
       if (typeof window === 'undefined') {
@@ -336,15 +344,6 @@ export function Header() {
         writeCartSummaryCache(0, 0);
       }
       return;
-    }
-
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('auth_token');
-      if (!token) {
-        setCartCount(0);
-        setCartTotal(0);
-        return;
-      }
     }
 
     try {
@@ -594,7 +593,7 @@ export function Header() {
     const query = searchQuery.trim();
     const selected = searchSelectedIndex >= 0 && searchResults[searchSelectedIndex];
     if (selected) {
-      router.push(`/products/${selected.slug}`);
+      navigateToProductPage(router, selected.slug);
       clearSearch();
       return;
     }
@@ -924,8 +923,7 @@ export function Header() {
                 isOpen={searchDropdownOpen}
                 selectedIndex={searchSelectedIndex}
                 query={searchQuery}
-                onResultClick={(result) => {
-                  router.push(`/products/${result.slug}`);
+                onResultClick={() => {
                   setSearchDropdownOpen(false);
                   clearSearch();
                 }}

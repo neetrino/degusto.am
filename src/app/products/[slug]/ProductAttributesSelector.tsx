@@ -1,12 +1,13 @@
 'use client';
 
+import { hasSellableStock, isUnlimitedStock } from '@/lib/product-stock';
 import { processImageUrl } from '../../../lib/utils/image-utils';
 import { t, getAttributeLabel } from '../../../lib/i18n';
 import type { LanguageCode } from '../../../lib/language';
-import type { Product, ProductVariant, AttributeGroupValue } from './types';
+import type { Product, ProductVariant, AttributeGroupValue, VariantOption } from './types';
 import { getOptionValue as getVariantOptionValue } from './utils/variant-helpers';
 import { PDP_CARD_PREFERENCE_ORDER, PDP_PREFERENCE_ATTR_ORDER } from './constants/pdp-preference-attr-order';
-import { isPdpCheckboxPreferenceKey } from './constants/pdp-checkbox-preference-keys';
+import { isHiddenPdpFoodPreferenceKey, isPdpCheckboxPreferenceKey } from './constants/pdp-checkbox-preference-keys';
 import { resolvePreferenceBinaryToggle } from './utils/pdp-preference-binary-toggle';
 import { PdpAttributePillRow } from './PdpAttributePillRow';
 import { logger } from '@/lib/utils/logger';
@@ -25,12 +26,11 @@ interface ProductAttributesSelectorProps {
   onColorSelect: (color: string) => void;
   onSizeSelect: (size: string) => void;
   onAttributeValueSelect: (attrKey: string, value: string) => void;
-  getOptionValue: (options: unknown[] | undefined, key: string) => string | null;
+  getOptionValue: (options: VariantOption[] | undefined, key: string) => string | null;
 }
 
-/** PDP attribute blocks — soft card, consistent with product chrome. */
-const PDP_ATTR_SECTION_CARD =
-  'rounded-2xl border border-neutral-200/80 bg-gradient-to-b from-white to-neutral-50/60 p-4 shadow-sm ring-1 ring-neutral-950/[0.04] sm:p-5';
+/** PDP attribute blocks — minimal spacing per Figma. */
+const PDP_ATTR_SECTION_CARD = 'flex flex-col gap-4';
 
 const getColorValue = (colorName: string): string => {
   const colorMap: Record<string, string> = {
@@ -139,7 +139,7 @@ export function ProductAttributesSelector({
     Array.from(attributeGroups.entries()),
   );
   const visibleAttributeGroupsEntries = attributeGroupsEntries.filter(
-    ([, attrGroups]) => attrGroups.length > 0,
+    ([key, attrGroups]) => attrGroups.length > 0 && !isHiddenPdpFoodPreferenceKey(key),
   );
   const variantDimensionEntries = visibleAttributeGroupsEntries.filter(
     ([k]) => k === 'color' || k === 'size',
@@ -203,12 +203,12 @@ export function ProductAttributesSelector({
                                 className={`${sizeClass} overflow-hidden rounded-full shadow-sm transition-all duration-200 ${
                                   isSelected
                                     ? 'scale-105 ring-[3px] ring-[#F66812] ring-offset-2 ring-offset-white'
-                                    : g.stock <= 0
+                                    : !hasSellableStock(g.stock)
                                       ? 'ring-2 ring-neutral-200 opacity-50 grayscale hover:opacity-70'
                                       : 'ring-2 ring-neutral-200/90 hover:scale-105 hover:ring-neutral-300'
                                 }`}
                                 style={hasImage ? {} : { backgroundColor: colorHex }}
-                                title={`${getAttributeLabel(language, attrKey, g.value)}${g.stock > 0 ? ` (${g.stock} ${t(language, 'product.pcs')})` : ` (${t(language, 'product.outOfStock')})`}`}
+                                title={`${getAttributeLabel(language, attrKey, g.value)}${hasSellableStock(g.stock) && !isUnlimitedStock(g.stock) ? ` (${g.stock} ${t(language, 'product.pcs')})` : hasSellableStock(g.stock) ? '' : ` (${t(language, 'product.outOfStock')})`}`}
                               >
                                 {hasImage && processedImageUrl ? (
                                   <img
@@ -228,14 +228,14 @@ export function ProductAttributesSelector({
                                   />
                                 ) : null}
                               </button>
-                              {g.stock > 0 && (
+                              {hasSellableStock(g.stock) && !isUnlimitedStock(g.stock) && (
                                 <span
                                   className={`tabular-nums ${totalValues > 8 ? 'text-[10px]' : 'text-xs'} text-neutral-500`}
                                 >
                                   {g.stock}
                                 </span>
                               )}
-                              {g.stock <= 0 && (
+                              {!hasSellableStock(g.stock) && (
                                 <span
                                   className={`tabular-nums ${totalValues > 8 ? 'text-[10px]' : 'text-xs'} text-neutral-400`}
                                 >
@@ -429,7 +429,7 @@ export function ProductAttributesSelector({
               <div className="flex flex-wrap items-center gap-2">
                 {colorGroups.map((g) => {
                   const isSelected = selectedColor === g.color?.toLowerCase().trim();
-                  const isDisabled = g.stock <= 0;
+                  const isDisabled = !hasSellableStock(g.stock);
 
                   return (
                     <div key={g.color} className="flex flex-col items-center gap-1">
@@ -448,10 +448,10 @@ export function ProductAttributesSelector({
                         title={
                           isDisabled
                             ? `${getAttributeLabel(language, 'color', g.color)} (${t(language, 'product.outOfStock')})`
-                            : `${getAttributeLabel(language, 'color', g.color)}${g.stock > 0 ? ` (${g.stock} ${t(language, 'product.pcs')})` : ''}`
+                            : `${getAttributeLabel(language, 'color', g.color)}${hasSellableStock(g.stock) && !isUnlimitedStock(g.stock) ? ` (${g.stock} ${t(language, 'product.pcs')})` : ''}`
                         }
                       />
-                      {g.stock > 0 && (
+                      {hasSellableStock(g.stock) && !isUnlimitedStock(g.stock) && (
                         <span className="text-xs tabular-nums text-neutral-500">{g.stock}</span>
                       )}
                     </div>

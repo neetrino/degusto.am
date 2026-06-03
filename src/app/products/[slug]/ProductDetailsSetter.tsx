@@ -10,7 +10,10 @@ interface ProductDetailsSetterProps {
   reviewSummary: ProductReviewSummary;
 }
 
-export function ProductDetailsSetter({ product, reviewSummary }: ProductDetailsSetterProps) {
+export function ProductDetailsSetter({
+  product,
+  reviewSummary,
+}: ProductDetailsSetterProps) {
   const { hydrateDetails } = useProductPageHydration();
 
   useLayoutEffect(() => {

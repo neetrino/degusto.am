@@ -8,6 +8,7 @@ import { withPrismaResilience } from '@/lib/db/with-prisma-resilience';
 import { resolveFoodAttributeFlagsFromVariants } from '@/lib/product-food-attributes';
 import { loadActiveDailyOffersForHome } from '@/lib/services/daily-offer/daily-offer.service';
 import { resolveStorefrontProductImageFromMedia } from '@/constants/storefront-product-image';
+import { isPublishedVariantInStock } from '@/lib/storefront/variant-in-stock';
 import { r2Asset } from '@/lib/r2-public-url';
 
 /** Shared cache tag for `revalidateTag` on product/category admin writes. */
@@ -70,6 +71,7 @@ function getHomeProductSelect(homeLang: StorefrontLocale) {
         published: true,
         price: true,
         compareAtPrice: true,
+        stock: true,
         /** Spicy/greens badges need all published variants (see product-food-attributes). */
         attributes: true,
       },
@@ -124,6 +126,7 @@ type HomeProductDbRow = {
     published: boolean;
     price: number;
     compareAtPrice: number | null;
+    stock: number;
     attributes: unknown;
   }>;
 };
@@ -210,7 +213,7 @@ export async function loadHomePageData(homeLang: StorefrontLocale): Promise<Home
       oldPrice: toPositiveNumber(mainVariant?.compareAtPrice),
       image: resolveStorefrontProductImageFromMedia(product.media),
       discountPercent: toPositiveNumber(product.discountPercent),
-      inStock: mainVariant?.published ?? true,
+      inStock: isPublishedVariantInStock(mainVariant),
       defaultVariantId: mainVariant?.id ?? null,
       supportsSpicy: foodAttrs.supportsSpicy,
       supportsGreens: foodAttrs.supportsGreens,

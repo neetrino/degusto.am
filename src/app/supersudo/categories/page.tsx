@@ -17,7 +17,7 @@ export default function CategoriesPage() {
   const { isLoggedIn, isAdmin, isLoading } = useAuth();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
-  const { categories, loading, fetchCategories } = useCategories();
+  const { categories, loading, fetchCategories, applyCategoryReorder } = useCategories();
   const {
     showAddModal,
     showEditModal,
@@ -94,7 +94,7 @@ export default function CategoriesPage() {
           />
         </div>
 
-        {loading ? (
+        {loading && categories.length === 0 ? (
           <div className="py-4 text-center">
             <div className="mx-auto mb-2 h-6 w-6 animate-spin rounded-full border-b-2 border-gray-900" />
             <p className="text-sm text-gray-600">{t('admin.categories.loadingCategories')}</p>
@@ -105,6 +105,8 @@ export default function CategoriesPage() {
             searchQuery={searchQuery}
             onEdit={handleEditCategory}
             onDelete={handleDeleteCategory}
+            onReorderApplied={applyCategoryReorder}
+            onReorderFailed={() => fetchCategories({ silent: true })}
           />
         )}
       </Card>
