@@ -31,6 +31,8 @@ const {
 } = require("./data/figma-menu-categories.cjs");
 const { buildProductsForCategory } = require("./data/figma-menu-products.cjs");
 const { resolveCategoryIconUrl } = require("./seed-category-icons.cjs");
+const { getAttributeKeysForCategorySlug } = require("./data/food-attributes.cjs");
+const { upsertFoodAttributes } = require("./lib/upsert-food-attributes.cjs");
 
 const prisma = new PrismaClient();
 
@@ -237,174 +239,17 @@ async function seedBrands() {
 }
 
 async function seedFoodAttributes() {
-  const attributeConfigs = [
-    {
-      key: "spicy",
-      names: {
-        en: "Spicy level",
-        hy: "Կծվության մակարդակ",
-        ru: "Уровень остроты",
-      },
-      values: [
-        {
-          value: "spicy",
-          labels: { en: "Spicy", hy: "Կծու", ru: "Острое" },
-        },
-        {
-          value: "not-spicy",
-          labels: { en: "Not spicy", hy: "Առանց կծու", ru: "Не острое" },
-        },
-      ],
-    },
-    {
-      key: "greens",
-      names: {
-        en: "Greens",
-        hy: "Կանաչի",
-        ru: "Зелень",
-      },
-      values: [
-        {
-          value: "with-greens",
-          labels: { en: "With greens", hy: "Կանաչիով", ru: "С зеленью" },
-        },
-        {
-          value: "without-greens",
-          labels: { en: "Without greens", hy: "Առանց կանաչի", ru: "Без зелени" },
-        },
-      ],
-    },
-    {
-      key: "sauce",
-      names: {
-        en: "Sauce",
-        hy: "Սոուս",
-        ru: "Соус",
-      },
-      values: [
-        {
-          value: "ketchup",
-          labels: { en: "Ketchup", hy: "Կետչուպ", ru: "Кетчуп" },
-        },
-        {
-          value: "mayonnaise",
-          labels: { en: "Mayonnaise", hy: "Մայոնեզ", ru: "Майонез" },
-        },
-        {
-          value: "no-sauce",
-          labels: { en: "No sauce", hy: "Առանց սոուսի", ru: "Без соуса" },
-        },
-      ],
-    },
-    {
-      key: "garlic",
-      names: {
-        en: "Garlic",
-        hy: "Սխտոր",
-        ru: "Чеснок",
-      },
-      values: [
-        {
-          value: "with-garlic",
-          labels: { en: "With garlic", hy: "Սխտորով", ru: "С чесноком" },
-        },
-        {
-          value: "without-garlic",
-          labels: { en: "Without garlic", hy: "Առանց սխտորի", ru: "Без чеснока" },
-        },
-      ],
-    },
-  ];
-
-  const result = {};
-
-  for (let attributeIndex = 0; attributeIndex < attributeConfigs.length; attributeIndex++) {
-    const config = attributeConfigs[attributeIndex];
-    let attribute = await prisma.attribute.findUnique({
-      where: { key: config.key },
-    });
-
-    if (!attribute) {
-      attribute = await prisma.attribute.create({
-        data: {
-          key: config.key,
-          type: "select",
-          filterable: true,
-          position: attributeIndex + 10,
-        },
-      });
-    }
-
-    for (const [locale, name] of Object.entries(config.names)) {
-      await prisma.attributeTranslation.upsert({
-        where: {
-          attributeId_locale: {
-            attributeId: attribute.id,
-            locale,
-          },
-        },
-        update: { name },
-        create: {
-          attributeId: attribute.id,
-          locale,
-          name,
-        },
-      });
-    }
-
-    const valueIds = {};
-    for (let valueIndex = 0; valueIndex < config.values.length; valueIndex++) {
-      const valueConfig = config.values[valueIndex];
-      let attributeValue = await prisma.attributeValue.findFirst({
-        where: {
-          attributeId: attribute.id,
-          value: valueConfig.value,
-        },
-      });
-
-      if (!attributeValue) {
-        attributeValue = await prisma.attributeValue.create({
-          data: {
-            attributeId: attribute.id,
-            value: valueConfig.value,
-            position: valueIndex,
-          },
-        });
-      } else if (attributeValue.position !== valueIndex) {
-        attributeValue = await prisma.attributeValue.update({
-          where: { id: attributeValue.id },
-          data: { position: valueIndex },
-        });
-      }
-
-      for (const [locale, label] of Object.entries(valueConfig.labels)) {
-        await prisma.attributeValueTranslation.upsert({
-          where: {
-            attributeValueId_locale: {
-              attributeValueId: attributeValue.id,
-              locale,
-            },
-          },
-          update: { label },
-          create: {
-            attributeValueId: attributeValue.id,
-            locale,
-            label,
-          },
-        });
-      }
-
-      valueIds[valueConfig.value] = attributeValue.id;
-    }
-
-    result[config.key] = {
-      id: attribute.id,
-      valueIds,
-    };
-  }
-
+  const result = await upsertFoodAttributes(prisma);
   console.log("[Seed] Food attributes prepared:", Object.keys(result));
   return result;
+}
+
+function resolveProductAttributeIds(categorySlug, foodAttributes, isFixedSingleTaste) {
+  let keys = getAttributeKeysForCategorySlug(categorySlug);
+  if (isFixedSingleTaste) {
+    keys = keys.filter((key) => key !== "spicy" && key !== "greens");
+  }
+  return keys.map((key) => foodAttributes[key]?.id).filter(Boolean);
 }
 
 async function resolveSharedProductMedia() {
@@ -515,10 +360,11 @@ async function seedProducts(categoryIdsBySlug, brandIds, foodAttributes) {
       const featured = productIndex < 12;
       const variantRows = buildVariantRows(productIndex, basePrice, stock, foodAttributes);
       const isFixedSingleTaste = variantRows[0]?.isFixedSingleTaste ?? false;
-      const spicyAttributeId = foodAttributes.spicy.id;
-      const greensAttributeId = foodAttributes.greens.id;
-      const sauceAttributeId = foodAttributes.sauce.id;
-      const garlicAttributeId = foodAttributes.garlic.id;
+      const productAttributeIds = resolveProductAttributeIds(
+        category.slug,
+        foodAttributes,
+        isFixedSingleTaste,
+      );
 
       const product = await prisma.product.create({
         data: {
@@ -529,9 +375,7 @@ async function seedProducts(categoryIdsBySlug, brandIds, foodAttributes) {
           publishedAt: new Date(),
           categoryIds: [primaryCategoryId],
           primaryCategoryId,
-          attributeIds: isFixedSingleTaste
-            ? [sauceAttributeId, garlicAttributeId]
-            : [spicyAttributeId, greensAttributeId, sauceAttributeId, garlicAttributeId],
+          attributeIds: productAttributeIds,
           categories: { connect: [{ id: primaryCategoryId }] },
           translations: {
             create: [
@@ -560,25 +404,13 @@ async function seedProducts(categoryIdsBySlug, brandIds, foodAttributes) {
               },
             ],
           },
-          ...(isFixedSingleTaste
+          ...(productAttributeIds.length > 0
             ? {
                 productAttributes: {
-                  create: [
-                    { attributeId: sauceAttributeId },
-                    { attributeId: garlicAttributeId },
-                  ],
+                  create: productAttributeIds.map((attributeId) => ({ attributeId })),
                 },
               }
-            : {
-                productAttributes: {
-                  create: [
-                    { attributeId: spicyAttributeId },
-                    { attributeId: greensAttributeId },
-                    { attributeId: sauceAttributeId },
-                    { attributeId: garlicAttributeId },
-                  ],
-                },
-              }),
+            : {}),
           variants: {
             create: variantRows.map((row) => {
               const { attributeIds, isFixedSingleTaste, ...variant } = row;

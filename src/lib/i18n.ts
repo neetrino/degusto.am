@@ -19,13 +19,11 @@ import enAbout from '../locales/en/about.json';
 import enContact from '../locales/en/contact.json';
 import enFaq from '../locales/en/faq.json';
 import enLogin from '../locales/en/login.json';
-import enDeliveryTerms from '../locales/en/delivery-terms.json';
 import enTerms from '../locales/en/terms.json';
 import enPrivacy from '../locales/en/privacy.json';
 import enSupport from '../locales/en/support.json';
 import enStores from '../locales/en/stores.json';
 import enReturns from '../locales/en/returns.json';
-import enRefundPolicy from '../locales/en/refund-policy.json';
 import enProfile from '../locales/en/profile.json';
 import enCheckout from '../locales/en/checkout.json';
 import enRegister from '../locales/en/register.json';
@@ -43,13 +41,11 @@ import hyAbout from '../locales/hy/about.json';
 import hyContact from '../locales/hy/contact.json';
 import hyFaq from '../locales/hy/faq.json';
 import hyLogin from '../locales/hy/login.json';
-import hyDeliveryTerms from '../locales/hy/delivery-terms.json';
 import hyTerms from '../locales/hy/terms.json';
 import hyPrivacy from '../locales/hy/privacy.json';
 import hySupport from '../locales/hy/support.json';
 import hyStores from '../locales/hy/stores.json';
 import hyReturns from '../locales/hy/returns.json';
-import hyRefundPolicy from '../locales/hy/refund-policy.json';
 import hyProfile from '../locales/hy/profile.json';
 import hyCheckout from '../locales/hy/checkout.json';
 import hyRegister from '../locales/hy/register.json';
@@ -67,13 +63,11 @@ import ruAbout from '../locales/ru/about.json';
 import ruContact from '../locales/ru/contact.json';
 import ruFaq from '../locales/ru/faq.json';
 import ruLogin from '../locales/ru/login.json';
-import ruDeliveryTerms from '../locales/ru/delivery-terms.json';
 import ruTerms from '../locales/ru/terms.json';
 import ruPrivacy from '../locales/ru/privacy.json';
 import ruSupport from '../locales/ru/support.json';
 import ruStores from '../locales/ru/stores.json';
 import ruReturns from '../locales/ru/returns.json';
-import ruRefundPolicy from '../locales/ru/refund-policy.json';
 import ruProfile from '../locales/ru/profile.json';
 import ruCheckout from '../locales/ru/checkout.json';
 import ruRegister from '../locales/ru/register.json';
@@ -82,7 +76,7 @@ import ruOrders from '../locales/ru/orders.json';
 import ruAdmin from '../locales/ru/admin.json';
 
 // Type definitions for better type safety
-export type Namespace = 'common' | 'home' | 'product' | 'products' | 'attributes' | 'delivery' | 'about' | 'contact' | 'faq' | 'login' | 'delivery-terms' | 'terms' | 'privacy' | 'support' | 'stores' | 'returns' | 'refund-policy' | 'profile' | 'checkout' | 'register' | 'categories' | 'orders' | 'admin';
+export type Namespace = 'common' | 'home' | 'product' | 'products' | 'attributes' | 'delivery' | 'about' | 'contact' | 'faq' | 'login' | 'terms' | 'privacy' | 'support' | 'stores' | 'returns' | 'profile' | 'checkout' | 'register' | 'categories' | 'orders' | 'admin';
 export type ProductField = 'title' | 'shortDescription' | 'longDescription';
 
 // Translation store - organized by language and namespace
@@ -99,13 +93,11 @@ const translations: Partial<Record<LanguageCode, Record<Namespace, any>>> = {
     contact: enContact,
     faq: enFaq,
     login: enLogin,
-    'delivery-terms': enDeliveryTerms,
     terms: enTerms,
     privacy: enPrivacy,
     support: enSupport,
     stores: enStores,
     returns: enReturns,
-    'refund-policy': enRefundPolicy,
     profile: enProfile,
     checkout: enCheckout,
     register: enRegister,
@@ -124,13 +116,11 @@ const translations: Partial<Record<LanguageCode, Record<Namespace, any>>> = {
     contact: hyContact,
     faq: hyFaq,
     login: hyLogin,
-    'delivery-terms': hyDeliveryTerms,
     terms: hyTerms,
     privacy: hyPrivacy,
     support: hySupport,
     stores: hyStores,
     returns: hyReturns,
-    'refund-policy': hyRefundPolicy,
     profile: hyProfile,
     checkout: hyCheckout,
     register: hyRegister,
@@ -149,13 +139,11 @@ const translations: Partial<Record<LanguageCode, Record<Namespace, any>>> = {
     contact: ruContact,
     faq: ruFaq,
     login: ruLogin,
-    'delivery-terms': ruDeliveryTerms,
     terms: ruTerms,
     privacy: ruPrivacy,
     support: ruSupport,
     stores: ruStores,
     returns: ruReturns,
-    'refund-policy': ruRefundPolicy,
     profile: ruProfile,
     checkout: ruCheckout,
     register: ruRegister,
@@ -251,7 +239,7 @@ export function t(lang: LanguageCode | undefined, path: string): string {
   }
 
   // Validate namespace
-  const validNamespaces: Namespace[] = ['common', 'home', 'product', 'products', 'attributes', 'delivery', 'about', 'contact', 'faq', 'login', 'delivery-terms', 'terms', 'privacy', 'support', 'stores', 'returns', 'refund-policy', 'profile', 'checkout', 'register', 'categories', 'orders', 'admin'];
+  const validNamespaces: Namespace[] = ['common', 'home', 'product', 'products', 'attributes', 'delivery', 'about', 'contact', 'faq', 'login', 'terms', 'privacy', 'support', 'stores', 'returns', 'profile', 'checkout', 'register', 'categories', 'orders', 'admin'];
   if (!validNamespaces.includes(namespace)) {
     if (process.env.NODE_ENV === 'development') {
       console.warn(`[i18n] Invalid namespace: "${namespace}". Valid namespaces: ${validNamespaces.join(', ')}`);
@@ -503,7 +491,7 @@ export function clearTranslationCache(): void {
  * Get all available namespaces
  */
 export function getAvailableNamespaces(): Namespace[] {
-  return ['common', 'home', 'product', 'products', 'attributes', 'delivery', 'about', 'contact', 'faq', 'login', 'delivery-terms', 'terms', 'privacy', 'support', 'stores', 'returns', 'refund-policy', 'profile', 'checkout', 'register', 'categories', 'orders'];
+  return ['common', 'home', 'product', 'products', 'attributes', 'delivery', 'about', 'contact', 'faq', 'login', 'terms', 'privacy', 'support', 'stores', 'returns', 'profile', 'checkout', 'register', 'categories', 'orders'];
 }
 
 /**

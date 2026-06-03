@@ -1,10 +1,9 @@
-import { getAttributeLabel, t } from '../../../../lib/i18n';
+import { getAttributeLabel } from '../../../../lib/i18n';
 import type { LanguageCode } from '../../../../lib/language';
 import type { Product } from '../types';
 import {
-  PDP_CUSTOMIZATION_INGREDIENT_ATTR_KEYS,
-  PDP_DEFAULT_CUSTOMIZATION_INGREDIENT_IDS,
-  type PdpDefaultCustomizationIngredientId,
+  isPdpCustomizationAttributeKey,
+  PDP_CUSTOMIZATION_EXCLUDED_VALUE_SLUGS,
 } from '../constants/pdp-customization-ingredients';
 
 export type PdpCustomizationIngredientOption = {
@@ -12,11 +11,11 @@ export type PdpCustomizationIngredientOption = {
   label: string;
 };
 
-function resolveDefaultIngredientLabel(
-  language: LanguageCode,
-  id: PdpDefaultCustomizationIngredientId,
-): string {
-  return t(language, `product.customizationIngredients.${id}`);
+function isExcludedCustomizationValueSlug(valueSlug: string): boolean {
+  const normalized = valueSlug.toLowerCase().trim();
+  return PDP_CUSTOMIZATION_EXCLUDED_VALUE_SLUGS.some(
+    (slug) => slug.toLowerCase() === normalized,
+  );
 }
 
 function extractIngredientsFromProduct(
@@ -33,18 +32,23 @@ function extractIngredientsFromProduct(
 
   for (const productAttr of attrs) {
     const attrKey = productAttr.attribute.key;
-    if (!PDP_CUSTOMIZATION_INGREDIENT_ATTR_KEYS.includes(attrKey as (typeof PDP_CUSTOMIZATION_INGREDIENT_ATTR_KEYS)[number])) {
+    if (!isPdpCustomizationAttributeKey(attrKey)) {
       continue;
     }
 
     for (const value of productAttr.attribute.values) {
-      const label = getAttributeLabel(language, attrKey, value.value);
+      const valueSlug = value.value?.trim() ?? '';
+      if (!valueSlug || isExcludedCustomizationValueSlug(valueSlug)) {
+        continue;
+      }
+
+      const label = getAttributeLabel(language, attrKey, valueSlug);
       if (!label || seen.has(label)) {
         continue;
       }
       seen.add(label);
       options.push({
-        id: value.id || `${attrKey}:${value.value}`,
+        id: value.id || `${attrKey}:${valueSlug}`,
         label,
       });
     }
@@ -53,20 +57,13 @@ function extractIngredientsFromProduct(
   return options;
 }
 
-/** Ingredient options for Add / Exclude pills — product attributes first, then catalog. */
+/** Ingredient options for Add / Exclude pills — only attributes linked to the product. */
 export function resolvePdpCustomizationIngredients(
   product: Product | null | undefined,
   language: LanguageCode,
 ): PdpCustomizationIngredientOption[] {
-  if (product) {
-    const fromProduct = extractIngredientsFromProduct(product, language);
-    if (fromProduct.length > 0) {
-      return fromProduct;
-    }
+  if (!product) {
+    return [];
   }
-
-  return PDP_DEFAULT_CUSTOMIZATION_INGREDIENT_IDS.map((id) => ({
-    id,
-    label: resolveDefaultIngredientLabel(language, id),
-  }));
+  return extractIngredientsFromProduct(product, language);
 }

@@ -7,6 +7,7 @@ import type { LanguageCode } from '../../../lib/language';
 import type { Product, ProductVariant, AttributeGroupValue, VariantOption } from './types';
 import { getOptionValue as getVariantOptionValue } from './utils/variant-helpers';
 import { PDP_CARD_PREFERENCE_ORDER, PDP_PREFERENCE_ATTR_ORDER } from './constants/pdp-preference-attr-order';
+import { isPdpCustomizationAttributeKey } from './constants/pdp-customization-ingredients';
 import { isHiddenPdpFoodPreferenceKey, isPdpCheckboxPreferenceKey } from './constants/pdp-checkbox-preference-keys';
 import { resolvePreferenceBinaryToggle } from './utils/pdp-preference-binary-toggle';
 import { PdpAttributePillRow } from './PdpAttributePillRow';
@@ -139,7 +140,10 @@ export function ProductAttributesSelector({
     Array.from(attributeGroups.entries()),
   );
   const visibleAttributeGroupsEntries = attributeGroupsEntries.filter(
-    ([key, attrGroups]) => attrGroups.length > 0 && !isHiddenPdpFoodPreferenceKey(key),
+    ([key, attrGroups]) =>
+      attrGroups.length > 0 &&
+      !isHiddenPdpFoodPreferenceKey(key) &&
+      !isPdpCustomizationAttributeKey(key),
   );
   const variantDimensionEntries = visibleAttributeGroupsEntries.filter(
     ([k]) => k === 'color' || k === 'size',

@@ -43,11 +43,45 @@
   "sauce": {
     "ketchup": "Кетчуп",
     "mayonnaise": "Майонез",
+    "barbecue": "Соус барбекю",
+    "garlic-sauce": "Чесночный соус",
     "no-sauce": "Без соуса"
   },
   "garlic": {
     "with-garlic": "С чесноком",
     "without-garlic": "Без чеснока"
+  },
+  "ingredient": {
+    "cheese": "Сыр",
+    "bacon": "Бекон",
+    "egg": "Яйцо",
+    "onion": "Лук",
+    "tomato": "Помидор",
+    "lettuce": "Салат",
+    "pickles": "Маринованные огурцы",
+    "mushroom": "Грибы",
+    "pepper": "Перец",
+    "olives": "Оливки",
+    "jalapeno": "Халапеньо",
+    "corn": "Кукуруза",
+    "cucumber": "Огурец",
+    "avocado": "Авокадо",
+    "ham": "Ветчина",
+    "chicken": "Курица",
+    "beef": "Говядина",
+    "potato": "Картофель"
+  },
+  "topping": {
+    "extra-cheese": "Доп. сыр",
+    "mozzarella": "Моцарелла",
+    "parmesan": "Пармезан",
+    "bacon-bits": "Кусочки бекона",
+    "fried-onion": "Жареный лук",
+    "sesame": "Кунжут",
+    "herbs": "Свежая зелень",
+    "chili-flakes": "Хлопья чили",
+    "sun-dried-tomato": "Вяленые томаты",
+    "pesto": "Песто"
   }
 }
 

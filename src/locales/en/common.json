@@ -220,9 +220,8 @@
     "legal": "Legal",
     "contactInfo": "Contacts",
     "privacyPolicy": "Privacy Policy",
-    "termsOfService": "Terms of Service",
-    "refundPolicy": "Refund Policy",
-    "deliveryTerms": "Delivery Terms",
+    "termsOfService": "General Terms and Conditions",
+    "returnPolicy": "Return Policy",
     "copyright": "© {year} Degusto. All rights reserved.",
     "paymentMethods": "Payment Methods:"
   },

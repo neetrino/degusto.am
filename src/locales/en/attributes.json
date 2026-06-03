@@ -43,11 +43,45 @@
   "sauce": {
     "ketchup": "Ketchup",
     "mayonnaise": "Mayonnaise",
+    "barbecue": "Barbecue sauce",
+    "garlic-sauce": "Garlic sauce",
     "no-sauce": "No sauce"
   },
   "garlic": {
     "with-garlic": "With garlic",
     "without-garlic": "Without garlic"
+  },
+  "ingredient": {
+    "cheese": "Cheese",
+    "bacon": "Bacon",
+    "egg": "Egg",
+    "onion": "Onion",
+    "tomato": "Tomato",
+    "lettuce": "Lettuce",
+    "pickles": "Pickles",
+    "mushroom": "Mushroom",
+    "pepper": "Pepper",
+    "olives": "Olives",
+    "jalapeno": "Jalapeño",
+    "corn": "Corn",
+    "cucumber": "Cucumber",
+    "avocado": "Avocado",
+    "ham": "Ham",
+    "chicken": "Chicken",
+    "beef": "Beef",
+    "potato": "Potato"
+  },
+  "topping": {
+    "extra-cheese": "Extra cheese",
+    "mozzarella": "Mozzarella",
+    "parmesan": "Parmesan",
+    "bacon-bits": "Bacon bits",
+    "fried-onion": "Fried onion",
+    "sesame": "Sesame",
+    "herbs": "Fresh herbs",
+    "chili-flakes": "Chili flakes",
+    "sun-dried-tomato": "Sun-dried tomato",
+    "pesto": "Pesto"
   }
 }
 

@@ -220,9 +220,8 @@
     "legal": "Юридическая информация",
     "contactInfo": "Контакты",
     "privacyPolicy": "Политика конфиденциальности",
-    "termsOfService": "Условия использования",
-    "refundPolicy": "Политика возврата",
-    "deliveryTerms": "Условия доставки",
+    "termsOfService": "Общие положения и условия",
+    "returnPolicy": "Политика возврата",
     "copyright": "© {year} Degusto. Все права защищены.",
     "paymentMethods": "Способы оплаты:"
   },
