@@ -49,7 +49,7 @@ export function useProductStock({
       return 0;
     }
     return getEffectiveMaxQuantity(currentVariant.stock);
-  }, [currentVariant?.stock]);
+  }, [currentVariant]);
 
   const isOutOfStock = useMemo(() => {
     return !currentVariant || !hasSellableStock(currentVariant.stock);

@@ -580,7 +580,12 @@ async function seedProducts(categoryIdsBySlug, brandIds, foodAttributes) {
                 },
               }),
           variants: {
-            create: variantRows.map(({ attributeIds: _attributeIds, isFixedSingleTaste: _fixed, ...row }) => row),
+            create: variantRows.map((row) => {
+              const { attributeIds, isFixedSingleTaste, ...variant } = row;
+              void attributeIds;
+              void isFixedSingleTaste;
+              return variant;
+            }),
           },
         },
       });

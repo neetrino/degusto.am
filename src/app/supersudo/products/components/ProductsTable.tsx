@@ -128,6 +128,89 @@ interface ProductsTableLoadedViewProps {
   paginationWindow: { start: number; end: number };
   visiblePages: number[];
 }
+
+interface ProductsTablePaginationProps {
+  meta: NonNullable<ProductsResponse['meta']>;
+  page: number;
+  t: (key: string) => string;
+  goToPage: (targetPage: number) => void;
+  paginationWindow: { start: number; end: number };
+  visiblePages: number[];
+}
+
+function ProductsTablePagination({
+  meta,
+  page,
+  t,
+  goToPage,
+  paginationWindow,
+  visiblePages,
+}: ProductsTablePaginationProps) {
+  if (meta.totalPages <= 1) {
+    return null;
+  }
+
+  return (
+    <div className={`${ADMIN_TABLE_FOOTER_ROUNDED_B} flex items-center justify-between border-t border-[#e8ede8] bg-[#fbfdfb]`}>
+      <div className="text-sm text-[#5a6f62]">
+        {t('admin.products.showingPage').replace('{page}', meta.page.toString()).replace('{totalPages}', meta.totalPages.toString()).replace('{total}', meta.total.toString())}
+      </div>
+      <div className="flex items-center gap-2 flex-wrap justify-end">
+        {meta.totalPages > 10 && (
+          <Button
+            variant="ghost"
+            onClick={() => goToPage(paginationWindow.start - PAGE_CHUNK_SIZE)}
+            disabled={paginationWindow.start <= 1}
+            className="rounded-lg border border-[#dce3dd] bg-white text-[#365744] hover:bg-[#eef3ef]"
+          >
+            -{PAGE_CHUNK_SIZE}
+          </Button>
+        )}
+        <Button
+          variant="ghost"
+          onClick={() => goToPage(page - 1)}
+          disabled={page === 1}
+          className="rounded-lg border border-[#dce3dd] bg-white text-[#365744] hover:bg-[#eef3ef]"
+        >
+          {t('admin.products.previous')}
+        </Button>
+        {visiblePages.map((visiblePage) => (
+          <Button
+            key={visiblePage}
+            variant={page === visiblePage ? 'primary' : 'ghost'}
+            onClick={() => goToPage(visiblePage)}
+            className={
+              page === visiblePage
+                ? 'rounded-lg border border-[#0f5a3d] bg-[#0f5a3d] text-white'
+                : 'rounded-lg border border-[#dce3dd] bg-white text-[#365744] hover:bg-[#eef3ef]'
+            }
+          >
+            {visiblePage}
+          </Button>
+        ))}
+        <Button
+          variant="ghost"
+          onClick={() => goToPage(page + 1)}
+          disabled={page === meta.totalPages}
+          className="rounded-lg border border-[#dce3dd] bg-white text-[#365744] hover:bg-[#eef3ef]"
+        >
+          {t('admin.products.next')}
+        </Button>
+        {meta.totalPages > 10 && (
+          <Button
+            variant="ghost"
+            onClick={() => goToPage(paginationWindow.end + 1)}
+            disabled={paginationWindow.end >= meta.totalPages}
+            className="rounded-lg border border-[#dce3dd] bg-white text-[#365744] hover:bg-[#eef3ef]"
+          >
+            +{PAGE_CHUNK_SIZE}
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function ProductsTableLoadedView({
   sortedProducts,
   products,
@@ -494,64 +577,15 @@ function ProductsTableLoadedView({
           </tbody>
         </table>
       </div>
-      {meta && meta.totalPages > 1 && (
-        <div className={`${ADMIN_TABLE_FOOTER_ROUNDED_B} flex items-center justify-between border-t border-[#e8ede8] bg-[#fbfdfb]`}>
-          <div className="text-sm text-[#5a6f62]">
-            {t('admin.products.showingPage').replace('{page}', meta.page.toString()).replace('{totalPages}', meta.totalPages.toString()).replace('{total}', meta.total.toString())}
-          </div>
-          <div className="flex items-center gap-2 flex-wrap justify-end">
-            {meta.totalPages > 10 && (
-              <Button
-                variant="ghost"
-                onClick={() => goToPage(paginationWindow.start - PAGE_CHUNK_SIZE)}
-                disabled={paginationWindow.start <= 1}
-                className="rounded-lg border border-[#dce3dd] bg-white text-[#365744] hover:bg-[#eef3ef]"
-              >
-                -{PAGE_CHUNK_SIZE}
-              </Button>
-            )}
-            <Button
-              variant="ghost"
-              onClick={() => goToPage(page - 1)}
-              disabled={page === 1}
-              className="rounded-lg border border-[#dce3dd] bg-white text-[#365744] hover:bg-[#eef3ef]"
-            >
-              {t('admin.products.previous')}
-            </Button>
-            {visiblePages.map((visiblePage) => (
-              <Button
-                key={visiblePage}
-                variant={page === visiblePage ? 'primary' : 'ghost'}
-                onClick={() => goToPage(visiblePage)}
-                className={
-                  page === visiblePage
-                    ? 'rounded-lg border border-[#0f5a3d] bg-[#0f5a3d] text-white'
-                    : 'rounded-lg border border-[#dce3dd] bg-white text-[#365744] hover:bg-[#eef3ef]'
-                }
-              >
-                {visiblePage}
-              </Button>
-            ))}
-            <Button
-              variant="ghost"
-              onClick={() => goToPage(page + 1)}
-              disabled={page === meta.totalPages}
-              className="rounded-lg border border-[#dce3dd] bg-white text-[#365744] hover:bg-[#eef3ef]"
-            >
-              {t('admin.products.next')}
-            </Button>
-            {meta.totalPages > 10 && (
-              <Button
-                variant="ghost"
-                onClick={() => goToPage(paginationWindow.end + 1)}
-                disabled={paginationWindow.end >= meta.totalPages}
-                className="rounded-lg border border-[#dce3dd] bg-white text-[#365744] hover:bg-[#eef3ef]"
-              >
-                +{PAGE_CHUNK_SIZE}
-              </Button>
-            )}
-          </div>
-        </div>
+      {meta && (
+        <ProductsTablePagination
+          meta={meta}
+          page={page}
+          t={t}
+          goToPage={goToPage}
+          paginationWindow={paginationWindow}
+          visiblePages={visiblePages}
+        />
       )}
     </>
   );
