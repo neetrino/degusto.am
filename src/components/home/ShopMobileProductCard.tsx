@@ -44,7 +44,7 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
   const router = useRouter();
   const { isLoggedIn } = useAuth();
   const { isInWishlist, toggleWishlist } = useWishlist(card.id);
-  const title = card.title || t(card.titleKey);
+  const title = card.title || (card.titleKey ? t(card.titleKey) : '');
   const category = card.category || (card.categoryKey ? t(card.categoryKey) : '');
   const imageSrc = resolveStorefrontProductImage(card.image);
   const formattedPrice = formatPrice(card.price, currency);

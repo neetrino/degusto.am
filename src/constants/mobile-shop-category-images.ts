@@ -1,6 +1,6 @@
 /** Fallback card art for mobile shop category grid when DB has no icon. */
 export const MOBILE_SHOP_CATEGORY_FALLBACK_IMAGES: Record<string, string> = {
-  "all": "/api/r2/assets/20260512-plUR8fm4WB.png",
+  "all": "/categories/figma/all.svg",
   "burger": "/api/r2/category/20260512-1bbwOOTncy.png",
   "kebab": "/api/r2/category/20260517-kebab-NqDwI7.png",
   "pasta": "/api/r2/category/20260517-pasta-5UoWPF.png",

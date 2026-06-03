@@ -57,9 +57,8 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
   const hasDiscount = typeof item.discountPercent === 'number' && item.discountPercent > 0;
   const discountPercent = typeof item.discountPercent === 'number' ? Math.round(item.discountPercent) : null;
   const imageSrc = resolveStorefrontProductImage(item.image);
-  const title =
-    item.title === 'Double Cheeseburger' ? t('home.figma.mobile.product.title') : (item.title || t('home.figma.mobile.product.title'));
-  const subtitle = item.subtitle || t('home.figma.mobile.product.subtitle');
+  const title = item.title;
+  const subtitle = item.subtitle ?? '';
   const formattedPrice = keepCurrencySymbolAttached(formatPrice(item.price || 0, currency));
   const formattedOldPrice = item.oldPrice ? keepCurrencySymbolAttached(formatPrice(item.oldPrice, currency)) : null;
   const mainPriceClassName = formattedPrice.length > 12 ? 'text-[18px]' : 'text-[20px]';
@@ -241,16 +240,18 @@ export function FigmaHomePage({
         <ProjectGreenStripes />
         <UniversalHeader spacerBackgroundClassName="bg-[#F66812]" />
 
-        <div className="relative z-20 mx-auto mt-14 w-full max-w-[1450px] px-4 lg:mt-16 lg:px-6">
-          <HomeDailyOfferHeroCard
-            product={heroProduct}
-            offerBadgeSrc={assets.offerBadge}
-            hotIconSrc={assets.productCardHot}
-            greensIconSrc={assets.productCardRibbon}
-            starIconSrc={assets.productCardStar}
-            addToCartIconSrc={assets.productCardAddToCart}
-          />
-        </div>
+        {heroProduct ? (
+          <div className="relative z-20 mx-auto mt-14 w-full max-w-[1450px] px-4 lg:mt-16 lg:px-6">
+            <HomeDailyOfferHeroCard
+              product={heroProduct}
+              offerBadgeSrc={assets.offerBadge}
+              hotIconSrc={assets.productCardHot}
+              greensIconSrc={assets.productCardRibbon}
+              starIconSrc={assets.productCardStar}
+              addToCartIconSrc={assets.productCardAddToCart}
+            />
+          </div>
+        ) : null}
       </section>
 
       <section className="h-[700px] w-full rounded-t-[40px] bg-[#0c0d12] pb-14 pt-6">
@@ -272,13 +273,19 @@ export function FigmaHomePage({
               {t('home.figma.desktop.moreButton')} →
             </ViewMoreButton>
           </div>
-          <div className="mt-[150px] overflow-x-auto pb-8">
-            <div className="mx-auto flex w-max flex-nowrap justify-center gap-[10px]">
-              {specialOfferProducts.map((item) => (
-                <NewsCard key={item.id} item={item} />
-              ))}
+          {specialOfferProducts.length > 0 ? (
+            <div className="mt-[150px] overflow-x-auto pb-8">
+              <div className="mx-auto flex w-max flex-nowrap justify-center gap-[10px]">
+                {specialOfferProducts.map((item) => (
+                  <NewsCard key={item.id} item={item} />
+                ))}
+              </div>
             </div>
-          </div>
+          ) : (
+            <p className="mt-[150px] text-center text-lg text-white/70">
+              {t('home.featured_products.noProducts')}
+            </p>
+          )}
         </div>
       </section>
 

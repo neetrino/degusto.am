@@ -23,13 +23,6 @@ type HomeDailyOfferHeroCardProps = HomeDailyOfferHeroCardAssets & {
   product: HomeFeaturedProduct;
 };
 
-function resolveHeroTitle(product: HomeFeaturedProduct, translate: (key: string) => string): string {
-  if (product.title === 'Double Cheeseburger') {
-    return translate('home.figma.mobile.product.title');
-  }
-  return product.title || translate('home.figma.mobile.product.title');
-}
-
 /**
  * Desktop home hero — daily-offer product card (Figma) with working add-to-cart.
  */
@@ -43,11 +36,11 @@ export function HomeDailyOfferHeroCard({
 }: HomeDailyOfferHeroCardProps) {
   const { t, lang } = useTranslation();
   const currency = useCurrency();
-  const title = resolveHeroTitle(product, t);
-  const subtitle = product.subtitle || t('home.figma.mobile.product.subtitle');
-  const productHref = `/products/${product.slug || 'products'}`;
+  const title = product.title;
+  const subtitle = product.subtitle ?? '';
+  const productHref = `/products/${product.slug}`;
   const imageSrc = resolveStorefrontProductImage(product.image);
-  const discountPercent = Math.round(product.discountPercent || 30);
+  const discountPercent = Math.round(product.discountPercent ?? 0);
   const { isAddingToCart, addToCart } = useAddToCart({
     productId: product.id,
     productSlug: product.slug,
@@ -71,7 +64,7 @@ export function HomeDailyOfferHeroCard({
       data-home-daily-offer-hero
       className="relative z-20 h-[284px] w-[236px] cursor-pointer rounded-[20px] sm:ml-[45px]"
     >
-      <StorefrontProductOverlayLink slug={product.slug || 'products'} label={title} />
+      <StorefrontProductOverlayLink slug={product.slug} label={title} />
       <div className="absolute inset-0 rounded-[20px] bg-white shadow-xl" />
       <div
         data-product-fly-origin
@@ -112,11 +105,13 @@ export function HomeDailyOfferHeroCard({
         </h2>
         <p className="mt-1 text-base font-medium leading-[1.2] text-[#a1a1a1]">{subtitle}</p>
       </div>
-      <span className="absolute right-[12px] top-[165px] inline-flex items-center rounded-[60px] bg-[#ff7f20] px-[17px] py-[8px] text-sm font-bold leading-none text-black">
-        -{discountPercent}%
-      </span>
+      {discountPercent > 0 ? (
+        <span className="absolute right-[12px] top-[165px] inline-flex items-center rounded-[60px] bg-[#ff7f20] px-[17px] py-[8px] text-sm font-bold leading-none text-black">
+          -{discountPercent}%
+        </span>
+      ) : null}
       <span className="absolute right-[14px] top-[228px] font-['Montserrat_arm','Montserrat',sans-serif] text-[22px] font-[1000] leading-none tracking-[-0.3px] text-[#3c2f2f]">
-        {formatPrice(product.price || 1200, currency)}
+        {formatPrice(product.price ?? 0, currency)}
       </span>
       <button
         type="button"

@@ -23,10 +23,7 @@ type MobileHomeDailyOfferProps = {
 export function MobileHomeDailyOffer({ product, dailyOfferAddToCartSrc }: MobileHomeDailyOfferProps) {
   const { t } = useTranslation();
   const currency = useCurrency();
-  const title =
-    product.title === 'Double Cheeseburger'
-      ? t('home.figma.mobile.product.title')
-      : (product.title || t('home.figma.mobile.product.title'));
+  const title = product.title;
   const imageSrc = resolveStorefrontProductImage(product.image);
   const price = product.price ?? 0;
   const discountPercent = resolveMobileHomeDiscountPercent(product);
