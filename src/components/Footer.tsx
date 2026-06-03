@@ -158,9 +158,6 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
                 {t('common.footer.quickLinks')}
               </h3>
               <div className="space-y-0 text-sm leading-[30px]">
-                <Link href="/" className="block hover:text-[#ff7f20]">
-                  {t('common.navigation.home')}
-                </Link>
                 <Link href="/shop" className="block hover:text-[#ff7f20]">
                   {t('common.navigation.shop')}
                 </Link>
@@ -231,7 +228,9 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
 
           <div className="relative z-10 mt-8 border-t border-white/20 pt-4 lg:absolute lg:bottom-[52px] lg:left-0 lg:right-0 lg:mt-0 lg:pt-[18px]">
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <img src={assets.footerBrandLogo} alt="Degusto" className="h-[42px] w-[117px] object-contain" />
+              <Link href="/" className="inline-flex shrink-0" aria-label={t('common.navigation.home')}>
+                <img src={assets.footerBrandLogo} alt="Degusto" className="h-[42px] w-[117px] object-contain" />
+              </Link>
               <p className="text-[14px] leading-[23px] text-white lg:pr-[24px]">
                 Copyright © 2026 | All rights reserved | Created by{' '}
                 <span

@@ -16,6 +16,7 @@ import { useInstantSearch } from './hooks/useInstantSearch';
 import { SearchDropdown } from './SearchDropdown';
 import { useCartDrawer } from './cart-drawer/cart-drawer-context';
 import { WishlistHeaderHeartIcon } from './icons/WishlistHeaderHeartIcon';
+import { BrandLogoLink } from './BrandLogoLink';
 import { HEADER_PUBLIC_ASSETS } from '@/constants/header-public-assets';
 import { navigateToProductPage, prefetchProductRoute } from '@/lib/products/prefetch-product-route';
 
@@ -216,7 +217,7 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
     <>
       <div aria-hidden="true" className={`h-[104px] ${spacerBackgroundClassName}`} />
       <header className="fixed left-0 right-0 top-6 z-50 mx-auto flex h-20 w-full max-w-[1450px] items-center rounded-[120px] border border-white/10 bg-gradient-to-r from-[#0f1017] to-[#13151d] px-4 shadow-2xl md:px-6 lg:px-7">
-        <img src={HEADER_PUBLIC_ASSETS.logo} alt="Degusto" className="h-12 w-[134px] shrink-0 object-contain" />
+        <BrandLogoLink onDark className="shrink-0" title="Degusto" />
         <nav className="ml-8 mr-auto hidden items-center gap-[30px] whitespace-nowrap px-4 text-[18px] font-semibold leading-[30px] text-white lg:flex">
           <Link href="/" className={`shrink-0 transition-colors ${isActivePath('/') ? 'text-[#ff7f20]' : 'text-white hover:text-[#ffb07a]'}`}>{t('common.navigation.home')}</Link>
           <Link href="/shop" className={`shrink-0 transition-colors ${isActivePath('/shop') ? 'text-[#ff7f20]' : 'text-white hover:text-[#ffb07a]'}`}>{t('common.navigation.shop')}</Link>

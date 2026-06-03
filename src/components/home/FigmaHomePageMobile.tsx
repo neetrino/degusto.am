@@ -177,15 +177,17 @@ export function FigmaHomePageMobile({
         <div
           className={`relative overflow-visible ${MOBILE_FIGMA_HEADER_TOP_ROW_STACKING_CLASS} flex translate-y-[20px] items-start justify-between`}
         >
-          <HomeOptimizedImage
-            src={mobileAssets.logo}
-            alt="Degusto"
-            width={129}
-            height={46}
-            className="h-[46px] w-[129px] object-contain"
-            priority
-            loading="eager"
-          />
+          <Link href="/" className="inline-flex shrink-0" aria-label={t('common.navigation.home')}>
+            <HomeOptimizedImage
+              src={mobileAssets.logo}
+              alt="Degusto"
+              width={129}
+              height={46}
+              className="h-[46px] w-[129px] object-contain"
+              priority
+              loading="eager"
+            />
+          </Link>
           <div className="flex items-center gap-1">
             <button type="button" className="relative inline-flex h-12 w-12 items-center justify-center">
               <HomeOptimizedImage
