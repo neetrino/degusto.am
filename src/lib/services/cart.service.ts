@@ -8,7 +8,7 @@ import {
   normalizeProductCustomizations,
   type ProductCustomizations,
 } from "../cart/customizations";
-import { sumVerifiedAttributePriceAdjustment } from "../cart/attribute-price-adjustment";
+import { sumLineCustomizationPriceAdjustment } from "../cart/attribute-price-adjustment";
 import { cartVariantDisplayLinesFromPrismaOptions } from "../cart/cart-variant-display-lines";
 import { isStockSufficient } from "../product-stock";
 import { ensureCartItemCustomizationsColumn } from "../utils/db-ensure";
@@ -186,10 +186,7 @@ class CartService {
     const attributeAdjustments = await Promise.all(
       cart.items.map(async (item) => {
         const custom = normalizeProductCustomizations(item.customizations);
-        const adj = await sumVerifiedAttributePriceAdjustment(
-          item.variantId,
-          custom?.selectedAttributeValueIds
-        );
+        const adj = await sumLineCustomizationPriceAdjustment(item.variantId, custom);
         return { itemId: item.id, adj };
       })
     );
@@ -405,9 +402,9 @@ class CartService {
       };
     }
 
-    const attrAdj = await sumVerifiedAttributePriceAdjustment(
+    const attrAdj = await sumLineCustomizationPriceAdjustment(
       variantId,
-      normalizedCustomizations?.selectedAttributeValueIds
+      normalizedCustomizations
     );
     const unitPriceWithAdjustments = Number(variant.price) + attrAdj;
 

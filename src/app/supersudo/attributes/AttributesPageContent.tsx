@@ -21,6 +21,7 @@ export function AttributesPageContent() {
     expandedAttributes,
     formData,
     newValue,
+    newValuePriceAdjustment,
     addingValueTo,
     deletingValue,
     editingValue,
@@ -37,6 +38,7 @@ export function AttributesPageContent() {
     setShowAddForm,
     setFormData,
     setNewValue,
+    setNewValuePriceAdjustment,
     setEditingAttributeName,
     setEditingLabel,
     setEditingColors,
@@ -285,8 +287,8 @@ export function AttributesPageContent() {
                     <div className="border-t border-gray-200 p-4 bg-gray-50">
                       {/* Add Value Form */}
                       <div className="mb-4">
-                        <div className="flex gap-2">
-                          <div className="flex-1">
+                        <div className="flex flex-wrap gap-2 items-start">
+                          <div className="flex-1 min-w-[12rem]">
                             <input
                               type="text"
                               value={newValue}
@@ -319,6 +321,24 @@ export function AttributesPageContent() {
                                 {valueError}
                               </p>
                             )}
+                          </div>
+                          <div className="w-28">
+                            <label className="sr-only" htmlFor={`new-value-price-${attribute.id}`}>
+                              {t('admin.attributes.valueModal.priceAdjustment')}
+                            </label>
+                            <input
+                              id={`new-value-price-${attribute.id}`}
+                              type="number"
+                              step="any"
+                              value={newValuePriceAdjustment}
+                              onChange={(e) => setNewValuePriceAdjustment(e.target.value)}
+                              placeholder="0"
+                              title={t('admin.attributes.valueModal.priceAdjustmentHint')}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent text-sm"
+                            />
+                            <p className="mt-0.5 text-xs text-gray-500 truncate">
+                              {t('admin.attributes.valueModal.priceAdjustment')}
+                            </p>
                           </div>
                           <button
                             onClick={() => handleAddValue(attribute.id)}
@@ -369,6 +389,12 @@ export function AttributesPageContent() {
                                       />
                                     ) : null}
                                     <span className="text-sm font-medium text-gray-900">{value.label}</span>
+                                    {(value.priceAdjustment ?? 0) !== 0 && (
+                                      <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+                                        {value.priceAdjustment! > 0 ? '+' : ''}
+                                        {value.priceAdjustment}
+                                      </span>
+                                    )}
                                   </div>
                                   <div className="flex items-center gap-2">
                                     <button

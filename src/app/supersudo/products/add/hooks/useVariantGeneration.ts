@@ -1,6 +1,10 @@
 'use client';
 
 import { useEffect } from 'react';
+import {
+  recomputeVariantPriceWithAdjustments,
+  sumAttributeValuePriceAdjustments,
+} from '@/lib/attributes/price-adjustment';
 import type { Attribute, GeneratedVariant } from '../types';
 import { generateSlug } from '../utils/productUtils';
 import { logger } from "@/lib/utils/logger";
@@ -80,10 +84,27 @@ export function useVariantGeneration({
         }
       }
 
+      const previousIds = existingAutoVariant?.selectedValueIds ?? [];
+      const priceFromAdjustments = recomputeVariantPriceWithAdjustments(
+        existingAutoVariant?.price ?? '',
+        previousIds,
+        allSelectedValueIds,
+        attributes
+      );
+      const hasManualPrice =
+        existingAutoVariant?.price !== undefined &&
+        String(existingAutoVariant.price).trim() !== '';
+      const adjustmentOnly = sumAttributeValuePriceAdjustments(attributes, allSelectedValueIds);
+      const resolvedPrice = hasManualPrice
+        ? priceFromAdjustments
+        : adjustmentOnly > 0
+          ? String(adjustmentOnly)
+          : existingAutoVariant?.price || '';
+
       const autoVariant: GeneratedVariant = {
         id: variantId,
         selectedValueIds: allSelectedValueIds,
-        price: existingAutoVariant?.price || '',
+        price: resolvedPrice,
         compareAtPrice: existingAutoVariant?.compareAtPrice || '',
         stock: existingAutoVariant?.stock || '',
         sku: existingAutoVariant?.sku || sku,

@@ -18,6 +18,7 @@ export interface Attribute {
     label: string;
     colors?: string[];
     imageUrl?: string | null;
+    priceAdjustment?: number;
   }>;
 }
 

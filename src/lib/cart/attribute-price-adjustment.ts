@@ -1,5 +1,7 @@
 import { db } from "@white-shop/db";
 import { logger } from "@/lib/utils/logger";
+import type { ProductCustomizations } from "./customizations";
+import { mergeCustomizationValueIdsForPricing } from "./customization-addition-price";
 
 const MAX_SELECTED_VALUE_IDS = 24;
 
@@ -78,4 +80,23 @@ export async function sumVerifiedAttributePriceAdjustment(
   });
 
   return rows.reduce((sum, row) => sum + (Number(row.priceAdjustment) || 0), 0);
+}
+
+/** Attribute + Add-pill price adjustments for a cart line (exclusions do not apply). */
+export async function sumLineCustomizationPriceAdjustment(
+  variantId: string,
+  customizations?: ProductCustomizations
+): Promise<number> {
+  const variant = await db.productVariant.findUnique({
+    where: { id: variantId },
+    select: { product: { select: { attributeIds: true } } },
+  });
+  if (!variant) {
+    return 0;
+  }
+  const merged = await mergeCustomizationValueIdsForPricing(
+    customizations,
+    variant.product.attributeIds ?? undefined
+  );
+  return sumVerifiedAttributePriceAdjustment(variantId, merged);
 }

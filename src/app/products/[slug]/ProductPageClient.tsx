@@ -31,7 +31,9 @@ import {
   buildCustomizationLineKey,
   normalizeProductCustomizations,
 } from '../../../lib/cart/customizations';
-import type { Product } from './types';
+import type { LanguageCode } from '../../../lib/language';
+import type { Product, ProductVariant } from './types';
+import { resolveCustomizationAdditionValueIds } from './utils/resolve-pdp-customization-ingredients';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
 import type { ProductReviewSummary } from '@/lib/services/reviews/product-review-summary';
 import {
@@ -52,28 +54,42 @@ import {
 
 function collectSelectedAttributeValueIdsForCart(
   product: Product,
-  selected: Map<string, string>
+  selected: Map<string, string>,
+  additions: string,
+  language: LanguageCode,
+  currentVariant: ProductVariant | null
 ): string[] {
   const ids: string[] = [];
   const attrs = product.productAttributes;
-  if (!attrs) {
-    return ids;
+  if (attrs) {
+    for (const [key, raw] of selected.entries()) {
+      if (key === 'color' || key === 'size') {
+        continue;
+      }
+      const pa = attrs.find((p) => p.attribute.key === key);
+      if (!pa) {
+        continue;
+      }
+      const match = pa.attribute.values.find(
+        (v) => v.id === raw || v.value === raw || v.label === raw
+      );
+      if (match?.id) {
+        ids.push(match.id);
+      }
+    }
   }
-  for (const [key, raw] of selected.entries()) {
-    if (key === 'color' || key === 'size') {
-      continue;
-    }
-    const pa = attrs.find((p) => p.attribute.key === key);
-    if (!pa) {
-      continue;
-    }
-    const match = pa.attribute.values.find(
-      (v) => v.id === raw || v.value === raw || v.label === raw
-    );
-    if (match?.id) {
-      ids.push(match.id);
+
+  for (const id of resolveCustomizationAdditionValueIds(
+    product,
+    additions,
+    language,
+    currentVariant
+  )) {
+    if (!ids.includes(id)) {
+      ids.push(id);
     }
   }
+
   return ids;
 }
 
@@ -248,7 +264,10 @@ export function ProductPageClient({
     if (!canAddToCart || !product || !currentVariant) return;
     const selectedIds = collectSelectedAttributeValueIdsForCart(
       product,
-      selectedAttributeValues
+      selectedAttributeValues,
+      additions,
+      language,
+      currentVariant
     );
     const customizations = normalizeProductCustomizations({
       additions,

@@ -27,6 +27,20 @@ const NO_VARIANT_PREFERENCE_SLUGS = new Set([
   "semi-finished",
 ]);
 
+/** Add-pill extras (AMD) — synced to attribute_values.priceAdjustment. */
+const TOPPING_PRICE_ADJUSTMENT_AMD = {
+  "extra-cheese": 450,
+  mozzarella: 500,
+  parmesan: 550,
+  "bacon-bits": 500,
+  "fried-onion": 250,
+  sesame: 150,
+  herbs: 200,
+  "chili-flakes": 100,
+  "sun-dried-tomato": 400,
+  pesto: 450,
+};
+
 const FOOD_ATTRIBUTE_CONFIGS = [
   {
     key: "spicy",
@@ -151,42 +165,52 @@ const FOOD_ATTRIBUTE_CONFIGS = [
       {
         value: "extra-cheese",
         labels: { en: "Extra cheese", hy: "Լրացուցիչ պանիր", ru: "Доп. сыр" },
+        priceAdjustment: TOPPING_PRICE_ADJUSTMENT_AMD["extra-cheese"],
       },
       {
         value: "mozzarella",
         labels: { en: "Mozzarella", hy: "Մոցարելլա", ru: "Моцарелла" },
+        priceAdjustment: TOPPING_PRICE_ADJUSTMENT_AMD.mozzarella,
       },
       {
         value: "parmesan",
         labels: { en: "Parmesan", hy: "Պարմեզան", ru: "Пармезан" },
+        priceAdjustment: TOPPING_PRICE_ADJUSTMENT_AMD.parmesan,
       },
       {
         value: "bacon-bits",
         labels: { en: "Bacon bits", hy: "Բեկոնի կտորներ", ru: "Кусочки бекона" },
+        priceAdjustment: TOPPING_PRICE_ADJUSTMENT_AMD["bacon-bits"],
       },
       {
         value: "fried-onion",
         labels: { en: "Fried onion", hy: "Տապակած սոխ", ru: "Жареный лук" },
+        priceAdjustment: TOPPING_PRICE_ADJUSTMENT_AMD["fried-onion"],
       },
       {
         value: "sesame",
         labels: { en: "Sesame", hy: "Քնձութ", ru: "Кунжут" },
+        priceAdjustment: TOPPING_PRICE_ADJUSTMENT_AMD.sesame,
       },
       {
         value: "herbs",
         labels: { en: "Fresh herbs", hy: "Թարմ կանաչիներ", ru: "Свежая зелень" },
+        priceAdjustment: TOPPING_PRICE_ADJUSTMENT_AMD.herbs,
       },
       {
         value: "chili-flakes",
         labels: { en: "Chili flakes", hy: "Չիլիի փշրանք", ru: "Хлопья чили" },
+        priceAdjustment: TOPPING_PRICE_ADJUSTMENT_AMD["chili-flakes"],
       },
       {
         value: "sun-dried-tomato",
         labels: { en: "Sun-dried tomato", hy: "Արևի չոր տոմատ", ru: "Вяленые томаты" },
+        priceAdjustment: TOPPING_PRICE_ADJUSTMENT_AMD["sun-dried-tomato"],
       },
       {
         value: "pesto",
         labels: { en: "Pesto", hy: "Պեստո", ru: "Песто" },
+        priceAdjustment: TOPPING_PRICE_ADJUSTMENT_AMD.pesto,
       },
     ],
   },
@@ -212,6 +236,7 @@ function getAttributeKeysForCategorySlug(categorySlug) {
 }
 
 module.exports = {
+  TOPPING_PRICE_ADJUSTMENT_AMD,
   FOOD_ATTRIBUTE_CONFIGS,
   BASE_CUSTOMIZATION_KEYS,
   VARIANT_PREFERENCE_KEYS,

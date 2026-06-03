@@ -88,6 +88,12 @@ export function PdpAttributePillRow({
               <div className="flex flex-col text-center">
                 <span className={`${textSizeClass} font-medium text-neutral-900`}>
                   {getAttributeLabel(language, attrKey, g.value)}
+                  {(g.priceAdjustment ?? 0) !== 0 && (
+                    <span className="ml-1 text-emerald-700 font-semibold">
+                      {g.priceAdjustment! > 0 ? '+' : ''}
+                      {g.priceAdjustment}
+                    </span>
+                  )}
                 </span>
                 <span
                   className={`${totalValues > 10 ? 'text-[10px]' : 'text-xs'} tabular-nums ${displayStock > 0 ? 'text-neutral-500' : 'text-neutral-400'}`}

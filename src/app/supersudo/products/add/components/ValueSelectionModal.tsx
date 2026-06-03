@@ -3,6 +3,7 @@
 import { Button } from '@shop/ui';
 import { useTranslation } from '../../../../../lib/i18n-client';
 import { getColorHex } from '../../../../../lib/colorMap';
+import { recomputeVariantPriceWithAdjustments } from '@/lib/attributes/price-adjustment';
 import type { Attribute, GeneratedVariant } from '../types';
 import { logger } from "@/lib/utils/logger";
 import { useBodyScrollLock } from '../../../hooks/useBodyScrollLock';
@@ -11,16 +12,35 @@ interface ValueSelectionModalProps {
   openValueModal: { variantId: string; attributeId: string } | null;
   variant: GeneratedVariant | undefined;
   attribute: Attribute | undefined;
+  attributes: Attribute[];
   onClose: () => void;
   onVariantUpdate: (updater: (prev: GeneratedVariant[]) => GeneratedVariant[]) => void;
   onAttributeValueIdsUpdate: (updater: (prev: Record<string, string[]>) => Record<string, string[]>) => void;
   selectedAttributeValueIds: Record<string, string[]>;
 }
 
+function applyVariantValueIds(
+  variant: GeneratedVariant,
+  newIds: string[],
+  attributes: Attribute[],
+): GeneratedVariant {
+  return {
+    ...variant,
+    selectedValueIds: newIds,
+    price: recomputeVariantPriceWithAdjustments(
+      variant.price,
+      variant.selectedValueIds,
+      newIds,
+      attributes
+    ),
+  };
+}
+
 export function ValueSelectionModal({
   openValueModal,
   variant,
   attribute,
+  attributes,
   onClose,
   onVariantUpdate,
   onAttributeValueIdsUpdate,
@@ -47,7 +67,9 @@ export function ValueSelectionModal({
       const newIds = [...new Set([...currentIds, ...allValueIds])];
 
       // Update variant - merge with existing selectedValueIds
-      onVariantUpdate((prev) => prev.map((v) => (v.id === variant.id ? { ...v, selectedValueIds: newIds } : v)));
+      onVariantUpdate((prev) =>
+        prev.map((v) => (v.id === variant.id ? applyVariantValueIds(v, newIds, attributes) : v))
+      );
 
       // Only update selectedAttributeValueIds for auto-generated variant
       if (isAutoVariant) {
@@ -61,7 +83,9 @@ export function ValueSelectionModal({
       const valueIdsToRemove = attribute.values.map((v) => v.id);
       const newIds = variant.selectedValueIds.filter((id) => !valueIdsToRemove.includes(id));
 
-      onVariantUpdate((prev) => prev.map((v) => (v.id === variant.id ? { ...v, selectedValueIds: newIds } : v)));
+      onVariantUpdate((prev) =>
+        prev.map((v) => (v.id === variant.id ? applyVariantValueIds(v, newIds, attributes) : v))
+      );
 
       // Only update selectedAttributeValueIds for auto-generated variant
       if (isAutoVariant) {
@@ -88,7 +112,9 @@ export function ValueSelectionModal({
 
     // Update variant first (to preserve dropdown state)
     onVariantUpdate((prev) => {
-      const updated = prev.map((v) => (v.id === variant.id ? { ...v, selectedValueIds: newIds } : v));
+      const updated = prev.map((v) =>
+        v.id === variant.id ? applyVariantValueIds(v, newIds, attributes) : v
+      );
       logger.debug('✅ [VARIANT BUILDER] Value selection updated:', {
         variantId: variant.id,
         isAutoVariant,
@@ -197,6 +223,12 @@ export function ValueSelectionModal({
                     />
                   ) : null}
                   <span className="text-xs font-medium text-gray-900 text-center">{value.label}</span>
+                  {(value.priceAdjustment ?? 0) !== 0 && (
+                    <span className="text-[10px] font-medium text-emerald-700">
+                      {value.priceAdjustment! > 0 ? '+' : ''}
+                      {value.priceAdjustment}
+                    </span>
+                  )}
                 </label>
               );
             })}

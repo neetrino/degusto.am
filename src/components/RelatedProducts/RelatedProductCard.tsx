@@ -203,7 +203,7 @@ export function RelatedProductCard({
                   <span className={compact ? 'line-clamp-2' : 'line-clamp-2'}>{product.title}</span>
                 </h3>
                 {categoryLabel ? (
-                  <p className="mt-[5px] text-base font-normal leading-normal text-[#a1a1a1]">
+                  <p className="mt-[5px] truncate text-base font-normal leading-normal text-[#a1a1a1]">
                     {categoryLabel}
                   </p>
                 ) : null}

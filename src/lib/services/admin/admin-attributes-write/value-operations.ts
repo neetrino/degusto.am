@@ -1,3 +1,4 @@
+import { invalidateProductPageCaches } from "@/lib/cache/storefront-cache";
 import { db } from "@white-shop/db";
 import { problemTypes } from "@/lib/http/problem-details";
 import { logger } from "../../../utils/logger";
@@ -101,6 +102,10 @@ export async function addAttributeValue(
       title: "Internal Server Error",
       detail: "Failed to retrieve updated attribute",
     };
+  }
+
+  if (data.priceAdjustment !== undefined && data.priceAdjustment !== 0) {
+    void invalidateProductPageCaches();
   }
 
   return formatAttribute(updatedAttribute, locale);
@@ -251,6 +256,10 @@ export async function updateAttributeValue(
       title: "Internal Server Error",
       detail: "Failed to retrieve updated attribute",
     };
+  }
+
+  if (data.priceAdjustment !== undefined) {
+    void invalidateProductPageCaches();
   }
 
   return formatAttribute(updatedAttribute, locale);

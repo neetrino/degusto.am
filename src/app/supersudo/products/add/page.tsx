@@ -251,6 +251,7 @@ function AddProductPageContent() {
           openValueModal={formState.openValueModal}
           variant={formState.generatedVariants.find((v) => v.id === formState.openValueModal!.variantId)}
           attribute={formState.attributes.find((a) => a.id === formState.openValueModal!.attributeId)}
+          attributes={formState.attributes}
           selectedAttributeValueIds={formState.selectedAttributeValueIds}
           onClose={() => formState.setOpenValueModal(null)}
           onVariantUpdate={formState.setGeneratedVariants}

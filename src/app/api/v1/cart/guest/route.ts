@@ -9,7 +9,7 @@ import {
   normalizeProductCustomizations,
   type ProductCustomizations,
 } from "@/lib/cart/customizations";
-import { sumVerifiedAttributePriceAdjustment } from "@/lib/cart/attribute-price-adjustment";
+import { sumLineCustomizationPriceAdjustment } from "@/lib/cart/attribute-price-adjustment";
 import { cartVariantDisplayLinesFromPrismaOptions } from "@/lib/cart/cart-variant-display-lines";
 
 interface GuestCartItemInput {
@@ -231,9 +231,9 @@ export async function POST(req: NextRequest) {
         primaryCategory?.translations.find((translation) => translation.locale === lang) ??
         primaryCategory?.translations[0];
 
-      const adj = await sumVerifiedAttributePriceAdjustment(
+      const adj = await sumLineCustomizationPriceAdjustment(
         selectedVariant.id,
-        item.customizations?.selectedAttributeValueIds
+        item.customizations
       );
       const unitPrice = selectedVariant.price + adj;
       const compareAt =
