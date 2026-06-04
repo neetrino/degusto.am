@@ -22,7 +22,9 @@ export function useCartLiveSync({ isLoggedIn, t }: UseCartLiveSyncOptions) {
   const cartRef = useRef<Cart | null>(null);
   const reconcileTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  cartRef.current = cart;
+  useEffect(() => {
+    cartRef.current = cart;
+  }, [cart]);
 
   const reloadCart = useCallback(
     async (options?: { silent?: boolean }) => {
@@ -57,8 +59,11 @@ export function useCartLiveSync({ isLoggedIn, t }: UseCartLiveSyncOptions) {
   useEffect(() => {
     const onCartUpdate = (event: Event) => {
       const detail = parseCartUpdatedDetail(event);
+      if (!detail) {
+        return;
+      }
 
-      if (detail?.forceReload) {
+      if (detail.forceReload) {
         void reloadCart({ silent: cartRef.current !== null });
         return;
       }

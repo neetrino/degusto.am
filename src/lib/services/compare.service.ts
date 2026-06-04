@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import { db } from "@white-shop/db";
 import { problemTypes } from "@/lib/http/problem-details";
 
 import { MAX_COMPARE_ITEMS } from "@/lib/compare/constants";

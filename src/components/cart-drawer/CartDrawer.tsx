@@ -71,18 +71,16 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
   } = useCartDrawer();
   const [currency, setCurrency] = useState(getStoredCurrency());
   const isLocalUpdateRef = useRef(false);
-  const cartRef = useRef(cart);
-  cartRef.current = cart;
 
   useEffect(() => {
     clearLegacyGuestCartLocalStorage();
   }, []);
 
   useEffect(() => {
-    if (isVisible && !cartRef.current) {
+    if (isVisible && !cart) {
       void reloadCart({ silent: true });
     }
-  }, [isVisible, reloadCart]);
+  }, [isVisible, cart, reloadCart]);
 
   useEffect(() => {
     const onCurrency = () => setCurrency(getStoredCurrency());

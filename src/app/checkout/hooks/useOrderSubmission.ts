@@ -31,7 +31,7 @@ export function useOrderSubmission({
         throw new Error(t('checkout.errors.cartEmpty'));
       }
 
-      let cartId = cart.id;
+      const cartId = cart.id;
 
       const shippingAddress = data.shippingMethod === 'delivery' && 
         data.shippingAddress && 

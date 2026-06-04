@@ -18,6 +18,6 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error) {
-    return apiRouteErrorResponse(error, 'Failed to load shop menu products');
+    return apiRouteErrorResponse(req, error, 'Failed to load shop menu products');
   }
 }
