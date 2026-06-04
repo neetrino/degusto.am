@@ -1,5 +1,10 @@
 import type { Cart, CartItem } from '@/app/cart/types';
-import { buildCustomizationLineKey } from './customizations';
+import {
+  buildCustomizationLineKey,
+  normalizeProductCustomizations,
+  type ProductCustomizations,
+} from './customizations';
+import { clearCartLineRemoved } from './pending-cart-removals';
 import type { CartUpdatedDetail } from './cart-events';
 
 export interface CartAddSnapshot {
@@ -10,17 +15,34 @@ export interface CartAddSnapshot {
   image?: string | null;
   price: number;
   quantity: number;
+  customizations?: ProductCustomizations;
 }
 
 function buildOptimisticItemId(snapshot: CartAddSnapshot): string {
-  const lineKey = buildCustomizationLineKey(snapshot.variantId, undefined);
+  const lineKey = buildCustomizationLineKey(snapshot.variantId, snapshot.customizations);
   return `${snapshot.productId}:${lineKey}`;
+}
+
+function matchesCartLine(
+  item: CartItem,
+  snapshot: CartAddSnapshot
+): boolean {
+  if (
+    item.variant.id !== snapshot.variantId ||
+    item.variant.product.id !== snapshot.productId
+  ) {
+    return false;
+  }
+  const itemLineKey = buildCustomizationLineKey(item.variant.id, item.customizations);
+  const snapshotLineKey = buildCustomizationLineKey(snapshot.variantId, snapshot.customizations);
+  return itemLineKey === snapshotLineKey;
 }
 
 function buildCartItemFromSnapshot(snapshot: CartAddSnapshot): CartItem {
   const lineTotal = snapshot.price * snapshot.quantity;
   return {
     id: buildOptimisticItemId(snapshot),
+    customizations: snapshot.customizations,
     variant: {
       id: snapshot.variantId,
       sku: '',
@@ -54,6 +76,11 @@ export function applyOptimisticCartAdd(
   cart: Cart | null,
   snapshot: CartAddSnapshot
 ): Cart {
+  clearCartLineRemoved({
+    variant: { id: snapshot.variantId },
+    customizations: normalizeProductCustomizations(snapshot.customizations),
+  });
+
   const optimisticId = buildOptimisticItemId(snapshot);
   const baseCart: Cart = cart ?? {
     id: 'optimistic-cart',
@@ -62,11 +89,7 @@ export function applyOptimisticCartAdd(
     itemsCount: 0,
   };
 
-  const existingIndex = baseCart.items.findIndex(
-    (item) =>
-      item.variant.id === snapshot.variantId &&
-      item.variant.product.id === snapshot.productId
-  );
+  const existingIndex = baseCart.items.findIndex((item) => matchesCartLine(item, snapshot));
 
   let nextItems: CartItem[];
   if (existingIndex >= 0) {

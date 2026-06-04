@@ -14,6 +14,7 @@ import {
 } from "../cart/customizations";
 import { isStockSufficient } from "../product-stock";
 import { sumLineCustomizationPriceAdjustment } from "../cart/attribute-price-adjustment";
+import { computeLineUnitPriceUsd } from "../cart/line-unit-price";
 import { calculateBagAmountByUniqueCategories } from "../cart/bag-fee";
 
 const orderNumberId = customAlphabet("0123456789ABCDEFGHJKLMNPQRSTUVWXYZ", 10);
@@ -420,7 +421,7 @@ async function getGuestCartItems(
         item.variantId,
         customizations
       );
-      const price = Number(variant.price) + adj;
+      const price = computeLineUnitPriceUsd(Number(variant.price), adj);
 
       return {
         variantId: variant.id,

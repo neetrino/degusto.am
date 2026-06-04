@@ -71,12 +71,13 @@ export function useProductCalculations({
   }, [product, additions, language, currentVariant]);
 
   const totalPriceAdjustmentUsd = attributePriceAdjustmentUsd + additionPriceAdjustmentUsd;
-
   const basePriceUsd = currentVariant?.price || 0;
+  const unitPriceUsd = basePriceUsd + totalPriceAdjustmentUsd;
+
   const price =
     currency === 'USD'
-      ? basePriceUsd + totalPriceAdjustmentUsd
-      : convertPrice(basePriceUsd + totalPriceAdjustmentUsd, 'USD', currency);
+      ? unitPriceUsd
+      : convertPrice(unitPriceUsd, 'USD', currency);
   const originalPriceUsd =
     currentVariant?.originalPrice != null
       ? currentVariant.originalPrice + totalPriceAdjustmentUsd
@@ -158,6 +159,7 @@ export function useProductCalculations({
   const canAddToCart = !isOutOfStock;
 
   return {
+    unitPriceUsd,
     price,
     originalPrice: originalPrice ?? null,
     compareAtPrice: compareAtPrice ?? null,

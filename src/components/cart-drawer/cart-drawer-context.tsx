@@ -41,6 +41,11 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const { isLoggedIn } = useAuth();
   const { t } = useTranslation();
+
+  const openCartDrawer = useCallback(() => {
+    setIsCartDrawerOpen(true);
+  }, []);
+
   const {
     cart,
     setCart,
@@ -48,11 +53,11 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
     setCartLoading,
     reloadCart,
     scheduleReconcile,
-  } = useCartLiveSync({ isLoggedIn, t });
-
-  const openCartDrawer = useCallback(() => {
-    setIsCartDrawerOpen(true);
-  }, []);
+  } = useCartLiveSync({
+    isLoggedIn,
+    t,
+    onOptimisticAdd: openCartDrawer,
+  });
 
   const closeCartDrawer = useCallback(() => {
     setIsCartDrawerOpen(false);

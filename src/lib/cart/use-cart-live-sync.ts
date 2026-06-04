@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type SetStateAction } from 'react';
 import type { Cart } from '@/app/cart/types';
 import { fetchCart } from '@/app/cart/cart-fetcher';
 import { parseCartUpdatedDetail } from '@/lib/cart/cart-events';
@@ -8,42 +8,73 @@ import {
   applyOptimisticCartAdd,
   snapshotFromCartDetail,
 } from '@/lib/cart/optimistic-cart-add';
+import { applyRemovedLinesFilter } from '@/lib/cart/pending-cart-removals';
+import { dispatchCartSummarySync } from '@/lib/cart/cart-summary-sync';
 
 const CART_RECONCILE_DEBOUNCE_MS = 400;
 
 type UseCartLiveSyncOptions = {
   isLoggedIn: boolean;
   t: (key: string) => string;
+  /** Open cart drawer when an optimistic add is applied (instant feedback). */
+  onOptimisticAdd?: () => void;
 };
 
-export function useCartLiveSync({ isLoggedIn, t }: UseCartLiveSyncOptions) {
+export function useCartLiveSync({ isLoggedIn, t, onOptimisticAdd }: UseCartLiveSyncOptions) {
   const [cart, setCart] = useState<Cart | null>(null);
   const [cartLoading, setCartLoading] = useState(false);
   const cartRef = useRef<Cart | null>(null);
   const reconcileTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reloadGenerationRef = useRef(0);
+  const cartHydratedRef = useRef(false);
 
   useEffect(() => {
     cartRef.current = cart;
   }, [cart]);
 
+  const commitCart = useCallback((value: SetStateAction<Cart | null>) => {
+    cartHydratedRef.current = true;
+    setCart(value);
+  }, []);
+
+  useEffect(() => {
+    if (!cartHydratedRef.current && cart === null) {
+      return;
+    }
+    dispatchCartSummarySync(cart);
+  }, [cart]);
+
+  const invalidateInFlightReload = useCallback(() => {
+    reloadGenerationRef.current += 1;
+  }, []);
+
   const reloadCart = useCallback(
     async (options?: { silent?: boolean }) => {
+      const generation = ++reloadGenerationRef.current;
       const silent = options?.silent ?? false;
       if (!silent) {
         setCartLoading(true);
       }
       try {
         const cartData = await fetchCart(isLoggedIn, t);
-        setCart(cartData);
+        if (generation !== reloadGenerationRef.current) {
+          return;
+        }
+        commitCart(applyRemovedLinesFilter(cartData));
       } catch {
+        if (generation !== reloadGenerationRef.current) {
+          return;
+        }
         if (!silent) {
-          setCart(null);
+          commitCart(null);
         }
       } finally {
-        setCartLoading(false);
+        if (generation === reloadGenerationRef.current) {
+          setCartLoading(false);
+        }
       }
     },
-    [isLoggedIn, t]
+    [commitCart, isLoggedIn, t]
   );
 
   const scheduleReconcile = useCallback(() => {
@@ -57,6 +88,10 @@ export function useCartLiveSync({ isLoggedIn, t }: UseCartLiveSyncOptions) {
   }, [reloadCart]);
 
   useEffect(() => {
+    void reloadCart({ silent: true });
+  }, [isLoggedIn, reloadCart]);
+
+  useEffect(() => {
     const onCartUpdate = (event: Event) => {
       const detail = parseCartUpdatedDetail(event);
       if (!detail) {
@@ -68,10 +103,22 @@ export function useCartLiveSync({ isLoggedIn, t }: UseCartLiveSyncOptions) {
         return;
       }
 
+      if (detail.skipReconcile) {
+        invalidateInFlightReload();
+        if (reconcileTimerRef.current) {
+          clearTimeout(reconcileTimerRef.current);
+          reconcileTimerRef.current = null;
+        }
+      }
+
       const snapshot = snapshotFromCartDetail(detail);
       if (snapshot) {
-        setCart((previous) => applyOptimisticCartAdd(previous, snapshot));
+        commitCart(applyOptimisticCartAdd(cartRef.current, snapshot));
         setCartLoading(false);
+        onOptimisticAdd?.();
+      }
+
+      if (!detail.skipReconcile && (snapshot || detail.itemsCount !== undefined)) {
         scheduleReconcile();
       }
     };
@@ -83,11 +130,17 @@ export function useCartLiveSync({ isLoggedIn, t }: UseCartLiveSyncOptions) {
         clearTimeout(reconcileTimerRef.current);
       }
     };
-  }, [reloadCart, scheduleReconcile]);
+  }, [
+    commitCart,
+    invalidateInFlightReload,
+    onOptimisticAdd,
+    reloadCart,
+    scheduleReconcile,
+  ]);
 
   return {
     cart,
-    setCart,
+    setCart: commitCart,
     cartLoading,
     setCartLoading,
     reloadCart,

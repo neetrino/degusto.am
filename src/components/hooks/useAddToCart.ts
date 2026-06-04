@@ -14,6 +14,7 @@ import {
   removeCachedLineId,
   updateCachedLineQuantity,
 } from '../../lib/cart/cart-line-id-cache';
+import { clearCartLineRemoved } from '@/lib/cart/pending-cart-removals';
 import { readCartSummaryCache } from '../../lib/cartSummaryCache';
 
 interface ProductDetails {
@@ -147,6 +148,7 @@ export function useAddToCart({
       });
 
       rememberCartLineId(productId, variantId, response.item.id, response.item.quantity);
+      clearCartLineRemoved({ variant: { id: variantId }, customizations: undefined });
       if (response.cartSummary) {
         publishCartUpdated(response.cartSummary.itemsCount, response.cartSummary.total);
       } else {

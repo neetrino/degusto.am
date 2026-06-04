@@ -3,6 +3,13 @@ import { ApiError } from '../../lib/api-client/types';
 import { logger } from '../../lib/utils/logger';
 import type { Cart, CartItem } from './types';
 import { publishCartUpdated, publishCartForceReload } from '../../lib/cart/cart-events';
+import { maxCartLineQuantity } from '@/lib/product-stock';
+import {
+  buildCartLineRemovalKey,
+  isOptimisticCartItemId,
+  markCartLineRemoved,
+} from '@/lib/cart/pending-cart-removals';
+import { removeCachedLineId } from '@/lib/cart/cart-line-id-cache';
 
 /** Item already removed server-side (e.g. duplicate minus click after optimistic delete). */
 function isCartItemNotFoundError(error: unknown): boolean {
@@ -25,6 +32,36 @@ function calculateCartTotals(items: CartItem[], existingTotals: Cart['totals']):
   };
 }
 
+async function deleteMatchingLineOnServer(item: CartItem): Promise<void> {
+  try {
+    const response = await apiClient.get<{ cart: Cart | null }>('/api/v1/cart');
+    const serverCart = response.cart;
+    if (!serverCart) {
+      return;
+    }
+
+    const lineKey = buildCartLineRemovalKey(item);
+    const match = serverCart.items.find(
+      (serverItem) =>
+        buildCartLineRemovalKey(serverItem) === lineKey &&
+        !isOptimisticCartItemId(serverItem.id)
+    );
+
+    if (!match) {
+      return;
+    }
+
+    await apiClient.delete(`/api/v1/cart/items/${match.id}`);
+  } catch (error: unknown) {
+    if (isCartItemNotFoundError(error)) {
+      return;
+    }
+    logger.warn('Background cart line delete failed', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
 /**
  * Handle remove item from cart
  */
@@ -35,10 +72,19 @@ export async function handleRemoveItem(
   setCart: (cart: Cart | null) => void,
   fetchCart: () => Promise<void>
 ): Promise<void> {
-  const itemToRemove = cart.items.find(item => item.id === itemId);
-  if (!itemToRemove) return;
+  const itemToRemove = cart.items.find((item) => item.id === itemId);
+  if (!itemToRemove) {
+    return;
+  }
 
-  const updatedItems = cart.items.filter(item => item.id !== itemId);
+  markCartLineRemoved(itemToRemove);
+  removeCachedLineId(
+    itemToRemove.variant.product.id,
+    itemToRemove.variant.id,
+    itemToRemove.customizations
+  );
+
+  const updatedItems = cart.items.filter((item) => item.id !== itemId);
   const newItemsCount = updatedItems.reduce((sum, item) => sum + item.quantity, 0);
   const updatedTotals = calculateCartTotals(updatedItems, cart.totals);
 
@@ -48,14 +94,18 @@ export async function handleRemoveItem(
     totals: updatedTotals,
     itemsCount: newItemsCount,
   });
-  publishCartUpdated(newItemsCount, updatedTotals.total);
+  publishCartUpdated(newItemsCount, updatedTotals.total, { skipReconcile: true });
+
+  if (isOptimisticCartItemId(itemId)) {
+    void deleteMatchingLineOnServer(itemToRemove);
+    return;
+  }
 
   try {
     await apiClient.delete(`/api/v1/cart/items/${itemId}`);
   } catch (error: unknown) {
     if (isCartItemNotFoundError(error)) {
       logger.debug('Cart item already removed', { itemId });
-      await fetchCart();
       return;
     }
 
@@ -84,16 +134,28 @@ export async function handleUpdateQuantity(
     return;
   }
 
-  const cartItem = cart?.items.find(item => item.id === itemId);
-  if (!cartItem) return;
-
-  if (cartItem.variant.stock !== undefined && quantity > cartItem.variant.stock) {
-    alert(`Մատչելի քանակը ${cartItem.variant.stock} հատ է: Դուք չեք կարող ավելացնել ավելի շատ քանակ:`);
+  const cartItem = cart?.items.find((item) => item.id === itemId);
+  if (!cartItem) {
     return;
   }
 
+  if (cartItem.variant.stock !== undefined) {
+    const maxAllowed = maxCartLineQuantity(
+      cartItem.variant.stock,
+      cartItem.variant.id,
+      itemId,
+      cart?.items ?? []
+    );
+    if (quantity > maxAllowed) {
+      alert(
+        t('common.alerts.stockExceeded').replace('{stock}', String(maxAllowed))
+      );
+      return;
+    }
+  }
+
   if (cart) {
-    const updatedItems = cart.items.map(item =>
+    const updatedItems = cart.items.map((item) =>
       item.id === itemId
         ? { ...item, quantity, total: item.price * quantity }
         : item
@@ -107,7 +169,11 @@ export async function handleUpdateQuantity(
       totals: updatedTotals,
       itemsCount: newItemsCount,
     });
-    publishCartUpdated(newItemsCount, updatedTotals.total);
+    publishCartUpdated(newItemsCount, updatedTotals.total, { skipReconcile: true });
+  }
+
+  if (isOptimisticCartItemId(itemId)) {
+    return;
   }
 
   try {
@@ -123,7 +189,8 @@ export async function handleUpdateQuantity(
     const errorObj = error as { detail?: string; message?: string };
     logger.error('Error updating quantity', { error, itemId });
 
-    const errorMessage = errorObj?.detail || errorObj?.message || t('common.messages.failedToUpdateQuantity');
+    const errorMessage =
+      errorObj?.detail || errorObj?.message || t('common.messages.failedToUpdateQuantity');
     if (errorMessage.includes('stock') || errorMessage.includes('exceeds')) {
       alert(t('common.alerts.stockInsufficient').replace('{message}', errorMessage));
     } else {
