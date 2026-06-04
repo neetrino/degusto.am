@@ -6,6 +6,4 @@ export const RESERVED_ROUTES = [
   'faq', 'support', 'stores', 'privacy', 'terms'
 ];
 
-export const WISHLIST_KEY = 'shop_wishlist';
-export const COMPARE_KEY = 'shop_compare';
 export const THUMBNAILS_PER_VIEW = 3;

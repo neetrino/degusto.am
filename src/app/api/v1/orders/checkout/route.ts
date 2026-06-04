@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateToken } from "@/lib/middleware/auth";
+import { extractGuestCartToken } from "@/lib/cart/guest-cart-cookies";
 import { ordersService } from "@/lib/services/orders.service";
 import { toApiError } from "@/lib/types/errors";
 import { logger } from "@/lib/utils/logger";
@@ -8,6 +9,7 @@ export async function POST(req: NextRequest) {
   try {
     logger.info("Checkout request received");
     const user = await authenticateToken(req);
+    const guestToken = user ? null : extractGuestCartToken(req);
     const data = await req.json();
     
     logger.debug("Checkout data", {
@@ -20,7 +22,7 @@ export async function POST(req: NextRequest) {
       shippingMethod: data.shippingMethod,
     });
     
-    const result = await ordersService.checkout(data, user?.id);
+    const result = await ordersService.checkout(data, user?.id, guestToken);
     
     logger.info("Checkout successful", {
       orderNumber: result.order?.number,

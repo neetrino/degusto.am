@@ -9,6 +9,7 @@ import type { LanguageCode } from '../../lib/language';
 import { logger } from '@/lib/utils/logger';
 import { useAddToCart } from '../hooks/useAddToCart';
 import { FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS } from '@/constants/mobile-figma-storefront';
+import { PRODUCT_CARD_CART_BTN_HOVER_CLASS } from '@/constants/product-card-action-hover';
 import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 import { montserratArmFont } from '@/fonts/montserrat-arm-font';
 import {
@@ -37,10 +38,6 @@ interface RelatedProduct {
   defaultVariantId?: string | null;
   image: string | null;
   inStock: boolean;
-  brand?: {
-    id: string;
-    name: string;
-  } | null;
   categories?: Array<{
     id: string;
     slug: string;
@@ -61,7 +58,7 @@ interface RelatedProductCardProps {
 }
 
 function resolveCategoryLabel(product: RelatedProduct): string {
-  return product.categories?.[0]?.title ?? product.brand?.name ?? '';
+  return product.categories?.[0]?.title ?? '';
 }
 
 function resolveComparePrice(product: RelatedProduct): number | null {
@@ -258,7 +255,7 @@ export function RelatedProductCard({
           type="button"
           onClick={handleAddToCart}
           disabled={!product.inStock || isAddingToCart}
-          className={`absolute left-1/2 z-20 inline-flex -translate-x-1/2 items-center justify-center disabled:cursor-not-allowed disabled:opacity-50 ${
+          className={`absolute left-1/2 z-20 inline-flex -translate-x-1/2 items-center justify-center disabled:cursor-not-allowed disabled:opacity-50 ${PRODUCT_CARD_CART_BTN_HOVER_CLASS} ${
             compact
               ? '-bottom-[14px] size-[42px]'
               : '-bottom-[18px] h-[52px] w-[51px]'

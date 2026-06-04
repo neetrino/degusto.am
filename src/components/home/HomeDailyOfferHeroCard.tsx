@@ -10,6 +10,7 @@ import { HomeOptimizedImage } from './HomeOptimizedImage';
 import { StorefrontProductOverlayLink } from './StorefrontProductOverlayLink';
 import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
 import type { HomeFeaturedProduct } from './home-page-types';
+import { PRODUCT_CARD_CART_BTN_HOVER_CLASS } from '@/constants/product-card-action-hover';
 
 type HomeDailyOfferHeroCardAssets = {
   offerBadgeSrc: string;
@@ -120,7 +121,7 @@ export function HomeDailyOfferHeroCard({
         onClick={handleAddToCart}
         disabled={isAddingToCart || product.inStock === false}
         aria-label={t('common.buttons.addToCart')}
-        className="absolute bottom-[-25px] left-1/2 z-20 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center disabled:opacity-50"
+        className={`absolute bottom-[-25px] left-1/2 z-20 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center disabled:opacity-50 ${PRODUCT_CARD_CART_BTN_HOVER_CLASS}`}
       >
         <HomeOptimizedImage
           src={addToCartIconSrc}

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useTranslation } from '../../lib/i18n-client';
 import { useCurrency } from '../hooks/useCurrency';
 import { formatPrice } from '../../lib/currency';
@@ -21,6 +22,12 @@ import {
   MOBILE_SHOP_PRODUCTS_GRID_CLASS,
   MOBILE_STOREFRONT_FILTERS_ANCHOR_ID,
 } from '@/constants/mobile-figma-storefront';
+import {
+  getProductCardWishlistHoverClasses,
+  PRODUCT_CARD_CART_BTN_HOVER_CLASS,
+  PRODUCT_CARD_ICON_BTN_INTERACTION_CLASS,
+  PRODUCT_CARD_WISHLIST_ICON_HOVER_CLASS,
+} from '@/constants/product-card-action-hover';
 import { MobileFriendlyInput } from '@/components/mobile/MobileFriendlyInput';
 import {
   isStorefrontAllCategorySlug,
@@ -28,6 +35,9 @@ import {
 } from '@/constants/storefront-all-category-slug';
 import { shouldShowMenuCardStrikethroughPrice } from '@/lib/storefront/menu-card-pricing';
 import { r2Asset } from '@/lib/r2-public-url';
+import { useRoutePrefetch } from './useRoutePrefetch';
+import { useShopCategorySoftNav } from './useShopCategorySoftNav';
+import { ShopDesktopProductsSkeleton } from './ShopDesktopProductsSkeleton';
 
 const assets = {
   productCardAddToCart: r2Asset('product/20260512-g67zkm13ZH.svg'),
@@ -40,6 +50,8 @@ const assets = {
 
 /** Debounce before writing search to the URL (server refetch); avoids one request per key. */
 const SEARCH_QUERY_URL_DEBOUNCE_MS = 250;
+/** Debounce min/max price URL updates (same reason as search). */
+const PRICE_FILTER_URL_DEBOUNCE_MS = 300;
 
 type DesktopMenuPageProps = {
   titleKey: string;
@@ -58,6 +70,8 @@ type DesktopMenuPageProps = {
   };
   /** When false, hides the mobile product list (e.g. mobile shop category grid on `/shop`). */
   showMobileProductsList?: boolean;
+  /** When categories are omitted server-side (mobile product list), still show the picker button. */
+  showCategoryPicker?: boolean;
 };
 
 type BuildMenuTargetPathFn = (
@@ -88,6 +102,7 @@ function useMenuSearchUrlSync(
   foodFilter: 'leaf' | 'neutral' | 'pepper'
 ) {
   const searchUrlDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const priceUrlDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const menuFilterRouteRef = useRef<MenuFilterRouteSnapshot>({
     buildTargetPath,
     activeCategorySlug,
@@ -110,6 +125,9 @@ function useMenuSearchUrlSync(
     return () => {
       if (searchUrlDebounceRef.current) {
         clearTimeout(searchUrlDebounceRef.current);
+      }
+      if (priceUrlDebounceRef.current) {
+        clearTimeout(priceUrlDebounceRef.current);
       }
     };
   }, []);
@@ -148,7 +166,31 @@ function useMenuSearchUrlSync(
     );
   }, [router]);
 
-  return { scheduleSearchQueryUrlSync, flushSearchQueryUrlSync };
+  const schedulePriceFilterUrlSync = useCallback(
+    (overrides: {
+      minPrice?: string;
+      maxPrice?: string;
+      taste?: 'leaf' | 'neutral' | 'pepper';
+    }) => {
+      if (priceUrlDebounceRef.current) {
+        clearTimeout(priceUrlDebounceRef.current);
+      }
+      priceUrlDebounceRef.current = setTimeout(() => {
+        priceUrlDebounceRef.current = null;
+        const d = menuFilterRouteRef.current;
+        router.replace(
+          d.buildTargetPath(d.activeCategorySlug, {
+            minPrice: overrides.minPrice ?? d.minPrice,
+            maxPrice: overrides.maxPrice ?? d.maxPrice,
+            taste: overrides.taste ?? d.foodFilter,
+          })
+        );
+      }, PRICE_FILTER_URL_DEBOUNCE_MS);
+    },
+    [router]
+  );
+
+  return { scheduleSearchQueryUrlSync, flushSearchQueryUrlSync, schedulePriceFilterUrlSync };
 }
 
 function isMenuCategoryEmpty(category: MenuCategory): boolean {
@@ -194,6 +236,8 @@ function MenuCardItem({ card }: { card: MenuCard }) {
     inStock: card.inStock ?? true,
     defaultVariantId: card.defaultVariantId ?? undefined,
     price: card.price,
+    title,
+    image: card.image ?? imageSrc,
   });
   const handleAddToCart = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -234,10 +278,10 @@ function MenuCardItem({ card }: { card: MenuCard }) {
       <button
         type="button"
         onClick={handleWishlistToggle}
-        className={`absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border shadow-md transition-colors sm:h-10 sm:w-10 ${
+        className={`absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border shadow-md sm:h-10 sm:w-10 ${PRODUCT_CARD_ICON_BTN_INTERACTION_CLASS} ${getProductCardWishlistHoverClasses(isInWishlist)} ${
           isInWishlist
-            ? 'border-red-600 bg-red-600 text-white hover:bg-red-700'
-            : 'border-[#dedede]/90 bg-white/95 text-gray-700 hover:bg-white'
+            ? 'border-red-600 bg-red-600 text-white'
+            : 'border-[#dedede]/90 bg-white/95 text-gray-700'
         }`}
         title={
           isInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')
@@ -246,7 +290,9 @@ function MenuCardItem({ card }: { card: MenuCard }) {
           isInWishlist ? t('common.ariaLabels.removeFromWishlist') : t('common.ariaLabels.addToWishlist')
         }
       >
-        <WishlistHeartIcon filled={isInWishlist} size={18} />
+        <span className={PRODUCT_CARD_WISHLIST_ICON_HOVER_CLASS} aria-hidden>
+          <WishlistHeartIcon filled={isInWishlist} size={18} />
+        </span>
       </button>
       <div className="absolute left-[14px] top-[170px] flex items-center gap-[6px]">
         <img src={assets.productCardStar} alt="" className="h-5 w-5 object-contain" />
@@ -276,7 +322,7 @@ function MenuCardItem({ card }: { card: MenuCard }) {
         onClick={handleAddToCart}
         disabled={isAddingToCart || (card.inStock === false)}
         aria-label={t('common.buttons.addToCart')}
-        className="absolute -bottom-[25px] left-1/2 z-20 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center"
+        className={`absolute -bottom-[25px] left-1/2 z-20 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center ${PRODUCT_CARD_CART_BTN_HOVER_CLASS}`}
       >
         <img src={assets.productCardAddToCart} alt="" className="h-[52px] w-[51px] object-contain" />
       </button>
@@ -374,18 +420,41 @@ export function FigmaDesktopMenuPage({
   initialFoodFilter = 'neutral',
   menuPagination,
   showMobileProductsList = true,
+  showCategoryPicker,
 }: DesktopMenuPageProps) {
   const { t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const menuCards = cards ?? [];
-  const hasDbCategories = Array.isArray(dbCategories) && dbCategories.length > 0;
+  const hasDbCategories =
+    showCategoryPicker ?? (Array.isArray(dbCategories) && dbCategories.length > 0);
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [minPrice, setMinPrice] = useState(initialMinPrice);
   const [maxPrice, setMaxPrice] = useState(initialMaxPrice);
   const [foodFilter, setFoodFilter] = useState<'leaf' | 'neutral' | 'pepper'>(initialFoodFilter);
   const routeBasePath = pathname?.startsWith('/combo') ? '/combo' : '/shop';
+  const enableSoftCategoryNav = routeBasePath === '/shop';
+
+  const {
+    displayCards: desktopDisplayCards,
+    displayActiveCategorySlug,
+    displayPagination: desktopDisplayPagination,
+    isProductsPending,
+    navigateCategory,
+    prefetchCategory,
+  } = useShopCategorySoftNav({
+    initialCards: menuCards,
+    initialActiveCategorySlug: activeCategorySlug,
+    initialPagination: menuPagination,
+    enabled: enableSoftCategoryNav,
+  });
+
+  const desktopMenuCards = enableSoftCategoryNav ? desktopDisplayCards : menuCards;
+  const desktopActiveCategorySlug = enableSoftCategoryNav
+    ? displayActiveCategorySlug
+    : activeCategorySlug;
+  const desktopMenuPagination = enableSoftCategoryNav ? desktopDisplayPagination : menuPagination;
 
   useEffect(() => {
     if (!showMobileProductsList || searchParams.get('openFilters') !== '1') {
@@ -458,14 +527,43 @@ export function FigmaDesktopMenuPage({
     };
   }, [searchParams, searchTerm, minPrice, maxPrice, foodFilter, routeBasePath]);
 
-  const { scheduleSearchQueryUrlSync, flushSearchQueryUrlSync } = useMenuSearchUrlSync(
-    router,
-    buildTargetPath,
-    activeCategorySlug,
-    minPrice,
-    maxPrice,
-    foodFilter
+  const { scheduleSearchQueryUrlSync, flushSearchQueryUrlSync, schedulePriceFilterUrlSync } =
+    useMenuSearchUrlSync(
+      router,
+      buildTargetPath,
+      activeCategorySlug,
+      minPrice,
+      maxPrice,
+      foodFilter
+    );
+
+  const categoryNavItems = useMemo(() => {
+    if (!Array.isArray(dbCategories)) {
+      return [];
+    }
+    return dbCategories.map((category) => ({
+      category,
+      href: buildTargetPath(category.slug),
+    }));
+  }, [buildTargetPath, dbCategories]);
+
+  const categoryNavHrefs = useMemo(
+    () => categoryNavItems.map((item) => item.href),
+    [categoryNavItems]
   );
+
+  const { getPrefetchHandlers } = useRoutePrefetch(
+    enableSoftCategoryNav ? [] : categoryNavHrefs
+  );
+
+  useEffect(() => {
+    if (!enableSoftCategoryNav) {
+      return;
+    }
+    for (const { href } of categoryNavItems) {
+      prefetchCategory(href);
+    }
+  }, [categoryNavItems, enableSoftCategoryNav, prefetchCategory]);
 
   const openMobileCategoryPicker = useCallback(() => {
     router.push(routeBasePath);
@@ -502,13 +600,7 @@ export function FigmaDesktopMenuPage({
               onChange={(event) => {
                 const nextMinPrice = event.target.value;
                 setMinPrice(nextMinPrice);
-                router.replace(
-                  buildTargetPath(activeCategorySlug, {
-                    search: searchTerm,
-                    minPrice: nextMinPrice,
-                    maxPrice,
-                  })
-                );
+                schedulePriceFilterUrlSync({ minPrice: nextMinPrice });
               }}
               placeholder={t('home.figma.desktop.shop.priceFrom')}
               className="h-[46px] min-w-0 flex-1 rounded-[40px] bg-[#f3f3f5] px-4 text-left text-base text-[#7f7f80] sm:flex-none sm:basis-[109px]"
@@ -521,13 +613,7 @@ export function FigmaDesktopMenuPage({
               onChange={(event) => {
                 const nextMaxPrice = event.target.value;
                 setMaxPrice(nextMaxPrice);
-                router.replace(
-                  buildTargetPath(activeCategorySlug, {
-                    search: searchTerm,
-                    minPrice,
-                    maxPrice: nextMaxPrice,
-                  })
-                );
+                schedulePriceFilterUrlSync({ maxPrice: nextMaxPrice });
               }}
               placeholder={t('home.figma.desktop.shop.priceTo')}
               className="h-[46px] min-w-0 flex-1 rounded-[40px] bg-[#f3f3f5] px-4 text-left text-base text-[#7f7f80] sm:flex-none sm:basis-[109px]"
@@ -606,37 +692,70 @@ export function FigmaDesktopMenuPage({
           <div className="flex min-h-0 flex-1 flex-col px-6 pt-[10px]">
             <p className="pb-[12px] text-[14px] font-medium uppercase tracking-[0.2px] text-[#717182]">{t('common.navigation.categories')}</p>
             <div className="min-h-0 flex-1 space-y-1 overflow-y-auto pr-1 scrollbar-hide">
-              {hasDbCategories
-                ? dbCategories.map((category) => {
+              {categoryNavItems.length > 0
+                ? categoryNavItems.map(({ category, href }) => {
                     const isActive =
                       category.slug === ''
-                        ? isStorefrontAllCategorySlug(activeCategorySlug)
-                        : activeCategorySlug === category.slug;
+                        ? isStorefrontAllCategorySlug(desktopActiveCategorySlug)
+                        : desktopActiveCategorySlug === category.slug;
                     const empty = isMenuCategoryEmpty(category);
+                    const sharedClassName = `flex h-10 w-full min-w-0 items-center gap-2 rounded-[10px] px-3 py-[10px] text-left text-[14px] font-medium leading-5 tracking-[-0.15px] ${
+                      isActive ? 'rounded-[30px] bg-[#ff7f20] text-white' : 'text-white hover:bg-white/10'
+                    } ${empty ? 'cursor-not-allowed' : ''} ${
+                      empty && !isActive ? 'opacity-50 hover:bg-transparent' : ''
+                    }`;
+
+                    if (empty) {
+                      return (
+                        <span
+                          key={category.id}
+                          aria-disabled="true"
+                          className={sharedClassName}
+                        >
+                          <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center" aria-hidden="true">
+                            {category.iconUrl ? <img src={category.iconUrl} alt="" className="h-6 w-6 object-contain" /> : null}
+                          </span>
+                          <span className="min-w-0 flex-1 truncate">{formatCategoryLabelWithCount(category)}</span>
+                        </span>
+                      );
+                    }
+
+                    if (enableSoftCategoryNav) {
+                      return (
+                        <a
+                          key={category.id}
+                          href={href}
+                          onClick={(event) => {
+                            event.preventDefault();
+                            navigateCategory(href, category.slug);
+                          }}
+                          onMouseEnter={() => prefetchCategory(href)}
+                          onFocus={() => prefetchCategory(href)}
+                          aria-current={isActive ? 'page' : undefined}
+                          className={sharedClassName}
+                        >
+                          <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center" aria-hidden="true">
+                            {category.iconUrl ? <img src={category.iconUrl} alt="" className="h-6 w-6 object-contain" /> : null}
+                          </span>
+                          <span className="min-w-0 flex-1 truncate">{formatCategoryLabelWithCount(category)}</span>
+                        </a>
+                      );
+                    }
+
                     return (
-                      <button
+                      <Link
                         key={category.id}
-                        type="button"
-                        aria-disabled={empty}
-                        tabIndex={empty ? -1 : undefined}
-                        onClick={() => {
-                          if (empty) {
-                            return;
-                          }
-                          router.push(buildTargetPath(category.slug));
-                        }}
-                        aria-pressed={isActive}
-                        className={`flex h-10 w-full min-w-0 items-center gap-2 rounded-[10px] px-3 py-[10px] text-left text-[14px] font-medium leading-5 tracking-[-0.15px] ${
-                          isActive ? 'rounded-[30px] bg-[#ff7f20] text-white' : 'text-white hover:bg-white/10'
-                        } ${empty ? 'cursor-not-allowed' : ''} ${
-                          empty && !isActive ? 'opacity-50 hover:bg-transparent' : ''
-                        }`}
+                        href={href}
+                        prefetch
+                        {...getPrefetchHandlers(href)}
+                        aria-current={isActive ? 'page' : undefined}
+                        className={sharedClassName}
                       >
                         <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center" aria-hidden="true">
                           {category.iconUrl ? <img src={category.iconUrl} alt="" className="h-6 w-6 object-contain" /> : null}
                         </span>
                         <span className="min-w-0 flex-1 truncate">{formatCategoryLabelWithCount(category)}</span>
-                      </button>
+                      </Link>
                     );
                   })
                 : (
@@ -664,13 +783,7 @@ export function FigmaDesktopMenuPage({
                 onChange={(event) => {
                   const nextMinPrice = event.target.value;
                   setMinPrice(nextMinPrice);
-                  router.replace(
-                    buildTargetPath(activeCategorySlug, {
-                      search: searchTerm,
-                      minPrice: nextMinPrice,
-                      maxPrice,
-                    })
-                  );
+                  schedulePriceFilterUrlSync({ minPrice: nextMinPrice });
                 }}
                 placeholder={t('home.figma.desktop.shop.priceFrom')}
                 className="h-[46px] w-[109px] rounded-[40px] bg-[#f3f3f5] px-4 text-left text-base text-[#7f7f80]"
@@ -683,13 +796,7 @@ export function FigmaDesktopMenuPage({
                 onChange={(event) => {
                   const nextMaxPrice = event.target.value;
                   setMaxPrice(nextMaxPrice);
-                  router.replace(
-                    buildTargetPath(activeCategorySlug, {
-                      search: searchTerm,
-                      minPrice,
-                      maxPrice: nextMaxPrice,
-                    })
-                  );
+                  schedulePriceFilterUrlSync({ maxPrice: nextMaxPrice });
                 }}
                 placeholder={t('home.figma.desktop.shop.priceTo')}
                 className="h-[46px] w-[109px] rounded-[40px] bg-[#f3f3f5] px-4 text-left text-base text-[#7f7f80]"
@@ -711,9 +818,11 @@ export function FigmaDesktopMenuPage({
             </div>
           </div>
 
-          {menuCards.length > 0 ? (
+          {isProductsPending ? (
+            <ShopDesktopProductsSkeleton />
+          ) : desktopMenuCards.length > 0 ? (
             <div className="grid grid-cols-4 gap-x-[30px] gap-y-[34px]">
-              {menuCards.map((card) => (
+              {desktopMenuCards.map((card) => (
                 <MenuCardItem key={card.id} card={card} />
               ))}
             </div>
@@ -723,12 +832,14 @@ export function FigmaDesktopMenuPage({
             </div>
           )}
 
-          {menuPagination ? (
+          {desktopMenuPagination ? (
             <StoreMenuPagination
               navAriaLabel={t('common.ariaLabels.paginationNav')}
-              currentPage={menuPagination.currentPage}
-              totalPages={menuPagination.totalPages}
-              buildPageHref={(targetPage) => buildTargetPath(activeCategorySlug, { page: targetPage })}
+              currentPage={desktopMenuPagination.currentPage}
+              totalPages={desktopMenuPagination.totalPages}
+              buildPageHref={(targetPage) =>
+                buildTargetPath(desktopActiveCategorySlug, { page: targetPage })
+              }
             />
           ) : null}
         </section>

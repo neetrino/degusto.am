@@ -1,15 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { apiClient } from '../../lib/api-client';
 import { ApiError } from '../../lib/api-client/types';
 import { isQuietCartStockValidationError } from '../../lib/api-client/error-handler';
 import { logger } from '../../lib/utils/logger';
-import { useAuth } from '../../lib/auth/AuthContext';
 import { useTranslation } from '../../lib/i18n-client';
 import { playCartFlyAnimation } from '../../lib/cart-fly-animation';
-import { publishCartUpdated, publishCartForceReload } from '../../lib/cart/cart-events';
+import { publishCartUpdated, publishCartForceReload, publishOptimisticCartAdd } from '../../lib/cart/cart-events';
 import {
   getCartLineId,
   rememberCartLineId,
@@ -28,14 +26,6 @@ interface ProductDetails {
     stock: number;
     available: boolean;
   }>;
-}
-
-interface GuestCartItem {
-  productId: string;
-  productSlug: string;
-  variantId?: string;
-  quantity: number;
-  price?: number;
 }
 
 interface ServerCartResponse {
@@ -60,20 +50,24 @@ interface UseAddToCartProps {
   productId: string;
   productSlug: string;
   inStock: boolean;
-  /** When present, skip GET /api/v1/products/:slug and use this variant for add-to-cart (one request instead of two). */
   defaultVariantId?: string | null;
-  /** Unit price (AMD) — stored in guest cart so Header doesn't need extra API calls. */
   price?: number;
+  title?: string;
+  image?: string | null;
 }
 
 /**
- * Hook for adding products to cart
- * @param props - Product information
- * @returns Object with loading state and addToCart function
+ * Hook for adding products to cart (persisted in database for all users).
  */
-export function useAddToCart({ productId, productSlug, inStock, defaultVariantId, price: propPrice }: UseAddToCartProps) {
-  const router = useRouter();
-  const { isLoggedIn } = useAuth();
+export function useAddToCart({
+  productId,
+  productSlug,
+  inStock,
+  defaultVariantId,
+  price: propPrice,
+  title: propTitle,
+  image: propImage,
+}: UseAddToCartProps) {
   const { t } = useTranslation();
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isUpdatingQuantity, setIsUpdatingQuantity] = useState(false);
@@ -93,18 +87,11 @@ export function useAddToCart({ productId, productSlug, inStock, defaultVariantId
     return productDetails.variants[0].id;
   };
 
-  const publishGuestCartSummary = (cart: GuestCartItem[]) => {
-    const itemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-    const total = cart.reduce((sum, item) => sum + (item.price ?? 0) * item.quantity, 0);
-    publishCartUpdated(itemsCount, total);
-  };
-
   const addToCart = async (fly?: AddToCartFlyContext) => {
     if (!inStock) {
       return;
     }
 
-    // Validate product slug before making API call
     if (!productSlug || productSlug.trim() === '' || productSlug.includes(' ')) {
       logger.warn('[PRODUCT CARD] Invalid product slug', { productSlug });
       alert(t('common.alerts.invalidProduct'));
@@ -116,105 +103,48 @@ export function useAddToCart({ productId, productSlug, inStock, defaultVariantId
       imageUrl: fly?.imageUrl ?? null,
     });
 
-    // If user is not logged in, use localStorage for cart
-    if (!isLoggedIn) {
-      setIsAddingToCart(true);
-      try {
-        const CART_KEY = 'shop_cart_guest';
-        const stored = localStorage.getItem(CART_KEY);
-        const cart: Array<{ productId: string; productSlug: string; variantId?: string; quantity: number; price?: number }> = stored ? JSON.parse(stored) : [];
+    const optimisticVariantId = defaultVariantId ?? `pending:${productId}`;
+    const optimisticPrice = propPrice ?? 0;
+    const optimisticTitle = propTitle?.trim() || productSlug;
+    const optimisticImage = propImage ?? fly?.imageUrl ?? null;
 
-        let variantId: string;
-        let resolvedProductId = productId;
-        let variantStock: number | undefined;
-        let variantPrice: number | undefined = propPrice || undefined;
-        if (defaultVariantId) {
-          variantId = defaultVariantId;
-        } else {
-          const encodedSlug = encodeURIComponent(productSlug.trim());
-          const productDetails = await apiClient.get<ProductDetails>(`/api/v1/products/${encodedSlug}`);
-          resolvedProductId = productDetails.id;
-          if (!productDetails.variants || productDetails.variants.length === 0) {
-            alert(t('common.alerts.noVariantsAvailable'));
-            setIsAddingToCart(false);
-            return;
-          }
-          variantId = productDetails.variants[0].id;
-          variantStock = productDetails.variants[0].stock;
-          if (!variantPrice) variantPrice = productDetails.variants[0].price;
-        }
-
-        const existingItem = cart.find(
-          item => item.productId === resolvedProductId && item.variantId === variantId
-        );
-        const currentQuantityInCart = existingItem?.quantity || 0;
-        const totalQuantity = currentQuantityInCart + 1;
-
-        if (variantStock !== undefined && totalQuantity > variantStock) {
-          alert(t('common.alerts.noMoreStockAvailable'));
-          setIsAddingToCart(false);
-          return;
-        }
-
-        if (existingItem) {
-          existingItem.quantity = totalQuantity;
-          if (!existingItem.productSlug) existingItem.productSlug = productSlug;
-          if (variantPrice) existingItem.price = variantPrice;
-        } else {
-          cart.push({
-            productId: resolvedProductId,
-            productSlug,
-            variantId,
-            quantity: 1,
-            price: variantPrice || 0,
-          });
-        }
-
-        localStorage.setItem(CART_KEY, JSON.stringify(cart));
-        publishGuestCartSummary(cart);
-        setQuantity(totalQuantity);
-      } catch (error: unknown) {
-        logger.error('[PRODUCT CARD] Error adding to guest cart', { error });
-        const err = error as { message?: string; status?: number };
-        if (err?.message?.includes('does not exist') || err?.message?.includes('404') || err?.status === 404) {
-          alert(t('common.alerts.productNotFound'));
-        } else {
-          router.push(`/login?redirect=/products`);
-        }
-      } finally {
-        setIsAddingToCart(false);
-      }
-      return;
-    }
+    publishOptimisticCartAdd({
+      productId,
+      productSlug,
+      variantId: optimisticVariantId,
+      title: optimisticTitle,
+      image: optimisticImage,
+      price: optimisticPrice,
+      quantity: 1,
+    });
 
     setIsAddingToCart(true);
 
     try {
-      let variantId: string;
-      if (defaultVariantId) {
-        variantId = defaultVariantId;
-      } else {
+      let variantId = defaultVariantId ?? null;
+      let unitPrice = propPrice ?? 0;
+
+      if (!variantId) {
         const encodedSlug = encodeURIComponent(productSlug.trim());
         const productDetails = await apiClient.get<ProductDetails>(`/api/v1/products/${encodedSlug}`);
         if (!productDetails.variants || productDetails.variants.length === 0) {
           alert(t('common.alerts.noVariantsAvailable'));
+          publishCartForceReload();
           return;
         }
         const firstVariant = productDetails.variants[0];
         variantId = firstVariant.id;
+        unitPrice = propPrice ?? firstVariant.price;
       }
 
       const response = await apiClient.post<{
         item: { id: string; quantity: number; price: number };
         cartSummary?: { itemsCount: number; total: number };
-      }>(
-        '/api/v1/cart/items',
-        {
-          productId: productId,
-          variantId: variantId,
-          quantity: 1,
-        }
-      );
+      }>('/api/v1/cart/items', {
+        productId,
+        variantId,
+        quantity: 1,
+      });
 
       rememberCartLineId(productId, variantId, response.item.id, response.item.quantity);
       if (response.cartSummary) {
@@ -223,34 +153,33 @@ export function useAddToCart({ productId, productSlug, inStock, defaultVariantId
         const cache = readCartSummaryCache();
         publishCartUpdated(
           (cache?.itemsCount ?? 0) + 1,
-          (cache?.total ?? 0) + (propPrice ?? response.item.price ?? 0)
+          (cache?.total ?? 0) + (unitPrice || response.item.price || 0)
         );
       }
-      setQuantity(prev => prev + 1);
+      setQuantity((prev) => prev + 1);
     } catch (error: unknown) {
       const err = error as {
         message?: string;
         status?: number;
         statusCode?: number;
         data?: unknown;
-        response?: {
-          data?: {
-            detail?: string;
-            title?: string;
-          };
-        };
+        response?: { data?: { detail?: string; title?: string } };
       };
 
       if (error instanceof ApiError && isQuietCartStockValidationError(error.status, error.data)) {
         alert(t('common.alerts.noMoreStockAvailable'));
         publishCartForceReload();
-        setIsAddingToCart(false);
         return;
       }
 
-      if (err?.message?.includes('does not exist') || err?.message?.includes('404') || err?.status === 404 || err?.statusCode === 404) {
+      if (
+        err?.message?.includes('does not exist') ||
+        err?.message?.includes('404') ||
+        err?.status === 404 ||
+        err?.statusCode === 404
+      ) {
         alert(t('common.alerts.productNotFound'));
-        setIsAddingToCart(false);
+        publishCartForceReload();
         return;
       }
 
@@ -260,17 +189,12 @@ export function useAddToCart({ productId, productSlug, inStock, defaultVariantId
         err.response?.data?.title === 'Insufficient stock'
       ) {
         alert(t('common.alerts.noMoreStockAvailable'));
-        setIsAddingToCart(false);
+        publishCartForceReload();
         return;
       }
 
       logger.error('[PRODUCT CARD] Error adding to cart', { error });
-
-      if (err.message?.includes('401') || err.message?.includes('Unauthorized') || err?.status === 401 || err?.statusCode === 401) {
-        router.push(`/login?redirect=/products`);
-      } else {
-        alert(t('common.alerts.failedToAddToCart'));
-      }
+      alert(t('common.alerts.failedToAddToCart'));
       publishCartForceReload();
     } finally {
       setIsAddingToCart(false);
@@ -287,42 +211,12 @@ export function useAddToCart({ productId, productSlug, inStock, defaultVariantId
     setQuantity(nextQuantity);
 
     try {
-      if (!isLoggedIn) {
-        const CART_KEY = 'shop_cart_guest';
-        const stored = localStorage.getItem(CART_KEY);
-        const cart: GuestCartItem[] = stored ? JSON.parse(stored) : [];
-        const variantId = await resolveVariantId();
-        if (!variantId) {
-          setQuantity(previousQuantity);
-          return;
-        }
-
-        const existingItem = cart.find(item => item.productId === productId && item.variantId === variantId);
-        if (!existingItem) {
-          setQuantity(0);
-          return;
-        }
-
-        if (existingItem.quantity <= 1) {
-          const nextCart = cart.filter(item => !(item.productId === productId && item.variantId === variantId));
-          localStorage.setItem(CART_KEY, JSON.stringify(nextCart));
-          publishGuestCartSummary(nextCart);
-          return;
-        }
-
-        existingItem.quantity -= 1;
-        localStorage.setItem(CART_KEY, JSON.stringify(cart));
-        publishGuestCartSummary(cart);
-        return;
-      }
-
       const variantId = defaultVariantId ?? (await resolveVariantId());
       if (!variantId) {
         setQuantity(previousQuantity);
         return;
       }
 
-      const cachedLine = getCartLineId(productId, variantId);
       const summaryCache = readCartSummaryCache();
       const estimatedTotal = summaryCache
         ? Math.max(0, summaryCache.total - (propPrice ?? 0))
@@ -332,6 +226,7 @@ export function useAddToCart({ productId, productSlug, inStock, defaultVariantId
         : nextQuantity;
       publishCartUpdated(estimatedCount, estimatedTotal);
 
+      const cachedLine = getCartLineId(productId, variantId);
       if (cachedLine) {
         if (cachedLine.quantity <= 1) {
           await apiClient.delete(`/api/v1/cart/items/${cachedLine.cartItemId}`);
@@ -345,8 +240,8 @@ export function useAddToCart({ productId, productSlug, inStock, defaultVariantId
       }
 
       const cartResponse = await apiClient.get<ServerCartResponse>('/api/v1/cart');
-      const cartItem = cartResponse.cart.items.find(
-        item => item.variant.product.id === productId && item.variant.id === variantId
+      const cartItem = cartResponse.cart?.items.find(
+        (item) => item.variant.product.id === productId && item.variant.id === variantId
       );
 
       if (!cartItem) {
@@ -372,7 +267,3 @@ export function useAddToCart({ productId, productSlug, inStock, defaultVariantId
 
   return { isAddingToCart, isUpdatingQuantity, quantity, addToCart, removeFromCart };
 }
-
-
-
-

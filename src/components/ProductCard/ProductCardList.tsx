@@ -15,6 +15,11 @@ import {
   FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS,
   FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS,
 } from '@/constants/mobile-figma-storefront';
+import {
+  getProductCardWishlistHoverClasses,
+  PRODUCT_CARD_ICON_BTN_INTERACTION_CLASS,
+  PRODUCT_CARD_WISHLIST_ICON_HOVER_CLASS,
+} from '@/constants/product-card-action-hover';
 import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 
 interface ProductCardListProps {
@@ -25,7 +30,6 @@ interface ProductCardListProps {
     price: number;
     image: string | null;
     inStock: boolean;
-    brand: { id: string; name: string; logoUrl?: string | null } | null;
     labels?: ProductLabel[];
     compareAtPrice?: number | null;
     originalPrice?: number | null;
@@ -100,20 +104,6 @@ export function ProductCardList({
           <h3 className="line-clamp-2 text-lg font-medium text-gray-900 transition-colors group-hover:text-blue-600 sm:text-xl">
             {product.title}
           </h3>
-          {product.brand?.logoUrl ? (
-            <div className="mt-1">
-              <div className="relative h-6 w-6">
-                <Image
-                  src={product.brand.logoUrl}
-                  alt={product.brand?.name || 'Brand logo'}
-                  fill
-                  className="object-contain"
-                  sizes="24px"
-                  unoptimized
-                />
-              </div>
-            </div>
-          ) : null}
           {/* Available Colors */}
           {product.colors && product.colors.length > 0 && (
             <div className="flex items-center gap-1.5 mt-2 flex-wrap">
@@ -168,15 +158,17 @@ export function ProductCardList({
             {/* Wishlist Icon */}
             <button
               onClick={onWishlistToggle}
-              className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-200 ${
+              className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-200 ${PRODUCT_CARD_ICON_BTN_INTERACTION_CLASS} ${getProductCardWishlistHoverClasses(isInWishlist)} ${
                 isInWishlist
                   ? 'bg-red-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-gray-100 text-gray-700'
               }`}
               title={isInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')}
               aria-label={isInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')}
             >
-              <WishlistHeartIcon filled={isInWishlist} size={20} />
+              <span className={PRODUCT_CARD_WISHLIST_ICON_HOVER_CLASS} aria-hidden>
+                <WishlistHeartIcon filled={isInWishlist} size={20} />
+              </span>
             </button>
 
             {/* Cart Quantity Controls */}

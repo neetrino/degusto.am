@@ -2,7 +2,7 @@ import type { Dispatch, FormEvent, SetStateAction } from 'react';
 import { useRouter } from 'next/navigation';
 import type { CurrencyCode } from '@/lib/currency';
 import type { Attribute, Category, Variant, GeneratedVariant, SimpleProductData } from '../types';
-import { useBrandAndCategoryCreation } from './useBrandAndCategoryCreation';
+import { useCategoryCreation } from './useCategoryCreation';
 import { useVariantConversionToFormData } from './useVariantConversionToFormData';
 import { useVariantValidation } from './useVariantValidation';
 import { processImagesForSubmit } from './useImageProcessingForSubmit';
@@ -73,7 +73,7 @@ export function useProductFormHandlers({
   const router = useRouter();
   const { t } = useTranslation();
 
-  const { createBrandAndCategory } = useBrandAndCategoryCreation({
+  const { createCategoryIfNeeded } = useCategoryCreation({
     formData,
     useNewCategory,
     newCategoryName,
@@ -104,11 +104,11 @@ export function useProductFormHandlers({
     try {
       logger.debug('📝 [ADMIN] Submitting product form:', formData);
 
-      const brandCategoryResult = await createBrandAndCategory();
-      if (brandCategoryResult.error) {
+      const categoryResult = await createCategoryIfNeeded();
+      if (categoryResult.error) {
         return;
       }
-      const { finalPrimaryCategoryId, creationMessages } = brandCategoryResult;
+      const { finalPrimaryCategoryId, creationMessages } = categoryResult;
 
       convertGeneratedVariantsToFormData();
 

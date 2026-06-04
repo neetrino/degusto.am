@@ -17,10 +17,6 @@ export interface WishlistProductCardProduct {
   discountPercent: number | null;
   image: string | null;
   inStock: boolean;
-  brand: {
-    id: string;
-    name: string;
-  } | null;
 }
 
 export interface WishlistProductCardProps {
@@ -146,11 +142,6 @@ function WishlistCardInfoPanel({
         <h3 className="line-clamp-2 text-[0.9375rem] font-semibold leading-snug tracking-tight text-gray-900 transition-colors group-hover/card:text-brand">
           {product.title}
         </h3>
-        {product.brand?.name ? (
-          <p className="mt-1 truncate text-xs font-medium uppercase tracking-wide text-brand/80">
-            {product.brand.name}
-          </p>
-        ) : null}
       </ProductPageLink>
 
       <WishlistCardPriceRow product={product} currency={currency} />

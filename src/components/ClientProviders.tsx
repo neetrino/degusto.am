@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { AuthProvider } from '../lib/auth/AuthContext';
+import { WishlistIdsProvider } from '../lib/wishlist/WishlistIdsProvider';
 import { ToastContainer } from './Toast';
 import { LanguageHtmlUpdater } from './LanguageHtmlUpdater';
 import { CartDrawerProvider } from './cart-drawer/cart-drawer-context';
@@ -18,6 +19,7 @@ import { PdpChromeProvider } from '../app/products/[slug]/pdp-chrome-context';
 export function ClientProviders({ children }: { children: ReactNode }) {
   return (
     <AuthProvider>
+      <WishlistIdsProvider>
       <PdpChromeProvider>
       <CartDrawerProvider>
         <DisableMobileZoomGuard />
@@ -29,6 +31,7 @@ export function ClientProviders({ children }: { children: ReactNode }) {
         <ToastContainer />
       </CartDrawerProvider>
       </PdpChromeProvider>
+      </WishlistIdsProvider>
     </AuthProvider>
   );
 }

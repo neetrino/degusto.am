@@ -34,11 +34,6 @@ const getProductListInclude = () => ({
  */
 const getProductDetailInclude = () => ({
   translations: true,
-  brand: {
-    include: {
-      translations: true,
-    },
-  },
   categories: {
     include: {
       translations: true,

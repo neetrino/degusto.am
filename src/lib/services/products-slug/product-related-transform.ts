@@ -7,13 +7,8 @@ export interface RelatedProductRow {
   id: string;
   discountPercent: number;
   primaryCategoryId: string | null;
-  brandId: string | null;
   media: unknown[];
   translations: Array<{ slug: string; title: string; locale: string }>;
-  brand: {
-    id: string;
-    translations: Array<{ name: string; locale: string }>;
-  } | null;
   variants: Array<{
     id: string;
     price: number;
@@ -37,7 +32,6 @@ export interface RelatedCardPayload {
   defaultVariantId: string | null;
   image: string | null;
   inStock: boolean;
-  brand: { id: string; name: string } | null;
   categories: Array<{ id: string; slug: string; title: string }>;
 }
 
@@ -73,9 +67,6 @@ export async function transformRelatedProductRows(
 
   return rows.map((product) => {
     const tr = pickTranslation(product.translations, lang);
-    const brandTr = product.brand
-      ? pickTranslation(product.brand.translations, lang)
-      : null;
     const variant = product.variants[0];
     const productDiscount = product.discountPercent || 0;
     const appliedDiscount = pickAppliedDiscount(
@@ -126,9 +117,6 @@ export async function transformRelatedProductRows(
       defaultVariantId: variant?.id ?? null,
       image,
       inStock: (variant?.stock ?? 0) > 0,
-      brand: product.brand
-        ? { id: product.brand.id, name: brandTr?.name ?? "" }
-        : null,
       categories,
     };
   });

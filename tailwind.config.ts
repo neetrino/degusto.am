@@ -28,6 +28,16 @@ const config: Config = {
         sans: ['system-ui', '-apple-system', 'sans-serif'],
         heading: ['system-ui', '-apple-system', 'sans-serif'],
       },
+      keyframes: {
+        'product-card-heart-beat': {
+          '0%, 100%': { transform: 'scale(1)' },
+          '30%': { transform: 'scale(1.22)' },
+          '60%': { transform: 'scale(1.08)' },
+        },
+      },
+      animation: {
+        'product-card-heart-beat': 'product-card-heart-beat 0.55s ease-in-out',
+      },
     },
   },
   plugins: [],

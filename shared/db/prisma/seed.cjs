@@ -36,12 +36,6 @@ const { upsertFoodAttributes } = require("./lib/upsert-food-attributes.cjs");
 
 const prisma = new PrismaClient();
 
-const BRANDS = [
-  { slug: "acme", name: "Acme" },
-  { slug: "brand-x", name: "Brand X" },
-  { slug: "prime", name: "Prime" },
-];
-
 const START_PRICE = 8;
 const END_PRICE = 28;
 const STOCK_BASE = 24;
@@ -217,27 +211,6 @@ async function seedCategories() {
   return idsBySlug;
 }
 
-async function seedBrands() {
-  const ids = [];
-  for (const { slug, name } of BRANDS) {
-    let brand = await prisma.brand.findUnique({ where: { slug } });
-    if (!brand) {
-      brand = await prisma.brand.create({
-        data: {
-          slug,
-          published: true,
-          translations: {
-            create: { locale: "en", name },
-          },
-        },
-      });
-    }
-    ids.push(brand.id);
-  }
-  console.log("[Seed] Brands:", ids.length);
-  return ids;
-}
-
 async function seedFoodAttributes() {
   const result = await upsertFoodAttributes(prisma);
   console.log("[Seed] Food attributes prepared:", Object.keys(result));
@@ -319,7 +292,7 @@ function buildVariantRows(productIndex, basePrice, stock, foodAttributes) {
   });
 }
 
-async function seedProducts(categoryIdsBySlug, brandIds, foodAttributes) {
+async function seedProducts(categoryIdsBySlug, foodAttributes) {
   const sharedMedia = await resolveSharedProductMedia();
   const totalProducts =
     FIGMA_MENU_CATEGORIES.length * PRODUCTS_PER_CATEGORY;
@@ -354,7 +327,6 @@ async function seedProducts(categoryIdsBySlug, brandIds, foodAttributes) {
     for (let itemIndex = 0; itemIndex < productTitles.length; itemIndex++) {
       const title = productTitles[itemIndex];
       const slug = `seed-${category.slug}-${slugify(title)}-${itemIndex + 1}`;
-      const brandId = productIndex % 3 === 0 ? brandIds[productIndex % brandIds.length] : null;
       const basePrice = Number((START_PRICE + priceStep * productIndex).toFixed(2));
       const stock = STOCK_BASE + (productIndex % 27);
       const featured = productIndex < 12;
@@ -368,7 +340,6 @@ async function seedProducts(categoryIdsBySlug, brandIds, foodAttributes) {
 
       const product = await prisma.product.create({
         data: {
-          brandId,
           media: sharedMedia,
           published: true,
           featured,
@@ -436,9 +407,8 @@ async function main() {
   try {
     await seedAdmin();
     const categoryIds = await seedCategories();
-    const brandIds = await seedBrands();
     const foodAttributes = await seedFoodAttributes();
-    await seedProducts(categoryIds, brandIds, foodAttributes);
+    await seedProducts(categoryIds, foodAttributes);
     console.log("=== Seed done ===");
   } catch (e) {
     console.error("Seed error:", e);

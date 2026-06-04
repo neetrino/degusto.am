@@ -6,13 +6,25 @@ import {
   useContext,
   useMemo,
   useState,
+  type Dispatch,
   type ReactNode,
+  type SetStateAction,
 } from 'react';
+import type { Cart } from '@/app/cart/types';
+import { useAuth } from '@/lib/auth/AuthContext';
+import { useTranslation } from '@/lib/i18n-client';
+import { useCartLiveSync } from '@/lib/cart/use-cart-live-sync';
 
 export type CartDrawerContextValue = {
   openCartDrawer: () => void;
   closeCartDrawer: () => void;
   isCartDrawerOpen: boolean;
+  cart: Cart | null;
+  setCart: Dispatch<SetStateAction<Cart | null>>;
+  cartLoading: boolean;
+  setCartLoading: Dispatch<SetStateAction<boolean>>;
+  reloadCart: (options?: { silent?: boolean }) => Promise<void>;
+  scheduleReconcile: () => void;
 };
 
 const CartDrawerContext = createContext<CartDrawerContextValue | undefined>(undefined);
@@ -27,6 +39,16 @@ export function useCartDrawer(): CartDrawerContextValue {
 
 export function CartDrawerProvider({ children }: { children: ReactNode }) {
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
+  const { isLoggedIn } = useAuth();
+  const { t } = useTranslation();
+  const {
+    cart,
+    setCart,
+    cartLoading,
+    setCartLoading,
+    reloadCart,
+    scheduleReconcile,
+  } = useCartLiveSync({ isLoggedIn, t });
 
   const openCartDrawer = useCallback(() => {
     setIsCartDrawerOpen(true);
@@ -41,8 +63,24 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
       openCartDrawer,
       closeCartDrawer,
       isCartDrawerOpen,
+      cart,
+      setCart,
+      cartLoading,
+      setCartLoading,
+      reloadCart,
+      scheduleReconcile,
     }),
-    [closeCartDrawer, isCartDrawerOpen, openCartDrawer]
+    [
+      cart,
+      cartLoading,
+      closeCartDrawer,
+      isCartDrawerOpen,
+      openCartDrawer,
+      reloadCart,
+      scheduleReconcile,
+      setCart,
+      setCartLoading,
+    ]
   );
 
   return <CartDrawerContext.Provider value={value}>{children}</CartDrawerContext.Provider>;

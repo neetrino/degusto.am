@@ -16,10 +16,6 @@ export interface CompareProduct {
   discountPercent: number | null;
   image: string | null;
   inStock: boolean;
-  brand: {
-    id: string;
-    name: string;
-  } | null;
   description?: string;
   categories?: Array<{ id: string; slug: string; title: string }>;
 }
@@ -123,17 +119,6 @@ export function CompareProductsTable({
                   {product.categories && product.categories.length > 0
                     ? product.categories.map((c) => c.title).filter(Boolean).join(', ')
                     : '-'}
-                </td>
-              ))}
-            </tr>
-
-            <tr className="hover:bg-gray-50 transition-colors">
-              <td className="px-4 py-4 text-sm font-medium text-gray-700 bg-gray-50 sticky left-0 z-10">
-                {t('common.compare.brand')}
-              </td>
-              {products.map((product) => (
-                <td key={product.id} className="px-4 py-4 text-center text-sm text-gray-600">
-                  {product.brand ? product.brand.name : '-'}
                 </td>
               ))}
             </tr>

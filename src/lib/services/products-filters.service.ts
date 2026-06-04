@@ -204,7 +204,7 @@ class ProductsFiltersService {
     let rangeMin = Infinity;
     let rangeMax = 0;
 
-    products.forEach((product: ProductWithRelations & { brand?: { id: string; translations?: Array<{ locale: string; name?: string }>; name?: string } | null }) => {
+    products.forEach((product: ProductWithRelations) => {
       if (!product || !product.variants || !Array.isArray(product.variants)) {
         return;
       }

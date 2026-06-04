@@ -85,6 +85,13 @@ export function isQuietAdminDashboardReadServerError(status: number, url: string
 }
 
 /**
+ * Cart line DELETE/PATCH after optimistic UI may target an already-removed row (404).
+ */
+export function isQuietCartItemNotFoundError(status: number, url: string): boolean {
+  return status === 404 && /\/api\/v1\/cart\/items\/[^/]+(?:\?|$)/.test(url);
+}
+
+/**
  * Parse error response from API
  */
 export async function parseErrorResponse(response: Response): Promise<{

@@ -11,11 +11,8 @@ import { useTranslation } from '../../lib/i18n-client';
 import { useAuth } from '../../lib/auth/AuthContext';
 import { logger } from '../../lib/utils/logger';
 import { WishlistHeartIcon } from '../../components/icons/WishlistHeartIcon';
-import {
-  emitWishlistUpdated,
-  getLocalWishlistIds,
-  setLocalWishlistIds,
-} from '../../lib/wishlist';
+import { emitWishlistUpdated } from '../../lib/wishlist';
+import { fetchWishlistIds } from '../../lib/wishlist-api';
 import { MOBILE_SHOP_PRODUCTS_GRID_CLASS } from '../../constants/mobile-figma-storefront';
 import { WishlistProductCard, type WishlistProductCardProduct } from './WishlistProductCard';
 
@@ -75,9 +72,8 @@ export default function WishlistPage() {
 
       const normalizedIds = wishlistProducts.map((product) => product.id);
       if (normalizedIds.length !== idsToLoad.length) {
-        setLocalWishlistIds(normalizedIds);
         setWishlistIds(normalizedIds);
-        window.dispatchEvent(new Event('wishlist-updated'));
+        emitWishlistUpdated();
       }
     } catch (error) {
       logger.error('[Wishlist] Error fetching wishlist products', { error });
@@ -88,45 +84,44 @@ export default function WishlistPage() {
 
   useEffect(() => {
     const hydrateWishlist = async () => {
-      const localIds = getLocalWishlistIds();
-
       if (!isLoggedIn) {
-        setWishlistIds(localIds);
-        fetchWishlistProducts(localIds);
+        setWishlistIds([]);
+        setProducts([]);
+        setLoading(false);
         return;
       }
 
       try {
-        const syncResponse = await apiClient.patch<{ ids?: string[] }>('/api/v1/users/wishlist', {
-          ids: localIds,
-        });
-        const syncedIds = Array.isArray(syncResponse.ids) ? syncResponse.ids : [];
-        const normalizedIds = setLocalWishlistIds(syncedIds);
-        setWishlistIds(normalizedIds);
-        fetchWishlistProducts(normalizedIds);
-        emitWishlistUpdated();
+        const ids = await fetchWishlistIds();
+        setWishlistIds(ids);
+        await fetchWishlistProducts(ids);
       } catch (error) {
-        logger.error('[Wishlist] Failed to sync server wishlist, fallback to local cache', { error });
-        setWishlistIds(localIds);
-        fetchWishlistProducts(localIds);
+        logger.error('[Wishlist] Failed to load server wishlist', { error });
+        setWishlistIds([]);
+        setProducts([]);
+        setLoading(false);
       }
     };
 
-    hydrateWishlist();
+    void hydrateWishlist();
 
-    // Listen for wishlist updates from other components (header, etc.)
-    // But don't re-fetch if we already updated locally
-    const handleWishlistUpdate = () => {
-      // If we just updated locally, skip re-fetch to avoid page reload
+    const handleWishlistUpdate = async () => {
       if (isLocalUpdateRef.current) {
         isLocalUpdateRef.current = false;
         return;
       }
-      
-      // Only re-fetch if update came from external source (another component)
-      const updatedIds = getLocalWishlistIds();
+
+      if (!isLoggedIn) {
+        return;
+      }
+
+      const updatedIds = await fetchWishlistIds();
       setWishlistIds(updatedIds);
-      fetchWishlistProducts(updatedIds);
+      void fetchWishlistProducts(updatedIds);
+    };
+
+    const handleAuthUpdate = () => {
+      void hydrateWishlist();
     };
 
     const handleCurrencyUpdate = () => {
@@ -134,9 +129,11 @@ export default function WishlistPage() {
     };
 
     window.addEventListener('wishlist-updated', handleWishlistUpdate);
+    window.addEventListener('auth-updated', handleAuthUpdate);
     window.addEventListener('currency-updated', handleCurrencyUpdate);
     return () => {
       window.removeEventListener('wishlist-updated', handleWishlistUpdate);
+      window.removeEventListener('auth-updated', handleAuthUpdate);
       window.removeEventListener('currency-updated', handleCurrencyUpdate);
     };
   }, [fetchWishlistProducts, isLoggedIn]);
@@ -150,29 +147,20 @@ export default function WishlistPage() {
     // Optimistic update: remove from UI immediately (no loading state, no page reload)
     const updatedIds = wishlistIds.filter((id) => id !== productId);
     const updatedProducts = products.filter((p) => p.id !== productId);
-    
-    // Update localStorage first
-    setLocalWishlistIds(updatedIds);
-    
-    // Update state immediately (no page reload, no loading spinner)
+
     setWishlistIds(updatedIds);
     setProducts(updatedProducts);
-    
-    // Dispatch event for other components (header, etc.) - but our handler won't re-fetch
-    // because isLocalUpdateRef.current is true
+
     emitWishlistUpdated();
 
-    if (isLoggedIn) {
-      try {
-        await apiClient.delete(`/api/v1/users/wishlist/${productId}`);
-      } catch (error) {
-        logger.error('[Wishlist] Failed to remove item from server wishlist', { error });
-        const rollbackIds = [...wishlistIds];
-        setLocalWishlistIds(rollbackIds);
-        setWishlistIds(rollbackIds);
-        setProducts(products);
-        emitWishlistUpdated();
-      }
+    try {
+      await apiClient.delete(`/api/v1/users/wishlist/${productId}`);
+    } catch (error) {
+      logger.error('[Wishlist] Failed to remove item from server wishlist', { error });
+      const rollbackIds = [...wishlistIds];
+      setWishlistIds(rollbackIds);
+      setProducts(products);
+      emitWishlistUpdated();
     }
   };
 
@@ -294,6 +282,13 @@ export default function WishlistPage() {
             </div>
             <h2 className="mb-2 text-xl font-bold text-gray-900">{t('common.wishlist.empty')}</h2>
             <p className="mb-4 text-sm text-gray-600">{t('common.wishlist.emptyDescription')}</p>
+            {!isLoggedIn ? (
+              <Link href="/login?redirect=/wishlist" className="mb-4 inline-block">
+                <Button variant="primary" size="md" className="!bg-brand hover:!bg-brand-hover focus:!ring-brand">
+                  {t('common.navigation.login')}
+                </Button>
+              </Link>
+            ) : null}
             <Link href="/shop">
               <Button variant="primary" size="md" className="!bg-brand hover:!bg-brand-hover focus:!ring-brand">
                 {t('common.buttons.browseProducts')}

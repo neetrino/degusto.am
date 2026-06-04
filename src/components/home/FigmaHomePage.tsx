@@ -18,6 +18,12 @@ import { getHomeCategoryHref } from './homeCategoryLinks';
 import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
 import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
 import { FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS } from '@/constants/mobile-figma-storefront';
+import {
+  getProductCardWishlistHoverClasses,
+  PRODUCT_CARD_CART_BTN_HOVER_CLASS,
+  PRODUCT_CARD_ICON_BTN_INTERACTION_CLASS,
+  PRODUCT_CARD_WISHLIST_ICON_HOVER_CLASS,
+} from '@/constants/product-card-action-hover';
 import { r2Asset } from '@/lib/r2-public-url';
 import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 import { HomeOptimizedImage } from './HomeOptimizedImage';
@@ -119,10 +125,10 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
       <button
         type="button"
         onClick={handleWishlistToggle}
-        className={`absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border shadow-md transition-colors sm:h-10 sm:w-10 ${
+        className={`absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border shadow-md sm:h-10 sm:w-10 ${PRODUCT_CARD_ICON_BTN_INTERACTION_CLASS} ${getProductCardWishlistHoverClasses(isInWishlist)} ${
           isInWishlist
-            ? 'border-red-600 bg-red-600 text-white hover:bg-red-700'
-            : 'border-[#dedede]/90 bg-white/95 text-gray-700 hover:bg-white'
+            ? 'border-red-600 bg-red-600 text-white'
+            : 'border-[#dedede]/90 bg-white/95 text-gray-700'
         }`}
         title={
           isInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')
@@ -131,7 +137,9 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
           isInWishlist ? t('common.ariaLabels.removeFromWishlist') : t('common.ariaLabels.addToWishlist')
         }
       >
-        <WishlistHeartIcon filled={isInWishlist} size={18} />
+        <span className={PRODUCT_CARD_WISHLIST_ICON_HOVER_CLASS} aria-hidden>
+          <WishlistHeartIcon filled={isInWishlist} size={18} />
+        </span>
       </button>
       <div className="absolute left-[14px] top-[170px] flex items-center gap-[6px]">
         <HomeOptimizedImage
@@ -169,7 +177,7 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
         type="button"
         onClick={handleAddToCart}
         disabled={isAddingToCart || (item.inStock === false)}
-        className="absolute -bottom-[25px] left-1/2 z-20 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center"
+        className={`absolute -bottom-[25px] left-1/2 z-20 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center ${PRODUCT_CARD_CART_BTN_HOVER_CLASS}`}
       >
         <HomeOptimizedImage
           src={assets.productCardAddToCart}

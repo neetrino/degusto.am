@@ -65,7 +65,6 @@ export interface ProductData {
   slug: string;
   subtitle?: string;
   descriptionHtml?: string;
-  brandId?: string | null;
   primaryCategoryId?: string | null;
   categoryIds?: string[];
   attributeIds?: string[]; // All attribute IDs that this product has

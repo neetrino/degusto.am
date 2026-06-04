@@ -33,14 +33,6 @@ class ProductsFindTransformService {
       const translations = Array.isArray(product.translations) ? product.translations : [];
       const translation = translations.find((t: { locale: string }) => t.locale === lang) || translations[0] || null;
       
-      // Безопасное получение brand translation
-      const brandTranslations = product.brand && Array.isArray(product.brand.translations)
-        ? product.brand.translations
-        : [];
-      const brandTranslation = brandTranslations.length > 0
-        ? brandTranslations.find((t: { locale: string }) => t.locale === lang) || brandTranslations[0]
-        : null;
-      
       // Безопасное получение variant
       const variants = Array.isArray(product.variants) ? product.variants : [];
       const variant = variants.length > 0
@@ -160,7 +152,7 @@ class ProductsFindTransformService {
       let finalPrice = originalPrice;
       const productDiscount = product.discountPercent || 0;
       
-      // Calculate applied discount with priority: productDiscount > categoryDiscount > brandDiscount > globalDiscount
+      // Calculate applied discount with priority: productDiscount > categoryDiscount > globalDiscount
       let appliedDiscount = 0;
       if (productDiscount > 0) {
         appliedDiscount = productDiscount;
@@ -194,13 +186,6 @@ class ProductsFindTransformService {
         slug: translation?.slug || "",
         title: translation?.title || "",
         defaultVariantId: variant?.id ?? null,
-        brand: product.brand
-          ? {
-              id: product.brand.id,
-              name: brandTranslation?.name || "",
-              logoUrl: product.brand.logoUrl || null,
-            }
-          : null,
         categories,
         price: finalPrice,
         originalPrice: appliedDiscount > 0 ? originalPrice : variant?.compareAtPrice || null,

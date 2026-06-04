@@ -1,28 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import { problemTypes } from "@/lib/http/problem-details";
-import { authenticateToken } from "@/lib/middleware/auth";
 import { cartService } from "@/lib/services/cart.service";
+import { resolveCartRequestContext } from "@/lib/cart/cart-request-context";
+import {
+  createGuestCartToken,
+  setGuestCartTokenOnResponse,
+} from "@/lib/cart/guest-cart-cookies";
 import { logger } from "@/lib/utils/logger";
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await authenticateToken(req);
-    if (!user) {
-      return NextResponse.json(
-        {
-          type: problemTypes.unauthorized,
-          title: "Unauthorized",
-          status: 401,
-          detail: "Authentication token required",
-          instance: req.url,
-        },
-        { status: 401 }
-      );
-    }
-
+    const { user, locale, guestToken } = await resolveCartRequestContext(req);
     const data = await req.json();
-    const result = await cartService.addItem(user.id, data, user.locale);
-    return NextResponse.json(result, { status: 201 });
+
+    const isNewGuestSession = !user && !guestToken;
+    const activeGuestToken = user ? null : guestToken ?? createGuestCartToken();
+
+    const result = await cartService.addItem(
+      user?.id ?? null,
+      data,
+      locale,
+      activeGuestToken
+    );
+
+    const response = NextResponse.json(result, { status: 201 });
+    if (isNewGuestSession && activeGuestToken) {
+      setGuestCartTokenOnResponse(response, activeGuestToken);
+    }
+    return response;
   } catch (error: unknown) {
     const e = error as {
       status?: number;
@@ -52,4 +57,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-

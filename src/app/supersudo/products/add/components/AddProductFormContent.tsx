@@ -12,7 +12,7 @@ import type {
 import type { CurrencyCode } from '@/lib/currency';
 import { BasicInformation } from './BasicInformation';
 import { ProductImages } from './ProductImages';
-import { CategoriesBrands } from './CategoriesBrands';
+import { ProductCategoriesSection } from './ProductCategoriesSection';
 import { SimpleProductFields } from './SimpleProductFields';
 import { VariantBuilder } from './VariantBuilder';
 import { ProductLabels } from './ProductLabels';
@@ -176,7 +176,7 @@ export function AddProductFormContent({
           onSetFeaturedImage={onSetFeaturedImage}
         />
 
-        <CategoriesBrands
+        <ProductCategoriesSection
           categories={categories}
           categoryIds={formData.categoryIds}
           categoriesExpanded={categoriesExpanded}

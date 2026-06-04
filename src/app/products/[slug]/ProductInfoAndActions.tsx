@@ -125,23 +125,6 @@ export function ProductInfoAndActions({
   return (
     <div className="flex w-full max-w-full flex-col self-start max-lg:px-0 max-lg:py-0 lg:h-full lg:min-h-0 lg:justify-between lg:self-stretch lg:px-0 lg:py-0">
       <div>
-          {product.brand ? (
-            <div className="mb-3 flex items-center gap-2">
-              {product.brand.logo || product.brand.logoUrl ? (
-                <div className="relative h-5 w-5 overflow-hidden rounded-full border border-gray-200">
-                  <Image
-                    src={product.brand.logo || product.brand.logoUrl || ''}
-                    alt={product.brand.name}
-                    fill
-                    className="object-cover"
-                    sizes="20px"
-                    unoptimized
-                  />
-                </div>
-              ) : null}
-              <p className="text-sm text-[#868686]">{product.brand.name}</p>
-            </div>
-          ) : null}
           <h1 className={`${PDP_TITLE_CLASS} ${montserratArmFont.className}`}>
             {getProductText(language, product.id, 'title') || product.title}
           </h1>

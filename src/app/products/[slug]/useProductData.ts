@@ -7,7 +7,9 @@ import { getStoredLanguage } from '../../../lib/language';
 import { apiClient } from '../../../lib/api-client';
 import { getStoredCurrency, type CurrencyCode } from '../../../lib/currency';
 import type { Product } from './types';
-import { RESERVED_ROUTES, WISHLIST_KEY, COMPARE_KEY } from './constants';
+import { RESERVED_ROUTES } from './constants';
+import { fetchWishlistIds } from '../../../lib/wishlist-api';
+import { fetchCompareIds } from '../../../lib/compare-api';
 import {
   processImageUrl,
   smartSplitUrls,
@@ -220,36 +222,30 @@ export function useProductData({
 
   useEffect(() => {
     if (!product) return;
-    const checkWishlist = () => {
-      if (typeof window === 'undefined') return;
-      try {
-        const stored = localStorage.getItem(WISHLIST_KEY);
-        const wishlist = stored ? JSON.parse(stored) : [];
-        setIsInWishlist(wishlist.includes(product.id));
-      } catch {
-        setIsInWishlist(false);
-      }
+    const checkWishlist = async () => {
+      const ids = await fetchWishlistIds();
+      setIsInWishlist(ids.includes(product.id));
     };
-    checkWishlist();
+    void checkWishlist();
     window.addEventListener('wishlist-updated', checkWishlist);
-    return () => window.removeEventListener('wishlist-updated', checkWishlist);
+    window.addEventListener('auth-updated', checkWishlist);
+    return () => {
+      window.removeEventListener('wishlist-updated', checkWishlist);
+      window.removeEventListener('auth-updated', checkWishlist);
+    };
   }, [product?.id]);
 
   useEffect(() => {
     if (!product) return;
-    const checkCompare = () => {
-      if (typeof window === 'undefined') return;
-      try {
-        const stored = localStorage.getItem(COMPARE_KEY);
-        const compare = stored ? JSON.parse(stored) : [];
-        setIsInCompare(compare.includes(product.id));
-      } catch {
-        setIsInCompare(false);
-      }
+    const checkCompare = async () => {
+      const ids = await fetchCompareIds();
+      setIsInCompare(ids.includes(product.id));
     };
-    checkCompare();
+    void checkCompare();
     window.addEventListener('compare-updated', checkCompare);
-    return () => window.removeEventListener('compare-updated', checkCompare);
+    return () => {
+      window.removeEventListener('compare-updated', checkCompare);
+    };
   }, [product?.id]);
 
   useEffect(() => {

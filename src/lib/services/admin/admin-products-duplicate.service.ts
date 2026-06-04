@@ -86,7 +86,6 @@ export async function duplicateProductAsDraft(sourceProductId: string): Promise<
     slug: newSlug,
     subtitle: primary.subtitle ?? undefined,
     descriptionHtml: primary.descriptionHtml ?? undefined,
-    brandId: source.brandId ?? undefined,
     primaryCategoryId: source.primaryCategoryId ?? undefined,
     categoryIds: source.categoryIds ?? [],
     published: false,

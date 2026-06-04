@@ -8,10 +8,11 @@ import { LanguageCurrencySwitcher } from './LanguageCurrencySwitcher';
 import { useTranslation } from '../lib/i18n-client';
 import { useAuth } from '../lib/auth/AuthContext';
 import { apiClient } from '../lib/api-client';
-import { CART_KEY, getWishlistCount } from '../lib/storageCounts';
+import { getWishlistCount } from '../lib/storageCounts';
 import { formatPrice } from '../lib/currency';
 import { useCurrency } from './hooks/useCurrency';
-import { readCartSummaryCache, writeCartSummaryCache } from '../lib/cartSummaryCache';
+import { readCartSummaryCache, writeCartSummaryCache, clearCartSummaryCache } from '../lib/cartSummaryCache';
+import { applyCartBadgeFromDetail, parseCartUpdatedDetail } from '@/lib/cart/cart-events';
 import { useInstantSearch } from './hooks/useInstantSearch';
 import { SearchDropdown } from './SearchDropdown';
 import { useCartDrawer } from './cart-drawer/cart-drawer-context';
@@ -30,11 +31,6 @@ function universalWishlistNavClassName(active: boolean): string {
 
 interface UniversalHeaderProps {
   spacerBackgroundClassName?: string;
-}
-
-interface GuestCartItem {
-  quantity: number;
-  price?: number;
 }
 
 interface CartResponse {
@@ -116,29 +112,7 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
       setCartTotal(cached.total);
     }
 
-    const readGuestCart = () => {
-      try {
-        const stored = localStorage.getItem(CART_KEY);
-        const parsed: unknown = stored ? JSON.parse(stored) : [];
-        const items = Array.isArray(parsed) ? (parsed as GuestCartItem[]) : [];
-        const itemsCount = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
-        const total = items.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
-        setCartCount(itemsCount);
-        setCartTotal(total);
-        writeCartSummaryCache(itemsCount, total);
-      } catch {
-        setCartCount(0);
-        setCartTotal(0);
-        writeCartSummaryCache(0, 0);
-      }
-    };
-
     const fetchCart = async () => {
-      if (!isLoggedIn) {
-        readGuestCart();
-        return;
-      }
-
       try {
         const response = await apiClient.get<CartResponse>('/api/v1/cart');
         setCartCount(response.cart?.itemsCount || 0);
@@ -152,42 +126,19 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
     };
 
     const handleCartUpdated = (event: Event) => {
-      const detail = (event as CustomEvent)?.detail as
-        | { optimisticAdd?: { quantity?: number; price?: number }; itemsCount?: number; total?: number; forceReload?: boolean }
-        | undefined;
-
-      if (detail?.forceReload) {
+      const detail = parseCartUpdatedDetail(event);
+      const result = applyCartBadgeFromDetail(detail, (itemsCount, total) => {
+        setCartCount(itemsCount);
+        setCartTotal(total);
+        writeCartSummaryCache(itemsCount, total);
+      });
+      if (result === 'force-reload' || result === 'miss') {
         void fetchCart();
-        return;
       }
-
-      if (detail?.optimisticAdd) {
-        const nextQuantity = detail.optimisticAdd.quantity ?? 1;
-        const nextPrice = detail.optimisticAdd.price ?? 0;
-        setCartCount((prevCount) => {
-          const nextCount = prevCount + nextQuantity;
-          setCartTotal((prevTotal) => {
-            const nextTotal = prevTotal + nextPrice * nextQuantity;
-            writeCartSummaryCache(nextCount, nextTotal);
-            return nextTotal;
-          });
-          return nextCount;
-        });
-        return;
-      }
-
-      if (detail?.itemsCount !== undefined && detail?.total !== undefined) {
-        setCartCount(detail.itemsCount);
-        setCartTotal(detail.total);
-        writeCartSummaryCache(detail.itemsCount, detail.total);
-        return;
-      }
-
-      void fetchCart();
     };
 
     const refreshWishlistCount = () => {
-      setWishlistCount(getWishlistCount());
+      void getWishlistCount().then(setWishlistCount);
     };
 
     refreshWishlistCount();
@@ -197,6 +148,7 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
     };
 
     const handleAuthForCartAndWishlist = () => {
+      clearCartSummaryCache();
       refreshWishlistCount();
       void fetchCart();
     };

@@ -26,10 +26,6 @@ interface Product {
   compareAtPrice: number | null;
   image: string | null;
   inStock: boolean;
-  brand: {
-    id: string;
-    name: string;
-  } | null;
   defaultVariantId?: string | null;
   colors?: unknown[];
   labels?: Array<{
@@ -168,7 +164,6 @@ export async function ProductsCatalog({
     compareAtPrice: p.compareAtPrice ?? p.originalPrice ?? null,
     image: p.image ?? null,
     inStock: p.inStock ?? true,
-    brand: p.brand ?? null,
     defaultVariantId: p.defaultVariantId ?? null,
     colors: Array.isArray(p.colors) ? p.colors : [],
     labels: p.labels ?? [],

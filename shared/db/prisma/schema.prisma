@@ -39,6 +39,7 @@ model User {
   orders Order[]
   reviews ProductReview[]
   wishlistItems WishlistItem[]
+  compareItems  CompareItem[]
 
   @@index([deletedAt])
   @@map("users")
@@ -110,40 +111,6 @@ model CategoryTranslation {
 }
 
 // ============================================
-// BRAND MODEL
-// ============================================
-model Brand {
-  id           String             @id @default(cuid())
-  slug         String             @unique
-  logoUrl      String?
-  published    Boolean            @default(false)
-  translations BrandTranslation[]
-  deletedAt    DateTime?
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
-
-  // Relations
-  products Product[]
-
-  @@index([published])
-  @@index([deletedAt])
-  @@map("brands")
-}
-
-model BrandTranslation {
-  id          String  @id @default(cuid())
-  brandId     String
-  locale      String
-  name        String
-  description String?
-
-  brand Brand @relation(fields: [brandId], references: [id], onDelete: Cascade)
-
-  @@unique([brandId, locale])
-  @@map("brand_translations")
-}
-
-// ============================================
 // ATTRIBUTE MODEL
 // ============================================
 model Attribute {
@@ -207,7 +174,6 @@ model AttributeValueTranslation {
 // ============================================
 model Product {
   id                String               @id @default(cuid())
-  brandId           String?
   skuPrefix         String?
   media             Json[]               @default([])
   published         Boolean              @default(false)
@@ -228,13 +194,12 @@ model Product {
   updatedAt         DateTime             @updatedAt
 
   // Relations
-  brand      Brand?         @relation(fields: [brandId], references: [id])
   categories Category[]     @relation("ProductCategories")
   cartItems  CartItem[]
   reviews    ProductReview[]
   wishlistItems WishlistItem[]
+  compareItems  CompareItem[]
 
-  @@index([brandId])
   @@index([published, publishedAt])
   @@index([featured])
   @@index([deletedAt])
@@ -254,6 +219,22 @@ model WishlistItem {
   @@index([userId, createdAt(sort: Desc)])
   @@index([productId])
   @@map("wishlist_items")
+}
+
+model CompareItem {
+  id        String   @id @default(cuid())
+  ownerKey  String
+  userId    String?
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([ownerKey, productId])
+  @@index([ownerKey, createdAt(sort: Desc)])
+  @@index([productId])
+  @@map("compare_items")
 }
 
 model ProductTranslation {

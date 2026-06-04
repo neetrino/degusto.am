@@ -448,7 +448,6 @@
       "sizeNameRequired": "Size name is required",
       "sizeAddedSuccess": "Size \"{name}\" successfully added",
       "failedToAddSize": "Failed to add size",
-      "brandCreatedSuccess": "Brand \"{name}\" successfully created",
       "categoryCreatedSuccess": "Category \"{name}\" successfully created",
       "categoryCreatedSuccessSizes": "Category \"{name}\" successfully created (sizes required)",
       "failedToProcessImages": "Failed to process selected images",

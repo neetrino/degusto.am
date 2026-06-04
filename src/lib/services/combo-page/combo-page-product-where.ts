@@ -1,6 +1,9 @@
-import { storefrontAmdPriceBoundToVariantUsd } from '@/lib/currency';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
 import { buildProductWhereTasteCapability } from '@/lib/product-food-attributes';
+import {
+  buildPublishedVariantPriceSomeWhere,
+  resolveVariantUsdBoundsFromAmd,
+} from '@/lib/storefront/variant-price-filter';
 import type { Prisma } from '@prisma/client';
 import type { ComboMenuQuery } from './combo-page-query.types';
 import { getShopProductSelect } from '../shop-page/shop-page-product-where';
@@ -22,10 +25,9 @@ export function buildComboProductWhereBase(
   locale: StorefrontLocale,
   query: ComboMenuQuery
 ): Prisma.ProductWhereInput {
-  const minPriceUsd =
-    query.minPriceAmd !== null ? storefrontAmdPriceBoundToVariantUsd(query.minPriceAmd) : null;
-  const maxPriceUsd =
-    query.maxPriceAmd !== null ? storefrontAmdPriceBoundToVariantUsd(query.maxPriceAmd) : null;
+  const variantPriceSome = buildPublishedVariantPriceSomeWhere(
+    resolveVariantUsdBoundsFromAmd(query.minPriceAmd, query.maxPriceAmd)
+  );
 
   return {
     published: true,
@@ -54,17 +56,7 @@ export function buildComboProductWhereBase(
           },
         }
       : {}),
-    ...(minPriceUsd !== null || maxPriceUsd !== null
-      ? {
-          variants: {
-            some: {
-              published: true,
-              ...(minPriceUsd !== null ? { price: { gte: minPriceUsd } } : {}),
-              ...(maxPriceUsd !== null ? { price: { lte: maxPriceUsd } } : {}),
-            },
-          },
-        }
-      : {}),
+    ...(variantPriceSome ? { variants: { some: variantPriceSome } } : {}),
     ...(query.tasteFilter ? buildProductWhereTasteCapability(query.tasteFilter) : {}),
   };
 }

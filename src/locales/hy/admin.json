@@ -448,7 +448,6 @@
       "sizeNameRequired": "Չափի անվանումը պարտադիր է",
       "sizeAddedSuccess": "Չափ \"{name}\" հաջողությամբ ավելացվեց",
       "failedToAddSize": "Չհաջողվեց ավելացնել չափ",
-      "brandCreatedSuccess": "Բրենդ \"{name}\" հաջողությամբ ստեղծվեց",
       "categoryCreatedSuccess": "Կատեգորիա \"{name}\" հաջողությամբ ստեղծվեց",
       "categoryCreatedSuccessSizes": "Կատեգորիա \"{name}\" հաջողությամբ ստեղծվեց (չափեր պահանջվում են)",
       "failedToProcessImages": "Չհաջողվեց մշակել ընտրված պատկերները",

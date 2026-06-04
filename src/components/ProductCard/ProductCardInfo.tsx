@@ -1,14 +1,11 @@
 'use client';
 
-import Image from 'next/image';
 import { formatPrice } from '../../lib/currency';
 import { ProductColors } from './ProductColors';
 import type { CurrencyCode } from '../../lib/currency';
 
 interface ProductCardInfoProps {
   title: string;
-  brandName?: string | null;
-  brandLogoUrl?: string | null;
   price: number;
   originalPrice?: number | null;
   compareAtPrice?: number | null;
@@ -19,12 +16,10 @@ interface ProductCardInfoProps {
 }
 
 /**
- * Component for displaying product information (title, brand, price, colors)
+ * Component for displaying product information (title, price, colors)
  */
 export function ProductCardInfo({
   title,
-  brandName,
-  brandLogoUrl,
   price,
   originalPrice,
   compareAtPrice,
@@ -38,21 +33,6 @@ export function ProductCardInfo({
       <h3 className={`${isCompact ? 'text-base' : 'text-xl'} font-medium text-gray-900 ${isCompact ? 'mb-0.5' : 'mb-1'} line-clamp-2`}>
         {title}
       </h3>
-
-      {brandLogoUrl ? (
-        <div className={`${isCompact ? 'mb-1' : 'mb-2'}`}>
-          <div className={`relative ${isCompact ? 'h-4 w-4' : 'h-6 w-6'}`}>
-            <Image
-              src={brandLogoUrl}
-              alt={brandName || 'Brand logo'}
-              fill
-              className="object-contain"
-              sizes={isCompact ? '16px' : '24px'}
-              unoptimized
-            />
-          </div>
-        </div>
-      ) : null}
 
       {/* Available Colors */}
       {colors && colors.length > 0 && (

@@ -24,11 +24,6 @@ export interface ProductFilters {
 export type ProductWithRelations = Prisma.ProductGetPayload<{
   include: {
     translations: true;
-    brand: {
-      include: {
-        translations: true;
-      };
-    };
     variants: {
       include: {
         options: {

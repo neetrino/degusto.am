@@ -16,14 +16,15 @@ import {
 import { SearchDropdown } from './SearchDropdown';
 import { useAuth } from '../lib/auth/AuthContext';
 import { apiClient } from '../lib/api-client';
-import { CART_KEY, getCompareCount, getWishlistCount } from '../lib/storageCounts';
+import { getCompareCount, getWishlistCount } from '../lib/storageCounts';
 import { LanguageSwitcherHeader } from './LanguageSwitcherHeader';
 import { Instagram, Facebook, Linkedin, Globe } from 'lucide-react';
 import { CompareIcon } from './icons/CompareIcon';
 import { WishlistHeaderHeartIcon } from './icons/WishlistHeaderHeartIcon';
 import { BrandLogoLink } from './BrandLogoLink';
 import { CartIcon } from './icons/CartIcon';
-import { readCartSummaryCache, writeCartSummaryCache } from '../lib/cartSummaryCache';
+import { readCartSummaryCache, writeCartSummaryCache, clearCartSummaryCache } from '../lib/cartSummaryCache';
+import { applyCartBadgeFromDetail, parseCartUpdatedDetail } from '@/lib/cart/cart-events';
 import { useCartDrawer } from './cart-drawer/cart-drawer-context';
 import { SITE_CONTACT_PHONES } from '../lib/site-contact';
 import { navigateToProductPage, prefetchProductRoute } from '@/lib/products/prefetch-product-route';
@@ -315,37 +316,6 @@ export function Header() {
   }, [router, searchResults, searchSelectedIndex]);
 
   const fetchCart = async () => {
-    if (!isLoggedIn) {
-      if (typeof window === 'undefined') {
-        setCartCount(0);
-        setCartTotal(0);
-        return;
-      }
-
-      try {
-        const stored = localStorage.getItem(CART_KEY);
-        const guestCart: Array<{ productId: string; productSlug?: string; variantId: string; quantity: number; price?: number }> = stored ? JSON.parse(stored) : [];
-
-        if (guestCart.length === 0) {
-          setCartCount(0);
-          setCartTotal(0);
-          return;
-        }
-
-        const itemsCount = guestCart.reduce((sum, item) => sum + item.quantity, 0);
-        const total = guestCart.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
-        setCartCount(itemsCount);
-        setCartTotal(total);
-        writeCartSummaryCache(itemsCount, total);
-      } catch (error) {
-        console.error('Error loading guest cart:', error);
-        setCartCount(0);
-        setCartTotal(0);
-        writeCartSummaryCache(0, 0);
-      }
-      return;
-    }
-
     try {
       const response = await apiClient.get<{
         cart: {
@@ -353,7 +323,7 @@ export function Header() {
           totals: {
             total: number;
           };
-        };
+        } | null;
       }>('/api/v1/cart');
 
       setCartCount(response.cart?.itemsCount || 0);
@@ -373,7 +343,7 @@ export function Header() {
     }
   };
 
-  // Load wishlist and compare counts from localStorage
+  // Load wishlist and compare counts from database
   useEffect(() => {
     const cached = readCartSummaryCache();
     if (cached) {
@@ -381,60 +351,40 @@ export function Header() {
       setCartTotal(cached.total);
     }
 
-    const updateCounts = () => {
-      setWishlistCount(getWishlistCount());
-      setCompareCount(getCompareCount());
+    const refreshBadgeCounts = async () => {
+      const [wishlist, compare] = await Promise.all([getWishlistCount(), getCompareCount()]);
+      setWishlistCount(wishlist);
+      setCompareCount(compare);
     };
 
     // Initial load
-    updateCounts();
+    void refreshBadgeCounts();
 
     // Listen for updates
     const handleWishlistUpdate = () => {
-      setWishlistCount(getWishlistCount());
+      void getWishlistCount().then(setWishlistCount);
     };
 
     const handleCompareUpdate = () => {
-      setCompareCount(getCompareCount());
+      void getCompareCount().then(setCompareCount);
     };
 
     const handleAuthUpdate = () => {
-      // Refresh counts when auth state changes
-      updateCounts();
+      clearCartSummaryCache();
+      void refreshBadgeCounts();
       fetchCart();
     };
 
     const handleCartUpdate = (e: Event) => {
-      const detail = (e as CustomEvent)?.detail as
-        | { optimisticAdd?: { quantity?: number; price?: number }; itemsCount?: number; total?: number; forceReload?: boolean }
-        | undefined;
-
-      if (detail?.forceReload) {
+      const detail = parseCartUpdatedDetail(e);
+      const result = applyCartBadgeFromDetail(detail, (itemsCount, total) => {
+        setCartCount(itemsCount);
+        setCartTotal(total);
+        writeCartSummaryCache(itemsCount, total);
+      });
+      if (result === 'force-reload' || result === 'miss') {
         fetchCart();
-        return;
       }
-
-      if (detail?.optimisticAdd) {
-        const nextQuantity = detail.optimisticAdd.quantity ?? 1;
-        const nextPrice = detail.optimisticAdd.price ?? 0;
-        setCartCount((c) => {
-          const nextCount = c + nextQuantity;
-          setCartTotal((t) => {
-            const nextTotal = t + nextPrice * nextQuantity;
-            writeCartSummaryCache(nextCount, nextTotal);
-            return nextTotal;
-          });
-          return nextCount;
-        });
-        return;
-      }
-      if (detail?.itemsCount !== undefined && detail?.total !== undefined) {
-        setCartCount(detail.itemsCount);
-        setCartTotal(detail.total);
-        writeCartSummaryCache(detail.itemsCount, detail.total);
-        return;
-      }
-      fetchCart();
     };
 
     window.addEventListener('wishlist-updated', handleWishlistUpdate);

@@ -43,7 +43,7 @@ function ProductsHeaderContent({ total, perPage }: ProductsHeaderProps) {
     : 12;
 
   const hasActiveFilters = (() => {
-    const filterKeys = ['search', 'category', 'minPrice', 'maxPrice', 'colors', 'sizes', 'brand'];
+    const filterKeys = ['search', 'category', 'minPrice', 'maxPrice', 'colors', 'sizes'];
     return filterKeys.some((key) => !!searchParams.get(key));
   })();
 
@@ -113,7 +113,7 @@ function ProductsHeaderContent({ total, perPage }: ProductsHeaderProps) {
 
   const handleClearFilters = () => {
     const params = new URLSearchParams(searchParams.toString());
-    const filterKeys = ['search', 'category', 'minPrice', 'maxPrice', 'colors', 'sizes', 'brand'];
+    const filterKeys = ['search', 'category', 'minPrice', 'maxPrice', 'colors', 'sizes'];
 
     filterKeys.forEach((key) => params.delete(key));
     // Reset page when filters are cleared
