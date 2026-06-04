@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { Card } from '@shop/ui';
-import { ArrowRight, Leaf } from 'lucide-react';
+import { Leaf } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const ABOUT_HERO_IMAGE = '/images/about-hero.png';
@@ -50,9 +50,6 @@ export function AboutHeroSection({ t }: { t: AboutTranslate }) {
                 sizes="(max-width: 1024px) 100vw, 50vw"
               />
             </div>
-            <div className="absolute -bottom-9 left-1/2 flex h-20 w-20 -translate-x-1/2 items-center justify-center rounded-full border border-[#C9A45C] bg-[#163F2E] text-[#FAF2E5] shadow-[0_12px_22px_-10px_rgba(18,63,42,0.55)] md:h-[5.5rem] md:w-[5.5rem]">
-              <Leaf className="h-8 w-8" strokeWidth={1.8} />
-            </div>
           </motion.div>
 
           <motion.div
@@ -82,13 +79,6 @@ export function AboutHeroSection({ t }: { t: AboutTranslate }) {
               <p>{t('about.description.paragraph2')}</p>
               <p>{t('about.description.paragraph3')}</p>
             </div>
-            <button
-              type="button"
-              className="group inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#B94A24] px-7 py-4 text-sm font-semibold uppercase tracking-[0.05em] text-white shadow-[0_14px_26px_-14px_rgba(185,74,36,0.9)] transition-all duration-300 hover:bg-[#A34020] hover:shadow-[0_18px_30px_-14px_rgba(163,64,32,0.9)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B94A24] focus-visible:ring-offset-2 sm:w-fit sm:justify-start md:text-base"
-            >
-              <span>{t('about.ctaLearnMore')}</span>
-              <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
-            </button>
           </motion.div>
         </div>
       </div>
@@ -118,25 +108,20 @@ export function AboutStatsSection({
       </div>
       <div className={`${SECTION_GUTTERS} relative`}>
         <Card className="rounded-[30px] border-[rgba(201,164,92,0.33)] bg-[#FFFDF7]/78 p-6 shadow-[0_18px_38px_-24px_rgba(22,63,46,0.45)] backdrop-blur-[2px] md:p-9 lg:rounded-[34px] lg:p-10">
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.1fr_1fr] lg:items-end lg:gap-10">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#B94A24] md:text-sm">
-                {t('about.trust.subtitle')}
-              </p>
-              <div className="mt-3 inline-flex w-fit flex-col">
-                <h2 className="text-2xl font-semibold text-[#163F2E] md:text-3xl lg:text-4xl">
-                  {t('about.trust.title')}
-                </h2>
-                <div className="mt-4 flex items-center gap-3" aria-hidden="true">
-                  <span className="h-px flex-1 bg-[#C9A45C]/75" />
-                  <Leaf className="h-4 w-4 text-[#C9A45C]" strokeWidth={1.7} />
-                  <span className="h-px flex-1 bg-[#C9A45C]/60" />
-                </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#B94A24] md:text-sm">
+              {t('about.trust.subtitle')}
+            </p>
+            <div className="mt-3 inline-flex w-fit flex-col">
+              <h2 className="text-2xl font-semibold text-[#163F2E] md:text-3xl lg:text-4xl">
+                {t('about.trust.title')}
+              </h2>
+              <div className="mt-4 flex items-center gap-3" aria-hidden="true">
+                <span className="h-px flex-1 bg-[#C9A45C]/75" />
+                <Leaf className="h-4 w-4 text-[#C9A45C]" strokeWidth={1.7} />
+                <span className="h-px flex-1 bg-[#C9A45C]/60" />
               </div>
             </div>
-            <p className="max-w-xl text-sm leading-7 text-[#5F6B66] md:text-base md:leading-8 lg:justify-self-end">
-              {t('about.trust.description')}
-            </p>
           </div>
 
           <div className="mt-9 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:mt-10 lg:grid-cols-4 lg:gap-6">

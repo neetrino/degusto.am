@@ -32,6 +32,8 @@ const socialLinks = {
   viber: 'viber://chat?number=%2B37460388080',
 };
 
+const NEETRINO_WEBSITE_URL = 'https://neetrino.com/';
+
 const footerStoreAddresses = [
   'Պարույր Սևակի 92',
   'Բագրատունյաց 11Ա',
@@ -247,12 +249,15 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
               </Link>
               <p className="text-[14px] leading-[23px] text-white lg:pr-[24px]">
                 Copyright © 2026 | All rights reserved | Created by{' '}
-                <span
-                  className={`font-black text-[#ff7f20] ${footerOrangeHeadingFontProps.className}`}
+                <a
+                  href={NEETRINO_WEBSITE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`font-black text-[#ff7f20] transition-colors hover:text-[#ff9a52] hover:underline ${footerOrangeHeadingFontProps.className}`}
                   style={footerOrangeHeadingFontProps.style}
                 >
                   Neetrino IT Company
-                </span>
+                </a>
               </p>
               <div className="flex items-center gap-[11px]">
                 <span className="inline-flex h-[30px] w-[73px] items-center justify-center rounded-lg bg-white px-1">

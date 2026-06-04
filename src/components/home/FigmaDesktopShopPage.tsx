@@ -16,7 +16,6 @@ import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges
 import { StorefrontProductOverlayLink } from './StorefrontProductOverlayLink';
 import { usePrefetchProductWhenVisible } from '../hooks/usePrefetchProductWhenVisible';
 import { prefetchProductRoute } from '@/lib/products/prefetch-product-route';
-import { PRODUCT_CARD_INTERACTIVE_Z_CLASS } from '@/constants/product-card-stacking';
 import type { MenuCard, MenuCategory } from './menu-types';
 import { ShopMobileProductCard } from './ShopMobileProductCard';
 import { StoreMenuPagination } from './StoreMenuPagination';
@@ -50,6 +49,16 @@ const assets = {
   switcherLeafRibbon: r2Asset('product/20260512-vCDQ1I3ZtJ.svg'),
   switcherPepper: r2Asset('product/20260512-Y6Ue4PwD26.svg'),
 };
+
+/** Desktop shop grid card — 3 columns, taller product photo (was 147px @ 227px wide). */
+const DESKTOP_MENU_CARD_HEIGHT_CLASS = 'h-[330px]';
+const DESKTOP_MENU_CARD_META_TOP_CLASS = 'top-[215px]';
+const DESKTOP_MENU_CARD_TITLE_TOP_CLASS = 'top-[239px]';
+const DESKTOP_MENU_CARD_PRICE_TOP_CLASS = 'top-[282px]';
+const DESKTOP_MENU_CARD_COMPARE_PRICE_TOP_CLASS = 'top-[308px]';
+const DESKTOP_MENU_PRODUCTS_GRID_CLASS = 'grid grid-cols-3 gap-x-[30px] gap-y-[48px]';
+const DESKTOP_MENU_CARD_IMAGE_FRAME_CLASS =
+  'relative mx-auto mt-1 h-[180px] w-[calc(100%-10px)]';
 
 /** Debounce before writing search to the URL (server refetch); avoids one request per key. */
 const SEARCH_QUERY_URL_DEBOUNCE_MS = 250;
@@ -271,46 +280,58 @@ function MenuCardItem({ card }: { card: MenuCard }) {
     <article
       ref={visibilityRef}
       data-home-product-card
-      className={`relative h-[284px] w-[236px] shrink-0 cursor-pointer rounded-[20px] border-[1.5px] border-[#dedede] bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} hover:shadow-md`}
+      className={`relative ${DESKTOP_MENU_CARD_HEIGHT_CLASS} w-full shrink-0 cursor-pointer rounded-[20px] border-[1.5px] border-[#dedede] bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} hover:shadow-md`}
       onMouseEnter={warmProductRoute}
       onFocus={warmProductRoute}
       onPointerDown={warmProductRoute}
       onTouchStart={warmProductRoute}
     >
-      <div data-product-fly-origin className="absolute left-1/2 top-1 h-[147px] w-[227px] -translate-x-1/2">
-        <img src={imageSrc} alt={title} className="h-full w-full rounded-[18px] object-cover" />
+      <StorefrontProductOverlayLink slug={card.slug} label={title} />
+      <div className={DESKTOP_MENU_CARD_IMAGE_FRAME_CLASS}>
+        <div data-product-fly-origin className="h-full w-full overflow-hidden rounded-[18px]">
+          <img src={imageSrc} alt={title} className="h-full w-full object-cover" />
+        </div>
+        <HomeProductFoodAttributeBadges
+          variant="desktop-card"
+          supportsSpicy={card.supportsSpicy ?? false}
+          supportsGreens={card.supportsGreens ?? false}
+          hotIconSrc={assets.productCardHot}
+          greensIconSrc={assets.productCardRibbon}
+        />
+        <button
+          type="button"
+          onClick={handleWishlistToggle}
+          className={`absolute right-2 top-2 z-20 flex h-9 w-9 items-center justify-center rounded-full border shadow-md sm:h-10 sm:w-10 ${PRODUCT_CARD_ICON_BTN_INTERACTION_CLASS} ${getProductCardWishlistHoverClasses(isInWishlist)} ${
+            isInWishlist
+              ? 'border-red-600 bg-red-600 text-white'
+              : 'border-[#dedede]/90 bg-white/95 text-gray-700'
+          }`}
+          title={
+            isInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')
+          }
+          aria-label={
+            isInWishlist ? t('common.ariaLabels.removeFromWishlist') : t('common.ariaLabels.addToWishlist')
+          }
+        >
+          <span className={PRODUCT_CARD_WISHLIST_ICON_HOVER_CLASS} aria-hidden>
+            <WishlistHeartIcon filled={isInWishlist} size={18} />
+          </span>
+        </button>
       </div>
-      <HomeProductFoodAttributeBadges
-        variant="desktop-card"
-        supportsSpicy={card.supportsSpicy ?? false}
-        supportsGreens={card.supportsGreens ?? false}
-        hotIconSrc={assets.productCardHot}
-        greensIconSrc={assets.productCardRibbon}
-      />
       <button
         type="button"
-        onClick={handleWishlistToggle}
-        className={`absolute right-3 top-3 ${PRODUCT_CARD_INTERACTIVE_Z_CLASS} flex h-9 w-9 items-center justify-center rounded-full border shadow-md sm:h-10 sm:w-10 ${PRODUCT_CARD_ICON_BTN_INTERACTION_CLASS} ${getProductCardWishlistHoverClasses(isInWishlist)} ${
-          isInWishlist
-            ? 'border-red-600 bg-red-600 text-white'
-            : 'border-[#dedede]/90 bg-white/95 text-gray-700'
-        }`}
-        title={
-          isInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')
-        }
-        aria-label={
-          isInWishlist ? t('common.ariaLabels.removeFromWishlist') : t('common.ariaLabels.addToWishlist')
-        }
+        onClick={handleAddToCart}
+        disabled={isAddingToCart || (card.inStock === false)}
+        aria-label={t('common.buttons.addToCart')}
+        className={`absolute -bottom-[25px] left-1/2 z-20 inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center disabled:opacity-50 ${PRODUCT_CARD_CART_BTN_HOVER_CLASS}`}
       >
-        <span className={PRODUCT_CARD_WISHLIST_ICON_HOVER_CLASS} aria-hidden>
-          <WishlistHeartIcon filled={isInWishlist} size={18} />
-        </span>
+        <img src={assets.productCardAddToCart} alt="" className="h-[52px] w-[51px] object-contain" />
       </button>
-      <div className="absolute left-[14px] top-[170px] flex items-center gap-[6px]">
+      <div className={`absolute left-[14px] ${DESKTOP_MENU_CARD_META_TOP_CLASS} flex items-center gap-[6px]`}>
         <img src={assets.productCardStar} alt="" className="h-5 w-5 object-contain" />
         <p className="text-base font-medium leading-[1.35] text-[rgba(60,47,47,0.62)]">4.7</p>
       </div>
-      <div className="absolute left-[14px] top-[194px] w-[130px] min-w-0">
+      <div className={`absolute left-[14px] right-[100px] ${DESKTOP_MENU_CARD_TITLE_TOP_CLASS} min-w-0`}>
         <h3 className="text-base font-bold leading-[1.05] text-[#3c2f2f]">
           <span className="block max-h-[34px] overflow-hidden break-words">{title}</span>
         </h3>
@@ -319,26 +340,16 @@ function MenuCardItem({ card }: { card: MenuCard }) {
         ) : null}
       </div>
       {hasDiscount ? (
-        <span className="absolute right-px top-[170px] inline-flex h-[30px] items-center rounded-[60px] bg-[#ff7f20] px-[17px] text-sm font-bold leading-none text-black">
+        <span className={`absolute right-px ${DESKTOP_MENU_CARD_META_TOP_CLASS} inline-flex h-[30px] items-center rounded-[60px] bg-[#ff7f20] px-[17px] text-sm font-bold leading-none text-black`}>
           {discountText}
         </span>
       ) : null}
-      <p className="absolute right-[14px] top-[236px] text-[20px] font-black leading-none text-[#3c2f2f]">{formatPrice(card.price, currency)}</p>
+      <p className={`absolute right-[14px] ${DESKTOP_MENU_CARD_PRICE_TOP_CLASS} text-[20px] font-black leading-none text-[#3c2f2f]`}>{formatPrice(card.price, currency)}</p>
       {showStrikethroughPrice ? (
-        <p className="absolute right-[14px] top-[262px] text-sm font-light leading-none text-[#3c2f2f] line-through">
+        <p className={`absolute right-[14px] ${DESKTOP_MENU_CARD_COMPARE_PRICE_TOP_CLASS} text-sm font-light leading-none text-[#3c2f2f] line-through`}>
           {formatPrice(card.oldPrice, currency)}
         </p>
       ) : null}
-      <button
-        type="button"
-        onClick={handleAddToCart}
-        disabled={isAddingToCart || (card.inStock === false)}
-        aria-label={t('common.buttons.addToCart')}
-        className={`absolute -bottom-[25px] left-1/2 ${PRODUCT_CARD_INTERACTIVE_Z_CLASS} inline-flex h-[52px] w-[51px] -translate-x-1/2 items-center justify-center ${PRODUCT_CARD_CART_BTN_HOVER_CLASS}`}
-      >
-        <img src={assets.productCardAddToCart} alt="" className="h-[52px] w-[51px] object-contain" />
-      </button>
-      <StorefrontProductOverlayLink slug={card.slug} label={title} />
     </article>
   );
 }
@@ -836,7 +847,7 @@ export function FigmaDesktopMenuPage({
           {isProductsPending ? (
             <ShopDesktopProductsSkeleton />
           ) : desktopMenuCards.length > 0 ? (
-            <div className="grid grid-cols-4 gap-x-[30px] gap-y-[34px]">
+            <div className={DESKTOP_MENU_PRODUCTS_GRID_CLASS}>
               {desktopMenuCards.map((card) => (
                 <MenuCardItem key={card.id} card={card} />
               ))}

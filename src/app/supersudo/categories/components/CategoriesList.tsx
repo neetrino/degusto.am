@@ -153,7 +153,7 @@ export function CategoriesList({
                 <th className={`${ADMIN_TABLE_TH} w-10`} aria-hidden />
                 <th className={ADMIN_TABLE_TH}>{t('admin.categories.image')}</th>
                 <th className={ADMIN_TABLE_TH}>{t('admin.categories.categoryTitle')}</th>
-                <th className={ADMIN_TABLE_TH}>{t('admin.products.category')}</th>
+                <th className={ADMIN_TABLE_TH}>{t('admin.categories.parentCategory')}</th>
                 <th className={ADMIN_TABLE_TH_CENTER}>{t('admin.products.actions')}</th>
               </tr>
             </thead>
@@ -171,11 +171,7 @@ export function CategoriesList({
                     <SortableCategoryRow
                       key={category.id}
                       category={category}
-                      parentTitle={
-                        parentCategory
-                          ? parentCategory.title
-                          : t('admin.categories.rootCategory')
-                      }
+                      parentTitle={parentCategory ? parentCategory.title : '-'}
                       dragEnabled={dragEnabled}
                       processImageUrl={processImageUrl}
                       onEdit={onEdit}

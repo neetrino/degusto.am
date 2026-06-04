@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { BodyBackground } from '../../../components/BodyBackground';
 import { useTranslation } from '../../../lib/i18n-client';
 import { CHECKOUT_TEXT_INK_MUTED } from '../checkout-ui';
+import { resetCartBadgeState } from '../../../lib/cart/cart-events';
 
 const REDIRECT_DELAY_MS = 1500;
 
@@ -15,6 +16,10 @@ export default function CheckoutPaymentGatewayPage() {
   const orderNumber = searchParams.get('order');
   const provider = searchParams.get('provider');
   const isGuest = searchParams.get('guest') === '1';
+
+  useEffect(() => {
+    resetCartBadgeState();
+  }, []);
 
   useEffect(() => {
     if (!orderNumber) {

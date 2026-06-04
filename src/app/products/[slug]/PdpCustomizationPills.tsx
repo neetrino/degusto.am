@@ -70,6 +70,7 @@ interface CustomizationPillProps {
   oppositeSelectedLabels: string[];
   oppositeMarker: OppositeMarker;
   checkboxMode: CustomizationCheckboxMode;
+  pillsRowRef: RefObject<HTMLElement | null>;
   onChange: (value: string) => void;
 }
 
@@ -124,9 +125,33 @@ function usePortalTarget(): HTMLElement | null {
   return target;
 }
 
+function measurePillsRowBounds(container: HTMLElement): { left: number; width: number } | null {
+  const triggers = container.querySelectorAll<HTMLButtonElement>(
+    'button[aria-controls][aria-expanded]',
+  );
+  if (triggers.length === 0) {
+    return null;
+  }
+
+  let left = Infinity;
+  let right = -Infinity;
+  triggers.forEach((button) => {
+    const rect = button.getBoundingClientRect();
+    left = Math.min(left, rect.left);
+    right = Math.max(right, rect.right);
+  });
+
+  if (!Number.isFinite(left) || !Number.isFinite(right) || right <= left) {
+    return null;
+  }
+
+  return { left, width: right - left };
+}
+
 function useDropdownPosition(
   open: boolean,
-  triggerRef: RefObject<HTMLButtonElement | null>
+  triggerRef: RefObject<HTMLButtonElement | null>,
+  pillsRowRef: RefObject<HTMLElement | null>,
 ): DropdownPosition | null {
   const [position, setPosition] = useState<DropdownPosition | null>(null);
 
@@ -142,10 +167,14 @@ function useDropdownPosition(
         return;
       }
       const rect = trigger.getBoundingClientRect();
+      const rowBounds = pillsRowRef.current
+        ? measurePillsRowBounds(pillsRowRef.current)
+        : null;
+
       setPosition({
         top: rect.bottom + PDP_CUSTOMIZATION_DROPDOWN_OFFSET_PX,
-        left: rect.left,
-        width: Math.min(rect.width, DROPDOWN_MAX_WIDTH_PX),
+        left: rowBounds?.left ?? rect.left,
+        width: rowBounds?.width ?? Math.min(rect.width, DROPDOWN_MAX_WIDTH_PX),
       });
     };
 
@@ -156,7 +185,7 @@ function useDropdownPosition(
       window.removeEventListener('scroll', update, true);
       window.removeEventListener('resize', update);
     };
-  }, [open, triggerRef]);
+  }, [open, pillsRowRef, triggerRef]);
 
   return position;
 }
@@ -170,6 +199,7 @@ function CustomizationPill({
   oppositeSelectedLabels,
   oppositeMarker,
   checkboxMode,
+  pillsRowRef,
   onChange,
 }: CustomizationPillProps) {
   const [open, setOpen] = useState(false);
@@ -177,7 +207,7 @@ function CustomizationPill({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const portalTarget = usePortalTarget();
-  const position = useDropdownPosition(open, triggerRef);
+  const position = useDropdownPosition(open, triggerRef, pillsRowRef);
   const isAdditions = kind === 'additions';
   const label = isAdditions
     ? t(language, 'product.customizationAddShort')
@@ -206,14 +236,14 @@ function CustomizationPill({
       <div
         ref={panelRef}
         id={panelId}
-        className={`fixed ${PDP_CUSTOMIZATION_DROPDOWN_Z_CLASS} rounded-[1.25rem] border border-[#dedede] bg-white p-3 shadow-lg`}
+        className={`fixed ${PDP_CUSTOMIZATION_DROPDOWN_Z_CLASS} overflow-x-hidden rounded-[1.25rem] border border-[#dedede] bg-white p-3 shadow-lg`}
         style={{
           top: position.top,
           left: position.left,
           width: position.width,
         }}
       >
-        <ul className="max-h-56 space-y-1 overflow-y-auto">
+        <ul className="max-h-56 space-y-1 overflow-x-hidden overflow-y-auto">
           {options.map((option) => {
             const inputId = `${panelId}-${option.id}`;
             const checked =
@@ -240,6 +270,33 @@ function CustomizationPill({
               );
             }
 
+            if (checkboxMode === 'defaultIncluded') {
+              const toggleLabel = checked
+                ? t(language, 'product.customizationExcludeShort')
+                : t(language, 'product.customizationAddShort');
+              return (
+                <li key={option.id}>
+                  <div className="flex items-center gap-2 rounded-xl px-2 py-2 text-sm">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onChange(toggleDefaultIngredientIncluded(value, option.label))
+                      }
+                      className="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff7f20] focus-visible:ring-offset-2"
+                      aria-label={`${toggleLabel} — ${option.label}`}
+                    >
+                      <CustomizationOppositeMarker marker={checked ? 'plus' : 'minus'} />
+                    </button>
+                    <span
+                      className={`min-w-0 flex-1 break-words ${checked ? 'text-[#3c2f2f]' : 'text-[#868686]'}`}
+                    >
+                      {option.label}
+                    </span>
+                  </div>
+                </li>
+              );
+            }
+
             return (
               <li key={option.id}>
                 <label
@@ -250,19 +307,10 @@ function CustomizationPill({
                     id={inputId}
                     type="checkbox"
                     checked={checked}
-                    onChange={() =>
-                      onChange(
-                        checkboxMode === 'defaultIncluded'
-                          ? toggleDefaultIngredientIncluded(value, option.label)
-                          : toggleCustomizationSelection(value, option.label)
-                      )
-                    }
+                    onChange={() => onChange(toggleCustomizationSelection(value, option.label))}
                     className="pdp-preference-checkbox"
                   />
-                  {checkboxMode === 'defaultIncluded' && checked && (
-                    <CustomizationOppositeMarker marker="plus" />
-                  )}
-                  <span className="flex-1">{option.label}</span>
+                  <span className="min-w-0 flex-1 break-words">{option.label}</span>
                   {isAdditions && option.priceAdjustment > 0 && (
                     <span className="text-xs font-semibold text-emerald-700 tabular-nums">
                       +{formatAdditionPriceAdjustment(option.priceAdjustment, currency)}
@@ -331,6 +379,7 @@ export function PdpCustomizationPills({
 
   const variantScopeKey = `${product.id}:${currentVariant?.id ?? ''}`;
   const prevVariantScopeRef = useRef(variantScopeKey);
+  const pillsRowRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const variantChanged = prevVariantScopeRef.current !== variantScopeKey;
@@ -384,7 +433,7 @@ export function PdpCustomizationPills({
   };
 
   return (
-    <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
+    <div ref={pillsRowRef} className="mb-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
       {optionalAdd.length > 0 && (
         <CustomizationPill
           kind="additions"
@@ -395,6 +444,7 @@ export function PdpCustomizationPills({
           oppositeSelectedLabels={exclusionLabels}
           oppositeMarker="minus"
           checkboxMode="additive"
+          pillsRowRef={pillsRowRef}
           onChange={handleAdditionsChange}
         />
       )}
@@ -408,6 +458,7 @@ export function PdpCustomizationPills({
           oppositeSelectedLabels={additionLabels}
           oppositeMarker="plus"
           checkboxMode="defaultIncluded"
+          pillsRowRef={pillsRowRef}
           onChange={handleExclusionsChange}
         />
       )}

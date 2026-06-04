@@ -73,8 +73,8 @@ export const PDP_TITLE_CLASS =
 export const PDP_DESCRIPTION_CLASS =
   "mb-5 max-w-[31.125rem] font-['Montserrat_arm','Montserrat',sans-serif] text-base font-normal leading-6 text-[#3c2f2f] [&_a]:text-[#ff7f20] [&_a]:underline [&_li]:leading-6 [&_p]:leading-6 [&_p]:text-[#3c2f2f]";
 /** Figma node 10:1884 — PDP rating star row. */
-export const PDP_RATING_STAR_SIZE_CLASS = 'size-[35px]';
-export const PDP_RATING_STAR_GAP_CLASS = 'gap-[7px]';
+export const PDP_RATING_STAR_SIZE_CLASS = 'size-[28px]';
+export const PDP_RATING_STAR_GAP_CLASS = 'gap-[5px]';
 export const PDP_RATING_ROW_GAP_CLASS = 'gap-[18px]';
 export const PDP_RATING_REVIEW_COUNT_CLASS =
   "font-['Montserrat_arm','Montserrat',sans-serif] text-lg font-medium leading-normal text-[#3c2f2f]";

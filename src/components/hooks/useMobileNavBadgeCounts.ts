@@ -5,7 +5,11 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '../../lib/auth/AuthContext';
 import { apiClient } from '../../lib/api-client';
 import { getWishlistCount } from '../../lib/storageCounts';
-import { applyCartBadgeFromDetail, parseCartUpdatedDetail } from '@/lib/cart/cart-events';
+import {
+  applyCartBadgeFromDetail,
+  parseCartUpdatedDetail,
+  resetCartBadgeState,
+} from '@/lib/cart/cart-events';
 import {
   clearCartSummaryCache,
   readCartSummaryCache,
@@ -82,11 +86,14 @@ export function useMobileNavBadgeCounts(): { cartCount: number; wishlistCount: n
         const response = await apiClient.get<CartResponse>('/api/v1/cart');
         const itemsCount = response.cart?.itemsCount || 0;
         const total = response.cart?.totals?.total || 0;
+        if (itemsCount === 0) {
+          resetCartBadgeState();
+          return;
+        }
         setCartCount(itemsCount);
         writeCartSummaryCache(itemsCount, total);
       } catch {
-        setCartCount(0);
-        writeCartSummaryCache(0, 0);
+        resetCartBadgeState();
       }
     };
 

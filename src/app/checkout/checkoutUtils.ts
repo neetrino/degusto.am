@@ -11,6 +11,7 @@ export async function fetchCartForGuest(): Promise<Cart | null> {
   }
 }
 
+/** Refetch cart drawer state after guest checkout (badge already cleared via resetCartBadgeState). */
 export function clearGuestCart(): void {
   publishCartForceReload();
 }

@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { BodyBackground } from '../../../components/BodyBackground';
+import { resetCartBadgeState } from '../../../lib/cart/cart-events';
 import { useTranslation } from '../../../lib/i18n-client';
 import { CHECKOUT_OUTLINE_BUTTON, CHECKOUT_PRIMARY_BUTTON, CHECKOUT_TEXT_INK_MUTED, CHECKOUT_TEXT_INK_TERTIARY } from '../checkout-ui';
 
@@ -10,6 +12,10 @@ export default function CheckoutSuccessPage() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
   const orderNumber = searchParams.get('order');
+
+  useEffect(() => {
+    resetCartBadgeState();
+  }, []);
 
   return (
     <>

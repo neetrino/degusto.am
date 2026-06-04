@@ -1,4 +1,8 @@
-import { readCartSummaryCache, writeCartSummaryCache } from '../cartSummaryCache';
+import {
+  clearCartSummaryCache,
+  readCartSummaryCache,
+  writeCartSummaryCache,
+} from '../cartSummaryCache';
 import type { CartAddSnapshot } from './optimistic-cart-add';
 
 export interface CartUpdatedDetail {
@@ -72,6 +76,15 @@ export function applyCartBadgeFromDetail(
   }
 
   return 'miss';
+}
+
+/** Clear cached header totals and broadcast an empty cart to all listeners. */
+export function resetCartBadgeState(): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  clearCartSummaryCache();
+  publishCartUpdated(0, 0, { skipReconcile: true });
 }
 
 /** Request a full cart reload (e.g. after API error recovery). */
