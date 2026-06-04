@@ -96,6 +96,9 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
   }, [reloadCart]);
 
   useEffect(() => {
+    if (!isVisible) {
+      return;
+    }
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
@@ -103,15 +106,18 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, [isVisible, onClose]);
 
   useEffect(() => {
+    if (!isVisible) {
+      return;
+    }
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = prev;
     };
-  }, []);
+  }, [isVisible]);
 
   const loadCartWithLoading = useCallback(async () => {
     await reloadCart();
