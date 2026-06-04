@@ -236,7 +236,6 @@ export function ProductPageClient({
     isOutOfStock,
     unavailableAttributes,
     canAddToCart,
-    scrollToReviews,
     getOptionValue,
     adjustQuantity,
     setQuantity,
@@ -249,14 +248,6 @@ export function ProductPageClient({
     if (!product) return;
     window.scrollTo(0, 0);
   }, [product?.id]);
-
-  const handleResetProductOptions = useCallback(() => {
-    setAdditions('');
-    setExclusions('');
-    if (!isOutOfStock) {
-      setQuantity(1);
-    }
-  }, [isOutOfStock, setAdditions, setExclusions, setQuantity]);
 
   const handleAddToCart = async () => {
     if (!canAddToCart || !product || !currentVariant) return;
@@ -288,7 +279,6 @@ export function ProductPageClient({
 
     playCartFlyAnimation({
       fromElement: flyOrigin,
-      imageUrl,
     });
     setIsAddingToCart(true);
     try {
@@ -431,7 +421,6 @@ export function ProductPageClient({
                   sizeGroups={sizeGroups}
                   onQuantityAdjust={adjustQuantity}
                   onAddToCart={handleAddToCart}
-                  onScrollToReviews={scrollToReviews}
                   onColorSelect={handleColorSelect}
                   onSizeSelect={handleSizeSelect}
                   onAttributeValueSelect={handleAttributeValueSelect}
@@ -440,7 +429,6 @@ export function ProductPageClient({
                   exclusions={exclusions}
                   onAdditionsChange={setAdditions}
                   onExclusionsChange={setExclusions}
-                  onResetOptions={handleResetProductOptions}
                 />
               )}
               </div>

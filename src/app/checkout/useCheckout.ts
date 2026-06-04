@@ -98,6 +98,15 @@ export function useCheckout() {
   });
 
   useEffect(() => {
+    if (loading || isLoading) {
+      return;
+    }
+    if (!cart || cart.items.length === 0) {
+      router.replace('/shop');
+    }
+  }, [loading, isLoading, cart, router]);
+
+  useEffect(() => {
     if (isLoading) {
       return;
     }

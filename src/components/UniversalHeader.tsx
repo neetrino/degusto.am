@@ -12,7 +12,11 @@ import { getWishlistCount } from '../lib/storageCounts';
 import { formatPrice } from '../lib/currency';
 import { useCurrency } from './hooks/useCurrency';
 import { readCartSummaryCache, writeCartSummaryCache, clearCartSummaryCache } from '../lib/cartSummaryCache';
-import { applyCartBadgeFromDetail, parseCartUpdatedDetail } from '@/lib/cart/cart-events';
+import {
+  applyCartBadgeFromDetail,
+  parseCartUpdatedDetail,
+  resetCartBadgeState,
+} from '@/lib/cart/cart-events';
 import { useInstantSearch } from './hooks/useInstantSearch';
 import { SearchDropdown } from './SearchDropdown';
 import { useCartDrawer } from './cart-drawer/cart-drawer-context';
@@ -115,13 +119,17 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
     const fetchCart = async () => {
       try {
         const response = await apiClient.get<CartResponse>('/api/v1/cart');
-        setCartCount(response.cart?.itemsCount || 0);
-        setCartTotal(response.cart?.totals?.total || 0);
-        writeCartSummaryCache(response.cart?.itemsCount || 0, response.cart?.totals?.total || 0);
+        const itemsCount = response.cart?.itemsCount || 0;
+        const total = response.cart?.totals?.total || 0;
+        if (itemsCount === 0) {
+          resetCartBadgeState();
+          return;
+        }
+        setCartCount(itemsCount);
+        setCartTotal(total);
+        writeCartSummaryCache(itemsCount, total);
       } catch {
-        setCartCount(0);
-        setCartTotal(0);
-        writeCartSummaryCache(0, 0);
+        resetCartBadgeState();
       }
     };
 
@@ -231,25 +239,46 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
             <button
               type="button"
               onClick={() => openCartDrawer()}
-              className="relative inline-flex h-12 min-w-[117px] shrink-0 items-center justify-end pl-10"
-              aria-label={`${t('common.navigation.cart')}, ${formatPrice(cartTotal, currency)}`}
+              className={`relative inline-flex h-12 shrink-0 items-center ${
+                cartCount > 0 ? 'min-w-[117px] justify-end pl-10' : 'w-12 justify-center'
+              }`}
+              aria-label={
+                cartCount > 0
+                  ? `${t('common.navigation.cart')}, ${formatPrice(cartTotal, currency)}`
+                  : t('common.navigation.cart')
+              }
             >
-              <span aria-hidden className="inline-flex h-12 min-w-[88px] items-center justify-center whitespace-nowrap rounded-[70px] bg-white px-4 text-base font-bold tabular-nums text-black">
-                {formatPrice(cartTotal, currency)}
-              </span>
-              <span data-cart-fly-target className="absolute bottom-[1px] left-2 inline-flex h-[34px] w-[37px] items-center justify-center">
+              {cartCount > 0 && (
+                <span
+                  aria-hidden
+                  className="inline-flex h-12 min-w-[88px] items-center justify-center whitespace-nowrap rounded-[70px] bg-white px-4 text-base font-bold tabular-nums text-black"
+                >
+                  {formatPrice(cartTotal, currency)}
+                </span>
+              )}
+              <span
+                data-cart-fly-target
+                className={`inline-flex h-[34px] w-[37px] items-center justify-center ${
+                  cartCount > 0 ? 'absolute bottom-[1px] left-2' : ''
+                }`}
+              >
                 <img src={HEADER_PUBLIC_ASSETS.cartIcon} alt="" className="h-[34px] w-[37px] object-contain" />
               </span>
-              <span aria-hidden className="absolute left-[35px] top-[2px] inline-flex h-6 w-6 items-center justify-center">
-                <img
-                  src={HEADER_PUBLIC_ASSETS.cartCountBadge}
-                  alt=""
-                  className="absolute h-6 w-6 object-contain"
-                />
-                <span className="relative text-sm font-bold leading-6 text-[#f66812]">
-                  {cartCount > 99 ? '99+' : cartCount}
+              {cartCount > 0 && (
+                <span
+                  aria-hidden
+                  className="absolute left-[35px] top-[2px] inline-flex h-6 w-6 items-center justify-center"
+                >
+                  <img
+                    src={HEADER_PUBLIC_ASSETS.cartCountBadge}
+                    alt=""
+                    className="absolute h-6 w-6 object-contain"
+                  />
+                  <span className="relative text-sm font-bold leading-6 text-[#f66812]">
+                    {cartCount > 99 ? '99+' : cartCount}
+                  </span>
                 </span>
-              </span>
+              )}
             </button>
             <Link
               href="/wishlist"

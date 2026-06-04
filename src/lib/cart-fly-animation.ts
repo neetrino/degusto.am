@@ -1,5 +1,5 @@
 /**
- * Flies a small product thumbnail from a source element toward the cart target.
+ * Flies a shopping-bag icon from a source element toward the cart target.
  * On mobile (below `lg`), targets the bottom navigation cart; on desktop, the header cart.
  * Respects `prefers-reduced-motion`. No-op on server or missing source.
  */
@@ -8,8 +8,12 @@ import { isMobileViewport } from './viewport';
 
 export type CartFlyAnimationOptions = {
   fromElement?: Element | null;
+  /** @deprecated Product image is no longer used; kept for call-site compatibility. */
   imageUrl?: string | null;
 };
+
+/** Static asset for the fly-to-cart animation (replaces product thumbnail). */
+export const CART_FLY_ICON_SRC = '/images/cart-fly-shopping-bag.png';
 
 const CART_FLY_TARGET_SELECTOR = '[data-cart-fly-target]';
 const MOBILE_BOTTOM_NAV_SELECTOR = '[data-mobile-bottom-nav]';
@@ -26,8 +30,8 @@ function dispatchHeaderRevealForCart(): void {
   }
   window.dispatchEvent(new CustomEvent(HEADER_REVEAL_FOR_CART_EVENT));
 }
-const FLY_START_SIZE_PX = 52;
-const FLY_END_SIZE_PX = 20;
+const FLY_START_SIZE_PX = 56;
+const FLY_END_SIZE_PX = 22;
 const FLY_ARC_BOOST_PX = 64;
 const FALLBACK_TOP_PX = 72;
 const FALLBACK_RIGHT_INSET_PX = 24;
@@ -97,71 +101,25 @@ function scheduleAfterHeaderLayoutCommit(run: () => void): void {
   });
 }
 
-/** Prefer the bitmap already painted in the product block (Next/Image → real <img>, correct srcset). */
-function resolveFlyImageFromElement(fromElement: HTMLElement): {
-  url: string;
-  objectFit: string;
-  objectPosition: string;
-} | null {
-  const MIN_AREA_PX = 16;
-  const imgs = fromElement.querySelectorAll('img');
-  let best: HTMLImageElement | null = null;
-  let bestArea = 0;
-
-  for (const node of imgs) {
-    if (!(node instanceof HTMLImageElement)) continue;
-    const rect = node.getBoundingClientRect();
-    const area = rect.width * rect.height;
-    if (area < MIN_AREA_PX) continue;
-
-    const url = (node.currentSrc || node.src || '').trim();
-    if (!url) continue;
-
-    if (area > bestArea) {
-      bestArea = area;
-      best = node;
-    }
-  }
-
-  if (!best) {
-    return null;
-  }
-
-  const computed = window.getComputedStyle(best);
-  return {
-    url: (best.currentSrc || best.src).trim(),
-    objectFit: computed.objectFit || 'cover',
-    objectPosition: computed.objectPosition || '50% 50%',
-  };
-}
-
-function appendFlyShell(
-  imageUrl: string | null | undefined,
-  display?: { objectFit: string; objectPosition: string } | null
-): HTMLDivElement {
+function appendFlyShell(): HTMLDivElement {
   const shell = document.createElement('div');
   shell.style.position = 'fixed';
-  shell.style.borderRadius = '50%';
-  shell.style.overflow = 'hidden';
+  shell.style.overflow = 'visible';
   shell.style.zIndex = '10000';
   shell.style.pointerEvents = 'none';
-  shell.style.boxShadow = '0 8px 24px rgba(15, 23, 42, 0.18)';
+  shell.style.background = 'transparent';
   shell.setAttribute('aria-hidden', 'true');
 
-  if (imageUrl) {
-    const img = document.createElement('img');
-    img.src = imageUrl;
-    img.alt = '';
-    img.draggable = false;
-    img.style.width = '100%';
-    img.style.height = '100%';
-    img.style.objectFit = display?.objectFit ?? 'cover';
-    img.style.objectPosition = display?.objectPosition ?? '50% 50%';
-    img.style.display = 'block';
-    shell.appendChild(img);
-  } else {
-    shell.style.background = 'linear-gradient(145deg, rgb(17 24 39) 0%, rgb(75 85 99) 100%)';
-  }
+  const img = document.createElement('img');
+  img.src = CART_FLY_ICON_SRC;
+  img.alt = '';
+  img.draggable = false;
+  img.style.width = '100%';
+  img.style.height = '100%';
+  img.style.objectFit = 'contain';
+  img.style.objectPosition = 'center';
+  img.style.display = 'block';
+  shell.appendChild(img);
 
   document.body.appendChild(shell);
   return shell;
@@ -217,9 +175,7 @@ export function playCartFlyAnimation(options: CartFlyAnimationOptions): void {
     const deltaX = toCx - fromCx;
     const deltaY = toCy - fromCy;
 
-    const fromDomImage = resolveFlyImageFromElement(source);
-    const resolvedUrl = fromDomImage?.url ?? options.imageUrl?.trim() ?? null;
-    const shell = appendFlyShell(resolvedUrl, fromDomImage);
+    const shell = appendFlyShell();
     shell.style.left = `${startLeft}px`;
     shell.style.top = `${startTop}px`;
     shell.style.width = `${FLY_START_SIZE_PX}px`;

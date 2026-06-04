@@ -24,7 +24,11 @@ import { WishlistHeaderHeartIcon } from './icons/WishlistHeaderHeartIcon';
 import { BrandLogoLink } from './BrandLogoLink';
 import { CartIcon } from './icons/CartIcon';
 import { readCartSummaryCache, writeCartSummaryCache, clearCartSummaryCache } from '../lib/cartSummaryCache';
-import { applyCartBadgeFromDetail, parseCartUpdatedDetail } from '@/lib/cart/cart-events';
+import {
+  applyCartBadgeFromDetail,
+  parseCartUpdatedDetail,
+  resetCartBadgeState,
+} from '@/lib/cart/cart-events';
 import { useCartDrawer } from './cart-drawer/cart-drawer-context';
 import { SITE_CONTACT_PHONES } from '../lib/site-contact';
 import { navigateToProductPage, prefetchProductRoute } from '@/lib/products/prefetch-product-route';
@@ -326,9 +330,15 @@ export function Header() {
         } | null;
       }>('/api/v1/cart');
 
-      setCartCount(response.cart?.itemsCount || 0);
-      setCartTotal(response.cart?.totals?.total || 0);
-      writeCartSummaryCache(response.cart?.itemsCount || 0, response.cart?.totals?.total || 0);
+      const itemsCount = response.cart?.itemsCount || 0;
+      const total = response.cart?.totals?.total || 0;
+      if (itemsCount === 0) {
+        resetCartBadgeState();
+        return;
+      }
+      setCartCount(itemsCount);
+      setCartTotal(total);
+      writeCartSummaryCache(itemsCount, total);
     } catch (error: unknown) {
       const err = error as { status?: number; statusCode?: number };
       const status = err?.status ?? err?.statusCode;
@@ -337,9 +347,7 @@ export function Header() {
       if (!isUnauthorized && !isServerError) {
         console.error('Error fetching cart:', error);
       }
-      setCartCount(0);
-      setCartTotal(0);
-      writeCartSummaryCache(0, 0);
+      resetCartBadgeState();
     }
   };
 
@@ -901,14 +909,16 @@ export function Header() {
                 >
                   <BadgeIcon icon={<CartIcon size={19} />} badge={cartCount} />
                 </div>
-                <span
-                  aria-hidden
-                  className={`hidden min-w-[3.25rem] text-sm font-bold transition-colors sm:block ${
-                    isCartDrawerOpen ? 'text-gray-900' : 'text-gray-800 group-hover:text-gray-900'
-                  }`}
-                >
-                  {formatPrice(cartTotal, selectedCurrency)}
-                </span>
+                {cartCount > 0 && (
+                  <span
+                    aria-hidden
+                    className={`hidden min-w-[3.25rem] text-sm font-bold transition-colors sm:block ${
+                      isCartDrawerOpen ? 'text-gray-900' : 'text-gray-800 group-hover:text-gray-900'
+                    }`}
+                  >
+                    {formatPrice(cartTotal, selectedCurrency)}
+                  </span>
+                )}
               </button>
 
               {/* Wishlist — white circle + filled brand heart */}

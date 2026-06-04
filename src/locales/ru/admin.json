@@ -640,6 +640,7 @@
     "backToAdmin": "Вернуться в панель администратора",
     "loading": "Загрузка...",
     "loadingOrders": "Загрузка заказов...",
+    "newOrderAlert": "Заказ — #{number}",
     "totalOrdersCount": "Всего заказов: {count}",
     "noOrders": "Заказы не найдены",
     "searchPlaceholder": "Поиск по номеру заказа, клиенту, email, телефону...",

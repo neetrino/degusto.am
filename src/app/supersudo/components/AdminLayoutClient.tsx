@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { AdminSidebarCollapseProvider } from '../context/AdminSidebarCollapseContext';
 import { AdminDialogsProvider } from '../context/AdminDialogsContext';
 import { AdminSidebar } from './AdminSidebar';
+import { AdminNewOrderAlerts } from './AdminNewOrderAlerts';
 import {
   ADMIN_MAIN_COLUMN,
   ADMIN_MAIN_INNER,
@@ -18,6 +19,7 @@ export function AdminLayoutClient({ children }: AdminLayoutClientProps) {
   return (
     <AdminSidebarCollapseProvider>
       <AdminDialogsProvider>
+        <AdminNewOrderAlerts />
         <div className={ADMIN_PAGE_SHELL}>
           <AdminSidebar />
           <div className={ADMIN_MAIN_COLUMN}>

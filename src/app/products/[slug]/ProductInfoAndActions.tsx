@@ -12,7 +12,6 @@ import { t, getProductText } from '../../../lib/i18n';
 import type { LanguageCode } from '../../../lib/language';
 import { sanitizeHtml } from '../../../lib/utils/sanitize';
 import { PdpActionHeartIcon } from './PdpActionHeartIcon';
-import { PdpActionTrashIcon } from './PdpActionTrashIcon';
 import { PdpAnimatedPrice } from './PdpAnimatedPrice';
 import { PdpCustomizationPills } from './PdpCustomizationPills';
 import { PdpSecondaryIconButton } from './PdpSecondaryIconButton';
@@ -57,10 +56,8 @@ interface ProductInfoAndActionsProps {
   exclusions: string;
   onAdditionsChange: (value: string) => void;
   onExclusionsChange: (value: string) => void;
-  onResetOptions: () => void;
   onQuantityAdjust: (delta: number) => void;
   onAddToCart: () => Promise<void>;
-  onScrollToReviews: () => void;
   onColorSelect: (color: string) => void;
   onSizeSelect: (size: string) => void;
   onAttributeValueSelect: (attrKey: string, value: string) => void;
@@ -93,10 +90,8 @@ export function ProductInfoAndActions({
   exclusions,
   onAdditionsChange,
   onExclusionsChange,
-  onResetOptions,
   onQuantityAdjust,
   onAddToCart,
-  onScrollToReviews,
   onColorSelect,
   onSizeSelect,
   onAttributeValueSelect,
@@ -134,8 +129,6 @@ export function ProductInfoAndActions({
           <ProductRatingSummary
             averageRating={averageRating}
             reviewsCount={reviewsCount}
-            onReviewsClick={onScrollToReviews}
-            language={language}
           />
           <div className={PDP_PRICE_ROW_CLASS}>
             <PdpAnimatedPrice
@@ -250,15 +243,6 @@ export function ProductInfoAndActions({
             >
               <span className={isInWishlist ? 'text-[#ff7f20]' : 'text-[#494949]'}>
                 <PdpActionHeartIcon />
-              </span>
-            </PdpSecondaryIconButton>
-            <PdpSecondaryIconButton
-              onClick={onResetOptions}
-              aria-label={t(language, 'product.resetOptionsAria')}
-              title={t(language, 'product.resetOptionsAria')}
-            >
-              <span className="text-[#494949]">
-                <PdpActionTrashIcon />
               </span>
             </PdpSecondaryIconButton>
           </div>

@@ -7,6 +7,7 @@ import { useTranslation } from '../../../lib/i18n-client';
 import { formatPriceInCurrency, convertPrice, getStoredCurrency, initializeCurrencyRates, CurrencyCode } from '../../../lib/currency';
 import { logger } from "@/lib/utils/logger";
 import { useAdminDialogs } from '../context/AdminDialogsContext';
+import { ADMIN_NEW_ORDER_EVENT } from '@/lib/admin/admin-order-alert.constants';
 
 export interface Order {
   id: string;
@@ -152,6 +153,14 @@ export function useOrders() {
 
   useEffect(() => {
     void fetchOrders();
+  }, [fetchOrders]);
+
+  useEffect(() => {
+    const refreshOnNewOrder = () => {
+      void fetchOrders();
+    };
+    window.addEventListener(ADMIN_NEW_ORDER_EVENT, refreshOnNewOrder);
+    return () => window.removeEventListener(ADMIN_NEW_ORDER_EVENT, refreshOnNewOrder);
   }, [fetchOrders]);
 
   // Initialize currency rates and listen for currency changes

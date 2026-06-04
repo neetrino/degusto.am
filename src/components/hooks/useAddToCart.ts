@@ -102,7 +102,6 @@ export function useAddToCart({
 
     playCartFlyAnimation({
       fromElement: fly?.origin ?? null,
-      imageUrl: fly?.imageUrl ?? null,
     });
 
     const optimisticVariantId = defaultVariantId ?? `pending:${productId}`;

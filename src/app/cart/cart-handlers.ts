@@ -2,7 +2,11 @@ import { apiClient } from '../../lib/api-client';
 import { ApiError } from '../../lib/api-client/types';
 import { logger } from '../../lib/utils/logger';
 import type { Cart, CartItem } from './types';
-import { publishCartUpdated, publishCartForceReload } from '../../lib/cart/cart-events';
+import {
+  publishCartUpdated,
+  publishCartForceReload,
+  resetCartBadgeState,
+} from '../../lib/cart/cart-events';
 import { maxCartLineQuantity } from '@/lib/product-stock';
 import {
   buildCartLineRemovalKey,
@@ -94,7 +98,11 @@ export async function handleRemoveItem(
     totals: updatedTotals,
     itemsCount: newItemsCount,
   });
-  publishCartUpdated(newItemsCount, updatedTotals.total, { skipReconcile: true });
+  if (newItemsCount === 0) {
+    resetCartBadgeState();
+  } else {
+    publishCartUpdated(newItemsCount, updatedTotals.total, { skipReconcile: true });
+  }
 
   if (isOptimisticCartItemId(itemId)) {
     void deleteMatchingLineOnServer(itemToRemove);

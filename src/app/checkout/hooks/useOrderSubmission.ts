@@ -2,6 +2,7 @@ import { useRouter } from 'next/navigation';
 import { apiClient } from '../../../lib/api-client';
 import { useTranslation } from '../../../lib/i18n-client';
 import { clearGuestCart } from '../checkoutUtils';
+import { resetCartBadgeState } from '../../../lib/cart/cart-events';
 import { CHECKOUT_COUPON_CODE_STORAGE_KEY } from '../checkout-coupon-client';
 import type { CheckoutFormData, Cart } from '../types';
 
@@ -89,6 +90,7 @@ export function useOrderSubmission({
         ...(data.orderNotes?.trim() ? { notes: data.orderNotes.trim() } : {}),
       });
 
+      resetCartBadgeState();
       if (!isLoggedIn) {
         clearGuestCart();
       }

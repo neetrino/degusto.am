@@ -640,6 +640,7 @@
     "backToAdmin": "Back to Admin Dashboard",
     "loading": "Loading...",
     "loadingOrders": "Loading orders...",
+    "newOrderAlert": "New order — #{number}",
     "totalOrdersCount": "Total orders: {count}",
     "noOrders": "No orders found",
     "searchPlaceholder": "Search by order number, customer, email, phone...",
