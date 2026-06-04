@@ -14,6 +14,7 @@ import {
 import type { HomeFeaturedProduct } from './home-page-types';
 import { resolveMobileHomeDiscountPercent } from './home-mobile-helpers';
 import { HomeOptimizedImage } from './HomeOptimizedImage';
+import { PRODUCT_CARD_CART_BTN_HOVER_CLASS } from '@/constants/product-card-action-hover';
 
 type MobileHomeDailyOfferProps = {
   product: HomeFeaturedProduct;
@@ -92,7 +93,7 @@ export function MobileHomeDailyOffer({ product, dailyOfferAddToCartSrc }: Mobile
         type="button"
         onClick={handleAddToCart}
         disabled={isAddingToCart || product.inStock === false}
-        className="absolute left-[35.95%] top-[76px] z-10 inline-flex h-[41.669px] w-[41.096px] items-center justify-center disabled:opacity-50"
+        className={`absolute left-[35.95%] top-[76px] z-10 inline-flex h-[41.669px] w-[41.096px] items-center justify-center disabled:opacity-50 ${PRODUCT_CARD_CART_BTN_HOVER_CLASS}`}
         aria-label={t('common.buttons.addToCart')}
       >
         <HomeOptimizedImage

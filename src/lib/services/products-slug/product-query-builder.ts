@@ -20,14 +20,6 @@ function getBaseInclude(lang: string) {
       where: localeWhere,
       take: LOCALE_TRANSLATION_TAKE,
     },
-    brand: {
-      include: {
-        translations: {
-          where: localeWhere,
-          take: LOCALE_TRANSLATION_TAKE,
-        },
-      },
-    },
     categories: {
       include: {
         translations: {

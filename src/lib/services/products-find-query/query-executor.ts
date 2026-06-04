@@ -9,11 +9,6 @@ import type { ProductWithRelations } from "./types";
  */
 const getBaseInclude = () => ({
   translations: true,
-  brand: {
-    include: {
-      translations: true,
-    },
-  },
   variants: {
     where: {
       published: true,

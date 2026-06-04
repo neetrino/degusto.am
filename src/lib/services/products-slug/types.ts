@@ -6,11 +6,6 @@ import { Prisma } from "@prisma/client";
 export type ProductWithFullRelations = Prisma.ProductGetPayload<{
   include: {
     translations: true;
-    brand: {
-      include: {
-        translations: true;
-      };
-    };
     categories: {
       include: {
         translations: true;

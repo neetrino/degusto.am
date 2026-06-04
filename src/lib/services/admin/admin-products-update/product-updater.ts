@@ -49,7 +49,6 @@ export function buildProductUpdateData(
   allVariantImages: string[],
   existing: { publishedAt: Date | null }
 ): {
-  brandId?: string | null;
   primaryCategoryId?: string | null;
   categoryIds?: string[];
   categories?: { set: Array<{ id: string }> };
@@ -60,7 +59,6 @@ export function buildProductUpdateData(
   attributeIds?: string[];
 } {
   const updateData: {
-    brandId?: string | null;
     primaryCategoryId?: string | null;
     categoryIds?: string[];
     categories?: { set: Array<{ id: string }> };
@@ -71,7 +69,6 @@ export function buildProductUpdateData(
     attributeIds?: string[];
   } = {};
   
-  if (data.brandId !== undefined) updateData.brandId = data.brandId || null;
   if (data.primaryCategoryId !== undefined) updateData.primaryCategoryId = data.primaryCategoryId || null;
   if (data.categoryIds !== undefined || data.primaryCategoryId !== undefined) {
     const resolvedCategoryIds = resolveProductCategoryIds(

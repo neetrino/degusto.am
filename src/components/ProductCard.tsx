@@ -20,11 +20,6 @@ interface Product {
   price: number;
   image: string | null;
   inStock: boolean;
-  brand: {
-    id: string;
-    name: string;
-    logoUrl?: string | null;
-  } | null;
   defaultVariantId?: string | null;
   labels?: import('./ProductLabels').ProductLabel[];
   compareAtPrice?: number | null;
@@ -58,6 +53,8 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
     inStock: product.inStock,
     defaultVariantId: product.defaultVariantId ?? undefined,
     price: product.price,
+    title: product.title,
+    image: product.image,
   });
   const [imageError, setImageError] = useState(false);
 

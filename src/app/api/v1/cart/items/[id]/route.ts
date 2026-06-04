@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { problemTypes } from "@/lib/http/problem-details";
 import { parseRouteCatchError } from "@/lib/http/api-route-errors";
-import { authenticateToken } from "@/lib/middleware/auth";
 import { cartService } from "@/lib/services/cart.service";
+import { resolveCartRequestContext } from "@/lib/cart/cart-request-context";
 import { logger } from "@/lib/utils/logger";
 
 export async function PATCH(
@@ -10,14 +10,14 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await authenticateToken(req);
-    if (!user) {
+    const { user, guestToken } = await resolveCartRequestContext(req);
+    if (!user && !guestToken) {
       return NextResponse.json(
         {
           type: problemTypes.unauthorized,
           title: "Unauthorized",
           status: 401,
-          detail: "Authentication token required",
+          detail: "Cart session required",
           instance: req.url,
         },
         { status: 401 }
@@ -26,7 +26,12 @@ export async function PATCH(
 
     const { id } = await params;
     const data = await req.json();
-    const result = await cartService.updateItem(user.id, id, data.quantity);
+    const result = await cartService.updateItem(
+      user?.id ?? null,
+      id,
+      data.quantity,
+      guestToken
+    );
     return NextResponse.json(result);
   } catch (error: unknown) {
     logger.error("[CART] Error", error);
@@ -49,14 +54,14 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await authenticateToken(req);
-    if (!user) {
+    const { user, guestToken } = await resolveCartRequestContext(req);
+    if (!user && !guestToken) {
       return NextResponse.json(
         {
           type: problemTypes.unauthorized,
           title: "Unauthorized",
           status: 401,
-          detail: "Authentication token required",
+          detail: "Cart session required",
           instance: req.url,
         },
         { status: 401 }
@@ -64,7 +69,7 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    await cartService.removeItem(user.id, id);
+    await cartService.removeItem(user?.id ?? null, id, guestToken);
     return new NextResponse(null, { status: 204 });
   } catch (error: unknown) {
     logger.error("[CART] Error", error);
@@ -81,4 +86,3 @@ export async function DELETE(
     );
   }
 }
-

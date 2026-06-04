@@ -56,3 +56,11 @@ export function writeCartSummaryCache(itemsCount: number, total: number): void {
 
   window.localStorage.setItem(CART_SUMMARY_CACHE_KEY, JSON.stringify(payload));
 }
+
+export function clearCartSummaryCache(): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.localStorage.removeItem(CART_SUMMARY_CACHE_KEY);
+}

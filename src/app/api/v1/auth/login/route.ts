@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { setAuthCookiesOnResponse } from "@/lib/auth/auth-cookies";
+import {
+  clearGuestCartTokenOnResponse,
+  extractGuestCartToken,
+} from "@/lib/cart/guest-cart-cookies";
 import { problemTypes } from "@/lib/http/problem-details";
 import { authService } from "@/lib/services/auth.service";
+import { cartService } from "@/lib/services/cart.service";
+import { compareService } from "@/lib/services/compare.service";
 import { toApiError } from "@/lib/types/errors";
 import { logger } from "@/lib/utils/logger";
 import { safeParseLogin } from "@/lib/schemas/auth.schema";
@@ -29,6 +35,26 @@ export async function POST(req: NextRequest) {
     const result = await authService.login(parsed.data);
     const response = NextResponse.json({ user: result.user });
     setAuthCookiesOnResponse(response, result.token, result.user);
+
+    const guestToken = extractGuestCartToken(req);
+    if (guestToken) {
+      try {
+        await cartService.mergeGuestCartIntoUser(
+          guestToken,
+          result.user.id,
+          "en"
+        );
+      } catch (mergeError: unknown) {
+        logger.warn("[CART] Guest cart merge on login failed", { error: mergeError });
+      }
+      try {
+        await compareService.mergeGuestCompareIntoUser(guestToken, result.user.id);
+      } catch (mergeError: unknown) {
+        logger.warn("[COMPARE] Guest compare merge on login failed", { error: mergeError });
+      }
+      clearGuestCartTokenOnResponse(response);
+    }
+
     return response;
   } catch (error: unknown) {
     logger.error("Login error", { error });

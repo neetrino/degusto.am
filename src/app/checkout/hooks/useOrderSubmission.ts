@@ -3,7 +3,7 @@ import { apiClient } from '../../../lib/api-client';
 import { useTranslation } from '../../../lib/i18n-client';
 import { clearGuestCart } from '../checkoutUtils';
 import { CHECKOUT_COUPON_CODE_STORAGE_KEY } from '../checkout-coupon-client';
-import type { CheckoutFormData, Cart, CartItem } from '../types';
+import type { CheckoutFormData, Cart } from '../types';
 
 interface UseOrderSubmissionProps {
   cart: Cart | null;
@@ -31,18 +31,7 @@ export function useOrderSubmission({
         throw new Error(t('checkout.errors.cartEmpty'));
       }
 
-      let cartId = cart.id;
-      let items = undefined;
-
-      if (!isLoggedIn && cart.id === 'guest-cart') {
-        items = cart.items.map((item: CartItem) => ({
-          productId: item.variant.product.id,
-          variantId: item.variant.id,
-          quantity: item.quantity,
-          customizations: item.customizations,
-        }));
-        cartId = 'guest-cart';
-      }
+      const cartId = cart.id;
 
       const shippingAddress = data.shippingMethod === 'delivery' && 
         data.shippingAddress && 
@@ -84,8 +73,7 @@ export function useOrderSubmission({
         };
         nextAction: string;
       }>('/api/v1/orders/checkout', {
-        cartId: cartId,
-        ...(items ? { items } : {}),
+        cartId,
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,

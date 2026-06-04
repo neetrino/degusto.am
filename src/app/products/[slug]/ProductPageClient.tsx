@@ -13,7 +13,6 @@ import {
 import { useLazyInView } from '../../../components/hooks/useLazyInView';
 import { apiClient } from '../../../lib/api-client';
 import { t } from '../../../lib/i18n';
-import { useAuth } from '../../../lib/auth/AuthContext';
 import { ProductImageGallery } from './ProductImageGallery';
 import { ProductInfoAndActions } from './ProductInfoAndActions';
 import { ProductInfoColumnSkeleton } from './ProductInfoColumnSkeleton';
@@ -22,13 +21,11 @@ import { ProductPageShell } from './ProductPageShell';
 import { useProductPage } from './useProductPage';
 import { playCartFlyAnimation } from '../../../lib/cart-fly-animation';
 import { BodyBackground } from '../../../components/BodyBackground';
-import { publishCartUpdated } from '@/lib/cart/cart-events';
-import { computeGuestCartSummary } from '@/lib/cart/guest-cart-summary';
+import { publishCartUpdated, publishOptimisticCartAdd } from '@/lib/cart/cart-events';
 import { rememberCartLineId } from '@/lib/cart/cart-line-id-cache';
 import { readCartSummaryCache } from '@/lib/cartSummaryCache';
 import { logger } from '@/lib/utils/logger';
 import {
-  buildCustomizationLineKey,
   normalizeProductCustomizations,
 } from '../../../lib/cart/customizations';
 import type { LanguageCode } from '../../../lib/language';
@@ -125,7 +122,6 @@ export function ProductPageClient({
   children,
 }: ProductPageClientProps) {
   const { ref: reviewsSectionRef, inView: reviewsInView } = useLazyInView('320px');
-  const { isLoggedIn } = useAuth();
 
   const [fullProduct, setFullProduct] = useState<Product | null>(initialProduct);
   const [reviewSummary, setReviewSummary] =
@@ -282,61 +278,35 @@ export function ProductPageClient({
     });
     setIsAddingToCart(true);
     try {
-      if (!isLoggedIn) {
-        const stored = localStorage.getItem('shop_cart_guest');
-        const cart = stored ? JSON.parse(stored) : [];
-        const lineId = buildCustomizationLineKey(currentVariant.id, customizations);
-        const existing = cart.find(
-          (
-            i: unknown
-          ): i is {
-            variantId: string;
-            quantity: number;
-            lineId?: string;
-            productId?: string;
-            productSlug?: string;
-          } =>
-            typeof i === 'object' &&
-            i !== null &&
-            'variantId' in i &&
-            'lineId' in i &&
-            i.variantId === currentVariant.id &&
-            i.lineId === lineId
-        );
-        if (existing) existing.quantity += quantity;
-        else {
-          cart.push({
-            lineId,
-            productId: product.id,
-            productSlug: product.slug,
-            variantId: currentVariant.id,
-            quantity,
-            customizations,
-          });
-        }
-        localStorage.setItem('shop_cart_guest', JSON.stringify(cart));
-        const { itemsCount, total } = computeGuestCartSummary();
-        publishCartUpdated(itemsCount, total);
+      publishOptimisticCartAdd({
+        productId: product.id,
+        productSlug: product.slug,
+        variantId: currentVariant.id,
+        title: product.title,
+        image: imageUrl,
+        price: currentVariant.price,
+        quantity,
+      });
+
+      const response = await apiClient.post<{
+        item: { id: string; quantity: number; price: number };
+        cartSummary?: { itemsCount: number; total: number };
+      }>('/api/v1/cart/items', {
+        productId: product.id,
+        variantId: currentVariant.id,
+        quantity,
+        customizations,
+      });
+
+      rememberCartLineId(product.id, currentVariant.id, response.item.id, response.item.quantity);
+      if (response.cartSummary) {
+        publishCartUpdated(response.cartSummary.itemsCount, response.cartSummary.total);
       } else {
-        const response = await apiClient.post<{
-          item: { id: string; quantity: number; price: number };
-          cartSummary?: { itemsCount: number; total: number };
-        }>('/api/v1/cart/items', {
-          productId: product.id,
-          variantId: currentVariant.id,
-          quantity,
-          customizations,
-        });
-        rememberCartLineId(product.id, currentVariant.id, response.item.id, response.item.quantity);
-        if (response.cartSummary) {
-          publishCartUpdated(response.cartSummary.itemsCount, response.cartSummary.total);
-        } else {
-          const cache = readCartSummaryCache();
-          publishCartUpdated(
-            (cache?.itemsCount ?? 0) + quantity,
-            (cache?.total ?? 0) + currentVariant.price * quantity
-          );
-        }
+        const cache = readCartSummaryCache();
+        publishCartUpdated(
+          (cache?.itemsCount ?? 0) + quantity,
+          (cache?.total ?? 0) + currentVariant.price * quantity
+        );
       }
     } catch (error: unknown) {
       logger.warn('Add to cart failed', {

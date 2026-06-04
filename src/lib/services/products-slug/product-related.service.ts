@@ -15,20 +15,10 @@ const relatedProductSelect = {
   id: true,
   discountPercent: true,
   primaryCategoryId: true,
-  brandId: true,
   media: true,
   translations: {
     select: { slug: true, title: true, locale: true },
     take: 10,
-  },
-  brand: {
-    select: {
-      id: true,
-      translations: {
-        select: { name: true, locale: true },
-        take: 10,
-      },
-    },
   },
   variants: {
     where: { published: true },

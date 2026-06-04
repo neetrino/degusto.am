@@ -9,7 +9,9 @@ import { apiClient } from '../../lib/api-client';
 import { getStoredCurrency } from '../../lib/currency';
 import { getStoredLanguage } from '../../lib/language';
 import { useTranslation } from '../../lib/i18n-client';
+import { emitCompareUpdated, fetchCompareIds } from '../../lib/compare-api';
 import { useAuth } from '../../lib/auth/AuthContext';
+import { logger } from '../../lib/utils/logger';
 import { CompareProductsTable, type CompareProduct } from './CompareProductsTable';
 
 interface CompareSection {
@@ -48,19 +50,6 @@ function buildCompareSections(
   return sections;
 }
 
-const COMPARE_KEY = 'shop_compare';
-
-function getCompare(): string[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const stored = localStorage.getItem(COMPARE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
-}
-
-
 /**
  * Compare page renders up to four products side-by-side with quick actions.
  */
@@ -81,7 +70,7 @@ export default function ComparePage() {
    */
   const fetchCompareProducts = useCallback(async (idsToLoad: string[]) => {
     if (idsToLoad.length === 0) {
-      console.info('[Compare] Skip fetch because ids array is empty');
+      logger.debug('[Compare] Skip fetch because ids array is empty');
       setProducts([]);
       setLoading(false);
       return;
@@ -89,7 +78,7 @@ export default function ComparePage() {
 
     try {
       setLoading(true);
-      console.info(`[Compare] Fetching ${idsToLoad.length} products for render`);
+      logger.debug(`[Compare] Fetching ${idsToLoad.length} products for render`);
       const languagePreference = getStoredLanguage();
       const response = await apiClient.get<{
         data: CompareProduct[];
@@ -115,36 +104,34 @@ export default function ComparePage() {
 
       const normalizedIds = compareProducts.map((product) => product.id);
       if (normalizedIds.length !== idsToLoad.length) {
-        localStorage.setItem(COMPARE_KEY, JSON.stringify(normalizedIds));
         setCompareIds(normalizedIds);
-        window.dispatchEvent(new Event('compare-updated'));
+        emitCompareUpdated();
       }
     } catch (error) {
-      console.error('[Compare] Error fetching compare products:', error);
+      logger.error('[Compare] Error fetching compare products', { error });
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    // Get compare IDs from localStorage
-    const ids = getCompare();
-    setCompareIds(ids);
-    fetchCompareProducts(ids);
+    const hydrateCompare = async () => {
+      const ids = await fetchCompareIds();
+      setCompareIds(ids);
+      await fetchCompareProducts(ids);
+    };
 
-    // Listen for compare updates from other components (header, etc.)
-    // But don't re-fetch if we already updated locally
-    const handleCompareUpdate = () => {
-      // If we just updated locally, skip re-fetch to avoid page reload
+    void hydrateCompare();
+
+    const handleCompareUpdate = async () => {
       if (isLocalUpdateRef.current) {
         isLocalUpdateRef.current = false;
         return;
       }
-      
-      // Only re-fetch if update came from external source (another component)
-      const updatedIds = getCompare();
+
+      const updatedIds = await fetchCompareIds();
       setCompareIds(updatedIds);
-      fetchCompareProducts(updatedIds);
+      void fetchCompareProducts(updatedIds);
     };
 
     window.addEventListener('compare-updated', handleCompareUpdate);
@@ -160,10 +147,9 @@ export default function ComparePage() {
     };
 
     const handleLanguageUpdate = () => {
-      // Reload products with new language preference
-      // Get current IDs from localStorage to avoid dependency on state
-      const currentIds = getCompare();
-      fetchCompareProducts(currentIds);
+      void fetchCompareIds().then((currentIds) => {
+        void fetchCompareProducts(currentIds);
+      });
     };
 
     window.addEventListener('currency-updated', handleCurrencyUpdate);
@@ -178,25 +164,24 @@ export default function ComparePage() {
     e.preventDefault();
     e.stopPropagation();
     
-    console.info(`[Compare] Removing product ${productId} from compare UI`);
-    
-    // Mark as local update to prevent re-fetch in event handler
+    logger.debug(`[Compare] Removing product ${productId} from compare UI`);
+
     isLocalUpdateRef.current = true;
-    
-    // Optimistic update: remove from UI immediately (no loading state, no page reload)
+
     const updatedIds = compareIds.filter((id) => id !== productId);
     const updatedProducts = products.filter((p) => p.id !== productId);
-    
-    // Update localStorage first
-    localStorage.setItem(COMPARE_KEY, JSON.stringify(updatedIds));
-    
-    // Update state immediately (no page reload, no loading spinner)
+
     setCompareIds(updatedIds);
     setProducts(updatedProducts);
-    
-    // Dispatch event for other components (header, etc.) - but our handler won't re-fetch
-    // because isLocalUpdateRef.current is true
-    window.dispatchEvent(new Event('compare-updated'));
+
+    emitCompareUpdated();
+
+    void apiClient.delete(`/api/v1/compare/${productId}`).catch((error) => {
+      logger.error('[Compare] Failed to remove item from server compare', { error });
+      setCompareIds(compareIds);
+      setProducts(products);
+      emitCompareUpdated();
+    });
   };
 
   const handleAddToCart = async (e: MouseEvent, product: CompareProduct) => {
@@ -247,9 +232,10 @@ export default function ComparePage() {
 
       // Trigger cart update event
       window.dispatchEvent(new Event('cart-updated'));
-    } catch (error: any) {
-      console.error('Error adding to cart:', error);
-      if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+    } catch (error: unknown) {
+      logger.error('Error adding to cart from compare', { error });
+      const message = error instanceof Error ? error.message : '';
+      if (message.includes('401') || message.includes('Unauthorized')) {
         router.push(`/login?redirect=/compare`);
       }
     } finally {

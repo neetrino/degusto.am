@@ -448,7 +448,6 @@
       "sizeNameRequired": "Название размера обязательно",
       "sizeAddedSuccess": "Размер \"{name}\" успешно добавлен",
       "failedToAddSize": "Не удалось добавить размер",
-      "brandCreatedSuccess": "Бренд \"{name}\" успешно создан",
       "categoryCreatedSuccess": "Категория \"{name}\" успешно создана",
       "categoryCreatedSuccessSizes": "Категория \"{name}\" успешно создана (размеры требуются)",
       "failedToProcessImages": "Не удалось обработать выбранные изображения",

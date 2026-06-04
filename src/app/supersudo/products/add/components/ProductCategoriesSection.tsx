@@ -2,9 +2,9 @@
 
 import { Input } from '@shop/ui';
 import { useTranslation } from '../../../../../lib/i18n-client';
-import type { Category } from '../types';
+import type { Category, Variant } from '../types';
 
-interface CategoriesBrandsProps {
+interface ProductCategoriesSectionProps {
   categories: Category[];
   categoryIds: string[];
   categoriesExpanded: boolean;
@@ -16,10 +16,10 @@ interface CategoriesBrandsProps {
   onCategoryIdsChange: (ids: string[]) => void;
   onPrimaryCategoryIdChange: (id: string) => void;
   isClothingCategory: () => boolean;
-  onVariantsUpdate?: (updater: (prev: any[]) => any[]) => void;
+  onVariantsUpdate?: (updater: (prev: Variant[]) => Variant[]) => void;
 }
 
-export function CategoriesBrands({
+export function ProductCategoriesSection({
   categories,
   categoryIds,
   categoriesExpanded,
@@ -32,20 +32,17 @@ export function CategoriesBrands({
   onPrimaryCategoryIdChange,
   isClothingCategory,
   onVariantsUpdate,
-}: CategoriesBrandsProps) {
+}: ProductCategoriesSectionProps) {
   const { t } = useTranslation();
 
-  // Build category tree structure
   const buildCategoryTree = () => {
     const categoryMap = new Map<string, Category & { children: Category[] }>();
     const rootCategories: (Category & { children: Category[] })[] = [];
 
-    // First pass: create map and identify root categories
     categories.forEach((category) => {
       categoryMap.set(category.id, { ...category, children: [] });
     });
 
-    // Second pass: build tree structure
     categories.forEach((category) => {
       if (category.parentId && categoryMap.has(category.parentId)) {
         const parent = categoryMap.get(category.parentId)!;
@@ -56,7 +53,6 @@ export function CategoriesBrands({
       }
     });
 
-    // Flatten tree for display (parent first, then children)
     const flattenTree = (
       nodes: (Category & { children: Category[] })[],
       result: (Category & { isSubcategory: boolean })[] = []
@@ -82,7 +78,6 @@ export function CategoriesBrands({
       ? [...categoryIds, categoryId]
       : categoryIds.filter((id) => id !== categoryId);
 
-    // Set primary category if it's the first one
     const newPrimaryCategoryId = newCategoryIds.length > 0 ? newCategoryIds[0] : '';
 
     const selectedCategory = categories.find((cat) => cat.id === categoryId);
@@ -91,7 +86,6 @@ export function CategoriesBrands({
     onCategoryIdsChange(newCategoryIds);
     onPrimaryCategoryIdChange(newPrimaryCategoryId);
 
-    // If size requirement changed and variants need to be cleared
     if (onVariantsUpdate) {
       const wasSizeRequired = isClothingCategory();
       if (wasSizeRequired && !newIsSizeRequired && newCategoryIds.length === 0) {
@@ -111,10 +105,10 @@ export function CategoriesBrands({
     <div>
       <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('admin.products.add.categories')}</h2>
       <div className="grid grid-cols-1 gap-4">
-        {/* Categories - Multi-select */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            {t('admin.products.add.categories')} <span className="text-gray-500 font-normal">{t('admin.products.add.selectMultiple')}</span>
+            {t('admin.products.add.categories')}{' '}
+            <span className="text-gray-500 font-normal">{t('admin.products.add.selectMultiple')}</span>
           </label>
           <div className="space-y-2">
             <div className="flex items-center gap-2 mb-2">
@@ -221,5 +215,3 @@ export function CategoriesBrands({
     </div>
   );
 }
-
-

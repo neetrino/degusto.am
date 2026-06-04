@@ -1,4 +1,5 @@
-import { writeCartSummaryCache } from '../cartSummaryCache';
+import { readCartSummaryCache, writeCartSummaryCache } from '../cartSummaryCache';
+import type { CartAddSnapshot } from './optimistic-cart-add';
 
 export interface CartUpdatedDetail {
   itemsCount?: number;
@@ -8,7 +9,11 @@ export interface CartUpdatedDetail {
     quantity?: number;
     price?: number;
   };
+  /** Minimal product snapshot for instant drawer updates before API confirms. */
+  addedItem?: CartAddSnapshot;
 }
+
+export type { CartAddSnapshot };
 
 export function parseCartUpdatedDetail(event: Event): CartUpdatedDetail | undefined {
   return (event as CustomEvent<CartUpdatedDetail>).detail;
@@ -22,6 +27,41 @@ export function publishCartUpdated(itemsCount: number, total: number): void {
       detail: { itemsCount, total },
     })
   );
+}
+
+/** Instant badge + drawer feedback before the cart API responds. */
+export function publishOptimisticCartAdd(snapshot: CartAddSnapshot): void {
+  const cached = readCartSummaryCache();
+  const nextCount = (cached?.itemsCount ?? 0) + snapshot.quantity;
+  const nextTotal = (cached?.total ?? 0) + snapshot.price * snapshot.quantity;
+  writeCartSummaryCache(nextCount, nextTotal);
+  window.dispatchEvent(
+    new CustomEvent<CartUpdatedDetail>('cart-updated', {
+      detail: {
+        optimisticAdd: { quantity: snapshot.quantity, price: snapshot.price },
+        addedItem: snapshot,
+        itemsCount: nextCount,
+        total: nextTotal,
+      },
+    })
+  );
+}
+
+/** Apply header/badge counts from a cart-updated event (avoids double-counting optimistic adds). */
+export function applyCartBadgeFromDetail(
+  detail: CartUpdatedDetail | undefined,
+  apply: (itemsCount: number, total: number) => void
+): 'handled' | 'force-reload' | 'miss' {
+  if (detail?.forceReload) {
+    return 'force-reload';
+  }
+
+  if (detail?.itemsCount !== undefined && detail?.total !== undefined) {
+    apply(detail.itemsCount, detail.total);
+    return 'handled';
+  }
+
+  return 'miss';
 }
 
 /** Request a full cart reload (e.g. after API error recovery). */

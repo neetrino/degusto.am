@@ -1,44 +1,27 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { apiClient } from '../../lib/api-client';
 import { logger } from '../../lib/utils/logger';
-import {
-  emitWishlistUpdated,
-  getLocalWishlistIds,
-  toggleLocalWishlistId,
-  setLocalWishlistIds,
-} from '../../lib/wishlist';
+import { useAuth } from '../../lib/auth/AuthContext';
+import { emitWishlistUpdated } from '../../lib/wishlist';
+import { useWishlistIdsContext } from '../../lib/wishlist/WishlistIdsProvider';
 
 /**
- * Hook for managing wishlist state for a product
- * @param productId - The product ID to check/manage
- * @returns Object with wishlist state and toggle function
+ * Hook for managing wishlist state for a product (persisted in database).
+ * Reads shared ids from WishlistIdsProvider — one API fetch per page, not per card.
  */
 export function useWishlist(productId: string) {
-  const [isInWishlist, setIsInWishlist] = useState(false);
-
-  useEffect(() => {
-    const checkWishlist = () => {
-      setIsInWishlist(getLocalWishlistIds().includes(productId));
-    };
-
-    checkWishlist();
-
-    const handleWishlistUpdate = () => checkWishlist();
-    window.addEventListener('wishlist-updated', handleWishlistUpdate);
-
-    return () => {
-      window.removeEventListener('wishlist-updated', handleWishlistUpdate);
-    };
-  }, [productId]);
+  const { isLoggedIn } = useAuth();
+  const { isInWishlist, setProductInWishlist } = useWishlistIdsContext();
 
   const toggleWishlist = async () => {
-    const previousIds = getLocalWishlistIds();
-    const updatedIds = toggleLocalWishlistId(productId);
-    const nextState = updatedIds.includes(productId);
-    setIsInWishlist(nextState);
-    emitWishlistUpdated();
+    if (!isLoggedIn) {
+      return;
+    }
+
+    const previousState = isInWishlist(productId);
+    const nextState = !previousState;
+    setProductInWishlist(productId, nextState);
 
     try {
       if (nextState) {
@@ -46,18 +29,13 @@ export function useWishlist(productId: string) {
       } else {
         await apiClient.delete(`/api/v1/users/wishlist/${productId}`);
       }
+      emitWishlistUpdated();
     } catch (error) {
-      // Revert local optimistic change if server sync failed.
-      setLocalWishlistIds(previousIds);
-      setIsInWishlist(previousIds.includes(productId));
+      setProductInWishlist(productId, previousState);
       emitWishlistUpdated();
       logger.error('Error syncing wishlist item', { error, productId });
     }
   };
 
-  return { isInWishlist, toggleWishlist };
+  return { isInWishlist: isInWishlist(productId), toggleWishlist };
 }
-
-
-
-

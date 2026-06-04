@@ -216,9 +216,15 @@ function validateCheckoutInput(params: {
   }
 }
 
-async function getUserCartItems(cartId: string, userId: string): Promise<CheckoutCartItem[]> {
+async function getDbCartItems(
+  cartId: string,
+  owner: { userId?: string; guestToken?: string }
+): Promise<CheckoutCartItem[]> {
   const cart = await db.cart.findFirst({
-    where: { id: cartId, userId },
+    where: {
+      id: cartId,
+      ...(owner.userId ? { userId: owner.userId } : { guestToken: owner.guestToken }),
+    },
     include: {
       items: {
         include: {
@@ -443,6 +449,7 @@ async function getGuestCartItems(
 
 async function resolveCartItems(params: {
   userId?: string;
+  guestToken?: string | null;
   cartId?: string;
   guestItems?: Array<{
     productId: string;
@@ -451,9 +458,14 @@ async function resolveCartItems(params: {
     customizations?: ProductCustomizations;
   }>;
 }): Promise<CheckoutCartItem[]> {
-  const { userId, cartId, guestItems } = params;
-  if (userId && cartId && cartId !== "guest-cart") {
-    return getUserCartItems(cartId, userId);
+  const { userId, guestToken, cartId, guestItems } = params;
+  if (cartId && cartId !== "guest-cart") {
+    if (userId) {
+      return getDbCartItems(cartId, { userId });
+    }
+    if (guestToken) {
+      return getDbCartItems(cartId, { guestToken });
+    }
   }
   if (guestItems && Array.isArray(guestItems) && guestItems.length > 0) {
     return await getGuestCartItems(guestItems);
@@ -680,7 +692,7 @@ async function createOrderAndPayment(params: {
         },
       });
 
-      if (userId && cartId && cartId !== "guest-cart") {
+      if (cartId && cartId !== "guest-cart") {
         await tx.cart.delete({
           where: { id: cartId },
         });
@@ -709,9 +721,10 @@ async function createOrderAndPayment(params: {
 export async function performCheckout(params: {
   data: CheckoutData;
   userId?: string;
+  guestToken?: string | null;
   resolveCouponDiscount: (subtotal: number, couponCode: string | null) => Promise<AppliedCouponResult | null>;
 }) {
-  const { data, userId, resolveCouponDiscount } = params;
+  const { data, userId, guestToken, resolveCouponDiscount } = params;
   try {
     const {
       cartId,
@@ -736,6 +749,7 @@ export async function performCheckout(params: {
 
     const cartItems = await resolveCartItems({
       userId,
+      guestToken,
       cartId,
       guestItems,
     });

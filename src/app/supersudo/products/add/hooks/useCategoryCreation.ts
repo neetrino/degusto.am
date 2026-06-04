@@ -1,9 +1,9 @@
 import { apiClient } from '@/lib/api-client';
 import { useTranslation } from '@/lib/i18n-client';
 import type { Category } from '../types';
-import { logger } from "@/lib/utils/logger";
+import { logger } from '@/lib/utils/logger';
 
-interface UseBrandAndCategoryCreationProps {
+interface UseCategoryCreationProps {
   formData: {
     primaryCategoryId: string;
   };
@@ -13,16 +13,16 @@ interface UseBrandAndCategoryCreationProps {
   setLoading: (loading: boolean) => void;
 }
 
-export function useBrandAndCategoryCreation({
+export function useCategoryCreation({
   formData,
   useNewCategory,
   newCategoryName,
   setCategories,
   setLoading,
-}: UseBrandAndCategoryCreationProps) {
+}: UseCategoryCreationProps) {
   const { t } = useTranslation();
 
-  const createBrandAndCategory = async (): Promise<{
+  const createCategoryIfNeeded = async (): Promise<{
     finalPrimaryCategoryId: string;
     creationMessages: string[];
     error: boolean;
@@ -30,7 +30,6 @@ export function useBrandAndCategoryCreation({
     const creationMessages: string[] = [];
     let finalPrimaryCategoryId = formData.primaryCategoryId;
 
-    // Create new category if provided
     if (useNewCategory && newCategoryName.trim()) {
       try {
         logger.debug('📁 [ADMIN] Creating new category:', newCategoryName);
@@ -47,8 +46,10 @@ export function useBrandAndCategoryCreation({
             t('admin.products.add.categoryCreatedSuccess').replace('{name}', newCategoryName.trim())
           );
         }
-      } catch (err: any) {
-        console.error('❌ [ADMIN] Error creating category:', err);
+      } catch (err: unknown) {
+        logger.error('❌ [ADMIN] Error creating category', {
+          error: err instanceof Error ? err.message : String(err),
+        });
         setLoading(false);
         return { finalPrimaryCategoryId, creationMessages, error: true };
       }
@@ -57,11 +58,5 @@ export function useBrandAndCategoryCreation({
     return { finalPrimaryCategoryId, creationMessages, error: false };
   };
 
-  return { createBrandAndCategory };
+  return { createCategoryIfNeeded };
 }
-
-
-
-
-
-

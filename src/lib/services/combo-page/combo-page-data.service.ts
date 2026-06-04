@@ -10,6 +10,7 @@ import {
 } from '../shop-page/shop-page-data.helpers';
 import { mapCategoryEntriesToMenuCategories } from '../shop-page/shop-page-mappers';
 import { fetchComboMenuCategoryProductCounts } from './combo-page-category-counts';
+import { logger } from '@/lib/utils/logger';
 import {
   buildComboProductWhere,
   buildComboProductWhereBase,
@@ -76,8 +77,19 @@ export async function loadComboMenuData(query: ComboMenuQuery): Promise<ComboMen
           .filter((item) => item.slug !== '')
           .map((item) => item.slug);
 
-        const { allProductCount: nextAllProductCount, countBySlug: nextCountBySlug } =
-          await fetchComboMenuCategoryProductCounts(locale, query, nextSlugsToCount);
+        let nextAllProductCount = 0;
+        let nextCountBySlug: Record<string, number> = {};
+        try {
+          const counts = await fetchComboMenuCategoryProductCounts(
+            locale,
+            query,
+            nextSlugsToCount
+          );
+          nextAllProductCount = counts.allProductCount;
+          nextCountBySlug = counts.countBySlug;
+        } catch (countsError) {
+          logger.error('[COMBO] Category product counts failed', countsError);
+        }
 
         const productWhere = buildComboProductWhere(locale, query, productWhereBase);
         const nextProductTotal = await db.product.count({ where: productWhere });

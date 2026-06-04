@@ -2,16 +2,13 @@
 
 import { motion, useReducedMotion } from 'framer-motion';
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { getStoredCurrency } from '@/lib/currency';
 import { useTranslation } from '@/lib/i18n-client';
 import { useAuth } from '@/lib/auth/AuthContext';
-import type { Cart } from '@/app/cart/types';
-import { fetchCart } from '@/app/cart/cart-fetcher';
 import { handleRemoveItem, handleUpdateQuantity } from '@/app/cart/cart-handlers';
 import { CartTable, OrderSummary } from '@/app/cart/cart-components';
 import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
-import { parseCartUpdatedDetail } from '@/lib/cart/cart-events';
 import {
   cartDrawerBackdropTransition,
   cartDrawerBackdropVariants,
@@ -21,7 +18,9 @@ import {
   cartDrawerPanelTransition,
   cartDrawerPanelVariants,
 } from './cart-drawer-motion-variants';
+import { clearLegacyGuestCartLocalStorage } from '@/lib/cart/guest-cart-cookies';
 import { useCartDrawer } from './cart-drawer-context';
+import { useState } from 'react';
 
 /** Header uses panel glass only — no separate tint (avoids dark band at top on mobile). */
 const DRAWER_HEADER_CLASS =
@@ -64,77 +63,37 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
   const panelTransition = cartDrawerPanelTransition(reduceMotion);
   const { isLoggedIn } = useAuth();
   const { t } = useTranslation();
-  const [cart, setCart] = useState<Cart | null>(null);
-  const [loading, setLoading] = useState(true);
+  const {
+    cart,
+    setCart,
+    cartLoading,
+    reloadCart,
+  } = useCartDrawer();
   const [currency, setCurrency] = useState(getStoredCurrency());
   const isLocalUpdateRef = useRef(false);
-  const cartRef = useRef<Cart | null>(null);
-
-  cartRef.current = cart;
-
-  const loadCart = useCallback(async (options?: { silent?: boolean }) => {
-    const silent = options?.silent ?? false;
-    if (!silent) {
-      setLoading(true);
-    }
-    try {
-      const cartData = await fetchCart(isLoggedIn, t);
-      setCart(cartData);
-    } catch {
-      if (!silent) {
-        setCart(null);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [isLoggedIn, t]);
 
   useEffect(() => {
-    void loadCart();
-  }, [loadCart]);
+    clearLegacyGuestCartLocalStorage();
+  }, []);
 
   useEffect(() => {
-    if (isVisible && cartRef.current) {
-      void loadCart({ silent: true });
+    if (isVisible && !cart) {
+      void reloadCart({ silent: true });
     }
-  }, [isVisible, loadCart]);
+  }, [isVisible, cart, reloadCart]);
 
   useEffect(() => {
     const onCurrency = () => setCurrency(getStoredCurrency());
-    const onCartUpdate = (event: Event) => {
-      if (isLocalUpdateRef.current) {
-        isLocalUpdateRef.current = false;
-        return;
-      }
-
-      const detail = parseCartUpdatedDetail(event);
-      if (detail?.forceReload) {
-        void loadCart({ silent: cartRef.current !== null });
-        return;
-      }
-
-      if (detail?.itemsCount !== undefined && detail?.total !== undefined) {
-        const currentCart = cartRef.current;
-        if (currentCart && detail.itemsCount !== currentCart.itemsCount) {
-          void loadCart({ silent: true });
-        }
-        return;
-      }
-
-      void loadCart({ silent: cartRef.current !== null });
-    };
     const onAuth = () => {
-      void loadCart();
+      void reloadCart();
     };
     window.addEventListener('currency-updated', onCurrency);
-    window.addEventListener('cart-updated', onCartUpdate);
     window.addEventListener('auth-updated', onAuth);
     return () => {
       window.removeEventListener('currency-updated', onCurrency);
-      window.removeEventListener('cart-updated', onCartUpdate);
       window.removeEventListener('auth-updated', onAuth);
     };
-  }, [loadCart]);
+  }, [reloadCart]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -154,10 +113,14 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
     };
   }, []);
 
+  const loadCartWithLoading = useCallback(async () => {
+    await reloadCart();
+  }, [reloadCart]);
+
   async function onRemoveItem(itemId: string) {
     if (!cart) return;
     isLocalUpdateRef.current = true;
-    await handleRemoveItem(itemId, cart, isLoggedIn, setCart, loadCart);
+    await handleRemoveItem(itemId, cart, isLoggedIn, setCart, loadCartWithLoading);
   }
 
   async function onUpdateQuantity(itemId: string, quantity: number) {
@@ -168,7 +131,7 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
       cart,
       isLoggedIn,
       setCart,
-      loadCart,
+      loadCartWithLoading,
       t
     );
   }
@@ -178,6 +141,7 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
   const headerStagger = cartDrawerHeaderStagger(reduceMotion);
   const bodyStagger = cartDrawerBodyStagger(reduceMotion);
   const fadeItem = cartDrawerFadeUpItem(reduceMotion);
+  const showLoading = cartLoading && (!cart || cart.items.length === 0);
 
   if (!isVisible) {
     return (
@@ -239,7 +203,7 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
           initial="hidden"
           animate="visible"
         >
-          {loading ? (
+          {showLoading ? (
             <motion.div
               key="loading"
               variants={fadeItem}
@@ -291,19 +255,6 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
 
 export function CartDrawer() {
   const { isCartDrawerOpen, closeCartDrawer } = useCartDrawer();
-  const [hasBeenOpened, setHasBeenOpened] = useState(false);
 
-  useEffect(() => {
-    if (isCartDrawerOpen) {
-      setHasBeenOpened(true);
-    }
-  }, [isCartDrawerOpen]);
-
-  if (!hasBeenOpened) {
-    return null;
-  }
-
-  return (
-    <CartDrawerMounted onClose={closeCartDrawer} isVisible={isCartDrawerOpen} />
-  );
+  return <CartDrawerMounted onClose={closeCartDrawer} isVisible={isCartDrawerOpen} />;
 }

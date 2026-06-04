@@ -4,13 +4,13 @@ import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '../../lib/auth/AuthContext';
 import { apiClient } from '../../lib/api-client';
-import { CART_KEY, getWishlistCount } from '../../lib/storageCounts';
-import { readCartSummaryCache, writeCartSummaryCache } from '../../lib/cartSummaryCache';
-
-interface GuestCartItem {
-  quantity?: number;
-  price?: number;
-}
+import { getWishlistCount } from '../../lib/storageCounts';
+import { applyCartBadgeFromDetail, parseCartUpdatedDetail } from '@/lib/cart/cart-events';
+import {
+  clearCartSummaryCache,
+  readCartSummaryCache,
+  writeCartSummaryCache,
+} from '../../lib/cartSummaryCache';
 
 interface CartResponse {
   cart?: {
@@ -22,7 +22,6 @@ interface CartResponse {
 }
 
 type CartUpdatedDetail = {
-  optimisticAdd?: { quantity?: number; price?: number };
   itemsCount?: number;
   total?: number;
   forceReload?: boolean;
@@ -78,27 +77,7 @@ export function useMobileNavBadgeCounts(): { cartCount: number; wishlistCount: n
 
     let cancelDeferredCartFetch: (() => void) | undefined;
 
-    const readGuestCart = () => {
-      try {
-        const stored = localStorage.getItem(CART_KEY);
-        const parsed: unknown = stored ? JSON.parse(stored) : [];
-        const items = Array.isArray(parsed) ? (parsed as GuestCartItem[]) : [];
-        const itemsCount = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
-        const total = items.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
-        setCartCount(itemsCount);
-        writeCartSummaryCache(itemsCount, total);
-      } catch {
-        setCartCount(0);
-        writeCartSummaryCache(0, 0);
-      }
-    };
-
     const fetchCart = async () => {
-      if (!isLoggedIn) {
-        readGuestCart();
-        return;
-      }
-
       try {
         const response = await apiClient.get<CartResponse>('/api/v1/cart');
         const itemsCount = response.cart?.itemsCount || 0;
@@ -122,7 +101,7 @@ export function useMobileNavBadgeCounts(): { cartCount: number; wishlistCount: n
     };
 
     const handleCartUpdated = (event: Event) => {
-      const detail = (event as CustomEvent<CartUpdatedDetail>).detail;
+      const detail = parseCartUpdatedDetail(event) as CartUpdatedDetail | undefined;
 
       if (detail?.forceReload) {
         cancelDeferredCartFetch?.();
@@ -130,22 +109,11 @@ export function useMobileNavBadgeCounts(): { cartCount: number; wishlistCount: n
         return;
       }
 
-      if (detail?.optimisticAdd) {
-        const nextQuantity = detail.optimisticAdd.quantity ?? 1;
-        const nextPrice = detail.optimisticAdd.price ?? 0;
-        setCartCount((prevCount) => {
-          const nextCount = prevCount + nextQuantity;
-          const cached = readCartSummaryCache();
-          const prevTotal = cached?.total ?? 0;
-          writeCartSummaryCache(nextCount, prevTotal + nextPrice * nextQuantity);
-          return nextCount;
-        });
-        return;
-      }
-
-      if (detail?.itemsCount !== undefined && detail?.total !== undefined) {
-        setCartCount(detail.itemsCount);
-        writeCartSummaryCache(detail.itemsCount, detail.total);
+      const badgeResult = applyCartBadgeFromDetail(detail, (itemsCount, total) => {
+        setCartCount(itemsCount);
+        writeCartSummaryCache(itemsCount, total);
+      });
+      if (badgeResult === 'handled') {
         return;
       }
 
@@ -154,7 +122,7 @@ export function useMobileNavBadgeCounts(): { cartCount: number; wishlistCount: n
     };
 
     const refreshWishlistCount = () => {
-      setWishlistCount(getWishlistCount());
+      void getWishlistCount().then(setWishlistCount);
     };
 
     refreshWishlistCount();
@@ -165,6 +133,7 @@ export function useMobileNavBadgeCounts(): { cartCount: number; wishlistCount: n
     };
 
     const handleAuthForCartAndWishlist = () => {
+      clearCartSummaryCache();
       refreshWishlistCount();
       cancelDeferredCartFetch?.();
       void fetchCart();

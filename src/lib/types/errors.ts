@@ -114,7 +114,7 @@ function prismaKnownRequestToApiError(
       title: "Invalid reference",
       status: 400,
       detail:
-        "Foreign key constraint failed. Check brand, category, attribute, or related IDs.",
+        "Foreign key constraint failed. Check category, attribute, or related IDs.",
       instance,
     };
   }

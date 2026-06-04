@@ -11,7 +11,7 @@ import { loadProductPdpCustomization } from "@/lib/products/pdp-customization-pe
 import type { ProductWithFullRelations, ProductVariantWithOptions } from "./types";
 
 /**
- * Calculate actual discount with priority: productDiscount > categoryDiscount > brandDiscount > globalDiscount
+ * Calculate actual discount with priority: productDiscount > categoryDiscount > globalDiscount
  */
 function calculateActualDiscount(
   productDiscount: number,
@@ -296,14 +296,6 @@ export function transformProductWithDiscountSettings(
   const translations = Array.isArray(product.translations) ? product.translations : [];
   const translation = translations.find((t: { locale: string }) => t.locale === lang) || translations[0] || null;
   
-  // Get brand translation
-  const brandTranslations = product.brand && Array.isArray(product.brand.translations)
-    ? product.brand.translations
-    : [];
-  const brandTranslation = brandTranslations.length > 0
-    ? brandTranslations.find((t: { locale: string }) => t.locale === lang) || brandTranslations[0]
-    : null;
-
   const productDiscount = product.discountPercent || 0;
   
   // Calculate actual discount
@@ -331,14 +323,6 @@ export function transformProductWithDiscountSettings(
     title: translation?.title || "",
     subtitle: translation?.subtitle || null,
     description: translation?.descriptionHtml || null,
-    brand: product.brand
-      ? {
-          id: product.brand.id,
-          slug: product.brand.slug,
-          name: brandTranslation?.name || "",
-          logo: product.brand.logoUrl,
-        }
-      : null,
     categories,
     media: transformMedia(product),
     labels: transformLabels(product, lang),

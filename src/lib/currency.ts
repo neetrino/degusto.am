@@ -148,22 +148,32 @@ export async function initializeCurrencyRates(forceReload: boolean = false): Pro
 
 export function convertPrice(price: number, fromCurrency: CurrencyCode, toCurrency: CurrencyCode): number {
   if (fromCurrency === toCurrency) return price;
-  
+  if (!Number.isFinite(price)) return price;
+
   // Use cached rates if available, otherwise use default rates
   const fromRate = currencyRatesCache?.[fromCurrency] ?? CURRENCIES[fromCurrency].rate;
   const toRate = currencyRatesCache?.[toCurrency] ?? CURRENCIES[toCurrency].rate;
-  
+
+  if (!Number.isFinite(fromRate) || fromRate <= 0 || !Number.isFinite(toRate) || toRate <= 0) {
+    return price;
+  }
+
   // Convert to USD first, then to target currency
   const usdPrice = price / fromRate;
-  return usdPrice * toRate;
+  const converted = usdPrice * toRate;
+  return Number.isFinite(converted) ? converted : price;
 }
 
 /**
  * Catalog price filter bounds from the storefront are entered in AMD; `ProductVariant.price`
  * is stored in USD (see admin product save paths). Uses the same rates as {@link convertPrice}.
  */
-export function storefrontAmdPriceBoundToVariantUsd(amdAmount: number): number {
-  return convertPrice(amdAmount, 'AMD', 'USD');
+export function storefrontAmdPriceBoundToVariantUsd(amdAmount: number): number | null {
+  if (!Number.isFinite(amdAmount) || amdAmount < 0) {
+    return null;
+  }
+  const usd = convertPrice(amdAmount, 'AMD', 'USD');
+  return Number.isFinite(usd) && usd >= 0 ? usd : null;
 }
 
 /**

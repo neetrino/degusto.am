@@ -18,7 +18,7 @@ class ProductsFindService {
     const { products, bestsellerProductIds, total: totalFromQuery } =
       await productsFindQueryService.buildQueryAndFetch(filters);
 
-    // Step 2: Filter products in memory (price, colors, sizes, brand) and sort
+    // Step 2: Filter products in memory (price, colors, sizes) and sort
     const filteredProducts = productsFindFilterService.filterProducts(
       products,
       filters,

@@ -45,10 +45,47 @@ class CartService {
     return ensureCartItemCustomizationsColumn();
   }
 
+  private cartOwnerWhere(userId: string | null, guestToken?: string | null) {
+    if (userId) {
+      return { userId };
+    }
+    if (guestToken) {
+      return { guestToken };
+    }
+    throw {
+      status: 401,
+      type: problemTypes.unauthorized,
+      title: "Unauthorized",
+      detail: "Cart session required",
+    };
+  }
+
+  private cartCreateData(
+    userId: string | null,
+    guestToken: string | null | undefined,
+    locale: string
+  ) {
+    return {
+      ...(userId ? { userId } : {}),
+      ...(guestToken ? { guestToken } : {}),
+      locale,
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    };
+  }
+
   /**
-   * Get or create user's cart
+   * Get or create cart for authenticated user or guest session.
    */
-  async getCart(userId: string, locale: string = "en") {
+  async getCart(
+    userId: string | null,
+    locale: string = "en",
+    guestToken?: string | null
+  ) {
+    if (!userId && !guestToken) {
+      return { cart: null };
+    }
+
+    const ownerWhere = this.cartOwnerWhere(userId, guestToken);
     // Get discount settings
     const discountSettings = await db.settings.findMany({
       where: {
@@ -68,9 +105,7 @@ class CartService {
     
     const findCart = async () =>
       db.cart.findFirst({
-        where: {
-          userId,
-        },
+        where: ownerWhere,
         include: {
           items: {
             include: {
@@ -128,9 +163,7 @@ class CartService {
       const createCart = async () =>
         db.cart.create({
           data: {
-            userId,
-            locale,
-            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+            ...this.cartCreateData(userId, guestToken, locale),
             items: {
               create: [],
             },
@@ -296,17 +329,19 @@ class CartService {
    * Add item to cart
    */
   async addItem(
-    userId: string,
+    userId: string | null,
     data: {
       variantId: string;
       productId: string;
       quantity?: number;
       customizations?: ProductCustomizations;
     },
-    locale: string = "en"
+    locale: string = "en",
+    guestToken?: string | null
   ) {
     const { variantId, productId, quantity = 1 } = data;
     const normalizedCustomizations = normalizeProductCustomizations(data.customizations);
+    const ownerWhere = this.cartOwnerWhere(userId, guestToken);
 
     if (!variantId || !productId) {
       throw {
@@ -320,7 +355,7 @@ class CartService {
     const findCartAndVariant = async () =>
       Promise.all([
         db.cart.findFirst({
-          where: { userId },
+          where: ownerWhere,
           include: { items: true },
         }),
         db.productVariant.findUnique({
@@ -347,9 +382,7 @@ class CartService {
       const createCart = async () =>
         db.cart.create({
           data: {
-            userId,
-            locale,
-            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            ...this.cartCreateData(userId, guestToken, locale),
             items: { create: [] },
           },
           include: { items: true },
@@ -498,7 +531,12 @@ class CartService {
   /**
    * Update cart item
    */
-  async updateItem(userId: string, itemId: string, quantity: number) {
+  async updateItem(
+    userId: string | null,
+    itemId: string,
+    quantity: number,
+    guestToken?: string | null
+  ) {
     if (!quantity || quantity < 1) {
       throw {
         status: 400,
@@ -508,9 +546,11 @@ class CartService {
       };
     }
 
+    const ownerWhere = this.cartOwnerWhere(userId, guestToken);
+
     const cart = await db.cart.findFirst({
       where: {
-        userId,
+        ...ownerWhere,
         items: {
           some: {
             id: itemId,
@@ -546,10 +586,34 @@ class CartService {
       };
     }
 
-    const updatedItem = await db.cartItem.update({
-      where: { id: itemId },
+    const { count } = await db.cartItem.updateMany({
+      where: {
+        id: itemId,
+        cartId: cart.id,
+      },
       data: { quantity },
     });
+
+    if (count === 0) {
+      throw {
+        status: 404,
+        type: problemTypes.notFound,
+        title: "Cart item not found",
+      };
+    }
+
+    const updatedItem = await db.cartItem.findUnique({
+      where: { id: itemId },
+      select: { id: true, quantity: true },
+    });
+
+    if (!updatedItem) {
+      throw {
+        status: 404,
+        type: problemTypes.notFound,
+        title: "Cart item not found",
+      };
+    }
 
     return {
       item: {
@@ -562,10 +626,16 @@ class CartService {
   /**
    * Remove item from cart
    */
-  async removeItem(userId: string, itemId: string) {
+  async removeItem(
+    userId: string | null,
+    itemId: string,
+    guestToken?: string | null
+  ) {
+    const ownerWhere = this.cartOwnerWhere(userId, guestToken);
+
     const cart = await db.cart.findFirst({
       where: {
-        userId,
+        ...ownerWhere,
         items: {
           some: {
             id: itemId,
@@ -582,11 +652,53 @@ class CartService {
       };
     }
 
-    await db.cartItem.delete({
-      where: { id: itemId },
+    const { count } = await db.cartItem.deleteMany({
+      where: {
+        id: itemId,
+        cartId: cart.id,
+      },
     });
 
+    if (count === 0) {
+      throw {
+        status: 404,
+        type: problemTypes.notFound,
+        title: "Cart item not found",
+      };
+    }
+
     return null;
+  }
+
+  /** Move guest DB cart lines into the authenticated user's cart after login. */
+  async mergeGuestCartIntoUser(
+    guestToken: string,
+    userId: string,
+    locale: string = "en"
+  ): Promise<void> {
+    const guestCart = await db.cart.findFirst({
+      where: { guestToken },
+      include: { items: true },
+    });
+
+    if (!guestCart || guestCart.items.length === 0) {
+      return;
+    }
+
+    for (const item of guestCart.items) {
+      await this.addItem(
+        userId,
+        {
+          productId: item.productId,
+          variantId: item.variantId,
+          quantity: item.quantity,
+          customizations: normalizeProductCustomizations(item.customizations),
+        },
+        locale
+      );
+    }
+
+    await db.cart.delete({ where: { id: guestCart.id } });
   }
 }
 

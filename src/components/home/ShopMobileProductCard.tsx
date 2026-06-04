@@ -13,6 +13,12 @@ import {
   FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS,
   MOBILE_SHOP_PRODUCT_CARD_ASSETS,
 } from '@/constants/mobile-figma-storefront';
+import {
+  getProductCardWishlistHoverClasses,
+  PRODUCT_CARD_CART_BTN_HOVER_CLASS,
+  PRODUCT_CARD_ICON_BTN_INTERACTION_CLASS,
+  PRODUCT_CARD_WISHLIST_ICON_HOVER_CLASS,
+} from '@/constants/product-card-action-hover';
 import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 import { HomeOptimizedImage } from './HomeOptimizedImage';
 import { StorefrontProductOverlayLink } from './StorefrontProductOverlayLink';
@@ -73,6 +79,8 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
     inStock: card.inStock ?? true,
     defaultVariantId: card.defaultVariantId ?? undefined,
     price: card.price,
+    title,
+    image: card.image ?? imageSrc,
   });
 
   const handleAddToCart = (event: MouseEvent<HTMLButtonElement>) => {
@@ -118,10 +126,10 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
       <button
         type="button"
         onClick={handleWishlistToggle}
-        className={`absolute right-2 top-2 z-20 flex h-8 w-8 items-center justify-center rounded-full border shadow-md transition-colors ${
+        className={`absolute right-2 top-2 z-20 flex h-8 w-8 items-center justify-center rounded-full border shadow-md ${PRODUCT_CARD_ICON_BTN_INTERACTION_CLASS} ${getProductCardWishlistHoverClasses(isInWishlist)} ${
           isInWishlist
-            ? 'border-red-600 bg-red-600 text-white hover:bg-red-700'
-            : 'border-[#dedede]/90 bg-white/95 text-gray-700 hover:bg-white'
+            ? 'border-red-600 bg-red-600 text-white'
+            : 'border-[#dedede]/90 bg-white/95 text-gray-700'
         }`}
         title={
           isInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')
@@ -130,7 +138,9 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
           isInWishlist ? t('common.ariaLabels.removeFromWishlist') : t('common.ariaLabels.addToWishlist')
         }
       >
-        <WishlistHeartIcon filled={isInWishlist} size={16} />
+        <span className={PRODUCT_CARD_WISHLIST_ICON_HOVER_CLASS} aria-hidden>
+          <WishlistHeartIcon filled={isInWishlist} size={16} />
+        </span>
       </button>
 
       {supportsSpicy ? (
@@ -201,7 +211,7 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
         onClick={handleAddToCart}
         disabled={isAddingToCart || card.inStock === false}
         aria-label={t('common.buttons.addToCart')}
-        className="absolute -bottom-[14px] left-1/2 z-20 inline-flex h-[42px] w-[42px] -translate-x-1/2 items-center justify-center disabled:opacity-50"
+        className={`absolute -bottom-[14px] left-1/2 z-20 inline-flex h-[42px] w-[42px] -translate-x-1/2 items-center justify-center disabled:opacity-50 ${PRODUCT_CARD_CART_BTN_HOVER_CLASS}`}
       >
         <HomeOptimizedImage
           src={MOBILE_SHOP_PRODUCT_CARD_ASSETS.addToCart}

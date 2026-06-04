@@ -1,72 +1,70 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from '../../lib/i18n-client';
-
-const COMPARE_KEY = 'shop_compare';
-const MAX_COMPARE_ITEMS = 4;
+import { apiClient } from '../../lib/api-client';
+import { logger } from '../../lib/utils/logger';
+import { emitCompareUpdated, fetchCompareIds } from '../../lib/compare-api';
+import { MAX_COMPARE_ITEMS } from '../../lib/compare/constants';
 
 /**
- * Hook for managing compare state for a product
- * @param productId - The product ID to check/manage
- * @returns Object with compare state and toggle function
+ * Hook for managing compare state for a product (persisted in database).
  */
 export function useCompare(productId: string) {
   const { t } = useTranslation();
   const [isInCompare, setIsInCompare] = useState(false);
 
+  const refreshFromServer = useCallback(async () => {
+    const ids = await fetchCompareIds();
+    setIsInCompare(ids.includes(productId));
+  }, [productId]);
+
   useEffect(() => {
-    const checkCompare = () => {
-      if (typeof window === 'undefined') return;
-      try {
-        const stored = localStorage.getItem(COMPARE_KEY);
-        const compare = stored ? JSON.parse(stored) : [];
-        setIsInCompare(compare.includes(productId));
-      } catch {
-        setIsInCompare(false);
-      }
+    void refreshFromServer();
+
+    const handleCompareUpdate = () => {
+      void refreshFromServer();
     };
 
-    checkCompare();
-
-    const handleCompareUpdate = () => checkCompare();
     window.addEventListener('compare-updated', handleCompareUpdate);
-
     return () => {
       window.removeEventListener('compare-updated', handleCompareUpdate);
     };
-  }, [productId]);
+  }, [refreshFromServer]);
 
-  const toggleCompare = () => {
-    if (typeof window === 'undefined') return;
-    
-    try {
-      const stored = localStorage.getItem(COMPARE_KEY);
-      const compare: string[] = stored ? JSON.parse(stored) : [];
-      
-      if (isInCompare) {
-        const updated = compare.filter((id) => id !== productId);
-        localStorage.setItem(COMPARE_KEY, JSON.stringify(updated));
-        setIsInCompare(false);
-      } else {
-        if (compare.length >= MAX_COMPARE_ITEMS) {
-          alert(t('common.alerts.compareMaxReached'));
-          return;
-        }
-        compare.push(productId);
-        localStorage.setItem(COMPARE_KEY, JSON.stringify(compare));
-        setIsInCompare(true);
+  const toggleCompare = async () => {
+    const previousState = isInCompare;
+
+    if (isInCompare) {
+      setIsInCompare(false);
+      emitCompareUpdated();
+      try {
+        await apiClient.delete(`/api/v1/compare/${productId}`);
+      } catch (error) {
+        setIsInCompare(previousState);
+        emitCompareUpdated();
+        logger.error('Error removing compare item', { error, productId });
       }
-      
-      window.dispatchEvent(new Event('compare-updated'));
+      return;
+    }
+
+    const currentIds = await fetchCompareIds();
+    if (currentIds.length >= MAX_COMPARE_ITEMS) {
+      alert(t('common.alerts.compareMaxReached'));
+      return;
+    }
+
+    setIsInCompare(true);
+    emitCompareUpdated();
+
+    try {
+      await apiClient.post('/api/v1/compare', { productId });
     } catch (error) {
-      console.error('Error updating compare:', error);
+      setIsInCompare(previousState);
+      emitCompareUpdated();
+      logger.error('Error adding compare item', { error, productId });
     }
   };
 
   return { isInCompare, toggleCompare };
 }
-
-
-
-

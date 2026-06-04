@@ -5,6 +5,12 @@ import { CompareIcon } from '../icons/CompareIcon';
 import { CartIcon as CartPngIcon } from '../icons/CartIcon';
 import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
 import { useTranslation } from '../../lib/i18n-client';
+import {
+  getProductCardWishlistHoverClasses,
+  PRODUCT_CARD_CART_INLINE_BTN_HOVER_CLASS,
+  PRODUCT_CARD_ICON_BTN_INTERACTION_CLASS,
+  PRODUCT_CARD_WISHLIST_ICON_HOVER_CLASS,
+} from '@/constants/product-card-action-hover';
 
 interface ProductCardActionsProps {
   isInWishlist: boolean;
@@ -68,17 +74,19 @@ export function ProductCardActions({
         <button
           type="button"
           onClick={onWishlistToggle}
-          className={`${buttonSize} rounded-full flex items-center justify-center transition-all duration-200 ${
+          className={`${buttonSize} rounded-full flex items-center justify-center transition-all duration-200 ${PRODUCT_CARD_ICON_BTN_INTERACTION_CLASS} ${getProductCardWishlistHoverClasses(isInWishlist)} ${
             isInWishlist
               ? 'bg-red-600 text-white shadow-lg'
-              : 'bg-white text-gray-700 hover:bg-gray-50 shadow-md hover:shadow-lg'
+              : 'bg-white text-gray-700 shadow-md'
           }`}
           title={isInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')}
           aria-label={
             isInWishlist ? t('common.ariaLabels.removeFromWishlist') : t('common.ariaLabels.addToWishlist')
           }
         >
-          <WishlistHeartIcon filled={isInWishlist} size={isCompact ? 18 : 20} />
+          <span className={PRODUCT_CARD_WISHLIST_ICON_HOVER_CLASS} aria-hidden>
+            <WishlistHeartIcon filled={isInWishlist} size={isCompact ? 18 : 20} />
+          </span>
         </button>
       ) : null}
     </>
@@ -101,9 +109,9 @@ export function ProductCardActions({
       <button
         onClick={onAddToCart}
         disabled={!inStock || isAddingToCart}
-        className={`${buttonSize} rounded-full flex items-center justify-center transition-all duration-200 ${
+        className={`${buttonSize} rounded-full flex items-center justify-center transition-all duration-200 ${PRODUCT_CARD_ICON_BTN_INTERACTION_CLASS} ${
           inStock && !isAddingToCart
-            ? 'bg-transparent text-gray-600 hover:bg-green-600 hover:text-white hover:shadow-md'
+            ? `bg-transparent text-gray-600 ${PRODUCT_CARD_CART_INLINE_BTN_HOVER_CLASS}`
             : 'bg-transparent text-gray-400 cursor-not-allowed'
         }`}
         title={inStock ? t('common.buttons.addToCart') : t('common.stock.outOfStock')}

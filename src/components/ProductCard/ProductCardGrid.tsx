@@ -14,6 +14,11 @@ import {
   FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS,
   FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS,
 } from '@/constants/mobile-figma-storefront';
+import {
+  getProductCardWishlistHoverClasses,
+  PRODUCT_CARD_ICON_BTN_INTERACTION_CLASS,
+  PRODUCT_CARD_WISHLIST_ICON_HOVER_CLASS,
+} from '@/constants/product-card-action-hover';
 
 interface ProductCardGridProps {
   product: {
@@ -23,7 +28,6 @@ interface ProductCardGridProps {
     price: number;
     image: string | null;
     inStock: boolean;
-    brand: { id: string; name: string; logoUrl?: string | null } | null;
     labels?: ProductLabel[];
     compareAtPrice?: number | null;
     originalPrice?: number | null;
@@ -99,10 +103,10 @@ export function ProductCardGrid({
         <button
           type="button"
           onClick={onWishlistToggle}
-          className={`absolute ${isCompact ? 'top-1.5 right-1.5' : 'top-3 right-3'} z-20 ${wishlistButtonSize} rounded-full flex items-center justify-center transition-all duration-200 shadow-md ${
+          className={`absolute ${isCompact ? 'top-1.5 right-1.5' : 'top-3 right-3'} z-20 ${wishlistButtonSize} rounded-full flex items-center justify-center transition-all duration-200 shadow-md ${PRODUCT_CARD_ICON_BTN_INTERACTION_CLASS} ${getProductCardWishlistHoverClasses(isInWishlist)} ${
             isInWishlist
-              ? 'bg-red-600 text-white hover:bg-red-700'
-              : 'bg-white/95 text-gray-700 hover:bg-white border border-gray-200/80'
+              ? 'bg-red-600 text-white'
+              : 'bg-white/95 text-gray-700 border border-gray-200/80'
           }`}
           title={
             isInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')
@@ -111,7 +115,9 @@ export function ProductCardGrid({
             isInWishlist ? t('common.ariaLabels.removeFromWishlist') : t('common.ariaLabels.addToWishlist')
           }
         >
-          <WishlistHeartIcon filled={isInWishlist} size={wishlistIconSize} />
+          <span className={PRODUCT_CARD_WISHLIST_ICON_HOVER_CLASS} aria-hidden>
+            <WishlistHeartIcon filled={isInWishlist} size={wishlistIconSize} />
+          </span>
         </button>
 
         {/* Compare — on hover (wishlist is fixed above) */}
@@ -133,8 +139,6 @@ export function ProductCardGrid({
       {/* Product Info */}
       <ProductCardInfo
         title={product.title}
-        brandName={product.brand?.name}
-        brandLogoUrl={product.brand?.logoUrl}
         price={product.price}
         originalPrice={product.originalPrice}
         compareAtPrice={product.compareAtPrice}

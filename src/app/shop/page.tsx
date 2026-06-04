@@ -16,7 +16,7 @@ export default async function ShopPage({
   searchParams?: Promise<SearchParamsInput> | SearchParamsInput;
 }) {
   const params = searchParams instanceof Promise ? await searchParams : searchParams;
-  const cookieStore = await cookies();
+  const [cookieStore, headersList] = await Promise.all([cookies(), headers()]);
   const locale = resolveStorefrontLocaleFromCookie(cookieStore.get('shop_language')?.value);
   const rawCategorySlug =
     typeof params?.category === 'string' ? params.category.trim() : '';
@@ -50,10 +50,18 @@ export default async function ShopPage({
   const parsedPage = parseInt(rawPage || '1', 10);
   const requestedPage =
     Number.isFinite(parsedPage) && parsedPage >= 1 ? parsedPage : 1;
-  const { device } = userAgent({ headers: await headers() });
+
+  const { device } = userAgent({ headers: headersList });
   const isMobileClient = device.type === 'mobile';
 
-  const { cards, categories, mobileShopCategories, effectivePage, totalPages } =
+  const loadProfile =
+    showMobileCategoryGrid && isMobileClient
+      ? 'mobile-grid'
+      : isMobileClient
+        ? 'products-only'
+        : 'full';
+
+  const { cards, categories, mobileShopCategories, showCategoryPicker, effectivePage, totalPages } =
     await getShopMenuData({
       locale,
       selectedCategorySlug,
@@ -62,7 +70,7 @@ export default async function ShopPage({
       minPriceAmd,
       maxPriceAmd,
       requestedPage,
-      mobileCategoryGridOnly: showMobileCategoryGrid && isMobileClient,
+      loadProfile,
     });
 
   const isMobileCategoryGridMode = showMobileCategoryGrid && isMobileClient;
@@ -90,6 +98,7 @@ export default async function ShopPage({
             totalPages,
           }}
           showMobileProductsList={!showMobileCategoryGrid}
+          showCategoryPicker={showCategoryPicker}
         />
       ) : null}
     </div>

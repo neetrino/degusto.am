@@ -2,8 +2,8 @@ import {
   FOOD_ATTR_GREENS_KEY,
   FOOD_ATTR_SPICY_KEY,
 } from '@/lib/product-food-attributes';
-import { storefrontAmdPriceBoundToVariantUsd } from '@/lib/currency';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
+import { resolveVariantUsdBoundsFromAmd } from '@/lib/storefront/variant-price-filter';
 import { db } from '@white-shop/db';
 import { Prisma } from '@prisma/client';
 import type { ComboMenuQuery } from './combo-page-query.types';
@@ -47,10 +47,10 @@ function buildComboProductBaseFilterSql(
   locale: StorefrontLocale,
   query: ComboMenuQuery
 ): Prisma.Sql {
-  const minPriceUsd =
-    query.minPriceAmd !== null ? storefrontAmdPriceBoundToVariantUsd(query.minPriceAmd) : null;
-  const maxPriceUsd =
-    query.maxPriceAmd !== null ? storefrontAmdPriceBoundToVariantUsd(query.maxPriceAmd) : null;
+  const { minUsd: minPriceUsd, maxUsd: maxPriceUsd } = resolveVariantUsdBoundsFromAmd(
+    query.minPriceAmd,
+    query.maxPriceAmd
+  );
 
   const clauses: Prisma.Sql[] = [
     Prisma.sql`p.published = true`,
@@ -85,13 +85,18 @@ function buildComboProductBaseFilterSql(
     `);
   }
 
-  if (minPriceUsd !== null || maxPriceUsd !== null) {
+  const minUsd =
+    minPriceUsd !== null && Number.isFinite(minPriceUsd) ? minPriceUsd : null;
+  const maxUsd =
+    maxPriceUsd !== null && Number.isFinite(maxPriceUsd) ? maxPriceUsd : null;
+
+  if (minUsd !== null || maxUsd !== null) {
     const priceParts: Prisma.Sql[] = [Prisma.sql`pv.published = true`];
-    if (minPriceUsd !== null) {
-      priceParts.push(Prisma.sql`pv.price >= ${minPriceUsd}`);
+    if (minUsd !== null) {
+      priceParts.push(Prisma.sql`pv.price >= ${minUsd}`);
     }
-    if (maxPriceUsd !== null) {
-      priceParts.push(Prisma.sql`pv.price <= ${maxPriceUsd}`);
+    if (maxUsd !== null) {
+      priceParts.push(Prisma.sql`pv.price <= ${maxUsd}`);
     }
     clauses.push(Prisma.sql`
       EXISTS (

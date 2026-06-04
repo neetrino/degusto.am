@@ -1,60 +1,18 @@
 'use client';
 
-/**
- * Shared storage keys used to keep wishlist, compare and cart data in localStorage.
- */
-export const STORAGE_KEYS = {
-  wishlist: 'shop_wishlist',
-  compare: 'shop_compare',
-  cart: 'shop_cart_guest',
-} as const;
-
-export const WISHLIST_KEY = STORAGE_KEYS.wishlist;
-export const COMPARE_KEY = STORAGE_KEYS.compare;
-export const CART_KEY = STORAGE_KEYS.cart;
+import { fetchCompareCount } from './compare-api';
+import { fetchWishlistCount } from './wishlist-api';
 
 /**
- * Returns the stored length for an array kept under the provided key.
+ * Retrieves wishlist item count from the database API.
  */
-function getStoredArrayLength(key: string): number {
-  if (typeof window === 'undefined') return 0;
-  try {
-    const stored = window.localStorage.getItem(key);
-    const parsed = stored ? JSON.parse(stored) : [];
-    if (!Array.isArray(parsed)) {
-      return 0;
-    }
-
-    const cleaned = parsed.filter(
-      (value): value is string =>
-        typeof value === 'string' &&
-        value.trim().length > 0 &&
-        value !== 'undefined' &&
-        value !== 'null'
-    );
-
-    // Heal corrupted legacy values so badges and pages stay in sync.
-    if (cleaned.length !== parsed.length) {
-      window.localStorage.setItem(key, JSON.stringify(cleaned));
-    }
-
-    return cleaned.length;
-  } catch {
-    return 0;
-  }
+export async function getWishlistCount(): Promise<number> {
+  return fetchWishlistCount();
 }
 
 /**
- * Retrieves wishlist items count from localStorage.
+ * Retrieves compare item count from the database API.
  */
-export function getWishlistCount(): number {
-  return getStoredArrayLength(WISHLIST_KEY);
+export async function getCompareCount(): Promise<number> {
+  return fetchCompareCount();
 }
-
-/**
- * Retrieves compare items count from localStorage.
- */
-export function getCompareCount(): number {
-  return getStoredArrayLength(COMPARE_KEY);
-}
-

@@ -1,43 +1,16 @@
 import { apiClient } from '../../lib/api-client';
+import { ApiError } from '../../lib/api-client/types';
 import { logger } from '../../lib/utils/logger';
 import type { Cart, CartItem } from './types';
-import { CART_KEY } from './constants';
 import { publishCartUpdated, publishCartForceReload } from '../../lib/cart/cart-events';
-import {
-  buildCustomizationLineKey,
-  normalizeProductCustomizations,
-} from '../../lib/cart/customizations';
-import { isStockSufficient } from '@/lib/product-stock';
 
-/**
- * Guest cart item
- */
-interface GuestCartItem {
-  lineId?: string;
-  productId: string;
-  productSlug?: string;
-  variantId: string;
-  quantity: number;
-  price?: number;
-  customizations?: {
-    additions?: string;
-    exclusions?: string;
-  };
-}
-
-
-/**
- * Parse item ID to extract productId and lineId
- */
-function parseItemId(itemId: string): { productId: string; lineId: string } | null {
-  const separatorIndex = itemId.indexOf(':');
-  if (separatorIndex <= 0 || separatorIndex >= itemId.length - 1) {
-    return null;
+/** Item already removed server-side (e.g. duplicate minus click after optimistic delete). */
+function isCartItemNotFoundError(error: unknown): boolean {
+  if (error instanceof ApiError && error.status === 404) {
+    return true;
   }
-  return {
-    productId: itemId.slice(0, separatorIndex),
-    lineId: itemId.slice(separatorIndex + 1),
-  };
+  const errorObj = error as { status?: number };
+  return errorObj.status === 404;
 }
 
 /**
@@ -53,83 +26,22 @@ function calculateCartTotals(items: CartItem[], existingTotals: Cart['totals']):
 }
 
 /**
- * Remove item from guest cart in localStorage
- */
-function removeFromGuestCart(itemId: string): void {
-  if (typeof window === 'undefined') return;
-
-  const parsed = parseItemId(itemId);
-  if (!parsed) return;
-
-  const stored = localStorage.getItem(CART_KEY);
-  const guestCart: GuestCartItem[] = stored ? JSON.parse(stored) : [];
-  
-  const updatedCart = guestCart.filter(
-    (item) => {
-      const lineId = item.lineId || buildCustomizationLineKey(
-        item.variantId,
-        normalizeProductCustomizations(item.customizations)
-      );
-      return !(item.productId === parsed.productId && lineId === parsed.lineId);
-    }
-  );
-
-  const itemsCount = updatedCart.reduce((sum, item) => sum + item.quantity, 0);
-  const total = updatedCart.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
-  localStorage.setItem(CART_KEY, JSON.stringify(updatedCart));
-  publishCartUpdated(itemsCount, total);
-}
-
-/**
- * Update item quantity in guest cart in localStorage
- */
-function updateGuestCartQuantity(itemId: string, quantity: number): void {
-  if (typeof window === 'undefined') return;
-
-  const parsed = parseItemId(itemId);
-  if (!parsed) return;
-
-  const stored = localStorage.getItem(CART_KEY);
-  const guestCart: GuestCartItem[] = stored ? JSON.parse(stored) : [];
-  
-  const item = guestCart.find(
-    (entry) => {
-      const lineId = entry.lineId || buildCustomizationLineKey(
-        entry.variantId,
-        normalizeProductCustomizations(entry.customizations)
-      );
-      return entry.productId === parsed.productId && lineId === parsed.lineId;
-    }
-  );
-  
-  if (item) {
-    item.quantity = quantity;
-    const itemsCount = guestCart.reduce((sum, cartItem) => sum + cartItem.quantity, 0);
-    const total = guestCart.reduce((sum, cartItem) => sum + (cartItem.price || 0) * cartItem.quantity, 0);
-    localStorage.setItem(CART_KEY, JSON.stringify(guestCart));
-    publishCartUpdated(itemsCount, total);
-  }
-}
-
-/**
  * Handle remove item from cart
  */
 export async function handleRemoveItem(
   itemId: string,
   cart: Cart,
-  isLoggedIn: boolean,
+  _isLoggedIn: boolean,
   setCart: (cart: Cart | null) => void,
   fetchCart: () => Promise<void>
 ): Promise<void> {
   const itemToRemove = cart.items.find(item => item.id === itemId);
   if (!itemToRemove) return;
 
-  // Calculate new totals
   const updatedItems = cart.items.filter(item => item.id !== itemId);
   const newItemsCount = updatedItems.reduce((sum, item) => sum + item.quantity, 0);
   const updatedTotals = calculateCartTotals(updatedItems, cart.totals);
 
-  // Update UI immediately (optimistic update)
   setCart({
     ...cart,
     items: updatedItems,
@@ -139,16 +51,15 @@ export async function handleRemoveItem(
   publishCartUpdated(newItemsCount, updatedTotals.total);
 
   try {
-    if (!isLoggedIn) {
-      removeFromGuestCart(itemId);
+    await apiClient.delete(`/api/v1/cart/items/${itemId}`);
+  } catch (error: unknown) {
+    if (isCartItemNotFoundError(error)) {
+      logger.debug('Cart item already removed', { itemId });
+      await fetchCart();
       return;
     }
 
-    // For logged-in users, delete from API
-    await apiClient.delete(`/api/v1/cart/items/${itemId}`);
-  } catch (error: unknown) {
     logger.error('Error removing item', { error, itemId });
-    // Revert optimistic update on error
     await fetchCart();
     publishCartForceReload();
   }
@@ -161,33 +72,29 @@ export async function handleUpdateQuantity(
   itemId: string,
   quantity: number,
   cart: Cart | null,
-  isLoggedIn: boolean,
+  _isLoggedIn: boolean,
   setCart: (cart: Cart | null) => void,
   fetchCart: () => Promise<void>,
   t: (key: string) => string
 ): Promise<void> {
   if (quantity < 1) {
     if (cart) {
-      await handleRemoveItem(itemId, cart, isLoggedIn, setCart, fetchCart);
+      await handleRemoveItem(itemId, cart, false, setCart, fetchCart);
     }
     return;
   }
 
-  // Find the cart item to check stock
   const cartItem = cart?.items.find(item => item.id === itemId);
   if (!cartItem) return;
 
-  if (cartItem.variant.stock !== undefined) {
-    if (!isStockSufficient(cartItem.variant.stock, quantity)) {
-      alert(`Մատչելի քանակը ${cartItem.variant.stock} հատ է: Դուք չեք կարող ավելացնել ավելի շատ քանակ:`);
-      return;
-    }
+  if (cartItem.variant.stock !== undefined && quantity > cartItem.variant.stock) {
+    alert(`Մատչելի քանակը ${cartItem.variant.stock} հատ է: Դուք չեք կարող ավելացնել ավելի շատ քանակ:`);
+    return;
   }
 
-  // Optimistic update: update UI immediately
   if (cart) {
-    const updatedItems = cart.items.map(item => 
-      item.id === itemId 
+    const updatedItems = cart.items.map(item =>
+      item.id === itemId
         ? { ...item, quantity, total: item.price * quantity }
         : item
     );
@@ -204,34 +111,18 @@ export async function handleUpdateQuantity(
   }
 
   try {
-    if (!isLoggedIn) {
-      if (typeof window === 'undefined') return;
+    await apiClient.patch(`/api/v1/cart/items/${itemId}`, { quantity });
+  } catch (error: unknown) {
+    await fetchCart();
+    publishCartForceReload();
 
-      // Check stock for guest cart
-      if (cartItem.variant.stock !== undefined && !isStockSufficient(cartItem.variant.stock, quantity)) {
-        alert(`Մատչելի քանակը ${cartItem.variant.stock} հատ է: Դուք չեք կարող ավելացնել ավելի շատ քանակ:`);
-        // Revert optimistic update
-        await fetchCart();
-        return;
-      }
-      
-      updateGuestCartQuantity(itemId, quantity);
+    if (isCartItemNotFoundError(error)) {
       return;
     }
 
-    // For logged-in users, update via API
-    await apiClient.patch(
-      `/api/v1/cart/items/${itemId}`,
-      { quantity }
-    );
-  } catch (error: unknown) {
     const errorObj = error as { detail?: string; message?: string };
     logger.error('Error updating quantity', { error, itemId });
-    // Revert optimistic update on error
-    await fetchCart();
-    publishCartForceReload();
-    
-    // Show user-friendly error message
+
     const errorMessage = errorObj?.detail || errorObj?.message || t('common.messages.failedToUpdateQuantity');
     if (errorMessage.includes('stock') || errorMessage.includes('exceeds')) {
       alert(t('common.alerts.stockInsufficient').replace('{message}', errorMessage));
@@ -240,7 +131,3 @@ export async function handleUpdateQuantity(
     }
   }
 }
-
-
-
-

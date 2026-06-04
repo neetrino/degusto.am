@@ -91,10 +91,11 @@ class OrdersService {
   /**
    * Create order (checkout)
    */
-  async checkout(data: CheckoutData, userId?: string) {
+  async checkout(data: CheckoutData, userId?: string, guestToken?: string | null) {
     return performCheckout({
       data,
       userId,
+      guestToken,
       resolveCouponDiscount: (subtotal, couponCode) => {
         return this.resolveCouponDiscount(subtotal, couponCode, {
           userId,
