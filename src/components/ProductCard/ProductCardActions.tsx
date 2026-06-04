@@ -11,6 +11,7 @@ import {
   PRODUCT_CARD_ICON_BTN_INTERACTION_CLASS,
   PRODUCT_CARD_WISHLIST_ICON_HOVER_CLASS,
 } from '@/constants/product-card-action-hover';
+import { PRODUCT_CARD_INTERACTIVE_Z_CLASS } from '@/constants/product-card-stacking';
 
 interface ProductCardActionsProps {
   isInWishlist: boolean;
@@ -95,7 +96,7 @@ export function ProductCardActions({
   if (showOnHover) {
     return (
       <div
-        className={`absolute ${hoverCornerClass} flex flex-col ${isCompact ? 'gap-1.5' : 'gap-2'} opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10`}
+        className={`absolute ${hoverCornerClass} flex flex-col ${isCompact ? 'gap-1.5' : 'gap-2'} opacity-0 group-hover:opacity-100 transition-opacity duration-200 ${PRODUCT_CARD_INTERACTIVE_Z_CLASS}`}
       >
         {actions}
       </div>

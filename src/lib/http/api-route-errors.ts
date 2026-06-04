@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildDatabaseUrlLogFields } from "@white-shop/db";
 import { logger } from "@/lib/utils/logger";
+import { problemTypes } from "@/lib/http/problem-details";
 import {
   internalErrorResponse,
+  problemJson,
   serviceUnavailableResponse,
 } from "@/lib/http/problem-response";
 
@@ -91,4 +93,39 @@ export function apiRouteErrorResponse(
         : "An error occurred";
 
   return internalErrorResponse(instance, safeDetail);
+}
+
+/**
+ * Maps route errors to Problem Details: Prisma connectivity → 503, thrown `{ status }` → that status, else 500.
+ */
+export function apiRouteCatchErrorResponse(
+  req: NextRequest,
+  error: unknown,
+  logLabel: string
+): NextResponse {
+  if (isPrismaConnectionError(error)) {
+    return apiRouteErrorResponse(req, error, logLabel);
+  }
+
+  const e = parseRouteCatchError(error);
+  const status = e.status;
+  if (typeof status === "number" && status >= 400 && status < 600) {
+    if (status >= 500) {
+      logger.error(logLabel, error);
+    } else {
+      logger.warn(logLabel, { status, detail: e.detail ?? e.message });
+    }
+    return problemJson(
+      {
+        type: e.type ?? problemTypes.internalError,
+        title: e.title ?? "Error",
+        status,
+        detail: e.detail ?? e.message ?? "An error occurred",
+        instance: req.url,
+      },
+      status >= 503 ? { headers: { "Retry-After": "15" } } : undefined
+    );
+  }
+
+  return apiRouteErrorResponse(req, error, logLabel);
 }

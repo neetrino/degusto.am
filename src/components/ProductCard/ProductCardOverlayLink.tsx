@@ -10,7 +10,8 @@ export type ProductCardOverlayLinkProps = {
 };
 
 /**
- * Full-card product navigation behind wishlist/cart controls (stretched link pattern).
+ * Full-card PDP link — render as the **last** child of the card so it sits above
+ * inert content; action buttons use {@link PRODUCT_CARD_INTERACTIVE_Z_CLASS}.
  */
 export function ProductCardOverlayLink({ slug, label, className = '' }: ProductCardOverlayLinkProps) {
   return (

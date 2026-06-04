@@ -21,6 +21,7 @@ import {
   PRODUCT_CARD_WISHLIST_ICON_HOVER_CLASS,
 } from '@/constants/product-card-action-hover';
 import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
+import { PRODUCT_CARD_INTERACTIVE_Z_CLASS } from '@/constants/product-card-stacking';
 
 interface ProductCardListProps {
   product: {
@@ -82,9 +83,10 @@ export function ProductCardList({
       className={`relative overflow-hidden rounded-lg border border-gray-200 bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} group cursor-pointer`}
       onMouseEnter={onPrefetchNavigate}
       onFocus={onPrefetchNavigate}
+      onPointerDown={onPrefetchNavigate}
+      onTouchStart={onPrefetchNavigate}
     >
-      <ProductCardOverlayLink slug={product.slug} label={product.title} />
-      <div className="relative z-10 flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:px-6">
+      <div className="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:px-6">
         <div
           data-product-fly-origin
           className={`relative h-20 w-20 flex-shrink-0 self-start overflow-hidden rounded-lg bg-gray-100 transition-colors sm:self-center ${FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS}`}
@@ -140,7 +142,7 @@ export function ProductCardList({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-2 self-start sm:self-center">
+          <div className={`flex items-center gap-2 self-start sm:self-center ${PRODUCT_CARD_INTERACTIVE_Z_CLASS}`}>
             {/* Compare Icon */}
             <button
               onClick={onCompareToggle}
@@ -198,6 +200,7 @@ export function ProductCardList({
           </div>
         </div>
       </div>
+      <ProductCardOverlayLink slug={product.slug} label={product.title} />
     </div>
   );
 }
