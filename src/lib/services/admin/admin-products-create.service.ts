@@ -1,7 +1,10 @@
 import { db } from "@white-shop/db";
 import { revalidateTag } from "next/cache";
 import { findOrCreateAttributeValue } from "../../utils/variant-generator";
-import { ensureProductAttributesTable } from "../../utils/db-ensure";
+import {
+  ensureProductAttributesTable,
+  ensureProductPdpCustomizationColumn,
+} from "../../utils/db-ensure";
 import {
   processImageUrl,
   smartSplitUrls,
@@ -11,6 +14,7 @@ import {
 import { parseAdminStockInput } from '@/lib/product-stock';
 import { logger } from "@/lib/utils/logger";
 import { revalidateStorefrontMenuCaches } from "@/lib/cache/revalidate-storefront-menu-caches";
+import { saveProductPdpCustomization } from "@/lib/products/pdp-customization-persistence";
 import { ensureUniqueProductSlug } from "./product-slug-utils";
 import {
   buildProductCategoriesConnect,
@@ -116,6 +120,7 @@ class AdminProductsCreateService {
       color?: string | null;
     }>;
     attributeIds?: string[];
+    pdpCustomization?: { items: Array<{ valueId: string; role: 'default' | 'addon' }> } | null;
     variants: Array<{
       price: string | number;
       compareAtPrice?: string | number;
@@ -137,6 +142,9 @@ class AdminProductsCreateService {
 
       if (data.attributeIds && data.attributeIds.length > 0) {
         await ensureProductAttributesTable();
+      }
+      if (data.pdpCustomization) {
+        await ensureProductPdpCustomizationColumn();
       }
 
       const result = await db.$transaction(async (tx: any) => {
@@ -396,6 +404,8 @@ class AdminProductsCreateService {
               : undefined,
           },
         });
+
+        await saveProductPdpCustomization(product.id, data.pdpCustomization, tx);
 
         // Create ProductAttribute relations if attributeIds provided
         if (data.attributeIds && data.attributeIds.length > 0) {

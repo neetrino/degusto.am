@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { getStoredCurrency } from '../../../lib/currency';
+import { getStoredCurrency, type CurrencyCode } from '../../../lib/currency';
 import { getStoredLanguage, type LanguageCode } from '../../../lib/language';
 import { useAttributeGroups } from './useAttributeGroups';
 import { useProductImages } from './hooks/useProductImages';
@@ -88,6 +88,11 @@ export function useProductPage({
     currentVariant,
     attributeGroups,
     selectedAttributeValues,
+    selectedColor,
+    selectedSize,
+    additions,
+    language,
+    currency: currency as CurrencyCode,
   });
 
   const { quantity, setQuantity, maxQuantity, adjustQuantity } = useProductQuantity({

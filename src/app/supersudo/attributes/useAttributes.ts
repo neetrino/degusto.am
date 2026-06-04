@@ -42,6 +42,7 @@ export function useAttributes() {
   });
   
   const [newValue, setNewValue] = useState('');
+  const [newValuePriceAdjustment, setNewValuePriceAdjustment] = useState('');
   const [addingValueTo, setAddingValueTo] = useState<string | null>(null);
   const [deletingValue, setDeletingValue] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState<{ attributeId: string; value: AttributeValue } | null>(null);
@@ -227,16 +228,25 @@ export function useAttributes() {
     // Clear any previous errors
     setValueError(null);
 
+    const trimmedPrice = newValuePriceAdjustment.trim();
+    const parsedPrice = trimmedPrice === '' ? 0 : Number.parseFloat(trimmedPrice.replace(',', '.'));
+    if (!Number.isFinite(parsedPrice)) {
+      showToast(t('admin.attributes.valueModal.invalidPriceAdjustment'), 'warning');
+      return;
+    }
+
     try {
       setAddingValueTo(attributeId);
       logger.debug('➕ [ADMIN] Adding value to attribute:', attributeId, trimmedValue);
       await apiClient.post(`/api/v1/admin/attributes/${attributeId}/values`, {
         label: trimmedValue,
         locale: 'en',
+        priceAdjustment: parsedPrice,
       });
       
       logger.debug('✅ [ADMIN] Value added successfully');
       setNewValue('');
+      setNewValuePriceAdjustment('');
       setValueError(null);
       setAddingValueTo(null);
       showToast(t('admin.attributes.valueAddedSuccess'), 'success');
@@ -436,6 +446,7 @@ export function useAttributes() {
     expandedAttributes,
     formData,
     newValue,
+    newValuePriceAdjustment,
     addingValueTo,
     deletingValue,
     editingValue,
@@ -452,6 +463,7 @@ export function useAttributes() {
     setShowAddForm,
     setFormData,
     setNewValue,
+    setNewValuePriceAdjustment,
     setEditingAttributeName,
     setEditingLabel,
     setEditingColors,

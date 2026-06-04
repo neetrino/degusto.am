@@ -56,6 +56,22 @@ export async function POST(
       );
     }
 
+    if (
+      body.priceAdjustment !== undefined &&
+      (typeof body.priceAdjustment !== "number" || !Number.isFinite(body.priceAdjustment))
+    ) {
+      return NextResponse.json(
+        {
+          type: problemTypes.validationError,
+          title: "Validation Error",
+          status: 400,
+          detail: "Field 'priceAdjustment' must be a finite number when provided",
+          instance: req.url,
+        },
+        { status: 400 }
+      );
+    }
+
     const result = await adminService.addAttributeValue(id, body);
     return NextResponse.json({ data: result }, { status: 201 });
   } catch (error: unknown) {

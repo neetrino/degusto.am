@@ -13,7 +13,7 @@ import {
   type ProductCustomizations,
 } from "../cart/customizations";
 import { isStockSufficient } from "../product-stock";
-import { sumVerifiedAttributePriceAdjustment } from "../cart/attribute-price-adjustment";
+import { sumLineCustomizationPriceAdjustment } from "../cart/attribute-price-adjustment";
 import { calculateBagAmountByUniqueCategories } from "../cart/bag-fee";
 
 const orderNumberId = customAlphabet("0123456789ABCDEFGHJKLMNPQRSTUVWXYZ", 10);
@@ -410,9 +410,9 @@ async function getGuestCartItems(
         ) ?? variant.product.categories?.[0];
       const categoryTranslation = primaryCategory?.translations?.[0];
 
-      const adj = await sumVerifiedAttributePriceAdjustment(
+      const adj = await sumLineCustomizationPriceAdjustment(
         item.variantId,
-        customizations?.selectedAttributeValueIds
+        customizations
       );
       const price = Number(variant.price) + adj;
 

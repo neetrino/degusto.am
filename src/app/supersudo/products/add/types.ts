@@ -18,6 +18,7 @@ export interface Attribute {
     label: string;
     colors?: string[];
     imageUrl?: string | null;
+    priceAdjustment?: number;
   }>;
 }
 
@@ -68,6 +69,7 @@ export interface ProductData {
   primaryCategoryId?: string | null;
   categoryIds?: string[];
   attributeIds?: string[]; // All attribute IDs that this product has
+  pdpCustomization?: { items: Array<{ valueId: string; role: 'default' | 'addon' }> } | null;
   published: boolean;
   featured?: boolean;
   media?: string[];
@@ -82,7 +84,19 @@ export interface ProductData {
     size?: string;
     imageUrl?: string;
     published?: boolean;
+    options?: Array<{
+      valueId?: string;
+      attributeKey?: string;
+      value?: string;
+    }>;
   }>;
+}
+
+export interface SimpleProductData {
+  price: string;
+  compareAtPrice: string;
+  sku: string;
+  quantity: string;
 }
 
 export interface GeneratedVariant {

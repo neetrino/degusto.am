@@ -4,8 +4,8 @@ import { logger } from "@/lib/utils/logger";
  */
 
 import type { ChangeEvent } from 'react';
-import type { Category, GeneratedVariant } from '../types';
-import { generateSlug } from '../utils/productUtils';
+import type { Category, GeneratedVariant, SimpleProductData } from '../types';
+import { generateSkuFromSlug, slugifyProductTitle } from '../utils/productUtils';
 
 interface UseProductFormCallbacksProps {
   formData: {
@@ -21,8 +21,11 @@ interface UseProductFormCallbacksProps {
   setSelectedAttributesForVariants: (value: Set<string> | ((prev: Set<string>) => Set<string>)) => void;
   setSelectedAttributeValueIds: (value: Record<string, string[]> | ((prev: Record<string, string[]>) => Record<string, string[]>)) => void;
   setGeneratedVariants: (value: GeneratedVariant[] | ((prev: GeneratedVariant[]) => GeneratedVariant[])) => void;
-  setSimpleProductData: (value: any | ((prev: any) => any)) => void;
+  setSimpleProductData: (
+    value: SimpleProductData | ((prev: SimpleProductData) => SimpleProductData),
+  ) => void;
   checkIsClothingCategory: (categoryId: string, categories: Category[]) => boolean;
+  isEditMode: boolean;
 }
 
 export function useProductFormCallbacks({
@@ -37,13 +40,23 @@ export function useProductFormCallbacks({
   setGeneratedVariants,
   setSimpleProductData,
   checkIsClothingCategory,
+  isEditMode,
 }: UseProductFormCallbacksProps) {
   const handleTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const title = e.target.value;
+    if (isEditMode) {
+      setFormData((prev) => ({ ...prev, title }));
+      return;
+    }
+    const slug = slugifyProductTitle(title);
     setFormData((prev) => ({
       ...prev,
       title,
-      slug: generateSlug(title),
+      slug,
+    }));
+    setSimpleProductData((prev) => ({
+      ...prev,
+      sku: generateSkuFromSlug(slug),
     }));
   };
 
@@ -82,7 +95,7 @@ export function useProductFormCallbacks({
       price: '0.00',
       compareAtPrice: '0.00',
       stock: '0',
-      sku: 'PROD',
+      sku: generateSkuFromSlug(formData.slug || slugifyProductTitle(formData.title)),
       image: null,
     };
     setGeneratedVariants((prev) => {

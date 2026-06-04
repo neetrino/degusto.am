@@ -99,11 +99,13 @@ export function HomeDailyOfferHeroCard({
         />
         <p className="text-base font-medium leading-none text-[rgba(60,47,47,0.62)]">4.7</p>
       </div>
-      <div className="absolute left-[14px] top-[194px] w-[130px]">
-        <h2 className="text-base font-bold leading-none text-[#3c2f2f]">
-          <span className="block">{title}</span>
+      <div className="absolute left-[14px] top-[194px] w-[130px] min-w-0">
+        <h2 className="text-base font-bold leading-[1.05] text-[#3c2f2f]">
+          <span className="block max-h-[34px] overflow-hidden break-words">{title}</span>
         </h2>
-        <p className="mt-1 text-base font-medium leading-[1.2] text-[#a1a1a1]">{subtitle}</p>
+        {subtitle ? (
+          <p className="mt-1 truncate text-base font-medium leading-[1.2] text-[#a1a1a1]">{subtitle}</p>
+        ) : null}
       </div>
       {discountPercent > 0 ? (
         <span className="absolute right-[12px] top-[165px] inline-flex items-center rounded-[60px] bg-[#ff7f20] px-[17px] py-[8px] text-sm font-bold leading-none text-black">

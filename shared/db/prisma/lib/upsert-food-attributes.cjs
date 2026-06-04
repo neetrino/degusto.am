@@ -52,6 +52,11 @@ async function upsertFoodAttributes(prisma) {
     const valueIds = {};
     for (let valueIndex = 0; valueIndex < config.values.length; valueIndex++) {
       const valueConfig = config.values[valueIndex];
+      const priceAdjustment =
+        typeof valueConfig.priceAdjustment === "number" &&
+        Number.isFinite(valueConfig.priceAdjustment)
+          ? valueConfig.priceAdjustment
+          : 0;
       let attributeValue = await prisma.attributeValue.findFirst({
         where: {
           attributeId: attribute.id,
@@ -65,13 +70,20 @@ async function upsertFoodAttributes(prisma) {
             attributeId: attribute.id,
             value: valueConfig.value,
             position: valueIndex,
+            priceAdjustment,
           },
         });
-      } else if (attributeValue.position !== valueIndex) {
-        attributeValue = await prisma.attributeValue.update({
-          where: { id: attributeValue.id },
-          data: { position: valueIndex },
-        });
+      } else {
+        const updateData = { position: valueIndex, priceAdjustment };
+        if (
+          attributeValue.position !== valueIndex ||
+          attributeValue.priceAdjustment !== priceAdjustment
+        ) {
+          attributeValue = await prisma.attributeValue.update({
+            where: { id: attributeValue.id },
+            data: updateData,
+          });
+        }
       }
 
       for (const [locale, label] of Object.entries(valueConfig.labels)) {

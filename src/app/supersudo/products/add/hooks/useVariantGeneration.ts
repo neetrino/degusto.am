@@ -1,8 +1,12 @@
 'use client';
 
 import { useEffect } from 'react';
+import {
+  recomputeVariantPriceWithAdjustments,
+  sumAttributeValuePriceAdjustments,
+} from '@/lib/attributes/price-adjustment';
 import type { Attribute, GeneratedVariant } from '../types';
-import { generateSlug } from '../utils/productUtils';
+import { generateSkuFromSlug, slugifyProductTitle } from '../utils/productUtils';
 import { logger } from "@/lib/utils/logger";
 
 interface UseVariantGenerationProps {
@@ -57,8 +61,8 @@ export function useVariantGeneration({
         allSelectedValueIds.push(...selectedIds);
       });
 
-      const baseSlug = formDataSlug || generateSlug(formDataTitle) || 'PROD';
-      let sku = `${baseSlug}`;
+      const baseSlug = formDataSlug || slugifyProductTitle(formDataTitle) || 'prod';
+      let sku = generateSkuFromSlug(baseSlug);
 
       if (allSelectedValueIds.length > 0) {
         const valueParts: string[] = [];
@@ -76,14 +80,31 @@ export function useVariantGeneration({
         });
 
         if (valueParts.length > 0) {
-          sku = `${baseSlug}-${valueParts.join('-')}`;
+          sku = `${generateSkuFromSlug(baseSlug)}-${valueParts.join('-')}`;
         }
       }
+
+      const previousIds = existingAutoVariant?.selectedValueIds ?? [];
+      const priceFromAdjustments = recomputeVariantPriceWithAdjustments(
+        existingAutoVariant?.price ?? '',
+        previousIds,
+        allSelectedValueIds,
+        attributes
+      );
+      const hasManualPrice =
+        existingAutoVariant?.price !== undefined &&
+        String(existingAutoVariant.price).trim() !== '';
+      const adjustmentOnly = sumAttributeValuePriceAdjustments(attributes, allSelectedValueIds);
+      const resolvedPrice = hasManualPrice
+        ? priceFromAdjustments
+        : adjustmentOnly > 0
+          ? String(adjustmentOnly)
+          : existingAutoVariant?.price || '';
 
       const autoVariant: GeneratedVariant = {
         id: variantId,
         selectedValueIds: allSelectedValueIds,
-        price: existingAutoVariant?.price || '',
+        price: resolvedPrice,
         compareAtPrice: existingAutoVariant?.compareAtPrice || '',
         stock: existingAutoVariant?.stock || '',
         sku: existingAutoVariant?.sku || sku,

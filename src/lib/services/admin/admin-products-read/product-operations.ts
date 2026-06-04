@@ -6,6 +6,7 @@ import { buildProductWhereClause, buildProductOrderByClause } from "./query-buil
 import { executeProductListQuery, executeProductDetailQuery } from "./query-executor";
 import { formatProductForList } from "./product-formatter";
 import { formatVariantForAdmin } from "./variant-formatter";
+import { loadProductPdpCustomization } from "@/lib/products/pdp-customization-persistence";
 
 /**
  * Get products for admin
@@ -87,6 +88,8 @@ export async function getProductById(productId: string) {
   // Merge both sources and remove duplicates
   const allAttributeIds = Array.from(new Set([...attributeIds, ...legacyAttributeIds]));
 
+  const pdpCustomization = await loadProductPdpCustomization(product.id);
+
   return {
     id: product.id,
     title: translation?.title || "",
@@ -97,6 +100,7 @@ export async function getProductById(productId: string) {
     primaryCategoryId: product.primaryCategoryId || null,
     categoryIds: product.categoryIds || [],
     attributeIds: allAttributeIds, // All attribute IDs that this product has
+    pdpCustomization,
     published: product.published,
     media: Array.isArray(product.media) ? product.media : [],
     labels: labels.map((label: { id: string; type: string; value: string; position: string; color: string | null }) => ({

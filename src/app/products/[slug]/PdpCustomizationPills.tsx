@@ -11,6 +11,11 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { t } from '../../../lib/i18n';
+import {
+  convertPrice,
+  formatPriceInCurrency,
+  type CurrencyCode,
+} from '../../../lib/currency';
 import type { LanguageCode } from '../../../lib/language';
 import {
   PDP_CUSTOMIZATION_ADD_PILL_CLASS,
@@ -24,19 +29,25 @@ import {
 } from '@/constants/pdp-figma-tokens';
 import type { Product } from './types';
 import {
+  CUSTOMIZATION_SELECTION_SEPARATOR,
   isCustomizationSelected,
+  isDefaultIngredientIncluded,
   parseCustomizationSelection,
   stripConflictingCustomizationLabels,
   toggleCustomizationSelection,
+  toggleDefaultIngredientIncluded,
 } from './utils/pdp-customization-selection';
 import {
-  resolvePdpCustomizationIngredients,
+  resolvePdpCustomizationOptionSets,
   type PdpCustomizationIngredientOption,
 } from './utils/resolve-pdp-customization-ingredients';
+import type { ProductVariant } from './types';
 
 interface PdpCustomizationPillsProps {
   product: Product;
   language: LanguageCode;
+  currency: CurrencyCode;
+  currentVariant: ProductVariant | null;
   additions: string;
   exclusions: string;
   onAdditionsChange: (value: string) => void;
@@ -47,13 +58,18 @@ type PillKind = 'additions' | 'exclusions';
 
 type OppositeMarker = 'plus' | 'minus';
 
+/** Additive: checked = in value. DefaultIncluded: checked = still in product (not in exclusions). */
+type CustomizationCheckboxMode = 'additive' | 'defaultIncluded';
+
 interface CustomizationPillProps {
   kind: PillKind;
   language: LanguageCode;
+  currency: CurrencyCode;
   value: string;
   options: PdpCustomizationIngredientOption[];
   oppositeSelectedLabels: string[];
   oppositeMarker: OppositeMarker;
+  checkboxMode: CustomizationCheckboxMode;
   onChange: (value: string) => void;
 }
 
@@ -69,6 +85,18 @@ const PILL_SIZE_CLASS: Record<PillKind, string> = {
 };
 
 const DROPDOWN_MAX_WIDTH_PX = PDP_CUSTOMIZATION_DROPDOWN_MAX_WIDTH_REM * 16;
+
+/** priceAdjustment is stored in AMD; format for the active storefront currency. */
+function formatAdditionPriceAdjustment(
+  priceAdjustmentAmd: number,
+  currency: CurrencyCode,
+): string {
+  if (currency === 'AMD') {
+    return formatPriceInCurrency(priceAdjustmentAmd, 'AMD');
+  }
+  const converted = convertPrice(priceAdjustmentAmd, 'AMD', currency);
+  return formatPriceInCurrency(converted, currency);
+}
 
 function CustomizationOppositeMarker({ marker }: { marker: OppositeMarker }) {
   return (
@@ -136,10 +164,12 @@ function useDropdownPosition(
 function CustomizationPill({
   kind,
   language,
+  currency,
   value,
   options,
   oppositeSelectedLabels,
   oppositeMarker,
+  checkboxMode,
   onChange,
 }: CustomizationPillProps) {
   const [open, setOpen] = useState(false);
@@ -152,7 +182,7 @@ function CustomizationPill({
   const label = isAdditions
     ? t(language, 'product.customizationAddShort')
     : t(language, 'product.customizationExcludeShort');
-  const selectedCount = value.split(',').map((item) => item.trim()).filter(Boolean).length;
+  const pillCount = parseCustomizationSelection(value).length;
 
   useEffect(() => {
     if (!open) {
@@ -186,7 +216,10 @@ function CustomizationPill({
         <ul className="max-h-56 space-y-1 overflow-y-auto">
           {options.map((option) => {
             const inputId = `${panelId}-${option.id}`;
-            const checked = isCustomizationSelected(value, option.label);
+            const checked =
+              checkboxMode === 'defaultIncluded'
+                ? isDefaultIngredientIncluded(value, option.label)
+                : isCustomizationSelected(value, option.label);
             const reservedInOpposite = oppositeSelectedLabels.includes(option.label);
 
             if (reservedInOpposite) {
@@ -217,10 +250,24 @@ function CustomizationPill({
                     id={inputId}
                     type="checkbox"
                     checked={checked}
-                    onChange={() => onChange(toggleCustomizationSelection(value, option.label))}
+                    onChange={() =>
+                      onChange(
+                        checkboxMode === 'defaultIncluded'
+                          ? toggleDefaultIngredientIncluded(value, option.label)
+                          : toggleCustomizationSelection(value, option.label)
+                      )
+                    }
                     className="pdp-preference-checkbox"
                   />
-                  <span>{option.label}</span>
+                  {checkboxMode === 'defaultIncluded' && checked && (
+                    <CustomizationOppositeMarker marker="plus" />
+                  )}
+                  <span className="flex-1">{option.label}</span>
+                  {isAdditions && option.priceAdjustment > 0 && (
+                    <span className="text-xs font-semibold text-emerald-700 tabular-nums">
+                      +{formatAdditionPriceAdjustment(option.priceAdjustment, currency)}
+                    </span>
+                  )}
                 </label>
               </li>
             );
@@ -253,7 +300,7 @@ function CustomizationPill({
         </span>
         <span className="min-w-0 flex-1 truncate pl-2 text-left text-base font-medium text-black">
           {label}
-          {selectedCount > 0 ? ` (${selectedCount})` : ''}
+          {pillCount > 0 ? ` (${pillCount})` : ''}
         </span>
         <ChevronDown
           className={`mr-2 h-[30px] w-[30px] shrink-0 text-black transition-transform ${open ? 'rotate-180' : ''}`}
@@ -269,13 +316,57 @@ function CustomizationPill({
 export function PdpCustomizationPills({
   product,
   language,
+  currency,
+  currentVariant,
   additions,
   exclusions,
   onAdditionsChange,
   onExclusionsChange,
 }: PdpCustomizationPillsProps) {
-  const ingredientOptions = resolvePdpCustomizationIngredients(product, language);
-  if (ingredientOptions.length === 0) {
+  const { defaultIncluded, optionalAdd } = resolvePdpCustomizationOptionSets(
+    product,
+    language,
+    currentVariant,
+  );
+
+  const variantScopeKey = `${product.id}:${currentVariant?.id ?? ''}`;
+  const prevVariantScopeRef = useRef(variantScopeKey);
+
+  useEffect(() => {
+    const variantChanged = prevVariantScopeRef.current !== variantScopeKey;
+    if (variantChanged) {
+      prevVariantScopeRef.current = variantScopeKey;
+      onExclusionsChange('');
+    }
+
+    const sets = resolvePdpCustomizationOptionSets(product, language, currentVariant);
+    const validExclude = new Set(sets.defaultIncluded.map((o) => o.label));
+    const validAdd = new Set(sets.optionalAdd.map((o) => o.label));
+    const sourceExclusions = variantChanged ? '' : exclusions;
+    const nextExclusions = parseCustomizationSelection(sourceExclusions).filter((l) =>
+      validExclude.has(l),
+    );
+    const nextAdditions = parseCustomizationSelection(additions).filter((l) => validAdd.has(l));
+    const exclusionsStr = nextExclusions.join(CUSTOMIZATION_SELECTION_SEPARATOR);
+    const additionsStr = nextAdditions.join(CUSTOMIZATION_SELECTION_SEPARATOR);
+    if (exclusionsStr !== exclusions) {
+      onExclusionsChange(exclusionsStr);
+    }
+    if (additionsStr !== additions) {
+      onAdditionsChange(additionsStr);
+    }
+  }, [
+    variantScopeKey,
+    product,
+    language,
+    currentVariant,
+    additions,
+    exclusions,
+    onAdditionsChange,
+    onExclusionsChange,
+  ]);
+
+  if (defaultIncluded.length === 0 && optionalAdd.length === 0) {
     return null;
   }
 
@@ -294,24 +385,32 @@ export function PdpCustomizationPills({
 
   return (
     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
-      <CustomizationPill
-        kind="additions"
-        language={language}
-        value={additions}
-        options={ingredientOptions}
-        oppositeSelectedLabels={exclusionLabels}
-        oppositeMarker="minus"
-        onChange={handleAdditionsChange}
-      />
-      <CustomizationPill
-        kind="exclusions"
-        language={language}
-        value={exclusions}
-        options={ingredientOptions}
-        oppositeSelectedLabels={additionLabels}
-        oppositeMarker="plus"
-        onChange={handleExclusionsChange}
-      />
+      {optionalAdd.length > 0 && (
+        <CustomizationPill
+          kind="additions"
+          language={language}
+          currency={currency}
+          value={additions}
+          options={optionalAdd}
+          oppositeSelectedLabels={exclusionLabels}
+          oppositeMarker="minus"
+          checkboxMode="additive"
+          onChange={handleAdditionsChange}
+        />
+      )}
+      {defaultIncluded.length > 0 && (
+        <CustomizationPill
+          kind="exclusions"
+          language={language}
+          currency={currency}
+          value={exclusions}
+          options={defaultIncluded}
+          oppositeSelectedLabels={additionLabels}
+          oppositeMarker="plus"
+          checkboxMode="defaultIncluded"
+          onChange={handleExclusionsChange}
+        />
+      )}
     </div>
   );
 }

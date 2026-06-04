@@ -6,7 +6,10 @@ import type {
   ProductLabel,
   GeneratedVariant,
   PendingVariantHydration,
+  SimpleProductData,
 } from '../types';
+import type { PdpCustomizationFormState } from '../utils/pdp-customization-form';
+import { createEmptyCustomizationFormState } from '../utils/pdp-customization-form';
 import type { CurrencyCode } from '@/lib/currency';
 import { getEmptyProductFormData } from '../utils/productFormDataBuilder';
 
@@ -33,8 +36,8 @@ export function useProductFormState() {
   const [colorMessage, setColorMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [sizeMessage, setSizeMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [defaultCurrency, setDefaultCurrency] = useState<CurrencyCode>('AMD');
-  const [productType, setProductType] = useState<'simple' | 'variable'>('variable');
-  const [simpleProductData, setSimpleProductData] = useState({
+  const [productType, setProductType] = useState<'simple' | 'variable'>('simple');
+  const [simpleProductData, setSimpleProductData] = useState<SimpleProductData>({
     price: '',
     compareAtPrice: '',
     sku: '',
@@ -51,6 +54,10 @@ export function useProductFormState() {
   );
   /** True after categories/attributes reference fetch finishes (success or error). */
   const [referenceCatalogReady, setReferenceCatalogReady] = useState(false);
+  const [pdpCustomizationForm, setPdpCustomizationForm] = useState<PdpCustomizationFormState>({});
+  const [selectedPdpCustomizationAttributeIds, setSelectedPdpCustomizationAttributeIds] = useState<
+    Set<string>
+  >(new Set());
 
   return {
     // Loading states
@@ -122,6 +129,10 @@ export function useProductFormState() {
     setPendingVariantHydration,
     referenceCatalogReady,
     setReferenceCatalogReady,
+    pdpCustomizationForm,
+    setPdpCustomizationForm,
+    selectedPdpCustomizationAttributeIds,
+    setSelectedPdpCustomizationAttributeIds,
   };
 }
 

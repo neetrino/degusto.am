@@ -336,6 +336,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    for (let i = 0; i < body.variants.length; i += 1) {
+      const variant = body.variants[i] as { price?: unknown };
+      const price =
+        typeof variant?.price === "number"
+          ? variant.price
+          : Number.parseFloat(String(variant?.price ?? ""));
+      if (!Number.isFinite(price) || price < 0) {
+        return NextResponse.json(
+          {
+            type: problemTypes.validationError,
+            title: "Validation Error",
+            status: 400,
+            detail: `Variant ${i + 1} must have a valid non-negative price`,
+            instance: req.url,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     logger.debug("📤 [ADMIN PRODUCTS API] Creating product:", {
       title: body.title,
       slug: body.slug,

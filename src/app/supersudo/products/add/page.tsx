@@ -42,6 +42,8 @@ function AddProductPageContent() {
     attributesDropdownRef: formState.attributesDropdownRef,
     categoriesExpanded: formState.categoriesExpanded,
     setCategoriesExpanded: formState.setCategoriesExpanded,
+    setPdpCustomizationForm: formState.setPdpCustomizationForm,
+    setSelectedPdpCustomizationAttributeIds: formState.setSelectedPdpCustomizationAttributeIds,
   });
 
   useProductEditMode({
@@ -63,6 +65,8 @@ function AddProductPageContent() {
     setSelectedAttributeValueIds: formState.setSelectedAttributeValueIds,
     setOpenValueModal: formState.setOpenValueModal,
     setPendingVariantHydration: formState.setPendingVariantHydration,
+    setPdpCustomizationForm: formState.setPdpCustomizationForm,
+    setSelectedPdpCustomizationAttributeIds: formState.setSelectedPdpCustomizationAttributeIds,
   });
 
   useProductVariantConversion({
@@ -109,6 +113,7 @@ function AddProductPageContent() {
     setGeneratedVariants: formState.setGeneratedVariants,
     setSimpleProductData: formState.setSimpleProductData,
     checkIsClothingCategory,
+    isEditMode,
   });
 
   const {
@@ -168,6 +173,9 @@ function AddProductPageContent() {
     getColorAttribute,
     getSizeAttribute,
     isClothingCategory,
+    pdpCustomizationForm: formState.pdpCustomizationForm,
+    selectedPdpCustomizationAttributeIds: formState.selectedPdpCustomizationAttributeIds,
+    hasVariantsToLoad: formState.hasVariantsToLoad,
   });
 
   if (isLoading || formState.loadingProduct || (isEditMode && !formState.referenceCatalogReady)) {
@@ -195,6 +203,12 @@ function AddProductPageContent() {
             simpleProductData={formState.simpleProductData}
             categories={formState.categories}
             attributes={formState.attributes}
+            selectedPdpCustomizationAttributeIds={formState.selectedPdpCustomizationAttributeIds}
+            onSelectedPdpCustomizationAttributeIdsChange={
+              formState.setSelectedPdpCustomizationAttributeIds
+            }
+            pdpCustomizationForm={formState.pdpCustomizationForm}
+            onPdpCustomizationFormChange={formState.setPdpCustomizationForm}
             defaultCurrency={formState.defaultCurrency}
             isEditMode={isEditMode}
             loading={formState.loading}
@@ -204,15 +218,11 @@ function AddProductPageContent() {
             useNewCategory={formState.useNewCategory}
             newCategoryName={formState.newCategoryName}
             selectedAttributesForVariants={formState.selectedAttributesForVariants}
-            selectedAttributeValueIds={formState.selectedAttributeValueIds}
-            attributesDropdownOpen={formState.attributesDropdownOpen}
             generatedVariants={formState.generatedVariants}
             hasVariantsToLoad={formState.hasVariantsToLoad}
             fileInputRef={formState.fileInputRef}
-            attributesDropdownRef={formState.attributesDropdownRef}
             variantImageInputRefs={formState.variantImageInputRefs}
             onTitleChange={handleTitleChange}
-            onSlugChange={(e) => formState.setFormData((prev) => ({ ...prev, slug: e.target.value }))}
             onDescriptionChange={(e) => formState.setFormData((prev) => ({ ...prev, descriptionHtml: e.target.value }))}
             onProductTypeChange={formState.setProductType}
             onUploadImages={handleUploadImages}
@@ -225,11 +235,7 @@ function AddProductPageContent() {
             onPrimaryCategoryIdChange={(id) => formState.setFormData((prev) => ({ ...prev, primaryCategoryId: id }))}
             onPriceChange={(value) => formState.setSimpleProductData((prev) => ({ ...prev, price: value }))}
             onCompareAtPriceChange={(value) => formState.setSimpleProductData((prev) => ({ ...prev, compareAtPrice: value }))}
-            onSkuChange={(value) => formState.setSimpleProductData((prev) => ({ ...prev, sku: value }))}
             onQuantityChange={(value) => formState.setSimpleProductData((prev) => ({ ...prev, quantity: value }))}
-            onAttributesDropdownToggle={() => formState.setAttributesDropdownOpen(!formState.attributesDropdownOpen)}
-            onAttributeToggle={handleAttributeToggle}
-            onAttributeRemove={handleAttributeRemove}
             onVariantUpdate={formState.setGeneratedVariants}
             onVariantDelete={handleVariantDelete}
             onVariantAdd={handleVariantAdd}
@@ -251,6 +257,7 @@ function AddProductPageContent() {
           openValueModal={formState.openValueModal}
           variant={formState.generatedVariants.find((v) => v.id === formState.openValueModal!.variantId)}
           attribute={formState.attributes.find((a) => a.id === formState.openValueModal!.attributeId)}
+          attributes={formState.attributes}
           selectedAttributeValueIds={formState.selectedAttributeValueIds}
           onClose={() => formState.setOpenValueModal(null)}
           onVariantUpdate={formState.setGeneratedVariants}

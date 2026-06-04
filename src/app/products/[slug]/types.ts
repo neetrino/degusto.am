@@ -93,6 +93,7 @@ export interface Product {
     title: string;
   }>;
   productAttributes?: ProductAttribute[];
+  pdpCustomization?: { items: Array<{ valueId: string; role: 'default' | 'addon' }> } | null;
   productDiscount?: number | null;
   globalDiscount?: number | null;
 }

@@ -1,6 +1,11 @@
 import { useMemo } from 'react';
+import { findGroupPriceAdjustment } from '@/lib/attributes/price-adjustment';
+import { convertPrice, type CurrencyCode } from '../../../../lib/currency';
 import { hasSellableStock } from '@/lib/product-stock';
 import { resolveStorefrontDiscountPercent } from '@/lib/storefront/discount-percent';
+import type { LanguageCode } from '../../../../lib/language';
+import { isPdpCustomizationAttributeKey } from '../constants/pdp-customization-ingredients';
+import { sumCustomizationAdditionPrice } from '../utils/resolve-pdp-customization-ingredients';
 import type { Product, ProductVariant, AttributeGroupValue } from '../types';
 
 interface UseProductCalculationsProps {
@@ -8,6 +13,11 @@ interface UseProductCalculationsProps {
   currentVariant: ProductVariant | null;
   attributeGroups: Map<string, AttributeGroupValue[]>;
   selectedAttributeValues: Map<string, string>;
+  selectedColor: string | null;
+  selectedSize: string | null;
+  additions: string;
+  language: LanguageCode;
+  currency: CurrencyCode;
 }
 
 export function useProductCalculations({
@@ -15,37 +25,77 @@ export function useProductCalculations({
   currentVariant,
   attributeGroups,
   selectedAttributeValues,
+  selectedColor,
+  selectedSize,
+  additions,
+  language,
+  currency,
 }: UseProductCalculationsProps) {
-  const attributePriceAdjustment = useMemo(() => {
+  const attributePriceAdjustmentAmd = useMemo(() => {
     let sum = 0;
-    for (const [attrKey, raw] of selectedAttributeValues.entries()) {
-      if (attrKey === 'color' || attrKey === 'size') {
-        continue;
+
+    const addFromGroup = (attrKey: string, raw: string | null) => {
+      if (!raw || isPdpCustomizationAttributeKey(attrKey)) {
+        return;
       }
       const group = attributeGroups.get(attrKey);
       if (!group) {
-        continue;
+        return;
       }
-      const normalized = raw.toLowerCase().trim();
-      const entry = group.find(
-        (g) =>
-          (g.valueId !== undefined && g.valueId !== '' && g.valueId === raw) ||
-          g.value?.toLowerCase().trim() === normalized ||
-          g.label?.toLowerCase().trim() === normalized
-      );
-      sum += entry?.priceAdjustment ?? 0;
-    }
-    return sum;
-  }, [attributeGroups, selectedAttributeValues]);
+      sum += findGroupPriceAdjustment(group, raw);
+    };
 
-  const basePrice = currentVariant?.price || 0;
-  const price = basePrice + attributePriceAdjustment;
-  const originalPrice = currentVariant?.originalPrice != null
-    ? currentVariant.originalPrice + attributePriceAdjustment
-    : null;
-  const compareAtPrice =
+    addFromGroup('color', selectedColor);
+    addFromGroup('size', selectedSize);
+
+    for (const [attrKey, raw] of selectedAttributeValues.entries()) {
+      addFromGroup(attrKey, raw);
+    }
+
+    return sum;
+  }, [attributeGroups, selectedAttributeValues, selectedColor, selectedSize]);
+
+  const attributePriceAdjustmentUsd = useMemo(() => {
+    if (attributePriceAdjustmentAmd <= 0) {
+      return 0;
+    }
+    return convertPrice(attributePriceAdjustmentAmd, 'AMD', 'USD');
+  }, [attributePriceAdjustmentAmd]);
+
+  const additionPriceAdjustmentUsd = useMemo(() => {
+    const amd = sumCustomizationAdditionPrice(product, additions, language, currentVariant);
+    if (amd <= 0) {
+      return 0;
+    }
+    return convertPrice(amd, 'AMD', 'USD');
+  }, [product, additions, language, currentVariant]);
+
+  const totalPriceAdjustmentUsd = attributePriceAdjustmentUsd + additionPriceAdjustmentUsd;
+
+  const basePriceUsd = currentVariant?.price || 0;
+  const price =
+    currency === 'USD'
+      ? basePriceUsd + totalPriceAdjustmentUsd
+      : convertPrice(basePriceUsd + totalPriceAdjustmentUsd, 'USD', currency);
+  const originalPriceUsd =
+    currentVariant?.originalPrice != null
+      ? currentVariant.originalPrice + totalPriceAdjustmentUsd
+      : null;
+  const compareAtPriceUsd =
     currentVariant?.compareAtPrice != null
-      ? currentVariant.compareAtPrice + attributePriceAdjustment
+      ? currentVariant.compareAtPrice + totalPriceAdjustmentUsd
+      : undefined;
+  const originalPrice =
+    originalPriceUsd != null
+      ? currency === 'USD'
+        ? originalPriceUsd
+        : convertPrice(originalPriceUsd, 'USD', currency)
+      : null;
+  const compareAtPrice =
+    compareAtPriceUsd != null
+      ? currency === 'USD'
+        ? compareAtPriceUsd
+        : convertPrice(compareAtPriceUsd, 'USD', currency)
       : undefined;
   const discountPercent = resolveStorefrontDiscountPercent({
     price,

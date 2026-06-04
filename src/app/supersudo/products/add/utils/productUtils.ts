@@ -11,6 +11,39 @@ export const generateSlug = (title: string): string => {
     .replace(/^-+|-+$/g, '');
 };
 
+/** SKU from slug (e.g. margherita-pizza → MARGHERITA-PIZZA). */
+export const generateSkuFromSlug = (slug: string, index = 1): string => {
+  const base = (slug || 'prod')
+    .toUpperCase()
+    .replace(/[^A-Z0-9-|]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  const normalized = base || 'PROD';
+  return index > 1 ? `${normalized}-${index}` : normalized;
+};
+
+/** Slug from title; supports non-Latin scripts via fallback id. */
+export function slugifyProductTitle(title: string): string {
+  const fromLatin = generateSlug(title);
+  if (fromLatin) {
+    return fromLatin;
+  }
+  const trimmed = title.trim();
+  if (!trimmed) {
+    return '';
+  }
+  return `item-${Date.now().toString(36)}`;
+}
+
+export function resolveProductSlug(title: string, slug: string): string {
+  const fromSlug = slug.trim();
+  if (fromSlug) {
+    return fromSlug;
+  }
+  const fromTitle = slugifyProductTitle(title);
+  return fromTitle || 'product';
+}
+
 /**
  * Generate all combinations of selected attribute values
  */

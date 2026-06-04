@@ -7,12 +7,13 @@ import type { MouseEvent } from 'react';
 import { useWishlist } from '../../../components/hooks/useWishlist';
 import { useAuth } from '../../../lib/auth/AuthContext';
 import { montserratArmFont } from '../../../fonts/montserrat-arm-font';
-import { formatPrice, type CurrencyCode } from '../../../lib/currency';
+import { formatPriceInCurrency, type CurrencyCode } from '../../../lib/currency';
 import { t, getProductText } from '../../../lib/i18n';
 import type { LanguageCode } from '../../../lib/language';
 import { sanitizeHtml } from '../../../lib/utils/sanitize';
 import { PdpActionHeartIcon } from './PdpActionHeartIcon';
 import { PdpActionTrashIcon } from './PdpActionTrashIcon';
+import { PdpAnimatedPrice } from './PdpAnimatedPrice';
 import { PdpCustomizationPills } from './PdpCustomizationPills';
 import { PdpSecondaryIconButton } from './PdpSecondaryIconButton';
 import { ProductAttributesSelector } from './ProductAttributesSelector';
@@ -151,12 +152,14 @@ export function ProductInfoAndActions({
             language={language}
           />
           <div className={PDP_PRICE_ROW_CLASS}>
-            <span className={`${PDP_PRICE_CLASS} ${montserratArmFont.className}`}>
-              {formatPrice(price, currency as CurrencyCode)}
-            </span>
+            <PdpAnimatedPrice
+              amount={price}
+              currency={currency as CurrencyCode}
+              className={`${PDP_PRICE_CLASS} ${montserratArmFont.className}`}
+            />
             {comparePrice != null ? (
               <span className={`${PDP_COMPARE_PRICE_CLASS} ${montserratArmFont.className}`}>
-                {formatPrice(comparePrice, currency as CurrencyCode)}
+                {formatPriceInCurrency(comparePrice, currency as CurrencyCode)}
               </span>
             ) : null}
           </div>
@@ -172,6 +175,8 @@ export function ProductInfoAndActions({
           <PdpCustomizationPills
             product={product}
             language={language}
+            currency={currency as CurrencyCode}
+            currentVariant={currentVariant}
             additions={additions}
             exclusions={exclusions}
             onAdditionsChange={onAdditionsChange}

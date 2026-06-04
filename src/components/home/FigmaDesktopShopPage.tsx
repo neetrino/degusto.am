@@ -252,14 +252,14 @@ function MenuCardItem({ card }: { card: MenuCard }) {
         <img src={assets.productCardStar} alt="" className="h-5 w-5 object-contain" />
         <p className="text-base font-medium leading-[1.35] text-[rgba(60,47,47,0.62)]">4.7</p>
       </div>
-      <h3 className="absolute left-[14px] top-[194px] w-[130px] text-base font-bold leading-[1.05] text-[#3c2f2f]">
-        <span className="block max-h-[34px] overflow-hidden break-words">{title}</span>
-      </h3>
-      {category ? (
-        <p className="absolute left-[14px] top-[236px] w-[130px] overflow-visible text-base font-medium leading-[1.2] text-[#a1a1a1]">
-          {category}
-        </p>
-      ) : null}
+      <div className="absolute left-[14px] top-[194px] w-[130px] min-w-0">
+        <h3 className="text-base font-bold leading-[1.05] text-[#3c2f2f]">
+          <span className="block max-h-[34px] overflow-hidden break-words">{title}</span>
+        </h3>
+        {category ? (
+          <p className="mt-1 truncate text-base font-medium leading-[1.2] text-[#a1a1a1]">{category}</p>
+        ) : null}
+      </div>
       {hasDiscount ? (
         <span className="absolute right-px top-[170px] inline-flex h-[30px] items-center rounded-[60px] bg-[#ff7f20] px-[17px] text-sm font-bold leading-none text-black">
           {discountText}

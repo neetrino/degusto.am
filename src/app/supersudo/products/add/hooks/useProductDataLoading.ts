@@ -4,6 +4,8 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { apiClient } from '@/lib/api-client';
 import { CURRENCIES, type CurrencyCode } from '@/lib/currency';
 import type { Category, Attribute } from '../types';
+import { createEmptyCustomizationFormState } from '../utils/pdp-customization-form';
+import type { PdpCustomizationFormState } from '../utils/pdp-customization-form';
 import { logger } from "@/lib/utils/logger";
 
 interface UseProductDataLoadingProps {
@@ -19,6 +21,8 @@ interface UseProductDataLoadingProps {
   attributesDropdownRef: React.RefObject<HTMLDivElement>;
   categoriesExpanded: boolean;
   setCategoriesExpanded: (expanded: boolean) => void;
+  setPdpCustomizationForm: (state: PdpCustomizationFormState) => void;
+  setSelectedPdpCustomizationAttributeIds: (ids: Set<string>) => void;
 }
 
 export function useProductDataLoading({
@@ -34,6 +38,8 @@ export function useProductDataLoading({
   attributesDropdownRef,
   categoriesExpanded,
   setCategoriesExpanded,
+  setPdpCustomizationForm,
+  setSelectedPdpCustomizationAttributeIds,
 }: UseProductDataLoadingProps) {
   const router = useRouter();
 
@@ -82,7 +88,10 @@ export function useProductDataLoading({
           setDefaultCurrency('AMD');
         }
         setCategories(categoriesRes.data || []);
-        setAttributes(attributesRes.data || []);
+        const loadedAttributes = attributesRes.data || [];
+        setAttributes(loadedAttributes);
+        setPdpCustomizationForm(createEmptyCustomizationFormState());
+        setSelectedPdpCustomizationAttributeIds(new Set());
         logger.debug('✅ [ADMIN] Data fetched:', {
           categories: categoriesRes.data?.length || 0,
           attributes: attributesRes.data?.length || 0,

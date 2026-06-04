@@ -1,6 +1,8 @@
 import { apiClient } from '@/lib/api-client';
+import { ApiError } from '@/lib/api-client/types';
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
-import type { Attribute } from '../types';
+import type { PdpCustomizationConfig } from '@/lib/products/pdp-customization-config';
+import { resolveProductSlug } from '../utils/productUtils';
 import { logger } from "@/lib/utils/logger";
 
 interface CreateAndSubmitPayloadProps {
@@ -19,6 +21,7 @@ interface CreateAndSubmitPayloadProps {
   finalPrimaryCategoryId: string;
   variants: any[];
   attributeIds: string[];
+  pdpCustomization: PdpCustomizationConfig | null;
   finalMedia: string[];
   mainImage: string | null;
   isEditMode: boolean;
@@ -33,6 +36,7 @@ export async function createAndSubmitPayload({
   finalPrimaryCategoryId,
   variants,
   attributeIds,
+  pdpCustomization,
   finalMedia,
   mainImage,
   isEditMode,
@@ -46,9 +50,11 @@ export async function createAndSubmitPayload({
     categoryIds.unshift(finalPrimaryCategoryId);
   }
 
+  const resolvedSlug = resolveProductSlug(formData.title, formData.slug);
+
   const payload: any = {
-      title: formData.title,
-      slug: formData.slug,
+      title: formData.title.trim(),
+      slug: resolvedSlug,
       descriptionHtml: formData.descriptionHtml || undefined,
       primaryCategoryId: finalPrimaryCategoryId || undefined,
       categoryIds: categoryIds.length > 0 ? categoryIds : undefined,
@@ -57,6 +63,7 @@ export async function createAndSubmitPayload({
       locale: 'en',
       variants: variants,
       attributeIds: attributeIds.length > 0 ? attributeIds : undefined,
+      pdpCustomization: pdpCustomization ?? undefined,
     };
     
     if (finalMedia.length > 0) {
@@ -96,28 +103,22 @@ export async function createAndSubmitPayload({
       }
       
       router.push('/supersudo/products');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('❌ [ADMIN] Error saving product:', err);
-      
+
       let errorMessage = isEditMode ? 'Չհաջողվեց թարմացնել ապրանքը' : 'Չհաջողվեց ստեղծել ապրանքը';
-      
-      if (err?.data?.detail) {
-        errorMessage = err.data.detail;
-      } else if (err?.response?.data?.detail) {
-        errorMessage = err.response.data.detail;
-      } else if (err?.message) {
-        if (err.message.includes('<!DOCTYPE') || err.message.includes('<html')) {
-          const mongoErrorMatch = err.message.match(/MongoServerError[^<]+/);
-          if (mongoErrorMatch) {
-            errorMessage = `Տվյալների բազայի սխալ: ${mongoErrorMatch[0]}`;
-          } else {
-            errorMessage = 'Տվյալների բազայի սխալ: SKU-ն արդեն օգտագործված է կամ այլ սխալ:';
-          }
-        } else {
+
+      if (err instanceof ApiError) {
+        const data = err.data;
+        if (data && typeof data === 'object' && 'detail' in data && typeof data.detail === 'string') {
+          errorMessage = data.detail;
+        } else if (err.message) {
           errorMessage = err.message;
         }
+      } else if (err instanceof Error && err.message) {
+        errorMessage = err.message;
       }
-      
+
       throw err;
     } finally {
       setLoading(false);
