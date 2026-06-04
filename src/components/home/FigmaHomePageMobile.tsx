@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ViewMoreButton } from '../view-more/ViewMoreButton';
+import { StorefrontCategoryLink } from '../routing/StorefrontCategoryLink';
 import { t as translateKey } from '@/lib/i18n';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
 import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
@@ -103,7 +104,7 @@ function MobileCategoryStrip({
           const title = category.title ?? translate(category.titleKey);
 
           return (
-            <Link
+            <StorefrontCategoryLink
               key={category.id}
               href={getHomeCategoryHref({ slug: category.slug, title })}
               className="min-w-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f66a13]"
@@ -131,7 +132,7 @@ function MobileCategoryStrip({
                 />
               </div>
               <p className="mt-[6px] text-center text-xs leading-5 text-black">{title}</p>
-            </Link>
+            </StorefrontCategoryLink>
           );
         })}
       </div>
@@ -177,7 +178,7 @@ export function FigmaHomePageMobile({
         <div
           className={`relative overflow-visible ${MOBILE_FIGMA_HEADER_TOP_ROW_STACKING_CLASS} flex translate-y-[20px] items-start justify-between`}
         >
-          <Link href="/" className="inline-flex shrink-0" aria-label={t('common.navigation.home')}>
+          <Link href="/" prefetch className="inline-flex shrink-0" aria-label={t('common.navigation.home')}>
             <HomeOptimizedImage
               src={mobileAssets.logo}
               alt="Degusto"

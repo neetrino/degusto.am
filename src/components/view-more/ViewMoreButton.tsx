@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { useRoutePrefetch } from '../home/useRoutePrefetch';
 
 type ViewMoreButtonSize = 'md' | 'lg';
 type ViewMoreButtonVariant = 'filled' | 'text';
@@ -41,10 +42,13 @@ export function ViewMoreButton({
   variant = 'filled',
 }: ViewMoreButtonProps) {
   const isFilled = variant === 'filled';
+  const { getPrefetchHandlers } = useRoutePrefetch([href]);
 
   return (
     <Link
       href={href}
+      prefetch
+      {...getPrefetchHandlers(href)}
       className={[
         'group relative inline-flex items-center justify-center overflow-hidden rounded-full font-bold',
         'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ff7f20]',

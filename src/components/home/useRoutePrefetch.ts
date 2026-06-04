@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { prefetchStorefrontRoute } from '@/lib/routing/prefetch-storefront-route';
 
 /** Prefetch routes on mount and on first pointer/touch/focus (Header fast-nav pattern). */
 export function useRoutePrefetch(hrefs: readonly string[]) {
@@ -12,7 +13,7 @@ export function useRoutePrefetch(hrefs: readonly string[]) {
       if (!href) {
         return;
       }
-      void router.prefetch(href);
+      prefetchStorefrontRoute(router, href);
     },
     [router]
   );

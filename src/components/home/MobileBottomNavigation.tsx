@@ -9,6 +9,7 @@ import { isShopMobileBottomNavAssetSet } from './mobileBottomNavAssets';
 import { useCartDrawer } from '../cart-drawer/cart-drawer-context';
 import { useMobileNavBadgeCounts } from '../hooks/useMobileNavBadgeCounts';
 import { MobileBottomNavCountBadge } from './MobileBottomNavCountBadge';
+import { useRoutePrefetch } from './useRoutePrefetch';
 
 export type MobileBottomNavigationAssets = {
   bottomNavBackground: string;
@@ -139,16 +140,17 @@ const MOBILE_BOTTOM_NAV_ROW: BottomNavRowCell[] = [
 function MobileBottomNavigationShopButton({
   assets,
   isShopActive,
-  onShopClick,
 }: {
   assets: MobileBottomNavigationAssets;
   isShopActive: boolean;
-  onShopClick: () => void;
 }) {
+  const { getPrefetchHandlers } = useRoutePrefetch(['/shop']);
+
   return (
-    <button
-      type="button"
-      onClick={onShopClick}
+    <Link
+      href="/shop"
+      prefetch
+      {...getPrefetchHandlers('/shop')}
       className="pointer-events-auto absolute left-1/2 top-[40px] inline-flex h-[70px] w-[70px] -translate-x-1/2 items-center justify-center relative"
       aria-label="Shop"
       aria-current={isShopActive ? 'page' : undefined}
@@ -165,7 +167,7 @@ function MobileBottomNavigationShopButton({
           className="mobile-bottom-nav-shop-glyph pointer-events-none absolute left-1/2 top-1/2 z-[1] h-[26px] w-[29px] -translate-x-1/2 -translate-y-[calc(50%+4px)] object-contain"
         />
       ) : null}
-    </button>
+    </Link>
   );
 }
 
@@ -185,6 +187,10 @@ function MobileBottomNavigationLinks({
   const { openCartDrawer, isCartDrawerOpen } = useCartDrawer();
   const cartSlotActive = flags.isCartActive || isCartDrawerOpen;
   const renderContext = { assets, isLoggedIn, cartCount, wishlistCount };
+  const navHrefs = MOBILE_BOTTOM_NAV_ROW.flatMap((cell) =>
+    cell.kind === 'link' && cell.id !== 'cart' ? [cell.href(flags)] : []
+  );
+  const { getPrefetchHandlers } = useRoutePrefetch(navHrefs);
 
   return (
     <nav className="pointer-events-auto absolute bottom-[25px] left-1/2 flex -translate-x-1/2 items-start">
@@ -211,10 +217,13 @@ function MobileBottomNavigationLinks({
           cell.id === 'favorites' && wishlistCount > 0
             ? `Favorites, ${wishlistCount}`
             : undefined;
+        const href = cell.href(flags);
         return (
           <Link
             key={cell.id}
-            href={cell.href(flags)}
+            href={href}
+            prefetch
+            {...getPrefetchHandlers(href)}
             className={mergeActiveClass(cell.rowClass, active)}
             aria-current={active ? 'page' : undefined}
             aria-label={favoritesLabel}
@@ -229,10 +238,8 @@ function MobileBottomNavigationLinks({
 
 export function MobileBottomNavigation({
   assets,
-  onShopClick,
 }: {
   assets: MobileBottomNavigationAssets;
-  onShopClick: () => void;
 }) {
   const pathname = usePathname() ?? '';
   const { isLoggedIn, isAdmin } = useAuth();
@@ -248,7 +255,6 @@ export function MobileBottomNavigation({
       <MobileBottomNavigationShopButton
         assets={assets}
         isShopActive={flags.isShopActive}
-        onShopClick={onShopClick}
       />
       <MobileBottomNavigationLinks
         assets={assets}

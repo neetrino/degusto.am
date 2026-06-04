@@ -1,11 +1,10 @@
 'use client';
 
-import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useTranslation } from '../../lib/i18n-client';
 import { getHomeCategoryHref } from './homeCategoryLinks';
 import { resolveMobileShopCategoryImage } from '@/constants/mobile-shop-category-images';
-import { useRoutePrefetch } from './useRoutePrefetch';
+import { StorefrontCategoryLink } from '../routing/StorefrontCategoryLink';
 
 export type MobileShopCategoryCard = {
   id: string;
@@ -32,16 +31,6 @@ export function MobileShopCategoriesView({ categories }: MobileShopCategoriesVie
     [categories]
   );
 
-  const categoryHrefs = useMemo(
-    () =>
-      selectableCategories.map((category) =>
-        getHomeCategoryHref({ slug: category.slug, title: category.title })
-      ),
-    [selectableCategories]
-  );
-
-  const { getPrefetchHandlers } = useRoutePrefetch(categoryHrefs);
-
   return (
     <section className="lg:hidden">
       <h1 className="text-base font-semibold leading-5 text-black">{t('common.navigation.categories')}</h1>
@@ -54,11 +43,9 @@ export function MobileShopCategoriesView({ categories }: MobileShopCategoriesVie
             const isPending = pendingSlug === category.slug;
 
             return (
-              <Link
+              <StorefrontCategoryLink
                 key={category.id}
                 href={href}
-                prefetch
-                {...getPrefetchHandlers(href)}
                 onClick={() => {
                   setPendingSlug(category.slug);
                 }}
@@ -77,7 +64,7 @@ export function MobileShopCategoriesView({ categories }: MobileShopCategoriesVie
                     className="pointer-events-none absolute bottom-0 right-0 h-[130px] w-[132px] object-contain"
                   />
                 ) : null}
-              </Link>
+              </StorefrontCategoryLink>
             );
           })}
         </div>

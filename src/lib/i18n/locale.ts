@@ -4,7 +4,8 @@ export { STOREFRONT_LOCALES };
 
 export type StorefrontLocale = (typeof STOREFRONT_LOCALES)[number];
 
-const PRIMARY_LOCALE: StorefrontLocale = "hy";
+/** Default storefront locale for static SSR / first paint. */
+export const PRIMARY_LOCALE: StorefrontLocale = "hy";
 
 function isStorefrontLocale(value: string): value is StorefrontLocale {
   return (STOREFRONT_LOCALES as readonly string[]).includes(value);

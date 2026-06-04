@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { ViewMoreButton } from '../view-more/ViewMoreButton';
 import { useRouter } from 'next/navigation';
 import type { MouseEvent } from 'react';
@@ -29,6 +28,7 @@ import { resolveStorefrontProductImage } from '@/constants/storefront-product-im
 import { HomeOptimizedImage } from './HomeOptimizedImage';
 import { StorefrontProductOverlayLink } from './StorefrontProductOverlayLink';
 import { HomeDailyOfferHeroCard } from './HomeDailyOfferHeroCard';
+import { StorefrontCategoryLink } from '../routing/StorefrontCategoryLink';
 import { resolveHomeDailyOfferProduct } from './home-daily-offer';
 import type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
 
@@ -194,7 +194,7 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
 
 function CategoryCard({ item }: { item: HomeCategoryItem }) {
   return (
-    <Link
+    <StorefrontCategoryLink
       href={getHomeCategoryHref(item)}
       className="block rounded-[22px] bg-[#0c0d12] p-4 transition-transform hover:-translate-y-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#f66913]"
       aria-label={item.title}
@@ -210,7 +210,7 @@ function CategoryCard({ item }: { item: HomeCategoryItem }) {
         loading="lazy"
         sizes="240px"
       />
-    </Link>
+    </StorefrontCategoryLink>
   );
 }
 
