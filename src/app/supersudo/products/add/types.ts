@@ -84,7 +84,19 @@ export interface ProductData {
     size?: string;
     imageUrl?: string;
     published?: boolean;
+    options?: Array<{
+      valueId?: string;
+      attributeKey?: string;
+      value?: string;
+    }>;
   }>;
+}
+
+export interface SimpleProductData {
+  price: string;
+  compareAtPrice: string;
+  sku: string;
+  quantity: string;
 }
 
 export interface GeneratedVariant {

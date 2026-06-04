@@ -6,6 +6,7 @@ import type {
   ProductLabel,
   GeneratedVariant,
   PendingVariantHydration,
+  SimpleProductData,
 } from '../types';
 import type { PdpCustomizationFormState } from '../utils/pdp-customization-form';
 import { createEmptyCustomizationFormState } from '../utils/pdp-customization-form';
@@ -36,7 +37,7 @@ export function useProductFormState() {
   const [sizeMessage, setSizeMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [defaultCurrency, setDefaultCurrency] = useState<CurrencyCode>('AMD');
   const [productType, setProductType] = useState<'simple' | 'variable'>('simple');
-  const [simpleProductData, setSimpleProductData] = useState({
+  const [simpleProductData, setSimpleProductData] = useState<SimpleProductData>({
     price: '',
     compareAtPrice: '',
     sku: '',

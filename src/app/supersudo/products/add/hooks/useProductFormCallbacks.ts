@@ -4,7 +4,7 @@ import { logger } from "@/lib/utils/logger";
  */
 
 import type { ChangeEvent } from 'react';
-import type { Category, GeneratedVariant } from '../types';
+import type { Category, GeneratedVariant, SimpleProductData } from '../types';
 import { generateSkuFromSlug, slugifyProductTitle } from '../utils/productUtils';
 
 interface UseProductFormCallbacksProps {
@@ -21,7 +21,9 @@ interface UseProductFormCallbacksProps {
   setSelectedAttributesForVariants: (value: Set<string> | ((prev: Set<string>) => Set<string>)) => void;
   setSelectedAttributeValueIds: (value: Record<string, string[]> | ((prev: Record<string, string[]>) => Record<string, string[]>)) => void;
   setGeneratedVariants: (value: GeneratedVariant[] | ((prev: GeneratedVariant[]) => GeneratedVariant[])) => void;
-  setSimpleProductData: (value: any | ((prev: any) => any)) => void;
+  setSimpleProductData: (
+    value: SimpleProductData | ((prev: SimpleProductData) => SimpleProductData),
+  ) => void;
   checkIsClothingCategory: (categoryId: string, categories: Category[]) => boolean;
   isEditMode: boolean;
 }
