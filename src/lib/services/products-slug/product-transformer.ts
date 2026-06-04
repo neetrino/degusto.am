@@ -7,7 +7,6 @@ import {
 import { getStorefrontDiscountSettings } from "../storefront/get-storefront-discount-settings";
 import { logger } from "../../utils/logger";
 import { hasSellableStock } from "../../product-stock";
-import { getOutOfStockLabel } from "./utils";
 import { loadProductPdpCustomization } from "@/lib/products/pdp-customization-persistence";
 import type { ProductWithFullRelations, ProductVariantWithOptions } from "./types";
 
@@ -82,11 +81,11 @@ function transformMedia(
 }
 
 /**
- * Transform product labels (add "Out of Stock" if needed)
+ * Transform product labels from DB
  */
 function transformLabels(
   product: ProductWithFullRelations,
-  lang: string
+  _lang: string
 ): Array<{
   id: string;
   type: string;
@@ -94,47 +93,15 @@ function transformLabels(
   position: string;
   color: string | null;
 }> {
-  // Map existing labels
-  const existingLabels = Array.isArray(product.labels) ? product.labels.map((label: { id: string; type: string; value: string; position: string; color: string | null }) => ({
-    id: label.id,
-    type: label.type,
-    value: label.value,
-    position: label.position,
-    color: label.color,
-  })) : [];
-  
-  // Check if all variants are out of stock
-  const variants = Array.isArray(product.variants) ? product.variants : [];
-  const isOutOfStock = variants.length === 0 || variants.every((v: { stock: number }) => (v.stock || 0) <= 0);
-  
-  // If out of stock, add "Out of Stock" label
-  if (isOutOfStock) {
-    const outOfStockText = getOutOfStockLabel(lang);
-    const hasOutOfStockLabel = existingLabels.some(
-      (label: { value: string }) => label.value.toLowerCase() === outOfStockText.toLowerCase() ||
-                 label.value.toLowerCase().includes('out of stock') ||
-                 label.value.toLowerCase().includes('արտադրված') ||
-                 label.value.toLowerCase().includes('нет в наличии') ||
-                 label.value.toLowerCase().includes('არ არის მარაგში')
-    );
-    
-    if (!hasOutOfStockLabel) {
-      const topLeftOccupied = existingLabels.some((l: { position: string }) => l.position === 'top-left');
-      const position = topLeftOccupied ? 'top-right' : 'top-left';
-      
-      existingLabels.push({
-        id: `out-of-stock-${product.id}`,
-        type: 'text',
-        value: outOfStockText,
-        position: position as 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right',
-        color: '#6B7280', // Gray color for out of stock
-      });
-      
-      logger.debug('Added "Out of Stock" label to product', { productId: product.id, lang });
-    }
-  }
-  
-  return existingLabels;
+  return Array.isArray(product.labels)
+    ? product.labels.map((label: { id: string; type: string; value: string; position: string; color: string | null }) => ({
+        id: label.id,
+        type: label.type,
+        value: label.value,
+        position: label.position,
+        color: label.color,
+      }))
+    : [];
 }
 
 /**
