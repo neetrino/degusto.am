@@ -74,6 +74,7 @@ export function useProductPage({
   });
 
   const {
+    unitPriceUsd,
     price,
     originalPrice,
     compareAtPrice,
@@ -207,6 +208,7 @@ export function useProductPage({
     colorGroups,
     sizeGroups,
     currentVariant,
+    unitPriceUsd,
     price,
     originalPrice,
     compareAtPrice,

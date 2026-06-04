@@ -10,6 +10,7 @@ import {
   type ProductCustomizations,
 } from "@/lib/cart/customizations";
 import { sumLineCustomizationPriceAdjustment } from "@/lib/cart/attribute-price-adjustment";
+import { computeLineUnitPriceUsd } from "@/lib/cart/line-unit-price";
 import { cartVariantDisplayLinesFromPrismaOptions } from "@/lib/cart/cart-variant-display-lines";
 
 interface GuestCartItemInput {
@@ -235,9 +236,11 @@ export async function POST(req: NextRequest) {
         selectedVariant.id,
         item.customizations
       );
-      const unitPrice = selectedVariant.price + adj;
+      const unitPrice = computeLineUnitPriceUsd(selectedVariant.price, adj);
       const compareAt =
-        selectedVariant.compareAtPrice != null ? selectedVariant.compareAtPrice + adj : null;
+        selectedVariant.compareAtPrice != null
+          ? computeLineUnitPriceUsd(selectedVariant.compareAtPrice, adj)
+          : null;
 
       normalizedItems.push({
         lineId: item.lineId || buildCustomizationLineKey(selectedVariant.id, item.customizations),

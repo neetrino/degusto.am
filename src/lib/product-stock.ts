@@ -27,6 +27,66 @@ export function getEffectiveMaxQuantity(stock: number): number {
   return isUnlimitedStock(stock) ? UNLIMITED_STOCK_MAX_ORDER_QTY : Math.max(0, stock);
 }
 
+type CartLineForStock = {
+  id: string;
+  variant: { id: string };
+  quantity: number;
+};
+
+/**
+ * Max quantity one cart line may reach given variant stock and other lines for the same variant.
+ */
+export function maxCartLineQuantity(
+  variantStock: number | undefined,
+  variantId: string,
+  lineItemId: string,
+  cartItems: ReadonlyArray<CartLineForStock>
+): number {
+  if (variantStock === undefined) {
+    return UNLIMITED_STOCK_MAX_ORDER_QTY;
+  }
+  if (isUnlimitedStock(variantStock)) {
+    return UNLIMITED_STOCK_MAX_ORDER_QTY;
+  }
+
+  const otherLinesQty = cartItems
+    .filter((item) => item.variant.id === variantId && item.id !== lineItemId)
+    .reduce((sum, item) => sum + item.quantity, 0);
+
+  return Math.max(0, variantStock - otherLinesQty);
+}
+
+type CartVariantLine = {
+  id: string;
+  variantId: string;
+  quantity: number;
+};
+
+/** Total units of a variant in cart after an add or line update. */
+export function totalVariantQuantityInCart(
+  items: ReadonlyArray<CartVariantLine>,
+  variantId: string,
+  change: { lineId: string; quantity: number } | { addQuantity: number }
+): number {
+  let total = 0;
+  if ('lineId' in change) {
+    for (const item of items) {
+      if (item.variantId !== variantId) {
+        continue;
+      }
+      total += item.id === change.lineId ? change.quantity : item.quantity;
+    }
+    return total;
+  }
+
+  for (const item of items) {
+    if (item.variantId === variantId) {
+      total += item.quantity;
+    }
+  }
+  return total + change.addQuantity;
+}
+
 /**
  * Parse admin quantity input: empty → unlimited, explicit 0 → out of stock.
  */

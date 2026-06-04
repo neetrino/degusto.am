@@ -23,6 +23,7 @@ import { playCartFlyAnimation } from '../../../lib/cart-fly-animation';
 import { BodyBackground } from '../../../components/BodyBackground';
 import { publishCartUpdated, publishOptimisticCartAdd } from '@/lib/cart/cart-events';
 import { rememberCartLineId } from '@/lib/cart/cart-line-id-cache';
+import { clearCartLineRemoved } from '@/lib/cart/pending-cart-removals';
 import { readCartSummaryCache } from '@/lib/cartSummaryCache';
 import { logger } from '@/lib/utils/logger';
 import {
@@ -226,6 +227,7 @@ export function ProductPageClient({
     colorGroups,
     sizeGroups,
     currentVariant,
+    unitPriceUsd,
     price,
     originalPrice,
     compareAtPrice,
@@ -272,22 +274,24 @@ export function ProductPageClient({
     });
     const flyOrigin = document.querySelector('[data-product-fly-origin]');
     const imageUrl = images[currentImageIndex] ?? images[0] ?? null;
+
+    publishOptimisticCartAdd({
+      productId: product.id,
+      productSlug: product.slug,
+      variantId: currentVariant.id,
+      title: product.title,
+      image: imageUrl,
+      price: unitPriceUsd,
+      quantity,
+      customizations,
+    });
+
     playCartFlyAnimation({
       fromElement: flyOrigin,
       imageUrl,
     });
     setIsAddingToCart(true);
     try {
-      publishOptimisticCartAdd({
-        productId: product.id,
-        productSlug: product.slug,
-        variantId: currentVariant.id,
-        title: product.title,
-        image: imageUrl,
-        price: currentVariant.price,
-        quantity,
-      });
-
       const response = await apiClient.post<{
         item: { id: string; quantity: number; price: number };
         cartSummary?: { itemsCount: number; total: number };
@@ -298,14 +302,24 @@ export function ProductPageClient({
         customizations,
       });
 
-      rememberCartLineId(product.id, currentVariant.id, response.item.id, response.item.quantity);
+      rememberCartLineId(
+        product.id,
+        currentVariant.id,
+        response.item.id,
+        response.item.quantity,
+        customizations
+      );
+      clearCartLineRemoved({
+        variant: { id: currentVariant.id },
+        customizations,
+      });
       if (response.cartSummary) {
         publishCartUpdated(response.cartSummary.itemsCount, response.cartSummary.total);
       } else {
         const cache = readCartSummaryCache();
         publishCartUpdated(
           (cache?.itemsCount ?? 0) + quantity,
-          (cache?.total ?? 0) + currentVariant.price * quantity
+          (cache?.total ?? 0) + unitPriceUsd * quantity
         );
       }
     } catch (error: unknown) {

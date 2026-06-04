@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import type { ComponentProps, ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 import { buildProductPageHref } from '@/lib/products/build-product-page-href';
 import { prefetchProductRoute } from '@/lib/products/prefetch-product-route';
 
@@ -19,6 +19,8 @@ export function ProductPageLink({
   children,
   onMouseEnter,
   onFocus,
+  onPointerDown,
+  onTouchStart,
   ...rest
 }: ProductPageLinkProps) {
   const router = useRouter();
@@ -39,6 +41,14 @@ export function ProductPageLink({
       onFocus={(event) => {
         warm();
         onFocus?.(event);
+      }}
+      onPointerDown={(event) => {
+        warm();
+        onPointerDown?.(event);
+      }}
+      onTouchStart={(event) => {
+        warm();
+        onTouchStart?.(event);
       }}
       {...rest}
     >

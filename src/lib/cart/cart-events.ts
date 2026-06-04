@@ -5,6 +5,8 @@ export interface CartUpdatedDetail {
   itemsCount?: number;
   total?: number;
   forceReload?: boolean;
+  /** Do not refetch cart from server (e.g. after optimistic remove). */
+  skipReconcile?: boolean;
   optimisticAdd?: {
     quantity?: number;
     price?: number;
@@ -20,11 +22,19 @@ export function parseCartUpdatedDetail(event: Event): CartUpdatedDetail | undefi
 }
 
 /** Broadcast cart summary to header/badge listeners without triggering a full cart fetch. */
-export function publishCartUpdated(itemsCount: number, total: number): void {
+export function publishCartUpdated(
+  itemsCount: number,
+  total: number,
+  options?: { skipReconcile?: boolean }
+): void {
   writeCartSummaryCache(itemsCount, total);
   window.dispatchEvent(
     new CustomEvent<CartUpdatedDetail>('cart-updated', {
-      detail: { itemsCount, total },
+      detail: {
+        itemsCount,
+        total,
+        skipReconcile: options?.skipReconcile ?? false,
+      },
     })
   );
 }

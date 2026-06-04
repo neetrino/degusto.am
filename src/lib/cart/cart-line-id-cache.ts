@@ -1,3 +1,8 @@
+import {
+  buildCustomizationLineKey,
+  type ProductCustomizations,
+} from './customizations';
+
 const CART_LINE_ID_CACHE_KEY = 'shop_cart_line_ids';
 
 interface LineIdEntry {
@@ -7,8 +12,12 @@ interface LineIdEntry {
 
 type LineIdCache = Record<string, LineIdEntry>;
 
-function lineKey(productId: string, variantId: string): string {
-  return `${productId}:${variantId}`;
+function lineKey(
+  productId: string,
+  variantId: string,
+  customizations?: ProductCustomizations
+): string {
+  return `${productId}:${buildCustomizationLineKey(variantId, customizations)}`;
 }
 
 function readCache(): LineIdCache {
@@ -45,24 +54,30 @@ export function rememberCartLineId(
   productId: string,
   variantId: string,
   cartItemId: string,
-  quantity: number
+  quantity: number,
+  customizations?: ProductCustomizations
 ): void {
   const cache = readCache();
-  cache[lineKey(productId, variantId)] = { cartItemId, quantity };
+  cache[lineKey(productId, variantId, customizations)] = { cartItemId, quantity };
   writeCache(cache);
 }
 
-export function getCartLineId(productId: string, variantId: string): LineIdEntry | null {
-  return readCache()[lineKey(productId, variantId)] ?? null;
+export function getCartLineId(
+  productId: string,
+  variantId: string,
+  customizations?: ProductCustomizations
+): LineIdEntry | null {
+  return readCache()[lineKey(productId, variantId, customizations)] ?? null;
 }
 
 export function updateCachedLineQuantity(
   productId: string,
   variantId: string,
-  quantity: number
+  quantity: number,
+  customizations?: ProductCustomizations
 ): void {
   const cache = readCache();
-  const key = lineKey(productId, variantId);
+  const key = lineKey(productId, variantId, customizations);
   const entry = cache[key];
   if (!entry) {
     return;
@@ -72,9 +87,13 @@ export function updateCachedLineQuantity(
   writeCache(cache);
 }
 
-export function removeCachedLineId(productId: string, variantId: string): void {
+export function removeCachedLineId(
+  productId: string,
+  variantId: string,
+  customizations?: ProductCustomizations
+): void {
   const cache = readCache();
-  delete cache[lineKey(productId, variantId)];
+  delete cache[lineKey(productId, variantId, customizations)];
   writeCache(cache);
 }
 

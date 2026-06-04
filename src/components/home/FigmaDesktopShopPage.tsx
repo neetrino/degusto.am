@@ -731,6 +731,8 @@ export function FigmaDesktopMenuPage({
                           }}
                           onMouseEnter={() => prefetchCategory(href)}
                           onFocus={() => prefetchCategory(href)}
+                          onPointerDown={() => prefetchCategory(href)}
+                          onTouchStart={() => prefetchCategory(href)}
                           aria-current={isActive ? 'page' : undefined}
                           className={sharedClassName}
                         >

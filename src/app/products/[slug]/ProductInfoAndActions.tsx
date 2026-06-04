@@ -122,6 +122,9 @@ export function ProductInfoAndActions({
         ? compareAtPrice
         : null;
 
+  const displayPrice = price * quantity;
+  const displayComparePrice = comparePrice != null ? comparePrice * quantity : null;
+
   return (
     <div className="flex w-full max-w-full flex-col self-start max-lg:px-0 max-lg:py-0 lg:h-full lg:min-h-0 lg:justify-between lg:self-stretch lg:px-0 lg:py-0">
       <div>
@@ -136,13 +139,13 @@ export function ProductInfoAndActions({
           />
           <div className={PDP_PRICE_ROW_CLASS}>
             <PdpAnimatedPrice
-              amount={price}
+              amount={displayPrice}
               currency={currency as CurrencyCode}
               className={`${PDP_PRICE_CLASS} ${montserratArmFont.className}`}
             />
-            {comparePrice != null ? (
+            {displayComparePrice != null ? (
               <span className={`${PDP_COMPARE_PRICE_CLASS} ${montserratArmFont.className}`}>
-                {formatPriceInCurrency(comparePrice, currency as CurrencyCode)}
+                {formatPriceInCurrency(displayComparePrice, currency as CurrencyCode)}
               </span>
             ) : null}
           </div>

@@ -18,6 +18,8 @@ import {
   cartDrawerPanelTransition,
   cartDrawerPanelVariants,
 } from './cart-drawer-motion-variants';
+import { readCartSummaryCache } from '@/lib/cartSummaryCache';
+import { cartHasVisibleItems } from '@/lib/cart/cart-summary-sync';
 import { clearLegacyGuestCartLocalStorage } from '@/lib/cart/guest-cart-cookies';
 import { useCartDrawer } from './cart-drawer-context';
 import { useState } from 'react';
@@ -77,10 +79,18 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
   }, []);
 
   useEffect(() => {
-    if (isVisible && !cart) {
+    if (!isVisible || cartLoading) {
+      return;
+    }
+
+    const cached = readCartSummaryCache();
+    const localHasItems = cartHasVisibleItems(cart);
+    const cacheHasItems = (cached?.itemsCount ?? 0) > 0;
+
+    if (!localHasItems && (cacheHasItems || !cart)) {
       void reloadCart({ silent: true });
     }
-  }, [isVisible, cart, reloadCart]);
+  }, [isVisible, cart, cartLoading, reloadCart]);
 
   useEffect(() => {
     const onCurrency = () => setCurrency(getStoredCurrency());
@@ -96,6 +106,9 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
   }, [reloadCart]);
 
   useEffect(() => {
+    if (!isVisible) {
+      return;
+    }
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
@@ -103,15 +116,18 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, [isVisible, onClose]);
 
   useEffect(() => {
+    if (!isVisible) {
+      return;
+    }
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = prev;
     };
-  }, []);
+  }, [isVisible]);
 
   const loadCartWithLoading = useCallback(async () => {
     await reloadCart();

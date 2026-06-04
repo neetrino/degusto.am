@@ -1,12 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import type { MenuCard } from './menu-types';
 import {
   clearShopMenuProductsClientCache,
   fetchShopMenuProducts,
-  prefetchShopMenuProducts,
 } from '@/lib/shop/fetch-shop-menu-products.client';
+import { prefetchStorefrontRoute } from '@/lib/routing/prefetch-storefront-route';
 
 type ShopMenuPagination = {
   currentPage: number;
@@ -36,6 +37,7 @@ export function useShopCategorySoftNav({
   initialPagination,
   enabled,
 }: UseShopCategorySoftNavOptions): UseShopCategorySoftNavResult {
+  const router = useRouter();
   const [displayCards, setDisplayCards] = useState(initialCards);
   const [displayActiveCategorySlug, setDisplayActiveCategorySlug] = useState(initialActiveCategorySlug);
   const [displayPagination, setDisplayPagination] = useState(initialPagination);
@@ -100,8 +102,8 @@ export function useShopCategorySoftNav({
     if (!enabledRef.current) {
       return;
     }
-    prefetchShopMenuProducts(href);
-  }, []);
+    prefetchStorefrontRoute(router, href);
+  }, [router]);
 
   useEffect(() => {
     if (!enabled) {

@@ -8,22 +8,17 @@ import { ConditionalFooter } from '../components/ConditionalFooter';
 import { ConditionalMobileBottomNav } from '../components/ConditionalMobileBottomNav';
 import { LayoutShell } from '../components/LayoutShell';
 import { MobileStorefrontChrome } from '../components/mobile/MobileStorefrontChrome';
-import { cookies } from 'next/headers';
-import { resolveStorefrontLocaleFromCookie } from '@/lib/i18n/locale';
+import { PRIMARY_LOCALE } from '@/lib/i18n/locale';
 import { getSiteMetadataCopy } from '@/lib/i18n/metadata';
 
 export const viewport: Viewport = LOCKED_MOBILE_VIEWPORT;
 
-export async function generateMetadata(): Promise<Metadata> {
-  const cookieStore = await cookies();
-  const locale = resolveStorefrontLocaleFromCookie(cookieStore.get('shop_language')?.value);
-  const copy = getSiteMetadataCopy(locale);
+const defaultSiteMetadata = getSiteMetadataCopy(PRIMARY_LOCALE);
 
-  return {
-    title: copy.title,
-    description: copy.description,
-  };
-}
+export const metadata: Metadata = {
+  title: defaultSiteMetadata.title,
+  description: defaultSiteMetadata.description,
+};
 
 export default function RootLayout({
   children,

@@ -70,6 +70,14 @@ export async function sumVerifiedAttributePriceAdjustment(
     idsForSum = [];
   }
 
+  if (idsForSum.length === 0 && unique.length > 0) {
+    const directRows = await db.attributeValue.findMany({
+      where: { id: { in: unique } },
+      select: { id: true },
+    });
+    idsForSum = directRows.map((row) => row.id);
+  }
+
   if (idsForSum.length === 0) {
     return 0;
   }
@@ -89,14 +97,27 @@ export async function sumLineCustomizationPriceAdjustment(
 ): Promise<number> {
   const variant = await db.productVariant.findUnique({
     where: { id: variantId },
-    select: { product: { select: { attributeIds: true } } },
+    select: {
+      product: {
+        select: {
+          attributeIds: true,
+          productAttributes: { select: { attributeId: true } },
+        },
+      },
+    },
   });
   if (!variant) {
     return 0;
   }
+  const productAttributeIds = [
+    ...new Set([
+      ...(variant.product.attributeIds ?? []),
+      ...variant.product.productAttributes.map((row) => row.attributeId),
+    ]),
+  ];
   const merged = await mergeCustomizationValueIdsForPricing(
     customizations,
-    variant.product.attributeIds ?? undefined
+    productAttributeIds.length > 0 ? productAttributeIds : undefined
   );
   return sumVerifiedAttributePriceAdjustment(variantId, merged);
 }

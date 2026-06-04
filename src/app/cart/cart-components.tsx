@@ -9,6 +9,7 @@ import type { Cart, CartItem } from './types';
 import type { CartListAppearance } from './constants';
 import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 import { getEffectiveMaxQuantity, isUnlimitedStock } from '@/lib/product-stock';
+import { useCartDrawer } from '@/components/cart-drawer/cart-drawer-context';
 
 type DisplayLine = NonNullable<CartItem['variant']['displayLines']>[number];
 
@@ -193,7 +194,7 @@ export function CartItemRow({
             {item.variant.product.title}
           </ProductPageLink>
           {!isDrawer && lines.length > 0 ? <CartItemVariantChips lines={lines} appearance={appearance} /> : null}
-          {!isDrawer && lines.length === 0 && (item.customizations?.additions || item.customizations?.exclusions) ? (
+          {(item.customizations?.additions || item.customizations?.exclusions) ? (
             <ul
               className={`mt-1.5 list-none space-y-0.5 pl-0 text-xs ${isDrawer ? 'text-white/75' : 'text-gray-600'}`}
             >
@@ -214,16 +215,6 @@ export function CartItemRow({
                 </li>
               ) : null}
             </ul>
-          ) : null}
-          {!isDrawer && lines.length > 0 && item.customizations?.additions ? (
-            <p className={`mt-2 text-xs ${isDrawer ? 'text-white/75' : 'text-gray-600'}`}>
-              {t('product.additionsLabel')}: {item.customizations.additions}
-            </p>
-          ) : null}
-          {!isDrawer && lines.length > 0 && item.customizations?.exclusions ? (
-            <p className={`text-xs ${isDrawer ? 'text-white/75' : 'text-gray-600'}`}>
-              {t('product.exclusionsLabel')}: {item.customizations.exclusions}
-            </p>
           ) : null}
         </div>
         <CartItemQuantityStepper
@@ -323,6 +314,7 @@ interface OrderSummaryProps {
 export function OrderSummary({ cart, currency, t, appearance = 'page' }: OrderSummaryProps) {
   const currencyCode = currency as CurrencyCode;
   const isDrawer = appearance === 'drawer';
+  const { closeCartDrawer } = useCartDrawer();
 
   const innerClass = isDrawer
     ? 'rounded-2xl border border-white/15 bg-black/62 p-5 shadow-sm backdrop-blur-md sm:p-5 lg:border-white/20 lg:bg-black/40'
@@ -360,6 +352,11 @@ export function OrderSummary({ cart, currency, t, appearance = 'page' }: OrderSu
         </div>
         <Link
           href="/checkout"
+          onClick={() => {
+            if (isDrawer) {
+              closeCartDrawer();
+            }
+          }}
           className="inline-flex w-full items-center justify-center rounded-xl px-6 py-3 text-lg font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#F66812] focus:ring-offset-2 bg-[#F66812] hover:bg-[#e45f10]"
         >
           {t('common.buttons.proceedToCheckout')}

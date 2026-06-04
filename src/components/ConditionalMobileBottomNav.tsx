@@ -1,11 +1,11 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { MobileBottomNavigation } from './home/MobileBottomNavigation';
 import { resolveMobileBottomNavAssets } from './home/mobileBottomNavAssets';
+
 export function ConditionalMobileBottomNav() {
   const pathname = usePathname();
-  const router = useRouter();
 
   if (pathname?.startsWith('/supersudo')) {
     return null;
@@ -24,10 +24,6 @@ export function ConditionalMobileBottomNav() {
           bottomNavCart: assets.bottomNavCart,
           bottomNavFavorite: assets.bottomNavFavorite,
           bottomNavProfile: assets.bottomNavProfile,
-        }}
-        onShopClick={() => {
-          void router.prefetch('/shop');
-          router.push('/shop');
         }}
       />
     </div>

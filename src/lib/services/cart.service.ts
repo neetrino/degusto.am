@@ -9,8 +9,9 @@ import {
   type ProductCustomizations,
 } from "../cart/customizations";
 import { sumLineCustomizationPriceAdjustment } from "../cart/attribute-price-adjustment";
+import { computeLineUnitPriceUsd } from "../cart/line-unit-price";
 import { cartVariantDisplayLinesFromPrismaOptions } from "../cart/cart-variant-display-lines";
-import { isStockSufficient } from "../product-stock";
+import { isStockSufficient, totalVariantQuantityInCart } from "../product-stock";
 import { ensureCartItemCustomizationsColumn } from "../utils/db-ensure";
 
 class CartService {
@@ -256,12 +257,21 @@ class CartService {
           }
         }
 
+        const custom = normalizeProductCustomizations(item.customizations);
         const snapshotRaw = item.priceSnapshot != null ? Number(item.priceSnapshot) : NaN;
         const recomputedAdj = adjustmentByItemId.get(item.id) ?? 0;
+        const variantBaseUsd = variant?.price ?? 0;
+        const hasCustomizations = Boolean(
+          custom?.additions ||
+            custom?.exclusions ||
+            (custom?.selectedAttributeValueIds?.length ?? 0) > 0
+        );
         const listPriceBase =
-          Number.isFinite(snapshotRaw) && snapshotRaw >= 0
-            ? snapshotRaw
-            : (variant?.price ?? 0) + recomputedAdj;
+          hasCustomizations || recomputedAdj > 0
+            ? computeLineUnitPriceUsd(variantBaseUsd, recomputedAdj)
+            : Number.isFinite(snapshotRaw) && snapshotRaw >= 0
+              ? snapshotRaw
+              : variantBaseUsd;
 
         const variantOriginalPrice = listPriceBase;
         let finalPrice = variantOriginalPrice;
@@ -270,7 +280,10 @@ class CartService {
           finalPrice = variantOriginalPrice * (1 - appliedDiscount / 100);
           originalPrice = variantOriginalPrice;
         } else if (variant?.compareAtPrice != null) {
-          const compareAtAdjusted = Number(variant.compareAtPrice) + recomputedAdj;
+          const compareAtAdjusted = computeLineUnitPriceUsd(
+            Number(variant.compareAtPrice),
+            recomputedAdj
+          );
           if (compareAtAdjusted > listPriceBase) {
             originalPrice = compareAtAdjusted;
           }
@@ -299,7 +312,7 @@ class CartService {
             },
           },
           quantity: item.quantity,
-          customizations: normalizeProductCustomizations(item.customizations),
+          customizations: custom,
           price: finalPrice,
           originalPrice,
           total: finalPrice * item.quantity,
@@ -415,14 +428,20 @@ class CartService {
         ) === requestedLineKey
     );
 
-    // Calculate total quantity that will be in cart after adding
-    const totalQuantity = existingItem ? existingItem.quantity + quantity : quantity;
+    // Calculate total quantity for this variant across all cart lines after adding
+    const totalQuantity = existingItem
+      ? totalVariantQuantityInCart(resolvedCart.items, variantId, {
+          lineId: existingItem.id,
+          quantity: existingItem.quantity + quantity,
+        })
+      : totalVariantQuantityInCart(resolvedCart.items, variantId, { addQuantity: quantity });
 
     // Check if total quantity exceeds available stock
     if (!isStockSufficient(variant.stock, totalQuantity)) {
+      const alreadyInCart = totalQuantity - quantity;
       logger.warn("Cart: stock limit exceeded", {
         variantId,
-        currentInCart: existingItem?.quantity ?? 0,
+        currentInCart: alreadyInCart,
         requestedQuantity: quantity,
         totalQuantity,
         availableStock: variant.stock,
@@ -431,7 +450,7 @@ class CartService {
         status: 422,
         type: problemTypes.validationError,
         title: "Insufficient stock",
-        detail: `No more stock available. Maximum available: ${variant.stock}, already in cart: ${existingItem?.quantity || 0}, requested: ${quantity}`,
+        detail: `No more stock available. Maximum available: ${variant.stock}, already in cart: ${alreadyInCart}, requested: ${quantity}`,
       };
     }
 
@@ -439,7 +458,7 @@ class CartService {
       variantId,
       normalizedCustomizations
     );
-    const unitPriceWithAdjustments = Number(variant.price) + attrAdj;
+    const unitPriceWithAdjustments = computeLineUnitPriceUsd(Number(variant.price), attrAdj);
 
     let item;
     if (existingItem) {
@@ -558,9 +577,7 @@ class CartService {
         },
       },
       include: {
-        items: {
-          where: { id: itemId },
-        },
+        items: true,
       },
     });
 
@@ -572,12 +589,25 @@ class CartService {
       };
     }
 
-    const item = cart.items[0];
+    const item = cart.items.find((row) => row.id === itemId);
+    if (!item) {
+      throw {
+        status: 404,
+        type: problemTypes.notFound,
+        title: "Cart item not found",
+      };
+    }
+
     const variant = await db.productVariant.findUnique({
       where: { id: item.variantId },
     });
 
-    if (!variant || !isStockSufficient(variant.stock, quantity)) {
+    const totalVariantQty = totalVariantQuantityInCart(cart.items, item.variantId, {
+      lineId: itemId,
+      quantity,
+    });
+
+    if (!variant || !isStockSufficient(variant.stock, totalVariantQty)) {
       throw {
         status: 422,
         type: problemTypes.validationError,
