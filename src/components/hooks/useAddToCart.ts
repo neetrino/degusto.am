@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { apiClient } from '../../lib/api-client';
 import { ApiError } from '../../lib/api-client/types';
 import { isQuietCartStockValidationError } from '../../lib/api-client/error-handler';
+import { DATABASE_UNAVAILABLE_PUBLIC_DETAIL } from '@/lib/http/problem-details';
 import { logger } from '../../lib/utils/logger';
 import { useTranslation } from '../../lib/i18n-client';
 import { playCartFlyAnimation } from '../../lib/cart-fly-animation';
@@ -192,6 +193,11 @@ export function useAddToCart({
       ) {
         alert(t('common.alerts.noMoreStockAvailable'));
         publishCartForceReload();
+        return;
+      }
+
+      if (error instanceof ApiError && error.status === 503) {
+        alert(error.message || DATABASE_UNAVAILABLE_PUBLIC_DETAIL);
         return;
       }
 

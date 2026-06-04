@@ -65,9 +65,9 @@ export function isQuietCheckoutValidationError(status: number, url: string): boo
  * When backend is temporarily unstable, avoid noisy console errors for this endpoint.
  */
 export function isQuietCartReadServerError(status: number, url: string): boolean {
-  const isServerError = status >= 500 && status < 600;
+  const isTransientServerError = status === 503 || (status >= 500 && status < 600);
   const isCartEndpoint = /\/api\/v1\/cart(?:\?|$)/.test(url);
-  return isServerError && isCartEndpoint;
+  return isTransientServerError && isCartEndpoint;
 }
 
 /**

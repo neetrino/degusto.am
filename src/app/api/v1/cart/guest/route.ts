@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { problemTypes } from "@/lib/http/problem-details";
 import { db } from "@white-shop/db";
-import { buildLocalizedProblem } from "@/lib/i18n/api-problem";
 import { resolveStorefrontLocale } from "@/lib/i18n/locale";
-import { logger } from "@/lib/utils/logger";
+import { apiRouteCatchErrorResponse } from "@/lib/http/api-route-errors";
 import {
   buildCustomizationLineKey,
   normalizeProductCustomizations,
@@ -315,17 +313,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error: unknown) {
-    logger.error("[CART][GUEST] Failed to build guest cart", { error });
-    return NextResponse.json(
-      buildLocalizedProblem(req, {
-        type: problemTypes.internalError,
-        status: 500,
-        titleKey: "internalErrorTitle",
-        detailKey: "internalErrorDetail",
-        detailOverride: "Failed to load guest cart",
-      }),
-      { status: 500 }
-    );
+    return apiRouteCatchErrorResponse(req, error, "[CART][GUEST] POST");
   }
 }
 
