@@ -19,6 +19,7 @@ import {
   PRODUCT_CARD_ICON_BTN_INTERACTION_CLASS,
   PRODUCT_CARD_WISHLIST_ICON_HOVER_CLASS,
 } from '@/constants/product-card-action-hover';
+import { PRODUCT_CARD_INTERACTIVE_Z_CLASS } from '@/constants/product-card-stacking';
 
 interface ProductCardGridProps {
   product: {
@@ -84,8 +85,9 @@ export function ProductCardGrid({
       className={`relative overflow-hidden rounded-lg border border-gray-200 bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} group cursor-pointer hover:shadow-md`}
       onMouseEnter={onPrefetchNavigate}
       onFocus={onPrefetchNavigate}
+      onPointerDown={onPrefetchNavigate}
+      onTouchStart={onPrefetchNavigate}
     >
-      <ProductCardOverlayLink slug={product.slug} label={product.title} />
       {/* Product Image */}
       <div
         className={`relative aspect-square overflow-hidden bg-gray-100 transition-colors ${FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS}`}
@@ -103,7 +105,7 @@ export function ProductCardGrid({
         <button
           type="button"
           onClick={onWishlistToggle}
-          className={`absolute ${isCompact ? 'top-1.5 right-1.5' : 'top-3 right-3'} z-20 ${wishlistButtonSize} rounded-full flex items-center justify-center transition-all duration-200 shadow-md ${PRODUCT_CARD_ICON_BTN_INTERACTION_CLASS} ${getProductCardWishlistHoverClasses(isInWishlist)} ${
+          className={`absolute ${isCompact ? 'top-1.5 right-1.5' : 'top-3 right-3'} ${PRODUCT_CARD_INTERACTIVE_Z_CLASS} ${wishlistButtonSize} rounded-full flex items-center justify-center transition-all duration-200 shadow-md ${PRODUCT_CARD_ICON_BTN_INTERACTION_CLASS} ${getProductCardWishlistHoverClasses(isInWishlist)} ${
             isInWishlist
               ? 'bg-red-600 text-white'
               : 'bg-white/95 text-gray-700 border border-gray-200/80'
@@ -135,7 +137,7 @@ export function ProductCardGrid({
         />
       </div>
 
-      <div className="relative z-10">
+      <div>
       {/* Product Info */}
       <ProductCardInfo
         title={product.title}
@@ -150,7 +152,7 @@ export function ProductCardGrid({
 
       {/* Quantity Controls in Price Row */}
       <div className={`px-4 pb-4 flex items-center justify-end ${isCompact ? 'gap-2' : 'gap-4'}`}>
-        <div className="inline-flex items-center gap-2">
+        <div className={`inline-flex items-center gap-2 ${PRODUCT_CARD_INTERACTIVE_Z_CLASS}`}>
           <button
             onClick={onDecreaseCart}
             disabled={cartQuantity <= 0 || isUpdatingQuantity || isAddingToCart}
@@ -175,6 +177,7 @@ export function ProductCardGrid({
         </div>
       </div>
       </div>
+      <ProductCardOverlayLink slug={product.slug} label={product.title} />
     </div>
   );
 }

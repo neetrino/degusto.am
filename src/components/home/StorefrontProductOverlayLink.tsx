@@ -8,7 +8,7 @@ export type StorefrontProductOverlayLinkProps = {
   className?: string;
 };
 
-/** Stretched Next.js Link for Figma/mobile product cards (overlay action buttons). */
+/** Stretched PDP link — last child of the card; buttons use z-20. */
 export function StorefrontProductOverlayLink({
   slug,
   label,

@@ -1,6 +1,6 @@
 'use client';
 
-import type { MouseEvent } from 'react';
+import { useCallback, type MouseEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '../../lib/i18n-client';
 import { useCurrency } from '../hooks/useCurrency';
@@ -22,6 +22,9 @@ import {
 import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 import { HomeOptimizedImage } from './HomeOptimizedImage';
 import { StorefrontProductOverlayLink } from './StorefrontProductOverlayLink';
+import { usePrefetchProductWhenVisible } from '../hooks/usePrefetchProductWhenVisible';
+import { prefetchProductRoute } from '@/lib/products/prefetch-product-route';
+import { PRODUCT_CARD_INTERACTIVE_Z_CLASS } from '@/constants/product-card-stacking';
 import { shouldShowMenuCardStrikethroughPrice } from '@/lib/storefront/menu-card-pricing';
 import type { MenuCard } from './menu-types';
 
@@ -103,12 +106,21 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
     void toggleWishlist();
   };
 
+  const visibilityRef = usePrefetchProductWhenVisible(card.slug);
+  const warmProductRoute = useCallback(() => {
+    prefetchProductRoute(router, card.slug);
+  }, [router, card.slug]);
+
   return (
     <article
+      ref={visibilityRef}
       data-home-product-card
       className={`relative h-[240px] w-full cursor-pointer rounded-[20px] border-[1.5px] border-[#dedede] bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS}`}
+      onMouseEnter={warmProductRoute}
+      onFocus={warmProductRoute}
+      onPointerDown={warmProductRoute}
+      onTouchStart={warmProductRoute}
     >
-      <StorefrontProductOverlayLink slug={card.slug} label={title} />
       <div
         data-product-fly-origin
         className="absolute left-1 right-1 top-[5px] h-[143px] overflow-hidden rounded-[18px] relative"
@@ -126,7 +138,7 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
       <button
         type="button"
         onClick={handleWishlistToggle}
-        className={`absolute right-2 top-2 z-20 flex h-8 w-8 items-center justify-center rounded-full border shadow-md ${PRODUCT_CARD_ICON_BTN_INTERACTION_CLASS} ${getProductCardWishlistHoverClasses(isInWishlist)} ${
+        className={`absolute right-2 top-2 ${PRODUCT_CARD_INTERACTIVE_Z_CLASS} flex h-8 w-8 items-center justify-center rounded-full border shadow-md ${PRODUCT_CARD_ICON_BTN_INTERACTION_CLASS} ${getProductCardWishlistHoverClasses(isInWishlist)} ${
           isInWishlist
             ? 'border-red-600 bg-red-600 text-white'
             : 'border-[#dedede]/90 bg-white/95 text-gray-700'
@@ -211,7 +223,7 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
         onClick={handleAddToCart}
         disabled={isAddingToCart || card.inStock === false}
         aria-label={t('common.buttons.addToCart')}
-        className={`absolute -bottom-[14px] left-1/2 z-20 inline-flex h-[42px] w-[42px] -translate-x-1/2 items-center justify-center disabled:opacity-50 ${PRODUCT_CARD_CART_BTN_HOVER_CLASS}`}
+        className={`absolute -bottom-[14px] left-1/2 ${PRODUCT_CARD_INTERACTIVE_Z_CLASS} inline-flex h-[42px] w-[42px] -translate-x-1/2 items-center justify-center disabled:opacity-50 ${PRODUCT_CARD_CART_BTN_HOVER_CLASS}`}
       >
         <HomeOptimizedImage
           src={MOBILE_SHOP_PRODUCT_CARD_ASSETS.addToCart}
@@ -222,6 +234,7 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
           loading="lazy"
         />
       </button>
+      <StorefrontProductOverlayLink slug={card.slug} label={title} />
     </article>
   );
 }
