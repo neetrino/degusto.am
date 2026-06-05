@@ -33,8 +33,6 @@ interface CardDetailsModalProps {
   deliveryPrice: number | null;
   bagFee: number;
   deliveryUnavailable: boolean;
-  isLoggedIn: boolean;
-  onShowShippingModal: () => void;
   onSubmit: (data: CheckoutFormData) => void;
 }
 
@@ -56,8 +54,6 @@ export function CardDetailsModal({
   deliveryPrice,
   bagFee,
   deliveryUnavailable,
-  isLoggedIn,
-  onShowShippingModal,
   onSubmit,
 }: CardDetailsModalProps) {
   const { t } = useTranslation();
@@ -166,11 +162,7 @@ export function CardDetailsModal({
             onClick={handleSubmit(
               (data) => {
                 onClose();
-                if (!isLoggedIn) {
-                  onShowShippingModal();
-                } else {
-                  onSubmit(data);
-                }
+                onSubmit(data);
               },
               handleValidationError
             )}

@@ -102,8 +102,6 @@ export function CheckoutModals({
         deliveryPrice={deliveryPrice}
         bagFee={bagFee}
         deliveryUnavailable={deliveryUnavailable}
-        isLoggedIn={isLoggedIn}
-        onShowShippingModal={() => setShowShippingModal(true)}
         onSubmit={onSubmit}
       />
     </>

@@ -193,12 +193,7 @@ export function useCheckout() {
       setShowCardModal(true);
       return;
     }
-    
-    if (!isLoggedIn) {
-      setShowShippingModal(true);
-      return;
-    }
-    
+
     handleSubmit(submitOrder)(e);
   };
 
