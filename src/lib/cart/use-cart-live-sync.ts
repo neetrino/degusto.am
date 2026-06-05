@@ -12,7 +12,6 @@ import {
 import { applyRemovedLinesFilter } from '@/lib/cart/pending-cart-removals';
 import { dispatchCartSummarySync } from '@/lib/cart/cart-summary-sync';
 import { createEmptyCart } from '@/lib/cart/empty-cart';
-import { readCartSummaryCache } from '@/lib/cartSummaryCache';
 
 const CART_RECONCILE_DEBOUNCE_MS = 400;
 
@@ -26,11 +25,6 @@ type UseCartLiveSyncOptions = {
 
 function resolveInitialCartState(): Cart | null {
   if (typeof window === 'undefined') {
-    return null;
-  }
-
-  const cached = readCartSummaryCache();
-  if (cached && cached.itemsCount > 0) {
     return null;
   }
 
@@ -49,22 +43,23 @@ export function useCartLiveSync({
 }: UseCartLiveSyncOptions) {
   const [cart, setCart] = useState<Cart | null>(resolveInitialCartState);
   const [cartLoading, setCartLoading] = useState(false);
+  const [isCartResolved, setIsCartResolved] = useState(false);
   const cartRef = useRef<Cart | null>(null);
   const reconcileTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reloadGenerationRef = useRef(0);
-  const cartHydratedRef = useRef(resolveInitialCartState() !== null);
+  const badgeSyncReadyRef = useRef(false);
 
   useEffect(() => {
     cartRef.current = cart;
   }, [cart]);
 
   const commitCart = useCallback((value: SetStateAction<Cart | null>) => {
-    cartHydratedRef.current = true;
+    badgeSyncReadyRef.current = true;
     setCart(value);
   }, []);
 
   useEffect(() => {
-    if (!cartHydratedRef.current && cart === null) {
+    if (!badgeSyncReadyRef.current) {
       return;
     }
     dispatchCartSummarySync(cart);
@@ -91,12 +86,12 @@ export function useCartLiveSync({
         if (generation !== reloadGenerationRef.current) {
           return;
         }
-        if (!silent) {
-          commitCart(createEmptyCart());
-        }
+        commitCart(createEmptyCart());
       } finally {
         if (generation === reloadGenerationRef.current) {
           setCartLoading(false);
+          setIsCartResolved(true);
+          badgeSyncReadyRef.current = true;
         }
       }
     },
@@ -117,6 +112,7 @@ export function useCartLiveSync({
     if (isAuthLoading) {
       return;
     }
+    setIsCartResolved(false);
     void reloadCart({ silent: true });
   }, [isAuthLoading, isLoggedIn, reloadCart]);
 
@@ -176,6 +172,7 @@ export function useCartLiveSync({
     cart,
     setCart: commitCart,
     cartLoading,
+    isCartResolved,
     setCartLoading,
     reloadCart,
     scheduleReconcile,

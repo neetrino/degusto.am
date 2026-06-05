@@ -15,16 +15,10 @@ import { createPortal } from 'react-dom';
 import { LanguageCurrencySwitcher } from './LanguageCurrencySwitcher';
 import { useTranslation } from '../lib/i18n-client';
 import { useAuth } from '../lib/auth/AuthContext';
-import { apiClient } from '../lib/api-client';
 import { getWishlistCount } from '../lib/storageCounts';
 import { formatPrice } from '../lib/currency';
 import { useCurrency } from './hooks/useCurrency';
-import { readCartSummaryCache, writeCartSummaryCache, clearCartSummaryCache } from '../lib/cartSummaryCache';
-import {
-  applyCartBadgeFromDetail,
-  parseCartUpdatedDetail,
-  resetCartBadgeState,
-} from '@/lib/cart/cart-events';
+import { useCartBadgeDisplay } from './hooks/useCartBadgeDisplay';
 import { useInstantSearch, type InstantSearchResultItem } from './hooks/useInstantSearch';
 import { SearchDropdown } from './SearchDropdown';
 import { useCartDrawer } from './cart-drawer/cart-drawer-context';
@@ -64,15 +58,6 @@ function universalWishlistNavClassName(active: boolean): string {
 
 interface UniversalHeaderProps {
   spacerBackgroundClassName?: string;
-}
-
-interface CartResponse {
-  cart?: {
-    itemsCount?: number;
-    totals?: {
-      total?: number;
-    };
-  };
 }
 
 type UniversalHeaderSearchFormProps = {
@@ -198,8 +183,7 @@ function UniversalHeaderSearchSync({
 }
 
 export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: UniversalHeaderProps) {
-  const [cartCount, setCartCount] = useState(0);
-  const [cartTotal, setCartTotal] = useState(0);
+  const { cartCount, cartTotal } = useCartBadgeDisplay();
   const [wishlistCount, setWishlistCount] = useState(0);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isSearchPopupOpen, setIsSearchPopupOpen] = useState(false);
@@ -310,41 +294,6 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
   };
 
   useEffect(() => {
-    const cached = readCartSummaryCache();
-    if (cached) {
-      setCartCount(cached.itemsCount);
-      setCartTotal(cached.total);
-    }
-
-    const fetchCart = async () => {
-      try {
-        const response = await apiClient.get<CartResponse>('/api/v1/cart');
-        const itemsCount = response.cart?.itemsCount || 0;
-        const total = response.cart?.totals?.total || 0;
-        if (itemsCount === 0) {
-          resetCartBadgeState();
-          return;
-        }
-        setCartCount(itemsCount);
-        setCartTotal(total);
-        writeCartSummaryCache(itemsCount, total);
-      } catch {
-        resetCartBadgeState();
-      }
-    };
-
-    const handleCartUpdated = (event: Event) => {
-      const detail = parseCartUpdatedDetail(event);
-      const result = applyCartBadgeFromDetail(detail, (itemsCount, total) => {
-        setCartCount(itemsCount);
-        setCartTotal(total);
-        writeCartSummaryCache(itemsCount, total);
-      });
-      if (result === 'force-reload' || result === 'miss') {
-        void fetchCart();
-      }
-    };
-
     const refreshWishlistCount = () => {
       void getWishlistCount().then(setWishlistCount);
     };
@@ -355,20 +304,15 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
       refreshWishlistCount();
     };
 
-    const handleAuthForCartAndWishlist = () => {
-      clearCartSummaryCache();
+    const handleAuthForWishlist = () => {
       refreshWishlistCount();
-      void fetchCart();
     };
 
-    void fetchCart();
-    window.addEventListener('cart-updated', handleCartUpdated);
-    window.addEventListener('auth-updated', handleAuthForCartAndWishlist);
+    window.addEventListener('auth-updated', handleAuthForWishlist);
     window.addEventListener('wishlist-updated', handleWishlistUpdated);
 
     return () => {
-      window.removeEventListener('cart-updated', handleCartUpdated);
-      window.removeEventListener('auth-updated', handleAuthForCartAndWishlist);
+      window.removeEventListener('auth-updated', handleAuthForWishlist);
       window.removeEventListener('wishlist-updated', handleWishlistUpdated);
     };
   }, [isLoggedIn]);
