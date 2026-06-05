@@ -2,7 +2,15 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState, useRef, type FormEvent, type KeyboardEvent as ReactKeyboardEvent, type Ref } from 'react';
+import {
+  Suspense,
+  useEffect,
+  useState,
+  useRef,
+  type FormEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type Ref,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { LanguageCurrencySwitcher } from './LanguageCurrencySwitcher';
 import { useTranslation } from '../lib/i18n-client';
@@ -167,6 +175,28 @@ function UniversalHeaderSearchForm({
   );
 }
 
+/** Syncs URL search query into header state; must render under Suspense. */
+function UniversalHeaderSearchSync({
+  setSearchQuery,
+  setSearchDropdownOpen,
+  setIsSearchPopupOpen,
+}: {
+  setSearchQuery: (value: string) => void;
+  setSearchDropdownOpen: (open: boolean) => void;
+  setIsSearchPopupOpen: (open: boolean) => void;
+}) {
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const searchValue = searchParams.get('search')?.trim() || '';
+    setSearchQuery(searchValue);
+    setSearchDropdownOpen(false);
+    setIsSearchPopupOpen(false);
+  }, [searchParams, setSearchQuery, setSearchDropdownOpen, setIsSearchPopupOpen]);
+
+  return null;
+}
+
 export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: UniversalHeaderProps) {
   const [cartCount, setCartCount] = useState(0);
   const [cartTotal, setCartTotal] = useState(0);
@@ -182,7 +212,6 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
   const currency = useCurrency();
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const searchTargetBasePath = pathname?.startsWith('/combo') ? '/combo' : '/shop';
   const isActivePath = (href: string) => pathname === href || pathname?.startsWith(`${href}/`);
   const {
@@ -205,13 +234,6 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
   useEffect(() => {
     setSearchPopupPortalTarget(document.body);
   }, []);
-
-  useEffect(() => {
-    const searchValue = searchParams.get('search')?.trim() || '';
-    setSearchQuery(searchValue);
-    setSearchDropdownOpen(false);
-    setIsSearchPopupOpen(false);
-  }, [searchParams, setSearchQuery, setSearchDropdownOpen]);
 
   useEffect(() => {
     if (!isSearchPopupOpen) {
@@ -384,6 +406,13 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
 
   return (
     <>
+      <Suspense fallback={null}>
+        <UniversalHeaderSearchSync
+          setSearchQuery={setSearchQuery}
+          setSearchDropdownOpen={setSearchDropdownOpen}
+          setIsSearchPopupOpen={setIsSearchPopupOpen}
+        />
+      </Suspense>
       <div aria-hidden="true" className={`${UNIVERSAL_HEADER_SPACER_HEIGHT_CLASS} ${spacerBackgroundClassName}`} />
       <header className={UNIVERSAL_HEADER_BAR_CLASS}>
         <BrandLogoLink onDark className="shrink-0" title="Degusto" />
