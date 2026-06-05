@@ -12,15 +12,15 @@ type CheckoutPaymentMethodIconProps = {
   className?: string;
 };
 
-const CHECKOUT_PAYMENT_ICON_IMG_CLASS = 'h-8 w-8 object-contain';
-const CHECKOUT_CARD_BRAND_ICON_CLASS = 'h-[1.125rem] w-[1.875rem] shrink-0 object-contain';
+const CHECKOUT_PAYMENT_BADGE_CLASS = 'h-8 w-auto max-w-[6.5rem] shrink-0 object-contain';
+const CHECKOUT_CARD_BRAND_BADGE_CLASS = 'h-8 w-auto max-w-[3.75rem] shrink-0 object-contain';
 
 function resolveIconSlotClass(iconKind: PaymentMethodIconKind): string {
   if (iconKind === 'cardBrands') {
-    return 'flex h-10 min-w-[6.75rem] shrink-0 items-center gap-2 pr-1';
+    return 'flex h-10 min-w-[11rem] shrink-0 items-center gap-1.5';
   }
 
-  return 'flex h-10 w-11 shrink-0 items-center justify-center';
+  return 'flex h-10 shrink-0 items-center justify-center';
 }
 
 /** Borbor-style compact icons for checkout payment rows. */
@@ -37,7 +37,7 @@ export function CheckoutPaymentMethodIcon({
             key={src}
             src={src}
             alt=""
-            className={CHECKOUT_CARD_BRAND_ICON_CLASS}
+            className={CHECKOUT_CARD_BRAND_BADGE_CLASS}
             loading="lazy"
           />
         ))}
@@ -53,7 +53,7 @@ export function CheckoutPaymentMethodIcon({
       <img
         src={src}
         alt=""
-        className={CHECKOUT_PAYMENT_ICON_IMG_CLASS}
+        className={CHECKOUT_PAYMENT_BADGE_CLASS}
         loading="lazy"
         data-payment-icon={methodId}
       />

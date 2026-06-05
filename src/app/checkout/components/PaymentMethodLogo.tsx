@@ -30,7 +30,7 @@ export function PaymentMethodLogo({
   return (
     <div
       className={`flex h-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#F66812]/15 bg-white ${
-        isCardBrands ? 'w-[6.75rem] px-2' : 'w-20'
+        isCardBrands ? 'min-w-[11rem] px-2' : 'w-auto min-w-[5.5rem] px-2'
       } ${SIZE_CLASS[size]}`}
     >
       <CheckoutPaymentMethodIcon iconKind={iconKind} methodId={paymentMethod} />
