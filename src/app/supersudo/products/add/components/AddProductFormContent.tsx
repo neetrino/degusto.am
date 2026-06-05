@@ -19,7 +19,9 @@ import { ProductLabels } from './ProductLabels';
 import { Publishing } from './Publishing';
 import { FormActions } from './FormActions';
 import { ProductCustomizationSection } from './ProductCustomizationSection';
+import { ProductFoodTasteBadgesSection } from './ProductFoodTasteBadgesSection';
 import type { PdpCustomizationFormState } from '../utils/pdp-customization-form';
+import type { FoodTasteBadgeSelection } from '@/lib/product-food-taste-admin';
 
 interface AddProductFormContentProps {
   formData: {
@@ -90,6 +92,8 @@ interface AddProductFormContentProps {
   isClothingCategory: () => boolean;
   generateSlug: (text: string) => string;
   handleSubmit: (e: React.FormEvent) => void;
+  foodTasteBadges: FoodTasteBadgeSelection;
+  onFoodTasteBadgesChange: (next: FoodTasteBadgeSelection) => void;
 }
 
 export function AddProductFormContent({
@@ -143,7 +147,11 @@ export function AddProductFormContent({
   isClothingCategory,
   generateSlug,
   handleSubmit,
+  foodTasteBadges,
+  onFoodTasteBadgesChange,
 }: AddProductFormContentProps) {
+  const showFoodTasteBadges = !isClothingCategory();
+
   const shouldShowSimpleFields =
     productType === 'simple' ||
     (productType === 'variable' &&
@@ -190,6 +198,13 @@ export function AddProductFormContent({
           isClothingCategory={isClothingCategory}
           onVariantsUpdate={onVariantsUpdate}
         />
+
+        {showFoodTasteBadges ? (
+          <ProductFoodTasteBadgesSection
+            selection={foodTasteBadges}
+            onSelectionChange={onFoodTasteBadgesChange}
+          />
+        ) : null}
 
         <ProductCustomizationSection
           attributes={attributes}

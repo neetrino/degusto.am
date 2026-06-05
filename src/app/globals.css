@@ -263,6 +263,29 @@
     pointer-events: none;
   }
 
+  /** Thin forest-green scrollbar for admin sidebar nav (desktop + mobile drawer). */
+  .admin-sidebar-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(158, 255, 142, 0.32) transparent;
+  }
+
+  .admin-sidebar-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .admin-sidebar-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .admin-sidebar-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.14);
+    border-radius: 9999px;
+  }
+
+  .admin-sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(158, 255, 142, 0.45);
+  }
+
   .admin-food-icon-wrap {
     position: absolute;
     inset: 0;

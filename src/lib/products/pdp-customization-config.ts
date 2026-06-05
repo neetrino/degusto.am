@@ -72,3 +72,52 @@ export function isCustomizationAttributeKey(attrKey: string): boolean {
   const normalized = attrKey.toLowerCase().trim();
   return (PDP_CUSTOMIZATION_ATTR_KEYS as readonly string[]).includes(normalized);
 }
+
+/** Addition attributes — admin sets price only (optional add-ons on PDP). */
+const ADDITION_PRICE_ONLY_ATTR_KEYS = [
+  'ingredient',
+  'ingredients',
+  'component',
+  'components',
+] as const;
+
+/** Exclusion attributes — admin enables choices only (included by default on PDP). */
+const EXCLUSION_SELECTION_ONLY_ATTR_KEYS = ['topping', 'toppings'] as const;
+
+export function isAdditionPriceOnlyAttributeKey(attrKey: string): boolean {
+  const normalized = attrKey.toLowerCase().trim();
+  return (ADDITION_PRICE_ONLY_ATTR_KEYS as readonly string[]).includes(normalized);
+}
+
+export function isExclusionSelectionOnlyAttributeKey(attrKey: string): boolean {
+  const normalized = attrKey.toLowerCase().trim();
+  return (EXCLUSION_SELECTION_ONLY_ATTR_KEYS as readonly string[]).includes(normalized);
+}
+
+export type PdpCustomizationLayoutColumn = 'addition' | 'exclusion' | 'other';
+
+function resolvePdpCustomizationLayoutColumn(normalizedKey: string): PdpCustomizationLayoutColumn {
+  if (normalizedKey === 'ingredient' || normalizedKey === 'ingredients') {
+    return 'addition';
+  }
+  if (normalizedKey === 'topping' || normalizedKey === 'toppings') {
+    return 'exclusion';
+  }
+  return 'other';
+}
+
+/** Admin form columns: ingredient (left) vs topping (right). */
+export function getPdpCustomizationLayoutColumn(attrKey: string): PdpCustomizationLayoutColumn {
+  return resolvePdpCustomizationLayoutColumn(attrKey.toLowerCase().trim());
+}
+
+/** Admin product form: only ingredient (addition) and topping (exclusion). */
+export function isAdminProductFormCustomizationAttributeKey(attrKey: string): boolean {
+  return getPdpCustomizationLayoutColumn(attrKey) !== 'other';
+}
+
+export function filterAdminProductFormCustomizationAttributes<T extends { key: string }>(
+  attributes: T[],
+): T[] {
+  return attributes.filter((attribute) => isAdminProductFormCustomizationAttributeKey(attribute.key));
+}

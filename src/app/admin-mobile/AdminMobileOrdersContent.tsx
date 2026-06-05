@@ -86,6 +86,7 @@ export function AdminMobileOrdersContent() {
 
       {selectedOrderId ? (
         <OrderDetailsModal
+          open={Boolean(selectedOrderId)}
           orderDetails={orderDetails}
           loading={loadingOrderDetails}
           currency={currency}

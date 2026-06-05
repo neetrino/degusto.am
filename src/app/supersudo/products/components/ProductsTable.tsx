@@ -20,7 +20,6 @@ import {
 } from '../../constants/admin-table-classes';
 import type { Product, ProductsResponse } from '../types';
 import type { DailyOfferSelection } from '@/lib/services/daily-offer/daily-offer.types';
-import { hasSellableStock, isUnlimitedStock } from '@/lib/product-stock';
 import { ProductFeaturedCell } from './ProductFeaturedCell';
 
 interface ProductsTableProps {
@@ -31,7 +30,7 @@ interface ProductsTableProps {
   toggleSelect: (id: string) => void;
   toggleSelectAll: () => void;
   sortBy: string;
-  handleHeaderSort: (field: 'price' | 'createdAt' | 'title' | 'stock') => void;
+  handleHeaderSort: (field: 'price' | 'createdAt' | 'title') => void;
   currency: CurrencyCode;
   handleDeleteProduct: (productId: string, productTitle: string) => void;
   handleDuplicateProduct: (productId: string) => void;
@@ -110,7 +109,7 @@ interface ProductsTableLoadedViewProps {
   toggleSelect: (id: string) => void;
   toggleSelectAll: () => void;
   sortBy: string;
-  handleHeaderSort: (field: 'price' | 'createdAt' | 'title' | 'stock') => void;
+  handleHeaderSort: (field: 'price' | 'createdAt' | 'title') => void;
   currency: CurrencyCode;
   handleDeleteProduct: (productId: string, productTitle: string) => void;
   handleDuplicateProduct: (productId: string) => void;
@@ -289,41 +288,6 @@ function ProductsTableLoadedView({
               <th className="p-0 align-middle">
                 <button
                   type="button"
-                  onClick={() => handleHeaderSort('stock')}
-                  className={`${ADMIN_TABLE_TH_SORTABLE} inline-flex w-full items-center gap-1 text-[#eef9f2] hover:bg-white/10`}
-                >
-                  <span>{t('admin.products.stock')}</span>
-                  <span className="flex flex-col gap-0.5">
-                    <svg
-                      className={`w-2.5 h-2.5 ${
-                        sortBy === 'stock-asc'
-                          ? 'text-gray-900'
-                          : 'text-gray-400'
-                      }`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                    </svg>
-                    <svg
-                      className={`w-2.5 h-2.5 ${
-                        sortBy === 'stock-desc'
-                          ? 'text-gray-900'
-                          : 'text-gray-400'
-                      }`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </span>
-                </button>
-              </th>
-              <th className="p-0 align-middle">
-                <button
-                  type="button"
                   onClick={() => handleHeaderSort('price')}
                   className={`${ADMIN_TABLE_TH_SORTABLE} inline-flex w-full items-center gap-1 text-[#eef9f2] hover:bg-white/10`}
                 >
@@ -425,36 +389,8 @@ function ProductsTableLoadedView({
                     )}
                     <div>
                       <div className="text-sm font-semibold text-[#22352a]">{product.title}</div>
-                      <div className="text-sm text-[#6b7f73]">{product.slug}</div>
                     </div>
                   </div>
-                </td>
-                <td className={`${ADMIN_TABLE_TD} text-left text-gray-900`}>
-                  {product.colorStocks && product.colorStocks.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {product.colorStocks.map((colorStock) => (
-                        <div
-                          key={colorStock.color}
-                          className="px-3 py-1 bg-gray-100 rounded-lg text-sm"
-                        >
-                          <span className="font-medium text-gray-900">{colorStock.color}:</span>
-                          <span className="ml-1 text-gray-600">
-                            {isUnlimitedStock(colorStock.stock)
-                              ? t('admin.promocode.unlimited')
-                              : `${colorStock.stock} ${t('admin.products.pcs')}`}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <span className="text-sm text-gray-500">
-                      {isUnlimitedStock(product.stock)
-                        ? t('admin.promocode.unlimited')
-                        : hasSellableStock(product.stock)
-                          ? `${product.stock} ${t('admin.products.pcs')}`
-                          : `0 ${t('admin.products.pcs')}`}
-                    </span>
-                  )}
                 </td>
                 <td className={`${ADMIN_TABLE_TD} whitespace-nowrap text-left font-semibold text-[#22352a]`}>
                   <div className="flex flex-col">

@@ -25,6 +25,12 @@ import type { ProductAddFormData } from '../utils/productFormDataBuilder';
 import { sanitizeVariantForCreate } from '../utils/sanitize-admin-variant';
 import { ApiError } from '@/lib/api-client/types';
 import { useTranslation } from '@/lib/i18n-client';
+import {
+  collectFoodTasteAttributeIds,
+  expandVariantsWithFoodTasteOptions,
+  productFormSupportsFoodTasteBadges,
+  type FoodTasteBadgeSelection,
+} from '@/lib/product-food-taste-admin';
 
 interface UseProductFormHandlersProps {
   formData: ProductAddFormData;
@@ -47,6 +53,8 @@ interface UseProductFormHandlersProps {
   pdpCustomizationForm: PdpCustomizationFormState;
   selectedPdpCustomizationAttributeIds: Set<string>;
   hasVariantsToLoad: boolean;
+  foodTasteBadges: FoodTasteBadgeSelection;
+  categories: Category[];
 }
 
 export function useProductFormHandlers({
@@ -66,9 +74,12 @@ export function useProductFormHandlers({
   productId,
   getColorAttribute,
   getSizeAttribute,
+  isClothingCategory,
   pdpCustomizationForm,
   selectedPdpCustomizationAttributeIds,
   hasVariantsToLoad,
+  foodTasteBadges,
+  categories,
 }: UseProductFormHandlersProps) {
   const router = useRouter();
   const { t } = useTranslation();
@@ -163,6 +174,17 @@ export function useProductFormHandlers({
       ).forEach((id) => {
         attributeIdsSet.add(id);
       });
+
+      const tasteCategoryEligible = productFormSupportsFoodTasteBadges(
+        formData.categoryIds,
+        isClothingCategory(),
+      );
+      collectFoodTasteAttributeIds(attributes, foodTasteBadges, tasteCategoryEligible).forEach(
+        (id) => {
+          attributeIdsSet.add(id);
+        },
+      );
+
       const attributeIds = Array.from(attributeIdsSet);
 
       const pricePatches = collectAttributeValuePricePatches(
@@ -192,13 +214,21 @@ export function useProductFormHandlers({
         defaultCustomizationOptions,
       );
 
+      const finalVariantsWithFoodTaste = tasteCategoryEligible
+        ? expandVariantsWithFoodTasteOptions(
+            finalVariantsWithCustomization,
+            foodTasteBadges,
+            attributes,
+          )
+        : finalVariantsWithCustomization;
+
       const pdpCustomization = serializePdpCustomizationConfig(
-        buildPdpCustomizationItems(pdpCustomizationForm),
+        buildPdpCustomizationItems(pdpCustomizationForm, attributes),
       );
 
       let sanitizedVariants: Record<string, unknown>[];
       try {
-        sanitizedVariants = finalVariantsWithCustomization.map((v) =>
+        sanitizedVariants = finalVariantsWithFoodTaste.map((v) =>
           sanitizeVariantForCreate(v as Record<string, unknown>),
         );
       } catch {

@@ -4,6 +4,7 @@ import { invalidateStorefrontCategoryCaches } from "@/lib/cache/storefront-cache
 import { problemTypes } from "@/lib/http/problem-details";
 import { toSlug } from "@/lib/utils/slug";
 import { logger } from "@/lib/utils/logger";
+import { pickLocaleTranslation } from "@/lib/utils/pick-locale-translation";
 
 class AdminCategoriesService {
   private async revalidateStorefrontAfterCategoryChange(): Promise<void> {
@@ -95,16 +96,13 @@ class AdminCategoriesService {
   /**
    * Get categories for admin
    */
-  async getCategories() {
+  async getCategories(preferredLocale = "hy") {
     const categories = await db.category.findMany({
       where: {
         deletedAt: null,
       },
       include: {
-        translations: {
-          where: { locale: "en" },
-          take: 1,
-        },
+        translations: true,
       },
       orderBy: {
         position: "asc",
@@ -112,12 +110,12 @@ class AdminCategoriesService {
     });
 
     return {
-      data: categories.map((category: { id: string; parentId: string | null; position: number; requiresSizes: boolean | null; published: boolean | null; media: unknown[]; translations?: Array<{ title: string; slug: string }> }) => {
+      data: categories.map((category: { id: string; parentId: string | null; position: number; requiresSizes: boolean | null; published: boolean | null; media: unknown[]; translations?: Array<{ locale: string; title: string; slug: string }> }) => {
         const translations = Array.isArray(category.translations) ? category.translations : [];
-        const translation = translations[0] || null;
+        const translation = pickLocaleTranslation(translations, preferredLocale);
         return {
           id: category.id,
-          title: translation?.title || "",
+          title: translation?.title || translation?.slug || "",
           slug: translation?.slug || "",
           parentId: category.parentId,
           position: category.position,

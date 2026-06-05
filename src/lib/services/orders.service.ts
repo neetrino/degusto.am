@@ -8,7 +8,12 @@ import { logger } from "../utils/logger";
 import { cartService } from "./cart.service";
 import { normalizeProductCustomizations } from "../cart/customizations";
 import { performCheckout } from "./orders.checkout";
-import { extractMediaUrl, extractVariantImageUrl } from "../utils/extractMediaUrl";
+import { resolveOrderLineImageUrl } from "../utils/extractMediaUrl";
+import {
+  buildOrderItemVariantOptions,
+  collectSelectedAttributeValueIds,
+  loadOrderItemAttributeValueOptions,
+} from "./orders/order-item-display-options";
 
 /** Cart/order line subtotals use `ProductVariant.price`, stored in USD after admin save. */
 const COUPON_SUBTOTAL_CURRENCY = "USD" as const;
@@ -40,25 +45,7 @@ type OrderItemWithVariant = Prisma.OrderItemGetPayload<{
 }>;
 
 function resolveOrderItemImageUrl(item: OrderItemWithVariant): string | undefined {
-  const fromStored = extractVariantImageUrl(item.imageUrl);
-  if (fromStored) {
-    return fromStored;
-  }
-
-  const fromVariant = extractVariantImageUrl(item.variant?.imageUrl);
-  if (fromVariant) {
-    return fromVariant;
-  }
-
-  const fromProduct = extractMediaUrl(item.variant?.product?.media);
-  if (fromProduct) {
-    return fromProduct;
-  }
-
-  const fromOption = item.variant?.options?.find(
-    (opt) => opt.attributeValue?.imageUrl?.trim()
-  )?.attributeValue?.imageUrl;
-  return extractVariantImageUrl(fromOption) ?? fromOption?.trim() ?? undefined;
+  return resolveOrderLineImageUrl(item);
 }
 
 interface StoredCoupon {
@@ -393,16 +380,14 @@ class OrdersService {
     logger.info('Order found', {
       orderNumber: order.number,
       itemsCount: order.items.length,
-      items: order.items.map((item: OrderItemWithVariant) => ({
-        variantId: item.variantId,
-        productTitle: item.productTitle,
-        variant: item.variant ? {
-          id: item.variant.id,
-          optionsCount: item.variant.options?.length || 0,
-          options: item.variant.options,
-        } : null,
-      })),
     });
+
+    const locale = order.customerLocale || "hy";
+    const customizationValueIds = collectSelectedAttributeValueIds(order.items);
+    const customizationValueMap = await loadOrderItemAttributeValueOptions(
+      customizationValueIds,
+      locale
+    );
 
     return {
       id: order.id,
@@ -410,63 +395,17 @@ class OrdersService {
       status: order.status,
       paymentStatus: order.paymentStatus,
       fulfillmentStatus: order.fulfillmentStatus,
-      items: order.items.map((item: OrderItemWithVariant) => {
-        const variantOptions = item.variant?.options?.map((opt) => {
-          // Debug logging for each option
-          logger.debug('Processing option', {
-            attributeKey: opt.attributeKey,
-            value: opt.value,
-            valueId: opt.valueId,
-            hasAttributeValue: !!opt.attributeValue,
-            attributeValueData: opt.attributeValue ? {
-              value: opt.attributeValue.value,
-              attributeKey: opt.attributeValue.attribute.key,
-              imageUrl: opt.attributeValue.imageUrl,
-              hasTranslations: opt.attributeValue.translations?.length > 0,
-            } : null,
-          });
-
-          // New format: Use AttributeValue if available
-          if (opt.attributeValue) {
-            // Get label from translations (prefer current locale, fallback to first available)
-            const translations = opt.attributeValue.translations || [];
-            const label = translations.length > 0 ? translations[0].label : opt.attributeValue.value;
-            
-            return {
-              attributeKey: opt.attributeValue.attribute.key || undefined,
-              value: opt.attributeValue.value || undefined,
-              label: label || undefined,
-              imageUrl: opt.attributeValue.imageUrl || undefined,
-              colors: opt.attributeValue.colors || undefined,
-            };
-          }
-          // Old format: Use attributeKey and value directly
-          return {
-            attributeKey: opt.attributeKey || undefined,
-            value: opt.value || undefined,
-          };
-        }) || [];
-
-        logger.debug('Item mapping', {
-          productTitle: item.productTitle,
-          variantId: item.variantId,
-          hasVariant: !!item.variant,
-          optionsCount: item.variant?.options?.length || 0,
-          variantOptions,
-        });
-
-        return {
-          variantId: item.variantId || '',
-          productTitle: item.productTitle,
-          variantTitle: item.variantTitle || '',
-          sku: item.sku,
-          quantity: item.quantity,
-          price: Number(item.price),
-          total: Number(item.total),
-          imageUrl: resolveOrderItemImageUrl(item),
-          variantOptions,
-        };
-      }),
+      items: order.items.map((item: OrderItemWithVariant) => ({
+        variantId: item.variantId || '',
+        productTitle: item.productTitle,
+        variantTitle: item.variantTitle || '',
+        sku: item.sku,
+        quantity: item.quantity,
+        price: Number(item.price),
+        total: Number(item.total),
+        imageUrl: resolveOrderItemImageUrl(item),
+        variantOptions: buildOrderItemVariantOptions(item, customizationValueMap),
+      })),
       totals: {
         subtotal: Number(order.subtotal),
         discount: Number(order.discountAmount),

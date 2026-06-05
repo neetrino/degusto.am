@@ -12,6 +12,10 @@ import type { PdpCustomizationFormState } from '../utils/pdp-customization-form'
 import { createEmptyCustomizationFormState } from '../utils/pdp-customization-form';
 import type { CurrencyCode } from '@/lib/currency';
 import { getEmptyProductFormData } from '../utils/productFormDataBuilder';
+import {
+  createEmptyFoodTasteBadgeSelection,
+  type FoodTasteBadgeSelection,
+} from '@/lib/product-food-taste-admin';
 
 export function useProductFormState() {
   const [loading, setLoading] = useState(false);
@@ -58,6 +62,9 @@ export function useProductFormState() {
   const [selectedPdpCustomizationAttributeIds, setSelectedPdpCustomizationAttributeIds] = useState<
     Set<string>
   >(new Set());
+  const [foodTasteBadges, setFoodTasteBadges] = useState<FoodTasteBadgeSelection>(() =>
+    createEmptyFoodTasteBadgeSelection(),
+  );
 
   return {
     // Loading states
@@ -133,6 +140,8 @@ export function useProductFormState() {
     setPdpCustomizationForm,
     selectedPdpCustomizationAttributeIds,
     setSelectedPdpCustomizationAttributeIds,
+    foodTasteBadges,
+    setFoodTasteBadges,
   };
 }
 

@@ -4,7 +4,6 @@ import { ADMIN_TABLE_CHECKBOX, ADMIN_TABLE_TD_CHECK } from '../../constants/admi
 import { useTranslation } from '../../../../lib/i18n-client';
 import { convertPrice, CurrencyCode } from '../../../../lib/currency';
 import { formatOrderTableDate, getStatusColor, getPaymentStatusColor } from '../utils/orderUtils';
-import { formatOrderNumber } from '@/lib/orders/format-order-number';
 import type { Order } from '../useOrders';
 
 interface OrderRowProps {
@@ -75,8 +74,8 @@ export function OrderRow({
           />
         </div>
       </td>
-      <td className="min-w-0 whitespace-nowrap px-3 py-3 text-left align-middle" title={formatOrderNumber(order.number)}>
-        <span className="text-sm font-semibold text-[#28392f]">{formatOrderNumber(order.number)}</span>
+      <td className="min-w-0 whitespace-nowrap px-3 py-3 text-left align-middle" title={order.number}>
+        <span className="text-sm font-semibold text-[#28392f]">{order.number}</span>
       </td>
       <td className="min-w-[10rem] max-w-xs px-3 py-3 text-left align-middle sm:max-w-sm">
         <div className="min-w-0 max-w-full space-y-0.5">

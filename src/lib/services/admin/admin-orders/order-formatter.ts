@@ -1,4 +1,9 @@
 import type { Prisma } from "@prisma/client";
+import { resolveOrderLineImageUrl } from "@/lib/utils/extractMediaUrl";
+import {
+  buildOrderItemVariantOptions,
+  type OrderItemVariantOption,
+} from "@/lib/services/orders/order-item-display-options";
 
 /**
  * Format order for list response
@@ -57,84 +62,50 @@ export function formatOrderForList(order: {
 }
 
 /**
- * Format variant option for order item
- */
-function formatVariantOption(opt: {
-  attributeKey: string | null;
-  value: string | null;
-  valueId: string | null;
-  attributeValue: {
-    value: string;
-    imageUrl: string | null;
-    colors: unknown;
-    translations: Array<{
-      locale: string;
-      label: string;
-    }>;
-    attribute: {
-      key: string;
-    };
-  } | null;
-}) {
-  // New format: Use AttributeValue if available
-  if (opt.attributeValue) {
-    const translations = opt.attributeValue.translations || [];
-    const label = translations.length > 0 ? translations[0].label : opt.attributeValue.value;
-    
-    return {
-      attributeKey: opt.attributeValue.attribute.key || undefined,
-      value: opt.attributeValue.value || undefined,
-      label: label || undefined,
-      imageUrl: opt.attributeValue.imageUrl || undefined,
-      colors: opt.attributeValue.colors || undefined,
-    };
-  }
-  
-  // Old format: Use attributeKey and value directly
-  return {
-    attributeKey: opt.attributeKey || undefined,
-    value: opt.value || undefined,
-  };
-}
-
-/**
  * Format order item for detail response
  */
-export function formatOrderItem(item: {
-  id: string;
-  variantId: string | null;
-  productTitle: string | null;
-  sku: string | null;
-  quantity: number | null;
-  total: number | null;
-  variant?: {
+export function formatOrderItem(
+  item: {
     id: string;
+    variantId: string | null;
+    productTitle: string | null;
     sku: string | null;
-    options?: Array<{
-      attributeKey: string | null;
-      value: string | null;
-      valueId: string | null;
-      attributeValue: {
-        value: string;
-        imageUrl: string | null;
-        colors: unknown;
-        translations: Array<{
-          locale: string;
-          label: string;
-        }>;
-        attribute: {
-          key: string;
-        };
-      } | null;
-    }>;
-    product?: {
+    quantity: number | null;
+    total: number | null;
+    imageUrl?: string | null;
+    customizations?: unknown;
+    variant?: {
       id: string;
-      translations?: Array<{
-        title: string;
+      sku: string | null;
+      imageUrl?: string | null;
+      options?: Array<{
+        attributeKey: string | null;
+        value: string | null;
+        valueId: string | null;
+        attributeValue: {
+          value: string;
+          imageUrl: string | null;
+          colors: unknown;
+          translations: Array<{
+            locale: string;
+            label: string;
+          }>;
+          attribute: {
+            key: string;
+          };
+        } | null;
       }>;
+      product?: {
+        id: string;
+        media?: unknown;
+        translations?: Array<{
+          title: string;
+        }>;
+      } | null;
     } | null;
-  } | null;
-}) {
+  },
+  customizationValueMap: Map<string, OrderItemVariantOption>
+) {
   const variant = item.variant;
   const product = variant?.product;
   const translations = product && Array.isArray(product.translations) ? product.translations : [];
@@ -144,8 +115,8 @@ export function formatOrderItem(item: {
   const total = item.total ?? 0;
   const unitPrice = quantity > 0 ? Number((total / quantity).toFixed(2)) : total;
 
-  // Extract variant options (color, size, etc.)
-  const variantOptions = variant?.options?.map(formatVariantOption) || [];
+  // Per-line customizations (PDP selections) take precedence over static variant options.
+  const variantOptions = buildOrderItemVariantOptions(item, customizationValueMap);
 
   return {
     id: item.id,
@@ -156,6 +127,7 @@ export function formatOrderItem(item: {
     quantity,
     total,
     unitPrice,
+    imageUrl: resolveOrderLineImageUrl(item),
     variantOptions,
   };
 }
@@ -163,7 +135,8 @@ export function formatOrderItem(item: {
 /**
  * Format order for detail response
  */
-export function formatOrderForDetail(order: {
+export function formatOrderForDetail(
+  order: {
   id: string;
   number: string;
   status: string;
@@ -200,9 +173,12 @@ export function formatOrderForDetail(order: {
     sku: string | null;
     quantity: number | null;
     total: number | null;
+    imageUrl?: string | null;
+    customizations?: unknown;
     variant?: {
       id: string;
       sku: string | null;
+      imageUrl?: string | null;
       options?: Array<{
         attributeKey: string | null;
         value: string | null;
@@ -222,6 +198,7 @@ export function formatOrderForDetail(order: {
       }>;
       product?: {
         id: string;
+        media?: unknown;
         translations?: Array<{
           title: string;
         }>;
@@ -238,11 +215,13 @@ export function formatOrderForDetail(order: {
     cardLast4: string | null;
     cardBrand: string | null;
   }>;
-}) {
+},
+  customizationValueMap: Map<string, OrderItemVariantOption>
+) {
   const user = order.user;
   const payments = Array.isArray(order.payments) ? order.payments : [];
   const primaryPayment = payments[0] || null;
-  const formattedItems = order.items.map(formatOrderItem);
+  const formattedItems = order.items.map((item) => formatOrderItem(item, customizationValueMap));
 
   return {
     id: order.id,

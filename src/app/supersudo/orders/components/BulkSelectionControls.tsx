@@ -20,6 +20,10 @@ export function BulkSelectionControls({
   const hasSelection = selectedCount > 0;
   const deleteDisabled = !hasSelection || bulkDeleting;
 
+  if (!hasSelection) {
+    return null;
+  }
+
   return (
     <Card className="mb-6 w-full min-w-0 rounded-2xl border border-[#dfe6e0] bg-white p-4 shadow-[0_5px_14px_rgba(22,45,32,0.05)]">
       <div className="flex w-full min-w-0 flex-wrap items-center justify-between gap-4">

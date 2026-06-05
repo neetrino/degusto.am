@@ -26,7 +26,8 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const result = await adminService.getCategories();
+    const locale = req.nextUrl.searchParams.get("locale") ?? undefined;
+    const result = await adminService.getCategories(locale);
     return NextResponse.json(result);
   } catch (error: unknown) {
     logger.error("Admin categories GET failed", { error });

@@ -80,3 +80,36 @@ export function extractVariantImageUrl(imageUrl: string | null | undefined): str
 
   return first ?? null;
 }
+
+type OrderLineImageSource = {
+  imageUrl?: string | null;
+  variant?: {
+    imageUrl?: string | null;
+    product?: { media?: unknown } | null;
+    options?: ReadonlyArray<{ attributeValue?: { imageUrl?: string | null } | null }>;
+  } | null;
+};
+
+/** Resolve display image for an order/cart line (stored snapshot → variant → product → option). */
+export function resolveOrderLineImageUrl(item: OrderLineImageSource): string | undefined {
+  const fromStored = extractVariantImageUrl(item.imageUrl);
+  if (fromStored) {
+    return fromStored;
+  }
+
+  const fromVariant = extractVariantImageUrl(item.variant?.imageUrl);
+  if (fromVariant) {
+    return fromVariant;
+  }
+
+  const fromProduct = extractMediaUrl(item.variant?.product?.media);
+  if (fromProduct) {
+    return fromProduct;
+  }
+
+  const fromOption = item.variant?.options?.find(
+    (opt) => opt.attributeValue?.imageUrl?.trim()
+  )?.attributeValue?.imageUrl;
+
+  return extractVariantImageUrl(fromOption) ?? fromOption?.trim() ?? undefined;
+}
