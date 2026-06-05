@@ -17,6 +17,28 @@ export function getStatusColor(status: string): string {
   }
 }
 
+function isSameCalendarDay(left: Date, right: Date): boolean {
+  return (
+    left.getFullYear() === right.getFullYear() &&
+    left.getMonth() === right.getMonth() &&
+    left.getDate() === right.getDate()
+  );
+}
+
+/** Formats order date for list tables; shows a today label when the order is from the current day. */
+export function formatOrderTableDate(createdAt: string, todayLabel: string): string {
+  const date = new Date(createdAt);
+  if (isSameCalendarDay(date, new Date())) {
+    return todayLabel;
+  }
+
+  return date.toLocaleDateString(undefined, {
+    year: '2-digit',
+    month: 'numeric',
+    day: 'numeric',
+  });
+}
+
 export function getPaymentStatusColor(paymentStatus: string): string {
   switch (paymentStatus.toLowerCase()) {
     case 'paid':
