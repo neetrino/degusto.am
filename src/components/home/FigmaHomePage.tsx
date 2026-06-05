@@ -53,6 +53,10 @@ const HOME_DESKTOP_CATEGORY_SURFACE_CLASS = 'bg-[#e6e6e8]';
 
 const DESKTOP_HOME_SPECIAL_OFFERS_PRODUCT_COUNT = 5;
 
+/** Overlaps hero (daily offer z-20) — title row stays on top at every viewport width. */
+const HOME_DESKTOP_SPECIAL_OFFERS_SECTION_STACKING_CLASS = 'relative isolate z-30';
+const HOME_DESKTOP_SPECIAL_OFFERS_HEADER_STACKING_CLASS = 'relative z-40';
+
 /** Desktop hero background offset from section top (lower = image sits higher). */
 const HOME_DESKTOP_HERO_BG_TOP_CLASS = 'top-[68px]';
 
@@ -263,18 +267,22 @@ export function FigmaHomePage({
         ) : null}
       </section>
 
-      <section className="min-h-[520px] w-full rounded-t-[40px] bg-[#0c0d12] pb-14 pt-6 lg:min-h-[640px] xl:min-h-[700px]">
+      <section
+        className={`${HOME_DESKTOP_SPECIAL_OFFERS_SECTION_STACKING_CLASS} min-h-[520px] w-full rounded-t-[40px] bg-[#0c0d12] pb-14 pt-6 lg:min-h-[640px] xl:min-h-[700px]`}
+      >
         <div className={STOREFRONT_DESKTOP_SECTION_CLASS}>
-          <div className="flex flex-col gap-6 pt-[70px] sm:flex-row sm:items-end sm:justify-between">
+          <div
+            className={`${HOME_DESKTOP_SPECIAL_OFFERS_HEADER_STACKING_CLASS} flex flex-col gap-6 pt-[70px] sm:flex-row sm:items-end sm:justify-between`}
+          >
             <h2
-              className={`text-4xl font-black text-white md:text-6xl${
+              className={`relative z-40 text-4xl font-black text-white md:text-6xl${
                 lang === 'hy' ? ` ${mirageExpandedFont.className}` : ''
               }`}
             >
               <span className="text-[#f66913]">{t('home.figma.desktop.specialOffersTitleAccent')}</span>
               {t('home.figma.desktop.specialOffersTitleMain')}
             </h2>
-            <ViewMoreButton href="/shop" size="lg" className="shrink-0">
+            <ViewMoreButton href="/shop" size="lg" className="relative z-40 shrink-0">
               {t('home.figma.desktop.moreButton')} →
             </ViewMoreButton>
           </div>
