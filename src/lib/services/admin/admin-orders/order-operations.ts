@@ -4,6 +4,10 @@ import { logger } from "../../../utils/logger";
 import type { OrderFilters } from "./types";
 import { buildOrderWhereClause, buildOrderByClause } from "./query-builder";
 import { formatOrderForList, formatOrderForDetail } from "./order-formatter";
+import {
+  collectSelectedAttributeValueIds,
+  loadOrderItemAttributeValueOptions,
+} from "@/lib/services/orders/order-item-display-options";
 
 /**
  * Get orders with filters and pagination
@@ -79,7 +83,9 @@ export async function getOrderById(orderId: string) {
           variant: {
             include: {
               product: {
-                include: {
+                select: {
+                  id: true,
+                  media: true,
                   translations: {
                     where: { locale: "en" },
                     take: 1,
@@ -113,7 +119,14 @@ export async function getOrderById(orderId: string) {
     };
   }
 
-  return formatOrderForDetail(order);
+  const locale = order.customerLocale || "hy";
+  const customizationValueIds = collectSelectedAttributeValueIds(order.items);
+  const customizationValueMap = await loadOrderItemAttributeValueOptions(
+    customizationValueIds,
+    locale
+  );
+
+  return formatOrderForDetail(order, customizationValueMap);
 }
 
 

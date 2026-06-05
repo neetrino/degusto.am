@@ -6,6 +6,12 @@ export const FOOD_ATTR_SPICY_KEY = 'spicy';
 /** Product `Attribute.key` for greens (seed / admin). */
 export const FOOD_ATTR_GREENS_KEY = 'greens';
 
+/** Spicy / greens are configured via admin taste badges, not PDP customization attributes. */
+export function isFoodTasteAttributeKey(attrKey: string): boolean {
+  const normalized = attrKey.toLowerCase().trim();
+  return normalized === FOOD_ATTR_SPICY_KEY || normalized === FOOD_ATTR_GREENS_KEY;
+}
+
 type VariantOptionPick = {
   attributeKey?: string | null;
   value?: string | null;

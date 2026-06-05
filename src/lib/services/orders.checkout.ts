@@ -1,8 +1,8 @@
 import { db } from "@white-shop/db";
 import { problemTypes } from "@/lib/http/problem-details";
 import { Prisma } from "@prisma/client";
-import { customAlphabet } from "nanoid";
 import type { CheckoutData } from "../types/checkout";
+import { allocateOrderNumber } from "../orders/allocate-order-number";
 import { logger } from "../utils/logger";
 import { COUPON_CODE_REGEX } from "../coupon-code-format";
 import { extractMediaUrl } from "../utils/extractMediaUrl";
@@ -17,7 +17,6 @@ import { sumLineCustomizationPriceAdjustment } from "../cart/attribute-price-adj
 import { computeLineUnitPriceUsd } from "../cart/line-unit-price";
 import { calculateBagAmountByUniqueCategories } from "../cart/bag-fee";
 
-const orderNumberId = customAlphabet("0123456789ABCDEFGHJKLMNPQRSTUVWXYZ", 10);
 const ALLOWED_SHIPPING_METHODS = ["pickup", "delivery"] as const;
 const ALLOWED_PAYMENT_METHODS = ["idram", "arca", "cash_on_delivery"] as const;
 
@@ -90,15 +89,6 @@ type CheckoutTransactionResult = {
     provider: string;
   };
 };
-
-function generateOrderNumber(): string {
-  const now = new Date();
-  const ymd =
-    now.getFullYear().toString().slice(-2) +
-    String(now.getMonth() + 1).padStart(2, "0") +
-    String(now.getDate()).padStart(2, "0");
-  return `${ymd}-${orderNumberId()}`;
-}
 
 function buildPaymentUrl(params: {
   provider: string;
@@ -573,7 +563,6 @@ async function computeCheckout(params: {
 }
 
 async function createOrderAndPayment(params: {
-  orderNumber: string;
   userId?: string;
   cartId?: string;
   email: string;
@@ -585,7 +574,6 @@ async function createOrderAndPayment(params: {
   computed: CheckoutComputationResult;
 }): Promise<CheckoutTransactionResult> {
   const {
-    orderNumber,
     userId,
     cartId,
     email,
@@ -599,6 +587,7 @@ async function createOrderAndPayment(params: {
 
   const transactionResult = await db.$transaction(
     async (tx: Prisma.TransactionClient) => {
+      const orderNumber = await allocateOrderNumber(tx);
       const newOrder = await tx.order.create({
         data: {
           number: orderNumber,
@@ -774,9 +763,7 @@ export async function performCheckout(params: {
       resolveCouponDiscount,
     });
 
-    const orderNumber = generateOrderNumber();
     const created = await createOrderAndPayment({
-      orderNumber,
       userId,
       cartId,
       email,

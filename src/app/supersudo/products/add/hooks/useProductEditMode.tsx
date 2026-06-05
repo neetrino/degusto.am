@@ -28,6 +28,7 @@ import {
   parseProductPdpCustomization,
   type PdpCustomizationFormState,
 } from '../utils/pdp-customization-form';
+import { inferFoodTasteBadgeSelectionFromVariants, withoutFoodTasteAttributeIds, type FoodTasteBadgeSelection } from '@/lib/product-food-taste-admin';
 
 /** Admin product detail can include many variants/options; allow slow DB / cold Turbopack. */
 const ADMIN_PRODUCT_GET_TIMEOUT_MS = 120_000;
@@ -59,6 +60,7 @@ interface UseProductEditModeProps {
   setPendingVariantHydration: (payload: PendingVariantHydration | null) => void;
   setPdpCustomizationForm: (state: PdpCustomizationFormState) => void;
   setSelectedPdpCustomizationAttributeIds: (ids: Set<string>) => void;
+  setFoodTasteBadges: (selection: FoodTasteBadgeSelection) => void;
 }
 
 export function useProductEditMode({
@@ -82,6 +84,7 @@ export function useProductEditMode({
   setPendingVariantHydration,
   setPdpCustomizationForm,
   setSelectedPdpCustomizationAttributeIds,
+  setFoodTasteBadges,
 }: UseProductEditModeProps) {
   const router = useRouter();
   const { t } = useTranslation();
@@ -297,12 +300,17 @@ export function useProductEditMode({
           );
           setPdpCustomizationForm(hydratedForm);
           setSelectedPdpCustomizationAttributeIds(
-            inferSelectedCustomizationAttributeIds(
+            withoutFoodTasteAttributeIds(
               attributesRef.current,
-              hydratedForm,
-              pdpConfig,
+              inferSelectedCustomizationAttributeIds(
+                attributesRef.current,
+                hydratedForm,
+                pdpConfig,
+              ),
             ),
           );
+
+          setFoodTasteBadges(inferFoodTasteBadgeSelectionFromVariants(variantList));
 
           setPendingVariantHydration({
             productId: product.id ?? productId,

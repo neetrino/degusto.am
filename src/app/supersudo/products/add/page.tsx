@@ -67,6 +67,7 @@ function AddProductPageContent() {
     setPendingVariantHydration: formState.setPendingVariantHydration,
     setPdpCustomizationForm: formState.setPdpCustomizationForm,
     setSelectedPdpCustomizationAttributeIds: formState.setSelectedPdpCustomizationAttributeIds,
+    setFoodTasteBadges: formState.setFoodTasteBadges,
   });
 
   useProductVariantConversion({
@@ -176,6 +177,8 @@ function AddProductPageContent() {
     pdpCustomizationForm: formState.pdpCustomizationForm,
     selectedPdpCustomizationAttributeIds: formState.selectedPdpCustomizationAttributeIds,
     hasVariantsToLoad: formState.hasVariantsToLoad,
+    foodTasteBadges: formState.foodTasteBadges,
+    categories: formState.categories,
   });
 
   if (isLoading || formState.loadingProduct || (isEditMode && !formState.referenceCatalogReady)) {
@@ -250,6 +253,8 @@ function AddProductPageContent() {
             isClothingCategory={isClothingCategory}
             generateSlug={generateSlug}
             handleSubmit={handleSubmit}
+            foodTasteBadges={formState.foodTasteBadges}
+            onFoodTasteBadgesChange={formState.setFoodTasteBadges}
           />
 
       {formState.openValueModal && (

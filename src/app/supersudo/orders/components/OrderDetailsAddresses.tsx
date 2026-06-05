@@ -1,97 +1,95 @@
 'use client';
 
 import { useTranslation } from '../../../../lib/i18n-client';
-import { Card } from '@shop/ui';
-import { CurrencyCode } from '../../../../lib/currency';
 import type { OrderDetails } from '../useOrders';
 
 interface OrderDetailsAddressesProps {
   orderDetails: OrderDetails;
-  formatCurrency: (amount: number, orderCurrency?: string, fromCurrency?: CurrencyCode) => string;
 }
 
-export function OrderDetailsAddresses({ orderDetails, formatCurrency }: OrderDetailsAddressesProps) {
-  const { t } = useTranslation();
+interface DetailRowProps {
+  label: string;
+  value: string;
+}
 
+function DetailRow({ label, value }: DetailRowProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <Card className="p-4 md:p-6">
-        <h3 className="text-sm font-semibold text-gray-900 mb-2">{t('admin.orders.orderDetails.shippingAddress')}</h3>
-        {orderDetails.shippingMethod === 'pickup' ? (
-          <div className="text-sm text-gray-700 space-y-1">
-            <div>
-              <span className="font-medium">{t('admin.orders.orderDetails.shippingMethod')}</span>{' '}
-              {t('admin.orders.orderDetails.pickup')}
-            </div>
-          </div>
-        ) : orderDetails.shippingMethod === 'delivery' && orderDetails.shippingAddress ? (
-          <div className="text-sm text-gray-700 space-y-1">
-            <div className="mb-2">
-              <span className="font-medium">{t('admin.orders.orderDetails.shippingMethod')}</span>{' '}
-              {t('checkout.shipping.delivery')}
-            </div>
-            {(orderDetails.shippingAddress.address || orderDetails.shippingAddress.addressLine1) && (
-              <div>
-                <span className="font-medium">{t('checkout.form.address')}:</span>{' '}
-                {orderDetails.shippingAddress.address || orderDetails.shippingAddress.addressLine1}
-                {orderDetails.shippingAddress.addressLine2 && `, ${orderDetails.shippingAddress.addressLine2}`}
-              </div>
-            )}
-            {orderDetails.shippingAddress.city && (
-              <div>
-                <span className="font-medium">{t('checkout.form.city')}:</span> {orderDetails.shippingAddress.city}
-              </div>
-            )}
-            {orderDetails.shippingAddress.postalCode && (
-              <div>
-                <span className="font-medium">{t('checkout.form.postalCode')}:</span> {orderDetails.shippingAddress.postalCode}
-              </div>
-            )}
-            {(orderDetails.shippingAddress.phone || orderDetails.shippingAddress.shippingPhone) && (
-              <div className="mt-2">
-                <span className="font-medium">{t('checkout.form.phoneNumber')}:</span>{' '}
-                {orderDetails.shippingAddress.phone || orderDetails.shippingAddress.shippingPhone}
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="text-sm text-gray-500">
-            <p>{t('admin.orders.orderDetails.noShippingAddress')}</p>
-            {orderDetails.shippingMethod && (
-              <p>
-                {t('admin.orders.orderDetails.shippingMethod')}{' '}
-                {orderDetails.shippingMethod === 'pickup'
-                  ? t('admin.orders.orderDetails.pickup')
-                  : orderDetails.shippingMethod === 'delivery'
-                  ? t('checkout.shipping.delivery')
-                  : orderDetails.shippingMethod}
-              </p>
-            )}
-          </div>
-        )}
-      </Card>
-      <Card className="p-4 md:p-6">
-        <h3 className="text-sm font-semibold text-gray-900 mb-2">{t('admin.orders.orderDetails.paymentInfo')}</h3>
-        {orderDetails.payment ? (
-          <div className="text-sm text-gray-700 space-y-1">
-            {orderDetails.payment.method && <div>{t('admin.orders.orderDetails.method')} {orderDetails.payment.method}</div>}
-            <div>
-              {t('admin.orders.orderDetails.amount')}{' '}
-              {formatCurrency(orderDetails.payment.amount, orderDetails.payment.currency || 'AMD', 'AMD')}
-            </div>
-            <div>{t('admin.orders.orderDetails.status')} {orderDetails.payment.status}</div>
-            {orderDetails.payment.cardBrand && orderDetails.payment.cardLast4 && (
-              <div>
-                {t('admin.orders.orderDetails.card')} {orderDetails.payment.cardBrand} ••••{orderDetails.payment.cardLast4}
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="text-sm text-gray-500">{t('admin.orders.orderDetails.noPaymentInfo')}</div>
-        )}
-      </Card>
+    <div className="flex flex-wrap items-baseline gap-x-2 text-sm">
+      <span className="shrink-0 font-medium text-[#1d392b]">{label}</span>
+      <span className="min-w-0 text-gray-700">{value}</span>
     </div>
   );
 }
 
+function buildShippingAddressLine(orderDetails: OrderDetails): string | null {
+  const address = orderDetails.shippingAddress;
+  if (!address) {
+    return null;
+  }
 
+  const line1 = address.address || address.addressLine1;
+  if (!line1?.trim()) {
+    return null;
+  }
+
+  return address.addressLine2?.trim() ? `${line1}, ${address.addressLine2}` : line1;
+}
+
+function resolveShippingMethodLabel(
+  shippingMethod: string | null | undefined,
+  t: (key: string) => string
+): string | null {
+  if (!shippingMethod) {
+    return null;
+  }
+
+  if (shippingMethod === 'pickup') {
+    return t('admin.orders.orderDetails.pickup');
+  }
+
+  if (shippingMethod === 'delivery') {
+    return t('checkout.shipping.delivery');
+  }
+
+  return shippingMethod;
+}
+
+export function OrderDetailsAddresses({ orderDetails }: OrderDetailsAddressesProps) {
+  const { t } = useTranslation();
+
+  const shippingMethodLabel = resolveShippingMethodLabel(orderDetails.shippingMethod, t);
+  const shippingAddressLine = buildShippingAddressLine(orderDetails);
+  const shippingCity = orderDetails.shippingAddress?.city?.trim() || null;
+  const shippingPhone =
+    orderDetails.shippingAddress?.phone?.trim() ||
+    orderDetails.shippingAddress?.shippingPhone?.trim() ||
+    null;
+
+  const shippingDetails = [
+    {
+      key: 'shippingMethod',
+      label: t('admin.orders.orderDetails.shippingMethod'),
+      value: shippingMethodLabel,
+    },
+    { key: 'address', label: `${t('checkout.form.address')}:`, value: shippingAddressLine },
+    { key: 'city', label: `${t('checkout.form.city')}:`, value: shippingCity },
+    { key: 'phone', label: `${t('checkout.form.phoneNumber')}:`, value: shippingPhone },
+  ].filter((row): row is { key: string; label: string; value: string } => Boolean(row.value?.trim()));
+
+  if (shippingDetails.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="h-full rounded-2xl border border-[#e2e8e3] bg-white p-4 shadow-[0_5px_14px_rgba(22,45,32,0.05)]">
+      <h3 className="mb-3 text-sm font-semibold text-[#1d392b]">
+        {t('admin.orders.orderDetails.shippingAddress')}
+      </h3>
+      <div className="space-y-2">
+        {shippingDetails.map((row) => (
+          <DetailRow key={row.key} label={row.label} value={row.value} />
+        ))}
+      </div>
+    </section>
+  );
+}

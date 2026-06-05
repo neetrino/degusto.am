@@ -12,6 +12,7 @@ import { useWishlist } from '../hooks/useWishlist';
 import { useAuth } from '../../lib/auth/AuthContext';
 import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
 import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
+import { UNIVERSAL_HEADER_STICKY_SIDEBAR_CLASS } from '@/constants/universal-header-layout';
 import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
 import { StorefrontProductOverlayLink } from './StorefrontProductOverlayLink';
 import { usePrefetchProductWhenVisible } from '../hooks/usePrefetchProductWhenVisible';
@@ -691,7 +692,7 @@ export function FigmaDesktopMenuPage({
 
       <div className="hidden bg-white pb-20 pt-5 lg:block">
         <div className={`${STOREFRONT_DESKTOP_SHOP_SECTION_CLASS} flex min-w-0 ${STOREFRONT_DESKTOP_SIDEBAR_GAP_CLASS}`}>
-        <aside className={`sticky top-[116px] flex h-[calc(100vh-132px)] ${STOREFRONT_DESKTOP_SIDEBAR_WIDTH_CLASS} flex-col overflow-hidden rounded-[20px] bg-black pb-5 text-white`}>
+        <aside className={`${UNIVERSAL_HEADER_STICKY_SIDEBAR_CLASS} ${STOREFRONT_DESKTOP_SIDEBAR_WIDTH_CLASS} flex-col overflow-hidden rounded-[20px] bg-black pb-5 text-white`}>
           <div className="border-b border-white/10 p-6">
             <form
               onSubmit={(event) => {

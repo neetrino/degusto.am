@@ -23,7 +23,7 @@ loadEnv(path.join(__dirname, "../../.env"));
 loadEnv(path.join(process.cwd(), ".env"));
 
 const { PrismaClient } = require("@prisma/client");
-const { FIGMA_MENU_CATEGORIES } = require("./data/figma-menu-categories.cjs");
+const { FIGMA_ALL_CATEGORY_ICON_URL, FIGMA_MENU_CATEGORIES } = require("./data/figma-menu-categories.cjs");
 const { resolveCategoryIconUrl } = require("./seed-category-icons.cjs");
 
 const prisma = new PrismaClient();
@@ -32,10 +32,19 @@ async function main() {
   console.log("=== Fix category icons ===");
   let updated = 0;
 
+  const allIconUrl = await resolveCategoryIconUrl("all", FIGMA_ALL_CATEGORY_ICON_URL, {
+    forceRefresh: true,
+  });
+  if (allIconUrl) {
+    console.log(`[Fix] all -> ${allIconUrl}`);
+  } else {
+    console.warn("[Fix] Missing icon for all");
+  }
+
   for (let index = 0; index < FIGMA_MENU_CATEGORIES.length; index++) {
     const category = FIGMA_MENU_CATEGORIES[index];
     const iconUrl = await resolveCategoryIconUrl(category.slug, category.iconUrl, {
-      localIconOnly: Boolean(category.localIconOnly),
+      forceRefresh: true,
     });
     if (!iconUrl) {
       console.warn(`[Fix] Missing icon for ${category.slug}`);

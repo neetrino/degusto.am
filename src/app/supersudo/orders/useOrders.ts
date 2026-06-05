@@ -87,6 +87,7 @@ export interface OrderDetails {
     quantity: number;
     unitPrice: number;
     total: number;
+    imageUrl?: string;
     variantOptions?: Array<{
       attributeKey?: string;
       value?: string;
@@ -227,6 +228,7 @@ export function useOrders() {
 
   const handleViewOrderDetails = async (orderId: string) => {
     setSelectedOrderId(orderId);
+    setOrderDetails(null);
     setLoadingOrderDetails(true);
     try {
       const response = await apiClient.get<OrderDetails>(`/api/v1/admin/orders/${orderId}`);

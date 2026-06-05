@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { ADMIN_SIDEBAR_SCROLLBAR } from '../app/supersudo/admin-sidebar-classes';
 import { useAdminProductsSubnavExpanded } from '../app/supersudo/hooks/useAdminProductsSubnavExpanded';
 import { useTranslation } from '../lib/i18n-client';
 import { BrandLogoLink } from './BrandLogoLink';
@@ -132,7 +133,7 @@ export function AdminMenuDrawer({ tabs, currentPath }: AdminMenuDrawerProps) {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-3 py-3">
+            <div className={`${ADMIN_SIDEBAR_SCROLLBAR} flex-1 overflow-y-auto px-3 py-3`}>
               {[groupedTabs.primary, groupedTabs.insights, groupedTabs.system].map((groupTabs, groupIndex) => (
                 <div key={groupIndex} className="space-y-1.5 pb-2">
                   {groupTabs.map((tab) => {

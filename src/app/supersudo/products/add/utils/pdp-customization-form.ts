@@ -1,4 +1,10 @@
-import { isCustomizationAttributeKey } from '@/lib/products/pdp-customization-config';
+import {
+  isCustomizationAttributeKey,
+  isAdditionPriceOnlyAttributeKey,
+  isExclusionSelectionOnlyAttributeKey,
+  isAdminProductFormCustomizationAttributeKey,
+} from '@/lib/products/pdp-customization-config';
+import { isFoodTasteAttributeKey } from '@/lib/product-food-attributes';
 import type { PdpCustomizationConfig, PdpCustomizationItem, PdpCustomizationRole } from '@/lib/products/pdp-customization-config';
 import { parsePdpCustomizationConfig } from '@/lib/products/pdp-customization-config';
 import type { Attribute } from '../types';
@@ -12,7 +18,7 @@ export type PdpCustomizationValueFormState = {
 export type PdpCustomizationFormState = Record<string, PdpCustomizationValueFormState>;
 
 export function getCustomizationAttributes(attributes: Attribute[]): Attribute[] {
-  return attributes.filter((a) => isCustomizationAttributeKey(a.key));
+  return attributes.filter((a) => isCustomizationAttributeKey(a.key) && !isFoodTasteAttributeKey(a.key));
 }
 
 /** Attributes chosen in the product form for PDP customization. */
@@ -36,7 +42,11 @@ export function ensureFormStateForAttribute(
     if (!next[value.id]) {
       next[value.id] = {
         enabled: false,
-        role: isAddonAttributeKey(attribute.key) ? 'addon' : 'default',
+        role: isExclusionSelectionOnlyAttributeKey(attribute.key)
+          ? 'default'
+          : isAdditionPriceOnlyAttributeKey(attribute.key)
+            ? 'addon'
+            : 'default',
         priceAdjustment: String(value.priceAdjustment ?? 0),
       };
     }
@@ -54,13 +64,16 @@ export function inferSelectedCustomizationAttributeIds(
   if (config?.items.length) {
     for (const item of config.items) {
       const attr = attributes.find((a) => a.values.some((v) => v.id === item.valueId));
-      if (attr) {
+      if (attr && !isFoodTasteAttributeKey(attr.key)) {
         ids.add(attr.id);
       }
     }
   }
 
   for (const attr of attributes) {
+    if (isFoodTasteAttributeKey(attr.key)) {
+      continue;
+    }
     if (attr.values.some((v) => formState[v.id]?.enabled)) {
       ids.add(attr.id);
     }
@@ -82,9 +95,14 @@ export function disableAttributeValuesInFormState(
   return next;
 }
 
-function isAddonAttributeKey(attrKey: string): boolean {
-  const normalized = attrKey.toLowerCase();
-  return normalized === 'topping' || normalized === 'toppings' || normalized === 'component' || normalized === 'components';
+function resolveCustomizationRole(attrKey: string, role: PdpCustomizationRole): PdpCustomizationRole {
+  if (isExclusionSelectionOnlyAttributeKey(attrKey)) {
+    return 'default';
+  }
+  if (isAdditionPriceOnlyAttributeKey(attrKey)) {
+    return 'addon';
+  }
+  return role;
 }
 
 export function hydrateCustomizationFormState(
@@ -100,7 +118,7 @@ export function hydrateCustomizationFormState(
     for (const item of config.items) {
       roleMap.set(item.valueId, item.role);
       const attr = attributes.find((a) => a.values.some((v) => v.id === item.valueId));
-      if (attr) {
+      if (attr && !isFoodTasteAttributeKey(attr.key)) {
         attrsToSeed.add(attr.id);
       }
     }
@@ -108,7 +126,7 @@ export function hydrateCustomizationFormState(
 
   for (const valueId of variantDefaultValueIds) {
     const attr = attributes.find((a) => a.values.some((v) => v.id === valueId));
-    if (attr) {
+    if (attr && !isFoodTasteAttributeKey(attr.key)) {
       attrsToSeed.add(attr.id);
     }
   }
@@ -133,6 +151,9 @@ export function hydrateCustomizationFormState(
   if (config) {
     for (const item of config.items) {
       const attr = attributes.find((a) => a.values.some((v) => v.id === item.valueId));
+      if (attr && isFoodTasteAttributeKey(attr.key)) {
+        continue;
+      }
       if (attr) {
         state = ensureFormStateForAttribute(state, attr);
       }
@@ -165,9 +186,14 @@ export function collectVariantDefaultCustomizationValueIds(
   for (const variant of variants ?? []) {
     for (const opt of variant.options ?? []) {
       const valueId = opt.valueId?.trim();
-      if (valueId && knownValueIds.has(valueId)) {
-        ids.add(valueId);
+      if (!valueId || !knownValueIds.has(valueId)) {
+        continue;
       }
+      const attr = attributes.find((a) => a.values.some((v) => v.id === valueId));
+      if (attr && isFoodTasteAttributeKey(attr.key)) {
+        continue;
+      }
+      ids.add(valueId);
     }
   }
   return Array.from(ids);
@@ -175,13 +201,28 @@ export function collectVariantDefaultCustomizationValueIds(
 
 export function buildPdpCustomizationItems(
   formState: PdpCustomizationFormState,
+  attributes: Attribute[],
 ): PdpCustomizationItem[] {
+  const valueIdToAttrKey = new Map<string, string>();
+  for (const attr of attributes) {
+    for (const value of attr.values) {
+      valueIdToAttrKey.set(value.id, attr.key);
+    }
+  }
+
   const items: PdpCustomizationItem[] = [];
   for (const [valueId, row] of Object.entries(formState)) {
     if (!row.enabled) {
       continue;
     }
-    items.push({ valueId, role: row.role });
+    const attrKey = valueIdToAttrKey.get(valueId) ?? '';
+    if (!isAdminProductFormCustomizationAttributeKey(attrKey)) {
+      continue;
+    }
+    items.push({
+      valueId,
+      role: resolveCustomizationRole(attrKey, row.role),
+    });
   }
   return items;
 }
@@ -193,6 +234,9 @@ export function buildDefaultVariantOptions(
 ): Array<{ attributeKey: string; value: string; valueId: string }> {
   const options: Array<{ attributeKey: string; value: string; valueId: string }> = [];
   for (const attr of getSelectedCustomizationAttributes(attributes, selectedAttributeIds)) {
+    if (!isAdminProductFormCustomizationAttributeKey(attr.key)) {
+      continue;
+    }
     for (const value of attr.values) {
       const row = formState[value.id];
       if (!row?.enabled || row.role !== 'default') {
@@ -215,6 +259,9 @@ export function collectCustomizationAttributeIds(
 ): string[] {
   const ids = new Set<string>();
   for (const attr of getSelectedCustomizationAttributes(attributes, selectedAttributeIds)) {
+    if (!isAdminProductFormCustomizationAttributeKey(attr.key)) {
+      continue;
+    }
     const hasEnabled = attr.values.some((v) => formState[v.id]?.enabled);
     if (hasEnabled) {
       ids.add(attr.id);
@@ -268,9 +315,17 @@ export function collectAttributeValuePricePatches(
   const patches: AttributeValuePricePatch[] = [];
 
   for (const attr of getSelectedCustomizationAttributes(attributes, selectedAttributeIds)) {
+    if (!isAdminProductFormCustomizationAttributeKey(attr.key)) {
+      continue;
+    }
     for (const value of attr.values) {
       const row = formState[value.id];
-      if (!row?.enabled || row.role !== 'addon') {
+      if (!row?.enabled) {
+        continue;
+      }
+      const countsAsAddon =
+        isAdditionPriceOnlyAttributeKey(attr.key) || row.role === 'addon';
+      if (!countsAsAddon) {
         continue;
       }
       const parsed = Number.parseFloat(row.priceAdjustment);

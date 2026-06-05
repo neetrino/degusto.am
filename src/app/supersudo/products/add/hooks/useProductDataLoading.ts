@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { apiClient } from '@/lib/api-client';
 import { CURRENCIES, type CurrencyCode } from '@/lib/currency';
+import { getStoredLanguage } from '@/lib/language';
 import type { Category, Attribute } from '../types';
 import { createEmptyCustomizationFormState } from '../utils/pdp-customization-form';
 import type { PdpCustomizationFormState } from '../utils/pdp-customization-form';
@@ -72,12 +73,17 @@ export function useProductDataLoading({
 
   // Fetch settings (currency), categories and attributes together so edit load runs once with correct currency
   useEffect(() => {
+    if (isLoading || !isLoggedIn || !isAdmin) {
+      return;
+    }
+
     const fetchData = async () => {
+      const locale = getStoredLanguage();
       try {
         logger.debug('📥 [ADMIN] Fetching settings, categories, and attributes...');
         const [settingsRes, categoriesRes, attributesRes] = await Promise.all([
           apiClient.get<{ defaultCurrency?: string }>('/api/v1/admin/settings'),
-          apiClient.get<{ data: Category[] }>('/api/v1/admin/categories'),
+          apiClient.get<{ data: Category[] }>(`/api/v1/admin/categories?locale=${locale}`),
           apiClient.get<{ data: Attribute[] }>('/api/v1/admin/attributes'),
         ]);
         const currency = (settingsRes.defaultCurrency || 'AMD') as CurrencyCode;
@@ -145,8 +151,18 @@ export function useProductDataLoading({
         setReferenceCatalogReady(true);
       }
     };
-    fetchData();
-  }, [setCategories, setAttributes, setReferenceCatalogReady, setDefaultCurrency]);
+    void fetchData();
+  }, [
+    isLoading,
+    isLoggedIn,
+    isAdmin,
+    setCategories,
+    setAttributes,
+    setReferenceCatalogReady,
+    setDefaultCurrency,
+    setPdpCustomizationForm,
+    setSelectedPdpCustomizationAttributeIds,
+  ]);
 
   // Close category dropdown when clicking outside
   useEffect(() => {

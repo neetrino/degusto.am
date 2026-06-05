@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { BodyBackground } from '../../../components/BodyBackground';
 import { resetCartBadgeState } from '../../../lib/cart/cart-events';
 import { useTranslation } from '../../../lib/i18n-client';
+import { formatOrderNumber } from '@/lib/orders/format-order-number';
 import { CHECKOUT_OUTLINE_BUTTON, CHECKOUT_PRIMARY_BUTTON, CHECKOUT_TEXT_INK_MUTED, CHECKOUT_TEXT_INK_TERTIARY } from '../checkout-ui';
 
 export default function CheckoutSuccessPage() {
@@ -24,7 +25,7 @@ export default function CheckoutSuccessPage() {
         <h1 className="text-3xl font-bold text-[#1F2E1F]">{t('orders.success.title')}</h1>
         <p className={`mt-4 ${CHECKOUT_TEXT_INK_MUTED}`}>
           {orderNumber
-            ? t('checkout.success.orderNumber').replace('{number}', orderNumber)
+            ? t('checkout.success.orderNumber').replace('{number}', formatOrderNumber(orderNumber))
             : t('checkout.success.generic')}
         </p>
         <p className={`mt-2 ${CHECKOUT_TEXT_INK_TERTIARY}`}>{t('checkout.success.contactNote')}</p>

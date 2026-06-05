@@ -3,7 +3,7 @@
 import { ADMIN_TABLE_CHECKBOX, ADMIN_TABLE_TD_CHECK } from '../../constants/admin-table-classes';
 import { useTranslation } from '../../../../lib/i18n-client';
 import { convertPrice, CurrencyCode } from '../../../../lib/currency';
-import { getStatusColor, getPaymentStatusColor } from '../utils/orderUtils';
+import { formatOrderTableDate, getStatusColor, getPaymentStatusColor } from '../utils/orderUtils';
 import type { Order } from '../useOrders';
 
 interface OrderRowProps {
@@ -154,11 +154,7 @@ export function OrderRow({
         )}
       </td>
       <td className="min-w-0 whitespace-nowrap px-3 py-3 text-left align-middle text-xs tabular-nums text-[#5e7266] sm:text-sm">
-        {new Date(order.createdAt).toLocaleDateString(undefined, {
-          year: '2-digit',
-          month: 'numeric',
-          day: 'numeric',
-        })}
+        {formatOrderTableDate(order.createdAt, t('admin.analytics.today'))}
       </td>
     </tr>
   );

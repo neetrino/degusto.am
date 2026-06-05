@@ -1,7 +1,6 @@
 'use client';
 
 import { useTranslation } from '../../../../lib/i18n-client';
-import { Card } from '@shop/ui';
 import { convertPrice, formatPriceInCurrency, type CurrencyCode } from '../../../../lib/currency';
 import type { OrderDetails } from '../useOrders';
 
@@ -22,50 +21,60 @@ export function OrderDetailsTotals({
     return null;
   }
 
+  const totalDisplay = (() => {
+    const subtotalAmd = convertPrice(orderDetails.totals.subtotal, 'USD', 'AMD');
+    const discountAmd = convertPrice(orderDetails.totals.discount, 'USD', 'AMD');
+    const shippingAmd = orderDetails.totals.shipping;
+    const totalAmd = subtotalAmd - discountAmd + shippingAmd;
+    const value = currency === 'AMD' ? totalAmd : convertPrice(totalAmd, 'AMD', currency as CurrencyCode);
+    return formatPriceInCurrency(value, currency as CurrencyCode);
+  })();
+
+  const shippingLabel =
+    orderDetails.shippingMethod === 'pickup'
+      ? t('checkout.shipping.freePickup')
+      : `${formatCurrency(orderDetails.totals.shipping, orderDetails.totals.currency || 'AMD', 'AMD')}${
+          orderDetails.shippingAddress?.city ? ` (${orderDetails.shippingAddress.city})` : ''
+        }`;
+
   return (
-    <Card className="p-4 md:p-6">
-      <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('orders.orderSummary.title')}</h3>
-      <div className="space-y-3">
-        <div className="flex justify-between text-sm text-gray-700">
+    <div className="border-t border-[#edf1ee] px-4 py-4 sm:px-5">
+      <div className="ml-auto w-full max-w-md space-y-2">
+        <p className="text-right text-xs font-semibold uppercase tracking-wide text-[#9aa89e]">
+          {t('orders.orderSummary.title')}
+        </p>
+        <div className="flex items-center justify-between text-sm text-[#5b6f63]">
           <span>{t('orders.orderSummary.subtotal')}</span>
-          <span>{formatCurrency(orderDetails.totals.subtotal, (orderDetails.totals.currency || 'AMD') as CurrencyCode, 'USD')}</span>
-        </div>
-        {orderDetails.totals.discount > 0 && (
-          <div className="flex justify-between text-sm text-gray-700">
-            <span>{t('orders.orderSummary.discount')}</span>
-            <span>-{formatCurrency(orderDetails.totals.discount, (orderDetails.totals.currency || 'AMD') as CurrencyCode, 'USD')}</span>
-          </div>
-        )}
-        <div className="flex justify-between text-sm text-gray-700">
-          <span>{t('orders.orderSummary.shipping')}</span>
-          <span>
-            {orderDetails.shippingMethod === 'pickup'
-              ? t('checkout.shipping.freePickup')
-              : formatCurrency(orderDetails.totals.shipping, orderDetails.totals.currency || 'AMD', 'AMD') + (orderDetails.shippingAddress?.city ? ` (${orderDetails.shippingAddress.city})` : '')}
+          <span className="tabular-nums">
+            {formatCurrency(
+              orderDetails.totals.subtotal,
+              (orderDetails.totals.currency || 'AMD') as CurrencyCode,
+              'USD'
+            )}
           </span>
         </div>
-        <div className="flex justify-between text-sm text-gray-700">
-          <span>{t('orders.orderSummary.tax')}</span>
-          <span>{formatCurrency(orderDetails.totals.tax, (orderDetails.totals.currency || 'AMD') as CurrencyCode, 'USD')}</span>
-        </div>
-        <div className="border-t border-gray-200 pt-3 mt-3">
-          <div className="flex justify-between text-base font-bold text-gray-900">
-            <span>{t('orders.orderSummary.total')}</span>
-            <span>
-              {(() => {
-                const subtotalAMD = convertPrice(orderDetails.totals.subtotal, 'USD', 'AMD');
-                const discountAMD = convertPrice(orderDetails.totals.discount, 'USD', 'AMD');
-                const shippingAMD = orderDetails.totals.shipping;
-                const taxAMD = convertPrice(orderDetails.totals.tax, 'USD', 'AMD');
-                const totalAMD = subtotalAMD - discountAMD + shippingAMD + taxAMD;
-                const totalDisplay = currency === 'AMD' ? totalAMD : convertPrice(totalAMD, 'AMD', currency as CurrencyCode);
-                return formatPriceInCurrency(totalDisplay, currency as CurrencyCode);
-              })()}
+        {orderDetails.totals.discount > 0 ? (
+          <div className="flex items-center justify-between text-sm text-[#5b6f63]">
+            <span>{t('orders.orderSummary.discount')}</span>
+            <span className="tabular-nums">
+              -
+              {formatCurrency(
+                orderDetails.totals.discount,
+                (orderDetails.totals.currency || 'AMD') as CurrencyCode,
+                'USD'
+              )}
             </span>
           </div>
+        ) : null}
+        <div className="flex items-center justify-between text-sm text-[#5b6f63]">
+          <span>{t('orders.orderSummary.shipping')}</span>
+          <span className="tabular-nums">{shippingLabel}</span>
+        </div>
+        <div className="flex items-center justify-between rounded-lg bg-[#f3f5f4] px-3 py-2.5 text-base font-bold text-[#1d392b]">
+          <span>{t('orders.orderSummary.total')}</span>
+          <span className="tabular-nums">{totalDisplay}</span>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }
-

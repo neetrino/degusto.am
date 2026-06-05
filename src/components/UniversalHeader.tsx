@@ -27,7 +27,9 @@ import { navigateToProductPage, prefetchProductRoute } from '@/lib/products/pref
 import {
   UNIVERSAL_HEADER_ACTIONS_WRAP_CLASS,
   UNIVERSAL_HEADER_BAR_CLASS,
-  UNIVERSAL_HEADER_CART_BUTTON_WITH_TOTAL_CLASS,
+  UNIVERSAL_HEADER_CART_BADGE_WRAP_CLASS,
+  UNIVERSAL_HEADER_CART_BUTTON_CLASS,
+  UNIVERSAL_HEADER_CART_ICON_WRAP_CLASS,
   UNIVERSAL_HEADER_CART_TOTAL_PILL_CLASS,
   UNIVERSAL_HEADER_DROPDOWN_Z_CLASS,
   UNIVERSAL_HEADER_LANG_SWITCHER_WRAP_CLASS,
@@ -41,6 +43,7 @@ import {
   UNIVERSAL_HEADER_SEARCH_POPUP_SUBMIT_CLASS,
   UNIVERSAL_HEADER_SEARCH_SUBMIT_CLASS,
   UNIVERSAL_HEADER_SEARCH_SUBMIT_LABEL_CLASS,
+  UNIVERSAL_HEADER_SPACER_HEIGHT_CLASS,
 } from '@/constants/universal-header-layout';
 
 function universalWishlistNavClassName(active: boolean): string {
@@ -381,7 +384,7 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
 
   return (
     <>
-      <div aria-hidden="true" className={`h-[104px] ${spacerBackgroundClassName}`} />
+      <div aria-hidden="true" className={`${UNIVERSAL_HEADER_SPACER_HEIGHT_CLASS} ${spacerBackgroundClassName}`} />
       <header className={UNIVERSAL_HEADER_BAR_CLASS}>
         <BrandLogoLink onDark className="shrink-0" title="Degusto" />
         <nav className={UNIVERSAL_HEADER_NAV_CLASS}>
@@ -411,46 +414,25 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
             <button
               type="button"
               onClick={() => openCartDrawer()}
-              className={`relative inline-flex h-12 shrink-0 items-center ${
-                cartCount > 0 ? UNIVERSAL_HEADER_CART_BUTTON_WITH_TOTAL_CLASS : 'w-12 justify-center'
-              }`}
-              aria-label={
-                cartCount > 0
-                  ? `${t('common.navigation.cart')}, ${formatPrice(cartTotal, currency)}`
-                  : t('common.navigation.cart')
-              }
+              className={UNIVERSAL_HEADER_CART_BUTTON_CLASS}
+              aria-label={`${t('common.navigation.cart')}, ${formatPrice(cartTotal, currency)}`}
             >
-              {cartCount > 0 && (
-                <span
-                  aria-hidden
-                  className={UNIVERSAL_HEADER_CART_TOTAL_PILL_CLASS}
-                >
-                  {formatPrice(cartTotal, currency)}
-                </span>
-              )}
-              <span
-                data-cart-fly-target
-                className={`inline-flex h-[34px] w-[37px] items-center justify-center ${
-                  cartCount > 0 ? 'absolute bottom-[1px] left-2' : ''
-                }`}
-              >
+              <span data-cart-fly-target className={UNIVERSAL_HEADER_CART_ICON_WRAP_CLASS}>
                 <img src={HEADER_PUBLIC_ASSETS.cartIcon} alt="" className="h-[34px] w-[37px] object-contain" />
-              </span>
-              {cartCount > 0 && (
-                <span
-                  aria-hidden
-                  className="absolute left-[35px] top-[2px] inline-flex h-6 w-6 items-center justify-center"
-                >
+                <span aria-hidden className={UNIVERSAL_HEADER_CART_BADGE_WRAP_CLASS}>
                   <img
                     src={HEADER_PUBLIC_ASSETS.cartCountBadge}
                     alt=""
                     className="absolute h-6 w-6 object-contain"
                   />
-                  <span className="relative text-sm font-bold leading-6 text-[#f66812]">
+                  <span className="relative text-sm font-bold leading-6 text-white">
                     {cartCount > 99 ? '99+' : cartCount}
                   </span>
                 </span>
-              )}
+              </span>
+              <span aria-hidden className={UNIVERSAL_HEADER_CART_TOTAL_PILL_CLASS}>
+                {formatPrice(cartTotal, currency)}
+              </span>
             </button>
             <Link
               href="/wishlist"

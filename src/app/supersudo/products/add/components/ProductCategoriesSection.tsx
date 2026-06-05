@@ -1,8 +1,12 @@
 'use client';
 
+import { useMemo } from 'react';
 import { Input } from '@shop/ui';
 import { useTranslation } from '../../../../../lib/i18n-client';
+import { buildCategoryTree } from '../../../categories/utils';
 import type { Category, Variant } from '../types';
+
+const CATEGORY_LEVEL_PADDING_CLASSES = ['pl-2', 'pl-6', 'pl-10', 'pl-14', 'pl-[4.5rem]'] as const;
 
 interface ProductCategoriesSectionProps {
   categories: Category[];
@@ -35,43 +39,7 @@ export function ProductCategoriesSection({
 }: ProductCategoriesSectionProps) {
   const { t } = useTranslation();
 
-  const buildCategoryTree = () => {
-    const categoryMap = new Map<string, Category & { children: Category[] }>();
-    const rootCategories: (Category & { children: Category[] })[] = [];
-
-    categories.forEach((category) => {
-      categoryMap.set(category.id, { ...category, children: [] });
-    });
-
-    categories.forEach((category) => {
-      if (category.parentId && categoryMap.has(category.parentId)) {
-        const parent = categoryMap.get(category.parentId)!;
-        const child = categoryMap.get(category.id)!;
-        parent.children.push(child);
-      } else {
-        rootCategories.push(categoryMap.get(category.id)!);
-      }
-    });
-
-    const flattenTree = (
-      nodes: (Category & { children: Category[] })[],
-      result: (Category & { isSubcategory: boolean })[] = []
-    ): (Category & { isSubcategory: boolean })[] => {
-      nodes.forEach((node) => {
-        result.push({ ...node, isSubcategory: false });
-        if (node.children && node.children.length > 0) {
-          node.children.forEach((child) => {
-            result.push({ ...child, isSubcategory: true });
-          });
-        }
-      });
-      return result;
-    };
-
-    return flattenTree(rootCategories);
-  };
-
-  const displayCategories = buildCategoryTree();
+  const displayCategories = useMemo(() => buildCategoryTree(categories), [categories]);
 
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
     const newCategoryIds = checked
@@ -171,12 +139,20 @@ export function ProductCategoriesSection({
                   <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
                     <div className="p-2">
                       <div className="space-y-1">
-                        {displayCategories.map((category) => (
+                        {displayCategories.length === 0 ? (
+                          <p className="text-sm text-gray-500 p-2">{t('admin.products.noCategoriesAvailable')}</p>
+                        ) : (
+                          displayCategories.map((category) => {
+                            const paddingClass =
+                              CATEGORY_LEVEL_PADDING_CLASSES[
+                                Math.min(category.level, CATEGORY_LEVEL_PADDING_CLASSES.length - 1)
+                              ];
+                            const isSubcategory = category.level > 0;
+
+                            return (
                           <label
                             key={category.id}
-                            className={`flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded ${
-                              category.isSubcategory ? 'pl-6' : ''
-                            }`}
+                            className={`flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded ${paddingClass}`}
                           >
                             <input
                               type="checkbox"
@@ -186,13 +162,15 @@ export function ProductCategoriesSection({
                             />
                             <span
                               className={`text-gray-700 ${
-                                category.isSubcategory ? 'text-xs' : 'text-sm font-semibold'
+                                isSubcategory ? 'text-xs' : 'text-sm font-semibold'
                               }`}
                             >
                               {category.title}
                             </span>
                           </label>
-                        ))}
+                            );
+                          })
+                        )}
                       </div>
                     </div>
                   </div>

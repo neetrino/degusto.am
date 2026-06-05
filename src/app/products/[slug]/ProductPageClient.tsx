@@ -51,6 +51,7 @@ import {
   PDP_MOBILE_HERO_INSET_CLASS,
 } from '@/constants/pdp-figma-tokens';
 import { STOREFRONT_DESKTOP_SECTION_CLASS } from '@/constants/storefront-desktop-layout';
+import { UNIVERSAL_HEADER_DESKTOP_UNDERLAP_CLASS } from '@/constants/universal-header-layout';
 
 function collectSelectedAttributeValueIdsForCart(
   product: Product,
@@ -94,8 +95,9 @@ function collectSelectedAttributeValueIdsForCart(
 }
 
 const PDP_BODY_BACKGROUND = '#ffffff';
+
 const PDP_HEADER_DESKTOP_UNDERLAP_CLASS =
-  'lg:relative lg:z-10 lg:-mt-[104px] lg:pt-[104px]';
+  `lg:relative lg:z-10 ${UNIVERSAL_HEADER_DESKTOP_UNDERLAP_CLASS}`;
 
 export interface ProductPageClientProps {
   slug: string;
