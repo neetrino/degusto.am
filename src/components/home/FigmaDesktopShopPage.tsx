@@ -41,8 +41,10 @@ import { useRoutePrefetch } from './useRoutePrefetch';
 import { useShopCategorySoftNav } from './useShopCategorySoftNav';
 import { ShopDesktopProductsSkeleton } from './ShopDesktopProductsSkeleton';
 import {
+  STOREFRONT_DESKTOP_MAIN_COLUMN_CLASS,
   STOREFRONT_DESKTOP_PRODUCT_GRID_CLASS,
   STOREFRONT_DESKTOP_SECTION_CLASS,
+  STOREFRONT_DESKTOP_SHOP_SECTION_CLASS,
   STOREFRONT_DESKTOP_SIDEBAR_GAP_CLASS,
   STOREFRONT_DESKTOP_SIDEBAR_WIDTH_CLASS,
 } from '@/constants/storefront-desktop-layout';
@@ -688,8 +690,8 @@ export function FigmaDesktopMenuPage({
       ) : null}
 
       <div className="hidden bg-white pb-20 pt-5 lg:block">
-        <div className={`${STOREFRONT_DESKTOP_SECTION_CLASS} flex ${STOREFRONT_DESKTOP_SIDEBAR_GAP_CLASS}`}>
-        <aside className={`sticky top-[116px] flex h-[calc(100vh-132px)] ${STOREFRONT_DESKTOP_SIDEBAR_WIDTH_CLASS} shrink-0 flex-col overflow-hidden rounded-[20px] bg-black pb-5 text-white`}>
+        <div className={`${STOREFRONT_DESKTOP_SHOP_SECTION_CLASS} flex min-w-0 ${STOREFRONT_DESKTOP_SIDEBAR_GAP_CLASS}`}>
+        <aside className={`sticky top-[116px] flex h-[calc(100vh-132px)] ${STOREFRONT_DESKTOP_SIDEBAR_WIDTH_CLASS} flex-col overflow-hidden rounded-[20px] bg-black pb-5 text-white`}>
           <div className="border-b border-white/10 p-6">
             <form
               onSubmit={(event) => {
@@ -796,16 +798,16 @@ export function FigmaDesktopMenuPage({
           </div>
         </aside>
 
-        <section className="flex-1">
-          <div className="mb-[42px] mt-10 flex items-start justify-between">
-            <div className="pt-1">
-              <h1 className="text-[60px] leading-[51px] text-[#f66913]">{t(titleKey)}</h1>
+        <section className={STOREFRONT_DESKTOP_MAIN_COLUMN_CLASS}>
+          <div className="mb-[42px] mt-10 flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+            <div className="min-w-0 pt-1">
+              <h1 className="text-4xl font-bold leading-tight text-[#f66913] xl:text-[60px] xl:leading-[51px]">{t(titleKey)}</h1>
               <p className="mt-2.5 text-base tracking-[-0.31px] text-[#717182]">
                 {t(subtitleKey)}
               </p>
             </div>
-            <div className="flex items-center gap-2 pt-[37px] text-sm text-[#717182]">
-              <span className="px-1 text-base">{t('home.figma.desktop.shop.priceLabel')}</span>
+            <div className="flex flex-wrap items-center gap-2 text-sm text-[#717182] xl:pt-[37px]">
+              <span className="w-full shrink-0 px-1 text-base xl:w-auto">{t('home.figma.desktop.shop.priceLabel')}</span>
               <input
                 type="number"
                 min={0}

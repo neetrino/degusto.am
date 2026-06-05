@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useTranslation } from '../lib/i18n-client';
+import { STOREFRONT_PAGE_CONTAINER_CLASS } from '@/constants/storefront-desktop-layout';
 
 type ViewMode = 'list' | 'grid-2' | 'grid-3';
 type SortOption = 'newest' | 'popular' | 'price-asc' | 'price-desc';
@@ -136,7 +137,7 @@ function ProductsHeaderContent({ total, perPage }: ProductsHeaderProps) {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-4">
+    <div className={`${STOREFRONT_PAGE_CONTAINER_CLASS} pt-12 pb-4`}>
       {/* Desktop: All elements in one horizontal line */}
       <div className="hidden sm:flex sm:items-center sm:justify-between sm:gap-4">
         {/* Left side: Clear filters + All products title */}
@@ -422,7 +423,7 @@ function ProductsHeaderContent({ total, perPage }: ProductsHeaderProps) {
 export function ProductsHeader(props: ProductsHeaderProps) {
   return (
     <Suspense fallback={
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-4">
+      <div className={`${STOREFRONT_PAGE_CONTAINER_CLASS} pt-12 pb-4`}>
         <div className="flex justify-end items-center">
           <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
         </div>

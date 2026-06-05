@@ -50,6 +50,7 @@ import {
   PDP_HERO_INFO_OFFSET_CLASS,
   PDP_MOBILE_HERO_INSET_CLASS,
 } from '@/constants/pdp-figma-tokens';
+import { STOREFRONT_DESKTOP_SECTION_CLASS } from '@/constants/storefront-desktop-layout';
 
 function collectSelectedAttributeValueIdsForCart(
   product: Product,
@@ -342,7 +343,7 @@ export function ProductPageClient({
       <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
         <BodyBackground color={PDP_BODY_BACKGROUND} />
         <div className={PDP_HEADER_DESKTOP_UNDERLAP_CLASS}>
-          <div className={`${PDP_HEADER_DESKTOP_UNDERLAP_CLASS} mx-auto max-w-7xl max-lg:px-0 px-4 py-16 text-center space-y-4 lg:max-w-[1450px] lg:px-0`}>
+          <div className={`${PDP_HEADER_DESKTOP_UNDERLAP_CLASS} ${STOREFRONT_DESKTOP_SECTION_CLASS} py-16 text-center space-y-4 max-lg:px-4`}>
             <p className="text-lg text-neutral-600">
               {t(language, 'common.messages.noProductsFound')}
             </p>

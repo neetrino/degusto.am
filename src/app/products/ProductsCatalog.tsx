@@ -15,8 +15,13 @@ import { MOBILE_FILTERS_EVENT } from '../../lib/events';
 import { logger } from '../../lib/utils/logger';
 import { productsService } from '../../lib/services/products.service';
 import { getCompactPaginationPages } from '../../lib/utils/compact-pagination-pages';
+import {
+  STOREFRONT_DESKTOP_MAIN_COLUMN_CLASS,
+  STOREFRONT_DESKTOP_SIDEBAR_GAP_CLASS,
+  STOREFRONT_PAGE_CONTAINER_CLASS,
+} from '@/constants/storefront-desktop-layout';
 
-const PAGE_CONTAINER = 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8';
+const PAGE_CONTAINER = STOREFRONT_PAGE_CONTAINER_CLASS;
 
 interface Product {
   id: string;
@@ -194,14 +199,14 @@ export async function ProductsCatalog({
         <ProductsHeader total={productsData.meta.total} perPage={productsData.meta.limit} />
       </div>
 
-      <div className="max-w-7xl mx-auto pl-2 sm:pl-4 md:pl-6 lg:pl-8 pr-4 sm:pr-6 lg:pr-8 flex flex-col lg:flex-row gap-8">
+      <div className={`${STOREFRONT_PAGE_CONTAINER_CLASS} flex min-w-0 flex-col lg:flex-row ${STOREFRONT_DESKTOP_SIDEBAR_GAP_CLASS}`}>
         <ProductsFiltersProvider
           category={typeof params.category === 'string' ? params.category : undefined}
           search={typeof params.search === 'string' ? params.search : undefined}
           minPrice={typeof params.minPrice === 'string' ? params.minPrice : undefined}
           maxPrice={typeof params.maxPrice === 'string' ? params.maxPrice : undefined}
         >
-          <aside className="w-64 hidden lg:block flex-shrink-0 self-start lg:sticky lg:top-24 lg:z-10 bg-gray-50 rounded-xl">
+          <aside className="hidden w-64 shrink-0 self-start rounded-xl bg-gray-50 lg:sticky lg:top-24 lg:z-10 lg:block">
             <div className="p-4 space-y-6 lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto">
               <Suspense fallback={<div>{t(language, 'common.messages.loadingFilters')}</div>}>
                 <PriceFilter
@@ -228,7 +233,7 @@ export async function ProductsCatalog({
             </div>
           </aside>
 
-          <div className="flex-1 min-w-0 w-full lg:w-auto py-4 overflow-x-hidden">
+          <div className={`${STOREFRONT_DESKTOP_MAIN_COLUMN_CLASS} w-full py-4 lg:w-auto`}>
             {normalizedProducts.length > 0 ? (
               <>
                 <ProductsGrid products={normalizedProducts} sortBy={sortParam} />

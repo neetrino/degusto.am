@@ -6,7 +6,7 @@ import { useTranslation } from '../lib/i18n-client';
 import { SITE_CONTACT_EMAIL, SITE_CONTACT_PHONES } from '../lib/site-contact';
 import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
 import { bigFatBoiiFont } from '@/fonts/big-fat-boii-font';
-import { STOREFRONT_DESKTOP_SECTION_CLASS } from '@/constants/storefront-desktop-layout';
+import { STOREFRONT_DESKTOP_FOOTER_GRID_CLASS, STOREFRONT_DESKTOP_SECTION_CLASS } from '@/constants/storefront-desktop-layout';
 
 const assets = {
   footerBrandLogo: '/api/r2/footer/20260512-5UxUa-QBsL.png',
@@ -118,14 +118,14 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
       </div>
 
       <div className="hidden overflow-hidden rounded-t-[40px] bg-[#121212] px-4 pb-10 pt-14 text-white md:px-8 lg:block lg:px-0 lg:pb-0 lg:pt-0">
-        <div className={`relative ${STOREFRONT_DESKTOP_SECTION_CLASS} lg:h-[576px]`}>
+        <div className={`relative ${STOREFRONT_DESKTOP_SECTION_CLASS} lg:min-h-[576px]`}>
           <img
             src={assets.footerPastaVisual}
             alt="Degusto footer visual"
-            className="pointer-events-none absolute -right-[10px] top-[-115px] hidden h-[800px] w-[512px] -rotate-90 -scale-x-100 [aspect-ratio:90/173] object-contain lg:block"
+            className="pointer-events-none absolute -right-[10px] top-[-115px] hidden h-[min(800px,90vh)] w-[min(512px,42vw)] max-w-none -rotate-90 -scale-x-100 object-contain [aspect-ratio:90/173] lg:block xl:h-[800px] xl:w-[512px]"
           />
 
-          <div className="relative z-10 grid gap-10 lg:grid-cols-[244px_283px_120px_1fr] lg:pt-[73px]">
+          <div className={`relative z-10 ${STOREFRONT_DESKTOP_FOOTER_GRID_CLASS} lg:pt-[73px]`}>
             <div>
               <h3
                 className={`mb-4 flex items-center gap-[6px] text-[20px] font-black leading-6 text-[#ff7f20] ${footerOrangeHeadingFontProps.className}`}
@@ -190,7 +190,7 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
             <div className="hidden lg:block" />
           </div>
 
-          <div className="relative z-10 mt-[18px] flex flex-col gap-3 lg:mt-8 lg:w-[472px]">
+          <div className="relative z-10 mt-[18px] flex w-full max-w-full flex-col gap-3 lg:mt-8 lg:max-w-[472px]">
             <h3
               className={`text-[20px] font-black leading-6 text-[#ff7f20] ${footerOrangeHeadingFontProps.className}`}
               style={footerOrangeHeadingFontProps.style}

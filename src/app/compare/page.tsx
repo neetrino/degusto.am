@@ -13,6 +13,7 @@ import { emitCompareUpdated, fetchCompareIds } from '../../lib/compare-api';
 import { useAuth } from '../../lib/auth/AuthContext';
 import { logger } from '../../lib/utils/logger';
 import { CompareProductsTable, type CompareProduct } from './CompareProductsTable';
+import { STOREFRONT_PAGE_CONTAINER_CLASS } from '@/constants/storefront-desktop-layout';
 
 interface CompareSection {
   sectionKey: string;
@@ -254,7 +255,7 @@ export default function ComparePage() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className={`${STOREFRONT_PAGE_CONTAINER_CLASS} py-6`}>
         <div className="text-center py-6">
           <div className="animate-pulse space-y-4">
             <div className="h-6 bg-gray-200 rounded w-1/4 mx-auto"></div>
@@ -266,7 +267,7 @@ export default function ComparePage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className={`${STOREFRONT_PAGE_CONTAINER_CLASS} py-6`}>
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold text-gray-900">{t('common.compare.title')}</h1>
         {products.length > 0 && (

@@ -11,10 +11,10 @@ function resolveVisibleCards(width: number): number {
     return 2;
   }
   if (width < 1280) {
-    return 3;
+    return 2;
   }
   if (width < STOREFRONT_DESKTOP_MAX_WIDTH_PX) {
-    return 4;
+    return 3;
   }
   /** Figma node 10:1975 — five product cards across. */
   return 5;

@@ -14,6 +14,7 @@ import { WishlistHeartIcon } from '../../components/icons/WishlistHeartIcon';
 import { emitWishlistUpdated } from '../../lib/wishlist';
 import { fetchWishlistIds } from '../../lib/wishlist-api';
 import { MOBILE_SHOP_PRODUCTS_GRID_CLASS } from '../../constants/mobile-figma-storefront';
+import { STOREFRONT_PAGE_CONTAINER_CLASS } from '@/constants/storefront-desktop-layout';
 import { WishlistProductCard, type WishlistProductCardProduct } from './WishlistProductCard';
 
 type Product = WishlistProductCardProduct;
@@ -226,7 +227,7 @@ export default function WishlistPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <div className={`${STOREFRONT_PAGE_CONTAINER_CLASS} py-6`}>
         <div className="py-6 text-center">
           <div className="animate-pulse space-y-4">
             <div className="mx-auto h-6 w-1/4 max-w-xs rounded bg-gray-200" />
@@ -242,7 +243,7 @@ export default function WishlistPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+    <div className={`${STOREFRONT_PAGE_CONTAINER_CLASS} py-6`}>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-gray-900">{t('common.wishlist.title')}</h1>
         {products.length > 0 ? (

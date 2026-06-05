@@ -230,7 +230,7 @@ export function FigmaHomePage({
 
   return (
     <div className="hidden min-h-screen w-full overflow-x-clip bg-[var(--project-color)] lg:block">
-      <section className="relative w-full overflow-hidden bg-[var(--project-color)] pb-56 pt-8 lg:min-h-[680px] lg:pb-0 lg:pt-8 xl:h-[930px] xl:[aspect-ratio:231/130]">
+      <section className="relative w-full overflow-x-clip bg-[var(--project-color)] pb-56 pt-8 lg:min-h-[680px] lg:overflow-y-visible lg:pb-0 lg:pt-8 xl:min-h-[780px] 2xl:min-h-[930px]">
         <div
           className={`pointer-events-none absolute inset-x-0 ${HOME_DESKTOP_HERO_BG_TOP_CLASS} z-0 h-[900px] w-full lg:h-full`}
         >
@@ -250,7 +250,7 @@ export function FigmaHomePage({
         <UniversalHeader spacerBackgroundClassName="bg-[#F66812]" />
 
         {heroProduct ? (
-          <div className={`relative z-20 mt-14 w-full lg:mt-16 ${STOREFRONT_DESKTOP_SECTION_CLASS}`}>
+          <div className={`relative z-20 mt-14 w-full overflow-visible lg:mt-16 ${STOREFRONT_DESKTOP_SECTION_CLASS}`}>
             <HomeDailyOfferHeroCard
               product={heroProduct}
               offerBadgeSrc={assets.offerBadge}
@@ -263,9 +263,9 @@ export function FigmaHomePage({
         ) : null}
       </section>
 
-      <section className="h-[700px] w-full rounded-t-[40px] bg-[#0c0d12] pb-14 pt-6">
+      <section className="min-h-[520px] w-full rounded-t-[40px] bg-[#0c0d12] pb-14 pt-6 lg:min-h-[640px] xl:min-h-[700px]">
         <div className={STOREFRONT_DESKTOP_SECTION_CLASS}>
-          <div className="flex items-end justify-between gap-6 pt-[70px]">
+          <div className="flex flex-col gap-6 pt-[70px] sm:flex-row sm:items-end sm:justify-between">
             <h2
               className={`text-4xl font-black text-white md:text-6xl${
                 lang === 'hy' ? ` ${mirageExpandedFont.className}` : ''
@@ -279,8 +279,8 @@ export function FigmaHomePage({
             </ViewMoreButton>
           </div>
           {specialOfferProducts.length > 0 ? (
-            <div className="mt-20 overflow-x-auto pb-8">
-              <div className="mx-auto flex w-max flex-nowrap justify-center gap-[10px]">
+            <div className="mt-20 overflow-x-auto pb-8 scrollbar-hide">
+              <div className="mx-auto flex w-max max-w-full flex-nowrap justify-start gap-[10px] xl:justify-center">
                 {specialOfferProducts.map((item) => (
                   <NewsCard key={item.id} item={item} />
                 ))}

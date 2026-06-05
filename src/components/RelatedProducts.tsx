@@ -144,7 +144,7 @@ export function RelatedProducts({
 
         {showOffscreenPlaceholder ? (
           <div
-            className={`flex ${PDP_RELATED_CARDS_GAP_CLASS} lg:grid lg:grid-cols-4 xl:grid-cols-5`}
+            className={`flex ${PDP_RELATED_CARDS_GAP_CLASS} lg:grid lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 min-[1450px]:grid-cols-5`}
             aria-hidden
           >
             {Array.from({ length: loadingSkeletonCount }, (_, i) => i + 1).map((i) => (
@@ -155,7 +155,7 @@ export function RelatedProducts({
           </div>
         ) : loading && products.length === 0 ? (
           <div
-            className={`flex ${PDP_RELATED_CARDS_GAP_CLASS} lg:grid lg:grid-cols-4 xl:grid-cols-5`}
+            className={`flex ${PDP_RELATED_CARDS_GAP_CLASS} lg:grid lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 min-[1450px]:grid-cols-5`}
             aria-busy="true"
           >
             {Array.from({ length: loadingSkeletonCount }, (_, i) => i + 1).map((i) => (

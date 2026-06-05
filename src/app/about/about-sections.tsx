@@ -4,11 +4,12 @@ import Image from 'next/image';
 import { Card } from '@shop/ui';
 import { Leaf } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { STOREFRONT_PAGE_CONTAINER_CLASS } from '@/constants/storefront-desktop-layout';
 
 const ABOUT_HERO_IMAGE = '/images/about-hero.png';
 const ABOUT_MISSION_GOAL_IMAGE = '/images/about-mission-interior.png';
 
-const SECTION_GUTTERS = 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8';
+const SECTION_GUTTERS = STOREFRONT_PAGE_CONTAINER_CLASS;
 const SECTION_VERTICAL = 'py-12 md:py-16';
 const EYEBROW =
   'text-sm font-semibold uppercase tracking-wide text-[color:var(--project-color)] md:text-base';

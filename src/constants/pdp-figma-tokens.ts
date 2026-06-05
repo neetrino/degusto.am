@@ -23,7 +23,7 @@ export const PDP_RELATED_SECTION_RADIUS_CLASS = 'max-lg:rounded-none lg:rounded-
 /** Break out of storefront shell padding on mobile so the dark block is edge-to-edge. */
 export const PDP_RELATED_SECTION_MOBILE_BLEED_CLASS =
   'max-lg:relative max-lg:left-1/2 max-lg:w-screen max-lg:max-w-[100vw] max-lg:-translate-x-1/2';
-export const PDP_RELATED_SECTION_CLASS = `w-full ${PDP_RELATED_SECTION_MOBILE_BLEED_CLASS} ${PDP_RELATED_SECTION_RADIUS_CLASS} px-4 pb-10 pt-10 sm:px-8 sm:pb-12 sm:pt-12 lg:static lg:left-auto lg:w-full lg:max-w-none lg:translate-x-0 lg:px-[82px] lg:pb-[77px] lg:pt-[77px]`;
+export const PDP_RELATED_SECTION_CLASS = `w-full ${PDP_RELATED_SECTION_MOBILE_BLEED_CLASS} ${PDP_RELATED_SECTION_RADIUS_CLASS} px-4 pb-10 pt-10 sm:px-8 sm:pb-12 sm:pt-12 lg:static lg:left-auto lg:w-full lg:max-w-none lg:translate-x-0 lg:px-6 lg:pb-12 lg:pt-12 xl:px-12 xl:pb-[77px] xl:pt-[77px] 2xl:px-[82px]`;
 /** Carousel pagination — hidden on mobile PDP (swipe only). */
 export const PDP_RELATED_CAROUSEL_DOTS_CLASS = 'max-lg:hidden';
 export const PDP_RELATED_SECTION_MAX_WIDTH_CLASS = 'mx-auto w-full max-w-[91.875rem]';
@@ -58,7 +58,8 @@ export const PDP_HERO_COLUMN_GAP_CLASS = 'lg:gap-[47px]';
 /** Figma node 10:1872 — main PDP image frame width. */
 export const PDP_MAIN_IMAGE_WIDTH = '47.5625rem';
 export const PDP_MAIN_IMAGE_MAX_WIDTH_CLASS = 'max-w-[47.5625rem]';
-export const PDP_MAIN_IMAGE_GRID_COLUMN_CLASS = 'lg:grid-cols-[47.5625rem_minmax(0,1fr)]';
+export const PDP_MAIN_IMAGE_GRID_COLUMN_CLASS =
+  'lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] xl:grid-cols-[minmax(0,47.5625rem)_minmax(0,1fr)]';
 export const PDP_HERO_GRID_CLASS = `grid grid-cols-1 items-start gap-6 max-lg:gap-5 lg:items-stretch ${PDP_MAIN_IMAGE_GRID_COLUMN_CLASS} ${PDP_HERO_COLUMN_GAP_CLASS}`;
 /** Mobile — slightly taller frame; desktop Figma 42:25. */
 export const PDP_MAIN_IMAGE_ASPECT_CLASS = 'max-lg:aspect-[3/2] aspect-[42/25]';
