@@ -1,6 +1,8 @@
 'use client';
 
+import { Suspense } from 'react';
 import { usePathname } from 'next/navigation';
+import { UNIVERSAL_HEADER_SPACER_HEIGHT_CLASS } from '@/constants/universal-header-layout';
 import { Header } from './Header';
 import { UniversalHeader } from './UniversalHeader';
 import { usesStorefrontMobileChrome, usesCheckoutTabletDesktopLayout } from '../lib/uses-storefront-mobile-chrome';
@@ -30,7 +32,9 @@ export function ConditionalHeader() {
   return (
     <>
       <div className={universalHeaderVisibilityClass}>
-        <UniversalHeader spacerBackgroundClassName={universalSpacerClass} />
+        <Suspense fallback={<div className={UNIVERSAL_HEADER_SPACER_HEIGHT_CLASS} aria-hidden />}>
+          <UniversalHeader spacerBackgroundClassName={universalSpacerClass} />
+        </Suspense>
       </div>
       {showLegacyMobileHeader ? (
         <div className={legacyMobileHeaderVisibilityClass}>

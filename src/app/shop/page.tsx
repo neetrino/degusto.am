@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { FigmaDesktopMenuPage } from '../../components/home/FigmaDesktopShopPage';
 import { MobileShopCategoriesView } from '../../components/home/MobileShopCategoriesView';
 import { BodyBackground } from '../../components/BodyBackground';
@@ -82,24 +83,26 @@ export default async function ShopPage({
         <MobileShopCategoriesView categories={mobileShopCategories} />
       ) : null}
       {!isMobileCategoryGridMode ? (
-        <FigmaDesktopMenuPage
-          titleKey="home.figma.desktop.shop.menuTitle"
-          subtitleKey="home.figma.desktop.shop.menuSubtitle"
-          activeCategoryIndex={0}
-          cards={cards}
-          categories={categories}
-          activeCategorySlug={rawCategorySlug}
-          initialSearch={selectedSearchQuery}
-          initialMinPrice={minPriceAmd !== null ? String(minPriceAmd) : ''}
-          initialMaxPrice={maxPriceAmd !== null ? String(maxPriceAmd) : ''}
-          initialFoodFilter={tasteFilter ?? 'neutral'}
-          menuPagination={{
-            currentPage: effectivePage,
-            totalPages,
-          }}
-          showMobileProductsList={!showMobileCategoryGrid}
-          showCategoryPicker={showCategoryPicker}
-        />
+        <Suspense fallback={<div className="min-h-[480px] animate-pulse bg-white" aria-hidden />}>
+          <FigmaDesktopMenuPage
+            titleKey="home.figma.desktop.shop.menuTitle"
+            subtitleKey="home.figma.desktop.shop.menuSubtitle"
+            activeCategoryIndex={0}
+            cards={cards}
+            categories={categories}
+            activeCategorySlug={rawCategorySlug}
+            initialSearch={selectedSearchQuery}
+            initialMinPrice={minPriceAmd !== null ? String(minPriceAmd) : ''}
+            initialMaxPrice={maxPriceAmd !== null ? String(maxPriceAmd) : ''}
+            initialFoodFilter={tasteFilter ?? 'neutral'}
+            menuPagination={{
+              currentPage: effectivePage,
+              totalPages,
+            }}
+            showMobileProductsList={!showMobileCategoryGrid}
+            showCategoryPicker={showCategoryPicker}
+          />
+        </Suspense>
       ) : null}
     </div>
   );

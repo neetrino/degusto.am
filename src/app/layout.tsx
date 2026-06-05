@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React from 'react';
 import type { Metadata, Viewport } from 'next';
 import { LOCKED_MOBILE_VIEWPORT } from '@/constants/viewport';
 import './globals.css';
@@ -31,18 +31,16 @@ export default function RootLayout({
         className="font-sans text-gray-900 antialiased min-h-full"
         style={{ backgroundColor: '#ffffff' }}
       >
-        <Suspense fallback={null}>
-          <ClientProviders>
-            <LayoutShell>
-              <ConditionalHeader />
-              <main className="flex-1 w-full">
-                <MobileStorefrontChrome>{children}</MobileStorefrontChrome>
-              </main>
-              <ConditionalFooter />
-              <ConditionalMobileBottomNav />
-            </LayoutShell>
-          </ClientProviders>
-        </Suspense>
+        <ClientProviders>
+          <LayoutShell>
+            <ConditionalHeader />
+            <main className="flex-1 w-full">
+              <MobileStorefrontChrome>{children}</MobileStorefrontChrome>
+            </main>
+            <ConditionalFooter />
+            <ConditionalMobileBottomNav />
+          </LayoutShell>
+        </ClientProviders>
       </body>
     </html>
   );

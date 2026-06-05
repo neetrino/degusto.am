@@ -3,7 +3,7 @@ import {
   readCartSummaryCache,
   writeCartSummaryCache,
 } from '../cartSummaryCache';
-import type { CartAddSnapshot } from './optimistic-cart-add';
+import type { CartAddSnapshot, CartLineConfirmation } from './optimistic-cart-add';
 
 export interface CartUpdatedDetail {
   itemsCount?: number;
@@ -17,6 +17,8 @@ export interface CartUpdatedDetail {
   };
   /** Minimal product snapshot for instant drawer updates before API confirms. */
   addedItem?: CartAddSnapshot;
+  /** Server row after POST /cart/items — replaces optimistic line ids in drawer state. */
+  confirmedLine?: CartLineConfirmation;
 }
 
 export type { CartAddSnapshot };
@@ -56,6 +58,7 @@ export function publishOptimisticCartAdd(snapshot: CartAddSnapshot): void {
         addedItem: snapshot,
         itemsCount: nextCount,
         total: nextTotal,
+        skipReconcile: true,
       },
     })
   );
@@ -85,6 +88,24 @@ export function resetCartBadgeState(): void {
   }
   clearCartSummaryCache();
   publishCartUpdated(0, 0, { skipReconcile: true });
+}
+
+/** Replace optimistic drawer line with the persisted cart item (no full refetch). */
+export function publishCartLineConfirmed(
+  confirmation: CartLineConfirmation,
+  summary: { itemsCount: number; total: number }
+): void {
+  writeCartSummaryCache(summary.itemsCount, summary.total);
+  window.dispatchEvent(
+    new CustomEvent<CartUpdatedDetail>('cart-updated', {
+      detail: {
+        confirmedLine: confirmation,
+        itemsCount: summary.itemsCount,
+        total: summary.total,
+        skipReconcile: true,
+      },
+    })
+  );
 }
 
 /** Request a full cart reload (e.g. after API error recovery). */

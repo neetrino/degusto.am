@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { BodyBackground } from '../../../components/BodyBackground';
 import { resetCartBadgeState } from '../../../lib/cart/cart-events';
@@ -9,7 +9,7 @@ import { useTranslation } from '../../../lib/i18n-client';
 import { formatOrderNumber } from '@/lib/orders/format-order-number';
 import { CHECKOUT_OUTLINE_BUTTON, CHECKOUT_PRIMARY_BUTTON, CHECKOUT_TEXT_INK_MUTED, CHECKOUT_TEXT_INK_TERTIARY } from '../checkout-ui';
 
-export default function CheckoutSuccessPage() {
+function CheckoutSuccessContent() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
   const orderNumber = searchParams.get('order');
@@ -45,5 +45,24 @@ export default function CheckoutSuccessPage() {
         </div>
       </div>
     </>
+  );
+}
+
+function CheckoutSuccessFallback() {
+  return (
+    <>
+      <BodyBackground color="#ffffff" />
+      <div className="mx-auto flex min-h-[60vh] max-w-2xl flex-col items-center justify-center px-4 py-12 text-center">
+        <div className="h-8 w-48 animate-pulse rounded bg-gray-100" aria-hidden />
+      </div>
+    </>
+  );
+}
+
+export default function CheckoutSuccessPage() {
+  return (
+    <Suspense fallback={<CheckoutSuccessFallback />}>
+      <CheckoutSuccessContent />
+    </Suspense>
   );
 }

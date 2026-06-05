@@ -120,3 +120,72 @@ export function applyOptimisticCartAdd(
 export function snapshotFromCartDetail(detail: CartUpdatedDetail): CartAddSnapshot | null {
   return detail.addedItem ?? null;
 }
+
+export interface CartLineConfirmation {
+  productId: string;
+  previousVariantId: string;
+  variantId: string;
+  customizations?: ProductCustomizations;
+  serverItemId: string;
+  quantity: number;
+  price: number;
+}
+
+function findConfirmedLineIndex(
+  items: CartItem[],
+  confirmation: CartLineConfirmation
+): number {
+  const normalizedCustomizations = normalizeProductCustomizations(confirmation.customizations);
+  const previousLineKey = buildCustomizationLineKey(
+    confirmation.previousVariantId,
+    normalizedCustomizations
+  );
+  const optimisticId = `${confirmation.productId}:${previousLineKey}`;
+
+  return items.findIndex(
+    (item) =>
+      item.id === optimisticId ||
+      (item.variant.product.id === confirmation.productId &&
+        buildCustomizationLineKey(item.variant.id, item.customizations) === previousLineKey)
+  );
+}
+
+/** Swap optimistic cart line ids with the server row after POST /cart/items succeeds. */
+export function confirmOptimisticCartLine(
+  cart: Cart | null,
+  confirmation: CartLineConfirmation
+): Cart | null {
+  if (!cart) {
+    return cart;
+  }
+
+  const itemIndex = findConfirmedLineIndex(cart.items, confirmation);
+  if (itemIndex < 0) {
+    return cart;
+  }
+
+  const nextItems = cart.items.map((item, index) => {
+    if (index !== itemIndex) {
+      return item;
+    }
+    return {
+      ...item,
+      id: confirmation.serverItemId,
+      quantity: confirmation.quantity,
+      price: confirmation.price,
+      total: confirmation.price * confirmation.quantity,
+      variant: {
+        ...item.variant,
+        id: confirmation.variantId,
+      },
+    };
+  });
+
+  const itemsCount = nextItems.reduce((sum, item) => sum + item.quantity, 0);
+  return {
+    ...cart,
+    items: nextItems,
+    itemsCount,
+    totals: recalculateCartTotals(nextItems),
+  };
+}
