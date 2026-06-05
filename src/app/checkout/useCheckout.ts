@@ -24,7 +24,6 @@ export function useCheckout() {
   const [error, setError] = useState<string | null>(null);
   const [currency, setCurrency] = useState(getStoredCurrency());
   const [language, setLanguage] = useState(getStoredLanguage());
-  const [logoErrors, setLogoErrors] = useState<Record<string, boolean>>({});
   const [showShippingModal, setShowShippingModal] = useState(false);
   const [showCardModal, setShowCardModal] = useState(false);
   const [checkoutCouponDiscountUsd, setCheckoutCouponDiscountUsd] = useState(0);
@@ -214,8 +213,6 @@ export function useCheckout() {
     error,
     setError,
     currency,
-    logoErrors,
-    setLogoErrors,
     showShippingModal,
     setShowShippingModal,
     showCardModal,

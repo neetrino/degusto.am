@@ -113,16 +113,6 @@ export function ShippingAddressModal({
               <h3 className="mb-4 text-lg font-semibold text-[#1F2E1F]">{t('checkout.shippingAddress')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Input
-                    label={t('checkout.form.address')}
-                    type="text"
-                    placeholder={t('checkout.placeholders.address')}
-                    {...register('shippingAddress')}
-                    error={errors.shippingAddress?.message}
-                    disabled={isSubmitting}
-                  />
-                </div>
-                <div>
                   <label htmlFor="shippingCityModal" className="mb-1 block text-sm font-medium text-[#1F2E1F]">
                     {t('checkout.form.city')}
                   </label>
@@ -142,6 +132,16 @@ export function ShippingAddressModal({
                   {errors.shippingCity?.message ? (
                     <p className="mt-1 text-sm text-red-600">{errors.shippingCity.message}</p>
                   ) : null}
+                </div>
+                <div>
+                  <Input
+                    label={t('checkout.form.address')}
+                    type="text"
+                    placeholder={t('checkout.placeholders.address')}
+                    {...register('shippingAddress')}
+                    error={errors.shippingAddress?.message}
+                    disabled={isSubmitting}
+                  />
                 </div>
               </div>
             </div>

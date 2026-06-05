@@ -42,3 +42,13 @@ export const CHECKOUT_PAGE_TITLE = 'text-3xl font-bold text-[#1F2E1F]';
 
 /** Tertiary / fine print. */
 export const CHECKOUT_TEXT_INK_TERTIARY = 'text-sm text-[#1F2E1F]/55';
+
+/** Borbor-style payment row shell. */
+export const CHECKOUT_PAYMENT_OPTION =
+  'flex min-h-[3.75rem] cursor-pointer items-center gap-4 rounded-full border bg-white px-5 py-3.5 transition-all';
+
+export const CHECKOUT_PAYMENT_OPTION_SELECTED =
+  'border-[#F66812] bg-[#FFF7F0] shadow-sm ring-1 ring-[#F66812]/15';
+
+export const CHECKOUT_PAYMENT_OPTION_IDLE =
+  'border-[#E6EBF0] hover:border-[#F66812]/30 hover:bg-[#FFFBF8]';

@@ -19,8 +19,6 @@ export default function CheckoutPage() {
     error,
     setError,
     currency,
-    logoErrors,
-    setLogoErrors,
     showShippingModal,
     setShowShippingModal,
     showCardModal,
@@ -105,8 +103,6 @@ export default function CheckoutPage() {
             shippingMethod={shippingMethod}
             paymentMethod={paymentMethod}
             paymentMethods={paymentMethods}
-            logoErrors={logoErrors}
-            setLogoErrors={setLogoErrors}
             error={error}
             setError={setError}
             currency={currency}
@@ -161,8 +157,6 @@ export default function CheckoutPage() {
         deliveryPrice={deliveryPrice}
         bagFee={bagFee}
         deliveryUnavailable={deliveryUnavailable}
-        logoErrors={logoErrors}
-        setLogoErrors={setLogoErrors}
         isLoggedIn={isLoggedIn}
         onSubmit={onSubmit}
       />

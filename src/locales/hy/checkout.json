@@ -50,10 +50,13 @@
   },
   "payment": {
     "cashOnDelivery": "Կանխիկ առաքման ժամանակ",
+    "cashOnDeliveryShort": "Կանխիկ",
     "cashOnDeliveryDescription": "Վճարեք կանխիկ, երբ ստանաք ձեր պատվերը",
     "idram": "Idram",
+    "idramShort": "Idram",
     "idramDescription": "Վճարեք Idram դրամապանակով կամ քարտով",
     "arca": "Քարտով",
+    "arcaShort": "Քարտով",
     "arcaDescription": "Վճարեք Visa, Mastercard, ArCa քարտով",
     "paymentDetails": "Վճարման մանրամասներ",
     "enterCardDetails": "Մուտքագրեք ձեր քարտի տվյալները՝ վճարումն ավարտելու համար"
