@@ -3,6 +3,7 @@
 import { useTranslation } from '../../../../lib/i18n-client';
 import { Card } from '@shop/ui';
 import { convertPrice, formatPriceInCurrency, type CurrencyCode } from '../../../../lib/currency';
+import { formatOrderNumber } from '@/lib/orders/format-order-number';
 import type { OrderDetails } from '../useOrders';
 
 interface OrderDetailsSummaryProps {
@@ -25,7 +26,8 @@ export function OrderDetailsSummary({
           <h3 className="text-sm font-semibold text-gray-900 mb-2">{t('admin.orders.orderDetails.summary')}</h3>
           <div className="text-sm text-gray-700 space-y-1">
             <div>
-              <span className="font-medium">{t('admin.orders.orderDetails.orderNumber')}</span> {orderDetails.number}
+              <span className="font-medium">{t('admin.orders.orderDetails.orderNumber')}</span>{' '}
+              {formatOrderNumber(orderDetails.number)}
             </div>
             <div>
               <span className="font-medium">{t('admin.orders.orderDetails.total')}</span>{' '}

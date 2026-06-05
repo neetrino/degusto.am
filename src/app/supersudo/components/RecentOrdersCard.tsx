@@ -2,6 +2,7 @@
 
 import { Card, Button } from '@shop/ui';
 import { useRouter } from 'next/navigation';
+import { formatOrderNumber } from '@/lib/orders/format-order-number';
 import { useTranslation } from '../../../lib/i18n-client';
 import { formatCurrency, formatDate } from '../utils/dashboardUtils';
 
@@ -72,7 +73,7 @@ export function RecentOrdersCard({ recentOrders, recentOrdersLoading }: RecentOr
                   </div>
                   <div>
                     <div className="mb-1 flex items-center gap-2">
-                      <p className="text-sm font-semibold text-[#1f2c24]">#{order.number}</p>
+                      <p className="text-sm font-semibold text-[#1f2c24]">{formatOrderNumber(order.number)}</p>
                       <span
                         className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                           order.paymentStatus === 'paid'

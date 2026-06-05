@@ -3,6 +3,7 @@
 import { useTranslation } from '../../../../lib/i18n-client';
 import { Card } from '@shop/ui';
 import { CurrencyCode } from '../../../../lib/currency';
+import { formatPaymentMethodLabel } from '@/lib/orders/payment-method-label';
 import type { OrderDetails } from '../useOrders';
 
 interface OrderDetailsAddressesProps {
@@ -74,7 +75,11 @@ export function OrderDetailsAddresses({ orderDetails, formatCurrency }: OrderDet
         <h3 className="text-sm font-semibold text-gray-900 mb-2">{t('admin.orders.orderDetails.paymentInfo')}</h3>
         {orderDetails.payment ? (
           <div className="text-sm text-gray-700 space-y-1">
-            {orderDetails.payment.method && <div>{t('admin.orders.orderDetails.method')} {orderDetails.payment.method}</div>}
+            {orderDetails.payment.method && (
+              <div>
+                {t('admin.orders.orderDetails.method')} {formatPaymentMethodLabel(orderDetails.payment.method)}
+              </div>
+            )}
             <div>
               {t('admin.orders.orderDetails.amount')}{' '}
               {formatCurrency(orderDetails.payment.amount, orderDetails.payment.currency || 'AMD', 'AMD')}

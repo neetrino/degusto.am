@@ -4,6 +4,7 @@ import { useTranslation } from '../../../lib/i18n-client';
 import { convertPrice, CurrencyCode } from '../../../lib/currency';
 import { getPaymentStatusColor, getStatusColor } from '../../supersudo/orders/utils/orderUtils';
 import type { Order } from '../../supersudo/orders/useOrders';
+import { formatOrderNumber } from '@/lib/orders/format-order-number';
 import { ADMIN_MOBILE_CARD_CLASS, ADMIN_MOBILE_FIELD_CLASS } from './admin-mobile-ui';
 
 type AdminMobileOrderCardProps = {
@@ -50,7 +51,7 @@ export function AdminMobileOrderCard({
         <div className="flex items-start gap-3">
           <div className="min-w-0 flex-1">
             <div className="mb-1 flex flex-wrap items-center gap-2">
-              <span className="text-sm font-bold text-gray-900">#{order.number}</span>
+              <span className="text-sm font-bold text-gray-900">{formatOrderNumber(order.number)}</span>
               <span
                 className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${getStatusColor(order.status)}`}
               >

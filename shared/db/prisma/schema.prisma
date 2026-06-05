@@ -539,3 +539,10 @@ model ContactMessage {
   @@index([email])
   @@map("contact_messages")
 }
+
+model OrderNumberCounter {
+  id    Int @id @default(1)
+  value Int
+
+  @@map("order_number_counter")
+}

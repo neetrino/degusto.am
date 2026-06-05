@@ -7,6 +7,7 @@ import { OrderDetailsAddresses } from './OrderDetailsAddresses';
 import { OrderDetailsTotals } from './OrderDetailsTotals';
 import { OrderDetailsItems } from './OrderDetailsItems';
 import type { OrderDetails } from '../useOrders';
+import { formatOrderNumber } from '@/lib/orders/format-order-number';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 interface OrderDetailsModalProps {
@@ -43,7 +44,7 @@ export function OrderDetailsModal({
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white p-4 sm:p-6">
           <h2 className="text-lg font-bold text-gray-900 sm:text-2xl">
-            {t('admin.orders.orderDetails.title')} #{orderDetails.number}
+            {t('admin.orders.orderDetails.title')} {formatOrderNumber(orderDetails.number)}
           </h2>
           <button
             onClick={onClose}
