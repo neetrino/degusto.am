@@ -24,9 +24,11 @@ import { HomeOptimizedImage } from './HomeOptimizedImage';
 import { StorefrontProductOverlayLink } from './StorefrontProductOverlayLink';
 import { usePrefetchProductWhenVisible } from '../hooks/usePrefetchProductWhenVisible';
 import { prefetchProductRoute } from '@/lib/products/prefetch-product-route';
-import { PRODUCT_CARD_INTERACTIVE_Z_CLASS } from '@/constants/product-card-stacking';
 import { shouldShowMenuCardStrikethroughPrice } from '@/lib/storefront/menu-card-pricing';
 import type { MenuCard } from './menu-types';
+
+/** Above storefront overlay link — must not include `relative` (breaks `absolute` positioning). */
+const MOBILE_PRODUCT_CARD_ACTION_Z_CLASS = 'z-20';
 
 /** Figma mobile product card (1:2235) — compact price typography. */
 function getShopMobileProductCardPriceSizeClass(formattedPrice: string): string {
@@ -123,37 +125,38 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
     >
       <div
         data-product-fly-origin
-        className="absolute left-1 right-1 top-[5px] h-[143px] overflow-hidden rounded-[18px] relative"
+        className="absolute left-1 right-1 top-[5px] h-[143px]"
       >
-        <HomeOptimizedImage
-          src={imageSrc}
-          alt={title}
-          fill
-          className="object-cover"
-          loading="lazy"
-          sizes="50vw"
-        />
+        <div className="relative h-full w-full overflow-hidden rounded-[18px]">
+          <HomeOptimizedImage
+            src={imageSrc}
+            alt={title}
+            fill
+            className="object-cover"
+            loading="lazy"
+            sizes="50vw"
+          />
+          <button
+            type="button"
+            onClick={handleWishlistToggle}
+            className={`absolute right-1.5 top-1.5 ${MOBILE_PRODUCT_CARD_ACTION_Z_CLASS} flex h-8 w-8 items-center justify-center rounded-full border shadow-md ${PRODUCT_CARD_ICON_BTN_INTERACTION_CLASS} ${getProductCardWishlistHoverClasses(isInWishlist)} ${
+              isInWishlist
+                ? 'border-red-600 bg-red-600 text-white'
+                : 'border-[#dedede]/90 bg-white/95 text-gray-700'
+            }`}
+            title={
+              isInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')
+            }
+            aria-label={
+              isInWishlist ? t('common.ariaLabels.removeFromWishlist') : t('common.ariaLabels.addToWishlist')
+            }
+          >
+            <span className={PRODUCT_CARD_WISHLIST_ICON_HOVER_CLASS} aria-hidden>
+              <WishlistHeartIcon filled={isInWishlist} size={16} />
+            </span>
+          </button>
+        </div>
       </div>
-
-      <button
-        type="button"
-        onClick={handleWishlistToggle}
-        className={`absolute right-2 top-2 ${PRODUCT_CARD_INTERACTIVE_Z_CLASS} flex h-8 w-8 items-center justify-center rounded-full border shadow-md ${PRODUCT_CARD_ICON_BTN_INTERACTION_CLASS} ${getProductCardWishlistHoverClasses(isInWishlist)} ${
-          isInWishlist
-            ? 'border-red-600 bg-red-600 text-white'
-            : 'border-[#dedede]/90 bg-white/95 text-gray-700'
-        }`}
-        title={
-          isInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')
-        }
-        aria-label={
-          isInWishlist ? t('common.ariaLabels.removeFromWishlist') : t('common.ariaLabels.addToWishlist')
-        }
-      >
-        <span className={PRODUCT_CARD_WISHLIST_ICON_HOVER_CLASS} aria-hidden>
-          <WishlistHeartIcon filled={isInWishlist} size={16} />
-        </span>
-      </button>
 
       {supportsSpicy ? (
         <div className="absolute left-[9px] top-[11px] flex h-[22px] w-[22px] items-center justify-center rounded-full bg-[#ff2b2e]">
@@ -190,7 +193,7 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
         <p className="text-sm font-medium leading-none text-[rgba(60,47,47,0.62)]">4.7</p>
       </div>
 
-      <div className="absolute left-[9px] top-[172px] w-[118px]">
+      <div className="absolute left-[9px] top-[172px] w-[calc(100%-90px)] pr-1">
         <h3 className="text-sm font-bold leading-[1.15] text-[#3c2f2f]">
           <span className="line-clamp-2">{title}</span>
         </h3>
@@ -205,7 +208,7 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
         </span>
       ) : null}
 
-      <div className="absolute right-2 top-[190px] flex max-w-[76px] flex-col items-end gap-0.5 text-right leading-tight">
+      <div className="absolute right-2 top-[182px] flex max-w-[76px] flex-col items-end gap-0.5 text-right leading-tight">
         <p className={`w-full break-words font-black tabular-nums text-[#3c2f2f] ${priceSizeClass}`}>
           {formattedPrice}
         </p>
@@ -223,7 +226,7 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
         onClick={handleAddToCart}
         disabled={isAddingToCart || card.inStock === false}
         aria-label={t('common.buttons.addToCart')}
-        className={`absolute -bottom-[14px] left-1/2 ${PRODUCT_CARD_INTERACTIVE_Z_CLASS} inline-flex h-[42px] w-[42px] -translate-x-1/2 items-center justify-center disabled:opacity-50 ${PRODUCT_CARD_CART_BTN_HOVER_CLASS}`}
+        className={`absolute bottom-0 left-1/2 ${MOBILE_PRODUCT_CARD_ACTION_Z_CLASS} inline-flex h-[42px] w-[42px] -translate-x-1/2 translate-y-1/2 items-center justify-center disabled:opacity-50 ${PRODUCT_CARD_CART_BTN_HOVER_CLASS}`}
       >
         <HomeOptimizedImage
           src={MOBILE_SHOP_PRODUCT_CARD_ASSETS.addToCart}
