@@ -1,4 +1,4 @@
-import type { FormEvent, InputHTMLAttributes } from 'react';
+import type { ChangeEvent, FormEvent, InputHTMLAttributes } from 'react';
 
 type NativeValidationHandlers = {
   onChange?: InputHTMLAttributes<HTMLInputElement>['onChange'];
@@ -6,7 +6,9 @@ type NativeValidationHandlers = {
 };
 
 /** Clears browser custom validity so the field can re-validate on input. */
-export function clearNativeValidationMessage(event: FormEvent<HTMLInputElement>): void {
+export function clearNativeValidationMessage(
+  event: FormEvent<HTMLInputElement> | ChangeEvent<HTMLInputElement>
+): void {
   event.currentTarget.setCustomValidity('');
 }
 
@@ -26,23 +28,17 @@ export function bindNativeRequiredValidation(
   message: string,
   handlers: NativeValidationHandlers = {}
 ) {
-  const clearAndCall = (
-    event: FormEvent<HTMLInputElement>,
-    next?: NativeValidationHandlers[keyof NativeValidationHandlers]
-  ) => {
-    clearNativeValidationMessage(event);
-    next?.(event);
-  };
-
   return {
     onInvalid: (event: FormEvent<HTMLInputElement>) => {
       setNativeRequiredValidationMessage(event, message);
     },
     onInput: (event: FormEvent<HTMLInputElement>) => {
-      clearAndCall(event, handlers.onInput);
+      clearNativeValidationMessage(event);
+      handlers.onInput?.(event);
     },
-    onChange: (event: FormEvent<HTMLInputElement>) => {
-      clearAndCall(event, handlers.onChange);
+    onChange: (event: ChangeEvent<HTMLInputElement>) => {
+      clearNativeValidationMessage(event);
+      handlers.onChange?.(event);
     },
   };
 }
