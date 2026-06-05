@@ -43,6 +43,7 @@ import {
   UNIVERSAL_HEADER_SEARCH_POPUP_SUBMIT_CLASS,
   UNIVERSAL_HEADER_SEARCH_SUBMIT_CLASS,
   UNIVERSAL_HEADER_SEARCH_SUBMIT_LABEL_CLASS,
+  UNIVERSAL_HEADER_SPACER_HEIGHT_CLASS,
 } from '@/constants/universal-header-layout';
 
 function universalWishlistNavClassName(active: boolean): string {
@@ -383,7 +384,7 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
 
   return (
     <>
-      <div aria-hidden="true" className={`h-[104px] ${spacerBackgroundClassName}`} />
+      <div aria-hidden="true" className={`${UNIVERSAL_HEADER_SPACER_HEIGHT_CLASS} ${spacerBackgroundClassName}`} />
       <header className={UNIVERSAL_HEADER_BAR_CLASS}>
         <BrandLogoLink onDark className="shrink-0" title="Degusto" />
         <nav className={UNIVERSAL_HEADER_NAV_CLASS}>

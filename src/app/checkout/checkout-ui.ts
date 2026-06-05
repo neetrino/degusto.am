@@ -14,9 +14,9 @@ export const CHECKOUT_FORM_COLUMN_CLASS = 'min-w-0 md:col-span-3 lg:col-span-2';
 
 export const CHECKOUT_SUMMARY_COLUMN_CLASS = 'min-w-0 md:col-span-2 lg:col-span-1';
 
-/** Sticky order summary — below UniversalHeader spacer (104px). */
+/** Sticky order summary — below UniversalHeader spacer (92px / 104px). */
 export const CHECKOUT_SUMMARY_PANEL_CLASS =
-  'w-full self-start md:sticky md:top-[104px] lg:top-[116px]';
+  'w-full self-start md:sticky md:top-[92px] lg:top-[104px]';
 
 export const CHECKOUT_SECTION_TITLE_TEXT = 'text-2xl font-bold text-[#1F2E1F]';
 

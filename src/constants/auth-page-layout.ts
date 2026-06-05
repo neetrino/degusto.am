@@ -1,3 +1,5 @@
+import { UNIVERSAL_HEADER_DESKTOP_UNDERLAP_CLASS } from '@/constants/universal-header-layout';
+
 /** Brand orange used on login/register surfaces. */
 export const AUTH_PAGE_BRAND_ORANGE = '#F66812';
 
@@ -7,7 +9,7 @@ export const AUTH_PAGE_BRAND_ORANGE_CLASS = 'bg-[#F66812]';
 export const AUTH_PAGE_SHELL_SURFACE_CLASS = 'bg-white lg:bg-[#F66812]';
 
 /** Desktop universal header spacer offset (login/register only). */
-export const AUTH_PAGE_DESKTOP_HEADER_OFFSET_CLASS = 'lg:-mt-[104px] lg:pt-[104px]';
+export const AUTH_PAGE_DESKTOP_HEADER_OFFSET_CLASS = UNIVERSAL_HEADER_DESKTOP_UNDERLAP_CLASS;
 
 /** Shared auth card treatment for desktop and mobile. */
 export const AUTH_PAGE_CARD_CLASS =
