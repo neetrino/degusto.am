@@ -5,6 +5,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Input } from '@shop/ui';
 import { Eye, EyeOff, LockKeyhole, Mail, Phone, UserRound } from 'lucide-react';
+import { useTranslation } from '../../lib/i18n-client';
+import { bindNativeRequiredValidation } from '@/lib/forms/native-required-validation';
 import {
   AUTH_FORM_CHECKBOX_CLASS,
   AUTH_FORM_CHECKBOX_LABEL_CLASS,
@@ -106,7 +108,11 @@ type AuthFormTextInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'class
 };
 
 export function AuthFormTextInput(props: AuthFormTextInputProps) {
-  const { leadingIcon, ...inputProps } = props;
+  const { t } = useTranslation();
+  const { leadingIcon, required, onChange, onInput, ...inputProps } = props;
+  const nativeValidation = required
+    ? bindNativeRequiredValidation(t('common.validation.requiredField'), { onChange, onInput })
+    : { onChange, onInput };
   const inputType = inputProps.type ?? 'text';
   const icon =
     leadingIcon !== undefined
@@ -124,7 +130,9 @@ export function AuthFormTextInput(props: AuthFormTextInputProps) {
             );
 
   if (!icon) {
-    return <Input {...inputProps} className={AUTH_FORM_INPUT_CLASS} />;
+    return (
+      <Input {...inputProps} required={required} {...nativeValidation} className={AUTH_FORM_INPUT_CLASS} />
+    );
   }
 
   return (
@@ -132,7 +140,12 @@ export function AuthFormTextInput(props: AuthFormTextInputProps) {
       <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#3b5845]/75">
         {icon}
       </span>
-      <Input {...inputProps} className={`${AUTH_FORM_INPUT_CLASS} pl-11`} />
+      <Input
+        {...inputProps}
+        required={required}
+        {...nativeValidation}
+        className={`${AUTH_FORM_INPUT_CLASS} pl-11`}
+      />
     </div>
   );
 }
@@ -144,9 +157,16 @@ type AuthFormPasswordInputProps = Omit<AuthFormTextInputProps, 'type'> & {
 export function AuthFormPasswordInput({
   disabled,
   leadingIcon,
+  required,
+  onChange,
+  onInput,
   ...props
 }: AuthFormPasswordInputProps) {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
+  const nativeValidation = required
+    ? bindNativeRequiredValidation(t('common.validation.requiredField'), { onChange, onInput })
+    : { onChange, onInput };
 
   return (
     <div className="relative">
@@ -157,6 +177,8 @@ export function AuthFormPasswordInput({
       ) : null}
       <Input
         {...props}
+        required={required}
+        {...nativeValidation}
         type={visible ? 'text' : 'password'}
         disabled={disabled}
         className={
@@ -197,7 +219,7 @@ export function AuthFormOptionsRow({
 }: AuthFormOptionsRowProps) {
   return (
     <div className={AUTH_FORM_OPTIONS_ROW_CLASS}>
-      <label className="flex min-w-0 items-center">
+      <label className="flex shrink-0 items-center">
         <input
           type="checkbox"
           checked={rememberChecked}

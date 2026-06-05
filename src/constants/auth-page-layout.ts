@@ -3,6 +3,9 @@ export const AUTH_PAGE_BRAND_ORANGE = '#F66812';
 
 export const AUTH_PAGE_BRAND_ORANGE_CLASS = 'bg-[#F66812]';
 
+/** Login/register shell: white on mobile, brand orange hero on desktop. */
+export const AUTH_PAGE_SHELL_SURFACE_CLASS = 'bg-white lg:bg-[#F66812]';
+
 /** Desktop universal header spacer offset (login/register only). */
 export const AUTH_PAGE_DESKTOP_HEADER_OFFSET_CLASS = 'lg:-mt-[104px] lg:pt-[104px]';
 
@@ -60,7 +63,8 @@ export const AUTH_FORM_OPTIONS_ROW_CLASS =
 export const AUTH_FORM_CHECKBOX_CLASS =
   'h-[18px] w-[18px] shrink-0 rounded border-[#cfbc9f] text-[#f66812] focus:ring-[#f66812]/25';
 
-export const AUTH_FORM_CHECKBOX_LABEL_CLASS = 'ml-2.5 text-sm leading-none text-[#274531]';
+export const AUTH_FORM_CHECKBOX_LABEL_CLASS =
+  'ml-2.5 shrink-0 whitespace-nowrap text-sm leading-none text-[#274531]';
 
 export const AUTH_FORM_LINK_CLASS =
   'shrink-0 text-sm font-semibold text-[#f66812] transition-opacity hover:underline active:opacity-80';
