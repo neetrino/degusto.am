@@ -24,6 +24,7 @@ export type CartDrawerContextValue = {
   cart: Cart | null;
   setCart: Dispatch<SetStateAction<Cart | null>>;
   cartLoading: boolean;
+  isCartResolved: boolean;
   setCartLoading: Dispatch<SetStateAction<boolean>>;
   reloadCart: (options?: { silent?: boolean }) => Promise<void>;
   scheduleReconcile: () => void;
@@ -48,6 +49,7 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
     cart,
     setCart,
     cartLoading,
+    isCartResolved,
     setCartLoading,
     reloadCart,
     scheduleReconcile,
@@ -79,6 +81,7 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
       cart,
       setCart,
       cartLoading,
+      isCartResolved,
       setCartLoading,
       reloadCart,
       scheduleReconcile,
@@ -88,6 +91,7 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
       cartLoading,
       closeCartDrawer,
       isCartDrawerOpen,
+      isCartResolved,
       openCartDrawer,
       reloadCart,
       scheduleReconcile,

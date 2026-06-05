@@ -23,12 +23,7 @@ import { CompareIcon } from './icons/CompareIcon';
 import { WishlistHeaderHeartIcon } from './icons/WishlistHeaderHeartIcon';
 import { BrandLogoLink } from './BrandLogoLink';
 import { CartIcon } from './icons/CartIcon';
-import { readCartSummaryCache, writeCartSummaryCache, clearCartSummaryCache } from '../lib/cartSummaryCache';
-import {
-  applyCartBadgeFromDetail,
-  parseCartUpdatedDetail,
-  resetCartBadgeState,
-} from '@/lib/cart/cart-events';
+import { useCartBadgeDisplay } from './hooks/useCartBadgeDisplay';
 import { useCartDrawer } from './cart-drawer/cart-drawer-context';
 import { SITE_CONTACT_PHONES } from '../lib/site-contact';
 import { navigateToProductPage, prefetchProductRoute } from '@/lib/products/prefetch-product-route';
@@ -235,8 +230,7 @@ export function Header() {
   const { t } = useTranslation();
   const [compareCount, setCompareCount] = useState(0);
   const [wishlistCount, setWishlistCount] = useState(0);
-  const [cartCount, setCartCount] = useState(0);
-  const [cartTotal, setCartTotal] = useState(0);
+  const { cartCount, cartTotal } = useCartBadgeDisplay();
   const [showCurrency, setShowCurrency] = useState(false);
   const [showMobileCurrency, setShowMobileCurrency] = useState(false);
   const [searchHoverExpanded, setSearchHoverExpanded] = useState(false);
@@ -320,46 +314,8 @@ export function Header() {
     }
   }, [router, searchResults, searchSelectedIndex]);
 
-  const fetchCart = async () => {
-    try {
-      const response = await apiClient.get<{
-        cart: {
-          itemsCount: number;
-          totals: {
-            total: number;
-          };
-        } | null;
-      }>('/api/v1/cart');
-
-      const itemsCount = response.cart?.itemsCount || 0;
-      const total = response.cart?.totals?.total || 0;
-      if (itemsCount === 0) {
-        resetCartBadgeState();
-        return;
-      }
-      setCartCount(itemsCount);
-      setCartTotal(total);
-      writeCartSummaryCache(itemsCount, total);
-    } catch (error: unknown) {
-      const err = error as { status?: number; statusCode?: number };
-      const status = err?.status ?? err?.statusCode;
-      const isUnauthorized = status === 401;
-      const isServerError = typeof status === 'number' && status >= 500;
-      if (!isUnauthorized && !isServerError) {
-        console.error('Error fetching cart:', error);
-      }
-      resetCartBadgeState();
-    }
-  };
-
   // Load wishlist and compare counts from database
   useEffect(() => {
-    const cached = readCartSummaryCache();
-    if (cached) {
-      setCartCount(cached.itemsCount);
-      setCartTotal(cached.total);
-    }
-
     const refreshBadgeCounts = async () => {
       const [wishlist, compare] = await Promise.all([getWishlistCount(), getCompareCount()]);
       setWishlistCount(wishlist);
@@ -379,39 +335,18 @@ export function Header() {
     };
 
     const handleAuthUpdate = () => {
-      clearCartSummaryCache();
       void refreshBadgeCounts();
-      fetchCart();
-    };
-
-    const handleCartUpdate = (e: Event) => {
-      const detail = parseCartUpdatedDetail(e);
-      const result = applyCartBadgeFromDetail(detail, (itemsCount, total) => {
-        setCartCount(itemsCount);
-        setCartTotal(total);
-        writeCartSummaryCache(itemsCount, total);
-      });
-      if (result === 'force-reload' || result === 'miss') {
-        fetchCart();
-      }
     };
 
     window.addEventListener('wishlist-updated', handleWishlistUpdate);
     window.addEventListener('compare-updated', handleCompareUpdate);
     window.addEventListener('auth-updated', handleAuthUpdate);
-    window.addEventListener('cart-updated', handleCartUpdate);
 
     return () => {
       window.removeEventListener('wishlist-updated', handleWishlistUpdate);
       window.removeEventListener('compare-updated', handleCompareUpdate);
       window.removeEventListener('auth-updated', handleAuthUpdate);
-      window.removeEventListener('cart-updated', handleCartUpdate);
     };
-  }, [isLoggedIn]);
-
-  // Fetch cart when logged in state changes
-  useEffect(() => {
-    fetchCart();
   }, [isLoggedIn]);
 
   // Load currency from localStorage
