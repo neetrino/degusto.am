@@ -7,6 +7,7 @@ import { useAuth } from '../../lib/auth/AuthContext';
 import { useTranslation } from '../../lib/i18n-client';
 import { resolveRegisterApiError } from '../../lib/auth/client-api-error-messages';
 import { logger } from '@/lib/utils/logger';
+import { bindNativeRequiredValidation } from '@/lib/forms/native-required-validation';
 import { AuthPageShell } from '@/components/auth/AuthPageShell';
 import {
   AuthForm,
@@ -178,15 +179,17 @@ export default function RegisterPage() {
               type="checkbox"
               id="terms"
               checked={acceptTerms}
-              onChange={(e) => {
-                setAcceptTerms(e.target.checked);
-                if (e.target.checked && error === t('register.errors.acceptTerms')) {
-                  setError(null);
-                }
-              }}
               className={`mt-0.5 ${authFormLayout.checkbox}`}
               disabled={fieldsDisabled}
               required
+              {...bindNativeRequiredValidation(t('register.errors.mustAcceptTerms'), {
+                onChange: (event) => {
+                  setAcceptTerms(event.target.checked);
+                  if (event.target.checked && error === t('register.errors.acceptTerms')) {
+                    setError(null);
+                  }
+                },
+              })}
             />
             <label htmlFor="terms" className="text-sm leading-relaxed text-[#1F2E1F]">
               {t('register.form.acceptTerms')}{' '}

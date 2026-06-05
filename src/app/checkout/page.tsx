@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Card } from '@shop/ui';
 import { BodyBackground } from '../../components/BodyBackground';
 import { useTranslation } from '../../lib/i18n-client';
-import { CHECKOUT_CARD_FRAME, CHECKOUT_PAGE_TITLE, CHECKOUT_PRIMARY_BUTTON, CHECKOUT_TEXT_INK_MUTED } from './checkout-ui';
+import { CHECKOUT_CARD_FRAME, CHECKOUT_PAGE_GRID_CLASS, CHECKOUT_PAGE_SHELL_CLASS, CHECKOUT_PAGE_TITLE, CHECKOUT_PRIMARY_BUTTON, CHECKOUT_SUMMARY_COLUMN_CLASS, CHECKOUT_TEXT_INK_MUTED } from './checkout-ui';
 import { CheckoutForm } from './CheckoutForm';
 import { CheckoutModals } from './CheckoutModals';
 import { OrderSummary } from './OrderSummary';
@@ -19,8 +19,6 @@ export default function CheckoutPage() {
     error,
     setError,
     currency,
-    logoErrors,
-    setLogoErrors,
     showShippingModal,
     setShowShippingModal,
     showCardModal,
@@ -51,16 +49,16 @@ export default function CheckoutPage() {
     return (
       <>
         <BodyBackground color="#ffffff" />
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+        <div className={CHECKOUT_PAGE_SHELL_CLASS}>
           <div className="animate-pulse">
-            <div className="mb-8 h-9 w-48 rounded-lg bg-[#F66812]/15 lg:mb-10" />
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-              <div className="space-y-4 lg:col-span-2">
+            <div className="mb-8 h-9 w-48 rounded-lg bg-[#F66812]/15 md:mb-10" />
+            <div className={CHECKOUT_PAGE_GRID_CLASS}>
+              <div className="space-y-4 md:col-span-3 lg:col-span-2">
                 <div className="h-40 rounded-2xl bg-[#F66812]/10" />
                 <div className="h-36 rounded-2xl bg-[#F66812]/10" />
                 <div className="h-52 rounded-2xl bg-[#F66812]/10" />
               </div>
-              <div className="h-72 rounded-t-2xl bg-[#F66812]/10" />
+              <div className={`h-72 rounded-t-2xl bg-[#F66812]/10 ${CHECKOUT_SUMMARY_COLUMN_CLASS}`} />
             </div>
           </div>
         </div>
@@ -72,8 +70,8 @@ export default function CheckoutPage() {
     return (
       <>
         <BodyBackground color="#ffffff" />
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-          <h1 className={`mb-6 lg:mb-8 ${CHECKOUT_PAGE_TITLE}`}>{t('checkout.title')}</h1>
+        <div className={CHECKOUT_PAGE_SHELL_CLASS}>
+          <h1 className={`mb-6 md:mb-8 ${CHECKOUT_PAGE_TITLE}`}>{t('checkout.title')}</h1>
           <Card className={`p-6 text-center ${CHECKOUT_CARD_FRAME}`}>
             <p className={`mb-4 ${CHECKOUT_TEXT_INK_MUTED}`}>{t('checkout.errors.cartEmpty')}</p>
             <Link
@@ -91,11 +89,11 @@ export default function CheckoutPage() {
   return (
     <>
       <BodyBackground color="#ffffff" />
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-        <h1 className={`mb-6 lg:mb-8 ${CHECKOUT_PAGE_TITLE}`}>{t('checkout.title')}</h1>
+      <div className={CHECKOUT_PAGE_SHELL_CLASS}>
+        <h1 className={`mb-6 md:mb-8 ${CHECKOUT_PAGE_TITLE}`}>{t('checkout.title')}</h1>
 
       <form onSubmit={handlePlaceOrder}>
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+        <div className={CHECKOUT_PAGE_GRID_CLASS}>
           {/* Checkout Form */}
           <CheckoutForm
             register={register}
@@ -105,8 +103,6 @@ export default function CheckoutPage() {
             shippingMethod={shippingMethod}
             paymentMethod={paymentMethod}
             paymentMethods={paymentMethods}
-            logoErrors={logoErrors}
-            setLogoErrors={setLogoErrors}
             error={error}
             setError={setError}
             currency={currency}
@@ -115,27 +111,29 @@ export default function CheckoutPage() {
           />
 
           {/* Order Summary */}
-          <OrderSummary
-            cart={cart}
-            orderSummary={orderSummary}
-            currency={currency}
-            shippingMethod={shippingMethod}
-            shippingCity={shippingCity}
-            loadingDeliveryPrice={loadingDeliveryPrice}
-            deliveryPrice={deliveryPrice}
-            bagFee={bagFee}
-            deliveryUnavailable={deliveryUnavailable}
-            error={error}
-            isSubmitting={isSubmitting}
-            onPlaceOrder={(e) => {
-              if (e) {
-                handlePlaceOrder(e);
-              } else {
-                handlePlaceOrder({ preventDefault: () => {} } as React.FormEvent);
-              }
-            }}
-            onCouponDiscountUsdChange={setCheckoutCouponDiscountUsd}
-          />
+          <div className={CHECKOUT_SUMMARY_COLUMN_CLASS}>
+            <OrderSummary
+              cart={cart}
+              orderSummary={orderSummary}
+              currency={currency}
+              shippingMethod={shippingMethod}
+              shippingCity={shippingCity}
+              loadingDeliveryPrice={loadingDeliveryPrice}
+              deliveryPrice={deliveryPrice}
+              bagFee={bagFee}
+              deliveryUnavailable={deliveryUnavailable}
+              error={error}
+              isSubmitting={isSubmitting}
+              onPlaceOrder={(e) => {
+                if (e) {
+                  handlePlaceOrder(e);
+                } else {
+                  handlePlaceOrder({ preventDefault: () => {} } as React.FormEvent);
+                }
+              }}
+              onCouponDiscountUsdChange={setCheckoutCouponDiscountUsd}
+            />
+          </div>
         </div>
       </form>
       </div>
@@ -161,8 +159,6 @@ export default function CheckoutPage() {
         deliveryPrice={deliveryPrice}
         bagFee={bagFee}
         deliveryUnavailable={deliveryUnavailable}
-        logoErrors={logoErrors}
-        setLogoErrors={setLogoErrors}
         isLoggedIn={isLoggedIn}
         onSubmit={onSubmit}
       />

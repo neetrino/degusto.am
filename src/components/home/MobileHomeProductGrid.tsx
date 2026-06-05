@@ -2,6 +2,7 @@
 
 import type { HomeFeaturedProduct } from './home-page-types';
 import { homeFeaturedProductToMenuCard } from './home-mobile-helpers';
+import { MOBILE_SHOP_PRODUCTS_GRID_CLASS } from '@/constants/mobile-figma-storefront';
 import { ShopMobileProductCard } from './ShopMobileProductCard';
 
 type MobileHomeProductGridProps = {
@@ -14,7 +15,7 @@ export function MobileHomeProductGrid({ products }: MobileHomeProductGridProps) 
   }
 
   return (
-    <div className="grid grid-cols-2 gap-x-[14px] gap-y-[22px]">
+    <div className={MOBILE_SHOP_PRODUCTS_GRID_CLASS}>
       {products.map((product) => (
         <ShopMobileProductCard key={product.id} card={homeFeaturedProductToMenuCard(product)} />
       ))}

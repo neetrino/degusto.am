@@ -7,6 +7,7 @@ import type { FormEvent, ChangeEvent } from 'react';
 import { useTranslation } from '../../lib/i18n-client';
 import { apiClient } from '../../lib/api-client';
 import { SITE_CONTACT_EMAIL, SITE_CONTACT_PHONES } from '../../lib/site-contact';
+import { STOREFRONT_PAGE_CONTAINER_CLASS } from '@/constants/storefront-desktop-layout';
 
 // Icons
 const PhoneIcon = () => (
@@ -124,7 +125,7 @@ export default function ContactPage() {
   return (
     <div className="bg-white">
       {/* Top Section: Contact Info and Form */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className={`${STOREFRONT_PAGE_CONTAINER_CLASS} py-12`}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Left Side: Contact Information */}
           <div className="space-y-8">

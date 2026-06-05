@@ -10,6 +10,8 @@ import type { CartListAppearance } from './constants';
 import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 import { getEffectiveMaxQuantity, isUnlimitedStock } from '@/lib/product-stock';
 import { useCartDrawer } from '@/components/cart-drawer/cart-drawer-context';
+import { useTranslation } from '@/lib/i18n-client';
+import { formatPdpExclusionsDisplayList } from '@/app/products/[slug]/utils/pdp-customization-selection';
 
 type DisplayLine = NonNullable<CartItem['variant']['displayLines']>[number];
 
@@ -160,6 +162,7 @@ export function CartItemRow({
   t,
   appearance = 'page',
 }: CartItemRowProps) {
+  const { lang } = useTranslation();
   const currencyCode = currency as CurrencyCode;
   const lines = item.variant.displayLines ?? [];
   const isDrawer = appearance === 'drawer';
@@ -211,7 +214,7 @@ export function CartItemRow({
                   <span className={`font-medium ${isDrawer ? 'text-white' : 'text-gray-700'}`}>
                     {t('product.exclusionsLabel')}:
                   </span>{' '}
-                  {item.customizations.exclusions}
+                  {formatPdpExclusionsDisplayList(lang, item.customizations.exclusions)}
                 </li>
               ) : null}
             </ul>

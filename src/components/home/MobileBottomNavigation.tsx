@@ -213,6 +213,20 @@ function MobileBottomNavigationLinks({
             </button>
           );
         }
+        if (cell.id === 'home' && active) {
+          return (
+            <button
+              key={cell.id}
+              type="button"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className={mergeActiveClass(cell.rowClass, active)}
+              aria-current="page"
+              aria-label="Home"
+            >
+              {cell.render({ ...renderContext, active })}
+            </button>
+          );
+        }
         const favoritesLabel =
           cell.id === 'favorites' && wishlistCount > 0
             ? `Favorites, ${wishlistCount}`

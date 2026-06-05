@@ -31,6 +31,7 @@ import { HomeDailyOfferHeroCard } from './HomeDailyOfferHeroCard';
 import { StorefrontCategoryLink } from '../routing/StorefrontCategoryLink';
 import { resolveHomeDailyOfferProduct } from './home-daily-offer';
 import type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
+import { STOREFRONT_DESKTOP_SECTION_CLASS } from '@/constants/storefront-desktop-layout';
 
 export type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
 
@@ -228,8 +229,8 @@ export function FigmaHomePage({
   const heroProduct = resolveHomeDailyOfferProduct(featuredProducts, dailyOfferProduct);
 
   return (
-    <div className="hidden min-h-screen overflow-x-hidden bg-[var(--project-color)] lg:block">
-      <section className="relative w-full overflow-hidden bg-[var(--project-color)] pb-56 pt-8 lg:h-[930px] lg:pb-0 lg:[aspect-ratio:231/130]">
+    <div className="hidden min-h-screen w-full overflow-x-clip bg-[var(--project-color)] lg:block">
+      <section className="relative w-full overflow-x-clip bg-[var(--project-color)] pb-56 pt-8 lg:min-h-[680px] lg:overflow-y-visible lg:pb-0 lg:pt-8 xl:min-h-[780px] 2xl:min-h-[930px]">
         <div
           className={`pointer-events-none absolute inset-x-0 ${HOME_DESKTOP_HERO_BG_TOP_CLASS} z-0 h-[900px] w-full lg:h-full`}
         >
@@ -238,7 +239,7 @@ export function FigmaHomePage({
             src={assets.heroBg}
             alt="Degusto hero"
             fill
-            className="object-contain object-top"
+            className="object-cover object-top lg:object-cover xl:object-contain xl:object-top"
             priority
             loading="eager"
             sizes="100vw"
@@ -249,7 +250,7 @@ export function FigmaHomePage({
         <UniversalHeader spacerBackgroundClassName="bg-[#F66812]" />
 
         {heroProduct ? (
-          <div className="relative z-20 mx-auto mt-14 w-full max-w-[1450px] px-4 lg:mt-16 lg:px-6">
+          <div className={`relative z-20 mt-14 w-full overflow-visible lg:mt-16 ${STOREFRONT_DESKTOP_SECTION_CLASS}`}>
             <HomeDailyOfferHeroCard
               product={heroProduct}
               offerBadgeSrc={assets.offerBadge}
@@ -262,35 +263,31 @@ export function FigmaHomePage({
         ) : null}
       </section>
 
-      <section className="h-[700px] w-full rounded-t-[40px] bg-[#0c0d12] pb-14 pt-6">
-        <div className="w-full px-4 md:px-8 ">
-          <div className="flex items-center justify-between">
+      <section className="min-h-[520px] w-full rounded-t-[40px] bg-[#0c0d12] pb-14 pt-6 lg:min-h-[640px] xl:min-h-[700px]">
+        <div className={STOREFRONT_DESKTOP_SECTION_CLASS}>
+          <div className="flex flex-col gap-6 pt-[70px] sm:flex-row sm:items-end sm:justify-between">
             <h2
-              className={`translate-x-[70px] translate-y-[70px] text-4xl font-black text-white md:text-6xl${
+              className={`text-4xl font-black text-white md:text-6xl${
                 lang === 'hy' ? ` ${mirageExpandedFont.className}` : ''
               }`}
             >
               <span className="text-[#f66913]">{t('home.figma.desktop.specialOffersTitleAccent')}</span>
               {t('home.figma.desktop.specialOffersTitleMain')}
             </h2>
-            <ViewMoreButton
-              href="/shop"
-              size="lg"
-              className="translate-x-[-115px] translate-y-[70px] shrink-0"
-            >
+            <ViewMoreButton href="/shop" size="lg" className="shrink-0">
               {t('home.figma.desktop.moreButton')} →
             </ViewMoreButton>
           </div>
           {specialOfferProducts.length > 0 ? (
-            <div className="mt-[150px] overflow-x-auto pb-8">
-              <div className="mx-auto flex w-max flex-nowrap justify-center gap-[10px]">
+            <div className="mt-20 overflow-x-auto pb-8 scrollbar-hide">
+              <div className="mx-auto flex w-max max-w-full flex-nowrap justify-start gap-[10px] xl:justify-center">
                 {specialOfferProducts.map((item) => (
                   <NewsCard key={item.id} item={item} />
                 ))}
               </div>
             </div>
           ) : (
-            <p className="mt-[150px] text-center text-lg text-white/70">
+            <p className="mt-20 text-center text-lg text-white/70">
               {t('home.featured_products.noProducts')}
             </p>
           )}
@@ -298,8 +295,8 @@ export function FigmaHomePage({
       </section>
 
       <div className="bg-black">
-        <section className={`rounded-t-[40px] px-4 pb-20 pt-10 md:px-8 lg:px-12 ${HOME_DESKTOP_CATEGORY_SURFACE_CLASS}`}>
-          <div className="mx-auto max-w-[1280px]">
+        <section className={`rounded-t-[40px] pb-20 pt-10 ${HOME_DESKTOP_CATEGORY_SURFACE_CLASS}`}>
+          <div className={STOREFRONT_DESKTOP_SECTION_CLASS}>
             <h2
               className={`mb-8 text-5xl font-black text-black md:text-6xl${
                 lang === 'hy' ? ` ${mirageExpandedFont.className}` : ''

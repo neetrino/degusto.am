@@ -32,6 +32,7 @@ import {
 import { useCartDrawer } from './cart-drawer/cart-drawer-context';
 import { SITE_CONTACT_PHONES } from '../lib/site-contact';
 import { navigateToProductPage, prefetchProductRoute } from '@/lib/products/prefetch-product-route';
+import { STOREFRONT_PAGE_CONTAINER_CLASS } from '@/constants/storefront-desktop-layout';
 
 // Navigation links will be translated dynamically using useTranslation hook
 const primaryNavLinks = [
@@ -606,7 +607,7 @@ export function Header() {
           headerScrollVisible ? 'translate-y-0' : '-translate-y-full pointer-events-none'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className={STOREFRONT_PAGE_CONTAINER_CLASS}>
           <div className="flex flex-col gap-3 py-3 text-sm text-gray-700 sm:flex-row sm:items-center sm:justify-between">
             {/* Phone + Social */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
@@ -711,7 +712,7 @@ export function Header() {
           revealHeaderForCartFly ? 'transition-none' : HEADER_TOPBAR_SCROLL_TRANSITION_CLASS
         }`}
       >
-      <div className="max-w-7xl mx-auto pl-2 sm:pl-4 md:pl-6 lg:pl-8 pr-2 sm:pr-4 md:pr-6 lg:pr-8">
+      <div className={STOREFRONT_PAGE_CONTAINER_CLASS}>
         <div className="flex flex-wrap items-center gap-2 sm:gap-4 py-4 md:py-3">
           {/* Logo + Mobile Menu */}
           <div className="relative flex w-full items-center justify-between lg:w-auto lg:justify-start">

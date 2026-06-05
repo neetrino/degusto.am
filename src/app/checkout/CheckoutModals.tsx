@@ -32,8 +32,6 @@ interface CheckoutModalsProps {
   deliveryPrice: number | null;
   bagFee: number;
   deliveryUnavailable: boolean;
-  logoErrors: Record<string, boolean>;
-  setLogoErrors: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
   isLoggedIn: boolean;
   onSubmit: (data: CheckoutFormData) => void;
 }
@@ -59,8 +57,6 @@ export function CheckoutModals({
   deliveryPrice,
   bagFee,
   deliveryUnavailable,
-  logoErrors,
-  setLogoErrors,
   isLoggedIn,
   onSubmit,
 }: CheckoutModalsProps) {
@@ -106,8 +102,6 @@ export function CheckoutModals({
         deliveryPrice={deliveryPrice}
         bagFee={bagFee}
         deliveryUnavailable={deliveryUnavailable}
-        logoErrors={logoErrors}
-        setLogoErrors={setLogoErrors}
         isLoggedIn={isLoggedIn}
         onShowShippingModal={() => setShowShippingModal(true)}
         onSubmit={onSubmit}

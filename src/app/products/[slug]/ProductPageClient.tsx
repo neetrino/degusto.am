@@ -43,12 +43,14 @@ import { useProductClientRefetch } from './hooks/useProductClientRefetch';
 import { useProductReviewSummary } from './hooks/useProductReviewSummary';
 import { usePdpChrome } from './pdp-chrome-context';
 import {
+  PDP_CONTENT_SHELL_CLASS,
   PDP_HERO_FRAME_CLASS,
   PDP_HERO_GRID_CLASS,
   PDP_HERO_IMAGE_OFFSET_CLASS,
   PDP_HERO_INFO_OFFSET_CLASS,
-  STOREFRONT_DESKTOP_CONTENT_CLASS,
+  PDP_MOBILE_HERO_INSET_CLASS,
 } from '@/constants/pdp-figma-tokens';
+import { STOREFRONT_DESKTOP_SECTION_CLASS } from '@/constants/storefront-desktop-layout';
 
 function collectSelectedAttributeValueIdsForCart(
   product: Product,
@@ -94,9 +96,6 @@ function collectSelectedAttributeValueIdsForCart(
 const PDP_BODY_BACKGROUND = '#ffffff';
 const PDP_HEADER_DESKTOP_UNDERLAP_CLASS =
   'lg:relative lg:z-10 lg:-mt-[104px] lg:pt-[104px]';
-
-/** Same horizontal box as UniversalHeader; no extra lg padding so image starts at header left edge. */
-const PDP_CONTENT_SHELL_CLASS = `${STOREFRONT_DESKTOP_CONTENT_CLASS} relative z-10 max-lg:px-4 max-lg:py-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-0 lg:py-10`;
 
 export interface ProductPageClientProps {
   slug: string;
@@ -344,7 +343,7 @@ export function ProductPageClient({
       <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
         <BodyBackground color={PDP_BODY_BACKGROUND} />
         <div className={PDP_HEADER_DESKTOP_UNDERLAP_CLASS}>
-          <div className={`${PDP_HEADER_DESKTOP_UNDERLAP_CLASS} mx-auto max-w-7xl max-lg:px-0 px-4 py-16 text-center space-y-4 lg:max-w-[1450px] lg:px-0`}>
+          <div className={`${PDP_HEADER_DESKTOP_UNDERLAP_CLASS} ${STOREFRONT_DESKTOP_SECTION_CLASS} py-16 text-center space-y-4 max-lg:px-4`}>
             <p className="text-lg text-neutral-600">
               {t(language, 'common.messages.noProductsFound')}
             </p>
@@ -374,10 +373,10 @@ export function ProductPageClient({
     <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
       <BodyBackground color={PDP_BODY_BACKGROUND} />
       <div
-        className={`${PDP_HEADER_DESKTOP_UNDERLAP_CLASS} min-h-dvh overflow-x-hidden bg-white max-lg:min-h-0 lg:min-h-dvh`}
+        className={`${PDP_HEADER_DESKTOP_UNDERLAP_CLASS} min-h-dvh max-lg:overflow-x-visible overflow-x-hidden bg-white max-lg:min-h-0 lg:min-h-dvh`}
       >
         <div className={PDP_CONTENT_SHELL_CLASS}>
-          <section className={`${PDP_HERO_FRAME_CLASS} max-lg:p-4 sm:max-lg:p-6 lg:p-0`}>
+          <section className={`${PDP_HERO_FRAME_CLASS} ${PDP_MOBILE_HERO_INSET_CLASS} lg:p-0`}>
             <div className={PDP_HERO_GRID_CLASS}>
               <div className={PDP_HERO_IMAGE_OFFSET_CLASS}>
                 <ProductImageGallery

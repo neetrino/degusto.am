@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import type { FormEvent } from 'react';
+import { useEffect, useState, useRef, type FormEvent, type KeyboardEvent as ReactKeyboardEvent, type Ref } from 'react';
+import { createPortal } from 'react-dom';
 import { LanguageCurrencySwitcher } from './LanguageCurrencySwitcher';
 import { useTranslation } from '../lib/i18n-client';
 import { useAuth } from '../lib/auth/AuthContext';
@@ -17,13 +17,31 @@ import {
   parseCartUpdatedDetail,
   resetCartBadgeState,
 } from '@/lib/cart/cart-events';
-import { useInstantSearch } from './hooks/useInstantSearch';
+import { useInstantSearch, type InstantSearchResultItem } from './hooks/useInstantSearch';
 import { SearchDropdown } from './SearchDropdown';
 import { useCartDrawer } from './cart-drawer/cart-drawer-context';
 import { WishlistHeaderHeartIcon } from './icons/WishlistHeaderHeartIcon';
 import { BrandLogoLink } from './BrandLogoLink';
 import { HEADER_PUBLIC_ASSETS } from '@/constants/header-public-assets';
 import { navigateToProductPage, prefetchProductRoute } from '@/lib/products/prefetch-product-route';
+import {
+  UNIVERSAL_HEADER_ACTIONS_WRAP_CLASS,
+  UNIVERSAL_HEADER_BAR_CLASS,
+  UNIVERSAL_HEADER_CART_BUTTON_WITH_TOTAL_CLASS,
+  UNIVERSAL_HEADER_CART_TOTAL_PILL_CLASS,
+  UNIVERSAL_HEADER_DROPDOWN_Z_CLASS,
+  UNIVERSAL_HEADER_LANG_SWITCHER_WRAP_CLASS,
+  UNIVERSAL_HEADER_NAV_CLASS,
+  UNIVERSAL_HEADER_SEARCH_FORM_CLASS,
+  UNIVERSAL_HEADER_SEARCH_ICON_BTN_CLASS,
+  UNIVERSAL_HEADER_SEARCH_POPUP_BACKDROP_CLASS,
+  UNIVERSAL_HEADER_SEARCH_POPUP_PANEL_CLASS,
+  UNIVERSAL_HEADER_SEARCH_POPUP_PANEL_Z_CLASS,
+  UNIVERSAL_HEADER_SEARCH_POPUP_Z_CLASS,
+  UNIVERSAL_HEADER_SEARCH_POPUP_SUBMIT_CLASS,
+  UNIVERSAL_HEADER_SEARCH_SUBMIT_CLASS,
+  UNIVERSAL_HEADER_SEARCH_SUBMIT_LABEL_CLASS,
+} from '@/constants/universal-header-layout';
 
 function universalWishlistNavClassName(active: boolean): string {
   const base =
@@ -46,10 +64,115 @@ interface CartResponse {
   };
 }
 
+type UniversalHeaderSearchFormProps = {
+  formClassName: string;
+  searchQuery: string;
+  setSearchQuery: (value: string) => void;
+  searchDropdownOpen: boolean;
+  setSearchDropdownOpen: (open: boolean) => void;
+  searchResults: InstantSearchResultItem[];
+  searchLoading: boolean;
+  searchError: string | null;
+  searchSelectedIndex: number;
+  searchHandleKeyDown: (event: ReactKeyboardEvent<HTMLInputElement>) => void;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  onResultClick: () => void;
+  onCloseDropdown: () => void;
+  dropdownClassName: string;
+  inputRef?: Ref<HTMLInputElement>;
+  submitVariant?: 'inline' | 'popup';
+  t: (key: string) => string;
+};
+
+function UniversalHeaderSearchForm({
+  formClassName,
+  searchQuery,
+  setSearchQuery,
+  searchDropdownOpen,
+  setSearchDropdownOpen,
+  searchResults,
+  searchLoading,
+  searchError,
+  searchSelectedIndex,
+  searchHandleKeyDown,
+  onSubmit,
+  onResultClick,
+  onCloseDropdown,
+  dropdownClassName,
+  inputRef,
+  submitVariant = 'inline',
+  t,
+}: UniversalHeaderSearchFormProps) {
+  const submitClassName =
+    submitVariant === 'popup'
+      ? UNIVERSAL_HEADER_SEARCH_POPUP_SUBMIT_CLASS
+      : UNIVERSAL_HEADER_SEARCH_SUBMIT_CLASS;
+  const submitLabel = t('common.buttons.search');
+
+  return (
+    <form onSubmit={onSubmit} className={formClassName}>
+      <input
+        ref={inputRef}
+        type="text"
+        value={searchQuery}
+        onFocus={() => {
+          if (searchQuery.trim().length >= 1) {
+            setSearchDropdownOpen(true);
+          }
+        }}
+        onBlur={() => {
+          window.setTimeout(() => setSearchDropdownOpen(false), 120);
+        }}
+        onChange={(event) => {
+          const nextValue = event.target.value;
+          setSearchQuery(nextValue);
+          setSearchDropdownOpen(nextValue.trim().length >= 1);
+        }}
+        onKeyDown={searchHandleKeyDown}
+        placeholder={t('common.placeholders.search')}
+        className="h-full min-w-0 flex-1 bg-transparent pl-[14px] pr-2 text-base leading-6 text-[#252525] outline-none placeholder:text-[rgba(105,105,105,0.56)]"
+        aria-label={t('common.ariaLabels.search')}
+        aria-controls="search-results"
+        aria-expanded={searchDropdownOpen && searchResults.length > 0}
+        aria-autocomplete="list"
+      />
+      <button
+        type="submit"
+        className={submitClassName}
+        aria-label={submitVariant === 'popup' ? submitLabel : undefined}
+      >
+        <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center">
+          <img src={HEADER_PUBLIC_ASSETS.searchIcon} alt="" className="h-6 w-6 object-contain brightness-0 invert" />
+        </span>
+        {submitVariant === 'inline' ? (
+          <span className={UNIVERSAL_HEADER_SEARCH_SUBMIT_LABEL_CLASS}>{submitLabel}</span>
+        ) : null}
+      </button>
+      <SearchDropdown
+        results={searchResults}
+        loading={searchLoading}
+        error={searchError}
+        isOpen={searchDropdownOpen}
+        selectedIndex={searchSelectedIndex}
+        query={searchQuery}
+        onResultClick={onResultClick}
+        onClose={onCloseDropdown}
+        onSeeAllClick={onCloseDropdown}
+        className={dropdownClassName}
+      />
+    </form>
+  );
+}
+
 export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: UniversalHeaderProps) {
   const [cartCount, setCartCount] = useState(0);
   const [cartTotal, setCartTotal] = useState(0);
   const [wishlistCount, setWishlistCount] = useState(0);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isSearchPopupOpen, setIsSearchPopupOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const searchPopupInputRef = useRef<HTMLInputElement>(null);
+  const [searchPopupPortalTarget, setSearchPopupPortalTarget] = useState<HTMLElement | null>(null);
   const { openCartDrawer } = useCartDrawer();
   const { t } = useTranslation();
   const { isLoggedIn, isAdmin, logout } = useAuth();
@@ -57,7 +180,6 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const userNavHref = isLoggedIn ? '/profile' : '/login';
   const searchTargetBasePath = pathname?.startsWith('/combo') ? '/combo' : '/shop';
   const isActivePath = (href: string) => pathname === href || pathname?.startsWith(`${href}/`);
   const {
@@ -78,10 +200,61 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
   });
 
   useEffect(() => {
+    setSearchPopupPortalTarget(document.body);
+  }, []);
+
+  useEffect(() => {
     const searchValue = searchParams.get('search')?.trim() || '';
     setSearchQuery(searchValue);
     setSearchDropdownOpen(false);
+    setIsSearchPopupOpen(false);
   }, [searchParams, setSearchQuery, setSearchDropdownOpen]);
+
+  useEffect(() => {
+    if (!isSearchPopupOpen) {
+      return;
+    }
+
+    searchPopupInputRef.current?.focus();
+
+    const handleEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsSearchPopupOpen(false);
+        setSearchDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isSearchPopupOpen, setSearchDropdownOpen]);
+
+  useEffect(() => {
+    if (!isSearchPopupOpen) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isSearchPopupOpen]);
+
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, []);
 
   useEffect(() => {
     const selected = searchResults[searchSelectedIndex];
@@ -95,6 +268,7 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
     const selected = searchSelectedIndex >= 0 ? searchResults[searchSelectedIndex] : null;
     if (selected) {
       navigateToProductPage(router, selected.slug);
+      setIsSearchPopupOpen(false);
       clearSearch();
       return;
     }
@@ -105,6 +279,7 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
       params.set('search', query);
     }
     setSearchDropdownOpen(false);
+    setIsSearchPopupOpen(false);
     const queryString = params.toString();
     router.push(queryString ? `${searchTargetBasePath}?${queryString}` : searchTargetBasePath);
   };
@@ -173,74 +348,71 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
     };
   }, [isLoggedIn]);
 
+  const closeSearchDropdown = () => {
+    setSearchDropdownOpen(false);
+  };
+
+  const handleSearchResultClick = () => {
+    setSearchDropdownOpen(false);
+    setIsSearchPopupOpen(false);
+    clearSearch();
+  };
+
+  const closeSearchPopup = () => {
+    setIsSearchPopupOpen(false);
+    setSearchDropdownOpen(false);
+  };
+
+  const searchFormProps = {
+    searchQuery,
+    setSearchQuery,
+    searchDropdownOpen,
+    setSearchDropdownOpen,
+    searchResults,
+    searchLoading,
+    searchError,
+    searchSelectedIndex,
+    searchHandleKeyDown,
+    onSubmit: handleSearchSubmit,
+    onResultClick: handleSearchResultClick,
+    onCloseDropdown: closeSearchDropdown,
+    t,
+  };
+
   return (
     <>
       <div aria-hidden="true" className={`h-[104px] ${spacerBackgroundClassName}`} />
-      <header className="fixed left-0 right-0 top-6 z-50 mx-auto flex h-20 w-full max-w-[1450px] items-center rounded-[120px] border border-white/10 bg-gradient-to-r from-[#0f1017] to-[#13151d] px-4 shadow-2xl md:px-6 lg:px-7">
+      <header className={UNIVERSAL_HEADER_BAR_CLASS}>
         <BrandLogoLink onDark className="shrink-0" title="Degusto" />
-        <nav className="ml-8 mr-auto hidden items-center gap-[30px] whitespace-nowrap px-4 text-[18px] font-semibold leading-[30px] text-white lg:flex">
+        <nav className={UNIVERSAL_HEADER_NAV_CLASS}>
           <Link href="/" className={`shrink-0 transition-colors ${isActivePath('/') ? 'text-[#ff7f20]' : 'text-white hover:text-[#ffb07a]'}`}>{t('common.navigation.home')}</Link>
           <Link href="/shop" className={`shrink-0 transition-colors ${isActivePath('/shop') ? 'text-[#ff7f20]' : 'text-white hover:text-[#ffb07a]'}`}>{t('common.navigation.shop')}</Link>
           <Link href="/combo" className={`shrink-0 transition-colors ${isActivePath('/combo') ? 'text-[#ff7f20]' : 'text-white hover:text-[#ffb07a]'}`}>{t('common.navigation.combo')}</Link>
           <Link href="/about" className={`shrink-0 transition-colors ${isActivePath('/about') ? 'text-[#ff7f20]' : 'text-white hover:text-[#ffb07a]'}`}>{t('common.navigation.about')}</Link>
         </nav>
-        <form
-          onSubmit={handleSearchSubmit}
-          className="relative ml-auto hidden h-12 w-[237px] items-center rounded-[90px] bg-white p-1 transition-all duration-300 ease-out hover:w-[380px] focus-within:w-[380px] md:flex"
+        <button
+          type="button"
+          className={UNIVERSAL_HEADER_SEARCH_ICON_BTN_CLASS}
+          aria-label={t('common.ariaLabels.search')}
+          onClick={() => {
+            setIsProfileMenuOpen(false);
+            setIsSearchPopupOpen(true);
+          }}
         >
-          <input
-            type="text"
-            value={searchQuery}
-            onFocus={() => {
-              if (searchQuery.trim().length >= 1) {
-                setSearchDropdownOpen(true);
-              }
-            }}
-            onBlur={() => {
-              window.setTimeout(() => setSearchDropdownOpen(false), 120);
-            }}
-            onChange={(event) => {
-              const nextValue = event.target.value;
-              setSearchQuery(nextValue);
-              setSearchDropdownOpen(nextValue.trim().length >= 1);
-            }}
-            onKeyDown={searchHandleKeyDown}
-            placeholder={t('common.placeholders.search')}
-            className="h-full min-w-0 flex-1 bg-transparent pl-[14px] text-base leading-6 text-[#252525] outline-none placeholder:text-[rgba(105,105,105,0.56)]"
-            aria-label={t('common.ariaLabels.search')}
-            aria-controls="search-results"
-            aria-expanded={searchDropdownOpen && searchResults.length > 0}
-            aria-autocomplete="list"
-          />
-          <button type="submit" className="relative ml-auto inline-flex h-10 items-center overflow-hidden rounded-[20px] bg-[#f66812] py-2 pl-10 pr-4">
-            <span className="absolute left-0 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center">
-              <img src={HEADER_PUBLIC_ASSETS.searchIcon} alt="" className="h-6 w-6 object-contain brightness-0 invert" />
-            </span>
-            <span className="text-[15px] font-semibold leading-6 text-white">{t('common.buttons.search')}</span>
-          </button>
-          <SearchDropdown
-            results={searchResults}
-            loading={searchLoading}
-            error={searchError}
-            isOpen={searchDropdownOpen}
-            selectedIndex={searchSelectedIndex}
-            query={searchQuery}
-            onResultClick={() => {
-              setSearchDropdownOpen(false);
-              clearSearch();
-            }}
-            onClose={() => setSearchDropdownOpen(false)}
-            onSeeAllClick={() => setSearchDropdownOpen(false)}
-            className="left-2 right-2 mt-2 rounded-2xl"
-          />
-        </form>
-        <div className="ml-3 flex items-center gap-[11px]">
-          <div className="hidden items-center gap-[7px] md:flex">
+          <img src={HEADER_PUBLIC_ASSETS.searchIcon} alt="" className="h-6 w-6 object-contain brightness-0 invert" />
+        </button>
+        <UniversalHeaderSearchForm
+          {...searchFormProps}
+          formClassName={UNIVERSAL_HEADER_SEARCH_FORM_CLASS}
+          dropdownClassName="left-2 right-2 mt-2 rounded-2xl"
+        />
+        <div className={UNIVERSAL_HEADER_ACTIONS_WRAP_CLASS}>
+          <div className="hidden items-center gap-1.5 md:flex xl:gap-[7px]">
             <button
               type="button"
               onClick={() => openCartDrawer()}
               className={`relative inline-flex h-12 shrink-0 items-center ${
-                cartCount > 0 ? 'min-w-[117px] justify-end pl-10' : 'w-12 justify-center'
+                cartCount > 0 ? UNIVERSAL_HEADER_CART_BUTTON_WITH_TOTAL_CLASS : 'w-12 justify-center'
               }`}
               aria-label={
                 cartCount > 0
@@ -251,7 +423,7 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
               {cartCount > 0 && (
                 <span
                   aria-hidden
-                  className="inline-flex h-12 min-w-[88px] items-center justify-center whitespace-nowrap rounded-[70px] bg-white px-4 text-base font-bold tabular-nums text-black"
+                  className={UNIVERSAL_HEADER_CART_TOTAL_PILL_CLASS}
                 >
                   {formatPrice(cartTotal, currency)}
                 </span>
@@ -303,14 +475,21 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
                 </span>
               )}
             </Link>
+          </div>
+          <div className={UNIVERSAL_HEADER_LANG_SWITCHER_WRAP_CLASS}>
             <LanguageCurrencySwitcher
               variant="desktop"
               iconSrc={HEADER_PUBLIC_ASSETS.switcherIcon}
             />
           </div>
-          <div className="group relative">
-            <Link
-              href={userNavHref}
+          <div ref={profileMenuRef} className="relative shrink-0 overflow-visible">
+            <button
+              type="button"
+              onClick={() => {
+                setIsProfileMenuOpen((open) => !open);
+              }}
+              aria-expanded={isProfileMenuOpen}
+              aria-haspopup="menu"
               className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-black/10 transition-colors hover:ring-[color:var(--project-color)]/40"
             >
               <img
@@ -318,12 +497,14 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
                 alt={isLoggedIn ? 'Profile' : 'Log in'}
                 className="h-9 w-9 translate-x-0.5 -translate-y-0.5 object-contain"
               />
-            </Link>
-            <div className="pointer-events-none absolute right-0 top-full z-50 min-w-[180px] pt-2 opacity-0 transition-opacity duration-150 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
+            </button>
+            {isProfileMenuOpen ? (
+            <div className={`absolute right-0 top-full ${UNIVERSAL_HEADER_DROPDOWN_Z_CLASS} min-w-[180px] pt-2`}>
               <div className="rounded-xl border border-[#e4e6eb] bg-white p-2 shadow-lg">
               {!isLoggedIn ? (
                 <Link
                   href="/login"
+                  onClick={() => setIsProfileMenuOpen(false)}
                   className="block rounded-lg px-3 py-2 text-sm font-medium text-[#252525] transition-colors hover:bg-[#f1f2f4]"
                 >
                   {t('common.navigation.login')}
@@ -332,6 +513,7 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
                 <>
                   <Link
                     href="/profile"
+                    onClick={() => setIsProfileMenuOpen(false)}
                     className="block rounded-lg px-3 py-2 text-sm font-medium text-[#252525] transition-colors hover:bg-[#f1f2f4]"
                   >
                     {t('common.navigation.profile')}
@@ -339,6 +521,7 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
                   {isAdmin ? (
                     <Link
                       href="/supersudo"
+                      onClick={() => setIsProfileMenuOpen(false)}
                       className="block rounded-lg px-3 py-2 text-sm font-medium text-[#252525] transition-colors hover:bg-[#f1f2f4]"
                     >
                       {t('common.navigation.adminPanel')}
@@ -346,7 +529,10 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
                   ) : null}
                   <button
                     type="button"
-                    onClick={logout}
+                    onClick={() => {
+                      setIsProfileMenuOpen(false);
+                      logout();
+                    }}
                     className="block w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-[#252525] transition-colors hover:bg-[#f1f2f4]"
                   >
                     {t('common.navigation.logout')}
@@ -355,9 +541,37 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
               )}
               </div>
             </div>
+            ) : null}
           </div>
         </div>
       </header>
+      {isSearchPopupOpen && searchPopupPortalTarget
+        ? createPortal(
+            <>
+              <div
+                role="presentation"
+                aria-hidden="true"
+                className={`${UNIVERSAL_HEADER_SEARCH_POPUP_BACKDROP_CLASS} ${UNIVERSAL_HEADER_SEARCH_POPUP_Z_CLASS} hidden lg:block xl:hidden`}
+                onClick={closeSearchPopup}
+              />
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-label={t('common.ariaLabels.search')}
+                className={`${UNIVERSAL_HEADER_SEARCH_POPUP_PANEL_CLASS} ${UNIVERSAL_HEADER_SEARCH_POPUP_PANEL_Z_CLASS} hidden lg:block xl:hidden`}
+              >
+                <UniversalHeaderSearchForm
+                  {...searchFormProps}
+                  formClassName="relative flex h-12 w-full items-center overflow-visible rounded-[90px] bg-white p-1 ring-1 ring-[#ececec]"
+                  dropdownClassName="left-0 right-0 mt-2 rounded-2xl shadow-lg"
+                  inputRef={searchPopupInputRef}
+                  submitVariant="popup"
+                />
+              </div>
+            </>,
+            searchPopupPortalTarget
+          )
+        : null}
     </>
   );
 }

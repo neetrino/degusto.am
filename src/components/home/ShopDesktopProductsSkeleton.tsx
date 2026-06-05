@@ -1,7 +1,9 @@
+import { STOREFRONT_DESKTOP_PRODUCT_GRID_CLASS } from '@/constants/storefront-desktop-layout';
+
 /** Desktop shop product grid skeleton while category products load. */
 export function ShopDesktopProductsSkeleton() {
   return (
-    <div className="grid grid-cols-3 gap-x-[30px] gap-y-[48px]" aria-busy="true" aria-hidden>
+    <div className={STOREFRONT_DESKTOP_PRODUCT_GRID_CLASS} aria-busy="true" aria-hidden>
       {Array.from({ length: 6 }, (_, index) => (
         <div
           key={index}

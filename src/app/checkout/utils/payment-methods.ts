@@ -2,11 +2,14 @@ import { useTranslation } from '../../../lib/i18n-client';
 
 export type PaymentMethodId = 'idram' | 'arca' | 'cash_on_delivery';
 
+export type PaymentMethodIconKind = 'cash' | 'idram' | 'cardBrands';
+
 export interface PaymentMethod {
   id: PaymentMethodId;
   name: string;
+  shortName: string;
   description: string;
-  logo: string | null;
+  iconKind: PaymentMethodIconKind;
 }
 
 export function usePaymentMethods(): PaymentMethod[] {
@@ -16,20 +19,23 @@ export function usePaymentMethods(): PaymentMethod[] {
     {
       id: 'cash_on_delivery',
       name: t('checkout.payment.cashOnDelivery'),
+      shortName: t('checkout.payment.cashOnDeliveryShort'),
       description: t('checkout.payment.cashOnDeliveryDescription'),
-      logo: null,
-    },
-    {
-      id: 'idram',
-      name: t('checkout.payment.idram'),
-      description: t('checkout.payment.idramDescription'),
-      logo: '/assets/payments/idram.svg',
+      iconKind: 'cash',
     },
     {
       id: 'arca',
       name: t('checkout.payment.arca'),
+      shortName: t('checkout.payment.arcaShort'),
       description: t('checkout.payment.arcaDescription'),
-      logo: '/assets/payments/arca.svg',
+      iconKind: 'cardBrands',
+    },
+    {
+      id: 'idram',
+      name: t('checkout.payment.idram'),
+      shortName: t('checkout.payment.idramShort'),
+      description: t('checkout.payment.idramDescription'),
+      iconKind: 'idram',
     },
   ];
 }

@@ -33,8 +33,6 @@ interface CardDetailsModalProps {
   deliveryPrice: number | null;
   bagFee: number;
   deliveryUnavailable: boolean;
-  logoErrors: Record<string, boolean>;
-  setLogoErrors: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
   isLoggedIn: boolean;
   onShowShippingModal: () => void;
   onSubmit: (data: CheckoutFormData) => void;
@@ -58,8 +56,6 @@ export function CardDetailsModal({
   deliveryPrice,
   bagFee,
   deliveryUnavailable,
-  logoErrors,
-  setLogoErrors,
   isLoggedIn,
   onShowShippingModal,
   onSubmit,
@@ -78,10 +74,6 @@ export function CardDetailsModal({
         errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
-  };
-
-  const handleLogoError = () => {
-    setLogoErrors((prev) => ({ ...prev, [paymentMethod]: true }));
   };
 
   return (
@@ -114,12 +106,7 @@ export function CardDetailsModal({
 
         <div className="space-y-4 mb-6">
           <div className="flex items-center gap-3 mb-4">
-            <PaymentMethodLogo
-              paymentMethod={paymentMethod}
-              logoErrors={logoErrors}
-              onError={handleLogoError}
-              size="medium"
-            />
+            <PaymentMethodLogo paymentMethod={paymentMethod} />
             <div>
               <div className="font-semibold text-[#1F2E1F]">
                 {paymentMethod === 'arca' ? t('checkout.payment.arca') : t('checkout.payment.idram')} {t('checkout.payment.paymentDetails')}

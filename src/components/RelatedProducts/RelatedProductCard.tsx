@@ -57,6 +57,9 @@ interface RelatedProductCardProps {
   compact?: boolean;
 }
 
+const COMPACT_RELATED_CARD_HEIGHT_CLASS = 'min-h-[268px]';
+const COMPACT_RELATED_CARD_IMAGE_HEIGHT_CLASS = 'h-[130px]';
+
 function resolveCategoryLabel(product: RelatedProduct): string {
   return product.categories?.[0]?.title ?? '';
 }
@@ -139,39 +142,92 @@ export function RelatedProductCard({
             logger.debug('[RelatedProducts] Navigating to product:', product.slug);
           }}
         >
+          {compact ? (
+            <div
+              className={`relative mx-auto flex w-full max-w-[236px] ${COMPACT_RELATED_CARD_HEIGHT_CLASS} flex-col overflow-hidden rounded-[20px] border-[1.5px] border-[#dedede] bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS}`}
+            >
+              <div className="relative shrink-0 px-1.5 pt-1.5">
+                <div
+                  data-product-fly-origin
+                  className={`relative w-full ${COMPACT_RELATED_CARD_IMAGE_HEIGHT_CLASS} overflow-hidden rounded-[18px] bg-gray-100`}
+                >
+                  <Image
+                    src={imageSrc}
+                    alt={product.title}
+                    fill
+                    className="object-cover object-top transition-transform duration-300 group-hover:scale-105"
+                    sizes="(max-width: 1024px) 50vw, 227px"
+                    unoptimized
+                    onError={() => onImageError(product.id)}
+                  />
+                </div>
+                <div className="absolute left-4 top-4 flex size-8 items-center justify-center rounded-full bg-[#ff2b2e] p-1">
+                  <img
+                    src={FIGMA_HOT_ICON}
+                    alt=""
+                    className="size-[19px] -rotate-[13deg] object-contain"
+                  />
+                </div>
+                <div className="absolute left-4 top-[52px] flex size-8 items-center justify-center overflow-hidden rounded-full">
+                  <img src={FIGMA_RIBBON_ICON} alt="" className="size-8 scale-110 object-cover" />
+                </div>
+              </div>
+
+              <div
+                className={`flex min-h-0 flex-1 items-stretch justify-between gap-2 px-3 pb-3 pt-2 ${cardFontClass}`}
+              >
+                <div className="flex min-w-0 flex-1 flex-col self-stretch">
+                  <div className="mb-1 flex items-center gap-1.5">
+                    <img src={FIGMA_STAR_ICON} alt="" className="size-4 object-contain" />
+                    <p className="text-sm font-medium leading-none text-[rgba(60,47,47,0.62)]">4.7</p>
+                  </div>
+                  <h3 className="text-sm font-bold leading-snug text-[#3c2f2f]">
+                    <span className="line-clamp-2">{product.title}</span>
+                  </h3>
+                  {categoryLabel ? (
+                    <p className="mt-auto mb-3 truncate pt-1 text-sm font-normal leading-none text-[#a1a1a1]">
+                      {categoryLabel}
+                    </p>
+                  ) : null}
+                </div>
+
+                <div className="flex shrink-0 flex-col items-end self-stretch text-right">
+                  {showDiscountBadge ? (
+                    <span className={PDP_RELATED_CARD_DISCOUNT_BADGE_COMPACT_CLASS}>{discountText}</span>
+                  ) : null}
+                  <div className="mt-auto flex flex-col items-end">
+                    <p className="whitespace-nowrap text-sm font-black leading-none tabular-nums text-[#3c2f2f]">
+                      {formatPrice(product.price, currency)}
+                    </p>
+                    {comparePrice !== null ? (
+                      <p className="mt-0.5 whitespace-nowrap text-xs font-light leading-none tabular-nums text-[#3c2f2f] line-through">
+                        {formatPrice(comparePrice, currency)}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
           <div
-            className={
-              compact
-                ? `relative mx-auto h-[240px] w-full max-w-[236px] rounded-[20px] border-[1.5px] border-[#dedede] bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS}`
-                : `relative h-[284px] w-[236px] rounded-[20px] border-[1.5px] border-[#dedede] bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS}`
-            }
+            className={`relative h-[284px] w-[236px] rounded-[20px] border-[1.5px] border-[#dedede] bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_GROUP_HOVER_CLASS}`}
           >
             <div
               data-product-fly-origin
-              className={
-                compact
-                  ? `absolute left-1/2 ${PDP_RELATED_CARD_IMAGE_TOP_CLASS} h-[143px] w-[calc(100%-8px)] max-w-[227px] -translate-x-1/2 overflow-hidden rounded-[18px] bg-gray-100`
-                  : `absolute left-1/2 ${PDP_RELATED_CARD_IMAGE_TOP_CLASS} h-[147px] w-[227px] -translate-x-1/2 overflow-hidden rounded-[18px] bg-gray-100`
-              }
+              className={`absolute left-1/2 ${PDP_RELATED_CARD_IMAGE_TOP_CLASS} h-[147px] w-[227px] -translate-x-1/2 overflow-hidden rounded-[18px] bg-gray-100`}
             >
               <Image
                 src={imageSrc}
                 alt={product.title}
                 fill
                 className="object-cover object-top transition-transform duration-300 group-hover:scale-105"
-                sizes={compact ? '(max-width: 1024px) 50vw, 227px' : '227px'}
+                sizes="227px"
                 unoptimized
                 onError={() => onImageError(product.id)}
               />
             </div>
 
-            <div
-              className={
-                compact
-                  ? 'absolute left-4 top-5 flex size-8 items-center justify-center rounded-full bg-[#ff2b2e] p-1'
-                  : 'absolute left-4 top-5 flex size-8 items-center justify-center rounded-full bg-[#ff2b2e] p-1'
-              }
-            >
+            <div className="absolute left-4 top-5 flex size-8 items-center justify-center rounded-full bg-[#ff2b2e] p-1">
               <img
                 src={FIGMA_HOT_ICON}
                 alt=""
@@ -183,13 +239,9 @@ export function RelatedProductCard({
             </div>
 
             <div
-              className={
-                compact
-                  ? `absolute left-3 top-[150px] flex w-[calc(100%-24px)] items-start justify-between gap-2 ${cardFontClass}`
-                  : `absolute left-[14px] top-[170px] flex h-[90px] w-[209px] items-start justify-between ${cardFontClass}`
-              }
+              className={`absolute left-[14px] top-[170px] flex h-[90px] w-[209px] items-start justify-between ${cardFontClass}`}
             >
-              <div className={compact ? 'min-w-0 flex-1' : 'w-[120px] shrink-0'}>
+              <div className="w-[120px] shrink-0">
                 <div className="mb-[5px] flex items-center gap-1.5">
                   <img src={FIGMA_STAR_ICON} alt="" className="size-5 object-contain" />
                   <p className="text-base font-medium leading-[1.35] text-[rgba(60,47,47,0.62)]">
@@ -197,7 +249,7 @@ export function RelatedProductCard({
                   </p>
                 </div>
                 <h3 className="text-base font-bold leading-normal text-[#3c2f2f]">
-                  <span className={compact ? 'line-clamp-2' : 'line-clamp-2'}>{product.title}</span>
+                  <span className="line-clamp-2">{product.title}</span>
                 </h3>
                 {categoryLabel ? (
                   <p className="mt-[5px] truncate text-base font-normal leading-normal text-[#a1a1a1]">
@@ -206,42 +258,16 @@ export function RelatedProductCard({
                 ) : null}
               </div>
 
-              <div
-                className={
-                  compact
-                    ? 'flex shrink-0 flex-col items-end text-right pt-2'
-                    : PDP_RELATED_CARD_PRICE_COLUMN_CLASS
-                }
-              >
+              <div className={PDP_RELATED_CARD_PRICE_COLUMN_CLASS}>
                 {showDiscountBadge ? (
-                  <span
-                    className={
-                      compact
-                        ? PDP_RELATED_CARD_DISCOUNT_BADGE_COMPACT_CLASS
-                        : PDP_RELATED_CARD_DISCOUNT_BADGE_CLASS
-                    }
-                  >
-                    {discountText}
-                  </span>
+                  <span className={PDP_RELATED_CARD_DISCOUNT_BADGE_CLASS}>{discountText}</span>
                 ) : null}
-                <div className={compact ? 'mt-1 flex flex-col items-end' : PDP_RELATED_CARD_PRICE_BLOCK_CLASS}>
-                  <p
-                    className={
-                      compact
-                        ? 'whitespace-nowrap text-sm font-black leading-none tabular-nums text-[#3c2f2f]'
-                        : 'whitespace-nowrap text-[20px] font-black leading-none tabular-nums text-[#3c2f2f]'
-                    }
-                  >
+                <div className={PDP_RELATED_CARD_PRICE_BLOCK_CLASS}>
+                  <p className="whitespace-nowrap text-[20px] font-black leading-none tabular-nums text-[#3c2f2f]">
                     {formatPrice(product.price, currency)}
                   </p>
                   {comparePrice !== null ? (
-                    <p
-                      className={
-                        compact
-                          ? 'mt-0.5 whitespace-nowrap text-xs font-light leading-none tabular-nums text-[#3c2f2f] line-through'
-                          : 'mt-1 whitespace-nowrap text-sm font-light leading-none tabular-nums text-[#3c2f2f] line-through'
-                      }
-                    >
+                    <p className="mt-1 whitespace-nowrap text-sm font-light leading-none tabular-nums text-[#3c2f2f] line-through">
                       {formatPrice(comparePrice, currency)}
                     </p>
                   ) : null}
@@ -249,6 +275,7 @@ export function RelatedProductCard({
               </div>
             </div>
           </div>
+          )}
         </ProductPageLink>
 
         <button

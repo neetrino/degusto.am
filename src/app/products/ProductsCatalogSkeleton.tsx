@@ -1,3 +1,9 @@
+import {
+  STOREFRONT_DESKTOP_MAIN_COLUMN_CLASS,
+  STOREFRONT_DESKTOP_SIDEBAR_GAP_CLASS,
+  STOREFRONT_PAGE_CONTAINER_CLASS,
+} from '@/constants/storefront-desktop-layout';
+
 const GRID =
   'grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4';
 
@@ -7,15 +13,15 @@ const GRID =
 export function ProductsCatalogSkeleton() {
   return (
     <div className="w-full max-w-full animate-pulse" aria-busy="true" aria-label="Loading products">
-      <div className="max-w-7xl mx-auto pl-2 sm:pl-4 md:pl-6 lg:pl-8 pr-4 sm:pr-6 lg:pr-8 flex flex-col lg:flex-row gap-8">
-        <aside className="w-64 hidden lg:block flex-shrink-0 self-start lg:sticky lg:top-24 lg:z-10 bg-gray-50 rounded-xl">
+      <div className={`${STOREFRONT_PAGE_CONTAINER_CLASS} flex min-w-0 flex-col lg:flex-row ${STOREFRONT_DESKTOP_SIDEBAR_GAP_CLASS}`}>
+        <aside className="hidden w-64 shrink-0 self-start rounded-xl bg-gray-50 lg:sticky lg:top-24 lg:z-10 lg:block">
           <div className="p-4 space-y-4">
             <div className="h-24 rounded-lg bg-neutral-200" />
             <div className="h-32 rounded-lg bg-neutral-200" />
             <div className="h-28 rounded-lg bg-neutral-200" />
           </div>
         </aside>
-        <div className="flex-1 min-w-0 w-full py-4">
+        <div className={`${STOREFRONT_DESKTOP_MAIN_COLUMN_CLASS} w-full py-4`}>
           <div className={GRID}>
             {Array.from({ length: 12 }).map((_, i) => (
               <div key={i} className="rounded-lg border border-neutral-200 bg-white overflow-hidden">

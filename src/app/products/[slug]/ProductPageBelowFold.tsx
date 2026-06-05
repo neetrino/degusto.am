@@ -5,11 +5,11 @@ import type { Dispatch, RefCallback, SetStateAction } from 'react';
 import type { Review } from '../../../components/ProductReviews/utils';
 import type { Product } from './types';
 import {
+  PDP_CONTENT_SHELL_CLASS,
   PDP_RELATED_SECTION_GAP_CLASS,
-  STOREFRONT_DESKTOP_CONTENT_CLASS,
 } from '@/constants/pdp-figma-tokens';
 
-const PDP_REVIEWS_SHELL_CLASS = `${STOREFRONT_DESKTOP_CONTENT_CLASS} relative z-10 max-lg:px-4 max-lg:py-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-0 lg:py-10`;
+const PDP_REVIEWS_SHELL_CLASS = PDP_CONTENT_SHELL_CLASS;
 
 const RelatedProducts = dynamic(
   () =>

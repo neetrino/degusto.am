@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { STOREFRONT_DESKTOP_MAX_WIDTH_PX } from '@/constants/storefront-desktop-layout';
 
 function resolveVisibleCards(width: number): number {
   if (width < 640) {
@@ -10,10 +11,10 @@ function resolveVisibleCards(width: number): number {
     return 2;
   }
   if (width < 1280) {
-    return 3;
+    return 2;
   }
-  if (width < 1470) {
-    return 4;
+  if (width < STOREFRONT_DESKTOP_MAX_WIDTH_PX) {
+    return 3;
   }
   /** Figma node 10:1975 — five product cards across. */
   return 5;

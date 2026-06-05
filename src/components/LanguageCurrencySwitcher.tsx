@@ -108,12 +108,12 @@ export function LanguageCurrencySwitcher({
 
   const buttonClassName =
     variant === 'desktop'
-      ? 'relative inline-flex h-12 w-[159px] shrink-0 items-center justify-center overflow-hidden rounded-[70px] bg-[#f55c0a] px-[18px] text-base font-bold leading-[18px] text-white'
+      ? 'relative inline-flex h-12 w-[8.75rem] shrink-0 items-center justify-center overflow-hidden rounded-[70px] bg-[#f55c0a] px-3 text-sm font-bold leading-[18px] text-white xl:w-[159px] xl:px-[18px] xl:text-base'
       : 'relative inline-flex h-12 w-[159px] items-center rounded-[70px] bg-white px-[19px]';
 
   const labelClassName =
     variant === 'desktop'
-      ? 'ml-[2px] shrink-0 text-base font-bold leading-[18px] text-white'
+      ? 'ml-[2px] min-w-0 shrink truncate text-sm font-bold leading-[18px] text-white xl:text-base'
       : 'ml-[2px] text-base font-bold leading-[18px] text-[#ff7f20]';
 
   const dropdownLabelClassName =
@@ -124,13 +124,13 @@ export function LanguageCurrencySwitcher({
       : 'inline-flex items-center justify-center';
   const arrowClassName =
     variant === 'desktop'
-      ? `absolute right-[18px] h-[5px] w-2 shrink-0 ${SWITCHER_ARROW_DOWN_CLASS}`
+      ? `absolute right-2.5 h-[5px] w-2 shrink-0 xl:right-[18px] ${SWITCHER_ARROW_DOWN_CLASS}`
       : `absolute right-[20px] h-[5px] w-2 ${SWITCHER_ARROW_DOWN_CLASS}`;
 
   const dropdownPositionClassName =
     variant === 'mobile'
       ? `absolute right-0 top-full ${MOBILE_FIGMA_HEADER_SWITCHER_DROPDOWN_STACKING_CLASS} mt-2 max-h-[min(420px,calc(100vh-120px))] w-[216px] overflow-y-auto rounded-2xl border border-[#ececec] bg-white p-2 shadow-2xl`
-      : 'absolute right-0 top-full z-50 mt-2 w-[216px] rounded-2xl border border-[#ececec] bg-white p-2 shadow-xl';
+      : 'absolute right-0 top-full z-[60] mt-2 w-[216px] rounded-2xl border border-[#ececec] bg-white p-2 shadow-xl';
 
   const mobileOpenStackingClassName =
     variant === 'mobile' && isOpen ? MOBILE_FIGMA_HEADER_SWITCHER_OPEN_STACKING_CLASS : '';

@@ -40,6 +40,14 @@ import { r2Asset } from '@/lib/r2-public-url';
 import { useRoutePrefetch } from './useRoutePrefetch';
 import { useShopCategorySoftNav } from './useShopCategorySoftNav';
 import { ShopDesktopProductsSkeleton } from './ShopDesktopProductsSkeleton';
+import {
+  STOREFRONT_DESKTOP_MAIN_COLUMN_CLASS,
+  STOREFRONT_DESKTOP_PRODUCT_GRID_CLASS,
+  STOREFRONT_DESKTOP_SECTION_CLASS,
+  STOREFRONT_DESKTOP_SHOP_SECTION_CLASS,
+  STOREFRONT_DESKTOP_SIDEBAR_GAP_CLASS,
+  STOREFRONT_DESKTOP_SIDEBAR_WIDTH_CLASS,
+} from '@/constants/storefront-desktop-layout';
 
 const assets = {
   productCardAddToCart: r2Asset('product/20260512-g67zkm13ZH.svg'),
@@ -56,7 +64,6 @@ const DESKTOP_MENU_CARD_META_TOP_CLASS = 'top-[215px]';
 const DESKTOP_MENU_CARD_TITLE_TOP_CLASS = 'top-[239px]';
 const DESKTOP_MENU_CARD_PRICE_TOP_CLASS = 'top-[282px]';
 const DESKTOP_MENU_CARD_COMPARE_PRICE_TOP_CLASS = 'top-[308px]';
-const DESKTOP_MENU_PRODUCTS_GRID_CLASS = 'grid grid-cols-3 gap-x-[30px] gap-y-[48px]';
 const DESKTOP_MENU_CARD_IMAGE_FRAME_CLASS =
   'relative mx-auto mt-1 h-[180px] w-[calc(100%-10px)]';
 
@@ -597,7 +604,7 @@ export function FigmaDesktopMenuPage({
     <>
       {showMobileProductsList ? (
       <div className="pb-8 pt-0 lg:hidden">
-        <div className="mx-auto w-full max-w-[1470px]">
+        <div className={STOREFRONT_DESKTOP_SECTION_CLASS}>
           <h1 className="text-[32px] font-bold leading-tight text-[#f66913]">{t(titleKey)}</h1>
           <p className="mt-2 text-sm tracking-[-0.2px] text-[#717182]">{t(subtitleKey)}</p>
 
@@ -683,8 +690,8 @@ export function FigmaDesktopMenuPage({
       ) : null}
 
       <div className="hidden bg-white pb-20 pt-5 lg:block">
-        <div className="mx-auto flex w-full max-w-[1470px] gap-8 px-3">
-        <aside className="sticky top-[116px] flex h-[calc(100vh-132px)] w-[320px] shrink-0 flex-col overflow-hidden rounded-[20px] bg-black pb-5 text-white">
+        <div className={`${STOREFRONT_DESKTOP_SHOP_SECTION_CLASS} flex min-w-0 ${STOREFRONT_DESKTOP_SIDEBAR_GAP_CLASS}`}>
+        <aside className={`sticky top-[116px] flex h-[calc(100vh-132px)] ${STOREFRONT_DESKTOP_SIDEBAR_WIDTH_CLASS} flex-col overflow-hidden rounded-[20px] bg-black pb-5 text-white`}>
           <div className="border-b border-white/10 p-6">
             <form
               onSubmit={(event) => {
@@ -791,16 +798,16 @@ export function FigmaDesktopMenuPage({
           </div>
         </aside>
 
-        <section className="flex-1">
-          <div className="mb-[42px] mt-10 flex items-start justify-between">
-            <div className="pt-1">
-              <h1 className="text-[60px] leading-[51px] text-[#f66913]">{t(titleKey)}</h1>
+        <section className={STOREFRONT_DESKTOP_MAIN_COLUMN_CLASS}>
+          <div className="mb-[42px] mt-10 flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+            <div className="min-w-0 pt-1">
+              <h1 className="text-4xl font-bold leading-tight text-[#f66913] xl:text-[60px] xl:leading-[51px]">{t(titleKey)}</h1>
               <p className="mt-2.5 text-base tracking-[-0.31px] text-[#717182]">
                 {t(subtitleKey)}
               </p>
             </div>
-            <div className="flex items-center gap-2 pt-[37px] text-sm text-[#717182]">
-              <span className="px-1 text-base">{t('home.figma.desktop.shop.priceLabel')}</span>
+            <div className="flex flex-wrap items-center gap-2 text-sm text-[#717182] xl:pt-[37px]">
+              <span className="w-full shrink-0 px-1 text-base xl:w-auto">{t('home.figma.desktop.shop.priceLabel')}</span>
               <input
                 type="number"
                 min={0}
@@ -847,7 +854,7 @@ export function FigmaDesktopMenuPage({
           {isProductsPending ? (
             <ShopDesktopProductsSkeleton />
           ) : desktopMenuCards.length > 0 ? (
-            <div className={DESKTOP_MENU_PRODUCTS_GRID_CLASS}>
+            <div className={STOREFRONT_DESKTOP_PRODUCT_GRID_CLASS}>
               {desktopMenuCards.map((card) => (
                 <MenuCardItem key={card.id} card={card} />
               ))}

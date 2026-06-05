@@ -13,6 +13,7 @@ import {
   PDP_IMAGE_RADIUS_CLASS,
   PDP_MAIN_IMAGE_ASPECT_CLASS,
   PDP_MAIN_IMAGE_MAX_WIDTH_CLASS,
+  PDP_MOBILE_MAIN_IMAGE_BLEED_CLASS,
   PDP_PILL_RADIUS_CLASS,
 } from '@/constants/pdp-figma-tokens';
 import type { LanguageCode } from "../../../lib/language";
@@ -54,7 +55,7 @@ export function ProductImageGallery({
 
   return (
     <>
-      <div className="flex w-full flex-col gap-4">
+      <div className={`flex w-full flex-col gap-4 ${PDP_MOBILE_MAIN_IMAGE_BLEED_CLASS}`}>
         <div className={`w-full min-w-0 ${PDP_MAIN_IMAGE_MAX_WIDTH_CLASS}`}>
           <div
             data-product-fly-origin

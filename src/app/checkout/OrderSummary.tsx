@@ -6,7 +6,7 @@ import { COUPON_CODE_REGEX } from '@/lib/coupon-code-format';
 import { useTranslation } from '../../lib/i18n-client';
 import { formatPriceInCurrency } from '../../lib/currency';
 import { CHECKOUT_COUPON_CODE_STORAGE_KEY, requestCheckoutCouponValidation } from './checkout-coupon-client';
-import { CHECKOUT_PRIMARY_BUTTON, CHECKOUT_TEXT_LABEL, CHECKOUT_TEXT_VALUE } from './checkout-ui';
+import { CHECKOUT_PRIMARY_BUTTON, CHECKOUT_SUMMARY_PANEL_CLASS, CHECKOUT_TEXT_LABEL, CHECKOUT_TEXT_VALUE } from './checkout-ui';
 
 interface Cart {
   id: string;
@@ -128,7 +128,7 @@ export function OrderSummary({
   const hasDiscount = orderSummary.discountDisplay > 0;
 
   return (
-    <div className="w-full self-start rounded-2xl border border-gray-200 bg-white p-6 shadow-sm lg:sticky lg:top-[116px]">
+    <div className={`${CHECKOUT_SUMMARY_PANEL_CLASS} rounded-2xl border border-gray-200 bg-white p-6 shadow-sm`}>
       <h2 className="mb-5 text-lg font-semibold text-gray-900">{t('checkout.orderSummary')}</h2>
 
       <div className="mb-5 space-y-3 border-b border-gray-100 pb-5">

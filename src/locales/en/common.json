@@ -233,6 +233,9 @@
     "next": "Next",
     "pageOf": "Page {page} of {totalPages}"
   },
+  "validation": {
+    "requiredField": "Please fill out this field"
+  },
   "errors": {
     "title": "Something went wrong",
     "description": "An error occurred. Please try again or return to the home page."

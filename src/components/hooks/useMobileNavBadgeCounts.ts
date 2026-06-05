@@ -69,11 +69,15 @@ function scheduleIdleCartFetch(run: () => void): () => void {
 export function useMobileNavBadgeCounts(): { cartCount: number; wishlistCount: number } {
   const pathname = usePathname() ?? '';
   const deferInitialCartFetch = shouldDeferInitialCartFetch(pathname);
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, isLoading: isAuthLoading } = useAuth();
   const [cartCount, setCartCount] = useState(0);
   const [wishlistCount, setWishlistCount] = useState(0);
 
   useEffect(() => {
+    if (isAuthLoading) {
+      return;
+    }
+
     const cached = readCartSummaryCache();
     if (cached) {
       setCartCount(cached.itemsCount);
@@ -129,6 +133,10 @@ export function useMobileNavBadgeCounts(): { cartCount: number; wishlistCount: n
     };
 
     const refreshWishlistCount = () => {
+      if (!isLoggedIn) {
+        setWishlistCount(0);
+        return;
+      }
       void getWishlistCount().then(setWishlistCount);
     };
 
@@ -156,7 +164,7 @@ export function useMobileNavBadgeCounts(): { cartCount: number; wishlistCount: n
       window.removeEventListener('auth-updated', handleAuthForCartAndWishlist);
       window.removeEventListener('wishlist-updated', handleWishlistUpdated);
     };
-  }, [isLoggedIn, deferInitialCartFetch]);
+  }, [deferInitialCartFetch, isAuthLoading, isLoggedIn]);
 
   return { cartCount, wishlistCount };
 }

@@ -14,6 +14,7 @@ import {
   isQuietCartReadServerError,
   isQuietAdminDashboardReadServerError,
   isQuietCartItemNotFoundError,
+  shouldRedirectOnUnauthorized,
 } from "./error-handler";
 import { logger } from "@/lib/utils/logger";
 
@@ -141,7 +142,7 @@ async function handleErrorResponse(
   }
 
   // Handle 401 Unauthorized - clear token and redirect
-  if (isUnauthorized) {
+  if (shouldRedirectOnUnauthorized(response.status, url)) {
     handleUnauthorized();
   }
 
@@ -299,13 +300,11 @@ export async function postRequest<T>(
     logger.debug('📥 [API CLIENT] Response status:', response.status, response.statusText);
 
     if (!response.ok) {
-      const isUnauthorized = response.status === 401;
-      
       // Handle 401 Unauthorized - clear token and redirect
-      if (isUnauthorized) {
+      if (shouldRedirectOnUnauthorized(response.status, url)) {
         handleUnauthorized();
       }
-      
+
       await handleErrorResponse(response, url, baseUrl);
     }
 

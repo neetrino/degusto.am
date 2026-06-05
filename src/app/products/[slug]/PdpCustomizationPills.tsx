@@ -30,6 +30,7 @@ import {
 import type { Product } from './types';
 import {
   CUSTOMIZATION_SELECTION_SEPARATOR,
+  formatPdpExclusionDisplayLabel,
   isCustomizationSelected,
   isDefaultIngredientIncluded,
   parseCustomizationSelection,
@@ -86,6 +87,19 @@ const PILL_SIZE_CLASS: Record<PillKind, string> = {
 };
 
 const DROPDOWN_MAX_WIDTH_PX = PDP_CUSTOMIZATION_DROPDOWN_MAX_WIDTH_REM * 16;
+
+function resolveExclusionOptionDisplayLabel(
+  language: LanguageCode,
+  kind: PillKind,
+  reservedInOpposite: boolean,
+  label: string,
+): string {
+  const showWithoutPrefix =
+    (kind === 'exclusions' && !reservedInOpposite) ||
+    (kind === 'additions' && reservedInOpposite);
+
+  return showWithoutPrefix ? formatPdpExclusionDisplayLabel(language, label) : label;
+}
 
 /** priceAdjustment is stored in AMD; format for the active storefront currency. */
 function formatAdditionPriceAdjustment(
@@ -252,6 +266,13 @@ function CustomizationPill({
                 : isCustomizationSelected(value, option.label);
             const reservedInOpposite = oppositeSelectedLabels.includes(option.label);
 
+            const displayLabel = resolveExclusionOptionDisplayLabel(
+              language,
+              kind,
+              reservedInOpposite,
+              option.label,
+            );
+
             if (reservedInOpposite) {
               const reservedLabel =
                 oppositeMarker === 'plus'
@@ -261,38 +282,38 @@ function CustomizationPill({
                 <li key={option.id}>
                   <div
                     className="flex items-center gap-2 rounded-xl px-2 py-2 text-sm text-[#868686]"
-                    aria-label={`${option.label} — ${reservedLabel}`}
+                    aria-label={`${displayLabel} — ${reservedLabel}`}
                   >
                     <CustomizationOppositeMarker marker={oppositeMarker} />
-                    <span>{option.label}</span>
+                    <span>{displayLabel}</span>
                   </div>
                 </li>
               );
             }
 
             if (checkboxMode === 'defaultIncluded') {
-              const toggleLabel = checked
-                ? t(language, 'product.customizationExcludeShort')
-                : t(language, 'product.customizationAddShort');
+              const isExcluded = !isDefaultIngredientIncluded(value, option.label);
               return (
                 <li key={option.id}>
-                  <div className="flex items-center gap-2 rounded-xl px-2 py-2 text-sm">
-                    <button
-                      type="button"
-                      onClick={() =>
+                  <label
+                    htmlFor={inputId}
+                    className="flex cursor-pointer items-center gap-2 rounded-xl px-2 py-2 text-sm text-[#3c2f2f] hover:bg-[#f7f7f7]"
+                  >
+                    <input
+                      id={inputId}
+                      type="checkbox"
+                      checked={isExcluded}
+                      onChange={() =>
                         onChange(toggleDefaultIngredientIncluded(value, option.label))
                       }
-                      className="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff7f20] focus-visible:ring-offset-2"
-                      aria-label={`${toggleLabel} — ${option.label}`}
-                    >
-                      <CustomizationOppositeMarker marker={checked ? 'plus' : 'minus'} />
-                    </button>
+                      className="pdp-preference-checkbox"
+                    />
                     <span
-                      className={`min-w-0 flex-1 break-words ${checked ? 'text-[#3c2f2f]' : 'text-[#868686]'}`}
+                      className={`min-w-0 flex-1 break-words ${isExcluded ? 'text-[#868686] line-through' : ''}`}
                     >
-                      {option.label}
+                      {displayLabel}
                     </span>
-                  </div>
+                  </label>
                 </li>
               );
             }

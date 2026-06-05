@@ -7,6 +7,10 @@
 }
 
 @layer base {
+  html {
+    overflow-x: clip;
+  }
+
   body {
     background-color: #ffffff;
     @apply text-gray-900;

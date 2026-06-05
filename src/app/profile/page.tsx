@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../lib/auth/AuthContext';
 import { ADMIN_MOBILE_HUB_PATH } from '@/constants/admin-mobile-profile';
+import { STOREFRONT_PAGE_CONTAINER_CLASS } from '@/constants/storefront-desktop-layout';
 import { isMobileViewport } from '../../lib/viewport';
 import { useTranslation } from '../../lib/i18n-client';
 import { useProfilePage } from './useProfilePage';
@@ -93,7 +94,7 @@ function ProfilePageContent() {
   if (authLoading || loading) {
     return (
       <div className="min-h-full bg-white">
-        <div className="mx-auto hidden max-w-7xl px-4 py-10 lg:block lg:px-8">
+        <div className={`${STOREFRONT_PAGE_CONTAINER_CLASS} hidden py-10 lg:block`}>
           <div className="grid grid-cols-12 items-start gap-6 lg:gap-8">
             <aside className="col-span-12 lg:col-span-4 xl:col-span-3">
               <div className="h-[560px] animate-pulse rounded-2xl border border-[#F66812]/20 bg-white" />
@@ -291,7 +292,7 @@ function ProfilePageContent() {
       >
         {tabContent}
       </ProfileMobilePage>
-      <div className="mx-auto hidden max-w-7xl px-4 py-10 lg:block lg:px-8">
+      <div className={`${STOREFRONT_PAGE_CONTAINER_CLASS} hidden py-10 lg:block`}>
         <div className="grid grid-cols-12 items-start gap-6 lg:gap-8">
           <aside className="col-span-12 self-start lg:col-span-4 lg:sticky lg:top-28 xl:col-span-3">
             <ProfileHeader profile={profile} tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} onLogout={logout} t={t} />
@@ -323,7 +324,7 @@ export default function ProfilePage() {
   return (
     <Suspense fallback={
       <div className="min-h-full bg-white">
-        <div className="mx-auto hidden max-w-7xl px-4 py-10 lg:block lg:px-8">
+        <div className={`${STOREFRONT_PAGE_CONTAINER_CLASS} hidden py-10 lg:block`}>
           <div className="grid grid-cols-12 items-start gap-6 lg:gap-8">
             <aside className="col-span-12 lg:col-span-4 xl:col-span-3">
               <div className="h-[560px] animate-pulse rounded-2xl border border-[#F66812]/20 bg-white" />
