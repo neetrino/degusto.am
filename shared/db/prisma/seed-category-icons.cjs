@@ -26,7 +26,7 @@ function getPublicIconUrl(slug, extension) {
 
 function removeSiblingIconFiles(slug, keepExtension) {
   for (const extension of [".png", ".svg", ".jpg", ".jpeg", ".webp"]) {
-    if (extension === keepExtension) {
+    if (keepExtension && extension === keepExtension) {
       continue;
     }
     const siblingPath = path.join(ICON_DIR, `${slug}${extension}`);
@@ -100,12 +100,17 @@ function downloadFile(url, destinationPath) {
 
 async function resolveCategoryIconUrl(slug, remoteIconUrl, options = {}) {
   const localIconOnly = Boolean(options.localIconOnly);
+  const forceRefresh = Boolean(options.forceRefresh);
 
   fs.mkdirSync(ICON_DIR, { recursive: true });
 
-  const existingUrl = normalizeExistingIconFile(slug);
-  if (existingUrl) {
-    return existingUrl;
+  if (!forceRefresh) {
+    const existingUrl = normalizeExistingIconFile(slug);
+    if (existingUrl) {
+      return existingUrl;
+    }
+  } else {
+    removeSiblingIconFiles(slug, null);
   }
 
   if (localIconOnly) {

@@ -1,8 +1,11 @@
-/** Figma Navigation node 45:1488 — DEGUSTO-DEV-1 */
+/** Figma Navigation node 64:1946 — DEGUSTO-DEV-1 */
+const FIGMA_ALL_CATEGORY_ICON_URL =
+  "https://www.figma.com/api/mcp/asset/903debd8-b875-44ae-a09b-51eb4747a6ce";
+
 const FIGMA_MENU_CATEGORIES = [
   {
     slug: "soups-hot-dishes",
-    iconUrl: "https://www.figma.com/api/mcp/asset/f09e7270-8954-4d67-a25e-b64f1b0a6082",
+    iconUrl: "https://www.figma.com/api/mcp/asset/f8fb0c88-4cef-41e9-9fbe-591ebb3a1dbe",
     titles: {
       hy: "Ապուրներ եւ տաք ուտեստներ",
       en: "Soups & Hot Dishes",
@@ -11,7 +14,7 @@ const FIGMA_MENU_CATEGORIES = [
   },
   {
     slug: "salads",
-    iconUrl: "https://www.figma.com/api/mcp/asset/c1bce948-85fb-444f-b0e7-288d421e3f10",
+    iconUrl: "https://www.figma.com/api/mcp/asset/332fdf75-4029-41ee-9321-2af2111226fc",
     titles: {
       hy: "Աղցաններ",
       en: "Salads",
@@ -20,24 +23,22 @@ const FIGMA_MENU_CATEGORIES = [
   },
   {
     slug: "shawarma",
-    iconUrl: "https://www.figma.com/api/mcp/asset/84206f66-ffdb-498b-a1c4-cc97fab781af",
-    localIconOnly: true,
+    iconUrl: "https://www.figma.com/api/mcp/asset/bed48888-c7fc-4666-a4fe-e241a7cbd4ce",
     titles: { hy: "Շաուրմա", en: "Shawarma", ru: "Шаурма" },
   },
   {
     slug: "pizza",
-    iconUrl: "https://www.figma.com/api/mcp/asset/0932654e-bcd5-417a-bf00-ff62c9fee960",
+    iconUrl: "https://www.figma.com/api/mcp/asset/a3e4fa6a-6ab4-42f1-961b-fbc406c9814d",
     titles: { hy: "Պիցցա", en: "Pizza", ru: "Пицца" },
   },
   {
     slug: "lahmajoun",
-    iconUrl: "https://www.figma.com/api/mcp/asset/79ecf429-7a26-46b9-82a2-908529306ee7",
-    localIconOnly: true,
+    iconUrl: "https://www.figma.com/api/mcp/asset/d6ee6c02-72f0-4bed-880a-19c3c078ab98",
     titles: { hy: "Լահմաջո", en: "Lahmajoun", ru: "Лахмаджун" },
   },
   {
     slug: "khachapuri",
-    iconUrl: "https://www.figma.com/api/mcp/asset/4ff5a276-15a6-4ecd-bd4a-baa7e887edd7",
+    iconUrl: "https://www.figma.com/api/mcp/asset/7fa74bd4-15af-48cf-9a92-08e1f8020286",
     titles: {
       hy: "Վրացական Խաչապուրի",
       en: "Georgian Khachapuri",
@@ -46,17 +47,17 @@ const FIGMA_MENU_CATEGORIES = [
   },
   {
     slug: "khorovats",
-    iconUrl: "https://www.figma.com/api/mcp/asset/d037e2bc-d9d4-4bf6-b6ff-0aaf1356bfe8",
+    iconUrl: "https://www.figma.com/api/mcp/asset/dfe7e8ee-463e-4fd1-bf86-2e0c0d9de46b",
     titles: { hy: "Խորոված", en: "Khorovats", ru: "Хоровац" },
   },
   {
     slug: "khinkali",
-    iconUrl: "https://www.figma.com/api/mcp/asset/577d7077-c4d5-4118-848a-24691f6db939",
+    iconUrl: "https://www.figma.com/api/mcp/asset/7ed8ae78-6dbc-4ffa-b0c0-aa4ceba73b1c",
     titles: { hy: "Խինկալի", en: "Khinkali", ru: "Хинкали" },
   },
   {
     slug: "stuffed-potato",
-    iconUrl: "https://www.figma.com/api/mcp/asset/c39b7dd9-1514-4fd0-a44c-e89fba477937",
+    iconUrl: "https://www.figma.com/api/mcp/asset/942683d5-a0af-4bf4-bc5b-192f153dba0e",
     titles: {
       hy: "Լցոնած կարտոֆիլ",
       en: "Stuffed Potato",
@@ -65,7 +66,7 @@ const FIGMA_MENU_CATEGORIES = [
   },
   {
     slug: "burgers-sandwiches",
-    iconUrl: "https://www.figma.com/api/mcp/asset/e3237d18-5f7c-4247-b2e4-e044b9ce5ed1",
+    iconUrl: "https://www.figma.com/api/mcp/asset/6214b369-9871-4e05-9955-18834d256603",
     titles: {
       hy: "Բուրգերներ եւ սենդվիչներ",
       en: "Burgers & Sandwiches",
@@ -74,7 +75,7 @@ const FIGMA_MENU_CATEGORIES = [
   },
   {
     slug: "cakes-pancakes",
-    iconUrl: "https://www.figma.com/api/mcp/asset/17ed2c01-6727-408c-8427-535009ae0915",
+    iconUrl: "https://www.figma.com/api/mcp/asset/536ddb36-2826-4040-8972-c44e78cef032",
     titles: {
       hy: "Կարկանդակներ եւ նրբաբլիթներ",
       en: "Cakes & Pancakes",
@@ -83,7 +84,7 @@ const FIGMA_MENU_CATEGORIES = [
   },
   {
     slug: "combo-packages",
-    iconUrl: "https://www.figma.com/api/mcp/asset/05978f52-3610-4e60-aeb9-1c230bb7b9be",
+    iconUrl: "https://www.figma.com/api/mcp/asset/c8904324-948d-4512-a56d-726c1d606cc4",
     titles: {
       hy: "Կոմբո փաթեթներ",
       en: "Combo Packages",
@@ -92,12 +93,12 @@ const FIGMA_MENU_CATEGORIES = [
   },
   {
     slug: "lunch-boxes",
-    iconUrl: "https://www.figma.com/api/mcp/asset/b8f4c9d3-383a-448d-8fa9-385c6152103e",
+    iconUrl: "https://www.figma.com/api/mcp/asset/b95f837e-8c83-4eb7-9192-be1457f59805",
     titles: { hy: "Լանչ Բոքսեր", en: "Lunch Boxes", ru: "Ланч-боксы" },
   },
   {
     slug: "grill-smoked",
-    iconUrl: "https://www.figma.com/api/mcp/asset/7ea67417-b96d-4aa5-935d-f4939cd03350",
+    iconUrl: "https://www.figma.com/api/mcp/asset/219005a1-a65b-4aa6-92e6-1ff4b218b99a",
     titles: {
       hy: "Գրիլ եւ ապխտած արտադրանքներ",
       en: "Grill & Smoked Products",
@@ -106,22 +107,22 @@ const FIGMA_MENU_CATEGORIES = [
   },
   {
     slug: "bread",
-    iconUrl: "https://www.figma.com/api/mcp/asset/5ba437aa-c6f2-46e1-81ec-8e2568129f6a",
+    iconUrl: "https://www.figma.com/api/mcp/asset/a176de4d-17ef-42c1-a395-1723e1220d82",
     titles: { hy: "Հաց", en: "Bread", ru: "Хлеб" },
   },
   {
     slug: "pastry",
-    iconUrl: "https://www.figma.com/api/mcp/asset/4511bea9-69f2-48dc-8f5f-1c80de08924a",
+    iconUrl: "https://www.figma.com/api/mcp/asset/a42f4d6f-df51-4158-a5da-9604a54fbf3b",
     titles: { hy: "Խմորեղեն", en: "Pastry", ru: "Выпечка" },
   },
   {
     slug: "fried-eggs",
-    iconUrl: "https://www.figma.com/api/mcp/asset/af02c193-75d2-4c6d-9912-5880a3508553",
+    iconUrl: "https://www.figma.com/api/mcp/asset/998c6735-a34c-4067-a913-7deb766af76a",
     titles: { hy: "Ձվածեղ", en: "Fried Eggs", ru: "Яичница" },
   },
   {
     slug: "lenten-dishes",
-    iconUrl: "https://www.figma.com/api/mcp/asset/aae57705-3ef1-4cf7-a6ac-bc4717c9c4e2",
+    iconUrl: "https://www.figma.com/api/mcp/asset/13f52845-9fe0-4021-b293-26f80a09a3f5",
     titles: {
       hy: "Պահքի ուտեստներ",
       en: "Lenten Dishes",
@@ -130,7 +131,7 @@ const FIGMA_MENU_CATEGORIES = [
   },
   {
     slug: "asian-sushi",
-    iconUrl: "https://www.figma.com/api/mcp/asset/9d449d27-c062-482c-b1fb-2abbdc1c0fa2",
+    iconUrl: "https://www.figma.com/api/mcp/asset/5b059483-904d-4891-a3fd-985736660ec8",
     titles: {
       hy: "Ասիական խոհանոց (Սուշի)",
       en: "Asian Cuisine (Sushi)",
@@ -139,23 +140,22 @@ const FIGMA_MENU_CATEGORIES = [
   },
   {
     slug: "pasta",
-    iconUrl: "https://www.figma.com/api/mcp/asset/a6e00e22-8b0d-41fc-9629-5e7a3295b1fa",
-    localIconOnly: true,
+    iconUrl: "https://www.figma.com/api/mcp/asset/b1b0eb9b-44af-4b19-99b7-6fd8d9c95034",
     titles: { hy: "Պաստաներ", en: "Pasta", ru: "Паста" },
   },
   {
     slug: "sauces",
-    iconUrl: "https://www.figma.com/api/mcp/asset/e89a4c7b-27a2-4f22-b4fe-196532c2b0bd",
+    iconUrl: "https://www.figma.com/api/mcp/asset/ce2fc03d-9109-4837-a8ad-7788cacbe1af",
     titles: { hy: "Սոուսներ", en: "Sauces", ru: "Соусы" },
   },
   {
     slug: "restaurant",
-    iconUrl: "https://www.figma.com/api/mcp/asset/9716521c-a7b9-43e5-80a2-3903057bf0d1",
+    iconUrl: "https://www.figma.com/api/mcp/asset/c6f29b14-893d-45ef-9c24-f392902e2abe",
     titles: { hy: "Ռեստորան", en: "Restaurant", ru: "Ресторан" },
   },
   {
     slug: "bar-alcohol",
-    iconUrl: "https://www.figma.com/api/mcp/asset/08726c7e-5077-402b-a3b1-cd3c3baa9dbe",
+    iconUrl: "https://www.figma.com/api/mcp/asset/1a71dbcd-2e04-4910-aafe-99bbc434e0a9",
     titles: {
       hy: "Բար (Ալկոհոլ)",
       en: "Bar (Alcohol)",
@@ -164,7 +164,7 @@ const FIGMA_MENU_CATEGORIES = [
   },
   {
     slug: "juices-drinks",
-    iconUrl: "https://www.figma.com/api/mcp/asset/95ca9377-b608-4e46-9049-5a6c4b0060c0",
+    iconUrl: "https://www.figma.com/api/mcp/asset/68d3d38e-5a91-4684-abb8-16a727dc833f",
     titles: {
       hy: "Հյութեր և Ըմպելիքներ",
       en: "Juices & Drinks",
@@ -173,7 +173,7 @@ const FIGMA_MENU_CATEGORIES = [
   },
   {
     slug: "semi-finished",
-    iconUrl: "https://www.figma.com/api/mcp/asset/83104d26-03c7-41c6-97f2-2e37140d7c3b",
+    iconUrl: "https://www.figma.com/api/mcp/asset/c0c3c20a-cffd-4910-9e7e-3c7baaeed7a1",
     titles: {
       hy: "Կիսաֆաբրիկատներ",
       en: "Semi-finished Products",
@@ -182,7 +182,7 @@ const FIGMA_MENU_CATEGORIES = [
   },
   {
     slug: "mexican",
-    iconUrl: "https://www.figma.com/api/mcp/asset/71dc79d8-7e73-4e75-9027-32b831323617",
+    iconUrl: "https://www.figma.com/api/mcp/asset/e0e70945-6412-4199-ab1a-abf2d1764304",
     titles: {
       hy: "Մեքսիկական խոհանոց",
       en: "Mexican Cuisine",
@@ -204,6 +204,7 @@ const LEGACY_CATEGORY_SLUGS_TO_UNPUBLISH = [
 const PRODUCTS_PER_CATEGORY = 20;
 
 module.exports = {
+  FIGMA_ALL_CATEGORY_ICON_URL,
   FIGMA_MENU_CATEGORIES,
   LEGACY_CATEGORY_SLUGS_TO_UNPUBLISH,
   PRODUCTS_PER_CATEGORY,
