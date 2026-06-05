@@ -8,7 +8,7 @@ import { DATABASE_UNAVAILABLE_PUBLIC_DETAIL } from '@/lib/http/problem-details';
 import { logger } from '../../lib/utils/logger';
 import { useTranslation } from '../../lib/i18n-client';
 import { playCartFlyAnimation } from '../../lib/cart-fly-animation';
-import { publishCartUpdated, publishCartForceReload, publishOptimisticCartAdd } from '../../lib/cart/cart-events';
+import { publishCartUpdated, publishCartForceReload, publishOptimisticCartAdd, publishCartLineConfirmed } from '../../lib/cart/cart-events';
 import {
   getCartLineId,
   rememberCartLineId,
@@ -71,7 +71,6 @@ export function useAddToCart({
   image: propImage,
 }: UseAddToCartProps) {
   const { t } = useTranslation();
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isUpdatingQuantity, setIsUpdatingQuantity] = useState(false);
   const [quantity, setQuantity] = useState(0);
 
@@ -89,38 +88,10 @@ export function useAddToCart({
     return productDetails.variants[0].id;
   };
 
-  const addToCart = async (fly?: AddToCartFlyContext) => {
-    if (!inStock) {
-      return;
-    }
-
-    if (!productSlug || productSlug.trim() === '' || productSlug.includes(' ')) {
-      logger.warn('[PRODUCT CARD] Invalid product slug', { productSlug });
-      alert(t('common.alerts.invalidProduct'));
-      return;
-    }
-
-    playCartFlyAnimation({
-      fromElement: fly?.origin ?? null,
-    });
-
-    const optimisticVariantId = defaultVariantId ?? `pending:${productId}`;
-    const optimisticPrice = propPrice ?? 0;
-    const optimisticTitle = propTitle?.trim() || productSlug;
-    const optimisticImage = propImage ?? fly?.imageUrl ?? null;
-
-    publishOptimisticCartAdd({
-      productId,
-      productSlug,
-      variantId: optimisticVariantId,
-      title: optimisticTitle,
-      image: optimisticImage,
-      price: optimisticPrice,
-      quantity: 1,
-    });
-
-    setIsAddingToCart(true);
-
+  const persistAddToCart = async (
+    optimisticVariantId: string,
+    addedQuantity: number
+  ): Promise<void> => {
     try {
       let variantId = defaultVariantId ?? null;
       let unitPrice = propPrice ?? 0;
@@ -130,6 +101,7 @@ export function useAddToCart({
         const productDetails = await apiClient.get<ProductDetails>(`/api/v1/products/${encodedSlug}`);
         if (!productDetails.variants || productDetails.variants.length === 0) {
           alert(t('common.alerts.noVariantsAvailable'));
+          setQuantity((prev) => Math.max(0, prev - addedQuantity));
           publishCartForceReload();
           return;
         }
@@ -144,22 +116,34 @@ export function useAddToCart({
       }>('/api/v1/cart/items', {
         productId,
         variantId,
-        quantity: 1,
+        quantity: addedQuantity,
       });
 
       rememberCartLineId(productId, variantId, response.item.id, response.item.quantity);
       clearCartLineRemoved({ variant: { id: variantId }, customizations: undefined });
-      if (response.cartSummary) {
-        publishCartUpdated(response.cartSummary.itemsCount, response.cartSummary.total);
-      } else {
+
+      const summary = response.cartSummary ?? (() => {
         const cache = readCartSummaryCache();
-        publishCartUpdated(
-          (cache?.itemsCount ?? 0) + 1,
-          (cache?.total ?? 0) + (unitPrice || response.item.price || 0)
-        );
-      }
-      setQuantity((prev) => prev + 1);
+        return {
+          itemsCount: (cache?.itemsCount ?? 0),
+          total: cache?.total ?? 0,
+        };
+      })();
+
+      publishCartLineConfirmed(
+        {
+          productId,
+          previousVariantId: optimisticVariantId,
+          variantId,
+          serverItemId: response.item.id,
+          quantity: response.item.quantity,
+          price: response.item.price,
+        },
+        summary
+      );
     } catch (error: unknown) {
+      setQuantity((prev) => Math.max(0, prev - addedQuantity));
+
       const err = error as {
         message?: string;
         status?: number;
@@ -197,15 +181,49 @@ export function useAddToCart({
 
       if (error instanceof ApiError && error.status === 503) {
         alert(error.message || DATABASE_UNAVAILABLE_PUBLIC_DETAIL);
+        publishCartForceReload();
         return;
       }
 
       logger.error('[PRODUCT CARD] Error adding to cart', { error });
       alert(t('common.alerts.failedToAddToCart'));
       publishCartForceReload();
-    } finally {
-      setIsAddingToCart(false);
     }
+  };
+
+  const addToCart = (fly?: AddToCartFlyContext) => {
+    if (!inStock) {
+      return;
+    }
+
+    if (!productSlug || productSlug.trim() === '' || productSlug.includes(' ')) {
+      logger.warn('[PRODUCT CARD] Invalid product slug', { productSlug });
+      alert(t('common.alerts.invalidProduct'));
+      return;
+    }
+
+    playCartFlyAnimation({
+      fromElement: fly?.origin ?? null,
+    });
+
+    const optimisticVariantId = defaultVariantId ?? `pending:${productId}`;
+    const optimisticPrice = propPrice ?? 0;
+    const optimisticTitle = propTitle?.trim() || productSlug;
+    const optimisticImage = propImage ?? fly?.imageUrl ?? null;
+    const addedQuantity = 1;
+
+    publishOptimisticCartAdd({
+      productId,
+      productSlug,
+      variantId: optimisticVariantId,
+      title: optimisticTitle,
+      image: optimisticImage,
+      price: optimisticPrice,
+      quantity: addedQuantity,
+    });
+
+    setQuantity((prev) => prev + addedQuantity);
+    void persistAddToCart(optimisticVariantId, addedQuantity);
   };
 
   const removeFromCart = async () => {
@@ -272,5 +290,5 @@ export function useAddToCart({
     }
   };
 
-  return { isAddingToCart, isUpdatingQuantity, quantity, addToCart, removeFromCart };
+  return { isAddingToCart: false, isUpdatingQuantity, quantity, addToCart, removeFromCart };
 }

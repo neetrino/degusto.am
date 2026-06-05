@@ -21,10 +21,9 @@ import { ProductPageShell } from './ProductPageShell';
 import { useProductPage } from './useProductPage';
 import { playCartFlyAnimation } from '../../../lib/cart-fly-animation';
 import { BodyBackground } from '../../../components/BodyBackground';
-import { publishCartUpdated, publishOptimisticCartAdd } from '@/lib/cart/cart-events';
+import { publishOptimisticCartAdd, publishCartLineConfirmed, publishCartForceReload } from '@/lib/cart/cart-events';
 import { rememberCartLineId } from '@/lib/cart/cart-line-id-cache';
 import { clearCartLineRemoved } from '@/lib/cart/pending-cart-removals';
-import { readCartSummaryCache } from '@/lib/cartSummaryCache';
 import { logger } from '@/lib/utils/logger';
 import {
   normalizeProductCustomizations,
@@ -212,8 +211,6 @@ export function ProductPageClient({
     selectedColor,
     selectedSize,
     selectedAttributeValues,
-    isAddingToCart,
-    setIsAddingToCart,
     additions,
     exclusions,
     setAdditions,
@@ -266,11 +263,12 @@ export function ProductPageClient({
     });
     const flyOrigin = document.querySelector('[data-product-fly-origin]');
     const imageUrl = images[currentImageIndex] ?? images[0] ?? null;
+    const optimisticVariantId = currentVariant.id;
 
     publishOptimisticCartAdd({
       productId: product.id,
       productSlug: product.slug,
-      variantId: currentVariant.id,
+      variantId: optimisticVariantId,
       title: product.title,
       image: imageUrl,
       price: unitPriceUsd,
@@ -281,7 +279,7 @@ export function ProductPageClient({
     playCartFlyAnimation({
       fromElement: flyOrigin,
     });
-    setIsAddingToCart(true);
+
     try {
       const response = await apiClient.post<{
         item: { id: string; quantity: number; price: number };
@@ -304,21 +302,29 @@ export function ProductPageClient({
         variant: { id: currentVariant.id },
         customizations,
       });
-      if (response.cartSummary) {
-        publishCartUpdated(response.cartSummary.itemsCount, response.cartSummary.total);
-      } else {
-        const cache = readCartSummaryCache();
-        publishCartUpdated(
-          (cache?.itemsCount ?? 0) + quantity,
-          (cache?.total ?? 0) + unitPriceUsd * quantity
-        );
-      }
+
+      const summary = response.cartSummary ?? {
+        itemsCount: 0,
+        total: 0,
+      };
+
+      publishCartLineConfirmed(
+        {
+          productId: product.id,
+          previousVariantId: optimisticVariantId,
+          variantId: currentVariant.id,
+          customizations,
+          serverItemId: response.item.id,
+          quantity: response.item.quantity,
+          price: response.item.price,
+        },
+        summary
+      );
     } catch (error: unknown) {
       logger.warn('Add to cart failed', {
         error: error instanceof Error ? error.message : String(error),
       });
-    } finally {
-      setIsAddingToCart(false);
+      publishCartForceReload();
     }
   };
 
@@ -412,7 +418,7 @@ export function ProductPageClient({
                   isOutOfStock={isOutOfStock}
                   unavailableAttributes={unavailableAttributes}
                   canAddToCart={canAddToCart}
-                  isAddingToCart={isAddingToCart}
+                  isAddingToCart={false}
                   currentVariant={currentVariant}
                   attributeGroups={attributeGroups}
                   selectedColor={selectedColor}

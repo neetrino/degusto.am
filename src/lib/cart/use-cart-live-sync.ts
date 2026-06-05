@@ -6,6 +6,7 @@ import { fetchCart } from '@/app/cart/cart-fetcher';
 import { parseCartUpdatedDetail } from '@/lib/cart/cart-events';
 import {
   applyOptimisticCartAdd,
+  confirmOptimisticCartLine,
   snapshotFromCartDetail,
 } from '@/lib/cart/optimistic-cart-add';
 import { applyRemovedLinesFilter } from '@/lib/cart/pending-cart-removals';
@@ -137,6 +138,11 @@ export function useCartLiveSync({
           clearTimeout(reconcileTimerRef.current);
           reconcileTimerRef.current = null;
         }
+      }
+
+      if (detail.confirmedLine) {
+        commitCart(confirmOptimisticCartLine(cartRef.current, detail.confirmedLine));
+        setCartLoading(false);
       }
 
       const snapshot = snapshotFromCartDetail(detail);

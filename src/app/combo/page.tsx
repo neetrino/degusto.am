@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { BodyBackground } from '../../components/BodyBackground';
 import { FigmaDesktopComboPage } from '../../components/home/FigmaDesktopComboPage';
 import { cookies } from 'next/headers';
@@ -50,19 +51,21 @@ export default async function ComboPage({
   return (
     <div className="min-h-screen bg-white">
       <BodyBackground color="#ffffff" />
-      <FigmaDesktopComboPage
-        cards={cards}
-        categories={categories}
-        activeCategorySlug={selectedCategorySlug}
-        initialSearch={selectedSearchQuery}
-        initialMinPrice={minPriceAmd !== null ? String(minPriceAmd) : ''}
-        initialMaxPrice={maxPriceAmd !== null ? String(maxPriceAmd) : ''}
-        initialFoodFilter={tasteFilter ?? 'neutral'}
-        menuPagination={{
-          currentPage: effectivePage,
-          totalPages,
-        }}
-      />
+      <Suspense fallback={<div className="min-h-[480px] animate-pulse bg-white" aria-hidden />}>
+        <FigmaDesktopComboPage
+          cards={cards}
+          categories={categories}
+          activeCategorySlug={selectedCategorySlug}
+          initialSearch={selectedSearchQuery}
+          initialMinPrice={minPriceAmd !== null ? String(minPriceAmd) : ''}
+          initialMaxPrice={maxPriceAmd !== null ? String(maxPriceAmd) : ''}
+          initialFoodFilter={tasteFilter ?? 'neutral'}
+          menuPagination={{
+            currentPage: effectivePage,
+            totalPages,
+          }}
+        />
+      </Suspense>
     </div>
   );
 }

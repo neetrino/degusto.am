@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../lib/auth/AuthContext';
 import { useTranslation } from '../../../lib/i18n-client';
@@ -35,6 +35,16 @@ export default function OrdersPage() {
     return null;
   }
 
-  return <OrdersPageContent />;
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[50vh] items-center justify-center py-12">
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-gray-900" />
+        </div>
+      }
+    >
+      <OrdersPageContent />
+    </Suspense>
+  );
 }
 

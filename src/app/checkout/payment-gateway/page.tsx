@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { BodyBackground } from '../../../components/BodyBackground';
 import { useTranslation } from '../../../lib/i18n-client';
@@ -9,7 +9,7 @@ import { resetCartBadgeState } from '../../../lib/cart/cart-events';
 
 const REDIRECT_DELAY_MS = 1500;
 
-export default function CheckoutPaymentGatewayPage() {
+function CheckoutPaymentGatewayContent() {
   const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -53,5 +53,24 @@ export default function CheckoutPaymentGatewayPage() {
         </p>
       </div>
     </>
+  );
+}
+
+function CheckoutPaymentGatewayFallback() {
+  return (
+    <>
+      <BodyBackground color="#ffffff" />
+      <div className="mx-auto flex min-h-[60vh] max-w-xl flex-col items-center justify-center px-4 py-12 text-center">
+        <div className="mb-6 h-11 w-11 animate-spin rounded-full border-2 border-[#F66812]/25 border-t-[#F66812]" />
+      </div>
+    </>
+  );
+}
+
+export default function CheckoutPaymentGatewayPage() {
+  return (
+    <Suspense fallback={<CheckoutPaymentGatewayFallback />}>
+      <CheckoutPaymentGatewayContent />
+    </Suspense>
   );
 }
