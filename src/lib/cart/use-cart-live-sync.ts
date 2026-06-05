@@ -10,23 +10,48 @@ import {
 } from '@/lib/cart/optimistic-cart-add';
 import { applyRemovedLinesFilter } from '@/lib/cart/pending-cart-removals';
 import { dispatchCartSummarySync } from '@/lib/cart/cart-summary-sync';
+import { createEmptyCart } from '@/lib/cart/empty-cart';
+import { readCartSummaryCache } from '@/lib/cartSummaryCache';
 
 const CART_RECONCILE_DEBOUNCE_MS = 400;
 
 type UseCartLiveSyncOptions = {
   isLoggedIn: boolean;
+  isAuthLoading: boolean;
   t: (key: string) => string;
   /** Open cart drawer when an optimistic add is applied (instant feedback). */
   onOptimisticAdd?: () => void;
 };
 
-export function useCartLiveSync({ isLoggedIn, t, onOptimisticAdd }: UseCartLiveSyncOptions) {
-  const [cart, setCart] = useState<Cart | null>(null);
+function resolveInitialCartState(): Cart | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const cached = readCartSummaryCache();
+  if (cached && cached.itemsCount > 0) {
+    return null;
+  }
+
+  return createEmptyCart();
+}
+
+function normalizeCartPayload(cartData: Cart | null): Cart {
+  return applyRemovedLinesFilter(cartData) ?? createEmptyCart();
+}
+
+export function useCartLiveSync({
+  isLoggedIn,
+  isAuthLoading,
+  t,
+  onOptimisticAdd,
+}: UseCartLiveSyncOptions) {
+  const [cart, setCart] = useState<Cart | null>(resolveInitialCartState);
   const [cartLoading, setCartLoading] = useState(false);
   const cartRef = useRef<Cart | null>(null);
   const reconcileTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reloadGenerationRef = useRef(0);
-  const cartHydratedRef = useRef(false);
+  const cartHydratedRef = useRef(resolveInitialCartState() !== null);
 
   useEffect(() => {
     cartRef.current = cart;
@@ -60,13 +85,13 @@ export function useCartLiveSync({ isLoggedIn, t, onOptimisticAdd }: UseCartLiveS
         if (generation !== reloadGenerationRef.current) {
           return;
         }
-        commitCart(applyRemovedLinesFilter(cartData));
+        commitCart(normalizeCartPayload(cartData));
       } catch {
         if (generation !== reloadGenerationRef.current) {
           return;
         }
         if (!silent) {
-          commitCart(null);
+          commitCart(createEmptyCart());
         }
       } finally {
         if (generation === reloadGenerationRef.current) {
@@ -88,8 +113,11 @@ export function useCartLiveSync({ isLoggedIn, t, onOptimisticAdd }: UseCartLiveS
   }, [reloadCart]);
 
   useEffect(() => {
+    if (isAuthLoading) {
+      return;
+    }
     void reloadCart({ silent: true });
-  }, [isLoggedIn, reloadCart]);
+  }, [isAuthLoading, isLoggedIn, reloadCart]);
 
   useEffect(() => {
     const onCartUpdate = (event: Event) => {
@@ -99,7 +127,7 @@ export function useCartLiveSync({ isLoggedIn, t, onOptimisticAdd }: UseCartLiveS
       }
 
       if (detail.forceReload) {
-        void reloadCart({ silent: cartRef.current !== null });
+        void reloadCart({ silent: true });
         return;
       }
 

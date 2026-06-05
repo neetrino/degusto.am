@@ -2,9 +2,15 @@ import type { Transition, Variants } from 'framer-motion';
 
 const TEXT_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
-export function cartDrawerPanelTransition(reduceMotion: boolean | null): Transition {
+export function cartDrawerPanelTransition(
+  reduceMotion: boolean | null,
+  options?: { fullScreen?: boolean },
+): Transition {
   if (reduceMotion) {
     return { duration: 0 };
+  }
+  if (options?.fullScreen) {
+    return { type: 'spring', damping: 30, stiffness: 560, mass: 0.68 };
   }
   return { type: 'spring', damping: 34, stiffness: 380, mass: 0.82 };
 }
@@ -61,32 +67,47 @@ export function cartDrawerPanelVariants(
   };
 }
 
-export function cartDrawerHeaderStagger(reduceMotion: boolean | null): Variants {
+export function cartDrawerHeaderStagger(
+  reduceMotion: boolean | null,
+  options?: { fullScreen?: boolean },
+): Variants {
+  const delayChildren = reduceMotion ? 0 : options?.fullScreen ? 0.02 : 0.06;
+  const staggerChildren = reduceMotion ? 0 : options?.fullScreen ? 0.02 : 0.07;
+
   return {
     hidden: {},
     visible: {
       transition: {
-        staggerChildren: reduceMotion ? 0 : 0.07,
-        delayChildren: reduceMotion ? 0 : 0.06,
+        staggerChildren,
+        delayChildren,
       },
     },
   };
 }
 
-export function cartDrawerBodyStagger(reduceMotion: boolean | null): Variants {
+export function cartDrawerBodyStagger(
+  reduceMotion: boolean | null,
+  options?: { fullScreen?: boolean },
+): Variants {
+  const delayChildren = reduceMotion ? 0 : options?.fullScreen ? 0.03 : 0.14;
+  const staggerChildren = reduceMotion ? 0 : options?.fullScreen ? 0.025 : 0.075;
+
   return {
     hidden: {},
     visible: {
       transition: {
-        staggerChildren: reduceMotion ? 0 : 0.075,
-        delayChildren: reduceMotion ? 0 : 0.14,
+        staggerChildren,
+        delayChildren,
       },
     },
   };
 }
 
-export function cartDrawerFadeUpItem(reduceMotion: boolean | null): Variants {
-  const duration = reduceMotion ? 0 : 0.4;
+export function cartDrawerFadeUpItem(
+  reduceMotion: boolean | null,
+  options?: { fullScreen?: boolean },
+): Variants {
+  const duration = reduceMotion ? 0 : options?.fullScreen ? 0.22 : 0.4;
   return {
     hidden: { opacity: 0, y: 14 },
     visible: {

@@ -62,7 +62,7 @@ function CartDrawerBackdrop({
 function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisible: boolean }) {
   const isMobileViewport = useIsMobileViewport();
   const reduceMotion = useReducedMotion();
-  const panelTransition = cartDrawerPanelTransition(reduceMotion);
+  const panelTransition = cartDrawerPanelTransition(reduceMotion, { fullScreen: isMobileViewport });
   const { isLoggedIn } = useAuth();
   const { t } = useTranslation();
   const {
@@ -83,19 +83,22 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
       return;
     }
 
-    const cached = readCartSummaryCache();
-    const localHasItems = cartHasVisibleItems(cart);
-    const cacheHasItems = (cached?.itemsCount ?? 0) > 0;
-
-    if (!localHasItems && (cacheHasItems || !cart)) {
-      void reloadCart({ silent: true });
+    if (cartHasVisibleItems(cart)) {
+      return;
     }
+
+    const cached = readCartSummaryCache();
+    if ((cached?.itemsCount ?? 0) === 0 && cart !== null) {
+      return;
+    }
+
+    void reloadCart({ silent: true });
   }, [isVisible, cart, cartLoading, reloadCart]);
 
   useEffect(() => {
     const onCurrency = () => setCurrency(getStoredCurrency());
     const onAuth = () => {
-      void reloadCart();
+      void reloadCart({ silent: true });
     };
     window.addEventListener('currency-updated', onCurrency);
     window.addEventListener('auth-updated', onAuth);
@@ -130,7 +133,7 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
   }, [isVisible]);
 
   const loadCartWithLoading = useCallback(async () => {
-    await reloadCart();
+    await reloadCart({ silent: true });
   }, [reloadCart]);
 
   async function onRemoveItem(itemId: string) {
@@ -154,10 +157,12 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
 
   const itemCount = cart?.itemsCount ?? 0;
   const countLabel = itemCount === 1 ? t('common.cart.item') : t('common.cart.items');
-  const headerStagger = cartDrawerHeaderStagger(reduceMotion);
-  const bodyStagger = cartDrawerBodyStagger(reduceMotion);
-  const fadeItem = cartDrawerFadeUpItem(reduceMotion);
-  const showLoading = cartLoading && (!cart || cart.items.length === 0);
+  const headerStagger = cartDrawerHeaderStagger(reduceMotion, { fullScreen: isMobileViewport });
+  const bodyStagger = cartDrawerBodyStagger(reduceMotion, { fullScreen: isMobileViewport });
+  const fadeItem = cartDrawerFadeUpItem(reduceMotion, { fullScreen: isMobileViewport });
+  const cachedItemsCount = readCartSummaryCache()?.itemsCount ?? 0;
+  const showLoading =
+    cartLoading && cachedItemsCount > 0 && !cartHasVisibleItems(cart);
 
   if (!isVisible) {
     return (

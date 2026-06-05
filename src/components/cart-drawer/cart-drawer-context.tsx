@@ -14,6 +14,8 @@ import type { Cart } from '@/app/cart/types';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useTranslation } from '@/lib/i18n-client';
 import { useCartLiveSync } from '@/lib/cart/use-cart-live-sync';
+import { readCartSummaryCache } from '@/lib/cartSummaryCache';
+import { cartHasVisibleItems } from '@/lib/cart/cart-summary-sync';
 
 export type CartDrawerContextValue = {
   openCartDrawer: () => void;
@@ -39,12 +41,8 @@ export function useCartDrawer(): CartDrawerContextValue {
 
 export function CartDrawerProvider({ children }: { children: ReactNode }) {
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, isLoading: isAuthLoading } = useAuth();
   const { t } = useTranslation();
-
-  const openCartDrawer = useCallback(() => {
-    setIsCartDrawerOpen(true);
-  }, []);
 
   const {
     cart,
@@ -53,11 +51,21 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
     setCartLoading,
     reloadCart,
     scheduleReconcile,
+    cartRef,
   } = useCartLiveSync({
     isLoggedIn,
+    isAuthLoading,
     t,
-    onOptimisticAdd: openCartDrawer,
+    onOptimisticAdd: () => setIsCartDrawerOpen(true),
   });
+
+  const openCartDrawer = useCallback(() => {
+    setIsCartDrawerOpen(true);
+    const cached = readCartSummaryCache();
+    if ((cached?.itemsCount ?? 0) > 0 && !cartHasVisibleItems(cartRef.current)) {
+      void reloadCart({ silent: true });
+    }
+  }, [cartRef, reloadCart]);
 
   const closeCartDrawer = useCallback(() => {
     setIsCartDrawerOpen(false);

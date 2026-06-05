@@ -92,6 +92,31 @@ export function isQuietCartItemNotFoundError(status: number, url: string): boole
 }
 
 /**
+ * Guest-session reads that legitimately return 401 must not trigger global login redirect.
+ */
+export function isQuietGuestSessionAuthError(status: number, url: string): boolean {
+  if (status !== 401) {
+    return false;
+  }
+
+  return (
+    /\/api\/v1\/users\/wishlist(?:\?|$)/.test(url) ||
+    /\/api\/v1\/compare(?:\?|$)/.test(url)
+  );
+}
+
+/**
+ * Whether a 401 should clear auth and redirect to /login.
+ */
+export function shouldRedirectOnUnauthorized(status: number, url: string): boolean {
+  if (status !== 401) {
+    return false;
+  }
+
+  return !isQuietGuestSessionAuthError(status, url);
+}
+
+/**
  * Parse error response from API
  */
 export async function parseErrorResponse(response: Response): Promise<{
