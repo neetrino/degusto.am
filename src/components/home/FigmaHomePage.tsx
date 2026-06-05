@@ -60,6 +60,10 @@ const HOME_DESKTOP_SPECIAL_OFFERS_HEADER_STACKING_CLASS = 'relative z-40';
 /** Desktop hero background offset from section top (lower = image sits higher). */
 const HOME_DESKTOP_HERO_BG_TOP_CLASS = 'top-[68px]';
 
+/** Figma node 1:748 — home desktop category card border frame. */
+const HOME_DESKTOP_CATEGORY_CARD_FILL_CLASS = 'bg-[#121212]';
+const HOME_DESKTOP_CATEGORY_CARD_SIZE_CLASS = 'h-[22.6875rem] w-[19.0625rem]';
+
 function NewsCard({ item }: { item: HomeFeaturedProduct }) {
   const { t } = useTranslation();
   const currency = useCurrency();
@@ -201,7 +205,7 @@ function CategoryCard({ item }: { item: HomeCategoryItem }) {
   return (
     <StorefrontCategoryLink
       href={getHomeCategoryHref(item)}
-      className="block rounded-[22px] bg-[#0c0d12] p-4 transition-transform hover:-translate-y-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#f66913]"
+      className={`block overflow-hidden rounded-[22px] p-4 ${HOME_DESKTOP_CATEGORY_CARD_FILL_CLASS} ${HOME_DESKTOP_CATEGORY_CARD_SIZE_CLASS} transition-transform hover:-translate-y-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#f66913]`}
       aria-label={item.title}
     >
       <h3 className="min-h-[56px] text-2xl font-black leading-tight text-white">{item.title}</h3>

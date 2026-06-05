@@ -60,8 +60,16 @@ export const UNIVERSAL_HEADER_ACTIONS_WRAP_CLASS =
 /** Language / currency — visible from lg (iPad desktop); compact pill until xl. */
 export const UNIVERSAL_HEADER_LANG_SWITCHER_WRAP_CLASS = 'hidden shrink-0 overflow-visible lg:block';
 
-export const UNIVERSAL_HEADER_CART_BUTTON_WITH_TOTAL_CLASS =
-  'relative inline-flex h-12 shrink-0 items-center min-w-[6.75rem] justify-end pl-9 xl:min-w-[117px] xl:pl-10';
+/** Figma 1:951 — icon left, pill overlaps from 29px, grows for longer totals. */
+export const UNIVERSAL_HEADER_CART_BUTTON_CLASS =
+  'relative inline-flex h-12 shrink-0 items-end';
 
 export const UNIVERSAL_HEADER_CART_TOTAL_PILL_CLASS =
-  'inline-flex h-12 min-w-[4.75rem] items-center justify-center whitespace-nowrap rounded-[70px] bg-white px-2.5 text-sm font-bold tabular-nums text-black xl:min-w-[88px] xl:px-4 xl:text-base';
+  'relative z-[1] -ml-[21px] inline-flex h-12 min-w-[88px] shrink-0 items-center justify-center whitespace-nowrap rounded-[70px] bg-white pl-9 pr-3 text-base font-bold tabular-nums text-black';
+
+export const UNIVERSAL_HEADER_CART_ICON_WRAP_CLASS =
+  'relative z-[2] mb-[1px] inline-flex h-[34px] w-[37px] shrink-0 items-center justify-center';
+
+/** Badge sits on the cart icon (Figma 1:957 — ~27px from icon left edge). */
+export const UNIVERSAL_HEADER_CART_BADGE_WRAP_CLASS =
+  'pointer-events-none absolute left-[27px] top-[-2px] inline-flex h-6 w-6 items-center justify-center';
