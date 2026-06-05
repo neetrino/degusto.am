@@ -229,8 +229,8 @@ export function FigmaHomePage({
   const heroProduct = resolveHomeDailyOfferProduct(featuredProducts, dailyOfferProduct);
 
   return (
-    <div className="hidden min-h-screen overflow-x-hidden bg-[var(--project-color)] lg:block">
-      <section className="relative w-full overflow-hidden bg-[var(--project-color)] pb-56 pt-8 lg:h-[930px] lg:pb-0 lg:[aspect-ratio:231/130]">
+    <div className="hidden min-h-screen w-full overflow-x-clip bg-[var(--project-color)] lg:block">
+      <section className="relative w-full overflow-hidden bg-[var(--project-color)] pb-56 pt-8 lg:min-h-[680px] lg:pb-0 lg:pt-8 xl:h-[930px] xl:[aspect-ratio:231/130]">
         <div
           className={`pointer-events-none absolute inset-x-0 ${HOME_DESKTOP_HERO_BG_TOP_CLASS} z-0 h-[900px] w-full lg:h-full`}
         >
@@ -239,7 +239,7 @@ export function FigmaHomePage({
             src={assets.heroBg}
             alt="Degusto hero"
             fill
-            className="object-contain object-top"
+            className="object-cover object-top lg:object-cover xl:object-contain xl:object-top"
             priority
             loading="eager"
             sizes="100vw"

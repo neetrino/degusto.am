@@ -219,6 +219,18 @@ export function ProductInfoAndActions({
                   <Plus className="h-5 w-5" strokeWidth={2.5} aria-hidden />
                 </button>
               </div>
+              <button
+                type="button"
+                disabled={!canAddToCart || isAddingToCart}
+                className={`${PDP_ADD_TO_CART_BUTTON_CLASS} ${PDP_PILL_RADIUS_CLASS} ${montserratArmFont.className}`}
+                onClick={onAddToCart}
+              >
+                {isAddingToCart
+                  ? t(language, 'product.adding')
+                  : isOutOfStock
+                    ? t(language, 'product.outOfStock')
+                    : t(language, 'product.addToCart')}
+              </button>
               <PdpSecondaryIconButton
                 onClick={handleWishlistToggle}
                 aria-label={
@@ -237,18 +249,6 @@ export function ProductInfoAndActions({
                 </span>
               </PdpSecondaryIconButton>
             </div>
-            <button
-              type="button"
-              disabled={!canAddToCart || isAddingToCart}
-              className={`${PDP_ADD_TO_CART_BUTTON_CLASS} ${PDP_PILL_RADIUS_CLASS} ${montserratArmFont.className}`}
-              onClick={onAddToCart}
-            >
-              {isAddingToCart
-                ? t(language, 'product.adding')
-                : isOutOfStock
-                  ? t(language, 'product.outOfStock')
-                  : t(language, 'product.addToCart')}
-            </button>
           </div>
         </div>
     </div>

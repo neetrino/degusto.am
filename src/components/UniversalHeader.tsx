@@ -24,7 +24,17 @@ import { WishlistHeaderHeartIcon } from './icons/WishlistHeaderHeartIcon';
 import { BrandLogoLink } from './BrandLogoLink';
 import { HEADER_PUBLIC_ASSETS } from '@/constants/header-public-assets';
 import { navigateToProductPage, prefetchProductRoute } from '@/lib/products/prefetch-product-route';
-import { STOREFRONT_DESKTOP_SECTION_CLASS } from '@/constants/storefront-desktop-layout';
+import {
+  UNIVERSAL_HEADER_ACTIONS_WRAP_CLASS,
+  UNIVERSAL_HEADER_BAR_CLASS,
+  UNIVERSAL_HEADER_CART_BUTTON_WITH_TOTAL_CLASS,
+  UNIVERSAL_HEADER_CART_TOTAL_PILL_CLASS,
+  UNIVERSAL_HEADER_LANG_SWITCHER_WRAP_CLASS,
+  UNIVERSAL_HEADER_NAV_CLASS,
+  UNIVERSAL_HEADER_SEARCH_FORM_CLASS,
+  UNIVERSAL_HEADER_SEARCH_SUBMIT_CLASS,
+  UNIVERSAL_HEADER_SEARCH_SUBMIT_LABEL_CLASS,
+} from '@/constants/universal-header-layout';
 
 function universalWishlistNavClassName(active: boolean): string {
   const base =
@@ -177,9 +187,9 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
   return (
     <>
       <div aria-hidden="true" className={`h-[104px] ${spacerBackgroundClassName}`} />
-      <header className={`fixed left-0 right-0 top-6 z-50 flex h-20 w-full items-center rounded-[120px] border border-white/10 bg-gradient-to-r from-[#0f1017] to-[#13151d] shadow-2xl ${STOREFRONT_DESKTOP_SECTION_CLASS}`}>
+      <header className={UNIVERSAL_HEADER_BAR_CLASS}>
         <BrandLogoLink onDark className="shrink-0" title="Degusto" />
-        <nav className="ml-8 mr-auto hidden items-center gap-[30px] whitespace-nowrap px-4 text-[18px] font-semibold leading-[30px] text-white lg:flex">
+        <nav className={UNIVERSAL_HEADER_NAV_CLASS}>
           <Link href="/" className={`shrink-0 transition-colors ${isActivePath('/') ? 'text-[#ff7f20]' : 'text-white hover:text-[#ffb07a]'}`}>{t('common.navigation.home')}</Link>
           <Link href="/shop" className={`shrink-0 transition-colors ${isActivePath('/shop') ? 'text-[#ff7f20]' : 'text-white hover:text-[#ffb07a]'}`}>{t('common.navigation.shop')}</Link>
           <Link href="/combo" className={`shrink-0 transition-colors ${isActivePath('/combo') ? 'text-[#ff7f20]' : 'text-white hover:text-[#ffb07a]'}`}>{t('common.navigation.combo')}</Link>
@@ -187,7 +197,7 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
         </nav>
         <form
           onSubmit={handleSearchSubmit}
-          className="relative ml-auto hidden h-12 w-[237px] items-center rounded-[90px] bg-white p-1 transition-all duration-300 ease-out hover:w-[380px] focus-within:w-[380px] md:flex"
+          className={UNIVERSAL_HEADER_SEARCH_FORM_CLASS}
         >
           <input
             type="text"
@@ -213,11 +223,11 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
             aria-expanded={searchDropdownOpen && searchResults.length > 0}
             aria-autocomplete="list"
           />
-          <button type="submit" className="relative ml-auto inline-flex h-10 items-center overflow-hidden rounded-[20px] bg-[#f66812] py-2 pl-10 pr-4">
-            <span className="absolute left-0 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center">
+          <button type="submit" className={UNIVERSAL_HEADER_SEARCH_SUBMIT_CLASS}>
+            <span className="absolute left-1/2 top-1/2 inline-flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center xl:left-0 xl:translate-x-0">
               <img src={HEADER_PUBLIC_ASSETS.searchIcon} alt="" className="h-6 w-6 object-contain brightness-0 invert" />
             </span>
-            <span className="text-[15px] font-semibold leading-6 text-white">{t('common.buttons.search')}</span>
+            <span className={UNIVERSAL_HEADER_SEARCH_SUBMIT_LABEL_CLASS}>{t('common.buttons.search')}</span>
           </button>
           <SearchDropdown
             results={searchResults}
@@ -235,13 +245,13 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
             className="left-2 right-2 mt-2 rounded-2xl"
           />
         </form>
-        <div className="ml-3 flex items-center gap-[11px]">
-          <div className="hidden items-center gap-[7px] md:flex">
+        <div className={UNIVERSAL_HEADER_ACTIONS_WRAP_CLASS}>
+          <div className="hidden items-center gap-1.5 md:flex xl:gap-[7px]">
             <button
               type="button"
               onClick={() => openCartDrawer()}
               className={`relative inline-flex h-12 shrink-0 items-center ${
-                cartCount > 0 ? 'min-w-[117px] justify-end pl-10' : 'w-12 justify-center'
+                cartCount > 0 ? UNIVERSAL_HEADER_CART_BUTTON_WITH_TOTAL_CLASS : 'w-12 justify-center'
               }`}
               aria-label={
                 cartCount > 0
@@ -252,7 +262,7 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
               {cartCount > 0 && (
                 <span
                   aria-hidden
-                  className="inline-flex h-12 min-w-[88px] items-center justify-center whitespace-nowrap rounded-[70px] bg-white px-4 text-base font-bold tabular-nums text-black"
+                  className={UNIVERSAL_HEADER_CART_TOTAL_PILL_CLASS}
                 >
                   {formatPrice(cartTotal, currency)}
                 </span>
@@ -304,12 +314,14 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
                 </span>
               )}
             </Link>
+          </div>
+          <div className={UNIVERSAL_HEADER_LANG_SWITCHER_WRAP_CLASS}>
             <LanguageCurrencySwitcher
               variant="desktop"
               iconSrc={HEADER_PUBLIC_ASSETS.switcherIcon}
             />
           </div>
-          <div className="group relative">
+          <div className="group relative shrink-0">
             <Link
               href={userNavHref}
               className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-black/10 transition-colors hover:ring-[color:var(--project-color)]/40"

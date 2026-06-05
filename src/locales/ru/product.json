@@ -30,6 +30,7 @@
   "exclusionsPlaceholder": "Ингредиенты, которые нужно убрать",
   "customizationAddShort": "Добавить",
   "customizationExcludeShort": "Исключить",
+  "customizationWithoutPrefix": "Без",
   "customizationIngredients": {
     "cheese": "Сыр",
     "bacon": "Бекон",

@@ -9,6 +9,7 @@ import { CashChangeFromSection } from './components/CashChangeFromSection';
 import { CheckoutPaymentMethodList } from './components/CheckoutPaymentMethodList';
 import {
   CHECKOUT_CARD_FRAME,
+  CHECKOUT_FORM_COLUMN_CLASS,
   CHECKOUT_SECTION_TITLE,
   CHECKOUT_SECTION_TITLE_TEXT,
   CHECKOUT_TEXT_INK,
@@ -48,7 +49,7 @@ export function CheckoutForm({
   const { t } = useTranslation();
 
   return (
-    <div className="lg:col-span-2 space-y-6">
+    <div className={`${CHECKOUT_FORM_COLUMN_CLASS} space-y-6`}>
       {/* Contact Information */}
       <Card className={`p-6 ${CHECKOUT_CARD_FRAME}`}>
         <h2 className={CHECKOUT_SECTION_TITLE}>{t('checkout.contactInformation')}</h2>

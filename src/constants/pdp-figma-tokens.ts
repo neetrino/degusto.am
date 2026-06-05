@@ -104,15 +104,15 @@ export const PDP_COMPARE_PRICE_CLASS =
 export const PDP_PRICE_ROW_CLASS = 'mb-4 flex flex-wrap items-baseline gap-x-3';
 /** Figma node 10:1944 — add-to-cart pill (240.19×48); slightly wider for «Ավելացնել զամբյուղ». */
 export const PDP_ADD_TO_CART_BUTTON_CLASS =
-  'flex h-12 max-lg:w-full max-lg:min-w-0 lg:w-[16.25rem] lg:shrink-0 items-center justify-center bg-[#ff7f20] text-base font-medium not-italic leading-normal whitespace-nowrap text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-500';
+  'flex h-12 min-w-0 max-lg:flex-1 items-center justify-center bg-[#ff7f20] text-base font-medium not-italic leading-normal whitespace-nowrap text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-500 lg:w-[16.25rem] lg:shrink-0';
 /** Figma node 10:1917 — quantity selector pill (161×48). */
 export const PDP_QUANTITY_SELECTOR_CLASS =
   `inline-flex h-12 max-lg:w-[7.25rem] max-lg:px-2.5 lg:w-[10.0625rem] lg:px-3.5 shrink-0 items-center justify-between border-2 border-[#ff7f20] bg-white ${PDP_PILL_RADIUS_CLASS}`;
-/** Mobile — qty + wishlist on one row; add-to-cart full width below. Desktop — single row. */
+/** Mobile — qty + add-to-cart + wishlist on one row. Desktop — single row (same order). */
 export const PDP_ACTIONS_ROW_CLASS =
   'flex w-full min-w-0 flex-col gap-2.5 lg:flex-row lg:items-center lg:gap-2.5';
 export const PDP_ACTIONS_MOBILE_TOP_ROW_CLASS =
-  'flex w-full items-center justify-between gap-2 lg:contents';
+  'flex w-full min-w-0 items-center gap-2.5 lg:contents';
 /** Figma nodes 10:2279 / 10:1942 — gray secondary icon pills (48×48). */
 export const PDP_SECONDARY_ICON_BUTTON_CLASS =
   `flex size-12 shrink-0 items-center justify-center overflow-hidden bg-[#e4e4e4] ${PDP_PILL_RADIUS_CLASS}`;

@@ -30,6 +30,7 @@
   "exclusionsPlaceholder": "Ingredients to remove",
   "customizationAddShort": "Add",
   "customizationExcludeShort": "Exclude",
+  "customizationWithoutPrefix": "Without",
   "customizationIngredients": {
     "cheese": "Cheese",
     "bacon": "Bacon",

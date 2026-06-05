@@ -30,6 +30,7 @@
   "exclusionsPlaceholder": "Ինչ բաղադրիչներ հանել",
   "customizationAddShort": "Ավելացնել",
   "customizationExcludeShort": "Բացառել",
+  "customizationWithoutPrefix": "Առանց",
   "customizationIngredients": {
     "cheese": "Պանիր",
     "bacon": "Բեկոն",

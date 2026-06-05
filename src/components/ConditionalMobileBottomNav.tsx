@@ -3,11 +3,16 @@
 import { usePathname } from 'next/navigation';
 import { MobileBottomNavigation } from './home/MobileBottomNavigation';
 import { resolveMobileBottomNavAssets } from './home/mobileBottomNavAssets';
+import { usesCheckoutTabletDesktopLayout } from '../lib/uses-storefront-mobile-chrome';
 
 export function ConditionalMobileBottomNav() {
   const pathname = usePathname();
 
   if (pathname?.startsWith('/supersudo')) {
+    return null;
+  }
+
+  if (usesCheckoutTabletDesktopLayout(pathname)) {
     return null;
   }
 

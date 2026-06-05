@@ -1,4 +1,35 @@
+import { t } from '../../../../lib/i18n';
+import type { LanguageCode } from '../../../../lib/language';
+
 export const CUSTOMIZATION_SELECTION_SEPARATOR = ', ';
+
+const LOCALE_BY_LANGUAGE: Record<LanguageCode, string> = {
+  hy: 'hy-AM',
+  ru: 'ru-RU',
+  en: 'en-US',
+};
+
+/** Display label for excludable ingredients (e.g. «Առանց Սոխ»). Stored values stay unprefixed. */
+export function formatPdpExclusionDisplayLabel(language: LanguageCode, label: string): string {
+  const prefix = t(language, 'product.customizationWithoutPrefix');
+  const trimmed = label.trim();
+  if (!trimmed) {
+    return trimmed;
+  }
+
+  const locale = LOCALE_BY_LANGUAGE[language];
+  if (trimmed.toLocaleLowerCase(locale).startsWith(prefix.toLocaleLowerCase(locale))) {
+    return trimmed;
+  }
+
+  return `${prefix} ${trimmed}`;
+}
+
+export function formatPdpExclusionsDisplayList(language: LanguageCode, exclusions: string): string {
+  return parseCustomizationSelection(exclusions)
+    .map((label) => formatPdpExclusionDisplayLabel(language, label))
+    .join(CUSTOMIZATION_SELECTION_SEPARATOR);
+}
 
 /** Parse comma-separated customization labels stored on cart lines. */
 export function parseCustomizationSelection(value: string): string[] {

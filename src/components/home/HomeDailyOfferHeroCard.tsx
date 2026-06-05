@@ -24,9 +24,7 @@ type HomeDailyOfferHeroCardProps = HomeDailyOfferHeroCardAssets & {
   product: HomeFeaturedProduct;
 };
 
-/**
- * Desktop home hero — daily-offer product card (Figma) with working add-to-cart.
- */
+/** Desktop home hero — daily-offer product card (Figma) with working add-to-cart. */
 export function HomeDailyOfferHeroCard({
   product,
   offerBadgeSrc,
@@ -63,7 +61,7 @@ export function HomeDailyOfferHeroCard({
   return (
     <article
       data-home-daily-offer-hero
-      className="relative z-20 h-[284px] w-[236px] cursor-pointer rounded-[20px] sm:ml-[45px]"
+      className="relative z-20 h-[284px] w-[236px] shrink-0 cursor-pointer rounded-[20px]"
     >
       <StorefrontProductOverlayLink slug={product.slug} label={title} />
       <div className="absolute inset-0 rounded-[20px] bg-white shadow-xl" />

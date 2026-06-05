@@ -6,8 +6,15 @@
 /** Figma / header reference width (px). */
 export const STOREFRONT_DESKTOP_MAX_WIDTH_PX = 1450;
 
+/**
+ * Equal viewport side gutters — content never flush to screen edge below ~1510px viewport.
+ * Shared by header pill and page sections.
+ */
+export const STOREFRONT_VIEWPORT_GUTTER_CLASS =
+  'w-full max-w-[min(1450px,calc(100%-2rem))] md:max-w-[min(1450px,calc(100%-2.5rem))] lg:max-w-[min(1450px,calc(100%-3rem))]';
+
 /** Horizontally centered shell; equal outer margins when viewport is wider than max width. */
-export const STOREFRONT_DESKTOP_SHELL_CLASS = 'mx-auto w-full max-w-[1450px]';
+export const STOREFRONT_DESKTOP_SHELL_CLASS = `mx-auto ${STOREFRONT_VIEWPORT_GUTTER_CLASS}`;
 
 /** Standard horizontal inset — matches UniversalHeader `px-4 md:px-6`. */
 export const STOREFRONT_DESKTOP_INSET_CLASS = 'px-4 md:px-6';

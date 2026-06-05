@@ -30,3 +30,14 @@ export function usesStorefrontMobileHeader(pathname: string | null): boolean {
   }
   return !pathname.startsWith('/profile') && !pathname.startsWith('/admin-mobile');
 }
+
+/**
+ * Checkout (and payment sub-routes) switch to desktop chrome at `md` (768px) for iPad portrait.
+ * Tailwind classes must list `md:` variants explicitly — no dynamic breakpoint strings.
+ */
+export function usesCheckoutTabletDesktopLayout(pathname: string | null): boolean {
+  if (!pathname) {
+    return false;
+  }
+  return pathname === '/checkout' || pathname.startsWith('/checkout/');
+}

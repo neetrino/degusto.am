@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { Header } from './Header';
 import { UniversalHeader } from './UniversalHeader';
-import { usesStorefrontMobileChrome } from '../lib/uses-storefront-mobile-chrome';
+import { usesStorefrontMobileChrome, usesCheckoutTabletDesktopLayout } from '../lib/uses-storefront-mobile-chrome';
 
 export function ConditionalHeader() {
   const pathname = usePathname();
@@ -23,14 +23,17 @@ export function ConditionalHeader() {
       ? "bg-[url('/images/about-page-botanical-bg.png')] bg-cover bg-center"
       : 'bg-white';
   const showLegacyMobileHeader = !usesStorefrontMobileChrome(pathname);
+  const checkoutTabletDesktop = usesCheckoutTabletDesktopLayout(pathname);
+  const universalHeaderVisibilityClass = checkoutTabletDesktop ? 'hidden md:block' : 'hidden lg:block';
+  const legacyMobileHeaderVisibilityClass = checkoutTabletDesktop ? 'md:hidden' : 'lg:hidden';
 
   return (
     <>
-      <div className="hidden lg:block">
+      <div className={universalHeaderVisibilityClass}>
         <UniversalHeader spacerBackgroundClassName={universalSpacerClass} />
       </div>
       {showLegacyMobileHeader ? (
-        <div className="lg:hidden">
+        <div className={legacyMobileHeaderVisibilityClass}>
           <Header />
         </div>
       ) : null}
