@@ -17,6 +17,7 @@ import { montserratArmFont } from '@/fonts/montserrat-arm-font';
 import {
   PDP_FIGMA_DARK_SECTION,
   PDP_RELATED_CARDS_GAP_CLASS,
+  PDP_RELATED_CAROUSEL_DOTS_CLASS,
   PDP_RELATED_HEADER_GAP_CLASS,
   PDP_RELATED_SECTION_CLASS,
   PDP_RELATED_SECTION_MAX_WIDTH_CLASS,
@@ -148,7 +149,7 @@ export function RelatedProducts({
           >
             {Array.from({ length: loadingSkeletonCount }, (_, i) => i + 1).map((i) => (
               <div key={i} className="min-w-0 flex-1 lg:flex-none">
-                <div className="h-[240px] rounded-[20px] bg-neutral-50 lg:h-[284px]" />
+                <div className="h-[268px] rounded-[20px] bg-neutral-50 lg:h-[284px]" />
               </div>
             ))}
           </div>
@@ -159,7 +160,7 @@ export function RelatedProducts({
           >
             {Array.from({ length: loadingSkeletonCount }, (_, i) => i + 1).map((i) => (
               <div key={i} className="min-w-0 flex-1 animate-pulse lg:flex-none">
-                <div className="h-[240px] rounded-[20px] bg-neutral-100 lg:h-[284px]" />
+                <div className="h-[268px] rounded-[20px] bg-neutral-100 lg:h-[284px]" />
               </div>
             ))}
           </div>
@@ -213,13 +214,15 @@ export function RelatedProducts({
             )}
 
             {products.length > visibleCards && (
-              <CarouselDots
-                totalItems={products.length}
-                visibleItems={visibleCards}
-                currentIndex={currentIndex}
-                onDotClick={goToIndex}
-                scrollStep={scrollStep}
-              />
+              <div className={PDP_RELATED_CAROUSEL_DOTS_CLASS}>
+                <CarouselDots
+                  totalItems={products.length}
+                  visibleItems={visibleCards}
+                  currentIndex={currentIndex}
+                  onDotClick={goToIndex}
+                  scrollStep={scrollStep}
+                />
+              </div>
             )}
           </div>
         )}

@@ -27,6 +27,8 @@ import {
   PDP_ADD_TO_CART_BUTTON_CLASS,
   PDP_QUANTITY_SELECTOR_CLASS,
   PDP_PILL_RADIUS_CLASS,
+  PDP_ACTIONS_ROW_CLASS,
+  PDP_ACTIONS_MOBILE_TOP_ROW_CLASS,
 } from '@/constants/pdp-figma-tokens';
 import type { Product, ProductVariant, AttributeGroupValue, VariantOption } from './types';
 
@@ -183,38 +185,57 @@ export function ProductInfoAndActions({
         </div>
 
       <div className="mt-6 pt-2 lg:mt-auto lg:pt-0">
-          <div className="flex items-center gap-2.5 sm:gap-3">
-            <div
-              className={PDP_QUANTITY_SELECTOR_CLASS}
-              role="group"
-              aria-label={t(language, 'common.messages.quantity')}
-            >
-              <button
-                type="button"
-                onClick={() => onQuantityAdjust(-1)}
-                disabled={quantity <= 1}
-                className="flex h-8 w-8 shrink-0 items-center justify-center disabled:pointer-events-none disabled:opacity-35"
-                style={{ color: PDP_FIGMA_ORANGE }}
-                aria-label={t(language, 'common.ariaLabels.decreaseQuantity')}
+          <div className={PDP_ACTIONS_ROW_CLASS}>
+            <div className={PDP_ACTIONS_MOBILE_TOP_ROW_CLASS}>
+              <div
+                className={PDP_QUANTITY_SELECTOR_CLASS}
+                role="group"
+                aria-label={t(language, 'common.messages.quantity')}
               >
-                <Minus className="h-5 w-5" strokeWidth={2.5} aria-hidden />
-              </button>
-              <span
-                className="min-w-[1.75rem] select-none text-center text-lg font-medium tabular-nums"
-                style={{ color: PDP_FIGMA_ORANGE }}
+                <button
+                  type="button"
+                  onClick={() => onQuantityAdjust(-1)}
+                  disabled={quantity <= 1}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center disabled:pointer-events-none disabled:opacity-35"
+                  style={{ color: PDP_FIGMA_ORANGE }}
+                  aria-label={t(language, 'common.ariaLabels.decreaseQuantity')}
+                >
+                  <Minus className="h-5 w-5" strokeWidth={2.5} aria-hidden />
+                </button>
+                <span
+                  className="min-w-[1.75rem] select-none text-center text-lg font-medium tabular-nums"
+                  style={{ color: PDP_FIGMA_ORANGE }}
+                >
+                  {quantity}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onQuantityAdjust(1)}
+                  disabled={quantity >= maxQuantity}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center disabled:pointer-events-none disabled:opacity-35"
+                  style={{ color: PDP_FIGMA_ORANGE }}
+                  aria-label={t(language, 'common.ariaLabels.increaseQuantity')}
+                >
+                  <Plus className="h-5 w-5" strokeWidth={2.5} aria-hidden />
+                </button>
+              </div>
+              <PdpSecondaryIconButton
+                onClick={handleWishlistToggle}
+                aria-label={
+                  isInWishlist
+                    ? t(language, 'common.ariaLabels.removeFromWishlist')
+                    : t(language, 'common.ariaLabels.addToWishlist')
+                }
+                title={
+                  isInWishlist
+                    ? t(language, 'common.messages.removedFromWishlist')
+                    : t(language, 'common.messages.addedToWishlist')
+                }
               >
-                {quantity}
-              </span>
-              <button
-                type="button"
-                onClick={() => onQuantityAdjust(1)}
-                disabled={quantity >= maxQuantity}
-                className="flex h-8 w-8 shrink-0 items-center justify-center disabled:pointer-events-none disabled:opacity-35"
-                style={{ color: PDP_FIGMA_ORANGE }}
-                aria-label={t(language, 'common.ariaLabels.increaseQuantity')}
-              >
-                <Plus className="h-5 w-5" strokeWidth={2.5} aria-hidden />
-              </button>
+                <span className={isInWishlist ? 'text-[#ff7f20]' : 'text-[#494949]'}>
+                  <PdpActionHeartIcon />
+                </span>
+              </PdpSecondaryIconButton>
             </div>
             <button
               type="button"
@@ -228,23 +249,6 @@ export function ProductInfoAndActions({
                   ? t(language, 'product.outOfStock')
                   : t(language, 'product.addToCart')}
             </button>
-            <PdpSecondaryIconButton
-              onClick={handleWishlistToggle}
-              aria-label={
-                isInWishlist
-                  ? t(language, 'common.ariaLabels.removeFromWishlist')
-                  : t(language, 'common.ariaLabels.addToWishlist')
-              }
-              title={
-                isInWishlist
-                  ? t(language, 'common.messages.removedFromWishlist')
-                  : t(language, 'common.messages.addedToWishlist')
-              }
-            >
-              <span className={isInWishlist ? 'text-[#ff7f20]' : 'text-[#494949]'}>
-                <PdpActionHeartIcon />
-              </span>
-            </PdpSecondaryIconButton>
           </div>
         </div>
     </div>

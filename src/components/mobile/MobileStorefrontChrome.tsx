@@ -30,7 +30,7 @@ export function MobileStorefrontChrome({ children }: MobileStorefrontChromeProps
     pathname.startsWith('/profile') || pathname.startsWith('/admin-mobile');
 
   const contentSurfaceClass = showMobileHeader
-    ? `relative z-10 mt-[87px] flex min-h-0 flex-1 flex-col rounded-t-[30px] bg-white px-4 pt-8 ${MOBILE_STOREFRONT_CHROME_BOTTOM_INSET_CLASS} lg:mt-0 lg:flex-none lg:rounded-none lg:bg-transparent lg:px-0 lg:pb-0 lg:pt-0`
+    ? `relative z-10 mt-[87px] flex min-h-0 flex-1 flex-col bg-white px-4 pt-8 ${MOBILE_STOREFRONT_CHROME_BOTTOM_INSET_CLASS} lg:mt-0 lg:flex-none lg:rounded-none lg:bg-transparent lg:px-0 lg:pb-0 lg:pt-0`
     : `relative z-10 flex min-h-0 flex-1 flex-col bg-white px-0 pt-0 ${MOBILE_STOREFRONT_CHROME_BOTTOM_INSET_CLASS} lg:flex-none lg:bg-transparent lg:px-0 lg:pb-0 lg:pt-0`;
 
   return (

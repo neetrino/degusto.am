@@ -276,23 +276,20 @@ function CustomizationPill({
                 : t(language, 'product.customizationAddShort');
               return (
                 <li key={option.id}>
-                  <div className="flex items-center gap-2 rounded-xl px-2 py-2 text-sm">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        onChange(toggleDefaultIngredientIncluded(value, option.label))
-                      }
-                      className="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff7f20] focus-visible:ring-offset-2"
-                      aria-label={`${toggleLabel} — ${option.label}`}
-                    >
-                      <CustomizationOppositeMarker marker={checked ? 'plus' : 'minus'} />
-                    </button>
-                    <span
-                      className={`min-w-0 flex-1 break-words ${checked ? 'text-[#3c2f2f]' : 'text-[#868686]'}`}
-                    >
-                      {option.label}
-                    </span>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onChange(toggleDefaultIngredientIncluded(value, option.label))
+                    }
+                    className={`flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left text-sm transition-colors hover:bg-[#f7f7f7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff7f20] focus-visible:ring-offset-2 ${
+                      checked ? 'text-[#3c2f2f]' : 'text-[#868686]'
+                    }`}
+                    aria-label={`${toggleLabel} — ${option.label}`}
+                    aria-pressed={!checked}
+                  >
+                    <CustomizationOppositeMarker marker="minus" />
+                    <span className="min-w-0 flex-1 break-words">{option.label}</span>
+                  </button>
                 </li>
               );
             }
