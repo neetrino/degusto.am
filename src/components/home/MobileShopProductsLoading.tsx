@@ -1,8 +1,10 @@
 /** Inline skeleton while `/shop` product list RSC loads (keeps mobile chrome visible). */
+import { STOREFRONT_DESKTOP_SECTION_CLASS } from '@/constants/storefront-desktop-layout';
+
 export function MobileShopProductsLoading() {
   return (
     <div className="pb-8 pt-0 lg:hidden" aria-busy="true" aria-label="Loading products">
-      <div className="mx-auto w-full max-w-[1470px]">
+      <div className={STOREFRONT_DESKTOP_SECTION_CLASS}>
         <div className="h-8 w-40 animate-pulse rounded-lg bg-[#f3f3f5]" />
         <div className="mt-3 h-4 w-56 animate-pulse rounded bg-[#f3f3f5]" />
         <div className="mt-4 flex gap-2 overflow-hidden">

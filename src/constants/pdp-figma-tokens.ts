@@ -1,5 +1,7 @@
+import { STOREFRONT_DESKTOP_SHELL_CLASS } from '@/constants/storefront-desktop-layout';
+
 /** Matches {@link UniversalHeader} content width — keeps PDP image left edge aligned with header. */
-export const STOREFRONT_DESKTOP_CONTENT_CLASS = 'mx-auto w-full max-w-[1450px]';
+export const STOREFRONT_DESKTOP_CONTENT_CLASS = STOREFRONT_DESKTOP_SHELL_CLASS;
 
 /** Figma PDP (node 6:542) design tokens — DEGUSTO DEV 1. */
 export const PDP_FIGMA_TEXT = '#3c2f2f';

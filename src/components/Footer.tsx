@@ -6,6 +6,7 @@ import { useTranslation } from '../lib/i18n-client';
 import { SITE_CONTACT_EMAIL, SITE_CONTACT_PHONES } from '../lib/site-contact';
 import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
 import { bigFatBoiiFont } from '@/fonts/big-fat-boii-font';
+import { STOREFRONT_DESKTOP_SECTION_CLASS } from '@/constants/storefront-desktop-layout';
 
 const assets = {
   footerBrandLogo: '/api/r2/footer/20260512-5UxUa-QBsL.png',
@@ -116,8 +117,8 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
         </div>
       </div>
 
-      <div className="hidden overflow-hidden rounded-t-[40px] bg-[#121212] px-4 pb-10 pt-14 text-white md:px-8 lg:block lg:px-12 lg:pb-0 lg:pt-0">
-        <div className="relative mx-auto max-w-[1280px] lg:h-[576px]">
+      <div className="hidden overflow-hidden rounded-t-[40px] bg-[#121212] px-4 pb-10 pt-14 text-white md:px-8 lg:block lg:px-0 lg:pb-0 lg:pt-0">
+        <div className={`relative ${STOREFRONT_DESKTOP_SECTION_CLASS} lg:h-[576px]`}>
           <img
             src={assets.footerPastaVisual}
             alt="Degusto footer visual"
