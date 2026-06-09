@@ -215,6 +215,11 @@ export function formatOrderForDetail(
     cardLast4: string | null;
     cardBrand: string | null;
   }>;
+  events?: Array<{
+    type: string;
+    data: Prisma.JsonValue | null;
+    createdAt: Date;
+  }>;
 },
   customizationValueMap: Map<string, OrderItemVariantOption>
 ) {
@@ -222,6 +227,20 @@ export function formatOrderForDetail(
   const payments = Array.isArray(order.payments) ? order.payments : [];
   const primaryPayment = payments[0] || null;
   const formattedItems = order.items.map((item) => formatOrderItem(item, customizationValueMap));
+  const orderCreatedEvent = Array.isArray(order.events)
+    ? order.events
+        .filter((event) => event.type === "order_created")
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0] ?? null
+    : null;
+  const eventData =
+    orderCreatedEvent && typeof orderCreatedEvent.data === "object" && orderCreatedEvent.data !== null
+      ? (orderCreatedEvent.data as Record<string, unknown>)
+      : null;
+  const rawBagFeeAmount = eventData?.bagFeeAmount;
+  const bagFeeAmount =
+    typeof rawBagFeeAmount === "number" && Number.isFinite(rawBagFeeAmount)
+      ? Math.max(0, rawBagFeeAmount)
+      : 0;
 
   return {
     id: order.id,
@@ -235,6 +254,7 @@ export function formatOrderForDetail(
       subtotal: Number(order.subtotal || 0),
       discount: Number(order.discountAmount || 0),
       shipping: Number(order.shippingAmount || 0),
+      bagFee: bagFeeAmount,
       tax: Number(order.taxAmount || 0),
       total: Number(order.total || 0),
       currency: order.currency || "AMD",

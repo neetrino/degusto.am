@@ -25,15 +25,20 @@ export function OrderDetailsTotals({
     const subtotalAmd = convertPrice(orderDetails.totals.subtotal, 'USD', 'AMD');
     const discountAmd = convertPrice(orderDetails.totals.discount, 'USD', 'AMD');
     const shippingAmd = orderDetails.totals.shipping;
-    const totalAmd = subtotalAmd - discountAmd + shippingAmd;
+    const bagFeeAmd = orderDetails.totals.bagFee ?? 0;
+    const deliveryAmd = Math.max(0, shippingAmd - bagFeeAmd);
+    const totalAmd = subtotalAmd - discountAmd + deliveryAmd + bagFeeAmd;
     const value = currency === 'AMD' ? totalAmd : convertPrice(totalAmd, 'AMD', currency as CurrencyCode);
     return formatPriceInCurrency(value, currency as CurrencyCode);
   })();
+  const bagFeeAmd = orderDetails.totals.bagFee ?? 0;
+  const shippingAmd = orderDetails.totals.shipping;
+  const deliveryAmd = Math.max(0, shippingAmd - bagFeeAmd);
 
   const shippingLabel =
     orderDetails.shippingMethod === 'pickup'
       ? t('checkout.shipping.freePickup')
-      : `${formatCurrency(orderDetails.totals.shipping, orderDetails.totals.currency || 'AMD', 'AMD')}${
+      : `${formatCurrency(deliveryAmd, orderDetails.totals.currency || 'AMD', 'AMD')}${
           orderDetails.shippingAddress?.city ? ` (${orderDetails.shippingAddress.city})` : ''
         }`;
 
@@ -70,6 +75,14 @@ export function OrderDetailsTotals({
           <span>{t('orders.orderSummary.shipping')}</span>
           <span className="tabular-nums">{shippingLabel}</span>
         </div>
+        {bagFeeAmd > 0 ? (
+          <div className="flex items-center justify-between text-sm text-[#5b6f63]">
+            <span>{t('checkout.summary.bagFee')}</span>
+            <span className="tabular-nums">
+              {formatCurrency(bagFeeAmd, orderDetails.totals.currency || 'AMD', 'AMD')}
+            </span>
+          </div>
+        ) : null}
         <div className="flex items-center justify-between rounded-lg bg-[#f3f5f4] px-3 py-2.5 text-base font-bold text-[#1d392b]">
           <span>{t('orders.orderSummary.total')}</span>
           <span className="tabular-nums">{totalDisplay}</span>

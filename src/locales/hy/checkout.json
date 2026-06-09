@@ -5,6 +5,9 @@
   "shippingAddress": "Առաքման հասցե",
   "paymentMethod": "Վճարման եղանակ",
   "orderSummary": "Պատվերի ամփոփում",
+  "productsInOrder": "ՁԵՐ ՊԱՏՎԵՐԻ ԱՊՐԱՆՔՆԵՐԸ",
+  "itemsCount": "{count} ապրանք",
+  "removeItem": "Հեռացնել {title}",
   "cashDenominations": {
     "hint": "Հպեք այն թղթադրամին, որը կվճարեք, որպեսզի պատրաստենք մանրը:",
     "noteAlt": "{amount} դրամ թղթադրամ",

@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '../../lib/auth/AuthContext';
@@ -255,10 +255,17 @@ export function MobileBottomNavigation({
 }: {
   assets: MobileBottomNavigationAssets;
 }) {
+  const [isHydrated, setIsHydrated] = useState(false);
   const pathname = usePathname() ?? '';
   const { isLoggedIn, isAdmin } = useAuth();
   const flags = getMobileBottomNavActiveFlags(pathname, isLoggedIn, isAdmin);
   const { cartCount, wishlistCount } = useMobileNavBadgeCounts();
+  const safeCartCount = isHydrated ? cartCount : 0;
+  const safeWishlistCount = isHydrated ? wishlistCount : 0;
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   return (
     <div
@@ -274,8 +281,8 @@ export function MobileBottomNavigation({
         assets={assets}
         flags={flags}
         isLoggedIn={isLoggedIn}
-        cartCount={cartCount}
-        wishlistCount={wishlistCount}
+        cartCount={safeCartCount}
+        wishlistCount={safeWishlistCount}
       />
     </div>
   );

@@ -5,16 +5,13 @@ import { Card } from '@shop/ui';
 import type {
   Category,
   Attribute,
-  Variant,
   ProductLabel,
-  GeneratedVariant,
 } from '../types';
 import type { CurrencyCode } from '@/lib/currency';
 import { BasicInformation } from './BasicInformation';
 import { ProductImages } from './ProductImages';
 import { ProductCategoriesSection } from './ProductCategoriesSection';
 import { SimpleProductFields } from './SimpleProductFields';
-import { VariantBuilder } from './VariantBuilder';
 import { ProductLabels } from './ProductLabels';
 import { Publishing } from './Publishing';
 import { FormActions } from './FormActions';
@@ -34,9 +31,7 @@ interface AddProductFormContentProps {
     featuredImageIndex: number;
     labels: ProductLabel[];
     featured: boolean;
-    variants: Variant[];
   };
-  productType: 'simple' | 'variable';
   simpleProductData: {
     price: string;
     compareAtPrice: string;
@@ -59,14 +54,9 @@ interface AddProductFormContentProps {
   categoriesExpanded: boolean;
   useNewCategory: boolean;
   newCategoryName: string;
-  selectedAttributesForVariants: Set<string>;
-  generatedVariants: GeneratedVariant[];
-  hasVariantsToLoad: boolean;
   fileInputRef: React.RefObject<HTMLInputElement>;
-  variantImageInputRefs: React.MutableRefObject<Record<string, HTMLInputElement | null>>;
   onTitleChange: (e: ChangeEvent<HTMLInputElement>) => void;
   onDescriptionChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
-  onProductTypeChange: (type: 'simple' | 'variable') => void;
   onUploadImages: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;
   onRemoveImage: (index: number) => void;
   onSetFeaturedImage: (index: number) => void;
@@ -78,17 +68,10 @@ interface AddProductFormContentProps {
   onPriceChange: (value: string) => void;
   onCompareAtPriceChange: (value: string) => void;
   onQuantityChange: (value: string) => void;
-  onVariantUpdate: (variants: GeneratedVariant[] | ((prev: GeneratedVariant[]) => GeneratedVariant[])) => void;
-  onVariantDelete: (variantId: string) => void;
-  onVariantAdd: () => void;
-  onVariantImageUpload: (variantId: string, event: ChangeEvent<HTMLInputElement>) => Promise<void>;
-  onOpenValueModal: (modal: { variantId: string; attributeId: string } | null) => void;
   onAddLabel: () => void;
   onRemoveLabel: (index: number) => void;
   onUpdateLabel: (index: number, field: keyof ProductLabel, value: any) => void;
   onFeaturedChange: (featured: boolean) => void;
-  onVariantsUpdate: (updater: (prev: Variant[]) => Variant[]) => void;
-  onApplyToAllVariants: (field: 'price' | 'compareAtPrice' | 'stock' | 'sku', value: string) => void;
   isClothingCategory: () => boolean;
   generateSlug: (text: string) => string;
   handleSubmit: (e: React.FormEvent) => void;
@@ -98,7 +81,6 @@ interface AddProductFormContentProps {
 
 export function AddProductFormContent({
   formData,
-  productType,
   simpleProductData,
   categories,
   attributes,
@@ -114,14 +96,9 @@ export function AddProductFormContent({
   categoriesExpanded,
   useNewCategory,
   newCategoryName,
-  selectedAttributesForVariants,
-  generatedVariants,
-  hasVariantsToLoad,
   fileInputRef,
-  variantImageInputRefs,
   onTitleChange,
   onDescriptionChange,
-  onProductTypeChange,
   onUploadImages,
   onRemoveImage,
   onSetFeaturedImage,
@@ -133,17 +110,10 @@ export function AddProductFormContent({
   onPriceChange,
   onCompareAtPriceChange,
   onQuantityChange,
-  onVariantUpdate,
-  onVariantDelete,
-  onVariantAdd,
-  onVariantImageUpload,
-  onOpenValueModal,
   onAddLabel,
   onRemoveLabel,
   onUpdateLabel,
   onFeaturedChange,
-  onVariantsUpdate,
-  onApplyToAllVariants,
   isClothingCategory,
   generateSlug,
   handleSubmit,
@@ -152,19 +122,10 @@ export function AddProductFormContent({
 }: AddProductFormContentProps) {
   const showFoodTasteBadges = !isClothingCategory();
 
-  const shouldShowSimpleFields =
-    productType === 'simple' ||
-    (productType === 'variable' &&
-      selectedAttributesForVariants.size === 0 &&
-      generatedVariants.length === 0 &&
-      !hasVariantsToLoad);
-
   return (
     <Card className="p-6 pb-24 sm:pb-24">
       <form onSubmit={handleSubmit} className="space-y-14">
         <BasicInformation
-          productType={productType}
-          setProductType={onProductTypeChange}
           title={formData.title}
           slug={formData.slug}
           descriptionHtml={formData.descriptionHtml}
@@ -196,7 +157,6 @@ export function AddProductFormContent({
           onCategoryIdsChange={onCategoryIdsChange}
           onPrimaryCategoryIdChange={onPrimaryCategoryIdChange}
           isClothingCategory={isClothingCategory}
-          onVariantsUpdate={onVariantsUpdate}
         />
 
         {showFoodTasteBadges ? (
@@ -214,43 +174,17 @@ export function AddProductFormContent({
           onFormStateChange={onPdpCustomizationFormChange}
         />
 
-        {shouldShowSimpleFields && (
-          <SimpleProductFields
-            price={simpleProductData.price}
-            compareAtPrice={simpleProductData.compareAtPrice}
-            sku={simpleProductData.sku}
-            quantity={simpleProductData.quantity}
-            defaultCurrency={defaultCurrency}
-            onPriceChange={onPriceChange}
-            onCompareAtPriceChange={onCompareAtPriceChange}
-            onQuantityChange={onQuantityChange}
-            skuAutoGenerated={!isEditMode}
-          />
-        )}
-
-        {productType === 'variable' &&
-          isEditMode &&
-          (generatedVariants.length > 0 || hasVariantsToLoad) && (
-            <VariantBuilder
-              generatedVariants={generatedVariants}
-              attributes={attributes}
-              selectedAttributesForVariants={selectedAttributesForVariants}
-              isEditMode={isEditMode}
-              hasVariantsToLoad={hasVariantsToLoad}
-              defaultCurrency={defaultCurrency}
-              imageUploadLoading={imageUploadLoading}
-              slug={formData.slug}
-              title={formData.title}
-              variantImageInputRefs={variantImageInputRefs}
-              onVariantUpdate={onVariantUpdate}
-              onVariantDelete={onVariantDelete}
-              onVariantAdd={onVariantAdd}
-              onApplyToAll={onApplyToAllVariants}
-              onVariantImageUpload={onVariantImageUpload}
-              onOpenValueModal={onOpenValueModal}
-              generateSlug={generateSlug}
-            />
-          )}
+        <SimpleProductFields
+          price={simpleProductData.price}
+          compareAtPrice={simpleProductData.compareAtPrice}
+          sku={simpleProductData.sku}
+          quantity={simpleProductData.quantity}
+          defaultCurrency={defaultCurrency}
+          onPriceChange={onPriceChange}
+          onCompareAtPriceChange={onCompareAtPriceChange}
+          onQuantityChange={onQuantityChange}
+          skuAutoGenerated={!isEditMode}
+        />
 
         <ProductLabels
           labels={formData.labels}

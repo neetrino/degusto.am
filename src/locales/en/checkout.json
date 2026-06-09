@@ -5,6 +5,9 @@
   "shippingAddress": "Shipping Address",
   "paymentMethod": "Payment Method",
   "orderSummary": "Order Summary",
+  "productsInOrder": "Products in your order",
+  "itemsCount": "{count} item",
+  "removeItem": "Remove {title}",
   "cashDenominations": {
     "hint": "Tap the bill you will pay with so we can prepare change.",
     "noteAlt": "{amount} dram banknote",

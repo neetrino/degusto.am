@@ -94,7 +94,7 @@ export function ProductFilters({
           <label className="mb-1.5 block text-sm font-medium text-[#3f5648]">
             {t('admin.products.filterByCategory')}
           </label>
-          <div className="relative" data-category-dropdown>
+          <div className="relative z-[120]" data-category-dropdown>
             <button
               type="button"
               onClick={() => setCategoriesExpanded(!categoriesExpanded)}
@@ -119,7 +119,7 @@ export function ProductFilters({
               </svg>
             </button>
             {categoriesExpanded && (
-              <div className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-[#dce3dd] bg-white shadow-lg">
+              <div className="absolute z-[130] mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-[#dce3dd] bg-white shadow-2xl">
                 {categoriesLoading ? (
                   <div className="p-3 text-sm text-gray-500 text-center">{t('admin.products.loadingCategories')}</div>
                 ) : categories.length === 0 ? (

@@ -1,12 +1,12 @@
 'use client';
 
-import type { Dispatch, SetStateAction } from 'react';
 import { Card, Input } from '@shop/ui';
 import type { UseFormRegister, UseFormSetValue, FieldErrors } from 'react-hook-form';
 import type { CurrencyCode } from '../../lib/currency';
 import { useTranslation } from '../../lib/i18n-client';
 import { CashChangeFromSection } from './components/CashChangeFromSection';
 import { CheckoutPaymentMethodList } from './components/CheckoutPaymentMethodList';
+import { CheckoutOrderItems } from './components/CheckoutOrderItems';
 import {
   CHECKOUT_CARD_FRAME,
   CHECKOUT_FORM_COLUMN_CLASS,
@@ -16,8 +16,10 @@ import {
 } from './checkout-ui';
 import type { PaymentMethod, PaymentMethodId } from './utils/payment-methods';
 import { CheckoutFormData } from './types';
+import type { Cart } from './types';
 
 interface CheckoutFormProps {
+  cart: Cart;
   register: UseFormRegister<CheckoutFormData>;
   setValue: UseFormSetValue<CheckoutFormData>;
   errors: FieldErrors<CheckoutFormData>;
@@ -25,14 +27,14 @@ interface CheckoutFormProps {
   shippingMethod: 'pickup' | 'delivery';
   paymentMethod: PaymentMethodId;
   paymentMethods: PaymentMethod[];
-  error: string | null;
-  setError: Dispatch<SetStateAction<string | null>>;
   currency: CurrencyCode;
   cashChangeFrom: string | undefined;
   deliveryCities: string[];
+  onRemoveCartItem: (itemId: string) => void;
 }
 
 export function CheckoutForm({
+  cart,
   register,
   setValue,
   errors,
@@ -40,16 +42,21 @@ export function CheckoutForm({
   shippingMethod,
   paymentMethod,
   paymentMethods,
-  error,
-  setError,
   currency,
   cashChangeFrom,
   deliveryCities,
+  onRemoveCartItem,
 }: CheckoutFormProps) {
   const { t } = useTranslation();
 
   return (
     <div className={`${CHECKOUT_FORM_COLUMN_CLASS} space-y-6`}>
+      <CheckoutOrderItems
+        cart={cart}
+        isSubmitting={isSubmitting}
+        onRemoveItem={onRemoveCartItem}
+      />
+
       {/* Contact Information */}
       <Card className={`p-6 ${CHECKOUT_CARD_FRAME}`}>
         <h2 className={CHECKOUT_SECTION_TITLE}>{t('checkout.contactInformation')}</h2>
@@ -96,16 +103,6 @@ export function CheckoutForm({
       {shippingMethod === 'delivery' && (
         <Card className={`p-6 ${CHECKOUT_CARD_FRAME}`} data-shipping-section>
           <h2 className={CHECKOUT_SECTION_TITLE}>{t('checkout.shippingAddress')}</h2>
-          {(error && error.includes('shipping address')) || (errors.shippingAddress || errors.shippingCity) ? (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600">
-                {error && error.includes('shipping address') 
-                  ? error 
-                  : (errors.shippingAddress?.message || 
-                     errors.shippingCity?.message)}
-              </p>
-            </div>
-          ) : null}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label htmlFor="shippingCity" className={`mb-1 block text-sm font-medium ${CHECKOUT_TEXT_INK}`}>
@@ -113,14 +110,12 @@ export function CheckoutForm({
               </label>
               <select
                 id="shippingCity"
-                {...register('shippingCity', {
-                  onChange: () => {
-                    if (error && error.includes('shipping address')) {
-                      setError(null);
-                    }
-                  },
-                })}
-                className={`w-full rounded-lg border border-[#F66812]/25 bg-white px-3 py-2 text-sm ${CHECKOUT_TEXT_INK} focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#F66812] disabled:cursor-not-allowed disabled:opacity-60`}
+                {...register('shippingCity')}
+                className={`w-full rounded-lg border bg-white px-3 py-2 text-sm ${CHECKOUT_TEXT_INK} focus:border-transparent focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-60 ${
+                  errors.shippingCity
+                    ? 'border-red-400 focus:ring-red-500'
+                    : 'border-[#F66812]/25 focus:ring-[#F66812]'
+                }`}
                 disabled={isSubmitting || deliveryCities.length === 0}
               >
                 <option value="">{t('checkout.placeholders.city')}</option>
@@ -139,13 +134,7 @@ export function CheckoutForm({
                 label={t('checkout.form.address')}
                 type="text"
                 placeholder={t('checkout.placeholders.address')}
-                {...register('shippingAddress', {
-                  onChange: () => {
-                    if (error && error.includes('shipping address')) {
-                      setError(null);
-                    }
-                  }
-                })}
+                {...register('shippingAddress')}
                 error={errors.shippingAddress?.message}
                 disabled={isSubmitting}
               />
