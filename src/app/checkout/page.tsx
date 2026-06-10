@@ -43,6 +43,7 @@ export default function CheckoutPage() {
     isLoggedIn,
     watch,
     setCheckoutCouponDiscountUsd,
+    removeCartItem,
   } = useCheckout();
 
   if (loading) {
@@ -96,6 +97,7 @@ export default function CheckoutPage() {
         <div className={CHECKOUT_PAGE_GRID_CLASS}>
           {/* Checkout Form */}
           <CheckoutForm
+            cart={cart}
             register={register}
             setValue={setValue}
             errors={errors}
@@ -103,11 +105,10 @@ export default function CheckoutPage() {
             shippingMethod={shippingMethod}
             paymentMethod={paymentMethod}
             paymentMethods={paymentMethods}
-            error={error}
-            setError={setError}
             currency={currency}
             cashChangeFrom={watch('cashChangeFrom')}
             deliveryCities={deliveryCities}
+            onRemoveCartItem={removeCartItem}
           />
 
           {/* Order Summary */}

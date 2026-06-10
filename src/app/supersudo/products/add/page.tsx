@@ -202,7 +202,6 @@ function AddProductPageContent() {
     <>
           <AddProductFormContent
             formData={formState.formData}
-            productType={formState.productType}
             simpleProductData={formState.simpleProductData}
             categories={formState.categories}
             attributes={formState.attributes}
@@ -220,14 +219,9 @@ function AddProductPageContent() {
             categoriesExpanded={formState.categoriesExpanded}
             useNewCategory={formState.useNewCategory}
             newCategoryName={formState.newCategoryName}
-            selectedAttributesForVariants={formState.selectedAttributesForVariants}
-            generatedVariants={formState.generatedVariants}
-            hasVariantsToLoad={formState.hasVariantsToLoad}
             fileInputRef={formState.fileInputRef}
-            variantImageInputRefs={formState.variantImageInputRefs}
             onTitleChange={handleTitleChange}
             onDescriptionChange={(e) => formState.setFormData((prev) => ({ ...prev, descriptionHtml: e.target.value }))}
-            onProductTypeChange={formState.setProductType}
             onUploadImages={handleUploadImages}
             onRemoveImage={removeImageUrl}
             onSetFeaturedImage={setFeaturedImage}
@@ -239,17 +233,10 @@ function AddProductPageContent() {
             onPriceChange={(value) => formState.setSimpleProductData((prev) => ({ ...prev, price: value }))}
             onCompareAtPriceChange={(value) => formState.setSimpleProductData((prev) => ({ ...prev, compareAtPrice: value }))}
             onQuantityChange={(value) => formState.setSimpleProductData((prev) => ({ ...prev, quantity: value }))}
-            onVariantUpdate={formState.setGeneratedVariants}
-            onVariantDelete={handleVariantDelete}
-            onVariantAdd={handleVariantAdd}
-            onVariantImageUpload={(variantId, event) => handleUploadVariantImage(variantId, event)}
-            onOpenValueModal={formState.setOpenValueModal}
             onAddLabel={addLabel}
             onRemoveLabel={removeLabel}
             onUpdateLabel={(index, field, value) => updateLabel(index, field, value)}
             onFeaturedChange={(featured) => formState.setFormData((prev) => ({ ...prev, featured }))}
-            onVariantsUpdate={(updater) => formState.setFormData((prev) => ({ ...prev, variants: updater(prev.variants) }))}
-            onApplyToAllVariants={(field, value) => applyToAllVariants(field, value)}
             isClothingCategory={isClothingCategory}
             generateSlug={generateSlug}
             handleSubmit={handleSubmit}

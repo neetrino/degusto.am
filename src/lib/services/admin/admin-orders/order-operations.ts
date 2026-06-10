@@ -107,6 +107,7 @@ export async function getOrderById(orderId: string) {
         },
       },
       payments: true,
+      events: true,
     },
   });
 

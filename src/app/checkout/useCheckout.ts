@@ -16,6 +16,7 @@ import { useOrderSummary } from './hooks/useOrderSummary';
 import type { CheckoutFormData } from './types';
 import { calculateBagAmountByUniqueCategories } from '@/lib/cart/bag-fee';
 import { apiClient } from '../../lib/api-client';
+import { publishCartForceReload } from '@/lib/cart/cart-events';
 
 export function useCheckout() {
   const router = useRouter();
@@ -169,26 +170,12 @@ export function useCheckout() {
 
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (shippingMethod === 'delivery') {
-      const formData = watch();
-      const hasShippingAddress = formData.shippingAddress && formData.shippingAddress.trim().length > 0;
-      const hasShippingCity = formData.shippingCity && formData.shippingCity.trim().length > 0;
-      
-      if (!hasShippingAddress || !hasShippingCity) {
-        setError(t('checkout.errors.fillShippingAddress'));
-        const shippingSection = document.querySelector('[data-shipping-section]');
-        if (shippingSection) {
-          shippingSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-        return;
-      }
-      if (deliveryUnavailable) {
-        setError(t('checkout.errors.deliveryOnlyYerevan'));
-        return;
-      }
+
+    if (shippingMethod === 'delivery' && deliveryUnavailable) {
+      setError(t('checkout.errors.deliveryOnlyYerevan'));
+      return;
     }
-    
+
     if (paymentMethod === 'arca' || paymentMethod === 'idram') {
       setShowCardModal(true);
       return;
@@ -199,6 +186,16 @@ export function useCheckout() {
 
   const onSubmit = (data: CheckoutFormData) => {
     submitOrder(data);
+  };
+
+  const removeCartItem = async (itemId: string) => {
+    try {
+      await apiClient.delete(`/api/v1/cart/items/${itemId}`);
+      await fetchCart();
+      publishCartForceReload();
+    } catch {
+      setError(t('common.messages.failedToRemoveFromCart'));
+    }
   };
 
   return {
@@ -234,6 +231,7 @@ export function useCheckout() {
     // Actions
     handlePlaceOrder,
     onSubmit,
+    removeCartItem,
     // Auth
     isLoggedIn,
   };
