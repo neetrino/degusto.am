@@ -9,6 +9,21 @@ import { productsService } from "@/lib/services/products.service";
 import { logger } from "@/lib/utils/logger";
 
 export const dynamic = "force-dynamic";
+const DEFAULT_REVIEWS_LIMIT = 20;
+const MAX_REVIEWS_LIMIT = 50;
+
+function parsePaginationParams(searchParams: URLSearchParams): { skip: number; take: number } {
+  const pageParam = Number(searchParams.get("page") ?? "1");
+  const limitParam = Number(searchParams.get("limit") ?? String(DEFAULT_REVIEWS_LIMIT));
+  const page = Number.isFinite(pageParam) && pageParam > 0 ? Math.floor(pageParam) : 1;
+  const limit = Number.isFinite(limitParam) && limitParam > 0
+    ? Math.min(Math.floor(limitParam), MAX_REVIEWS_LIMIT)
+    : DEFAULT_REVIEWS_LIMIT;
+  return {
+    skip: (page - 1) * limit,
+    take: limit,
+  };
+}
 
 /**
  * GET /api/v1/products/[slug]/reviews
@@ -27,6 +42,7 @@ export async function GET(
     const lang = resolveStorefrontLocaleFromSearchParams(searchParams);
     const myReview = searchParams.get("my") === "true";
     const productIdParam = searchParams.get("productId");
+    const { skip, take } = parsePaginationParams(searchParams);
 
     logger.debug("[REVIEWS API] GET", { slug, myReview, hasProductId: Boolean(productIdParam?.trim()) });
 
@@ -35,7 +51,8 @@ export async function GET(
     if (!myReview && trimmedProductId) {
       const fastPath = await reviewsService.getPublishedReviewsForSlugAndProductId(
         slug,
-        trimmedProductId
+        trimmedProductId,
+        { skip, take },
       );
       if (fastPath.status === "not_found") {
         return NextResponse.json(
@@ -89,12 +106,56 @@ export async function GET(
     // Otherwise, return all published reviews
     const reviews = await reviewsService.getProductReviews(productId, {
       publishedOnly: true,
+      skip,
+      take,
     });
 
     return NextResponse.json(reviews);
   } catch (error: unknown) {
     return apiRouteErrorResponse(req, error, "[REVIEWS API] GET Error");
   }
+}
+
+function validateReviewCreatePayload(body: unknown): { rating: number; comment?: string } {
+  if (!body || typeof body !== "object") {
+    throw {
+      status: 400,
+      type: problemTypes.validationError,
+      title: "Validation Error",
+      detail: "Request body must be a JSON object",
+    };
+  }
+
+  const payload = body as { rating?: unknown; comment?: unknown };
+  if (typeof payload.rating !== "number" || !Number.isFinite(payload.rating)) {
+    throw {
+      status: 400,
+      type: problemTypes.validationError,
+      title: "Validation Error",
+      detail: "Rating is required and must be a number",
+    };
+  }
+  if (payload.rating < 1 || payload.rating > 5) {
+    throw {
+      status: 400,
+      type: problemTypes.validationError,
+      title: "Validation Error",
+      detail: "Rating must be between 1 and 5",
+    };
+  }
+  if (payload.comment !== undefined && payload.comment !== null && typeof payload.comment !== "string") {
+    throw {
+      status: 400,
+      type: problemTypes.validationError,
+      title: "Validation Error",
+      detail: "Comment must be a string",
+    };
+  }
+
+  return {
+    rating: payload.rating,
+    comment: typeof payload.comment === "string" ? payload.comment : undefined,
+  };
 }
 
 /**
@@ -124,9 +185,9 @@ export async function POST(
     const { slug } = await params;
     const { searchParams } = new URL(req.url);
     const lang = resolveStorefrontLocaleFromSearchParams(searchParams);
-    const body = await req.json();
+    const payload = validateReviewCreatePayload(await req.json());
 
-    logger.debug('📝 [REVIEWS API] POST request:', { slug, userId: user.id, rating: body.rating });
+    logger.debug('📝 [REVIEWS API] POST request:', { slug, userId: user.id, rating: payload.rating });
 
     // First, get the product by slug to get the productId
     const product = await productsService.findBySlug(slug, lang);
@@ -143,37 +204,10 @@ export async function POST(
       );
     }
 
-    // Validate request body
-    if (!body.rating || typeof body.rating !== 'number') {
-      return NextResponse.json(
-        {
-          type: problemTypes.validationError,
-          title: "Validation Error",
-          status: 400,
-          detail: "Rating is required and must be a number",
-          instance: req.url,
-        },
-        { status: 400 }
-      );
-    }
-
-    if (body.rating < 1 || body.rating > 5) {
-      return NextResponse.json(
-        {
-          type: problemTypes.validationError,
-          title: "Validation Error",
-          status: 400,
-          detail: "Rating must be between 1 and 5",
-          instance: req.url,
-        },
-        { status: 400 }
-      );
-    }
-
     // Create review
     const review = await reviewsService.createReview(product.id, user.id, {
-      rating: body.rating,
-      comment: body.comment,
+      rating: payload.rating,
+      comment: payload.comment,
     });
 
     logger.debug('✅ [REVIEWS API] Review created:', review.id);

@@ -1,5 +1,3 @@
-import type { Prisma } from "@prisma/client";
-
 export type ProductReviewListItem = {
   id: string;
   userId: string;
@@ -10,18 +8,19 @@ export type ProductReviewListItem = {
   published: boolean;
 };
 
-type ReviewWithUser = Prisma.ProductReviewGetPayload<{
-  include: {
-    user: {
-      select: {
-        id: true;
-        firstName: true;
-        lastName: true;
-        email: true;
-      };
-    };
+type ReviewWithUser = {
+  id: string;
+  userId: string;
+  rating: number;
+  comment: string | null;
+  createdAt: Date;
+  published: boolean;
+  user: {
+    id: string;
+    firstName: string | null;
+    lastName: string | null;
   };
-}>;
+};
 
 /** Maps a Prisma review row to the storefront list shape. */
 export function formatProductReview(review: ReviewWithUser): ProductReviewListItem {
@@ -31,7 +30,7 @@ export function formatProductReview(review: ReviewWithUser): ProductReviewListIt
     userName:
       review.user.firstName && review.user.lastName
         ? `${review.user.firstName} ${review.user.lastName}`
-        : review.user.firstName || review.user.lastName || review.user.email || "Anonymous",
+        : review.user.firstName || review.user.lastName || "Anonymous",
     rating: review.rating,
     comment: review.comment || "",
     createdAt: review.createdAt.toISOString(),

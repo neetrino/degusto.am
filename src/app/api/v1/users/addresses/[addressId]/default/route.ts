@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { problemTypes } from "@/lib/http/problem-details";
 import { authenticateToken } from "@/lib/middleware/auth";
+import { invalidateUserDashboardCache } from "@/lib/cache/user-dashboard-cache";
 import { usersService } from "@/lib/services/users.service";
 import { toApiError } from "@/lib/types/errors";
 import { logger } from "@/lib/utils/logger";
@@ -26,6 +27,7 @@ export async function PATCH(
 
     const { addressId } = await params;
     const result = await usersService.setDefaultAddress(user.id, addressId);
+    await invalidateUserDashboardCache(user.id);
     return NextResponse.json(result);
   } catch (error: unknown) {
     logger.error("Users set default address error", { error });

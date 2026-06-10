@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { problemTypes } from "@/lib/http/problem-details";
 import { authenticateToken } from "@/lib/middleware/auth";
+import { invalidateUserDashboardCache } from "@/lib/cache/user-dashboard-cache";
 import { usersService } from "@/lib/services/users.service";
 import { toApiError } from "@/lib/types/errors";
 import { logger } from "@/lib/utils/logger";
@@ -48,6 +49,7 @@ export async function POST(req: NextRequest) {
 
     const data = await req.json();
     const result = await usersService.addAddress(user.id, data);
+    await invalidateUserDashboardCache(user.id);
     return NextResponse.json(result, { status: 201 });
   } catch (error: unknown) {
     logger.error("Users addresses create error", { error });

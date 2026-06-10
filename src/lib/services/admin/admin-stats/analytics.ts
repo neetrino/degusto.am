@@ -221,19 +221,30 @@ export async function getAnalytics(period: string = 'week', startDate?: string, 
         lte: end,
       },
     },
-    include: {
+    select: {
+      createdAt: true,
+      paymentStatus: true,
+      status: true,
+      total: true,
       items: {
-        include: {
+        select: {
+          variantId: true,
+          productTitle: true,
+          sku: true,
+          quantity: true,
+          total: true,
           variant: {
-            include: {
+            select: {
               product: {
-                include: {
+                select: {
+                  id: true,
                   translations: {
                     where: { locale: 'en' },
                     take: 1,
                   },
                   categories: {
-                    include: {
+                    select: {
+                      id: true,
                       translations: {
                         where: { locale: 'en' },
                         take: 1,

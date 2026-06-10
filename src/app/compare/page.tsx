@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { MouseEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -9,11 +9,12 @@ import { apiClient } from '../../lib/api-client';
 import { getStoredCurrency } from '../../lib/currency';
 import { getStoredLanguage } from '../../lib/language';
 import { useTranslation } from '../../lib/i18n-client';
-import { emitCompareUpdated, fetchCompareIds } from '../../lib/compare-api';
+import { emitCompareUpdated } from '../../lib/compare-api';
 import { useAuth } from '../../lib/auth/AuthContext';
 import { logger } from '../../lib/utils/logger';
 import { CompareProductsTable, type CompareProduct } from './CompareProductsTable';
 import { STOREFRONT_PAGE_CONTAINER_CLASS } from '@/constants/storefront-desktop-layout';
+import { useCompareIdsContext } from '@/lib/compare/CompareIdsProvider';
 
 interface CompareSection {
   sectionKey: string;
@@ -57,15 +58,13 @@ function buildCompareSections(
 export default function ComparePage() {
   const router = useRouter();
   const { isLoggedIn } = useAuth();
+  const { compareIds: sharedCompareIds, refreshCompareIds } = useCompareIdsContext();
   const { t } = useTranslation();
   const [products, setProducts] = useState<CompareProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [currency, setCurrency] = useState(getStoredCurrency());
   const [addingToCart, setAddingToCart] = useState<Set<string>>(new Set());
-  // Track if we updated locally to prevent unnecessary re-fetch
-  const isLocalUpdateRef = useRef(false);
-
   /**
    * Fetch compare products for provided ids and update UI state.
    */
@@ -116,30 +115,10 @@ export default function ComparePage() {
   }, []);
 
   useEffect(() => {
-    const hydrateCompare = async () => {
-      const ids = await fetchCompareIds();
-      setCompareIds(ids);
-      await fetchCompareProducts(ids);
-    };
-
-    void hydrateCompare();
-
-    const handleCompareUpdate = async () => {
-      if (isLocalUpdateRef.current) {
-        isLocalUpdateRef.current = false;
-        return;
-      }
-
-      const updatedIds = await fetchCompareIds();
-      setCompareIds(updatedIds);
-      void fetchCompareProducts(updatedIds);
-    };
-
-    window.addEventListener('compare-updated', handleCompareUpdate);
-    return () => {
-      window.removeEventListener('compare-updated', handleCompareUpdate);
-    };
-  }, [fetchCompareProducts]);
+    const ids = sharedCompareIds;
+    setCompareIds(ids);
+    void fetchCompareProducts(ids);
+  }, [fetchCompareProducts, sharedCompareIds]);
 
   // Listen for currency and language updates
   useEffect(() => {
@@ -148,9 +127,8 @@ export default function ComparePage() {
     };
 
     const handleLanguageUpdate = () => {
-      void fetchCompareIds().then((currentIds) => {
-        void fetchCompareProducts(currentIds);
-      });
+      const currentIds = sharedCompareIds;
+      void fetchCompareProducts(currentIds);
     };
 
     window.addEventListener('currency-updated', handleCurrencyUpdate);
@@ -159,15 +137,13 @@ export default function ComparePage() {
       window.removeEventListener('currency-updated', handleCurrencyUpdate);
       window.removeEventListener('language-updated', handleLanguageUpdate);
     };
-  }, [fetchCompareProducts]);
+  }, [fetchCompareProducts, sharedCompareIds]);
 
   const handleRemove = (e: MouseEvent, productId: string) => {
     e.preventDefault();
     e.stopPropagation();
     
     logger.debug(`[Compare] Removing product ${productId} from compare UI`);
-
-    isLocalUpdateRef.current = true;
 
     const updatedIds = compareIds.filter((id) => id !== productId);
     const updatedProducts = products.filter((p) => p.id !== productId);
@@ -182,6 +158,7 @@ export default function ComparePage() {
       setCompareIds(compareIds);
       setProducts(products);
       emitCompareUpdated();
+      void refreshCompareIds();
     });
   };
 

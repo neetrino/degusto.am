@@ -71,6 +71,49 @@ interface UseAdminDashboardProps {
   isLoading: boolean;
 }
 
+let recentOrdersCache: RecentOrder[] | null = null;
+let recentOrdersCacheUpdatedAt = 0;
+let inflightRecentOrdersRequest: Promise<RecentOrder[]> | null = null;
+const RECENT_ORDERS_CACHE_TTL_MS = 10_000;
+
+function hasFreshRecentOrdersCache(now: number): boolean {
+  return now - recentOrdersCacheUpdatedAt <= RECENT_ORDERS_CACHE_TTL_MS;
+}
+
+export function invalidateRecentOrdersCache(): void {
+  recentOrdersCache = null;
+  recentOrdersCacheUpdatedAt = 0;
+}
+
+export async function fetchRecentOrdersShared(limit = 8): Promise<RecentOrder[]> {
+  const now = Date.now();
+  if (recentOrdersCache && hasFreshRecentOrdersCache(now)) {
+    return recentOrdersCache.slice(0, limit);
+  }
+
+  if (inflightRecentOrdersRequest) {
+    const cached = await inflightRecentOrdersRequest;
+    return cached.slice(0, limit);
+  }
+
+  inflightRecentOrdersRequest = (async () => {
+    const response = await apiClient.get<{ data: RecentOrder[] }>('/api/v1/admin/dashboard/recent-orders', {
+      params: { limit: String(Math.max(limit, 8)) },
+    });
+    const data = Array.isArray(response?.data) ? response.data : [];
+    recentOrdersCache = data;
+    recentOrdersCacheUpdatedAt = Date.now();
+    return data;
+  })();
+
+  try {
+    const data = await inflightRecentOrdersRequest;
+    return data.slice(0, limit);
+  } finally {
+    inflightRecentOrdersRequest = null;
+  }
+}
+
 export function useAdminDashboard({ isLoggedIn, isAdmin, isLoading }: UseAdminDashboardProps) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
@@ -146,14 +189,8 @@ export function useAdminDashboard({ isLoggedIn, isAdmin, isLoading }: UseAdminDa
     try {
       logger.debug('📋 [ADMIN] Fetching recent orders...');
       setRecentOrdersLoading(true);
-      const response = await apiClient.get<{ data: RecentOrder[] }>('/api/v1/admin/dashboard/recent-orders', {
-        params: { limit: '5' },
-      });
-      if (response?.data && Array.isArray(response.data)) {
-        setRecentOrders(response.data);
-      } else {
-        setRecentOrders([]);
-      }
+      const data = await fetchRecentOrdersShared(5);
+      setRecentOrders(data);
     } catch (err: unknown) {
       console.error('❌ [ADMIN] Error fetching recent orders:', err);
       setRecentOrders([]);

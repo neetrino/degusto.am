@@ -1,6 +1,7 @@
 import { db } from "@white-shop/db";
 import { problemTypes } from "@/lib/http/problem-details";
 import * as bcrypt from "bcryptjs";
+import { getUserDashboard } from "./users/dashboard.service";
 
 interface AddressMutationInput {
   firstName?: string | null;
@@ -886,62 +887,7 @@ class UsersService {
    * Get user dashboard statistics
    */
   async getDashboard(userId: string) {
-    // Get all orders for the user
-    const orders = await db.order.findMany({
-      where: { userId },
-      include: {
-        items: true,
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
-    // Calculate statistics
-    const totalOrders = orders.length;
-    const pendingOrders = orders.filter((o: { status: string }) => o.status === "pending").length;
-    const completedOrders = orders.filter((o: { status: string }) => o.status === "completed").length;
-    const totalSpent = orders
-      .filter((o: { status: string; paymentStatus: string }) => o.status === "completed" || o.paymentStatus === "paid")
-      .reduce((sum: number, o: { total: number }) => sum + o.total, 0);
-
-    // Count addresses
-    const addressesCount = await db.address.count({
-      where: { userId },
-    });
-
-    // Count orders by status
-    const ordersByStatus: Record<string, number> = {};
-    orders.forEach((order: { status: string }) => {
-      ordersByStatus[order.status] = (ordersByStatus[order.status] || 0) + 1;
-    });
-
-    // Get recent orders (last 5)
-    const recentOrders = orders.slice(0, 5).map((order: { id: string; number: string; status: string; paymentStatus: string; fulfillmentStatus: string; total: number; subtotal: number; discountAmount: number; shippingAmount: number; taxAmount: number; currency: string | null; createdAt: Date; items: Array<unknown> }) => ({
-      id: order.id,
-      number: order.number,
-      status: order.status,
-      paymentStatus: order.paymentStatus,
-      fulfillmentStatus: order.fulfillmentStatus,
-      total: order.total,
-      subtotal: order.subtotal,
-      discountAmount: order.discountAmount,
-      shippingAmount: order.shippingAmount,
-      taxAmount: order.taxAmount,
-      currency: order.currency,
-      itemsCount: order.items.length,
-      createdAt: order.createdAt.toISOString(),
-    }));
-
-    return {
-      stats: {
-        totalOrders,
-        pendingOrders,
-        completedOrders,
-        totalSpent,
-        addressesCount,
-        ordersByStatus,
-      },
-      recentOrders,
-    };
+    return getUserDashboard(userId);
   }
 
   /**

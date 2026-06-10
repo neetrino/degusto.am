@@ -1,13 +1,16 @@
 'use client';
 
 import { useCallback, useEffect, useRef } from 'react';
-import { apiClient } from '@/lib/api-client';
 import { logger } from '@/lib/utils/logger';
 import {
   ADMIN_NEW_ORDER_EVENT,
   ADMIN_NEW_ORDER_POLL_INTERVAL_MS,
   type AdminNewOrderEventDetail,
 } from '@/lib/admin/admin-order-alert.constants';
+import {
+  fetchRecentOrdersShared,
+  invalidateRecentOrdersCache,
+} from './useAdminDashboard';
 import {
   playAdminOrderAlert,
   primeAdminOrderAlertAudio,
@@ -46,11 +49,7 @@ export function useAdminNewOrderAlerts({
       return;
     }
     try {
-      const response = await apiClient.get<{ data: RecentOrderRow[] }>(
-        '/api/v1/admin/dashboard/recent-orders',
-        { params: { limit: '8' } },
-      );
-      const orders = response.data ?? [];
+      const orders = (await fetchRecentOrdersShared(8)) as RecentOrderRow[];
       if (orders.length === 0) {
         return;
       }
@@ -69,6 +68,7 @@ export function useAdminNewOrderAlerts({
         .forEach((order) => {
           seenOrderIdsRef.current.add(order.id);
           notifyNewOrder(order, alertMessageRef.current);
+          invalidateRecentOrdersCache();
         });
     } catch (error: unknown) {
       logger.warn('Admin new-order poll failed', {

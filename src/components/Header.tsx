@@ -16,7 +16,6 @@ import {
 import { SearchDropdown } from './SearchDropdown';
 import { useAuth } from '../lib/auth/AuthContext';
 import { apiClient } from '../lib/api-client';
-import { getCompareCount, getWishlistCount } from '../lib/storageCounts';
 import { LanguageSwitcherHeader } from './LanguageSwitcherHeader';
 import { Instagram, Facebook, Linkedin, Globe } from 'lucide-react';
 import { CompareIcon } from './icons/CompareIcon';
@@ -28,6 +27,8 @@ import { useCartDrawer } from './cart-drawer/cart-drawer-context';
 import { SITE_CONTACT_PHONES } from '../lib/site-contact';
 import { navigateToProductPage, prefetchProductRoute } from '@/lib/products/prefetch-product-route';
 import { STOREFRONT_PAGE_CONTAINER_CLASS } from '@/constants/storefront-desktop-layout';
+import { useWishlistIdsContext } from '@/lib/wishlist/WishlistIdsProvider';
+import { useCompareIdsContext } from '@/lib/compare/CompareIdsProvider';
 
 // Navigation links will be translated dynamically using useTranslation hook
 const primaryNavLinks = [
@@ -227,9 +228,9 @@ export function Header() {
   const { openCartDrawer, isCartDrawerOpen } = useCartDrawer();
   const pathname = usePathname();
   const { isLoggedIn, isAdmin } = useAuth();
+  const { wishlistCount } = useWishlistIdsContext();
+  const { compareCount } = useCompareIdsContext();
   const { t } = useTranslation();
-  const [compareCount, setCompareCount] = useState(0);
-  const [wishlistCount, setWishlistCount] = useState(0);
   const { cartCount, cartTotal } = useCartBadgeDisplay();
   const [showCurrency, setShowCurrency] = useState(false);
   const [showMobileCurrency, setShowMobileCurrency] = useState(false);
@@ -313,41 +314,6 @@ export function Header() {
       prefetchProductRoute(router, selected.slug);
     }
   }, [router, searchResults, searchSelectedIndex]);
-
-  // Load wishlist and compare counts from database
-  useEffect(() => {
-    const refreshBadgeCounts = async () => {
-      const [wishlist, compare] = await Promise.all([getWishlistCount(), getCompareCount()]);
-      setWishlistCount(wishlist);
-      setCompareCount(compare);
-    };
-
-    // Initial load
-    void refreshBadgeCounts();
-
-    // Listen for updates
-    const handleWishlistUpdate = () => {
-      void getWishlistCount().then(setWishlistCount);
-    };
-
-    const handleCompareUpdate = () => {
-      void getCompareCount().then(setCompareCount);
-    };
-
-    const handleAuthUpdate = () => {
-      void refreshBadgeCounts();
-    };
-
-    window.addEventListener('wishlist-updated', handleWishlistUpdate);
-    window.addEventListener('compare-updated', handleCompareUpdate);
-    window.addEventListener('auth-updated', handleAuthUpdate);
-
-    return () => {
-      window.removeEventListener('wishlist-updated', handleWishlistUpdate);
-      window.removeEventListener('compare-updated', handleCompareUpdate);
-      window.removeEventListener('auth-updated', handleAuthUpdate);
-    };
-  }, [isLoggedIn]);
 
   // Load currency from localStorage
   useEffect(() => {

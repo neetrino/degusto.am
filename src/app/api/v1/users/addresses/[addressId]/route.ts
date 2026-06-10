@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { problemTypes } from "@/lib/http/problem-details";
 import { authenticateToken } from "@/lib/middleware/auth";
+import { invalidateUserDashboardCache } from "@/lib/cache/user-dashboard-cache";
 import { usersService } from "@/lib/services/users.service";
 import { toApiError } from "@/lib/types/errors";
 import { logger } from "@/lib/utils/logger";
@@ -27,6 +28,7 @@ export async function PUT(
     const { addressId } = await params;
     const data = await req.json();
     const result = await usersService.updateAddress(user.id, addressId, data);
+    await invalidateUserDashboardCache(user.id);
     return NextResponse.json(result);
   } catch (error: unknown) {
     logger.error("Users addresses error", { error });
@@ -56,6 +58,7 @@ export async function DELETE(
 
     const { addressId } = await params;
     await usersService.deleteAddress(user.id, addressId);
+    await invalidateUserDashboardCache(user.id);
     return new NextResponse(null, { status: 204 });
   } catch (error: unknown) {
     logger.error("Users addresses error", { error });

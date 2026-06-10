@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateToken } from "@/lib/middleware/auth";
 import { extractGuestCartToken } from "@/lib/cart/guest-cart-cookies";
+import { invalidateUserDashboardCache } from "@/lib/cache/user-dashboard-cache";
 import { ordersService } from "@/lib/services/orders.service";
 import { toApiError } from "@/lib/types/errors";
 import { logger } from "@/lib/utils/logger";
@@ -23,6 +24,9 @@ export async function POST(req: NextRequest) {
     });
     
     const result = await ordersService.checkout(data, user?.id, guestToken);
+    if (user?.id) {
+      await invalidateUserDashboardCache(user.id);
+    }
     
     logger.info("Checkout successful", {
       orderNumber: result.order?.number,
