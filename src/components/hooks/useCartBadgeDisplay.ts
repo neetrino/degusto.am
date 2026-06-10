@@ -35,6 +35,11 @@ function readCartBadgeSnapshot(cart: ReturnType<typeof useCartDrawer>['cart']): 
 export function useCartBadgeDisplay(): CartBadgeSnapshot {
   const { cart, cartLoading, isCartResolved } = useCartDrawer();
   const [eventBadge, setEventBadge] = useState<CartBadgeSnapshot | null>(null);
+  const [cachedBadge, setCachedBadge] = useState<CartBadgeSnapshot | null>(null);
+
+  useEffect(() => {
+    setCachedBadge(readCachedBadgeSnapshot());
+  }, []);
 
   useEffect(() => {
     const handleCartUpdated = (event: Event) => {
@@ -59,11 +64,10 @@ export function useCartBadgeDisplay(): CartBadgeSnapshot {
   }
 
   if (!isCartResolved || cartLoading) {
-    const cached = readCachedBadgeSnapshot();
     const live = readCartBadgeSnapshot(cart);
     return {
-      cartCount: cached.cartCount > 0 ? cached.cartCount : live.cartCount,
-      cartTotal: cached.cartCount > 0 ? cached.cartTotal : live.cartTotal,
+      cartCount: (cachedBadge?.cartCount ?? 0) > 0 ? (cachedBadge?.cartCount ?? 0) : live.cartCount,
+      cartTotal: (cachedBadge?.cartCount ?? 0) > 0 ? (cachedBadge?.cartTotal ?? 0) : live.cartTotal,
     };
   }
 
