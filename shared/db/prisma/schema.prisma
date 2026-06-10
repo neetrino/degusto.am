@@ -154,6 +154,7 @@ model AttributeValue {
 
   attribute Attribute @relation(fields: [attributeId], references: [id], onDelete: Cascade)
 
+  @@index([attributeId])
   @@map("attribute_values")
 }
 
@@ -203,6 +204,9 @@ model Product {
   @@index([published, publishedAt])
   @@index([featured])
   @@index([deletedAt])
+  @@index([primaryCategoryId])
+  @@index([updatedAt(sort: Desc)])
+  @@index([discountPercent])
   @@map("products")
 }
 
@@ -279,6 +283,8 @@ model ProductVariant {
   orderItems OrderItem[]
 
   @@index([productId])
+  @@index([published, price])
+  @@index([published, stock])
   @@map("product_variants")
 }
 
@@ -294,6 +300,7 @@ model ProductVariantOption {
   attributeValue AttributeValue? @relation(fields: [valueId], references: [id], onDelete: SetNull)
 
   @@index([valueId])
+  @@index([variantId])
   @@map("product_variant_options")
 }
 

@@ -15,7 +15,6 @@ import { createPortal } from 'react-dom';
 import { LanguageCurrencySwitcher } from './LanguageCurrencySwitcher';
 import { useTranslation } from '../lib/i18n-client';
 import { useAuth } from '../lib/auth/AuthContext';
-import { getWishlistCount } from '../lib/storageCounts';
 import { formatPrice } from '../lib/currency';
 import { useCurrency } from './hooks/useCurrency';
 import { useCartBadgeDisplay } from './hooks/useCartBadgeDisplay';
@@ -47,6 +46,7 @@ import {
   UNIVERSAL_HEADER_SEARCH_SUBMIT_LABEL_CLASS,
   UNIVERSAL_HEADER_SPACER_HEIGHT_CLASS,
 } from '@/constants/universal-header-layout';
+import { useWishlistIdsContext } from '@/lib/wishlist/WishlistIdsProvider';
 
 function universalWishlistNavClassName(active: boolean): string {
   const base =
@@ -184,7 +184,7 @@ function UniversalHeaderSearchSync({
 
 export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: UniversalHeaderProps) {
   const { cartCount, cartTotal } = useCartBadgeDisplay();
-  const [wishlistCount, setWishlistCount] = useState(0);
+  const { wishlistCount } = useWishlistIdsContext();
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isSearchPopupOpen, setIsSearchPopupOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
@@ -292,30 +292,6 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
     const queryString = params.toString();
     router.push(queryString ? `${searchTargetBasePath}?${queryString}` : searchTargetBasePath);
   };
-
-  useEffect(() => {
-    const refreshWishlistCount = () => {
-      void getWishlistCount().then(setWishlistCount);
-    };
-
-    refreshWishlistCount();
-
-    const handleWishlistUpdated = () => {
-      refreshWishlistCount();
-    };
-
-    const handleAuthForWishlist = () => {
-      refreshWishlistCount();
-    };
-
-    window.addEventListener('auth-updated', handleAuthForWishlist);
-    window.addEventListener('wishlist-updated', handleWishlistUpdated);
-
-    return () => {
-      window.removeEventListener('auth-updated', handleAuthForWishlist);
-      window.removeEventListener('wishlist-updated', handleWishlistUpdated);
-    };
-  }, [isLoggedIn]);
 
   const closeSearchDropdown = () => {
     setSearchDropdownOpen(false);

@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { AuthProvider } from '../lib/auth/AuthContext';
 import { WishlistIdsProvider } from '../lib/wishlist/WishlistIdsProvider';
+import { CompareIdsProvider } from '../lib/compare/CompareIdsProvider';
 import { ToastContainer } from './Toast';
 import { LanguageHtmlUpdater } from './LanguageHtmlUpdater';
 import { CartDrawerProvider } from './cart-drawer/cart-drawer-context';
@@ -20,6 +21,7 @@ export function ClientProviders({ children }: { children: ReactNode }) {
   return (
     <AuthProvider>
       <WishlistIdsProvider>
+      <CompareIdsProvider>
       <PdpChromeProvider>
       <CartDrawerProvider>
         <DisableMobileZoomGuard />
@@ -31,6 +33,7 @@ export function ClientProviders({ children }: { children: ReactNode }) {
         <ToastContainer />
       </CartDrawerProvider>
       </PdpChromeProvider>
+      </CompareIdsProvider>
       </WishlistIdsProvider>
     </AuthProvider>
   );

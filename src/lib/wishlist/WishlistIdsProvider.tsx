@@ -16,6 +16,7 @@ import { fetchWishlistIds } from '../wishlist-api';
 type WishlistIdsContextValue = {
   isInWishlist: (productId: string) => boolean;
   setProductInWishlist: (productId: string, inWishlist: boolean) => void;
+  wishlistCount: number;
 };
 
 const WishlistIdsContext = createContext<WishlistIdsContextValue | null>(null);
@@ -77,6 +78,7 @@ export function WishlistIdsProvider({ children }: { children: ReactNode }) {
     () => ({
       isInWishlist: (productId: string) => wishlistIds.has(productId),
       setProductInWishlist,
+      wishlistCount: wishlistIds.size,
     }),
     [setProductInWishlist, wishlistIds]
   );

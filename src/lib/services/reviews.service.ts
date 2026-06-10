@@ -17,7 +17,6 @@ type ProductReviewWithUser = Prisma.ProductReviewGetPayload<{
         id: true;
         firstName: true;
         lastName: true;
-        email: true;
       };
     };
   };
@@ -31,7 +30,8 @@ class ReviewsService {
    */
   async getPublishedReviewsForSlugAndProductId(
     slug: string,
-    productId: string
+    productId: string,
+    options?: { skip?: number; take?: number }
   ): Promise<{ status: "ok"; reviews: ProductReviewListItem[] } | { status: "not_found" }> {
     await ensureProductReviewsTable();
 
@@ -56,11 +56,12 @@ class ReviewsService {
                 id: true,
                 firstName: true,
                 lastName: true,
-                email: true,
               },
             },
           },
           orderBy: { createdAt: "desc" },
+          skip: options?.skip ?? 0,
+          take: options?.take,
         },
       },
     });
@@ -82,7 +83,7 @@ class ReviewsService {
    */
   async getProductReviews(
     productId: string,
-    options?: { publishedOnly?: boolean }
+    options?: { publishedOnly?: boolean; skip?: number; take?: number }
   ): Promise<ProductReviewListItem[]> {
     await ensureProductReviewsTable();
 
@@ -104,13 +105,14 @@ class ReviewsService {
             id: true,
             firstName: true,
             lastName: true,
-            email: true,
           },
         },
       },
       orderBy: {
         createdAt: "desc",
       },
+      skip: options?.skip ?? 0,
+      take: options?.take,
     });
 
     logger.debug(`✅ [REVIEWS SERVICE] Found ${reviews.length} reviews for product ${productId}`);
