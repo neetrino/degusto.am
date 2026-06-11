@@ -4,6 +4,7 @@ import { cartService } from "@/lib/services/cart.service";
 import { resolveCartRequestContext } from "@/lib/cart/cart-request-context";
 
 export async function GET(req: NextRequest) {
+  const startedAt = Date.now();
   try {
     const { user, locale, guestToken } = await resolveCartRequestContext(req);
 
@@ -12,6 +13,14 @@ export async function GET(req: NextRequest) {
     }
 
     const result = await cartService.getCart(user?.id ?? null, locale, guestToken);
+    const durationMs = Date.now() - startedAt;
+    const itemsCount = Array.isArray(result.cart?.items) ? result.cart.items.length : 0;
+    console.debug("[perf] GET /api/v1/cart", {
+      durationMs,
+      hasUser: Boolean(user?.id),
+      hasGuestToken: Boolean(guestToken),
+      itemsCount,
+    });
     return NextResponse.json(result);
   } catch (error: unknown) {
     return apiRouteCatchErrorResponse(req, error, "[CART] GET");

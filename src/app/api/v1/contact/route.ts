@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { problemTypes } from "@/lib/http/problem-details";
 import { db } from "@white-shop/db";
-import { logger } from "@/lib/utils/logger";
-import { isValidEmail } from "@/lib/utils/email";
+import { apiRouteCatchErrorResponse } from "@/lib/http/api-route-errors";
+import { createProblem } from "@/lib/http/problem-details";
+import { problemJson } from "@/lib/http/problem-response";
+import { safeParseContact } from "@/lib/schemas/contact.schema";
+import { enforceRouteRateLimit } from "@/lib/http/route-rate-limit";
 
 /**
  * POST /api/v1/contact
@@ -10,62 +12,29 @@ import { isValidEmail } from "@/lib/utils/email";
  */
 export async function POST(req: NextRequest) {
   try {
+    const rateLimited = await enforceRouteRateLimit(req, {
+      prefix: "ratelimit:contact",
+      limit: 8,
+      window: "60 s",
+      detail: "Too many contact requests. Try again later.",
+    });
+    if (rateLimited) {
+      return rateLimited;
+    }
+
     const body = await req.json();
-    const { name, email, subject, message } = body;
-
-    // Validation
-    if (!name || typeof name !== 'string' || name.trim().length === 0) {
-      return NextResponse.json(
-        {
-          type: problemTypes.validationError,
-          title: "Validation Error",
+    const parsed = safeParseContact(body);
+    if (!parsed.success) {
+      return problemJson(
+        createProblem("validationError", {
           status: 400,
-          detail: "Field 'name' is required",
+          title: "Validation Error",
+          detail: parsed.error.issues[0]?.message ?? "Invalid contact payload",
           instance: req.url,
-        },
-        { status: 400 }
+        })
       );
     }
-
-    if (!email || typeof email !== 'string' || email.trim().length === 0) {
-      return NextResponse.json(
-        {
-          type: problemTypes.validationError,
-          title: "Validation Error",
-          status: 400,
-          detail: "Field 'email' is required",
-          instance: req.url,
-        },
-        { status: 400 }
-      );
-    }
-
-    if (!message || typeof message !== 'string' || message.trim().length === 0) {
-      return NextResponse.json(
-        {
-          type: problemTypes.validationError,
-          title: "Validation Error",
-          status: 400,
-          detail: "Field 'message' is required",
-          instance: req.url,
-        },
-        { status: 400 }
-      );
-    }
-
-    // Email validation (no regex on user input to avoid ReDoS)
-    if (!isValidEmail(email)) {
-      return NextResponse.json(
-        {
-          type: problemTypes.validationError,
-          title: "Validation Error",
-          status: 400,
-          detail: "Invalid email format",
-          instance: req.url,
-        },
-        { status: 400 }
-      );
-    }
+    const { name, email, subject, message } = parsed.data;
 
     const normalizedSubject = typeof subject === "string" ? subject.trim() : "";
 
@@ -78,8 +47,6 @@ export async function POST(req: NextRequest) {
         message: message.trim(),
       },
     });
-
-    logger.info("Contact message created", { id: contactMessage.id });
 
     return NextResponse.json(
       {
@@ -95,18 +62,7 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error("Contact form error", { error });
-    return NextResponse.json(
-      {
-        type: problemTypes.internalError,
-        title: "Internal Server Error",
-        status: 500,
-        detail: errorMessage || "An error occurred while submitting the contact form",
-        instance: req.url,
-      },
-      { status: 500 }
-    );
+    return apiRouteCatchErrorResponse(req, error, "[CONTACT] POST");
   }
 }
 

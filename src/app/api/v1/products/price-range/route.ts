@@ -10,6 +10,7 @@ import {
 import { resolveStorefrontLocaleFromSearchParams } from "@/lib/i18n/locale";
 import { productsService } from "@/lib/services/products.service";
 import { logger } from "@/lib/utils/logger";
+import { publicErrorDetailFromUnknown } from "@/lib/http/error-detail";
 
 export async function GET(req: NextRequest) {
   try {
@@ -38,7 +39,7 @@ export async function GET(req: NextRequest) {
         type: err.type || problemTypes.internalError,
         title: err.title || "Internal Server Error",
         status: err.status || 500,
-        detail: err.message || "An error occurred",
+        detail: publicErrorDetailFromUnknown(error),
         instance: req.url,
       },
       { status: err.status || 500 }

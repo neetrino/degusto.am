@@ -47,6 +47,7 @@ import {
   UNIVERSAL_HEADER_SPACER_HEIGHT_CLASS,
 } from '@/constants/universal-header-layout';
 import { useWishlistIdsContext } from '@/lib/wishlist/WishlistIdsProvider';
+import { useRoutePrefetch } from './home/useRoutePrefetch';
 
 function universalWishlistNavClassName(active: boolean): string {
   const base =
@@ -323,6 +324,8 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
     onCloseDropdown: closeSearchDropdown,
     t,
   };
+  const navHrefs = ['/', '/shop', '/combo', '/about', '/wishlist', '/profile', '/login'] as const;
+  const { getPrefetchHandlers } = useRoutePrefetch(navHrefs);
 
   return (
     <>
@@ -337,10 +340,10 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
       <header className={UNIVERSAL_HEADER_BAR_CLASS}>
         <BrandLogoLink onDark className="shrink-0" title="Degusto" />
         <nav className={UNIVERSAL_HEADER_NAV_CLASS}>
-          <Link href="/" className={`shrink-0 transition-colors ${isActivePath('/') ? 'text-[#ff7f20]' : 'text-white hover:text-[#ffb07a]'}`}>{t('common.navigation.home')}</Link>
-          <Link href="/shop" className={`shrink-0 transition-colors ${isActivePath('/shop') ? 'text-[#ff7f20]' : 'text-white hover:text-[#ffb07a]'}`}>{t('common.navigation.shop')}</Link>
-          <Link href="/combo" className={`shrink-0 transition-colors ${isActivePath('/combo') ? 'text-[#ff7f20]' : 'text-white hover:text-[#ffb07a]'}`}>{t('common.navigation.combo')}</Link>
-          <Link href="/about" className={`shrink-0 transition-colors ${isActivePath('/about') ? 'text-[#ff7f20]' : 'text-white hover:text-[#ffb07a]'}`}>{t('common.navigation.about')}</Link>
+          <Link href="/" {...getPrefetchHandlers('/')} className={`shrink-0 transition-colors ${isActivePath('/') ? 'text-[#ff7f20]' : 'text-white hover:text-[#ffb07a]'}`}>{t('common.navigation.home')}</Link>
+          <Link href="/shop" {...getPrefetchHandlers('/shop')} className={`shrink-0 transition-colors ${isActivePath('/shop') ? 'text-[#ff7f20]' : 'text-white hover:text-[#ffb07a]'}`}>{t('common.navigation.shop')}</Link>
+          <Link href="/combo" {...getPrefetchHandlers('/combo')} className={`shrink-0 transition-colors ${isActivePath('/combo') ? 'text-[#ff7f20]' : 'text-white hover:text-[#ffb07a]'}`}>{t('common.navigation.combo')}</Link>
+          <Link href="/about" {...getPrefetchHandlers('/about')} className={`shrink-0 transition-colors ${isActivePath('/about') ? 'text-[#ff7f20]' : 'text-white hover:text-[#ffb07a]'}`}>{t('common.navigation.about')}</Link>
         </nav>
         <button
           type="button"
@@ -385,6 +388,7 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
             </button>
             <Link
               href="/wishlist"
+              {...getPrefetchHandlers('/wishlist')}
               className={`${universalWishlistNavClassName(isActivePath('/wishlist'))} hidden md:inline-flex`}
               aria-current={isActivePath('/wishlist') ? 'page' : undefined}
               aria-label={
@@ -435,6 +439,7 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
               {!isLoggedIn ? (
                 <Link
                   href="/login"
+                  {...getPrefetchHandlers('/login')}
                   onClick={() => setIsProfileMenuOpen(false)}
                   className="block rounded-lg px-3 py-2 text-sm font-medium text-[#252525] transition-colors hover:bg-[#f1f2f4]"
                 >
@@ -444,6 +449,7 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
                 <>
                   <Link
                     href="/profile"
+                    {...getPrefetchHandlers('/profile')}
                     onClick={() => setIsProfileMenuOpen(false)}
                     className="block rounded-lg px-3 py-2 text-sm font-medium text-[#252525] transition-colors hover:bg-[#f1f2f4]"
                   >

@@ -24,13 +24,26 @@ export function MobileRoutePrefetcher(): null {
   const router = useRouter();
 
   useEffect(() => {
-    for (const route of STOREFRONT_PREFETCH_ROUTES) {
-      prefetchStorefrontRoute(router, route);
-    }
+    const runPrefetch = () => {
+      for (const route of STOREFRONT_PREFETCH_ROUTES) {
+        prefetchStorefrontRoute(router, route);
+      }
 
-    for (const route of MOBILE_ADMIN_PREFETCH_ROUTES) {
-      void router.prefetch(route);
+      for (const route of MOBILE_ADMIN_PREFETCH_ROUTES) {
+        void router.prefetch(route);
+      }
+    };
+
+    if (typeof window.requestIdleCallback === 'function') {
+      const idleId = window.requestIdleCallback(runPrefetch, { timeout: 500 });
+      return () => {
+        window.cancelIdleCallback?.(idleId);
+      };
     }
+    const timerId = window.setTimeout(runPrefetch, 200);
+    return () => {
+      window.clearTimeout(timerId);
+    };
   }, [router]);
 
   return null;

@@ -16,8 +16,44 @@ import { fetchWishlistIds } from '../../lib/wishlist-api';
 import { MOBILE_SHOP_PRODUCTS_GRID_CLASS } from '../../constants/mobile-figma-storefront';
 import { STOREFRONT_PAGE_CONTAINER_CLASS } from '@/constants/storefront-desktop-layout';
 import { WishlistProductCard, type WishlistProductCardProduct } from './WishlistProductCard';
+import {
+  publishCartForceReload,
+  publishCartLineConfirmed,
+  publishOptimisticCartAdd,
+} from '@/lib/cart/cart-events';
+import { readCartSummaryCache } from '@/lib/cartSummaryCache';
 
 type Product = WishlistProductCardProduct;
+const WISHLIST_PRODUCTS_CACHE_KEY = 'wishlist-page-products-v1';
+const WISHLIST_CART_COMMIT_DELAY_MS = 1000;
+const WISHLIST_ADDED_BADGE_MS = 1400;
+
+function readCachedWishlistProducts(): Product[] {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+  try {
+    const raw = window.sessionStorage.getItem(WISHLIST_PRODUCTS_CACHE_KEY);
+    if (!raw) {
+      return [];
+    }
+    const parsed = JSON.parse(raw) as Product[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeCachedWishlistProducts(products: Product[]): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  try {
+    window.sessionStorage.setItem(WISHLIST_PRODUCTS_CACHE_KEY, JSON.stringify(products));
+  } catch {
+    // best-effort cache write only
+  }
+}
 
 /**
  * Wishlist page that shows saved products and supports lightweight CRUD actions.
@@ -26,13 +62,14 @@ export default function WishlistPage() {
   const router = useRouter();
   const { isLoggedIn } = useAuth();
   const { t } = useTranslation();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>(() => readCachedWishlistProducts());
   const [wishlistIds, setWishlistIds] = useState<string[]>([]);
   const [currency, setCurrency] = useState(getStoredCurrency());
-  const [addingToCart, setAddingToCart] = useState<Set<string>>(new Set());
+  const [queueingAddToCart, setQueueingAddToCart] = useState<Set<string>>(new Set());
+  const [recentlyAddedToCart, setRecentlyAddedToCart] = useState<Set<string>>(new Set());
   // Track if we updated locally to prevent unnecessary re-fetch
   const isLocalUpdateRef = useRef(false);
+  const addBadgeTimersRef = useRef<Map<string, number>>(new Map());
 
   /**
    * Fetches wishlist products for provided ids and updates component state.
@@ -41,12 +78,11 @@ export default function WishlistPage() {
     if (idsToLoad.length === 0) {
       logger.debug('[Wishlist] Skip fetch because ids array is empty');
       setProducts([]);
-      setLoading(false);
+      writeCachedWishlistProducts([]);
       return;
     }
 
     try {
-      setLoading(true);
       logger.debug(`[Wishlist] Fetching ${idsToLoad.length} products for render`);
       const languagePreference = getStoredLanguage();
       const response = await apiClient.get<{
@@ -70,6 +106,7 @@ export default function WishlistPage() {
         .map((id) => productById.get(id))
         .filter((product): product is Product => product !== undefined);
       setProducts(wishlistProducts);
+      writeCachedWishlistProducts(wishlistProducts);
 
       const normalizedIds = wishlistProducts.map((product) => product.id);
       if (normalizedIds.length !== idsToLoad.length) {
@@ -78,8 +115,6 @@ export default function WishlistPage() {
       }
     } catch (error) {
       logger.error('[Wishlist] Error fetching wishlist products', { error });
-    } finally {
-      setLoading(false);
     }
   }, []);
 
@@ -88,7 +123,7 @@ export default function WishlistPage() {
       if (!isLoggedIn) {
         setWishlistIds([]);
         setProducts([]);
-        setLoading(false);
+        writeCachedWishlistProducts([]);
         return;
       }
 
@@ -100,7 +135,7 @@ export default function WishlistPage() {
         logger.error('[Wishlist] Failed to load server wishlist', { error });
         setWishlistIds([]);
         setProducts([]);
-        setLoading(false);
+        writeCachedWishlistProducts([]);
       }
     };
 
@@ -139,6 +174,15 @@ export default function WishlistPage() {
     };
   }, [fetchWishlistProducts, isLoggedIn]);
 
+  useEffect(() => {
+    return () => {
+      for (const timerId of addBadgeTimersRef.current.values()) {
+        window.clearTimeout(timerId);
+      }
+      addBadgeTimersRef.current.clear();
+    };
+  }, []);
+
   const handleRemove = async (productId: string) => {
     logger.debug(`[Wishlist] Removing product ${productId} from wishlist UI`);
     
@@ -175,7 +219,42 @@ export default function WishlistPage() {
       return;
     }
 
-    setAddingToCart(prev => new Set(prev).add(product.id));
+    setQueueingAddToCart((prev) => {
+      const next = new Set(prev);
+      next.add(product.id);
+      return next;
+    });
+    setRecentlyAddedToCart((prev) => {
+      const next = new Set(prev);
+      next.add(product.id);
+      return next;
+    });
+    const existingBadgeTimer = addBadgeTimersRef.current.get(product.id);
+    if (existingBadgeTimer) {
+      window.clearTimeout(existingBadgeTimer);
+    }
+    const badgeTimer = window.setTimeout(() => {
+      setRecentlyAddedToCart((prev) => {
+        const next = new Set(prev);
+        next.delete(product.id);
+        return next;
+      });
+      addBadgeTimersRef.current.delete(product.id);
+    }, WISHLIST_ADDED_BADGE_MS);
+    addBadgeTimersRef.current.set(product.id, badgeTimer);
+
+    const optimisticVariantId = `pending:${product.id}`;
+    publishOptimisticCartAdd({
+      productId: product.id,
+      productSlug: product.slug,
+      variantId: optimisticVariantId,
+      title: product.title,
+      image: product.image,
+      price: product.price,
+      quantity: 1,
+    });
+
+    await new Promise((resolve) => window.setTimeout(resolve, WISHLIST_CART_COMMIT_DELAY_MS));
 
     try {
       // Get product details to get variant ID
@@ -199,7 +278,10 @@ export default function WishlistPage() {
 
       const variantId = productDetails.variants[0].id;
       
-      await apiClient.post(
+      const addToCartResponse = await apiClient.post<{
+        item: { id: string; quantity: number; price: number };
+        cartSummary?: { itemsCount: number; total: number };
+      }>(
         '/api/v1/cart/items',
         {
           productId: product.id,
@@ -208,39 +290,45 @@ export default function WishlistPage() {
         }
       );
 
-      // Trigger cart update event
-      window.dispatchEvent(new Event('cart-updated'));
+      const summary = addToCartResponse.cartSummary ?? (() => {
+        const cached = readCartSummaryCache();
+        return {
+          itemsCount: cached?.itemsCount ?? 0,
+          total: cached?.total ?? 0,
+        };
+      })();
+
+      publishCartLineConfirmed(
+        {
+          productId: product.id,
+          previousVariantId: optimisticVariantId,
+          variantId,
+          serverItemId: addToCartResponse.item.id,
+          quantity: addToCartResponse.item.quantity,
+          price: addToCartResponse.item.price,
+        },
+        summary
+      );
     } catch (error: unknown) {
       logger.error('Error adding to cart from wishlist', { error });
       const message = error instanceof Error ? error.message : '';
       if (message.includes('401') || message.includes('Unauthorized')) {
         router.push(`/login?redirect=/wishlist`);
       }
+      setRecentlyAddedToCart((prev) => {
+        const next = new Set(prev);
+        next.delete(product.id);
+        return next;
+      });
+      publishCartForceReload();
     } finally {
-      setAddingToCart(prev => {
+      setQueueingAddToCart(prev => {
         const next = new Set(prev);
         next.delete(product.id);
         return next;
       });
     }
   };
-
-  if (loading) {
-    return (
-      <div className={`${STOREFRONT_PAGE_CONTAINER_CLASS} py-6`}>
-        <div className="py-6 text-center">
-          <div className="animate-pulse space-y-4">
-            <div className="mx-auto h-6 w-1/4 max-w-xs rounded bg-gray-200" />
-            <div className={`mt-4 ${MOBILE_SHOP_PRODUCTS_GRID_CLASS} lg:grid-cols-3`}>
-              <div className="h-72 rounded-lg bg-gray-200" />
-              <div className="h-72 rounded-lg bg-gray-200" />
-              <div className="hidden h-72 rounded-lg bg-gray-200 lg:block" />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className={`${STOREFRONT_PAGE_CONTAINER_CLASS} py-6`}>
@@ -268,7 +356,8 @@ export default function WishlistPage() {
               key={product.id}
               product={product}
               currency={currency}
-              isAddingToCart={addingToCart.has(product.id)}
+              isQueueingAddToCart={queueingAddToCart.has(product.id)}
+              isRecentlyAddedToCart={recentlyAddedToCart.has(product.id)}
               onRemove={handleRemove}
               onAddToCart={handleAddToCart}
               t={t}

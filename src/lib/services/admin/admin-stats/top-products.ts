@@ -26,27 +26,52 @@ function extractImageFromMedia(media: unknown[] | undefined): string | null {
  * Get top products for dashboard
  */
 export async function getTopProducts(limit: number = 5) {
-  // Get all order items with their variants
-  const orderItems = await db.orderItem.findMany({
-    select: {
-      variantId: true,
+  const grouped = await db.orderItem.groupBy({
+    by: ["variantId"],
+    _sum: {
       quantity: true,
       total: true,
-      variant: {
+    },
+    _count: {
+      variantId: true,
+    },
+    orderBy: {
+      _sum: {
+        total: "desc",
+      },
+    },
+    where: {
+      variantId: {
+        not: null,
+      },
+    },
+    take: Math.max(limit, 1),
+  });
+
+  const variantIds = grouped
+    .map((entry) => entry.variantId)
+    .filter((variantId): variantId is string => Boolean(variantId));
+
+  if (variantIds.length === 0) {
+    return [];
+  }
+
+  const variants = await db.productVariant.findMany({
+    where: {
+      id: { in: variantIds },
+    },
+    select: {
+      id: true,
+      productId: true,
+      sku: true,
+      product: {
         select: {
-          id: true,
-          productId: true,
-          sku: true,
-          product: {
+          media: true,
+          translations: {
+            where: { locale: "en" },
+            take: 1,
             select: {
-              media: true,
-              translations: {
-                where: { locale: "en" },
-                take: 1,
-                select: {
-                  title: true,
-                },
-              },
+              title: true,
             },
           },
         },
@@ -54,71 +79,34 @@ export async function getTopProducts(limit: number = 5) {
     },
   });
 
-  // Group by variant and calculate stats
-  const productStats = new Map<
-    string,
-    {
-      variantId: string;
-      productId: string;
-      title: string;
-      sku: string;
-      totalQuantity: number;
-      totalRevenue: number;
-      orderCount: number;
-      image?: string | null;
+  const variantById = new Map(
+    variants.map((variant) => [variant.id, variant] as const)
+  );
+
+  return grouped.flatMap((entry) => {
+    if (!entry.variantId) {
+      return [];
     }
-  >();
-
-  orderItems.forEach((item: { 
-    variantId: string | null; 
-    quantity: number; 
-    total: number; 
-    variant?: { 
-      id: string; 
-      productId: string; 
-      sku: string | null; 
-      product?: { 
-        translations?: Array<{ title: string }>; 
-        media?: unknown[] 
-      } 
-    } | null
-  }) => {
-    if (!item.variant) return;
-
-    const variantId = item.variantId || item.variant.id;
-    const productId = item.variant.productId;
-    const product = item.variant.product;
-    const translations = product?.translations || [];
-    const translation = translations[0];
+    const variant = variantById.get(entry.variantId);
+    if (!variant) {
+      return [];
+    }
+    const translation = variant.product?.translations?.[0];
     const title = translation?.title || "Unknown Product";
-    const sku = item.variant.sku || "N/A";
-    const image = extractImageFromMedia(product?.media);
+    const sku = variant.sku || "N/A";
+    const image = extractImageFromMedia(variant.product?.media);
 
-    if (!productStats.has(variantId)) {
-      productStats.set(variantId, {
-        variantId,
-        productId,
-        title,
-        sku,
-        totalQuantity: 0,
-        totalRevenue: 0,
-        orderCount: 0,
-        image,
-      });
-    }
-
-    const stats = productStats.get(variantId)!;
-    stats.totalQuantity += item.quantity;
-    stats.totalRevenue += item.total;
-    stats.orderCount += 1;
+    return [{
+      variantId: variant.id,
+      productId: variant.productId,
+      title,
+      sku,
+      totalQuantity: entry._sum.quantity ?? 0,
+      totalRevenue: entry._sum.total ?? 0,
+      orderCount: entry._count.variantId ?? 0,
+      image,
+    }];
   });
-
-  // Convert to array and sort by revenue
-  const topProducts = Array.from(productStats.values())
-    .sort((a, b) => b.totalRevenue - a.totalRevenue)
-    .slice(0, limit);
-
-  return topProducts;
 }
 
 

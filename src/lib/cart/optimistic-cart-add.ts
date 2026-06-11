@@ -164,22 +164,50 @@ export function confirmOptimisticCartLine(
     return cart;
   }
 
-  const nextItems = cart.items.map((item, index) => {
-    if (index !== itemIndex) {
-      return item;
-    }
-    return {
-      ...item,
-      id: confirmation.serverItemId,
-      quantity: confirmation.quantity,
-      price: confirmation.price,
-      total: confirmation.price * confirmation.quantity,
-      variant: {
-        ...item.variant,
-        id: confirmation.variantId,
-      },
-    };
-  });
+  const duplicateServerIndex = cart.items.findIndex(
+    (item, index) => index !== itemIndex && item.id === confirmation.serverItemId
+  );
+
+  const confirmedItem = {
+    ...cart.items[itemIndex],
+    id: confirmation.serverItemId,
+    quantity: confirmation.quantity,
+    price: confirmation.price,
+    total: confirmation.price * confirmation.quantity,
+    variant: {
+      ...cart.items[itemIndex].variant,
+      id: confirmation.variantId,
+    },
+  };
+
+  let nextItems: CartItem[];
+  if (duplicateServerIndex >= 0) {
+    // Keep one canonical server row and drop the optimistic duplicate line.
+    nextItems = cart.items
+      .map((item, index) => {
+        if (index === duplicateServerIndex) {
+          return {
+            ...item,
+            quantity: confirmation.quantity,
+            price: confirmation.price,
+            total: confirmation.price * confirmation.quantity,
+            variant: {
+              ...item.variant,
+              id: confirmation.variantId,
+            },
+          };
+        }
+        return item;
+      })
+      .filter((_, index) => index !== itemIndex);
+  } else {
+    nextItems = cart.items.map((item, index) => {
+      if (index !== itemIndex) {
+        return item;
+      }
+      return confirmedItem;
+    });
+  }
 
   const itemsCount = nextItems.reduce((sum, item) => sum + item.quantity, 0);
   return {

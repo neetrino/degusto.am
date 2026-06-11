@@ -29,12 +29,13 @@ import { navigateToProductPage, prefetchProductRoute } from '@/lib/products/pref
 import { STOREFRONT_PAGE_CONTAINER_CLASS } from '@/constants/storefront-desktop-layout';
 import { useWishlistIdsContext } from '@/lib/wishlist/WishlistIdsProvider';
 import { useCompareIdsContext } from '@/lib/compare/CompareIdsProvider';
+import { prefetchStorefrontRoute } from '@/lib/routing/prefetch-storefront-route';
 
 // Navigation links will be translated dynamically using useTranslation hook
 const primaryNavLinks = [
   { href: '/', translationKey: 'common.navigation.home' },
   { href: '/shop', translationKey: 'common.navigation.shop' },
-  { href: '/shop', translationKey: 'common.navigation.combo' },
+  { href: '/combo', translationKey: 'common.navigation.combo' },
   { href: '/about', translationKey: 'common.navigation.about' },
 ];
 
@@ -55,7 +56,7 @@ function isHeaderNavActive(pathname: string | null, href: string): boolean {
 const HEADER_NAV_LINK_BASE =
   'px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium whitespace-nowrap';
 
-const HEADER_FAST_NAV_ROUTES = ['/', '/shop', '/about', '/wishlist', '/compare'] as const;
+const HEADER_FAST_NAV_ROUTES = ['/', '/shop', '/combo', '/about', '/wishlist', '/compare'] as const;
 
 function headerTextNavClassName(active: boolean): string {
   return active
@@ -380,16 +381,16 @@ export function Header() {
 
   useEffect(() => {
     HEADER_FAST_NAV_ROUTES.forEach((href) => {
-      void router.prefetch(href);
+      prefetchStorefrontRoute(router, href);
     });
-    void router.prefetch(userNavHref);
+    prefetchStorefrontRoute(router, userNavHref);
     if (isAdmin) {
       void router.prefetch('/supersudo');
     }
   }, [isAdmin, router, userNavHref]);
 
   const prefetchRoute = (href: string) => {
-    void router.prefetch(href);
+    prefetchStorefrontRoute(router, href);
   };
 
   const getFastNavHandlers = (href: string) => ({

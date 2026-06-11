@@ -277,3 +277,376 @@
 
 - **Task status**
   - `DONE`
+
+## Task 8 — Critical architecture safety and pricing consistency hardening
+
+- **What problem existed**
+  - Runtime DB schema patching (`CREATE/ALTER`) could run inside request paths via `db-ensure`, masking migration drift and creating production latency/lock risk.
+  - Checkout pricing had inconsistent logic: DB-cart flow could use `priceSnapshot`, while guest flow recomputed from variant + customizations.
+  - There was no unified baseline telemetry for key hot endpoints to compare improvements across phases.
+
+- **Where it was located**
+  - `src/lib/utils/db-ensure.ts`
+  - `src/lib/services/orders.checkout.ts`
+  - `src/app/api/v1/cart/route.ts`
+  - `src/app/api/v1/orders/checkout/route.ts`
+  - `src/app/api/search/instant/route.ts`
+
+- **What solution was implemented**
+  - Added fail-safe guard in `db-ensure`: runtime schema patching is now disabled by default and only allowed when `ENABLE_RUNTIME_SCHEMA_PATCH=1`.
+  - Normalized checkout unit-price calculation so DB cart line pricing also recomputes from variant base + customization adjustments (same contract as guest flow).
+  - Added explicit endpoint-level performance logs (`durationMs`, payload metadata) for:
+    - `GET /api/v1/cart`
+    - `POST /api/v1/orders/checkout`
+    - `GET /api/search/instant`
+
+- **Which files changed**
+  - `src/lib/utils/db-ensure.ts`
+  - `src/lib/services/orders.checkout.ts`
+  - `src/app/api/v1/cart/route.ts`
+  - `src/app/api/v1/orders/checkout/route.ts`
+  - `src/app/api/search/instant/route.ts`
+
+- **How to test**
+  - Start app and call hot endpoints; verify perf logs appear:
+    - `[perf] GET /api/v1/cart`
+    - `[perf] POST /api/v1/orders/checkout`
+    - `[perf] GET /api/search/instant`
+  - Validate checkout totals for both authenticated cart checkout and guest checkout with identical customizations; totals should be consistent.
+  - In a migration-drift simulation, confirm runtime DDL is not attempted unless `ENABLE_RUNTIME_SCHEMA_PATCH=1` is explicitly set.
+
+- **Expected performance improvement**
+  - Prevents runtime schema mutation overhead in production request flow (stability and tail-latency improvement).
+  - Reduces pricing drift/debug complexity by enforcing a single pricing contract.
+  - Establishes measurable latency baseline for subsequent High-priority optimizations.
+
+- **Task status**
+  - `DONE`
+
+## Task 9 — High-priority duplicate-request and hotspot query optimizations
+
+- **What problem existed**
+  - Checkout still triggered redundant cart reload logic despite global cart synchronization and optimistic events.
+  - Currency rates API calls had cache but no inflight dedup guard, allowing concurrent duplicate requests.
+  - Auth role hydration could issue duplicate `/api/v1/users/profile` calls from two separate paths.
+  - Home/mobile route warmups prefetch fan-out was too aggressive for initial page load.
+  - Admin top-products endpoint loaded all order items in memory and aggregated in Node.js.
+
+- **Where it was located**
+  - `src/app/checkout/useCheckout.ts`
+  - `src/app/checkout/hooks/useCart.ts`
+  - `src/lib/currency.ts`
+  - `src/lib/auth/AuthContext.tsx`
+  - `src/components/mobile/MobileRoutePrefetcher.tsx`
+  - `src/components/routing/HomeVisibleRoutesWarmup.tsx`
+  - `src/lib/services/admin/admin-stats/top-products.ts`
+
+- **What solution was implemented**
+  - Removed eager checkout `fetchCart()` call and unused fetch binding in checkout hook usage.
+  - Updated checkout cart event handler to skip reload when `skipReconcile` flag is present.
+  - Added `currencyRatesInFlight` dedup promise to prevent parallel `/api/v1/currency-rates` calls.
+  - Consolidated auth role hydration to a single async path (`hydrateRolesIfMissing`) and removed second duplicate fetch effect.
+  - Reduced warmup prefetch budget:
+    - Mobile prefetch routes limited to top core routes.
+    - Home warmup caps category/product prefetch counts.
+  - Rewrote top-products data path to DB-side aggregation using `groupBy` + targeted variant/product lookup (no full order_items scan).
+
+- **Which files changed**
+  - `src/app/checkout/useCheckout.ts`
+  - `src/app/checkout/hooks/useCart.ts`
+  - `src/lib/currency.ts`
+  - `src/lib/auth/AuthContext.tsx`
+  - `src/components/mobile/MobileRoutePrefetcher.tsx`
+  - `src/components/routing/HomeVisibleRoutesWarmup.tsx`
+  - `src/lib/services/admin/admin-stats/top-products.ts`
+
+- **How to test**
+  - Checkout flow: mutate cart and verify `cart-updated` events with `skipReconcile` do not trigger extra `/api/v1/cart` fetches.
+  - Currency: trigger multiple components calling `initializeCurrencyRates()` on mount; verify one active network request path.
+  - Auth: login with missing roles in cookie payload and verify single profile hydration call.
+  - Home/mobile navigation: inspect network activity on first load; prefetch requests should be reduced compared to previous behavior.
+  - Admin dashboard: open top-products widget and verify values still render correctly while DB load profile is reduced.
+
+- **Expected performance improvement**
+  - Lower duplicate request volume on checkout/auth/currency hot paths.
+  - Reduced background prefetch bandwidth and API pressure during first paint.
+  - Significant memory and latency improvement for admin top-products as order history grows.
+
+- **Task status**
+  - `DONE`
+
+## Task 10 — Verification and baseline metrics capture (Critical/High rollout validation)
+
+- **What problem existed**
+  - Needed measurable post-change evidence (type/lint correctness + endpoint latency samples) to validate optimization impact and identify remaining hotspots.
+
+- **Where it was located**
+  - Verification targets:
+    - `src/app/api/search/instant/route.ts`
+    - `src/app/api/v1/cart/route.ts`
+    - `src/app/api/v1/orders/checkout/route.ts`
+    - `src/lib/services/orders.checkout.ts`
+    - `src/lib/services/admin/admin-stats/top-products.ts`
+    - `src/lib/auth/AuthContext.tsx`
+    - `src/lib/currency.ts`
+    - `src/app/checkout/*`
+    - `src/lib/utils/db-ensure.ts`
+
+- **What solution was implemented**
+  - Ran strict static verification on changed files:
+    - `pnpm exec tsc --noEmit` ✅
+    - targeted `eslint` for all touched files ✅
+  - Captured runtime sample latency (local dev) for key endpoints:
+    - `/api/search/instant?q=chicken&limit=8` avg ~1190ms (3 samples)
+    - `/api/search/instant?q=taco&limit=8` avg ~922ms (3 samples)
+    - `/api/v1/cart` avg ~19ms (3 samples)
+  - Confirmed cart endpoint now logs perf telemetry and remains fast on warm path.
+  - Confirmed search endpoint remains main latency hotspot (as expected from text-search strategy); this is now measurable for next optimization phase (shared search query/indexing).
+
+- **Which files changed**
+  - `BACKEND_OPTIMIZATION_PROGRESS.md` (verification record only)
+
+- **How to test**
+  - Run:
+    - `pnpm exec tsc --noEmit`
+    - `pnpm exec eslint <changed-files...>`
+  - With dev server running, sample latencies:
+    - `GET /api/search/instant?q=<term>&limit=8`
+    - `GET /api/v1/cart`
+  - Verify server logs contain:
+    - `[perf] GET /api/search/instant`
+    - `[perf] GET /api/v1/cart`
+    - `[perf] POST /api/v1/orders/checkout` (trigger via checkout flow)
+
+- **Expected performance improvement**
+  - Provides stable baseline to quantify next phases.
+  - Confirms applied changes did not regress cart hot path and highlights remaining search bottleneck for focused follow-up.
+
+- **Task status**
+  - `DONE`
+
+## Task 11 — Phase 3 structural optimization: shared search logic + batched customization pricing
+
+- **What problem existed**
+  - Instant search and catalog search duplicated the same query predicate logic, which caused maintenance drift risk and inconsistent optimization evolution.
+  - Cart and checkout pricing flows recalculated customization adjustments with per-line DB calls (`N+1`-like multiplication) for both DB-cart and guest-cart paths.
+
+- **Where it was located**
+  - `src/app/api/search/instant/route.ts`
+  - `src/lib/services/products-find-query/query-builder.ts`
+  - `src/lib/cart/attribute-price-adjustment.ts`
+  - `src/lib/services/cart.service.ts`
+  - `src/lib/services/orders.checkout.ts`
+
+- **What solution was implemented**
+  - Introduced shared search filter module:
+    - `src/lib/services/products-find-query/search-filter.ts`
+  - Rewired both instant search and catalog query builder to use the same `buildProductSearchWhere(...)`.
+  - Added batched pricing adjustment API:
+    - `sumLineCustomizationPriceAdjustmentsByVariant(...)` in `attribute-price-adjustment.ts`
+  - Replaced per-item adjustment calls with batched variant-level adjustment resolution in:
+    - cart read path (`cart.service.ts`)
+    - checkout DB cart resolution (`orders.checkout.ts`)
+    - checkout guest cart resolution (`orders.checkout.ts`)
+  - Kept existing single-item helper for backward compatibility by internally delegating to the batched function.
+
+- **Which files changed**
+  - `src/lib/services/products-find-query/search-filter.ts` (new)
+  - `src/lib/services/products-find-query/query-builder.ts`
+  - `src/app/api/search/instant/route.ts`
+  - `src/lib/cart/attribute-price-adjustment.ts`
+  - `src/lib/services/cart.service.ts`
+  - `src/lib/services/orders.checkout.ts`
+
+- **How to test**
+  - Search parity:
+    - Call instant search (`/api/search/instant?q=...`) and catalog search/listing with same term; verify matching relevance behavior and no regressions.
+  - Cart pricing:
+    - Build cart with multiple customized lines; verify totals and per-line prices match expected values before/after changes.
+  - Checkout parity:
+    - Run both authenticated cart checkout and guest checkout with equivalent customizations; verify consistent unit price/total behavior.
+  - Static checks:
+    - `pnpm exec tsc --noEmit`
+    - targeted `eslint` on touched files.
+
+- **Expected performance improvement**
+  - Reduced query count and lower tail latency for cart/checkout flows with multiple customized items.
+  - Lower maintenance risk and easier future optimization from a single shared search predicate source.
+
+- **Task status**
+  - `DONE`
+
+## Task 12 — Phase 4 stability/security hardening (validation + rate limit + unified errors)
+
+- **What problem existed**
+  - Critical write/public endpoints still had ad-hoc validation and inconsistent error response shaping.
+  - Abuse-prone endpoints (`contact`, `checkout`, `cart/items`) had weak/no explicit public rate limiting coverage.
+  - Error handling across these endpoints did not consistently use shared API error mapping.
+
+- **Where it was located**
+  - `src/app/api/v1/contact/route.ts`
+  - `src/app/api/v1/orders/checkout/route.ts`
+  - `src/app/api/v1/cart/items/route.ts`
+  - `middleware.ts`
+  - Schema layer under `src/lib/schemas/*`
+
+- **What solution was implemented**
+  - Added dedicated Zod schemas:
+    - `src/lib/schemas/contact.schema.ts`
+    - `src/lib/schemas/cart.schema.ts`
+    - `src/lib/schemas/checkout.schema.ts`
+  - Added shared per-route rate limit helper:
+    - `src/lib/http/route-rate-limit.ts`
+  - Updated contact endpoint to:
+    - apply route-level rate limiting
+    - validate via `safeParseContact`
+    - return RFC7807 problem payloads for validation failures
+    - use `apiRouteCatchErrorResponse` in catch path
+  - Updated cart items endpoint to:
+    - apply route-level rate limiting
+    - validate request body via `safeParseCartItemRequest`
+    - return standardized validation problem responses
+  - Updated checkout endpoint to:
+    - apply route-level rate limiting
+    - validate input shape via `safeParseCheckout`
+    - route catch errors through `apiRouteCatchErrorResponse`
+  - Extended middleware with a focused public POST endpoint limiter for:
+    - `/api/v1/contact`
+    - `/api/v1/orders/checkout`
+    - `/api/v1/cart/items`
+
+- **Which files changed**
+  - `src/lib/http/route-rate-limit.ts` (new)
+  - `src/lib/schemas/contact.schema.ts` (new)
+  - `src/lib/schemas/cart.schema.ts` (new)
+  - `src/lib/schemas/checkout.schema.ts` (new)
+  - `src/app/api/v1/contact/route.ts`
+  - `src/app/api/v1/cart/items/route.ts`
+  - `src/app/api/v1/orders/checkout/route.ts`
+  - `middleware.ts`
+
+- **How to test**
+  - Validation:
+    - send invalid payloads to contact/cart items/checkout and confirm 400 Problem Details payloads.
+  - Rate limits:
+    - burst POST requests to the three endpoints and confirm 429 with `Retry-After`.
+  - Error shaping:
+    - force service/database errors and confirm standardized API error mapping via shared route error handler.
+
+- **Expected performance improvement**
+  - Indirect performance gain by rejecting invalid and abusive traffic earlier.
+  - Improved reliability/operational consistency due to shared error and validation handling.
+
+- **Task status**
+  - `DONE`
+
+## Task 13 — Final end-to-end verification after ideal hardening
+
+- **What problem existed**
+  - Needed full confidence that post-hardening code remains type-safe, lint-clean, and behaviorally correct for validation and rate-limit paths.
+
+- **Where it was located**
+  - Verification scope included:
+    - `src/app/api/v1/contact/route.ts`
+    - `src/app/api/v1/cart/items/route.ts`
+    - `src/app/api/v1/orders/checkout/route.ts`
+    - `src/lib/http/route-rate-limit.ts`
+    - `src/lib/schemas/contact.schema.ts`
+    - `src/lib/schemas/cart.schema.ts`
+    - `src/lib/schemas/checkout.schema.ts`
+    - `middleware.ts`
+
+- **What solution was implemented**
+  - Ran strict checks and fixed one type mismatch (`customizations` typing) in cart schema.
+  - Re-ran checks successfully:
+    - `pnpm exec tsc --noEmit` ✅
+    - targeted `eslint` on phase-4 files ✅
+  - Executed runtime smoke tests against dev server:
+    - invalid contact payload → 400 Problem Details ✅
+    - invalid cart item payload → 400 Problem Details ✅
+    - invalid checkout payload → 400 Problem Details ✅
+  - Verified endpoint rate limiting behavior:
+    - repeated POST `/api/v1/contact` hit first `429` on request #8 (configured behavior) ✅
+
+- **Which files changed**
+  - `src/lib/schemas/cart.schema.ts` (typing fix)
+  - `BACKEND_OPTIMIZATION_PROGRESS.md` (verification record)
+
+- **How to test**
+  - Static checks:
+    - `pnpm exec tsc --noEmit`
+    - `pnpm exec eslint <phase-4 files>`
+  - Runtime:
+    - send invalid bodies to contact/cart-items/checkout and verify 400 Problem Details payload.
+    - send burst contact POST requests and verify 429 with retry behavior.
+
+- **Expected performance improvement**
+  - Confirms stability and correctness of the hardened request gate paths.
+  - Ensures invalid/abusive requests are rejected early without regressions in API contracts.
+
+- **Task status**
+  - `DONE`
+
+## Task 14 — Full-project re-audit and high-impact hardening pass (v2)
+
+- **What problem existed**
+  - Re-audit surfaced systemic risk patterns still present in live paths:
+    - production error-detail leakage from multiple endpoints
+    - checkout validation was parsed but raw body still passed to service
+    - route rate limiter failed open when Upstash config was missing
+    - R2 proxy exposed unrestricted key paths
+
+- **Where it was located**
+  - `src/app/api/search/instant/route.ts`
+  - `src/app/api/v1/delivery/price/route.ts`
+  - `src/app/api/v1/products/[slug]/details/route.ts`
+  - `src/app/api/v1/products/filters/route.ts`
+  - `src/app/api/v1/products/price-range/route.ts`
+  - `src/app/api/v1/orders/checkout/route.ts`
+  - `src/lib/schemas/checkout.schema.ts`
+  - `src/lib/http/route-rate-limit.ts`
+  - `src/app/api/r2/[...key]/route.ts`
+  - `src/lib/http/error-detail.ts` (new)
+
+- **What solution was implemented**
+  - Added shared production-safe error detail utility:
+    - `publicErrorDetailFromUnknown(...)` in `src/lib/http/error-detail.ts`
+  - Switched high-traffic routes to masked error detail behavior via shared utility.
+  - Strengthened checkout boundary validation:
+    - expanded `checkoutSchema` to structured nested fields and bounded arrays/strings
+    - route now passes `parsed.data` into `ordersService.checkout(...)`
+  - Hardened rate-limit fallback:
+    - `enforceRouteRateLimit` now fails closed with 503 in production when Upstash config is absent.
+  - Restricted R2 proxy surface:
+    - added explicit public key prefix allowlist in `/api/r2/[...key]` route; disallowed prefixes return 403.
+
+- **Which files changed**
+  - `src/lib/http/error-detail.ts` (new)
+  - `src/lib/http/route-rate-limit.ts`
+  - `src/lib/schemas/checkout.schema.ts`
+  - `src/app/api/v1/orders/checkout/route.ts`
+  - `src/app/api/search/instant/route.ts`
+  - `src/app/api/v1/delivery/price/route.ts`
+  - `src/app/api/v1/products/[slug]/details/route.ts`
+  - `src/app/api/v1/products/filters/route.ts`
+  - `src/app/api/v1/products/price-range/route.ts`
+  - `src/app/api/r2/[...key]/route.ts`
+
+- **How to test**
+  - Error masking:
+    - force internal error in the updated routes and verify production-safe generic detail in response.
+  - Checkout validation:
+    - send malformed checkout payload (invalid `items`, long `notes`, missing required fields) and verify deterministic validation errors.
+  - Rate limit fail-closed:
+    - in production-like env with missing Upstash vars, route limiter should return 503 (not silently bypass).
+  - R2 allowlist:
+    - request allowed key prefixes (e.g. `products/...`) should work.
+    - request non-allowed prefix should return 403.
+
+- **Expected performance improvement**
+  - Reduced risk of abusive traffic impact from fail-open rate limiting behavior.
+  - Better request filtering at boundary level for checkout (less wasted deep-service processing).
+  - Smaller information disclosure surface from standardized internal error masking.
+
+- **Task status**
+  - `DONE`

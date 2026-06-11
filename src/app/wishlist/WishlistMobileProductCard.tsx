@@ -56,7 +56,8 @@ function resolveStrikePrice(product: WishlistProductCardProduct): number | null 
 export interface WishlistMobileProductCardProps {
   product: WishlistProductCardProduct;
   currency: CurrencyCode;
-  isAddingToCart: boolean;
+  isQueueingAddToCart: boolean;
+  isRecentlyAddedToCart: boolean;
   onRemove: (productId: string) => void;
   onAddToCart: (product: WishlistProductCardProduct) => void;
   t: (key: string) => string;
@@ -68,7 +69,8 @@ export interface WishlistMobileProductCardProps {
 export function WishlistMobileProductCard({
   product,
   currency,
-  isAddingToCart,
+  isQueueingAddToCart,
+  isRecentlyAddedToCart,
   onRemove,
   onAddToCart,
   t,
@@ -160,9 +162,9 @@ export function WishlistMobileProductCard({
       <button
         type="button"
         onClick={handleAddToCart}
-        disabled={!product.inStock || isAddingToCart}
+        disabled={!product.inStock}
         aria-label={
-          isAddingToCart ? t('common.messages.adding') : t('common.buttons.addToCart')
+          isRecentlyAddedToCart ? t('common.messages.addedToCart') : t('common.buttons.addToCart')
         }
         className="absolute -bottom-[14px] left-1/2 inline-flex h-[42px] w-[42px] -translate-x-1/2 items-center justify-center disabled:cursor-not-allowed disabled:opacity-45"
       >

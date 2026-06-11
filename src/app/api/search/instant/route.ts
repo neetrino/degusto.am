@@ -5,6 +5,8 @@ import { logger } from '@/lib/utils/logger';
 import { resolveStorefrontLocaleFromSearchParams } from '@/lib/i18n/locale';
 import { extractMediaUrl, extractVariantImageUrl } from '@/lib/utils/extractMediaUrl';
 import { processImageUrl } from '@/lib/utils/image-utils';
+import { buildProductSearchWhere } from '@/lib/services/products-find-query/search-filter';
+import { publicErrorDetailFromUnknown } from '@/lib/http/error-detail';
 
 const DEFAULT_LIMIT = 8;
 const MAX_LIMIT = 20;
@@ -21,39 +23,6 @@ export interface InstantSearchResult {
 }
 
 /**
- * Build search filter for instant search (same logic as products-find-query).
- */
-function buildSearchWhere(search: string): Prisma.ProductWhereInput {
-  const term = search.trim();
-  if (!term) return {};
-  return {
-    OR: [
-      {
-        translations: {
-          some: {
-            title: { contains: term, mode: 'insensitive' },
-          },
-        },
-      },
-      {
-        translations: {
-          some: {
-            subtitle: { contains: term, mode: 'insensitive' },
-          },
-        },
-      },
-      {
-        variants: {
-          some: {
-            sku: { contains: term, mode: 'insensitive' },
-          },
-        },
-      },
-    ],
-  };
-}
-
-/**
  * GET /api/search/instant
  * Query params: q (required), limit (default 8), lang (default en)
  * Returns { results: InstantSearchResult[] }
@@ -62,6 +31,7 @@ function buildSearchWhere(search: string): Prisma.ProductWhereInput {
  * and SKU — no Meilisearch/queue indexer. See docs/reference/knowledge-base/DEGUSTO_CURRENT_STACK.md.
  */
 export async function GET(req: NextRequest) {
+  const startedAt = Date.now();
   try {
     const { searchParams } = new URL(req.url);
     const q = searchParams.get('q')?.trim();
@@ -80,7 +50,7 @@ export async function GET(req: NextRequest) {
     const where: Prisma.ProductWhereInput = {
       published: true,
       deletedAt: null,
-      ...buildSearchWhere(q),
+      ...buildProductSearchWhere(q),
     };
 
     const products = await db.product.findMany({
@@ -147,6 +117,14 @@ export async function GET(req: NextRequest) {
       }];
     });
 
+    const durationMs = Date.now() - startedAt;
+    console.debug("[perf] GET /api/search/instant", {
+      durationMs,
+      qLength: q.length,
+      limit,
+      resultCount: results.length,
+    });
+
     return NextResponse.json(
       { results },
       { headers: { 'Cache-Control': 'no-store, must-revalidate' } }
@@ -157,7 +135,7 @@ export async function GET(req: NextRequest) {
       {
         error: 'Search failed',
         results: [],
-        details: error instanceof Error ? error.message : String(error),
+        details: publicErrorDetailFromUnknown(error),
       },
       { status: 500, headers: { 'Cache-Control': 'no-store, must-revalidate' } }
     );
