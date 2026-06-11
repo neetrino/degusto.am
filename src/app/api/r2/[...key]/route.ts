@@ -23,7 +23,20 @@ const r2Client =
 const R2_DEV_FALLBACK_PUBLIC_PATH = "/images/dev-r2-fallback.svg";
 
 let loggedDevR2VisibleFallback = false;
-const ALLOWED_PUBLIC_R2_PREFIXES = ["products/", "homepage/", "navigation/", "categories/", "combo/"];
+const ALLOWED_PUBLIC_R2_PREFIXES = [
+  "products/",
+  "product/",
+  "homepage/",
+  "navigation/",
+  "categories/",
+  "category/",
+  "combo/",
+  "footer/",
+  "hero/",
+  "search/",
+  "assets/",
+  "icons/",
+];
 
 function devRedirectToR2Fallback(req: NextRequest, reason: string): NextResponse {
   if (!loggedDevR2VisibleFallback) {
