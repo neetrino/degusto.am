@@ -25,6 +25,9 @@ export function useCart(_isLoggedIn: boolean) {
         setCart(null);
         return;
       }
+      if (detail?.skipReconcile) {
+        return;
+      }
       void reloadDrawerCart({ silent: true });
     };
     window.addEventListener('cart-updated', onCartUpdated);

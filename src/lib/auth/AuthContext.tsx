@@ -68,6 +68,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
+  const hydrateRolesIfMissing = async (candidate: User): Promise<User> => {
+    const hasRoles = Array.isArray(candidate.roles) && candidate.roles.length > 0;
+    if (hasRoles) {
+      return candidate;
+    }
+
+    logger.debug('⚠️ [AUTH] User missing roles, fetching from API...');
+    try {
+      const profileData = await apiClient.get<{ roles: string[] }>('/api/v1/users/profile');
+      if (Array.isArray(profileData.roles)) {
+        const updatedUser: User = { ...candidate, roles: profileData.roles };
+        setAuthUserClientCookie(updatedUser as AuthCookieUser);
+        logger.debug('✅ [AUTH] Roles updated from API:', profileData.roles);
+        return updatedUser;
+      }
+    } catch (fetchError) {
+      console.error('❌ [AUTH] Failed to fetch user roles:', fetchError);
+    }
+
+    return candidate;
+  };
+
   useEffect(() => {
     logger.debug('🔐 [AUTH] Loading auth state from cookies...');
 
@@ -79,22 +101,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (storedUser) {
           logger.debug('✅ [AUTH] Found stored auth data');
           const parsedUser = storedUser as User;
-
-          if (!parsedUser.roles || !Array.isArray(parsedUser.roles)) {
-            logger.debug('⚠️ [AUTH] User data missing roles, fetching from API...');
-            try {
-              const profileData = await apiClient.get<{ roles: string[] }>('/api/v1/users/profile');
-              if (profileData.roles) {
-                parsedUser.roles = profileData.roles;
-                setAuthUserClientCookie(parsedUser as AuthCookieUser);
-                logger.debug('✅ [AUTH] Roles updated from API:', profileData.roles);
-              }
-            } catch (fetchError) {
-              console.error('❌ [AUTH] Failed to fetch user roles:', fetchError);
-            }
-          }
-
-          setUser(parsedUser);
+          const hydratedUser = await hydrateRolesIfMissing(parsedUser);
+          setUser(hydratedUser);
         } else {
           logger.debug('ℹ️ [AUTH] No stored auth data found');
         }
@@ -259,35 +267,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAdmin = roles.includes('admin');
 
   useEffect(() => {
-    if (user) {
-      const userRoles = Array.isArray(user.roles) ? user.roles : [];
-      const userIsAdmin = userRoles.includes('admin');
-
-      logger.debug('🔍 [AUTH] User state updated:', {
-        userId: user.id,
-        roles: user.roles,
-        rolesArray: userRoles,
-        isAdmin: userIsAdmin,
-        rolesType: typeof user.roles,
-        rolesIsArray: Array.isArray(user.roles),
-      });
-
-      if (!user.roles || !Array.isArray(user.roles) || user.roles.length === 0) {
-        logger.debug('⚠️ [AUTH] User missing roles, fetching from API...');
-        apiClient.get<{ roles: string[] }>('/api/v1/users/profile')
-          .then(profileData => {
-            if (profileData.roles && Array.isArray(profileData.roles)) {
-              const updatedUser = { ...user, roles: profileData.roles };
-              setUser(updatedUser);
-              setAuthUserClientCookie(updatedUser as AuthCookieUser);
-              logger.debug('✅ [AUTH] Roles updated from API:', profileData.roles);
-            }
-          })
-          .catch(error => {
-            console.error('❌ [AUTH] Failed to fetch user roles:', error);
-          });
-      }
+    if (!user) {
+      return;
     }
+    const userRoles = Array.isArray(user.roles) ? user.roles : [];
+    const userIsAdmin = userRoles.includes('admin');
+
+    logger.debug('🔍 [AUTH] User state updated:', {
+      userId: user.id,
+      roles: user.roles,
+      rolesArray: userRoles,
+      isAdmin: userIsAdmin,
+      rolesType: typeof user.roles,
+      rolesIsArray: Array.isArray(user.roles),
+    });
   }, [user]);
 
   const value: AuthContextType = {

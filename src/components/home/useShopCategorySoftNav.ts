@@ -42,6 +42,7 @@ export function useShopCategorySoftNav({
   const [displayActiveCategorySlug, setDisplayActiveCategorySlug] = useState(initialActiveCategorySlug);
   const [displayPagination, setDisplayPagination] = useState(initialPagination);
   const [isProductsPending, setIsProductsPending] = useState(false);
+  const hydratedFromServerRef = useRef(false);
   const navigationGenerationRef = useRef(0);
   const enabledRef = useRef(enabled);
 
@@ -50,7 +51,11 @@ export function useShopCategorySoftNav({
   }, [enabled]);
 
   useEffect(() => {
-    clearShopMenuProductsClientCache();
+    if (!hydratedFromServerRef.current) {
+      hydratedFromServerRef.current = true;
+    } else {
+      clearShopMenuProductsClientCache();
+    }
     setDisplayCards(initialCards);
     setDisplayActiveCategorySlug(initialActiveCategorySlug);
     setDisplayPagination(initialPagination);

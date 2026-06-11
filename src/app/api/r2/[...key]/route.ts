@@ -23,6 +23,7 @@ const r2Client =
 const R2_DEV_FALLBACK_PUBLIC_PATH = "/images/dev-r2-fallback.svg";
 
 let loggedDevR2VisibleFallback = false;
+const ALLOWED_PUBLIC_R2_PREFIXES = ["products/", "homepage/", "navigation/", "categories/", "combo/"];
 
 function devRedirectToR2Fallback(req: NextRequest, reason: string): NextResponse {
   if (!loggedDevR2VisibleFallback) {
@@ -42,6 +43,12 @@ export async function GET(
   const objectKey = key.join("/");
   if (!objectKey) {
     return new NextResponse("Object key is required", { status: 400 });
+  }
+  const isAllowedPrefix = ALLOWED_PUBLIC_R2_PREFIXES.some((prefix) =>
+    objectKey.startsWith(prefix)
+  );
+  if (!isAllowedPrefix) {
+    return new NextResponse("Forbidden", { status: 403 });
   }
 
   if (!r2Client || !bucketName) {

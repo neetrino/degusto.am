@@ -21,6 +21,7 @@ const CURRENCY_SYMBOL_PLACEMENT: Record<CurrencyCode, CurrencySymbolPlacement> =
 // Cache for currency rates from API
 let currencyRatesCache: Record<string, number> | null = null;
 let currencyRatesCacheTime: number = 0;
+let currencyRatesInFlight: Promise<Record<string, number>> | null = null;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 function formatAmountWithCurrencySymbol(amount: number, currency: CurrencyCode): string {
@@ -44,31 +45,42 @@ async function getCurrencyRates(): Promise<Record<string, number>> {
   if (currencyRatesCache && Date.now() - currencyRatesCacheTime < CACHE_DURATION) {
     return currencyRatesCache;
   }
-
-  try {
-    const response = await fetch('/api/v1/currency-rates', {
-      cache: 'no-store', // Always fetch fresh rates
-    });
-    if (response.ok) {
-      const rates = await response.json();
-      currencyRatesCache = rates;
-      currencyRatesCacheTime = Date.now();
-      return rates;
-    } else {
-      console.error('❌ [CURRENCY] API returned error:', response.status, response.statusText);
-    }
-  } catch (error) {
-    console.error('❌ [CURRENCY] Failed to fetch currency rates:', error);
+  if (currencyRatesInFlight) {
+    return currencyRatesInFlight;
   }
 
-  // Return default rates on error
-  return {
-    USD: 1,
-    AMD: 400,
-    EUR: 0.92,
-    RUB: 90,
-    GEL: 2.7,
-  };
+  currencyRatesInFlight = (async () => {
+    try {
+      const response = await fetch('/api/v1/currency-rates', {
+        cache: 'no-store', // Always fetch fresh rates
+      });
+      if (response.ok) {
+        const rates = await response.json();
+        currencyRatesCache = rates;
+        currencyRatesCacheTime = Date.now();
+        return rates;
+      } else {
+        console.error('❌ [CURRENCY] API returned error:', response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error('❌ [CURRENCY] Failed to fetch currency rates:', error);
+    }
+
+    // Return default rates on error
+    return {
+      USD: 1,
+      AMD: 400,
+      EUR: 0.92,
+      RUB: 90,
+      GEL: 2.7,
+    };
+  })();
+
+  try {
+    return await currencyRatesInFlight;
+  } finally {
+    currencyRatesInFlight = null;
+  }
 }
 
 /**

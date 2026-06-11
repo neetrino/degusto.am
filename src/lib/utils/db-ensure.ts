@@ -1,6 +1,19 @@
 import { db } from "@white-shop/db";
 import { logger } from "./logger";
 
+const ENABLE_RUNTIME_SCHEMA_PATCH =
+  process.env.ENABLE_RUNTIME_SCHEMA_PATCH === "1";
+
+function runtimePatchDisabled(entity: string): boolean {
+  if (!ENABLE_RUNTIME_SCHEMA_PATCH) {
+    logger.error(
+      `[db-ensure] Runtime schema patch disabled for ${entity}. Apply DB migrations instead.`
+    );
+    return true;
+  }
+  return false;
+}
+
 // Cache to track if table check has been performed
 let tableChecked = false;
 let tableExists = false;
@@ -34,6 +47,9 @@ let pdpCustomizationColumnExists = false;
  * @returns Promise<boolean> - true if table exists or was created, false if creation failed
  */
 export async function ensureProductAttributesTable(): Promise<boolean> {
+  if (runtimePatchDisabled("product_attributes table")) {
+    return false;
+  }
   // If already checked and exists, return immediately
   if (tableChecked && tableExists) {
     return true;
@@ -181,6 +197,9 @@ export async function ensureProductAttributesTable(): Promise<boolean> {
  * @returns Promise<boolean> - true if table exists or was created, false if creation failed
  */
 export async function ensureProductReviewsTable(): Promise<boolean> {
+  if (runtimePatchDisabled("product_reviews table")) {
+    return false;
+  }
   // If already checked and exists, return immediately
   if (reviewsTableChecked && reviewsTableExists) {
     return true;
@@ -349,6 +368,9 @@ async function ensureProductReviewsTableInner(): Promise<boolean> {
  * @returns Promise<boolean> - true if column exists or was created, false if creation failed
  */
 export async function ensureProductVariantAttributesColumn(): Promise<boolean> {
+  if (runtimePatchDisabled('product_variants."attributes" column')) {
+    return false;
+  }
   // If already checked and exists, return immediately
   if (attributesColumnChecked && attributesColumnExists) {
     return true;
@@ -413,6 +435,9 @@ export async function ensureProductVariantAttributesColumn(): Promise<boolean> {
  * @returns Promise<boolean> - true if column exists or was created, false if creation failed
  */
 export async function ensureCartItemCustomizationsColumn(): Promise<boolean> {
+  if (runtimePatchDisabled('cart_items."customizations" column')) {
+    return false;
+  }
   if (cartCustomizationsColumnChecked && cartCustomizationsColumnExists) {
     return true;
   }
@@ -469,6 +494,9 @@ export async function ensureCartItemCustomizationsColumn(): Promise<boolean> {
  * Ensures `priceAdjustment` exists on `attribute_values` (migration drift / partial deploys).
  */
 export async function ensureAttributeValuePriceAdjustmentColumn(): Promise<boolean> {
+  if (runtimePatchDisabled('attribute_values."priceAdjustment" column')) {
+    return false;
+  }
   if (attributeValuePriceAdjustmentChecked && attributeValuePriceAdjustmentExists) {
     return true;
   }
@@ -522,6 +550,9 @@ export async function ensureAttributeValuePriceAdjustmentColumn(): Promise<boole
 
 /** Ensures `pdpCustomization` exists on `products` (migration drift / partial deploys). */
 export async function ensureProductPdpCustomizationColumn(): Promise<boolean> {
+  if (runtimePatchDisabled('products."pdpCustomization" column')) {
+    return false;
+  }
   if (pdpCustomizationColumnChecked && pdpCustomizationColumnExists) {
     return true;
   }

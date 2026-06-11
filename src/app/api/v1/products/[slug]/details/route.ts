@@ -13,6 +13,7 @@ import {
 import { buildLocalizedProblem } from "@/lib/i18n/api-problem";
 import { productsSlugService } from "@/lib/services/products-slug.service";
 import { logger } from "@/lib/utils/logger";
+import { publicErrorDetailFromUnknown } from "@/lib/http/error-detail";
 
 export const dynamic = "force-dynamic";
 
@@ -72,7 +73,7 @@ export async function GET(
         status: 500,
         titleKey: "internalErrorTitle",
         detailKey: "internalErrorDetail",
-        detailOverride: message,
+        detailOverride: publicErrorDetailFromUnknown(error),
         instance: req.url,
       }),
       { status: 500 }

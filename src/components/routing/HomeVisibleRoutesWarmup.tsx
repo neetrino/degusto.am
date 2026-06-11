@@ -10,6 +10,8 @@ type HomeVisibleRoutesWarmupProps = {
 };
 
 const IDLE_WARMUP_DELAY_MS = 120;
+const MAX_PREFETCH_CATEGORY_ROUTES = 4;
+const MAX_PREFETCH_PRODUCT_ROUTES = 4;
 
 function scheduleIdleWork(work: () => void): void {
   if (typeof window.requestIdleCallback === 'function') {
@@ -29,10 +31,10 @@ export function HomeVisibleRoutesWarmup({
 
   useEffect(() => {
     scheduleIdleWork(() => {
-      for (const href of categoryHrefs) {
+      for (const href of categoryHrefs.slice(0, MAX_PREFETCH_CATEGORY_ROUTES)) {
         prefetchStorefrontRoute(router, href);
       }
-      for (const slug of productSlugs) {
+      for (const slug of productSlugs.slice(0, MAX_PREFETCH_PRODUCT_ROUTES)) {
         prefetchStorefrontRoute(router, `/products/${encodeURIComponent(slug)}`);
       }
     });

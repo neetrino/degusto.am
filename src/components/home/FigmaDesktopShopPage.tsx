@@ -466,7 +466,7 @@ export function FigmaDesktopMenuPage({
   const [maxPrice, setMaxPrice] = useState(initialMaxPrice);
   const [foodFilter, setFoodFilter] = useState<'leaf' | 'neutral' | 'pepper'>(initialFoodFilter);
   const routeBasePath = pathname?.startsWith('/combo') ? '/combo' : '/shop';
-  const enableSoftCategoryNav = routeBasePath === '/shop';
+  const enableSoftCategoryNav = routeBasePath === '/shop' || routeBasePath === '/combo';
 
   const {
     displayCards: desktopDisplayCards,

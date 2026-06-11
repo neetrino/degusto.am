@@ -3,46 +3,7 @@ import { db } from "@white-shop/db";
 import { logger } from "../../utils/logger";
 import type { ProductFilters } from "./types";
 import { getAllChildCategoryIds, findCategoryBySlug } from "./category-utils";
-
-/**
- * Build search filter for where clause
- */
-function buildSearchFilter(search: string): Prisma.ProductWhereInput {
-  return {
-    OR: [
-      {
-        translations: {
-          some: {
-            title: {
-              contains: search.trim(),
-              mode: "insensitive",
-            },
-          },
-        },
-      },
-      {
-        translations: {
-          some: {
-            subtitle: {
-              contains: search.trim(),
-              mode: "insensitive",
-            },
-          },
-        },
-      },
-      {
-        variants: {
-          some: {
-            sku: {
-              contains: search.trim(),
-              mode: "insensitive",
-            },
-          },
-        },
-      },
-    ],
-  };
-}
+import { buildProductSearchWhere } from "./search-filter";
 
 /**
  * Build category filter for where clause
@@ -238,7 +199,7 @@ export async function buildWhereClause(
 
   // Add search filter
   if (search && search.trim()) {
-    const searchFilter = buildSearchFilter(search);
+    const searchFilter = buildProductSearchWhere(search);
     where = { ...where, ...searchFilter };
   }
 

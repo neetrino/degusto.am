@@ -95,9 +95,30 @@ export async function sumLineCustomizationPriceAdjustment(
   variantId: string,
   customizations?: ProductCustomizations
 ): Promise<number> {
-  const variant = await db.productVariant.findUnique({
-    where: { id: variantId },
+  const adjustmentByVariantId = await sumLineCustomizationPriceAdjustmentsByVariant(
+    [variantId],
+    customizations ? new Map([[variantId, customizations]]) : undefined
+  );
+  return adjustmentByVariantId.get(variantId) ?? 0;
+}
+
+/**
+ * Batched customization price adjustments by variant id.
+ */
+export async function sumLineCustomizationPriceAdjustmentsByVariant(
+  variantIds: string[],
+  customizationsByVariantId?: Map<string, ProductCustomizations | undefined>
+): Promise<Map<string, number>> {
+  const uniqueVariantIds = [...new Set(variantIds.map((id) => id.trim()).filter(Boolean))];
+  if (uniqueVariantIds.length === 0) {
+    return new Map();
+  }
+
+  const variants = await db.productVariant.findMany({
+    where: { id: { in: uniqueVariantIds } },
     select: {
+      id: true,
+      options: { select: { valueId: true } },
       product: {
         select: {
           attributeIds: true,
@@ -106,18 +127,85 @@ export async function sumLineCustomizationPriceAdjustment(
       },
     },
   });
-  if (!variant) {
-    return 0;
+  const variantById = new Map(variants.map((variant) => [variant.id, variant] as const));
+  const resolvedValueIdsByVariant = new Map<string, string[]>();
+  const allCandidateValueIds = new Set<string>();
+
+  for (const id of uniqueVariantIds) {
+    const variant = variantById.get(id);
+    if (!variant) {
+      resolvedValueIdsByVariant.set(id, []);
+      continue;
+    }
+    const productAttributeIds = [
+      ...new Set([
+        ...(variant.product.attributeIds ?? []),
+        ...variant.product.productAttributes.map((row) => row.attributeId),
+      ]),
+    ];
+    const merged = await mergeCustomizationValueIdsForPricing(
+      customizationsByVariantId?.get(id),
+      productAttributeIds.length > 0 ? productAttributeIds : undefined
+    );
+    const uniqueMerged = [...new Set((merged ?? []).map((valueId) => valueId.trim()).filter(Boolean))].slice(
+      0,
+      MAX_SELECTED_VALUE_IDS
+    );
+    resolvedValueIdsByVariant.set(id, uniqueMerged);
+    for (const valueId of uniqueMerged) {
+      allCandidateValueIds.add(valueId);
+    }
   }
-  const productAttributeIds = [
-    ...new Set([
-      ...(variant.product.attributeIds ?? []),
-      ...variant.product.productAttributes.map((row) => row.attributeId),
-    ]),
-  ];
-  const merged = await mergeCustomizationValueIdsForPricing(
-    customizations,
-    productAttributeIds.length > 0 ? productAttributeIds : undefined
-  );
-  return sumVerifiedAttributePriceAdjustment(variantId, merged);
+
+  if (allCandidateValueIds.size === 0) {
+    return new Map(uniqueVariantIds.map((id) => [id, 0]));
+  }
+
+  const candidateRows = await db.attributeValue.findMany({
+    where: { id: { in: [...allCandidateValueIds] } },
+    select: { id: true, attributeId: true, priceAdjustment: true },
+  });
+  const candidateById = new Map(candidateRows.map((row) => [row.id, row] as const));
+
+  const adjustmentByVariant = new Map<string, number>();
+  for (const id of uniqueVariantIds) {
+    const variant = variantById.get(id);
+    const requested = resolvedValueIdsByVariant.get(id) ?? [];
+    if (!variant || requested.length === 0) {
+      adjustmentByVariant.set(id, 0);
+      continue;
+    }
+
+    const optionValueIds = new Set<string>();
+    for (const opt of variant.options ?? []) {
+      if (typeof opt.valueId === "string" && opt.valueId.trim()) {
+        optionValueIds.add(opt.valueId.trim());
+      }
+    }
+
+    const strict = requested.filter((valueId) => optionValueIds.has(valueId));
+    const productAttributeIds = new Set<string>(variant.product.attributeIds ?? []);
+
+    let idsForSum = strict;
+    if (idsForSum.length === 0) {
+      idsForSum = requested.filter((valueId) => {
+        const row = candidateById.get(valueId);
+        return Boolean(row && productAttributeIds.has(row.attributeId));
+      });
+    }
+    if (idsForSum.length === 0) {
+      idsForSum = requested.filter((valueId) => candidateById.has(valueId));
+    }
+
+    let sum = 0;
+    for (const valueId of idsForSum) {
+      const row = candidateById.get(valueId);
+      if (row) {
+        sum += Number(row.priceAdjustment) || 0;
+      }
+    }
+    adjustmentByVariant.set(id, sum);
+  }
+
+  return adjustmentByVariant;
 }

@@ -85,6 +85,40 @@ async function checkAuthRateLimit(request: NextRequest): Promise<NextResponse | 
   return null;
 }
 
+async function checkPublicApiRateLimit(request: NextRequest): Promise<NextResponse | null> {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) {
+    return null;
+  }
+
+  const redis = new Redis({ url, token });
+  const ratelimit = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(100, "60 s"),
+    prefix: "ratelimit:public-api",
+  });
+
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown";
+  const pathname = request.nextUrl.pathname;
+  const { success } = await ratelimit.limit(`${ip}:${pathname}`);
+  if (!success) {
+    return NextResponse.json(
+      {
+        type: problemTypes.tooManyRequests,
+        title: "Too Many Requests",
+        status: 429,
+        detail: "Too many requests for this endpoint. Try again later.",
+      },
+      { status: 429, headers: { "Retry-After": "15" } }
+    );
+  }
+  return null;
+}
+
 /** CORS: allowed origin from env. For /api/* requests add CORS headers and handle preflight. */
 function getAllowedOrigins(): string[] {
   const configuredOrigins = (process.env.CORS_ORIGIN || "")
@@ -164,6 +198,21 @@ export async function middleware(request: NextRequest) {
           Object.entries(corsHeaders).forEach(([k, v]) => rateLimitResponse.headers.set(k, v));
         }
         return rateLimitResponse;
+      }
+    }
+    if (
+      request.method === "POST" &&
+      (pathname === "/api/v1/contact" ||
+        pathname === "/api/v1/orders/checkout" ||
+        pathname === "/api/v1/cart/items")
+    ) {
+      const endpointLimitResponse = await checkPublicApiRateLimit(request);
+      if (endpointLimitResponse) {
+        if (allowedOrigin) {
+          const corsHeaders = getCorsHeaders(allowedOrigin);
+          Object.entries(corsHeaders).forEach(([k, v]) => endpointLimitResponse.headers.set(k, v));
+        }
+        return endpointLimitResponse;
       }
     }
     return response;

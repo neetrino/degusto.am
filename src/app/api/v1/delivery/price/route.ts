@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { problemTypes } from "@/lib/http/problem-details";
 import { adminService } from "@/lib/services/admin.service";
 import { logger } from "@/lib/utils/logger";
+import { publicErrorDetailFromUnknown } from "@/lib/http/error-detail";
 
 /**
  * GET /api/v1/delivery/price
@@ -57,7 +58,7 @@ export async function GET(req: NextRequest) {
         type: err?.type ?? problemTypes.internalError,
         title: err?.title ?? "Internal Server Error",
         status: err?.status ?? 500,
-        detail: err?.detail ?? err?.message ?? "An error occurred",
+        detail: err?.detail ?? publicErrorDetailFromUnknown(error),
         instance: req.url,
       },
       { status: err?.status ?? 500 }

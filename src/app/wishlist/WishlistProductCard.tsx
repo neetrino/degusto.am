@@ -22,7 +22,8 @@ export interface WishlistProductCardProduct {
 export interface WishlistProductCardProps {
   product: WishlistProductCardProduct;
   currency: CurrencyCode;
-  isAddingToCart: boolean;
+  isQueueingAddToCart: boolean;
+  isRecentlyAddedToCart: boolean;
   onRemove: (productId: string) => void;
   onAddToCart: (product: WishlistProductCardProduct) => void;
   t: (key: string) => string;
@@ -121,7 +122,8 @@ function WishlistCardPriceRow({ product, currency }: WishlistCardPriceRowProps) 
 interface WishlistCardInfoPanelProps {
   product: WishlistProductCardProduct;
   currency: CurrencyCode;
-  isAddingToCart: boolean;
+  isQueueingAddToCart: boolean;
+  isRecentlyAddedToCart: boolean;
   onAddToCart: (product: WishlistProductCardProduct) => void;
   t: (key: string) => string;
 }
@@ -129,7 +131,8 @@ interface WishlistCardInfoPanelProps {
 function WishlistCardInfoPanel({
   product,
   currency,
-  isAddingToCart,
+  isQueueingAddToCart,
+  isRecentlyAddedToCart,
   onAddToCart,
   t,
 }: WishlistCardInfoPanelProps) {
@@ -163,9 +166,9 @@ function WishlistCardInfoPanel({
           variant="primary"
           className="w-full !bg-brand shadow-sm transition-shadow hover:!bg-brand-hover hover:shadow-md focus:!ring-brand"
           onClick={() => onAddToCart(product)}
-          disabled={!product.inStock || isAddingToCart}
+          disabled={!product.inStock}
         >
-          {isAddingToCart ? t('common.messages.adding') : t('common.buttons.addToCart')}
+          {isRecentlyAddedToCart ? t('common.messages.addedToCart') : t('common.buttons.addToCart')}
         </Button>
       </div>
     </div>
@@ -178,7 +181,8 @@ function WishlistCardInfoPanel({
 export function WishlistProductCard({
   product,
   currency,
-  isAddingToCart,
+  isQueueingAddToCart,
+  isRecentlyAddedToCart,
   onRemove,
   onAddToCart,
   t,
@@ -189,7 +193,8 @@ export function WishlistProductCard({
         <WishlistMobileProductCard
           product={product}
           currency={currency}
-          isAddingToCart={isAddingToCart}
+          isQueueingAddToCart={isQueueingAddToCart}
+          isRecentlyAddedToCart={isRecentlyAddedToCart}
           onRemove={onRemove}
           onAddToCart={onAddToCart}
           t={t}
@@ -207,7 +212,8 @@ export function WishlistProductCard({
         <WishlistCardInfoPanel
           product={product}
           currency={currency}
-          isAddingToCart={isAddingToCart}
+          isQueueingAddToCart={isQueueingAddToCart}
+          isRecentlyAddedToCart={isRecentlyAddedToCart}
           onAddToCart={onAddToCart}
           t={t}
         />

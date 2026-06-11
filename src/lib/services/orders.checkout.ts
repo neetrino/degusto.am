@@ -13,7 +13,7 @@ import {
   type ProductCustomizations,
 } from "../cart/customizations";
 import { isStockSufficient } from "../product-stock";
-import { sumLineCustomizationPriceAdjustment } from "../cart/attribute-price-adjustment";
+import { sumLineCustomizationPriceAdjustmentsByVariant } from "../cart/attribute-price-adjustment";
 import { computeLineUnitPriceUsd } from "../cart/line-unit-price";
 import { calculateBagAmountByUniqueCategories } from "../cart/bag-fee";
 
@@ -258,6 +258,14 @@ async function getDbCartItems(
     };
   }
 
+  const dbCustomizationsByVariantId = new Map(
+    cart.items.map((item) => [item.variantId, normalizeProductCustomizations(item.customizations)] as const)
+  );
+  const dbAdjustmentByVariantId = await sumLineCustomizationPriceAdjustmentsByVariant(
+    [...new Set(cart.items.map((item) => item.variantId))],
+    dbCustomizationsByVariantId
+  );
+
   return Promise.all(
     cart.items.map(async (item: CartItemWithRelations) => {
       const product = item.product;
@@ -286,7 +294,9 @@ async function getDbCartItems(
       const variantTitle =
         variant.options?.map((opt) => `${opt.attributeKey || ""}: ${opt.value || ""}`).join(", ") ||
         undefined;
-      const customizations = normalizeProductCustomizations(item.customizations);
+      const customizations =
+        dbCustomizationsByVariantId.get(item.variantId) ??
+        normalizeProductCustomizations(item.customizations);
       const customizationsSuffix = formatCustomizationsForVariantTitle(customizations);
       const imageUrl = extractMediaUrl(product.media) ?? undefined;
       const primaryCategory =
@@ -294,9 +304,8 @@ async function getDbCartItems(
         product.categories?.[0];
       const categoryTranslation = primaryCategory?.translations?.[0];
 
-      const snapshotRaw = item.priceSnapshot != null ? Number(item.priceSnapshot) : NaN;
-      const unitPrice =
-        Number.isFinite(snapshotRaw) && snapshotRaw >= 0 ? snapshotRaw : Number(variant.price);
+      const adj = dbAdjustmentByVariantId.get(item.variantId) ?? 0;
+      const unitPrice = computeLineUnitPriceUsd(Number(variant.price), adj);
 
       return {
         variantId: variant.id,
@@ -369,6 +378,16 @@ async function getGuestCartItems(
     },
   });
   const variantMap = new Map(variants.map((variant) => [variant.id, variant]));
+  const customizationsByVariantId = new Map(
+    guestItems.map((item) => [
+      item.variantId,
+      normalizeProductCustomizations(item.customizations),
+    ] as const)
+  );
+  const adjustmentByVariantId = await sumLineCustomizationPriceAdjustmentsByVariant(
+    [...new Set(guestItems.map((item) => item.variantId))],
+    customizationsByVariantId
+  );
 
   return Promise.all(
     guestItems.map(async (item) => {
@@ -398,7 +417,9 @@ async function getGuestCartItems(
             return `${opt.attributeKey ?? ""}: ${opt.value ?? ""}`;
           })
           .join(", ") ?? undefined;
-      const customizations = normalizeProductCustomizations(item.customizations);
+      const customizations =
+        customizationsByVariantId.get(item.variantId) ??
+        normalizeProductCustomizations(item.customizations);
       const customizationsSuffix = formatCustomizationsForVariantTitle(customizations);
       const imageUrl = extractMediaUrl(variant.product.media) ?? undefined;
       const primaryCategory =
@@ -407,10 +428,7 @@ async function getGuestCartItems(
         ) ?? variant.product.categories?.[0];
       const categoryTranslation = primaryCategory?.translations?.[0];
 
-      const adj = await sumLineCustomizationPriceAdjustment(
-        item.variantId,
-        customizations
-      );
+      const adj = adjustmentByVariantId.get(item.variantId) ?? 0;
       const price = computeLineUnitPriceUsd(Number(variant.price), adj);
 
       return {

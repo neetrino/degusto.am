@@ -11,6 +11,7 @@ import { buildLocalizedProblem } from "@/lib/i18n/api-problem";
 import { resolveStorefrontLocaleFromSearchParams } from "@/lib/i18n/locale";
 import { productsService } from "@/lib/services/products.service";
 import { logger } from "@/lib/utils/logger";
+import { publicErrorDetailFromUnknown } from "@/lib/http/error-detail";
 
 export async function GET(req: NextRequest) {
   try {
@@ -66,7 +67,7 @@ export async function GET(req: NextRequest) {
         status,
         titleKey: "internalErrorTitle",
         detailKey: "internalErrorDetail",
-        detailOverride: err.message,
+        detailOverride: publicErrorDetailFromUnknown(error),
         titleOverride: err.title,
         instance: req.url || "",
       }),

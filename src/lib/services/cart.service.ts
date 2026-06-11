@@ -8,7 +8,10 @@ import {
   normalizeProductCustomizations,
   type ProductCustomizations,
 } from "../cart/customizations";
-import { sumLineCustomizationPriceAdjustment } from "../cart/attribute-price-adjustment";
+import {
+  sumLineCustomizationPriceAdjustment,
+  sumLineCustomizationPriceAdjustmentsByVariant,
+} from "../cart/attribute-price-adjustment";
 import { computeLineUnitPriceUsd } from "../cart/line-unit-price";
 import { cartVariantDisplayLinesFromPrismaOptions } from "../cart/cart-variant-display-lines";
 import { isStockSufficient, totalVariantQuantityInCart } from "../product-stock";
@@ -217,13 +220,17 @@ class CartService {
       }
     }
 
-    const attributeAdjustments = await Promise.all(
-      cart.items.map(async (item) => {
-        const custom = normalizeProductCustomizations(item.customizations);
-        const adj = await sumLineCustomizationPriceAdjustment(item.variantId, custom);
-        return { itemId: item.id, adj };
-      })
+    const customByVariantId = new Map(
+      cart.items.map((item) => [item.variantId, normalizeProductCustomizations(item.customizations)] as const)
     );
+    const adjustmentByVariantId = await sumLineCustomizationPriceAdjustmentsByVariant(
+      cart.items.map((item) => item.variantId),
+      customByVariantId
+    );
+    const attributeAdjustments = cart.items.map((item) => ({
+      itemId: item.id,
+      adj: adjustmentByVariantId.get(item.variantId) ?? 0,
+    }));
     const adjustmentByItemId = new Map(
       attributeAdjustments.map(({ itemId, adj }) => [itemId, adj])
     );

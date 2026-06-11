@@ -111,8 +111,6 @@ export function useCheckout() {
       return;
     }
 
-    fetchCart();
-
     const handleCurrencyUpdate = () => {
       setCurrency(getStoredCurrency());
     };
@@ -134,7 +132,7 @@ export function useCheckout() {
       window.removeEventListener('language-updated', handleLanguageUpdate);
       window.removeEventListener('currency-rates-updated', handleCurrencyRatesUpdate);
     };
-  }, [isLoggedIn, isLoading, fetchCart]);
+  }, [isLoggedIn, isLoading]);
 
   useEffect(() => {
     async function fetchDeliveryCities() {
