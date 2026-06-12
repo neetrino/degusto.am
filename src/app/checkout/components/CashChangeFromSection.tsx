@@ -45,7 +45,7 @@ export function CashChangeFromSection({
   };
 
   return (
-    <Card className={`p-6 ${CHECKOUT_CARD_FRAME}`}>
+    <Card className={`p-5 md:p-6 ${CHECKOUT_CARD_FRAME}`}>
       <h2 className={`${CHECKOUT_SECTION_TITLE_TEXT} ${showAmdNotes ? 'mb-2' : 'mb-4'}`}>
         {t('checkout.form.cashChangeFrom')}
       </h2>
@@ -74,6 +74,7 @@ export function CashChangeFromSection({
           min="0"
           step="1"
           placeholder={t('checkout.placeholders.cashChangeFrom')}
+          className="h-14 rounded-xl"
           {...register('cashChangeFrom')}
           error={errors.cashChangeFrom?.message}
           disabled={isSubmitting}

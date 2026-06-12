@@ -91,7 +91,9 @@ export default function CheckoutPage() {
     <>
       <BodyBackground color="#ffffff" />
       <div className={CHECKOUT_PAGE_SHELL_CLASS}>
-        <h1 className={`mb-6 md:mb-8 ${CHECKOUT_PAGE_TITLE}`}>{t('checkout.title')}</h1>
+        <h1 className={`mb-1.5 text-[1.75rem] leading-tight md:mb-8 md:text-3xl ${CHECKOUT_PAGE_TITLE}`}>
+          {t('checkout.title')}
+        </h1>
 
       <form onSubmit={handlePlaceOrder}>
         <div className={CHECKOUT_PAGE_GRID_CLASS}>

@@ -2,6 +2,8 @@
 
 import type { MenuCard } from '@/components/home/menu-types';
 
+import { logger } from '@/lib/utils/logger';
+
 export type ShopMenuProductsResponse = {
   cards: MenuCard[];
   effectivePage: number;
@@ -39,9 +41,19 @@ export function prefetchShopMenuProducts(href: string): void {
       responseCache.set(url, data);
       return data;
     })
+    .catch((error: unknown) => {
+      logger.warn('[Shop] Menu products prefetch failed', {
+        url,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    })
     .finally(() => {
       inflightRequests.delete(url);
     });
+  void request.catch(() => {
+    // Prefetch is fire-and-forget; rejection is already logged above.
+  });
   inflightRequests.set(url, request);
 }
 

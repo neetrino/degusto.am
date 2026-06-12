@@ -59,7 +59,7 @@ export function MobileHomePageLoading() {
         <div className="relative mt-[8px] h-12 translate-y-[20px] animate-pulse rounded-[30px] bg-white/90" />
       </header>
 
-      <main className="relative z-10 mt-[87px] rounded-t-[30px] bg-white pb-[110px] pt-8">
+      <div className="relative z-10 mt-[87px] rounded-t-[30px] bg-white pb-[110px] pt-8">
         <div className="space-y-3 px-3">
           <div className="flex items-center justify-between">
             <div className="h-5 w-24 animate-pulse rounded bg-[#f3f3f5]" />
@@ -92,7 +92,7 @@ export function MobileHomePageLoading() {
         {Array.from({ length: MOBILE_HOME_PRODUCT_SECTION_COUNT }, (_, index) => (
           <MobileHomeProductSectionSkeleton key={index} />
         ))}
-      </main>
+      </div>
     </div>
   );
 }

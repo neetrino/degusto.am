@@ -50,7 +50,7 @@ export function CheckoutForm({
   const { t } = useTranslation();
 
   return (
-    <div className={`${CHECKOUT_FORM_COLUMN_CLASS} space-y-6`}>
+    <div className={`${CHECKOUT_FORM_COLUMN_CLASS} space-y-1.5 md:space-y-6`}>
       <CheckoutOrderItems
         cart={cart}
         isSubmitting={isSubmitting}
@@ -58,42 +58,38 @@ export function CheckoutForm({
       />
 
       {/* Contact Information */}
-      <Card className={`p-6 ${CHECKOUT_CARD_FRAME}`}>
+      <Card className={`p-4 md:p-6 ${CHECKOUT_CARD_FRAME}`}>
         <h2 className={CHECKOUT_SECTION_TITLE}>{t('checkout.contactInformation')}</h2>
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              label={t('checkout.form.firstName')}
-              type="text"
-              {...register('firstName')}
-              error={errors.firstName?.message}
-              disabled={isSubmitting}
-            />
-            <Input
-              label={t('checkout.form.lastName')}
-              type="text"
-              {...register('lastName')}
-              error={errors.lastName?.message}
-              disabled={isSubmitting}
-            />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              label={t('checkout.form.email')}
-              type="email"
-              {...register('email')}
-              error={errors.email?.message}
-              disabled={isSubmitting}
-            />
-            <Input
-              label={t('checkout.form.phone')}
-              type="tel"
-              placeholder={t('checkout.placeholders.phone')}
-              {...register('phone')}
-              error={errors.phone?.message}
-              disabled={isSubmitting}
-            />
-          </div>
+        <div className="space-y-3">
+          <Input
+            label={t('checkout.form.firstName')}
+            type="text"
+            {...register('firstName')}
+            error={errors.firstName?.message}
+            disabled={isSubmitting}
+          />
+          <Input
+            label={t('checkout.form.lastName')}
+            type="text"
+            {...register('lastName')}
+            error={errors.lastName?.message}
+            disabled={isSubmitting}
+          />
+          <Input
+            label={t('checkout.form.email')}
+            type="email"
+            {...register('email')}
+            error={errors.email?.message}
+            disabled={isSubmitting}
+          />
+          <Input
+            label={t('checkout.form.phone')}
+            type="tel"
+            placeholder={t('checkout.placeholders.phone')}
+            {...register('phone')}
+            error={errors.phone?.message}
+            disabled={isSubmitting}
+          />
         </div>
       </Card>
 
@@ -101,9 +97,9 @@ export function CheckoutForm({
 
       {/* Shipping Address - Only show for delivery */}
       {shippingMethod === 'delivery' && (
-        <Card className={`p-6 ${CHECKOUT_CARD_FRAME}`} data-shipping-section>
+        <Card className={`p-3 md:p-6 ${CHECKOUT_CARD_FRAME}`} data-shipping-section>
           <h2 className={CHECKOUT_SECTION_TITLE}>{t('checkout.shippingAddress')}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <div>
               <label htmlFor="shippingCity" className={`mb-1 block text-sm font-medium ${CHECKOUT_TEXT_INK}`}>
                 {t('checkout.form.city')}
@@ -144,7 +140,7 @@ export function CheckoutForm({
       )}
 
       {/* Payment Method */}
-      <Card className={`p-6 ${CHECKOUT_CARD_FRAME}`}>
+      <Card className={`p-3 md:p-6 ${CHECKOUT_CARD_FRAME}`}>
         <h2 className={CHECKOUT_SECTION_TITLE}>{t('checkout.paymentMethod')}</h2>
         {errors.paymentMethod && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -171,7 +167,7 @@ export function CheckoutForm({
         />
       )}
 
-      <Card className={`p-6 ${CHECKOUT_CARD_FRAME}`}>
+      <Card className={`p-3 md:p-6 ${CHECKOUT_CARD_FRAME}`}>
         <h2 className={`${CHECKOUT_SECTION_TITLE_TEXT} mb-4`}>{t('checkout.form.orderNotes')}</h2>
         <textarea
           {...register('orderNotes')}

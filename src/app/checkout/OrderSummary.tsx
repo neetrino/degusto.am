@@ -128,10 +128,10 @@ export function OrderSummary({
   const hasDiscount = orderSummary.discountDisplay > 0;
 
   return (
-    <div className={`${CHECKOUT_SUMMARY_PANEL_CLASS} rounded-2xl border border-gray-200 bg-white p-6 shadow-sm`}>
-      <h2 className="mb-5 text-lg font-semibold text-gray-900">{t('checkout.orderSummary')}</h2>
+    <div className={`${CHECKOUT_SUMMARY_PANEL_CLASS} rounded-2xl border border-gray-200 bg-white p-3 shadow-sm md:p-6`}>
+      <h2 className="mb-3 text-lg font-semibold text-gray-900 md:mb-5">{t('checkout.orderSummary')}</h2>
 
-      <div className="mb-5 space-y-3 border-b border-gray-100 pb-5">
+      <div className="mb-3 space-y-2 border-b border-gray-100 pb-3 md:mb-5 md:space-y-3 md:pb-5">
         <label htmlFor="checkout-promocode" className="mb-1.5 block text-sm font-medium text-gray-700">
           {t('common.cart.promocode')}
         </label>
@@ -149,7 +149,7 @@ export function OrderSummary({
             type="button"
             variant="outline"
             size="md"
-            className="shrink-0 border-gray-300 text-gray-800 hover:bg-gray-50"
+            className="shrink-0 border-gray-300 px-3 text-sm text-gray-800 hover:bg-gray-50"
             onClick={handleApplyPromo}
             disabled={isSubmitting || applyingPromo}
           >
@@ -163,7 +163,7 @@ export function OrderSummary({
         ) : null}
       </div>
 
-      <div className="mb-6 space-y-3 text-sm">
+      <div className="mb-3 space-y-2 text-sm md:mb-6 md:space-y-3">
         <div className="flex justify-between gap-2">
           <span className={CHECKOUT_TEXT_LABEL}>{t('checkout.summary.subtotal')}</span>
           <span className={CHECKOUT_TEXT_VALUE}>
@@ -199,7 +199,7 @@ export function OrderSummary({
             {formatPriceInCurrency(orderSummary.bagFeeDisplay, currency)}
           </span>
         </div>
-        <div className="border-t border-gray-200 pt-3">
+        <div className="border-t border-gray-200 pt-2.5">
           <div className="flex justify-between text-base font-semibold text-gray-900">
             <span>{t('checkout.summary.total')}</span>
             <span>{formatPriceInCurrency(orderSummary.totalDisplay, currency)}</span>
@@ -210,7 +210,7 @@ export function OrderSummary({
       <Button
         type="submit"
         variant="primary"
-        className={`w-full ${CHECKOUT_PRIMARY_BUTTON}`}
+        className={`w-full text-base ${CHECKOUT_PRIMARY_BUTTON}`}
         size="lg"
         disabled={isSubmitting}
         onClick={onPlaceOrder}

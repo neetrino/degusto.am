@@ -1,10 +1,8 @@
 import Link from 'next/link';
 import { ViewMoreButton } from '../view-more/ViewMoreButton';
-import { StorefrontCategoryLink } from '../routing/StorefrontCategoryLink';
 import { t as translateKey } from '@/lib/i18n';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
 import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
-import { getHomeCategoryHref } from './homeCategoryLinks';
 import type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
 import {
   MOBILE_FIGMA_HEADER_HORIZONTAL_INSET_CLASS,
@@ -23,8 +21,9 @@ import {
 } from './home-mobile-helpers';
 import { MobileHomeHeaderSearch } from './MobileHomeHeaderSearch';
 import { MobileHomeHeaderActions } from './MobileHomeHeaderActions';
-import { MobileHomeDailyOffer } from './MobileHomeDailyOffer';
 import { MobileHomeProductGrid } from './MobileHomeProductGrid';
+import { MobileCategoryCarousel } from './MobileCategoryCarousel';
+import { MobileDailyOfferCarousel } from './MobileDailyOfferCarousel';
 
 const mobileAssets = {
   ...MOBILE_FIGMA_STOREFRONT_ASSETS,
@@ -33,28 +32,6 @@ const mobileAssets = {
 };
 
 const MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS = 'px-3';
-
-function MobileSliderIndicator() {
-  return (
-    <div className="flex items-center justify-center gap-1">
-      <span className="h-1 w-5 rounded-[12px] bg-[#ffeacc]" />
-      <span className="h-1 w-5 rounded-[12px] bg-[#ffeacc]" />
-      <span className="h-1 w-5 rounded-[12px] bg-[#ff7f20]" />
-      <span className="h-1 w-5 rounded-[12px] bg-[#ffeacc]" />
-      <span className="h-1 w-5 rounded-[12px] bg-[#ffeacc]" />
-    </div>
-  );
-}
-
-function MobileCategorySliderIndicator() {
-  return (
-    <div className="flex items-center justify-center gap-1">
-      <span className="h-1 w-5 rounded-[12px] bg-[#f66a13]" />
-      <span className="h-1 w-5 rounded-[12px] bg-[#ffeacc]" />
-      <span className="h-1 w-5 rounded-[12px] bg-[#ffeacc]" />
-    </div>
-  );
-}
 
 function MobileSectionHeader({
   title,
@@ -92,6 +69,14 @@ function MobileCategoryStrip({
   viewMoreLabel: string;
   translate: (key: string) => string;
 }) {
+  const mappedCategories = categories.map((category) => ({
+    id: category.id,
+    slug: category.slug,
+    title: category.title ?? translate(category.titleKey),
+    image: category.image,
+    framed: category.framed,
+  }));
+
   return (
     <div className={'space-y-3 ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
       <MobileSectionHeader
@@ -99,46 +84,7 @@ function MobileCategoryStrip({
         titleClassName={categoriesTitleClassName}
         viewMoreLabel={viewMoreLabel}
       />
-      <div className="grid grid-cols-5 gap-2 pb-1">
-        {categories.map((category) => {
-          const title = category.title ?? translate(category.titleKey);
-
-          return (
-            <StorefrontCategoryLink
-              key={category.id}
-              href={getHomeCategoryHref({ slug: category.slug, title })}
-              className="min-w-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f66a13]"
-              aria-label={title}
-            >
-              <div className="relative mx-auto flex h-[72px] w-[48px] items-center justify-center rounded-[24px] bg-[#090909]">
-                {category.framed ? (
-                  <HomeOptimizedImage
-                    src={mobileAssets.categoryFrame}
-                    alt=""
-                    width={48}
-                    height={72}
-                    className="absolute inset-0 h-full w-full object-contain"
-                    loading="lazy"
-                  />
-                ) : null}
-                <HomeOptimizedImage
-                  src={category.image}
-                  alt={title}
-                  width={40}
-                  height={42}
-                  className="relative h-[42px] w-[40px] rounded-[10px] object-cover"
-                  loading="lazy"
-                  sizes="48px"
-                />
-              </div>
-              <p className="mt-[6px] text-center text-xs leading-5 text-black">{title}</p>
-            </StorefrontCategoryLink>
-          );
-        })}
-      </div>
-      <div className="pt-1">
-        <MobileSliderIndicator />
-      </div>
+      <MobileCategoryCarousel categories={mappedCategories} frameImageSrc={mobileAssets.categoryFrame} />
     </div>
   );
 }
@@ -221,7 +167,7 @@ export function FigmaHomePageMobile({
         />
       </header>
 
-      <main className="relative z-10 mt-[87px] rounded-t-[30px] bg-white px-0 pb-[110px] pt-8">
+      <div className="relative z-10 mt-[87px] rounded-t-[30px] bg-white px-0 pb-[110px] pt-8">
         {displayCategories.length > 0 ? (
           <MobileCategoryStrip
             categories={displayCategories}
@@ -232,16 +178,16 @@ export function FigmaHomePageMobile({
           />
         ) : null}
         {resolvedDailyOfferProduct ? (
-          <div className={'mt-[22px] ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
-            <MobileHomeDailyOffer
-              product={resolvedDailyOfferProduct}
+          <div className="mt-[22px]">
+            <MobileDailyOfferCarousel
+              products={[
+                resolvedDailyOfferProduct,
+                ...featuredProducts.filter((product) => product.id !== resolvedDailyOfferProduct.id),
+              ]}
               dailyOfferAddToCartSrc={mobileAssets.dailyOfferAddToCart}
             />
           </div>
         ) : null}
-        <div className={'mt-[19px] ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
-          <MobileCategorySliderIndicator />
-        </div>
 
         {newArrivalProducts.length > 0 ? (
           <div className={'mt-[30px] space-y-[22px] ' + MOBILE_HOME_PRODUCT_SECTION_HORIZONTAL_INSET_CLASS}>
@@ -274,7 +220,7 @@ export function FigmaHomePageMobile({
             <MobileHomeProductGrid products={categoryProductsB} />
           </div>
         ) : null}
-      </main>
+      </div>
     </div>
   );
 }
