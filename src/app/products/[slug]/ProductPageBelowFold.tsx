@@ -2,7 +2,10 @@
 
 import dynamic from 'next/dynamic';
 import type { Dispatch, RefCallback, SetStateAction } from 'react';
+import { RelatedProducts } from '../../../components/RelatedProducts';
 import type { Review } from '../../../components/ProductReviews/utils';
+import type { StorefrontLocale } from '@/lib/i18n/locale';
+import type { RelatedCardPayload } from '@/lib/services/products-slug/product-related-transform';
 import type { Product } from './types';
 import {
   PDP_CONTENT_SHELL_CLASS,
@@ -10,14 +13,6 @@ import {
 } from '@/constants/pdp-figma-tokens';
 
 const PDP_REVIEWS_SHELL_CLASS = PDP_CONTENT_SHELL_CLASS;
-
-const RelatedProducts = dynamic(
-  () =>
-    import('../../../components/RelatedProducts').then((module) => ({
-      default: module.RelatedProducts,
-    })),
-  { loading: () => null }
-);
 
 const ProductReviews = dynamic(
   () =>
@@ -30,6 +25,8 @@ const ProductReviews = dynamic(
 export interface ProductPageBelowFoldProps {
   slug: string;
   product: Product;
+  initialRelatedProducts: RelatedCardPayload[];
+  serverLocale: StorefrontLocale;
   reviewsSectionRef: RefCallback<HTMLDivElement>;
   reviews: Review[];
   reviewsLoading: boolean;
@@ -37,11 +34,13 @@ export interface ProductPageBelowFoldProps {
 }
 
 /**
- * Below-fold PDP sections loaded in separate chunks (related carousel + reviews).
+ * Below-fold PDP sections — related carousel SSR-hydrated; reviews lazy-loaded.
  */
 export function ProductPageBelowFold({
   slug,
   product,
+  initialRelatedProducts,
+  serverLocale,
   reviewsSectionRef,
   reviews,
   reviewsLoading,
@@ -54,6 +53,8 @@ export function ProductPageBelowFold({
           productSlug={slug}
           categorySlug={product.categories?.[0]?.slug}
           currentProductId={product.id}
+          initialProducts={initialRelatedProducts}
+          initialLanguage={serverLocale}
         />
       </div>
 

@@ -16,6 +16,7 @@ import { useTranslation } from '@/lib/i18n-client';
 import { useCartLiveSync } from '@/lib/cart/use-cart-live-sync';
 import { readCartSummaryCache } from '@/lib/cartSummaryCache';
 import { cartHasVisibleItems } from '@/lib/cart/cart-summary-sync';
+import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
 
 export type CartDrawerContextValue = {
   openCartDrawer: () => void;
@@ -42,8 +43,15 @@ export function useCartDrawer(): CartDrawerContextValue {
 
 export function CartDrawerProvider({ children }: { children: ReactNode }) {
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
+  const isMobile = useIsMobileViewport();
   const { isLoggedIn, isLoading: isAuthLoading } = useAuth();
   const { t } = useTranslation();
+
+  const onOptimisticAdd = useCallback(() => {
+    if (!isMobile) {
+      setIsCartDrawerOpen(true);
+    }
+  }, [isMobile]);
 
   const {
     cart,
@@ -58,7 +66,7 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
     isLoggedIn,
     isAuthLoading,
     t,
-    onOptimisticAdd: () => setIsCartDrawerOpen(true),
+    onOptimisticAdd,
   });
 
   const openCartDrawer = useCallback(() => {

@@ -324,7 +324,7 @@ export function FigmaHomePage({
           </div>
         </section>
       </div>
-      <Footer outerBackgroundClassName="bg-white" />
+      <Footer outerBackgroundClassName={HOME_DESKTOP_CATEGORY_SURFACE_CLASS} />
     </div>
   );
 }

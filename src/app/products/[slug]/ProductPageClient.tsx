@@ -33,6 +33,7 @@ import type { Product, ProductVariant } from './types';
 import { resolveCustomizationAdditionValueIds } from './utils/resolve-pdp-customization-ingredients';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
 import type { ProductReviewSummary } from '@/lib/services/reviews/product-review-summary';
+import type { RelatedCardPayload } from '@/lib/services/products-slug/product-related-transform';
 import {
   mergeVisualIntoProduct,
   type ProductVisualSnapshot,
@@ -104,6 +105,7 @@ export interface ProductPageClientProps {
   initialVisual: ProductVisualSnapshot | null;
   initialProduct: Product | null;
   initialReviewSummary: ProductReviewSummary;
+  initialRelatedProducts: RelatedCardPayload[];
   initialNotFound: boolean;
   serverLocale: StorefrontLocale;
   /** Full product streams via `children` (ProductDetailsServer). */
@@ -117,6 +119,7 @@ export function ProductPageClient({
   initialVisual,
   initialProduct,
   initialReviewSummary,
+  initialRelatedProducts,
   initialNotFound,
   serverLocale,
   streamDetails = false,
@@ -447,6 +450,8 @@ export function ProductPageClient({
             <ProductPageBelowFold
               slug={slug}
               product={product}
+              initialRelatedProducts={initialRelatedProducts}
+              serverLocale={serverLocale}
               reviewsSectionRef={reviewsSectionRef}
               reviews={reviews}
               reviewsLoading={reviewsLoading}

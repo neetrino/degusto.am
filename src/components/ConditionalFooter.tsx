@@ -2,11 +2,14 @@
 
 import { usePathname } from 'next/navigation';
 import { Footer } from './Footer';
+import { useNotFoundPage } from './errors/not-found-page.context';
+import { NOT_FOUND_SURFACE_CLASS } from './errors/not-found-page.constants';
 
 const AUTH_FOOTER_BACKGROUND_CLASS = 'bg-[#102313]';
 
 export function ConditionalFooter() {
   const pathname = usePathname();
+  const isNotFoundPage = useNotFoundPage();
 
   if (pathname === '/' || pathname?.startsWith('/supersudo') || pathname?.startsWith('/admin-mobile')) {
     return null;
@@ -32,7 +35,11 @@ export function ConditionalFooter() {
     );
   }
 
-  const backgroundClassName = isAboutPage ? 'bg-[#F2EBDD]' : 'bg-white';
+  const backgroundClassName = isNotFoundPage
+    ? NOT_FOUND_SURFACE_CLASS
+    : isAboutPage
+      ? 'bg-[#F2EBDD]'
+      : 'bg-white';
 
   return (
     <div className={`hidden lg:block ${backgroundClassName}`}>

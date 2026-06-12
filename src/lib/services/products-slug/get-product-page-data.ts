@@ -162,7 +162,7 @@ async function loadProductPageDataUncached(
 
 /**
  * Per-request deduped + Data Cache + Redis for PDP server render.
- * Reviews list and related products load client-side when near viewport.
+ * Reviews list loads client-side when near viewport; related carousel prefetched on SSR.
  */
 export function getProductPageData(
   slug: string,

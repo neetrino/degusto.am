@@ -4,6 +4,7 @@ import { problemTypes } from "@/lib/http/problem-details";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import * as jose from "jose";
+import { resolveUpstashRestCredentials } from "@/lib/redis/upstash-config";
 
 /** Protect /api/v1/admin/* — require valid JWT (signature + expiry). DB check (blocked/deleted) remains in route. */
 async function requireAdminAuth(request: NextRequest): Promise<NextResponse | null> {
@@ -53,13 +54,12 @@ async function requireAdminAuth(request: NextRequest): Promise<NextResponse | nu
 
 /** Rate limit for auth endpoints (login/register) by IP */
 async function checkAuthRateLimit(request: NextRequest): Promise<NextResponse | null> {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) {
+  const credentials = resolveUpstashRestCredentials();
+  if (!credentials) {
     return null;
   }
 
-  const redis = new Redis({ url, token });
+  const redis = new Redis(credentials);
   const ratelimit = new Ratelimit({
     redis,
     limiter: Ratelimit.slidingWindow(10, "60 s"),
@@ -86,13 +86,12 @@ async function checkAuthRateLimit(request: NextRequest): Promise<NextResponse | 
 }
 
 async function checkPublicApiRateLimit(request: NextRequest): Promise<NextResponse | null> {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) {
+  const credentials = resolveUpstashRestCredentials();
+  if (!credentials) {
     return null;
   }
 
-  const redis = new Redis({ url, token });
+  const redis = new Redis(credentials);
   const ratelimit = new Ratelimit({
     redis,
     limiter: Ratelimit.slidingWindow(100, "60 s"),

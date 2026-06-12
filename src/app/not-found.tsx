@@ -1,40 +1,34 @@
 'use client';
 
-import Link from 'next/link';
-import { useTranslation } from '../lib/i18n-client';
+import { BodyBackground } from '@/components/BodyBackground';
+import { NotFoundPageContent } from '@/components/errors/NotFoundPageContent';
+import {
+  NOT_FOUND_SURFACE_CLASS,
+  NOT_FOUND_SURFACE_COLOR,
+} from '@/components/errors/not-found-page.constants';
+import { useNotFoundPageMarker } from '@/components/errors/not-found-page.context';
+
+/** Fixed bar (`top-3`) + spacer (`92px`) — cream band must cover both on 404. */
+const NOT_FOUND_HEADER_BACKDROP_HEIGHT_CLASS = 'h-[104px]';
 
 /**
- * Custom 404 Not Found Page
- * 
- * This page is displayed when a route is not found.
- * Client component - automatically dynamic, no prerendering needed.
+ * Custom 404 — branded Degusto storefront surface.
  */
 export default function NotFound() {
-  const { t } = useTranslation();
-  
+  useNotFoundPageMarker();
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="text-center px-4">
-        <h1 className="text-6xl font-bold text-gray-900 mb-4">404</h1>
-        <h2 className="text-2xl font-semibold text-gray-700 mb-4">{t('common.notFound.title')}</h2>
-        <p className="text-gray-600 mb-8 max-w-md mx-auto">
-          {t('common.notFound.description')}
-        </p>
-        <div className="flex gap-4 justify-center">
-          <Link
-            href="/"
-            className="px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium"
-          >
-            {t('common.notFound.goHome')}
-          </Link>
-          <Link
-            href="/shop"
-            className="px-6 py-3 bg-white text-gray-900 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-          >
-            {t('common.buttons.browseProducts')}
-          </Link>
-        </div>
-      </div>
-    </div>
+    <>
+      <BodyBackground color={NOT_FOUND_SURFACE_COLOR} />
+      <div
+        aria-hidden
+        className={`pointer-events-none fixed inset-0 -z-[1] ${NOT_FOUND_SURFACE_CLASS}`}
+      />
+      <div
+        aria-hidden
+        className={`pointer-events-none fixed inset-x-0 top-0 z-40 ${NOT_FOUND_HEADER_BACKDROP_HEIGHT_CLASS} ${NOT_FOUND_SURFACE_CLASS}`}
+      />
+      <NotFoundPageContent />
+    </>
   );
 }
