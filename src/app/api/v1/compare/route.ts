@@ -4,9 +4,8 @@ import {
   createGuestCartToken,
   setGuestCartTokenOnResponse,
 } from "@/lib/cart/guest-cart-cookies";
+import { apiRouteCatchErrorResponse } from "@/lib/http/api-route-errors";
 import { compareService } from "@/lib/services/compare.service";
-import { toApiError } from "@/lib/types/errors";
-import { logger } from "@/lib/utils/logger";
 
 export async function GET(req: NextRequest) {
   try {
@@ -14,9 +13,7 @@ export async function GET(req: NextRequest) {
     const result = await compareService.getCompareIds(user?.id ?? null, guestToken);
     return NextResponse.json(result);
   } catch (error: unknown) {
-    logger.error("Compare get error", { error });
-    const apiError = toApiError(error, req.url);
-    return NextResponse.json(apiError, { status: apiError.status || 500 });
+    return apiRouteCatchErrorResponse(req, error, "[COMPARE] GET");
   }
 }
 
@@ -40,8 +37,6 @@ export async function POST(req: NextRequest) {
     }
     return response;
   } catch (error: unknown) {
-    logger.error("Compare add item error", { error });
-    const apiError = toApiError(error, req.url);
-    return NextResponse.json(apiError, { status: apiError.status || 500 });
+    return apiRouteCatchErrorResponse(req, error, "[COMPARE] POST");
   }
 }

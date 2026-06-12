@@ -67,7 +67,7 @@ function shouldMaskErrorDetail(status: number): boolean {
   return process.env.NODE_ENV === "production" && status >= 500;
 }
 
-const PRISMA_DB_UNAVAILABLE_CODES = new Set(["P1001", "P1002", "P1017"]);
+const PRISMA_DB_UNAVAILABLE_CODES = new Set(["P1001", "P1002", "P1017", "P2024"]);
 
 function formatPrismaUniqueTarget(meta: unknown): string {
   if (!meta || typeof meta !== "object") {

@@ -4,15 +4,15 @@
 import { STOREFRONT_DESKTOP_SECTION_CLASS } from '@/constants/storefront-desktop-layout';
 
 /** Page shell — mobile padding from storefront chrome; tablet+ aligned with header (1450px). */
-export const CHECKOUT_PAGE_SHELL_CLASS = `${STOREFRONT_DESKTOP_SECTION_CLASS} py-8 max-md:px-0 md:py-10`;
+export const CHECKOUT_PAGE_SHELL_CLASS = `${STOREFRONT_DESKTOP_SECTION_CLASS} py-2 max-md:px-1 md:py-10`;
 
 /** Two columns from tablet (iPad portrait); wider form + sticky summary on desktop. */
 export const CHECKOUT_PAGE_GRID_CLASS =
-  'grid grid-cols-1 items-start gap-6 md:grid-cols-5 md:gap-8 lg:grid-cols-3';
+  'grid grid-cols-1 items-start gap-1.5 sm:gap-6 md:grid-cols-5 md:gap-8 lg:grid-cols-3';
 
-export const CHECKOUT_FORM_COLUMN_CLASS = 'min-w-0 md:col-span-3 lg:col-span-2';
+export const CHECKOUT_FORM_COLUMN_CLASS = 'order-1 min-w-0 md:order-none md:col-span-3 lg:col-span-2';
 
-export const CHECKOUT_SUMMARY_COLUMN_CLASS = 'min-w-0 md:col-span-2 lg:col-span-1';
+export const CHECKOUT_SUMMARY_COLUMN_CLASS = 'order-2 min-w-0 md:order-none md:col-span-2 lg:col-span-1';
 
 /** Sticky order summary — below UniversalHeader spacer (92px / 104px). */
 export const CHECKOUT_SUMMARY_PANEL_CLASS =
@@ -20,7 +20,7 @@ export const CHECKOUT_SUMMARY_PANEL_CLASS =
 
 export const CHECKOUT_SECTION_TITLE_TEXT = 'text-2xl font-bold text-[#1F2E1F]';
 
-export const CHECKOUT_SECTION_TITLE = `${CHECKOUT_SECTION_TITLE_TEXT} mb-6`;
+export const CHECKOUT_SECTION_TITLE = `${CHECKOUT_SECTION_TITLE_TEXT} mb-3 md:mb-6`;
 
 export const CHECKOUT_CARD_FRAME = 'border border-[#F66812]/20 shadow-sm';
 
@@ -62,7 +62,7 @@ export const CHECKOUT_TEXT_INK_TERTIARY = 'text-sm text-[#1F2E1F]/55';
 
 /** Borbor-style payment row shell — tighter on tablet to avoid overflow. */
 export const CHECKOUT_PAYMENT_OPTION =
-  'flex min-h-[3.75rem] cursor-pointer items-center gap-3 rounded-full border bg-white px-4 py-3.5 transition-all md:gap-4 md:px-5';
+  'flex min-h-[3.5rem] cursor-pointer items-center gap-3 rounded-full border bg-white px-3.5 py-3 transition-all md:min-h-[3.75rem] md:gap-4 md:px-5 md:py-3.5';
 
 export const CHECKOUT_PAYMENT_OPTION_SELECTED =
   'border-[#F66812] bg-[#FFF7F0] shadow-sm ring-1 ring-[#F66812]/15';
