@@ -14,6 +14,7 @@ import {
   l1Get,
   l1Set,
 } from "@/lib/cache/l1-cache";
+import { resolveUpstashRestCredentials } from "@/lib/redis/upstash-config";
 
 // Redis client will be initialized lazily
 let redisClient: Redis | null = null;
@@ -64,14 +65,13 @@ async function initRedis() {
     return;
   }
 
-  const restUrl = process.env.UPSTASH_REDIS_REST_URL;
-  const restToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const upstashCredentials = resolveUpstashRestCredentials();
   const redisUrl = process.env.REDIS_URL;
 
-  if (restUrl && restToken) {
+  if (upstashCredentials) {
     try {
       const { Redis } = await import("@upstash/redis");
-      upstashClient = new Redis({ url: restUrl, token: restToken });
+      upstashClient = new Redis(upstashCredentials);
       redisAvailable = true;
       connectionAttempted = true;
       return;

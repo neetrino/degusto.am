@@ -157,7 +157,7 @@ export function RelatedProductCard({
                     fill
                     className="object-cover object-top transition-transform duration-300 group-hover:scale-105"
                     sizes="(max-width: 1024px) 50vw, 227px"
-                    unoptimized
+                    loading="lazy"
                     onError={() => onImageError(product.id)}
                   />
                 </div>
@@ -222,7 +222,7 @@ export function RelatedProductCard({
                 fill
                 className="object-cover object-top transition-transform duration-300 group-hover:scale-105"
                 sizes="227px"
-                unoptimized
+                loading="lazy"
                 onError={() => onImageError(product.id)}
               />
             </div>

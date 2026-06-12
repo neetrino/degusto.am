@@ -8,6 +8,7 @@ import {
   AUTH_PAGE_DESKTOP_HEADER_OFFSET_CLASS,
   AUTH_PAGE_GLOW_PRIMARY_CLASS,
   AUTH_PAGE_GLOW_SECONDARY_CLASS,
+  AUTH_PAGE_MOBILE_CONTENT_CLASS,
   AUTH_PAGE_SHELL_SURFACE_CLASS,
 } from '@/constants/auth-page-layout';
 
@@ -42,7 +43,7 @@ export function AuthPageShell({
         className="pointer-events-none absolute inset-0 z-[2] hidden bg-[radial-gradient(circle_at_50%_46%,rgba(255,220,168,0.16)_0%,rgba(255,220,168,0)_56%)] lg:block"
       />
       <div
-        className={`relative z-10 mx-auto flex min-h-0 w-full ${contentMaxWidthClass} flex-1 flex-col px-4 pb-10 pt-7 sm:px-6 lg:justify-center lg:px-8 lg:py-12`}
+        className={`relative z-10 mx-auto flex min-h-0 w-full ${contentMaxWidthClass} ${AUTH_PAGE_MOBILE_CONTENT_CLASS} flex-1 flex-col pb-10 pt-7 px-4 sm:px-6 lg:justify-center lg:px-8 lg:py-12`}
       >
         <div className="relative flex flex-1 flex-col justify-center">
           <div aria-hidden="true" className={`${AUTH_PAGE_GLOW_PRIMARY_CLASS} hidden lg:block`} />

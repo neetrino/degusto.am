@@ -24,6 +24,7 @@ import {
   FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS,
   MOBILE_SHOP_PRODUCTS_GRID_CLASS,
   MOBILE_STOREFRONT_FILTERS_ANCHOR_ID,
+  MOBILE_STOREFRONT_PAGE_SECTION_CLASS,
 } from '@/constants/mobile-figma-storefront';
 import {
   getProductCardWishlistHoverClasses,
@@ -44,7 +45,6 @@ import { ShopDesktopProductsSkeleton } from './ShopDesktopProductsSkeleton';
 import {
   STOREFRONT_DESKTOP_MAIN_COLUMN_CLASS,
   STOREFRONT_DESKTOP_PRODUCT_GRID_CLASS,
-  STOREFRONT_DESKTOP_SECTION_CLASS,
   STOREFRONT_DESKTOP_SHOP_SECTION_CLASS,
   STOREFRONT_DESKTOP_SIDEBAR_GAP_CLASS,
   STOREFRONT_DESKTOP_SIDEBAR_WIDTH_CLASS,
@@ -211,6 +211,87 @@ function useMenuSearchUrlSync(
   );
 
   return { scheduleSearchQueryUrlSync, flushSearchQueryUrlSync, schedulePriceFilterUrlSync };
+}
+
+function useBuildMenuTargetPath(
+  searchParams: ReturnType<typeof useSearchParams>,
+  searchTerm: string,
+  minPrice: string,
+  maxPrice: string,
+  foodFilter: 'leaf' | 'neutral' | 'pepper',
+  routeBasePath: string
+): BuildMenuTargetPathFn {
+  return useMemo(() => {
+    return (
+      categorySlug: string,
+      overrides?: {
+        search?: string;
+        minPrice?: string;
+        maxPrice?: string;
+        taste?: 'leaf' | 'neutral' | 'pepper';
+        page?: number;
+      }
+    ) => {
+      const params = new URLSearchParams(searchParams.toString());
+      const nextSearch = (overrides?.search ?? searchTerm).trim();
+      const nextMinPrice = (overrides?.minPrice ?? minPrice).trim();
+      const nextMaxPrice = (overrides?.maxPrice ?? maxPrice).trim();
+      const nextTaste = overrides?.taste ?? foodFilter;
+
+      if (isStorefrontAllCategorySlug(categorySlug)) {
+        params.set('category', STOREFRONT_ALL_CATEGORY_SLUG);
+      } else if (categorySlug) {
+        params.set('category', categorySlug);
+      } else {
+        params.delete('category');
+      }
+
+      if (nextSearch) {
+        params.set('search', nextSearch);
+      } else {
+        params.delete('search');
+      }
+
+      if (nextMinPrice) {
+        params.set('minPrice', nextMinPrice);
+      } else {
+        params.delete('minPrice');
+      }
+
+      if (nextMaxPrice) {
+        params.set('maxPrice', nextMaxPrice);
+      } else {
+        params.delete('maxPrice');
+      }
+
+      if (nextTaste !== 'neutral') {
+        params.set('taste', nextTaste);
+      } else {
+        params.delete('taste');
+      }
+
+      const nextPage = overrides?.page;
+      if (typeof nextPage === 'number' && nextPage >= 2) {
+        params.set('page', String(nextPage));
+      } else {
+        params.delete('page');
+      }
+
+      const queryString = params.toString();
+      return queryString ? `${routeBasePath}?${queryString}` : routeBasePath;
+    };
+  }, [searchParams, searchTerm, minPrice, maxPrice, foodFilter, routeBasePath]);
+}
+
+function buildCategoryOnlyShopPath(routeBasePath: string, categorySlug: string): string {
+  const params = new URLSearchParams();
+  if (isStorefrontAllCategorySlug(categorySlug)) {
+    params.set('category', STOREFRONT_ALL_CATEGORY_SLUG);
+  } else if (categorySlug) {
+    params.set('category', categorySlug);
+  }
+  const queryString = params.toString();
+  return queryString ? `${routeBasePath}?${queryString}` : routeBasePath;
 }
 
 function isMenuCategoryEmpty(category: MenuCategory): boolean {
@@ -468,6 +549,13 @@ export function FigmaDesktopMenuPage({
   const routeBasePath = pathname?.startsWith('/combo') ? '/combo' : '/shop';
   const enableSoftCategoryNav = routeBasePath === '/shop' || routeBasePath === '/combo';
 
+  useEffect(() => {
+    setSearchTerm(initialSearch);
+    setMinPrice(initialMinPrice);
+    setMaxPrice(initialMaxPrice);
+    setFoodFilter(initialFoodFilter);
+  }, [initialFoodFilter, initialMaxPrice, initialMinPrice, initialSearch]);
+
   const {
     displayCards: desktopDisplayCards,
     displayActiveCategorySlug,
@@ -498,66 +586,14 @@ export function FigmaDesktopMenuPage({
     });
   }, [searchParams, showMobileProductsList]);
 
-  const buildTargetPath = useMemo(() => {
-    return (
-      categorySlug: string,
-      overrides?: {
-        search?: string;
-        minPrice?: string;
-        maxPrice?: string;
-        taste?: 'leaf' | 'neutral' | 'pepper';
-        page?: number;
-      }
-    ) => {
-      const params = new URLSearchParams(searchParams.toString());
-      const nextSearch = (overrides?.search ?? searchTerm).trim();
-      const nextMinPrice = (overrides?.minPrice ?? minPrice).trim();
-      const nextMaxPrice = (overrides?.maxPrice ?? maxPrice).trim();
-      const nextTaste = overrides?.taste ?? foodFilter;
-
-      if (isStorefrontAllCategorySlug(categorySlug)) {
-        params.set('category', STOREFRONT_ALL_CATEGORY_SLUG);
-      } else if (categorySlug) {
-        params.set('category', categorySlug);
-      } else {
-        params.delete('category');
-      }
-
-      if (nextSearch) {
-        params.set('search', nextSearch);
-      } else {
-        params.delete('search');
-      }
-
-      if (nextMinPrice) {
-        params.set('minPrice', nextMinPrice);
-      } else {
-        params.delete('minPrice');
-      }
-
-      if (nextMaxPrice) {
-        params.set('maxPrice', nextMaxPrice);
-      } else {
-        params.delete('maxPrice');
-      }
-
-      if (nextTaste !== 'neutral') {
-        params.set('taste', nextTaste);
-      } else {
-        params.delete('taste');
-      }
-
-      const nextPage = overrides?.page;
-      if (typeof nextPage === 'number' && nextPage >= 2) {
-        params.set('page', String(nextPage));
-      } else {
-        params.delete('page');
-      }
-
-      const queryString = params.toString();
-      return queryString ? `${routeBasePath}?${queryString}` : routeBasePath;
-    };
-  }, [searchParams, searchTerm, minPrice, maxPrice, foodFilter, routeBasePath]);
+  const buildTargetPath = useBuildMenuTargetPath(
+    searchParams,
+    searchTerm,
+    minPrice,
+    maxPrice,
+    foodFilter,
+    routeBasePath
+  );
 
   const { scheduleSearchQueryUrlSync, flushSearchQueryUrlSync, schedulePriceFilterUrlSync } =
     useMenuSearchUrlSync(
@@ -584,18 +620,25 @@ export function FigmaDesktopMenuPage({
     [categoryNavItems]
   );
 
+  const categorySlugsPrefetchKey = useMemo(() => {
+    if (!Array.isArray(dbCategories)) {
+      return '';
+    }
+    return dbCategories.map((category) => category.slug).join('\0');
+  }, [dbCategories]);
+
   const { getPrefetchHandlers } = useRoutePrefetch(
     enableSoftCategoryNav ? [] : categoryNavHrefs
   );
 
   useEffect(() => {
-    if (!enableSoftCategoryNav) {
+    if (!enableSoftCategoryNav || !categorySlugsPrefetchKey || !Array.isArray(dbCategories)) {
       return;
     }
-    for (const { href } of categoryNavItems) {
-      prefetchCategory(href);
+    for (const category of dbCategories) {
+      prefetchCategory(buildCategoryOnlyShopPath(routeBasePath, category.slug));
     }
-  }, [categoryNavItems, enableSoftCategoryNav, prefetchCategory]);
+  }, [categorySlugsPrefetchKey, dbCategories, enableSoftCategoryNav, prefetchCategory, routeBasePath]);
 
   const openMobileCategoryPicker = useCallback(() => {
     router.push(routeBasePath);
@@ -605,7 +648,7 @@ export function FigmaDesktopMenuPage({
     <>
       {showMobileProductsList ? (
       <div className="pb-8 pt-0 lg:hidden">
-        <div className={STOREFRONT_DESKTOP_SECTION_CLASS}>
+        <div className={MOBILE_STOREFRONT_PAGE_SECTION_CLASS}>
           <h1 className="text-[32px] font-bold leading-tight text-[#f66913]">{t(titleKey)}</h1>
           <p className="mt-2 text-sm tracking-[-0.2px] text-[#717182]">{t(subtitleKey)}</p>
 

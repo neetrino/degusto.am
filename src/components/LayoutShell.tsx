@@ -3,6 +3,8 @@
 import type { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { usesStorefrontMobileChrome } from '../lib/uses-storefront-mobile-chrome';
+import { useNotFoundPage } from './errors/not-found-page.context';
+import { NOT_FOUND_SURFACE_CLASS } from './errors/not-found-page.constants';
 
 /**
  * Root flex shell: mobile bottom padding for fixed nav when the page does not
@@ -10,12 +12,13 @@ import { usesStorefrontMobileChrome } from '../lib/uses-storefront-mobile-chrome
  */
 export function LayoutShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const isNotFoundPage = useNotFoundPage();
   const chrome = usesStorefrontMobileChrome(pathname);
   const reserveMobileNavSpace = pathname !== '/' && !chrome;
 
   return (
     <div
-      className={`flex min-h-screen flex-col${reserveMobileNavSpace ? ' pb-[110px] lg:pb-0' : ''}`}
+      className={`flex min-h-screen flex-col${isNotFoundPage ? ` ${NOT_FOUND_SURFACE_CLASS}` : ''}${reserveMobileNavSpace ? ' pb-[110px] lg:pb-0' : ''}`}
     >
       {children}
     </div>

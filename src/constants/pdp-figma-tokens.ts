@@ -26,6 +26,10 @@ export const PDP_RELATED_SECTION_MOBILE_BLEED_CLASS =
 export const PDP_RELATED_SECTION_CLASS = `w-full ${PDP_RELATED_SECTION_MOBILE_BLEED_CLASS} ${PDP_RELATED_SECTION_RADIUS_CLASS} px-4 pb-10 pt-10 sm:px-8 sm:pb-12 sm:pt-12 lg:static lg:left-auto lg:w-full lg:max-w-none lg:translate-x-0 lg:px-6 lg:pb-12 lg:pt-12 xl:px-12 xl:pb-[77px] xl:pt-[77px] 2xl:px-[82px]`;
 /** Carousel pagination — hidden on mobile PDP (swipe only). */
 export const PDP_RELATED_CAROUSEL_DOTS_CLASS = 'max-lg:hidden';
+/** Active pill on dark related section — orange for contrast vs #121212. */
+export const PDP_RELATED_CAROUSEL_DOT_ACTIVE_CLASS = 'w-8 bg-[#ff7f20]';
+/** Inactive dots on dark related section. */
+export const PDP_RELATED_CAROUSEL_DOT_INACTIVE_CLASS = 'w-2 bg-white/40 hover:bg-white/55';
 export const PDP_RELATED_SECTION_MAX_WIDTH_CLASS = 'mx-auto w-full max-w-[91.875rem]';
 /** Title bottom → card row (204 − 77 − 72). */
 export const PDP_RELATED_HEADER_GAP_CLASS = 'mb-8 lg:mb-[55px]';

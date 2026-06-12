@@ -36,6 +36,12 @@ export const MOBILE_FIGMA_HEADER_SWITCHER_DROPDOWN_STACKING_CLASS = 'z-40';
 /** Horizontal inset for logo row + search (matches home). */
 export const MOBILE_FIGMA_HEADER_HORIZONTAL_INSET_CLASS = 'px-4';
 
+/**
+ * Page content inside {@link MobileStorefrontChrome} — full width; chrome already applies horizontal inset.
+ * Do not reuse desktop shell classes here (they add a second max-width + padding pass).
+ */
+export const MOBILE_STOREFRONT_PAGE_SECTION_CLASS = 'w-full';
+
 /** Debounced URL writes for shop/combo search (aligns with menu page). */
 export const MOBILE_STORE_MENU_SEARCH_URL_DEBOUNCE_MS = 250;
 
@@ -47,6 +53,17 @@ export const MOBILE_STOREFRONT_FILTERS_ANCHOR_ID = 'mobile-storefront-filters-an
 
 /** Product grid on mobile shop/combo category views (2 columns, Figma 1:2235). */
 export const MOBILE_SHOP_PRODUCTS_GRID_CLASS = 'grid grid-cols-2 gap-x-[14px] gap-y-[30px]';
+
+/** Mobile shop category picker grid (Figma categories screen). */
+export const MOBILE_SHOP_CATEGORY_GRID_CLASS = 'mt-4 grid grid-cols-2 gap-x-3 gap-y-[14px]';
+
+/** Dark category card shell — food photo fills lower area. */
+export const MOBILE_SHOP_CATEGORY_CARD_CLASS =
+  'relative block h-[183px] overflow-hidden rounded-[28px] bg-[#090909] text-left transition-opacity active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f66a13]';
+
+/** Category food photo — bottom crop per Figma card layout. */
+export const MOBILE_SHOP_CATEGORY_CARD_IMAGE_CLASS =
+  'pointer-events-none absolute inset-x-0 bottom-0 h-[134px] overflow-hidden rounded-b-[28px]';
 
 /** Figma product card cream surface (#FFEACC) — mobile default, desktop/catalog hover. */
 export const FIGMA_PRODUCT_CARD_CREAM_BG_CLASS = 'bg-[#FFEACC]';

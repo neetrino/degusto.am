@@ -3,6 +3,8 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { createProblem, problemTypes } from "@/lib/http/problem-details";
 import { problemJson } from "@/lib/http/problem-response";
+import { resolveUpstashRestCredentials } from "@/lib/redis/upstash-config";
+import { logger } from "@/lib/utils/logger";
 
 type RateLimitWindow = "60 s" | "10 s";
 
@@ -22,6 +24,18 @@ function resolveClientIp(request: NextRequest): string {
   );
 }
 
+let upstashMissingLogged = false;
+
+function warnUpstashMissingOnce(): void {
+  if (upstashMissingLogged || process.env.NODE_ENV !== "production") {
+    return;
+  }
+  upstashMissingLogged = true;
+  logger.warn(
+    "[RATE LIMIT] Upstash Redis not configured — route rate limiting disabled. Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN (or KV_REST_API_* on Vercel)."
+  );
+}
+
 /**
  * Returns `null` when allowed, otherwise a Problem Details response with status 429.
  * If Upstash isn't configured, rate limiting is skipped.
@@ -30,24 +44,13 @@ export async function enforceRouteRateLimit(
   request: NextRequest,
   options: RateLimitOptions
 ): Promise<NextResponse | null> {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) {
-    if (process.env.NODE_ENV === "production") {
-      return problemJson(
-        createProblem("serviceUnavailable", {
-          status: 503,
-          title: "Service temporarily unavailable",
-          detail: "Rate limiter is not configured",
-          instance: request.url,
-        }),
-        { headers: { "Retry-After": "30" } }
-      );
-    }
+  const credentials = resolveUpstashRestCredentials();
+  if (!credentials) {
+    warnUpstashMissingOnce();
     return null;
   }
 
-  const redis = new Redis({ url, token });
+  const redis = new Redis(credentials);
   const ratelimit = new Ratelimit({
     redis,
     limiter: Ratelimit.slidingWindow(options.limit, options.window),

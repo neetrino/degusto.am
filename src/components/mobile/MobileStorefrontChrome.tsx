@@ -9,6 +9,8 @@ import {
   usesStorefrontMobileHeader,
   usesCheckoutTabletDesktopLayout,
 } from '../../lib/uses-storefront-mobile-chrome';
+import { useNotFoundPage } from '../errors/not-found-page.context';
+import { NOT_FOUND_SURFACE_CLASS } from '../errors/not-found-page.constants';
 import { MobileStorefrontHeader } from './MobileStorefrontHeader';
 
 type MobileStorefrontChromeProps = {
@@ -21,15 +23,17 @@ type MobileStorefrontChromeProps = {
  */
 export function MobileStorefrontChrome({ children }: MobileStorefrontChromeProps) {
   const pathname = usePathname();
+  const isNotFoundPage = useNotFoundPage();
 
   if (!usesStorefrontMobileChrome(pathname)) {
     return <>{children}</>;
   }
 
-  const showMobileHeader = usesStorefrontMobileHeader(pathname);
+  const showMobileHeader = usesStorefrontMobileHeader(pathname) && !isNotFoundPage;
   const checkoutTabletDesktop = usesCheckoutTabletDesktopLayout(pathname);
   const isProfileRoute =
     pathname.startsWith('/profile') || pathname.startsWith('/admin-mobile');
+  const surfaceBackgroundClass = isNotFoundPage ? NOT_FOUND_SURFACE_CLASS : 'bg-white';
 
   const checkoutBottomInsetClass = checkoutTabletDesktop
     ? ''
@@ -37,9 +41,9 @@ export function MobileStorefrontChrome({ children }: MobileStorefrontChromeProps
 
   const contentSurfaceClass = showMobileHeader
     ? checkoutTabletDesktop
-      ? `relative z-10 mt-[87px] flex min-h-0 flex-1 flex-col bg-white px-4 pt-8 ${checkoutBottomInsetClass} md:mt-0 md:flex-none md:rounded-none md:bg-transparent md:px-0 md:pb-0 md:pt-0`
-      : `relative z-10 mt-[87px] flex min-h-0 flex-1 flex-col bg-white px-4 pt-8 ${MOBILE_STOREFRONT_CHROME_BOTTOM_INSET_CLASS} lg:mt-0 lg:flex-none lg:rounded-none lg:bg-transparent lg:px-0 lg:pb-0 lg:pt-0`
-    : `relative z-10 flex min-h-0 flex-1 flex-col bg-white px-0 pt-0 ${MOBILE_STOREFRONT_CHROME_BOTTOM_INSET_CLASS} lg:flex-none lg:bg-transparent lg:px-0 lg:pb-0 lg:pt-0`;
+      ? `relative z-10 mt-[87px] flex min-h-0 flex-1 flex-col ${surfaceBackgroundClass} px-4 pt-8 ${checkoutBottomInsetClass} md:mt-0 md:flex-none md:rounded-none md:bg-transparent md:px-0 md:pb-0 md:pt-0`
+      : `relative z-10 mt-[87px] flex min-h-0 flex-1 flex-col ${surfaceBackgroundClass} px-4 pt-8 ${MOBILE_STOREFRONT_CHROME_BOTTOM_INSET_CLASS} lg:mt-0 lg:flex-none lg:rounded-none lg:bg-transparent lg:px-0 lg:pb-0 lg:pt-0`
+    : `relative z-10 flex min-h-0 flex-1 flex-col ${surfaceBackgroundClass} px-0 pt-0 ${MOBILE_STOREFRONT_CHROME_BOTTOM_INSET_CLASS} lg:flex-none lg:bg-transparent lg:px-0 lg:pb-0 lg:pt-0`;
 
   const outerSurfaceClass = checkoutTabletDesktop
     ? 'md:min-h-0 md:flex-none md:bg-transparent'
@@ -47,11 +51,13 @@ export function MobileStorefrontChrome({ children }: MobileStorefrontChromeProps
 
   const decorHiddenClass = checkoutTabletDesktop ? 'md:hidden' : 'lg:hidden';
 
-  const pageBackgroundClass = isProfileRoute
-    ? 'bg-white lg:bg-transparent'
-    : checkoutTabletDesktop
-      ? 'bg-[var(--project-color)] md:bg-transparent'
-      : 'bg-[var(--project-color)]';
+  const pageBackgroundClass = isNotFoundPage
+    ? NOT_FOUND_SURFACE_CLASS
+    : isProfileRoute
+      ? 'bg-white lg:bg-transparent'
+      : checkoutTabletDesktop
+        ? 'bg-[var(--project-color)] md:bg-transparent'
+        : 'bg-[var(--project-color)]';
 
   return (
     <div className={`flex min-h-screen w-full flex-col ${outerSurfaceClass} ${pageBackgroundClass}`}>

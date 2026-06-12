@@ -7,6 +7,8 @@ interface CarouselDotsProps {
   onDotClick: (index: number) => void;
   /** When set (e.g. 2 on mobile), one dot per page of visible items instead of per product. */
   scrollStep?: number;
+  activeDotClassName?: string;
+  inactiveDotClassName?: string;
 }
 
 const LAST_DOT_INDEX_MIN = 1;
@@ -14,12 +16,17 @@ const LAST_DOT_INDEX_MIN = 1;
 /**
  * Dots for carousel: per scroll position when multiple items are visible, else per product.
  */
+const DEFAULT_ACTIVE_DOT_CLASS = 'w-8 bg-gray-900';
+const DEFAULT_INACTIVE_DOT_CLASS = 'w-2 bg-gray-300 hover:bg-gray-400';
+
 export function CarouselDots({
   totalItems,
   visibleItems,
   currentIndex,
   onDotClick,
   scrollStep = 1,
+  activeDotClassName = DEFAULT_ACTIVE_DOT_CLASS,
+  inactiveDotClassName = DEFAULT_INACTIVE_DOT_CLASS,
 }: CarouselDotsProps) {
   const maxIndex = Math.max(0, totalItems - visibleItems);
   const step = Math.max(1, scrollStep);
@@ -69,11 +76,7 @@ export function CarouselDots({
             aria-disabled={maxIndex === 0}
             className={`h-2 rounded-full transition-all duration-300 ${
               maxIndex === 0 ? 'cursor-default' : ''
-            } ${
-              isActive
-                ? 'w-8 bg-gray-900'
-                : 'w-2 bg-gray-300 hover:bg-gray-400'
-            }`}
+            } ${isActive ? activeDotClassName : inactiveDotClassName}`}
             aria-label={
               usePageDots
                 ? `Go to page ${dotIndex + 1}`

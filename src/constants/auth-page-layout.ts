@@ -1,7 +1,12 @@
 import { UNIVERSAL_HEADER_DESKTOP_UNDERLAP_CLASS } from '@/constants/universal-header-layout';
 
-/** Brand orange used on login/register surfaces. */
-export const AUTH_PAGE_BRAND_ORANGE = '#F66812';
+/** Desktop auth shell content column max width (login/register). */
+export const AUTH_PAGE_DESKTOP_CONTENT_MAX_WIDTH_CLASS = 'max-w-[560px]';
+
+/**
+ * Below lg: full width inside {@link MobileStorefrontChrome} — chrome already applies horizontal inset.
+ */
+export const AUTH_PAGE_MOBILE_CONTENT_CLASS = 'max-lg:max-w-none max-lg:px-0';
 
 export const AUTH_PAGE_BRAND_ORANGE_CLASS = 'bg-[#F66812]';
 
@@ -24,7 +29,7 @@ export const AUTH_PAGE_GLOW_SECONDARY_CLASS =
 /** Matches mobile storefront search/input pill (Figma parity). */
 export const AUTH_FORM_INPUT_SHADOW_CLASS = 'shadow-[0px_4px_4px_0px_rgba(0,0,0,0.05)]';
 
-export const AUTH_FORM_WRAPPER_CLASS = 'mx-auto w-full max-w-xl';
+export const AUTH_FORM_WRAPPER_CLASS = 'mx-auto w-full max-lg:max-w-none max-w-xl';
 
 export const AUTH_FORM_TITLE_CLASS =
   'text-center text-[30px] font-bold leading-[1.15] tracking-tight text-[#16331f] sm:text-[32px]';

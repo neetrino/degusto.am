@@ -12,6 +12,7 @@ import { DisableMobileZoomGuard } from './mobile/DisableMobileZoomGuard';
 import { MobilePageScrollCache } from './mobile/MobilePageScrollCache';
 import { MobileRoutePrefetcher } from './mobile/MobileRoutePrefetcher';
 import { PdpChromeProvider } from '../app/products/[slug]/pdp-chrome-context';
+import { NotFoundPageProvider } from './errors/not-found-page.context';
 
 /**
  * ClientProviders component
@@ -23,6 +24,7 @@ export function ClientProviders({ children }: { children: ReactNode }) {
       <WishlistIdsProvider>
       <CompareIdsProvider>
       <PdpChromeProvider>
+      <NotFoundPageProvider>
       <CartDrawerProvider>
         <DisableMobileZoomGuard />
         <MobileRoutePrefetcher />
@@ -32,6 +34,7 @@ export function ClientProviders({ children }: { children: ReactNode }) {
         <CartDrawer />
         <ToastContainer />
       </CartDrawerProvider>
+      </NotFoundPageProvider>
       </PdpChromeProvider>
       </CompareIdsProvider>
       </WishlistIdsProvider>

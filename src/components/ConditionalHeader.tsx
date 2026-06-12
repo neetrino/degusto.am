@@ -6,9 +6,11 @@ import { UNIVERSAL_HEADER_SPACER_HEIGHT_CLASS } from '@/constants/universal-head
 import { Header } from './Header';
 import { UniversalHeader } from './UniversalHeader';
 import { usesStorefrontMobileChrome, usesCheckoutTabletDesktopLayout } from '../lib/uses-storefront-mobile-chrome';
+import { useNotFoundPage } from './errors/not-found-page.context';
 
 export function ConditionalHeader() {
   const pathname = usePathname();
+  const isNotFoundPage = useNotFoundPage();
   const isAuthPage = pathname === '/login' || pathname === '/register';
   if (pathname?.startsWith('/supersudo') || pathname?.startsWith('/admin-mobile')) {
     return null;
@@ -19,7 +21,9 @@ export function ConditionalHeader() {
   }
 
   const isAboutPage = pathname?.startsWith('/about');
-  const universalSpacerClass = isAuthPage
+  const universalSpacerClass = isNotFoundPage
+    ? 'bg-transparent'
+    : isAuthPage
     ? 'bg-[#F66812]'
     : isAboutPage
       ? "bg-[url('/images/about-page-botanical-bg.png')] bg-cover bg-center"

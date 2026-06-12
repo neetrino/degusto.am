@@ -17,6 +17,8 @@ import { montserratArmFont } from '@/fonts/montserrat-arm-font';
 import {
   PDP_FIGMA_DARK_SECTION,
   PDP_RELATED_CARDS_GAP_CLASS,
+  PDP_RELATED_CAROUSEL_DOT_ACTIVE_CLASS,
+  PDP_RELATED_CAROUSEL_DOT_INACTIVE_CLASS,
   PDP_RELATED_CAROUSEL_DOTS_CLASS,
   PDP_RELATED_HEADER_GAP_CLASS,
   PDP_RELATED_SECTION_CLASS,
@@ -54,14 +56,15 @@ export function RelatedProducts({
   /** One card per swipe; viewport still shows `visibleCards` (2 on mobile). */
   const scrollStep = 1;
   const isCompactCarousel = visibleCards === 2;
-  const { ref: lazyRef, inView } = useLazyInView();
+  const hasInitialProducts = (initialProducts?.length ?? 0) > 0;
+  const { ref: lazyRef, inView } = useLazyInView(hasInitialProducts ? '0px' : undefined);
 
   const { products, loading } = useRelatedProducts({
     categorySlug,
     currentProductId,
     language,
     productSlug,
-    enabled: inView,
+    enabled: hasInitialProducts || inView,
     initialProducts,
     initialLanguage,
   });
@@ -111,7 +114,8 @@ export function RelatedProducts({
     setImageErrors((prev) => new Set(prev).add(productId));
   };
 
-  const showOffscreenPlaceholder = !inView && products.length === 0;
+  const showOffscreenPlaceholder =
+    !hasInitialProducts && !inView && products.length === 0;
 
   return (
     <section
@@ -221,6 +225,8 @@ export function RelatedProducts({
                   currentIndex={currentIndex}
                   onDotClick={goToIndex}
                   scrollStep={scrollStep}
+                  activeDotClassName={PDP_RELATED_CAROUSEL_DOT_ACTIVE_CLASS}
+                  inactiveDotClassName={PDP_RELATED_CAROUSEL_DOT_INACTIVE_CLASS}
                 />
               </div>
             )}
