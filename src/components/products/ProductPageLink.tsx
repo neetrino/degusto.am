@@ -5,6 +5,7 @@ import type { ComponentProps, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { buildProductPageHref } from '@/lib/products/build-product-page-href';
 import { prefetchProductRoute } from '@/lib/products/prefetch-product-route';
+import { beginPdpNavigationMetric } from '@/lib/products/pdp-progressive-metrics';
 
 export type ProductPageLinkProps = Omit<ComponentProps<typeof Link>, 'href' | 'prefetch'> & {
   slug: string;
@@ -44,10 +45,12 @@ export function ProductPageLink({
       }}
       onPointerDown={(event) => {
         warm();
+        beginPdpNavigationMetric(slug);
         onPointerDown?.(event);
       }}
       onTouchStart={(event) => {
         warm();
+        beginPdpNavigationMetric(slug);
         onTouchStart?.(event);
       }}
       {...rest}

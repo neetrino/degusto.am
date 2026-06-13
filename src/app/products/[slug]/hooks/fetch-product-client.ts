@@ -4,6 +4,10 @@ import {
   mergeVisualIntoProduct,
   type ProductVisualSnapshot,
 } from '../utils/merge-visual-into-product';
+import {
+  getProductSummarySnapshot,
+  setProductSummarySnapshot,
+} from '@/lib/products/product-summary-cache';
 
 function isNotFoundError(error: unknown): boolean {
   return Boolean(
@@ -78,16 +82,97 @@ export async function loadProductProgressive({
   onVisualApplied,
   isStale,
 }: ProgressiveProductLoadOptions): Promise<Product> {
+  const summary = getProductSummarySnapshot(slug);
+  if (!isStale() && summary) {
+    onVisualApplied(
+      mergeVisualIntoProduct(previousProduct, {
+        id: summary.id,
+        slug: summary.slug,
+        title: summary.title,
+        category: summary.category,
+        brand: summary.brand,
+        price: summary.price,
+        oldPrice: summary.oldPrice,
+        discountPercent: summary.discount,
+        currency: summary.currency,
+        inStock: summary.inStock,
+        defaultVariantId: summary.defaultVariantId,
+        labels: summary.labels,
+        galleryImages: summary.image ? [summary.image] : [],
+      })
+    );
+  }
+
   const visual = await fetchVisual(slug, lang);
   if (!isStale() && visual) {
     onVisualApplied(mergeVisualIntoProduct(previousProduct, visual));
   }
 
   try {
-    return await fetchDetails(slug, lang);
+    const details = await fetchDetails(slug, lang);
+    const firstVariant = details.variants[0] ?? null;
+    setProductSummarySnapshot({
+      id: details.id,
+      slug: details.slug,
+      title: details.title,
+      image:
+        typeof details.media?.[0] === 'string'
+          ? details.media[0]
+          : details.media?.[0]?.url ?? null,
+      price: firstVariant?.price ?? 0,
+      oldPrice: firstVariant?.originalPrice ?? firstVariant?.compareAtPrice ?? null,
+      discount:
+        details.productDiscount ??
+        firstVariant?.productDiscount ??
+        details.globalDiscount ??
+        firstVariant?.globalDiscount ??
+        null,
+      category: details.categories?.[0]
+        ? {
+            slug: details.categories[0].slug,
+            title: details.categories[0].title,
+          }
+        : null,
+      brand: null,
+      currency: 'USD',
+      labels: details.labels ?? [],
+      inStock: (firstVariant?.stock ?? 0) > 0,
+      defaultVariantId: firstVariant?.id ?? null,
+    });
+    return details;
   } catch (detailsError: unknown) {
     try {
-      return await fetchDetailsLegacy(slug, lang);
+      const details = await fetchDetailsLegacy(slug, lang);
+      const firstVariant = details.variants[0] ?? null;
+      setProductSummarySnapshot({
+        id: details.id,
+        slug: details.slug,
+        title: details.title,
+        image:
+          typeof details.media?.[0] === 'string'
+            ? details.media[0]
+            : details.media?.[0]?.url ?? null,
+        price: firstVariant?.price ?? 0,
+        oldPrice: firstVariant?.originalPrice ?? firstVariant?.compareAtPrice ?? null,
+        discount:
+          details.productDiscount ??
+          firstVariant?.productDiscount ??
+          details.globalDiscount ??
+          firstVariant?.globalDiscount ??
+          null,
+        category: details.categories?.[0]
+          ? {
+              slug: details.categories[0].slug,
+              title: details.categories[0].title,
+            }
+          : null,
+        brand: null,
+        currency: 'USD',
+        labels: details.labels ?? [],
+        inStock: (firstVariant?.stock ?? 0) > 0,
+        defaultVariantId: firstVariant?.id ?? null,
+      });
+      return details;
     } catch {
       throw detailsError;
     }

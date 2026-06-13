@@ -9,6 +9,10 @@ function isShopOrComboHref(href: string): boolean {
   return href.startsWith('/shop') || href.startsWith('/combo');
 }
 
+function hasSearchParams(href: string): boolean {
+  return href.includes('?');
+}
+
 function extractProductSlug(href: string): string | null {
   const match = /^\/products\/([^/?#]+)/u.exec(href);
   return match?.[1] ? decodeURIComponent(match[1]) : null;
@@ -26,7 +30,9 @@ export function prefetchStorefrontRoute(router: RouterWithPrefetch, href: string
   void router.prefetch(normalized);
 
   if (isShopOrComboHref(normalized)) {
-    prefetchShopMenuProducts(normalized);
+    if (hasSearchParams(normalized)) {
+      prefetchShopMenuProducts(normalized);
+    }
     return;
   }
 

@@ -12,6 +12,7 @@ import { ProductCardList } from './ProductCard/ProductCardList';
 import { ProductCardGrid } from './ProductCard/ProductCardGrid';
 import { prefetchProductRoute } from '../lib/products/prefetch-product-route';
 import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
+import { setProductSummarySnapshot } from '@/lib/products/product-summary-cache';
 
 interface Product {
   id: string;
@@ -98,8 +99,23 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
   const productHref = `/products/${product.slug}`;
 
   const handlePrefetchNavigate = useCallback(() => {
+    setProductSummarySnapshot({
+      id: product.id,
+      slug: product.slug,
+      title: product.title,
+      image: resolveStorefrontProductImage(product.image),
+      price: product.price,
+      oldPrice: product.originalPrice ?? product.compareAtPrice ?? null,
+      discount: product.discountPercent ?? product.globalDiscount ?? null,
+      category: null,
+      brand: null,
+      currency: 'USD',
+      labels: product.labels ?? [],
+      inStock: product.inStock,
+      defaultVariantId: product.defaultVariantId ?? null,
+    });
     prefetchProductRoute(router, product.slug);
-  }, [router, product.slug]);
+  }, [router, product]);
 
   // List view layout
   if (viewMode === 'list') {

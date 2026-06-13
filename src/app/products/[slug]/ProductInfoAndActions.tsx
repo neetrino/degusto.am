@@ -64,6 +64,7 @@ interface ProductInfoAndActionsProps {
   onSizeSelect: (size: string) => void;
   onAttributeValueSelect: (attrKey: string, value: string) => void;
   getOptionValue: (options: VariantOption[] | undefined, key: string) => string | null;
+  hideSecondaryDetails?: boolean;
 }
 
 export function ProductInfoAndActions({
@@ -98,6 +99,7 @@ export function ProductInfoAndActions({
   onSizeSelect,
   onAttributeValueSelect,
   getOptionValue,
+  hideSecondaryDetails = false,
 }: ProductInfoAndActionsProps) {
   const router = useRouter();
   const { isLoggedIn } = useAuth();
@@ -144,44 +146,54 @@ export function ProductInfoAndActions({
               </span>
             ) : null}
           </div>
-          <div
-            className={PDP_DESCRIPTION_CLASS}
-            dangerouslySetInnerHTML={{
-              __html: sanitizeHtml(
-                getProductText(language, product.id, 'longDescription') || product.description || ''
-              ),
-            }}
-          />
-
-          <PdpCustomizationPills
-            product={product}
-            language={language}
-            currency={currency as CurrencyCode}
-            currentVariant={currentVariant}
-            additions={additions}
-            exclusions={exclusions}
-            onAdditionsChange={onAdditionsChange}
-            onExclusionsChange={onExclusionsChange}
-          />
-
-          <div className="mb-4">
-            <ProductAttributesSelector
-              product={product}
-              currentVariant={currentVariant}
-              attributeGroups={attributeGroups}
-              selectedColor={selectedColor}
-              selectedSize={selectedSize}
-              selectedAttributeValues={selectedAttributeValues}
-              unavailableAttributes={unavailableAttributes}
-              colorGroups={colorGroups}
-              sizeGroups={sizeGroups}
-              language={language}
-              onColorSelect={onColorSelect}
-              onSizeSelect={onSizeSelect}
-              onAttributeValueSelect={onAttributeValueSelect}
-              getOptionValue={getOptionValue}
+          {!hideSecondaryDetails ? (
+            <div
+              className={PDP_DESCRIPTION_CLASS}
+              dangerouslySetInnerHTML={{
+                __html: sanitizeHtml(
+                  getProductText(language, product.id, 'longDescription') || product.description || ''
+                ),
+              }}
             />
-          </div>
+          ) : (
+            <div className="h-6" aria-hidden />
+          )}
+
+          {!hideSecondaryDetails ? (
+            <PdpCustomizationPills
+              product={product}
+              language={language}
+              currency={currency as CurrencyCode}
+              currentVariant={currentVariant}
+              additions={additions}
+              exclusions={exclusions}
+              onAdditionsChange={onAdditionsChange}
+              onExclusionsChange={onExclusionsChange}
+            />
+          ) : null}
+
+          {!hideSecondaryDetails ? (
+            <div className="mb-4">
+              <ProductAttributesSelector
+                product={product}
+                currentVariant={currentVariant}
+                attributeGroups={attributeGroups}
+                selectedColor={selectedColor}
+                selectedSize={selectedSize}
+                selectedAttributeValues={selectedAttributeValues}
+                unavailableAttributes={unavailableAttributes}
+                colorGroups={colorGroups}
+                sizeGroups={sizeGroups}
+                language={language}
+                onColorSelect={onColorSelect}
+                onSizeSelect={onSizeSelect}
+                onAttributeValueSelect={onAttributeValueSelect}
+                getOptionValue={getOptionValue}
+              />
+            </div>
+          ) : (
+            <div className="mb-4 h-10" aria-hidden />
+          )}
         </div>
 
       <div className="mt-6 pt-2 lg:mt-auto lg:pt-0">

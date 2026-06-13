@@ -35,20 +35,24 @@ class CompareService {
     const items = await db.compareItem.findMany({
       where: { ownerKey },
       orderBy: { createdAt: "asc" },
-      select: {
-        productId: true,
-        product: {
-          select: {
-            published: true,
-            deletedAt: true,
-          },
-        },
-      },
+      select: { productId: true },
     });
 
-    const staleProductIds = items
-      .filter((item) => !item.product.published || item.product.deletedAt)
-      .map((item) => item.productId);
+    const ids = items.map((item) => item.productId);
+    if (ids.length === 0) {
+      return { ids: [] };
+    }
+
+    const activeProducts = await db.product.findMany({
+      where: {
+        id: { in: ids },
+        published: true,
+        deletedAt: null,
+      },
+      select: { id: true },
+    });
+    const activeIdSet = new Set(activeProducts.map((item) => item.id));
+    const staleProductIds = ids.filter((id) => !activeIdSet.has(id));
 
     if (staleProductIds.length > 0) {
       await db.compareItem.deleteMany({
@@ -59,11 +63,9 @@ class CompareService {
       });
     }
 
-    const ids = items
-      .filter((item) => item.product.published && !item.product.deletedAt)
-      .map((item) => item.productId);
+    const filteredIds = ids.filter((id) => activeIdSet.has(id));
 
-    return { ids };
+    return { ids: filteredIds };
   }
 
   async addCompareItem(

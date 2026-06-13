@@ -18,6 +18,32 @@ import { isStockSufficient, totalVariantQuantityInCart } from "../product-stock"
 import { ensureCartItemCustomizationsColumn } from "../utils/db-ensure";
 
 class CartService {
+  private toCartSummaryPayload(
+    cartId: string,
+    rows: Array<{ quantity: number; priceSnapshot: Prisma.Decimal | number | null }>
+  ) {
+    const itemsCount = rows.reduce((sum, item) => sum + item.quantity, 0);
+    const subtotal = rows.reduce(
+      (sum, item) => sum + item.quantity * (Number(item.priceSnapshot) || 0),
+      0
+    );
+    return {
+      cart: {
+        id: cartId,
+        items: [],
+        totals: {
+          subtotal,
+          discount: 0,
+          shipping: 0,
+          tax: 0,
+          total: subtotal,
+          currency: "AMD",
+        },
+        itemsCount,
+      },
+    };
+  }
+
   private extractVariantImageUrl(imageUrl: string | null | undefined): string | null {
     if (!imageUrl) {
       return null;
@@ -343,6 +369,40 @@ class CartService {
         itemsCount: itemsWithDetails.reduce((sum, item) => sum + item.quantity, 0),
       },
     };
+  }
+
+  /**
+   * Lightweight badge/cart-summary read path (no heavy product/variant joins).
+   */
+  async getCartSummary(
+    userId: string | null,
+    locale: string = "en",
+    guestToken?: string | null
+  ) {
+    void locale;
+    if (!userId && !guestToken) {
+      return { cart: null };
+    }
+
+    const ownerWhere = this.cartOwnerWhere(userId, guestToken);
+    const cart = await db.cart.findFirst({
+      where: ownerWhere,
+      select: {
+        id: true,
+        items: {
+          select: {
+            quantity: true,
+            priceSnapshot: true,
+          },
+        },
+      },
+    });
+
+    if (!cart) {
+      return { cart: null };
+    }
+
+    return this.toCartSummaryPayload(cart.id, cart.items);
   }
 
   /**
