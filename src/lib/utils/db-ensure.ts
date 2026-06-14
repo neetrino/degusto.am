@@ -6,9 +6,6 @@ const ENABLE_RUNTIME_SCHEMA_PATCH =
 
 function runtimePatchDisabled(entity: string): boolean {
   if (!ENABLE_RUNTIME_SCHEMA_PATCH) {
-    logger.error(
-      `[db-ensure] Runtime schema patch disabled for ${entity}. Apply DB migrations instead.`
-    );
     return true;
   }
   return false;

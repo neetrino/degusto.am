@@ -5,9 +5,8 @@ import {
   separateMainAndVariantImages,
 } from "../../utils/image-utils";
 import { getStorefrontDiscountSettings } from "../storefront/get-storefront-discount-settings";
-import { logger } from "../../utils/logger";
 import { hasSellableStock } from "../../product-stock";
-import { loadProductPdpCustomization } from "@/lib/products/pdp-customization-persistence";
+import { parsePdpCustomizationConfig } from "@/lib/products/pdp-customization-config";
 import type { ProductWithFullRelations, ProductVariantWithOptions } from "./types";
 
 /**
@@ -42,7 +41,6 @@ function transformMedia(
   product: ProductWithFullRelations
 ): string[] {
   if (!Array.isArray(product.media)) {
-    logger.warn('Product media is not an array, returning empty array');
     return [];
   }
   
@@ -70,12 +68,6 @@ function transformMedia(
   
   // Clean and validate final main images
   const cleanedMain = cleanImageUrls(main);
-  
-  logger.debug('Main media images count (after cleanup)', { count: cleanedMain.length });
-  logger.debug('Variant images excluded', { count: variantImages.length });
-  if (cleanedMain.length > 0) {
-    logger.debug('Main media (first 3)', { images: cleanedMain.slice(0, 3).map((img: string) => img.substring(0, 50)) });
-  }
   
   return cleanedMain;
 }
@@ -143,14 +135,6 @@ function transformVariants(
       }
 
       const variantImageUrl = transformVariantImageUrl(variant);
-      
-      if (variantImageUrl) {
-        logger.debug('Variant has imageUrl', {
-          variantId: variant.id,
-          sku: variant.sku,
-          imageUrl: variantImageUrl.substring(0, 50) + (variantImageUrl.length > 50 ? '...' : ''),
-        });
-      }
 
       return {
         id: variant.id,
@@ -202,10 +186,6 @@ function transformProductAttributes(
   lang: string
 ) {
   const productAttrs = (product as { productAttributes?: unknown[] }).productAttributes;
-  logger.debug('Raw productAttributes from DB', {
-    isArray: Array.isArray(productAttrs),
-    length: productAttrs?.length || 0,
-  });
   
   if (Array.isArray(productAttrs) && productAttrs.length > 0) {
     type ProductAttribute = {
@@ -257,10 +237,8 @@ function transformProductAttributes(
         },
       };
     });
-    logger.debug('Mapped productAttributes', { count: mapped.length });
     return mapped;
   }
-  logger.debug('No productAttributes, returning empty array');
   return [];
 }
 
@@ -271,14 +249,14 @@ export async function transformProduct(
   product: ProductWithFullRelations,
   lang: string = "en"
 ) {
-  const [{ globalDiscount, categoryDiscounts }, pdpCustomization] = await Promise.all([
-    getStorefrontDiscountSettings(),
-    loadProductPdpCustomization(product.id),
-  ]);
+  const { globalDiscount, categoryDiscounts } = await getStorefrontDiscountSettings();
   const transformed = transformProductWithDiscountSettings(product, lang, {
     globalDiscount,
     categoryDiscounts,
   });
+  const pdpCustomization = parsePdpCustomizationConfig(
+    (product as { pdpCustomization?: unknown }).pdpCustomization
+  );
   return { ...transformed, pdpCustomization };
 }
 
