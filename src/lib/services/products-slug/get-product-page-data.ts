@@ -10,7 +10,6 @@ import { productsSlugService } from "@/lib/services/products-slug.service";
 import { getProductReviewSummary } from "@/lib/services/reviews/product-review-summary";
 import type { ProductReviewSummary } from "@/lib/services/reviews/product-review-summary";
 import { resolveProductIdBySlugCached } from "@/lib/services/products-slug/resolve-product-id-cached";
-import { getStorefrontDiscountSettings } from "@/lib/services/storefront/get-storefront-discount-settings";
 import {
   getStorefrontLocaleFallbackChain,
   type StorefrontLocale,
@@ -128,12 +127,7 @@ async function loadProductPageDataUncached(
     };
   }
 
-  const productId = (
-    await Promise.all([
-      resolveProductIdBySlugCached(slug),
-      getStorefrontDiscountSettings(),
-    ])
-  )[0];
+  const productId = await resolveProductIdBySlugCached(slug);
   if (!productId) {
     return { status: "not_found" };
   }
@@ -171,7 +165,7 @@ export function getProductPageData(
   return cache(async (s: string, l: StorefrontLocale) => {
     return unstable_cache(
       () => loadProductPageDataUncached(s, l),
-      ["pdp-page-data-v6", s, l],
+      ["pdp-page-data-v8", s, l],
       {
         revalidate: PDP_PAGE_REVALIDATE_SECONDS,
         tags: [pdpPageCacheTag(s)],

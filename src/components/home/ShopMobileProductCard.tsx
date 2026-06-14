@@ -44,12 +44,17 @@ function getShopMobileProductCardPriceSizeClass(formattedPrice: string): string 
 
 type ShopMobileProductCardProps = {
   card: MenuCard;
+  /** Enables near-viewport PDP prefetch (can be disabled on heavy grids like home sections). */
+  enableVisibilityPrefetch?: boolean;
 };
 
 /**
  * Mobile shop/combo product card — cream Figma layout (node 1:2235), 2-column grid.
  */
-export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
+export function ShopMobileProductCard({
+  card,
+  enableVisibilityPrefetch = true,
+}: ShopMobileProductCardProps) {
   const { t } = useTranslation();
   const currency = useCurrency();
   const router = useRouter();
@@ -115,7 +120,7 @@ export function ShopMobileProductCard({ card }: ShopMobileProductCardProps) {
 
   return (
     <article
-      ref={visibilityRef}
+      ref={enableVisibilityPrefetch ? visibilityRef : null}
       data-home-product-card
       className={`relative h-[240px] w-full cursor-pointer rounded-[20px] border-[1.5px] border-[#dedede] bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS}`}
       onMouseEnter={warmProductRoute}

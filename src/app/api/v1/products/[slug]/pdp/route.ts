@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { problemTypes } from "@/lib/http/problem-details";
 import { resolveStorefrontLocaleFromSearchParams } from "@/lib/i18n/locale";
 import { getProductPageData } from "@/lib/services/products-slug/get-product-page-data";
+import { resolveProductIdBySlugCached } from "@/lib/services/products-slug/resolve-product-id-cached";
 import { logger } from "@/lib/utils/logger";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +18,39 @@ export async function GET(
   try {
     const { searchParams } = new URL(req.url);
     const lang = resolveStorefrontLocaleFromSearchParams(searchParams);
+    const mode = searchParams.get("mode");
+    const isWarmMode = mode === "warm";
     const { slug } = await params;
+    if (isWarmMode) {
+      const productId = await resolveProductIdBySlugCached(slug);
+
+      if (!productId) {
+        return NextResponse.json(
+          {
+            type: problemTypes.notFound,
+            title: "Product not found",
+            status: 404,
+            detail: `Product with slug '${slug}' does not exist or is not published`,
+            instance: req.url,
+          },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json(
+        {
+          status: "ok",
+          product: {
+            id: productId,
+            slug,
+          },
+        },
+        {
+          headers: { "Cache-Control": "private, max-age=60" },
+        }
+      );
+    }
+
     const result = await getProductPageData(slug, lang);
     if (result.status === "not_found") {
       return NextResponse.json(

@@ -5,6 +5,11 @@ type RouterWithPrefetch = {
   prefetch: (href: string) => void;
 };
 
+type PrefetchStorefrontRouteOptions = {
+  prefetchMenuProducts?: boolean;
+  prefetchProductBundle?: boolean;
+};
+
 function isShopOrComboHref(href: string): boolean {
   return href.startsWith('/shop') || href.startsWith('/combo');
 }
@@ -21,23 +26,29 @@ function extractProductSlug(href: string): string | null {
 /**
  * Warms Next.js RSC payload plus shop menu / PDP JSON caches for a storefront href.
  */
-export function prefetchStorefrontRoute(router: RouterWithPrefetch, href: string): void {
+export function prefetchStorefrontRoute(
+  router: RouterWithPrefetch,
+  href: string,
+  options?: PrefetchStorefrontRouteOptions
+): void {
   const normalized = href.trim();
   if (!normalized) {
     return;
   }
+  const prefetchMenuProducts = options?.prefetchMenuProducts ?? true;
+  const prefetchProductBundle = options?.prefetchProductBundle ?? true;
 
   void router.prefetch(normalized);
 
   if (isShopOrComboHref(normalized)) {
-    if (hasSearchParams(normalized)) {
+    if (prefetchMenuProducts && hasSearchParams(normalized)) {
       prefetchShopMenuProducts(normalized);
     }
     return;
   }
 
   const productSlug = extractProductSlug(normalized);
-  if (productSlug) {
+  if (productSlug && prefetchProductBundle) {
     prefetchProductPdpBundle(productSlug);
   }
 }

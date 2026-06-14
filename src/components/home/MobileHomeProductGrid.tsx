@@ -17,7 +17,11 @@ export function MobileHomeProductGrid({ products }: MobileHomeProductGridProps) 
   return (
     <div className={MOBILE_SHOP_PRODUCTS_GRID_CLASS}>
       {products.map((product) => (
-        <ShopMobileProductCard key={product.id} card={homeFeaturedProductToMenuCard(product)} />
+        <ShopMobileProductCard
+          key={product.id}
+          card={homeFeaturedProductToMenuCard(product)}
+          enableVisibilityPrefetch={false}
+        />
       ))}
     </div>
   );

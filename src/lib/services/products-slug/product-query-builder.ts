@@ -16,6 +16,7 @@ const LOCALE_TRANSLATION_TAKE = 2;
 function getBaseInclude(lang: string) {
   const localeWhere = translationLocaleWhere(lang);
   return {
+    pdpCustomization: true,
     translations: {
       where: localeWhere,
       take: LOCALE_TRANSLATION_TAKE,
@@ -66,8 +67,21 @@ function getBaseInclude(lang: string) {
  * Base include without attributeValue relation (fallback)
  */
 function getBaseIncludeWithoutAttributeValue(lang: string) {
+  const localeWhere = translationLocaleWhere(lang);
   return {
-    ...getBaseInclude(lang),
+    pdpCustomization: true,
+    translations: {
+      where: localeWhere,
+      take: LOCALE_TRANSLATION_TAKE,
+    },
+    categories: {
+      include: {
+        translations: {
+          where: localeWhere,
+          take: LOCALE_TRANSLATION_TAKE,
+        },
+      },
+    },
     variants: {
       where: {
         published: true,
@@ -79,6 +93,7 @@ function getBaseIncludeWithoutAttributeValue(lang: string) {
         options: true,
       },
     },
+    labels: true,
   };
 }
 
@@ -97,7 +112,12 @@ function getProductAttributesInclude(lang: string) {
               take: LOCALE_TRANSLATION_TAKE,
             },
             values: {
-              include: {
+              select: {
+                id: true,
+                value: true,
+                imageUrl: true,
+                colors: true,
+                priceAdjustment: true,
                 translations: {
                   where: localeWhere,
                   take: LOCALE_TRANSLATION_TAKE,
@@ -357,12 +377,37 @@ async function fetchProductAttributesSlice(
   lang: string
 ): Promise<unknown[] | undefined> {
   const baseWhere = getPublishedProductWhere(productId);
+  const localeWhere = translationLocaleWhere(lang);
 
   try {
     const row = await db.product.findFirst({
       where: baseWhere,
       select: {
-        productAttributes: getProductAttributesInclude(lang).productAttributes,
+        productAttributes: {
+          include: {
+            attribute: {
+              include: {
+                translations: {
+                  where: localeWhere,
+                  take: LOCALE_TRANSLATION_TAKE,
+                },
+                values: {
+                  select: {
+                    id: true,
+                    value: true,
+                    imageUrl: true,
+                    colors: true,
+                    priceAdjustment: true,
+                    translations: {
+                      where: localeWhere,
+                      take: LOCALE_TRANSLATION_TAKE,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
     return row?.productAttributes;
