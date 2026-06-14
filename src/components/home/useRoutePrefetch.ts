@@ -25,6 +25,9 @@ export function useRoutePrefetch(hrefs: readonly string[]) {
   useEffect(() => {
     const runIdlePrefetch = () => {
       for (const href of hrefs) {
+        if (href.startsWith('/shop') || href.startsWith('/combo')) {
+          continue;
+        }
         prefetch(href);
       }
     };

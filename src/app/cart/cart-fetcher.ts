@@ -9,7 +9,7 @@ import type { Cart } from './types';
  */
 export async function fetchCartFromApi(): Promise<Cart | null> {
   try {
-    const response = await apiClient.get<{ cart: Cart | null }>('/api/v1/cart');
+    const response = await apiClient.get<{ cart: Cart | null }>('/api/v1/cart?summary=1');
     return response.cart;
   } catch (error: unknown) {
     if (error instanceof ApiError && isQuietCartReadServerError(error.status, '/api/v1/cart')) {

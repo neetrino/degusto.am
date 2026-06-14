@@ -19,6 +19,15 @@ export function mapVisualPayloadToSnapshot(
     id: payload.id,
     slug: payload.slug,
     title: payload.title,
+    category: payload.category,
+    brand: payload.brand,
+    price: payload.price,
+    oldPrice: payload.oldPrice,
+    discountPercent: payload.discountPercent,
+    currency: payload.currency,
+    inStock: payload.inStock,
+    defaultVariantId: payload.defaultVariantId,
+    labels: payload.labels,
     galleryImages: payload.galleryImages,
     seo: payload.seo,
   };
@@ -28,10 +37,33 @@ export function mapVisualPayloadToSnapshot(
 export function mapProductToVisualSnapshot(
   product: Product
 ): ProductVisualSnapshot {
+  const firstVariant = product.variants[0] ?? null;
+  const oldPrice = firstVariant?.originalPrice ?? firstVariant?.compareAtPrice ?? null;
+  const discountPercent =
+    product.productDiscount ??
+    firstVariant?.productDiscount ??
+    product.globalDiscount ??
+    firstVariant?.globalDiscount ??
+    null;
+
   return {
     id: product.id,
     slug: product.slug,
     title: product.title,
+    category: product.categories?.[0]
+      ? {
+          slug: product.categories[0].slug,
+          title: product.categories[0].title,
+        }
+      : null,
+    brand: null,
+    price: firstVariant?.price ?? 0,
+    oldPrice,
+    discountPercent,
+    currency: 'USD',
+    inStock: (firstVariant?.stock ?? 0) > 0,
+    defaultVariantId: firstVariant?.id ?? null,
+    labels: product.labels ?? [],
     galleryImages: normalizeMediaUrls(product.media),
   };
 }

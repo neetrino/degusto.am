@@ -389,6 +389,13 @@ export function Header() {
     }
   }, [isAdmin, router, userNavHref]);
 
+  useEffect(() => {
+    if (pathname !== '/shop' && pathname !== '/combo') {
+      return;
+    }
+    prefetchStorefrontRoute(router, pathname);
+  }, [pathname, router]);
+
   const prefetchRoute = (href: string) => {
     prefetchStorefrontRoute(router, href);
   };

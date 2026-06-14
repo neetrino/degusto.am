@@ -18,6 +18,7 @@ import { ProductInfoAndActions } from './ProductInfoAndActions';
 import { ProductInfoColumnSkeleton } from './ProductInfoColumnSkeleton';
 import { ProductPageBelowFold } from './ProductPageBelowFold';
 import { ProductPageShell } from './ProductPageShell';
+import { ProductPrimaryMeta } from './ProductPrimaryMeta';
 import { useProductPage } from './useProductPage';
 import { playCartFlyAnimation } from '../../../lib/cart-fly-animation';
 import { BodyBackground } from '../../../components/BodyBackground';
@@ -42,6 +43,14 @@ import { ProductPageHydrationProvider } from './ProductPageHydrationContext';
 import { useProductClientRefetch } from './hooks/useProductClientRefetch';
 import { useProductReviewSummary } from './hooks/useProductReviewSummary';
 import { usePdpChrome } from './pdp-chrome-context';
+import {
+  markPdpFullHydrationMetric,
+  markPdpPrimaryPaintMetric,
+} from '@/lib/products/pdp-progressive-metrics';
+import {
+  getProductSummarySnapshot,
+  setProductSummarySnapshot,
+} from '@/lib/products/product-summary-cache';
 import {
   PDP_CONTENT_SHELL_CLASS,
   PDP_HERO_FRAME_CLASS,
@@ -136,9 +145,33 @@ export function ProductPageClient({
     () => (initialVisual ? mergeVisualIntoProduct(null, initialVisual) : null),
     [initialVisual]
   );
+  const cachedSummaryProduct = useMemo(() => {
+    if (initialProduct || partialProduct || initialNotFound) {
+      return null;
+    }
+    const summary = getProductSummarySnapshot(slug);
+    if (!summary) {
+      return null;
+    }
+    return mergeVisualIntoProduct(null, {
+      id: summary.id,
+      slug: summary.slug,
+      title: summary.title,
+      category: summary.category,
+      brand: summary.brand,
+      price: summary.price,
+      oldPrice: summary.oldPrice,
+      discountPercent: summary.discount,
+      currency: summary.currency,
+      inStock: summary.inStock,
+      defaultVariantId: summary.defaultVariantId,
+      labels: summary.labels,
+      galleryImages: summary.image ? [summary.image] : [],
+    });
+  }, [initialProduct, partialProduct, initialNotFound, slug]);
 
-  const product = fullProduct ?? partialProduct;
-  const detailsPending = Boolean(partialProduct && !fullProduct && !notFound);
+  const product = fullProduct ?? partialProduct ?? cachedSummaryProduct;
+  const detailsPending = Boolean((partialProduct || cachedSummaryProduct) && !fullProduct && !notFound);
   const awaitingDetails =
     !product && !notFound && !initialNotFound && !streamDetails;
   const productRef = useRef<Product | null>(product);
@@ -148,12 +181,69 @@ export function ProductPageClient({
     Boolean(product) && !awaitingDetails && !detailsPending && !notFound;
 
   useEffect(() => {
+    if (!product || notFound) {
+      return;
+    }
+    if (fullProduct) {
+      markPdpPrimaryPaintMetric(slug, 'full');
+      markPdpFullHydrationMetric(slug);
+      return;
+    }
+    if (partialProduct) {
+      markPdpPrimaryPaintMetric(slug, 'visual');
+      return;
+    }
+    if (cachedSummaryProduct) {
+      markPdpPrimaryPaintMetric(slug, 'summary');
+      return;
+    }
+    markPdpPrimaryPaintMetric(slug, 'unknown');
+  }, [slug, product, notFound, fullProduct, partialProduct, cachedSummaryProduct]);
+
+  useEffect(() => {
     setDesktopChromeReady(isDesktopChromeReady);
     return () => setDesktopChromeReady(false);
   }, [isDesktopChromeReady, setDesktopChromeReady]);
 
   useEffect(() => {
     productRef.current = product;
+  }, [product]);
+
+  useEffect(() => {
+    if (!product) {
+      return;
+    }
+    const category = product.categories?.[0]
+      ? {
+          slug: product.categories[0].slug,
+          title: product.categories[0].title,
+        }
+      : null;
+    const firstVariant = product.variants[0] ?? null;
+    const mainImage =
+      typeof product.media?.[0] === 'string'
+        ? product.media[0]
+        : product.media?.[0]?.url ?? firstVariant?.imageUrl ?? null;
+    setProductSummarySnapshot({
+      id: product.id,
+      slug: product.slug,
+      title: product.title,
+      image: mainImage,
+      price: firstVariant?.price ?? 0,
+      oldPrice: firstVariant?.originalPrice ?? firstVariant?.compareAtPrice ?? null,
+      discount:
+        product.productDiscount ??
+        firstVariant?.productDiscount ??
+        product.globalDiscount ??
+        firstVariant?.globalDiscount ??
+        null,
+      category,
+      brand: null,
+      currency: 'USD',
+      labels: product.labels ?? [],
+      inStock: (firstVariant?.stock ?? 0) > 0,
+      defaultVariantId: firstVariant?.id ?? null,
+    });
   }, [product]);
 
   const hydrateDetails = useCallback((
@@ -177,7 +267,7 @@ export function ProductPageClient({
 
   useProductReviewSummary(
     slug,
-    !notFound && !initialNotFound && initialReviewSummary.count === 0,
+    !notFound && !initialNotFound && initialReviewSummary.count === 0 && !detailsPending,
     applyReviewSummary
   );
 
@@ -404,49 +494,62 @@ export function ProductPageClient({
               </div>
 
               <div className={PDP_HERO_INFO_OFFSET_CLASS}>
-              {detailsPending ? (
+              {detailsPending && !product ? (
                 <ProductInfoColumnSkeleton />
               ) : (
-                <ProductInfoAndActions
-                  product={product}
-                  price={price}
-                  originalPrice={originalPrice}
-                  compareAtPrice={compareAtPrice}
-                  currency={currency}
-                  language={language}
-                  averageRating={averageRating}
-                  reviewsCount={reviewsCount}
-                  quantity={quantity}
-                  maxQuantity={maxQuantity}
-                  isOutOfStock={isOutOfStock}
-                  unavailableAttributes={unavailableAttributes}
-                  canAddToCart={canAddToCart}
-                  isAddingToCart={false}
-                  currentVariant={currentVariant}
-                  attributeGroups={attributeGroups}
-                  selectedColor={selectedColor}
-                  selectedSize={selectedSize}
-                  selectedAttributeValues={selectedAttributeValues}
-                  colorGroups={colorGroups}
-                  sizeGroups={sizeGroups}
-                  onQuantityAdjust={adjustQuantity}
-                  onAddToCart={handleAddToCart}
-                  onColorSelect={handleColorSelect}
-                  onSizeSelect={handleSizeSelect}
-                  onAttributeValueSelect={handleAttributeValueSelect}
-                  getOptionValue={getOptionValue}
-                  additions={additions}
-                  exclusions={exclusions}
-                  onAdditionsChange={setAdditions}
-                  onExclusionsChange={setExclusions}
-                />
+                <>
+                  <ProductPrimaryMeta
+                    categoryTitle={product.categories?.[0]?.title}
+                    brand={null}
+                    language={language}
+                  />
+                  <ProductInfoAndActions
+                    product={product}
+                    price={price}
+                    originalPrice={originalPrice}
+                    compareAtPrice={compareAtPrice}
+                    currency={currency}
+                    language={language}
+                    averageRating={averageRating}
+                    reviewsCount={reviewsCount}
+                    quantity={quantity}
+                    maxQuantity={maxQuantity}
+                    isOutOfStock={isOutOfStock}
+                    unavailableAttributes={unavailableAttributes}
+                    canAddToCart={canAddToCart}
+                    isAddingToCart={false}
+                    currentVariant={currentVariant}
+                    attributeGroups={attributeGroups}
+                    selectedColor={selectedColor}
+                    selectedSize={selectedSize}
+                    selectedAttributeValues={selectedAttributeValues}
+                    colorGroups={colorGroups}
+                    sizeGroups={sizeGroups}
+                    onQuantityAdjust={adjustQuantity}
+                    onAddToCart={handleAddToCart}
+                    onColorSelect={handleColorSelect}
+                    onSizeSelect={handleSizeSelect}
+                    onAttributeValueSelect={handleAttributeValueSelect}
+                    getOptionValue={getOptionValue}
+                    additions={additions}
+                    exclusions={exclusions}
+                    onAdditionsChange={setAdditions}
+                    onExclusionsChange={setExclusions}
+                    hideSecondaryDetails={detailsPending}
+                  />
+                </>
               )}
               </div>
             </div>
           </section>
         </div>
 
-          {!detailsPending && (
+          {detailsPending ? (
+            <div className="space-y-6 px-4 pb-10 pt-2 lg:px-0 lg:pb-16" aria-busy="true">
+              <div className="h-40 animate-pulse rounded-2xl bg-neutral-100" />
+              <div className="h-56 animate-pulse rounded-2xl bg-neutral-100" />
+            </div>
+          ) : (
             <ProductPageBelowFold
               slug={slug}
               product={product}
