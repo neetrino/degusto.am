@@ -9,7 +9,9 @@ import type { Cart } from './types';
  */
 export async function fetchCartFromApi(): Promise<Cart | null> {
   try {
-    const response = await apiClient.get<{ cart: Cart | null }>('/api/v1/cart?summary=1');
+    // Drawer/live cart state requires full line items; summary-only payload causes
+    // count/items mismatches after refresh (itemsCount > 0 while items is empty).
+    const response = await apiClient.get<{ cart: Cart | null }>('/api/v1/cart');
     return response.cart;
   } catch (error: unknown) {
     if (error instanceof ApiError && isQuietCartReadServerError(error.status, '/api/v1/cart')) {

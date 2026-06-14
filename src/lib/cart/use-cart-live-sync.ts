@@ -14,6 +14,8 @@ import { dispatchCartSummarySync } from '@/lib/cart/cart-summary-sync';
 import { createEmptyCart } from '@/lib/cart/empty-cart';
 
 const CART_RECONCILE_DEBOUNCE_MS = 400;
+const CART_OPTIMISTIC_RECONCILE_IDLE_MS = 900;
+const CART_RECONCILE_MIN_GAP_MS = 1500;
 
 type UseCartLiveSyncOptions = {
   isLoggedIn: boolean;
@@ -46,8 +48,10 @@ export function useCartLiveSync({
   const [isCartResolved, setIsCartResolved] = useState(false);
   const cartRef = useRef<Cart | null>(null);
   const reconcileTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const optimisticReconcileTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reloadGenerationRef = useRef(0);
   const badgeSyncReadyRef = useRef(false);
+  const lastReconcileAtRef = useRef(0);
 
   useEffect(() => {
     cartRef.current = cart;
@@ -108,6 +112,29 @@ export function useCartLiveSync({
     }, CART_RECONCILE_DEBOUNCE_MS);
   }, [reloadCart]);
 
+  const scheduleOptimisticBurstReconcile = useCallback(() => {
+    if (optimisticReconcileTimerRef.current) {
+      clearTimeout(optimisticReconcileTimerRef.current);
+    }
+
+    optimisticReconcileTimerRef.current = setTimeout(() => {
+      optimisticReconcileTimerRef.current = null;
+      const now = Date.now();
+      const elapsed = now - lastReconcileAtRef.current;
+      if (elapsed < CART_RECONCILE_MIN_GAP_MS) {
+        optimisticReconcileTimerRef.current = setTimeout(() => {
+          optimisticReconcileTimerRef.current = null;
+          lastReconcileAtRef.current = Date.now();
+          void reloadCart({ silent: true });
+        }, CART_RECONCILE_MIN_GAP_MS - elapsed);
+        return;
+      }
+
+      lastReconcileAtRef.current = now;
+      void reloadCart({ silent: true });
+    }, CART_OPTIMISTIC_RECONCILE_IDLE_MS);
+  }, [reloadCart]);
+
   useEffect(() => {
     if (isAuthLoading) {
       return;
@@ -139,6 +166,7 @@ export function useCartLiveSync({
       if (detail.confirmedLine) {
         commitCart(confirmOptimisticCartLine(cartRef.current, detail.confirmedLine));
         setCartLoading(false);
+        scheduleOptimisticBurstReconcile();
       }
 
       const snapshot = snapshotFromCartDetail(detail);
@@ -146,6 +174,7 @@ export function useCartLiveSync({
         commitCart(applyOptimisticCartAdd(cartRef.current, snapshot));
         setCartLoading(false);
         onOptimisticAdd?.();
+        scheduleOptimisticBurstReconcile();
       }
 
       if (!detail.skipReconcile && (snapshot || detail.itemsCount !== undefined)) {
@@ -159,11 +188,15 @@ export function useCartLiveSync({
       if (reconcileTimerRef.current) {
         clearTimeout(reconcileTimerRef.current);
       }
+      if (optimisticReconcileTimerRef.current) {
+        clearTimeout(optimisticReconcileTimerRef.current);
+      }
     };
   }, [
     commitCart,
     invalidateInFlightReload,
     onOptimisticAdd,
+    scheduleOptimisticBurstReconcile,
     reloadCart,
     scheduleReconcile,
   ]);

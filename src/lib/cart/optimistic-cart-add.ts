@@ -142,11 +142,28 @@ function findConfirmedLineIndex(
   );
   const optimisticId = `${confirmation.productId}:${previousLineKey}`;
 
-  return items.findIndex(
+  const byPreviousLine = items.findIndex(
     (item) =>
       item.id === optimisticId ||
       (item.variant.product.id === confirmation.productId &&
         buildCustomizationLineKey(item.variant.id, item.customizations) === previousLineKey)
+  );
+  if (byPreviousLine >= 0) {
+    return byPreviousLine;
+  }
+
+  // After the first confirmation, optimistic rows can already be promoted to the
+  // resolved variant/server id. Follow-up confirmations (same burst add) must
+  // still land on that row instead of being dropped as "not found".
+  const confirmedLineKey = buildCustomizationLineKey(
+    confirmation.variantId,
+    normalizedCustomizations
+  );
+  return items.findIndex(
+    (item) =>
+      item.id === confirmation.serverItemId ||
+      (item.variant.product.id === confirmation.productId &&
+        buildCustomizationLineKey(item.variant.id, item.customizations) === confirmedLineKey)
   );
 }
 
@@ -171,9 +188,10 @@ export function confirmOptimisticCartLine(
   const confirmedItem = {
     ...cart.items[itemIndex],
     id: confirmation.serverItemId,
-    quantity: confirmation.quantity,
+    quantity: Math.max(cart.items[itemIndex].quantity, confirmation.quantity),
     price: confirmation.price,
-    total: confirmation.price * confirmation.quantity,
+    total:
+      confirmation.price * Math.max(cart.items[itemIndex].quantity, confirmation.quantity),
     variant: {
       ...cart.items[itemIndex].variant,
       id: confirmation.variantId,
@@ -186,11 +204,12 @@ export function confirmOptimisticCartLine(
     nextItems = cart.items
       .map((item, index) => {
         if (index === duplicateServerIndex) {
+          const quantity = Math.max(item.quantity, confirmation.quantity);
           return {
             ...item,
-            quantity: confirmation.quantity,
+            quantity,
             price: confirmation.price,
-            total: confirmation.price * confirmation.quantity,
+            total: confirmation.price * quantity,
             variant: {
               ...item.variant,
               id: confirmation.variantId,

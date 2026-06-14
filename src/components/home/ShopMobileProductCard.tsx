@@ -9,13 +9,9 @@ import { useAddToCart } from '../hooks/useAddToCart';
 import { useWishlist } from '../hooks/useWishlist';
 import { useAuth } from '../../lib/auth/AuthContext';
 import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
-import {
-  FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS,
-  MOBILE_SHOP_PRODUCT_CARD_ASSETS,
-} from '@/constants/mobile-figma-storefront';
+import { MOBILE_SHOP_PRODUCT_CARD_ASSETS } from '@/constants/mobile-figma-storefront';
 import {
   getProductCardWishlistHoverClasses,
-  PRODUCT_CARD_CART_BTN_HOVER_CLASS,
   PRODUCT_CARD_ICON_BTN_INTERACTION_CLASS,
   PRODUCT_CARD_WISHLIST_ICON_HOVER_CLASS,
 } from '@/constants/product-card-action-hover';
@@ -122,7 +118,7 @@ export function ShopMobileProductCard({
     <article
       ref={enableVisibilityPrefetch ? visibilityRef : null}
       data-home-product-card
-      className={`relative h-[240px] w-full cursor-pointer rounded-[20px] border-[1.5px] border-[#dedede] bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS}`}
+      className="relative h-[240px] w-full cursor-pointer rounded-[20px] border-[1.5px] border-[#dedede] bg-white transition-colors"
       onMouseEnter={warmProductRoute}
       onFocus={warmProductRoute}
       onPointerDown={warmProductRoute}
@@ -231,7 +227,7 @@ export function ShopMobileProductCard({
         onClick={handleAddToCart}
         disabled={isAddingToCart || card.inStock === false}
         aria-label={t('common.buttons.addToCart')}
-        className={`absolute bottom-0 left-1/2 ${MOBILE_PRODUCT_CARD_ACTION_Z_CLASS} inline-flex h-[42px] w-[42px] -translate-x-1/2 translate-y-1/2 items-center justify-center disabled:opacity-50 ${PRODUCT_CARD_CART_BTN_HOVER_CLASS}`}
+        className={`absolute bottom-0 left-1/2 ${MOBILE_PRODUCT_CARD_ACTION_Z_CLASS} inline-flex h-[42px] w-[42px] -translate-x-1/2 translate-y-1/2 items-center justify-center disabled:opacity-50`}
       >
         <HomeOptimizedImage
           src={MOBILE_SHOP_PRODUCT_CARD_ASSETS.addToCart}
