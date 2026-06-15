@@ -42,6 +42,7 @@ import { r2Asset } from '@/lib/r2-public-url';
 import { RelatedProducts } from '@/components/RelatedProducts';
 import { ProductReviewsLoading } from '@/components/ProductReviews/ProductReviewsLoading';
 import { PDP_RELATED_SECTION_GAP_CLASS } from '@/constants/pdp-figma-tokens';
+import { getRelatedProductsSnapshot } from '@/lib/products/related-products-cache';
 
 const PDP_RATING_STAR_SRC = r2Asset('product/20260512-7jf6Wihrew.svg');
 
@@ -94,6 +95,8 @@ export function ProductPageInstantLoading() {
       : null;
   const productSlug = parseSlugFromPathname(pathname);
   const currentProductId = summary?.id ?? '__loading__';
+  const relatedSnapshot =
+    productSlug != null ? getRelatedProductsSnapshot(productSlug) : null;
   return (
     <div>
       <div
@@ -241,7 +244,8 @@ export function ProductPageInstantLoading() {
         <RelatedProducts
           productSlug={productSlug ?? undefined}
           currentProductId={currentProductId}
-          initialProducts={[]}
+          initialProducts={relatedSnapshot?.products ?? []}
+          initialLanguage={relatedSnapshot?.language}
         />
       </div>
       <div className={`${STOREFRONT_DESKTOP_CONTENT_CLASS} ${PDP_MOBILE_SHELL_BLEED_CLASS} lg:px-0 lg:py-10`}>
