@@ -22,6 +22,7 @@ import {
   PDP_ACTIONS_MOBILE_TOP_ROW_CLASS,
   PDP_ACTIONS_ROW_CLASS,
   PDP_ADD_TO_CART_BUTTON_CLASS,
+  PDP_CONTENT_SHELL_CLASS,
   PDP_COMPARE_PRICE_CLASS,
   PDP_DESCRIPTION_CLASS,
   PDP_IMAGE_DISCOUNT_BADGE_CLASS,
@@ -32,7 +33,6 @@ import {
   PDP_RATING_STAR_GAP_CLASS,
   PDP_RATING_STAR_SIZE_CLASS,
   PDP_SECONDARY_ICON_BUTTON_CLASS,
-  STOREFRONT_DESKTOP_CONTENT_CLASS,
 } from '@/constants/pdp-figma-tokens';
 import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 import { HomeOptimizedImage } from '@/components/home/HomeOptimizedImage';
@@ -99,10 +99,7 @@ export function ProductPageInstantLoading() {
     productSlug != null ? getRelatedProductsSnapshot(productSlug) : null;
   return (
     <div>
-      <div
-        className={`${STOREFRONT_DESKTOP_CONTENT_CLASS} ${PDP_MOBILE_SHELL_BLEED_CLASS} min-h-[min(100dvh,720px)] py-12 lg:px-0 lg:py-10`}
-        aria-busy="true"
-      >
+      <div className={PDP_CONTENT_SHELL_CLASS} aria-busy="true">
         <section className={`${PDP_HERO_FRAME_CLASS} ${PDP_MOBILE_HERO_INSET_CLASS} lg:p-0`}>
           <div className={PDP_HERO_GRID_CLASS}>
           <div
@@ -248,7 +245,7 @@ export function ProductPageInstantLoading() {
           initialLanguage={relatedSnapshot?.language}
         />
       </div>
-      <div className={`${STOREFRONT_DESKTOP_CONTENT_CLASS} ${PDP_MOBILE_SHELL_BLEED_CLASS} lg:px-0 lg:py-10`}>
+      <div className={PDP_CONTENT_SHELL_CLASS}>
         <div
           id="product-reviews"
           className="mt-8 scroll-mt-24 max-lg:mt-8 lg:mt-10"
