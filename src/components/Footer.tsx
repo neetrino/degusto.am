@@ -55,9 +55,13 @@ const footerOrangeHeadingFontProps: { className: string; style: CSSProperties } 
 
 interface FooterProps {
   outerBackgroundClassName?: string;
+  loadHeavyVisual?: boolean;
 }
 
-export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
+export function Footer({
+  outerBackgroundClassName = 'bg-white',
+  loadHeavyVisual = true,
+}: FooterProps) {
   const { t } = useTranslation();
 
   return (
@@ -119,13 +123,15 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
 
       <div className="hidden overflow-hidden rounded-t-[40px] bg-[#121212] px-4 pb-10 pt-14 text-white md:px-8 lg:block lg:px-0 lg:pb-0 lg:pt-0">
         <div className={`relative ${STOREFRONT_DESKTOP_SECTION_CLASS} lg:min-h-[576px]`}>
-          <img
-            src={assets.footerPastaVisual}
-            alt="Degusto footer visual"
-            className="pointer-events-none absolute -right-[10px] top-[-115px] hidden h-[min(800px,90vh)] w-[min(512px,42vw)] max-w-none -rotate-90 -scale-x-100 object-contain [aspect-ratio:90/173] lg:block xl:h-[800px] xl:w-[512px]"
-            loading="lazy"
-            decoding="async"
-          />
+          {loadHeavyVisual ? (
+            <img
+              src={assets.footerPastaVisual}
+              alt="Degusto footer visual"
+              className="pointer-events-none absolute -right-[10px] top-[-115px] hidden h-[min(800px,90vh)] w-[min(512px,42vw)] max-w-none -rotate-90 -scale-x-100 object-contain [aspect-ratio:90/173] lg:block xl:h-[800px] xl:w-[512px]"
+              loading="lazy"
+              decoding="async"
+            />
+          ) : null}
 
           <div className={`relative z-10 ${STOREFRONT_DESKTOP_FOOTER_GRID_CLASS} lg:pt-[73px]`}>
             <div>

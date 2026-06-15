@@ -10,6 +10,7 @@ const AUTH_FOOTER_BACKGROUND_CLASS = 'bg-[#102313]';
 export function ConditionalFooter() {
   const pathname = usePathname();
   const isNotFoundPage = useNotFoundPage();
+  const isShopLikePage = pathname?.startsWith('/shop') || pathname?.startsWith('/combo');
 
   if (pathname === '/' || pathname?.startsWith('/supersudo') || pathname?.startsWith('/admin-mobile')) {
     return null;
@@ -43,7 +44,10 @@ export function ConditionalFooter() {
 
   return (
     <div className={`hidden lg:block ${backgroundClassName}`}>
-      <Footer outerBackgroundClassName={backgroundClassName} />
+      <Footer
+        outerBackgroundClassName={backgroundClassName}
+        loadHeavyVisual={!isShopLikePage}
+      />
     </div>
   );
 }
