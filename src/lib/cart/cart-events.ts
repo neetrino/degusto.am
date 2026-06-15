@@ -5,6 +5,9 @@ import {
 } from '../cartSummaryCache';
 import type { CartAddSnapshot, CartLineConfirmation } from './optimistic-cart-add';
 
+const FORCE_RELOAD_MIN_GAP_MS = 2000;
+let lastCartForceReloadAt = 0;
+
 export interface CartUpdatedDetail {
   itemsCount?: number;
   total?: number;
@@ -110,6 +113,12 @@ export function publishCartLineConfirmed(
 
 /** Request a full cart reload (e.g. after API error recovery). */
 export function publishCartForceReload(): void {
+  const now = Date.now();
+  if (now - lastCartForceReloadAt < FORCE_RELOAD_MIN_GAP_MS) {
+    return;
+  }
+  lastCartForceReloadAt = now;
+
   window.dispatchEvent(
     new CustomEvent<CartUpdatedDetail>('cart-updated', {
       detail: { forceReload: true },

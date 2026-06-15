@@ -18,6 +18,8 @@ import {
 import { clearCartLineRemoved } from '@/lib/cart/pending-cart-removals';
 import { readCartSummaryCache } from '../../lib/cartSummaryCache';
 
+const CART_ACTION_RETRY_AFTER_MS = 3000;
+
 interface ProductDetails {
   id: string;
   slug: string;
@@ -73,6 +75,7 @@ export function useAddToCart({
   const { t } = useTranslation();
   const [isUpdatingQuantity, setIsUpdatingQuantity] = useState(false);
   const [quantity, setQuantity] = useState(0);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   const resolveVariantId = async (): Promise<string | null> => {
     if (defaultVariantId) {
@@ -184,19 +187,23 @@ export function useAddToCart({
       }
 
       if (error instanceof ApiError && error.status === 503) {
-        alert(error.message || DATABASE_UNAVAILABLE_PUBLIC_DETAIL);
-        publishCartForceReload();
+        alert(
+          `${error.message || DATABASE_UNAVAILABLE_PUBLIC_DETAIL}\n\n` +
+            `Please try again in ${CART_ACTION_RETRY_AFTER_MS / 1000} seconds.`
+        );
         return;
       }
 
       logger.error('[PRODUCT CARD] Error adding to cart', { error });
       alert(t('common.alerts.failedToAddToCart'));
       publishCartForceReload();
+    } finally {
+      setIsAddingToCart(false);
     }
   };
 
   const addToCart = (fly?: AddToCartFlyContext) => {
-    if (!inStock) {
+    if (!inStock || isAddingToCart) {
       return;
     }
 
@@ -205,6 +212,7 @@ export function useAddToCart({
       alert(t('common.alerts.invalidProduct'));
       return;
     }
+    setIsAddingToCart(true);
 
     playCartFlyAnimation({
       fromElement: fly?.origin ?? null,
@@ -294,5 +302,5 @@ export function useAddToCart({
     }
   };
 
-  return { isAddingToCart: false, isUpdatingQuantity, quantity, addToCart, removeFromCart };
+  return { isAddingToCart, isUpdatingQuantity, quantity, addToCart, removeFromCart };
 }
