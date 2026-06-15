@@ -103,6 +103,11 @@ export async function loadComboMenuData(query: ComboMenuQuery): Promise<ComboMen
   const { locale } = query;
   const allCategoriesLabel = locale === 'hy' ? 'Բոլորը' : 'All';
   const productWhereBase = buildComboProductWhereBase(locale, query);
+  const shouldSkipCountsForFastFirstOpen =
+    !query.selectedSearchQuery &&
+    !query.tasteFilter &&
+    query.minPriceAmd === null &&
+    query.maxPriceAmd === null;
 
   const { productTotal, productRows, categoryRows, allProductCount, countBySlug } =
     await withPrismaResilience<ComboMenuDbResult>(
@@ -147,22 +152,23 @@ export async function loadComboMenuData(query: ComboMenuQuery): Promise<ComboMen
               allCategoriesLabel,
               nextCategoryRows
             );
-            const nextSlugsToCount = nextCategoryEntries
-              .filter((item) => item.slug !== '')
-              .map((item) => item.slug);
-
             let nextAllProductCount = 0;
             let nextCountBySlug: Record<string, number> = {};
-            try {
-              const counts = await fetchComboMenuCategoryProductCounts(
-                locale,
-                query,
-                nextSlugsToCount
-              );
-              nextAllProductCount = counts.allProductCount;
-              nextCountBySlug = counts.countBySlug;
-            } catch (countsError) {
-              logger.error('[COMBO] Category product counts failed', countsError);
+            if (!shouldSkipCountsForFastFirstOpen) {
+              const nextSlugsToCount = nextCategoryEntries
+                .filter((item) => item.slug !== '')
+                .map((item) => item.slug);
+              try {
+                const counts = await fetchComboMenuCategoryProductCounts(
+                  locale,
+                  query,
+                  nextSlugsToCount
+                );
+                nextAllProductCount = counts.allProductCount;
+                nextCountBySlug = counts.countBySlug;
+              } catch (countsError) {
+                logger.error('[COMBO] Category product counts failed', countsError);
+              }
             }
 
             return {
@@ -215,7 +221,8 @@ export async function loadComboMenuData(query: ComboMenuQuery): Promise<ComboMen
     categories: mapCategoryEntriesToMenuCategories(
       categoryEntries,
       allProductCount,
-      slugToProductCount
+      slugToProductCount,
+      !shouldSkipCountsForFastFirstOpen
     ),
     effectivePage,
     totalPages,
@@ -252,7 +259,7 @@ const getComboMenuDataCached = unstable_cache(
       requestedPage: Number.isFinite(parsedPage) && parsedPage >= 1 ? parsedPage : 1,
     });
   },
-  ['combo-menu-data-v2'],
+  ['combo-menu-data-v3'],
   {
     revalidate: COMBO_MENU_REVALIDATE_SECONDS,
     tags: [COMBO_MENU_CACHE_TAG],

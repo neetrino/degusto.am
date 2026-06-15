@@ -10,6 +10,7 @@ import {
 } from "./product-related-transform";
 
 const RELATED_CANDIDATE_LIMIT = 14;
+const RELATED_RESPONSE_LIMIT = 5;
 
 const relatedProductSelect = {
   id: true,
@@ -168,7 +169,7 @@ export async function findRelatedByProductSlug(slug: string, lang: string) {
     const data = await fetchRelatedRows(context.productId, lang, context.primaryCategorySlug ?? undefined);
     const filtered = data
       .filter((p) => p.id !== context.productId && p.slug.length > 0)
-      .slice(0, 10);
+      .slice(0, RELATED_RESPONSE_LIMIT);
     return { data: filtered, meta: { total: filtered.length } };
   } catch (error: unknown) {
     logger.warn("findRelatedByProductSlug failed", {

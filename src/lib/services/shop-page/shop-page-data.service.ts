@@ -213,22 +213,29 @@ async function loadShopMenuSidebar(filter: ShopMenuFilterKey): Promise<ShopMenuS
     allCategoriesLabel,
     categoryRows
   );
-  const slugsToCount = categoryEntries
-    .filter((item) => item.slug !== '')
-    .map((item) => item.slug);
+  const shouldSkipCountsForFastFirstOpen =
+    !filter.selectedSearchQuery &&
+    !filter.tasteFilter &&
+    filter.minPriceAmd === null &&
+    filter.maxPriceAmd === null;
 
   let allProductCount = 0;
   let countBySlug: Record<string, number> = {};
-  try {
-    const counts = await fetchShopMenuCategoryProductCounts(
-      filter.locale,
-      filterQuery,
-      slugsToCount
-    );
-    allProductCount = counts.allProductCount;
-    countBySlug = counts.countBySlug;
-  } catch (countsError) {
-    logger.error('[SHOP] Category product counts failed', countsError);
+  if (!shouldSkipCountsForFastFirstOpen) {
+    const slugsToCount = categoryEntries
+      .filter((item) => item.slug !== '')
+      .map((item) => item.slug);
+    try {
+      const counts = await fetchShopMenuCategoryProductCounts(
+        filter.locale,
+        filterQuery,
+        slugsToCount
+      );
+      allProductCount = counts.allProductCount;
+      countBySlug = counts.countBySlug;
+    } catch (countsError) {
+      logger.error('[SHOP] Category product counts failed', countsError);
+    }
   }
 
   const slugToProductCount = new Map<string, number>(Object.entries(countBySlug));
@@ -243,12 +250,14 @@ async function loadShopMenuSidebar(filter: ShopMenuFilterKey): Promise<ShopMenuS
     categories: mapCategoryEntriesToMenuCategories(
       categoryEntries,
       allProductCount,
-      slugToProductCount
+      slugToProductCount,
+      !shouldSkipCountsForFastFirstOpen
     ),
     mobileShopCategories: mapCategoryEntriesToMobileCategories(
       categoryEntries,
       allProductCount,
-      slugToProductCount
+      slugToProductCount,
+      !shouldSkipCountsForFastFirstOpen
     ),
     showCategoryPicker: categoryEntries.length > 0,
   };
