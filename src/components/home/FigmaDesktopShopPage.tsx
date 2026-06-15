@@ -43,6 +43,8 @@ import { useRoutePrefetch } from './useRoutePrefetch';
 import { useShopCategorySoftNav } from './useShopCategorySoftNav';
 import { ShopDesktopProductsSkeleton } from './ShopDesktopProductsSkeleton';
 import { HomeOptimizedImage } from './HomeOptimizedImage';
+import { createProductPreviewSummary } from '@/lib/products/product-preview';
+import { convertPrice } from '@/lib/currency';
 import {
   STOREFRONT_DESKTOP_MAIN_COLUMN_CLASS,
   STOREFRONT_DESKTOP_PRODUCT_GRID_CLASS,
@@ -353,6 +355,21 @@ function MenuCardItemBase({ card }: { card: MenuCard }) {
   };
 
   const visibilityRef = usePrefetchProductWhenVisible(card.slug);
+  const displayRating = card.rating ?? 5;
+  const previewSummary = createProductPreviewSummary({
+    id: card.id,
+    slug: card.slug,
+    title,
+    image: imageSrc,
+    price: convertPrice(card.price, 'USD', currency),
+    oldPrice: showStrikethroughPrice ? convertPrice(card.oldPrice, 'USD', currency) : null,
+    discount: hasDiscount ? effectiveDiscountPercent : null,
+    category: null,
+    rating: displayRating,
+    currency,
+    inStock: card.inStock ?? true,
+    defaultVariantId: card.defaultVariantId ?? null,
+  });
   const warmProductRoute = useCallback(() => {
     prefetchProductRoute(router, card.slug);
   }, [router, card.slug]);
@@ -367,7 +384,7 @@ function MenuCardItemBase({ card }: { card: MenuCard }) {
       onPointerDown={warmProductRoute}
       onTouchStart={warmProductRoute}
     >
-      <StorefrontProductOverlayLink slug={card.slug} label={title} />
+      <StorefrontProductOverlayLink slug={card.slug} label={title} preview={previewSummary} />
       <div className={DESKTOP_MENU_CARD_IMAGE_FRAME_CLASS}>
         <div data-product-fly-origin className="h-full w-full overflow-hidden rounded-[20px]">
           <HomeOptimizedImage
@@ -417,7 +434,9 @@ function MenuCardItemBase({ card }: { card: MenuCard }) {
       </button>
       <div className={`absolute left-[14px] ${DESKTOP_MENU_CARD_META_TOP_CLASS} flex items-center gap-[6px]`}>
         <img src={assets.productCardStar} alt="" className="h-5 w-5 object-contain" />
-        <p className="text-base font-medium leading-[1.35] text-[rgba(60,47,47,0.62)]">4.7</p>
+        <p className="text-base font-medium leading-[1.35] text-[rgba(60,47,47,0.62)]">
+          {displayRating.toFixed(1)}
+        </p>
       </div>
       <div className={`absolute left-[14px] right-[100px] ${DESKTOP_MENU_CARD_TITLE_TOP_CLASS} min-w-0`}>
         <h3 className="text-base font-bold leading-[1.05] text-[#3c2f2f]">

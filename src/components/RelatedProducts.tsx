@@ -16,7 +16,6 @@ import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
 import { montserratArmFont } from '@/fonts/montserrat-arm-font';
 import {
   PDP_FIGMA_DARK_SECTION,
-  PDP_RELATED_CARDS_GAP_CLASS,
   PDP_RELATED_CAROUSEL_DOT_ACTIVE_CLASS,
   PDP_RELATED_CAROUSEL_DOT_INACTIVE_CLASS,
   PDP_RELATED_CAROUSEL_DOTS_CLASS,
@@ -94,6 +93,7 @@ export function RelatedProducts({
     () => (visibleCards <= 2 ? 2 : visibleCards),
     [visibleCards],
   );
+  const skeletonCardWidth = `${100 / visibleCards}%`;
 
   // Initialize language from localStorage after mount to prevent hydration mismatch
   useEffect(() => {
@@ -147,26 +147,30 @@ export function RelatedProducts({
         </div>
 
         {showOffscreenPlaceholder ? (
-          <div
-            className={`flex ${PDP_RELATED_CARDS_GAP_CLASS} lg:grid lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 min-[1450px]:grid-cols-5`}
-            aria-hidden
-          >
-            {Array.from({ length: loadingSkeletonCount }, (_, i) => i + 1).map((i) => (
-              <div key={i} className="min-w-0 flex-1 lg:flex-none">
-                <div className="h-[268px] rounded-[20px] bg-neutral-50 lg:h-[284px]" />
-              </div>
-            ))}
+          <div className="relative overflow-hidden" aria-hidden>
+            <div className="flex items-stretch">
+              {Array.from({ length: loadingSkeletonCount }, (_, i) => i + 1).map((i) => (
+                <div key={i} className="shrink-0" style={{ width: skeletonCardWidth }}>
+                  <div className={isCompactCarousel ? 'px-[7px] pb-5' : 'px-[16.5px] pb-[30px]'}>
+                    <div className="h-[268px] rounded-[20px] bg-neutral-50 lg:h-[284px]" />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         ) : loading && products.length === 0 ? (
-          <div
-            className={`flex ${PDP_RELATED_CARDS_GAP_CLASS} lg:grid lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 min-[1450px]:grid-cols-5`}
-            aria-busy="true"
-          >
-            {Array.from({ length: loadingSkeletonCount }, (_, i) => i + 1).map((i) => (
-              <div key={i} className="min-w-0 flex-1 animate-pulse lg:flex-none">
-                <div className="h-[268px] rounded-[20px] bg-neutral-100 lg:h-[284px]" />
-              </div>
-            ))}
+          <div className="relative overflow-hidden" aria-busy="true">
+            <div className="flex items-stretch">
+              {Array.from({ length: loadingSkeletonCount }, (_, i) => i + 1).map((i) => (
+                <div key={i} className="shrink-0" style={{ width: skeletonCardWidth }}>
+                  <div
+                    className={`${isCompactCarousel ? 'px-[7px] pb-5' : 'px-[16.5px] pb-[30px]'} animate-pulse`}
+                  >
+                    <div className="h-[268px] rounded-[20px] bg-neutral-100 lg:h-[284px]" />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         ) : products.length === 0 ? (
           <div className="py-12 text-center">

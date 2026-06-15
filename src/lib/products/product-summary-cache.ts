@@ -1,6 +1,6 @@
 import type { ProductLabel } from '@/components/ProductLabels';
 
-const PRODUCT_SUMMARY_CACHE_PREFIX = 'pdp:summary:v1:';
+const PRODUCT_SUMMARY_CACHE_PREFIX = 'pdp:summary:v2:';
 const PRODUCT_SUMMARY_TTL_MS = 15 * 60 * 1000;
 
 type ProductSummaryCategory = {
@@ -16,6 +16,7 @@ export interface ProductSummarySnapshot {
   price: number;
   oldPrice: number | null;
   discount: number | null;
+  rating: number | null;
   category: ProductSummaryCategory | null;
   brand: string | null;
   currency: string;
@@ -43,6 +44,7 @@ function normalizeSummary(input: ProductSummarySnapshot): ProductSummarySnapshot
     currency: input.currency.trim() || 'USD',
     oldPrice: input.oldPrice ?? null,
     discount: input.discount ?? null,
+    rating: typeof input.rating === 'number' ? input.rating : null,
     brand: input.brand?.trim() || null,
     defaultVariantId: input.defaultVariantId ?? null,
     labels: Array.isArray(input.labels) ? input.labels : [],

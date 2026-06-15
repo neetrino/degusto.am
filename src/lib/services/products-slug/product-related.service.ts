@@ -91,13 +91,36 @@ async function fetchRelatedRows(
   return transformRelatedProductRows(rows as RelatedProductRow[], lang);
 }
 
-/**
- * Related products for PDP: one light Prisma query + card transform (no full catalog pipeline).
- */
-export async function findRelatedByProductSlug(slug: string, lang: string) {
-  try {
-    let product = await db.product.findFirst({
-      where: getBaseWhere(slug, lang),
+export type ProductRelatedContext = {
+  productId: string;
+  primaryCategorySlug: string | null;
+};
+
+export async function resolveProductRelatedContextBySlug(
+  slug: string,
+  lang: string
+): Promise<ProductRelatedContext | null> {
+  let product = await db.product.findFirst({
+    where: getBaseWhere(slug, lang),
+    select: {
+      id: true,
+      primaryCategoryId: true,
+      categories: {
+        select: {
+          id: true,
+          translations: {
+            where: { locale: lang },
+            select: { slug: true },
+            take: 1,
+          },
+        },
+      },
+    },
+  });
+
+  if (!product && lang !== "en") {
+    product = await db.product.findFirst({
+      where: getBaseWhere(slug, "en"),
       select: {
         id: true,
         primaryCategoryId: true,
@@ -105,7 +128,7 @@ export async function findRelatedByProductSlug(slug: string, lang: string) {
           select: {
             id: true,
             translations: {
-              where: { locale: lang },
+              where: { locale: "en" },
               select: { slug: true },
               take: 1,
             },
@@ -113,41 +136,38 @@ export async function findRelatedByProductSlug(slug: string, lang: string) {
         },
       },
     });
+  }
 
-    if (!product && lang !== "en") {
-      product = await db.product.findFirst({
-        where: getBaseWhere(slug, "en"),
-        select: {
-          id: true,
-          primaryCategoryId: true,
-          categories: {
-            select: {
-              id: true,
-              translations: {
-                where: { locale: "en" },
-                select: { slug: true },
-                take: 1,
-              },
-            },
-          },
-        },
-      });
-    }
+  if (!product) {
+    return null;
+  }
 
-    if (!product) {
+  const primary =
+    product.primaryCategoryId != null
+      ? product.categories.find((c) => c.id === product.primaryCategoryId)
+      : undefined;
+  const primaryCategorySlug =
+    primary?.translations[0]?.slug ?? product.categories[0]?.translations[0]?.slug ?? null;
+
+  return {
+    productId: product.id,
+    primaryCategorySlug,
+  };
+}
+
+/**
+ * Related products for PDP: one light Prisma query + card transform (no full catalog pipeline).
+ */
+export async function findRelatedByProductSlug(slug: string, lang: string) {
+  try {
+    const context = await resolveProductRelatedContextBySlug(slug, lang);
+    if (!context) {
       return { data: [] as RelatedCardPayload[], meta: { total: 0 } };
     }
 
-    const primary =
-      product.primaryCategoryId != null
-        ? product.categories.find((c) => c.id === product.primaryCategoryId)
-        : undefined;
-    const primarySlug =
-      primary?.translations[0]?.slug ?? product.categories[0]?.translations[0]?.slug;
-
-    const data = await fetchRelatedRows(product.id, lang, primarySlug);
+    const data = await fetchRelatedRows(context.productId, lang, context.primaryCategorySlug ?? undefined);
     const filtered = data
-      .filter((p) => p.id !== product.id && p.slug.length > 0)
+      .filter((p) => p.id !== context.productId && p.slug.length > 0)
       .slice(0, 10);
     return { data: filtered, meta: { total: filtered.length } };
   } catch (error: unknown) {

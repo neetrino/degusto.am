@@ -6,6 +6,7 @@ import { formatPrice, type CurrencyCode } from '../../lib/currency';
 import { MOBILE_SHOP_PRODUCT_CARD_ASSETS } from '@/constants/mobile-figma-storefront';
 import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 import type { WishlistProductCardProduct } from './WishlistProductCard';
+import { createProductPreviewSummary } from '@/lib/products/product-preview';
 
 const MOBILE_WISHLIST_CARD_HEIGHT_PX = 240;
 const MOBILE_WISHLIST_IMAGE_HEIGHT_PX = 143;
@@ -89,6 +90,17 @@ export function WishlistMobileProductCard({
   const discountPercent = resolveDiscountPercent(product);
   const hasDiscount = discountPercent > 0;
   const discountText = hasDiscount ? `-${discountPercent}%` : '';
+  const previewSummary = createProductPreviewSummary({
+    id: product.id,
+    slug: product.slug,
+    title: product.title,
+    image: imageSrc,
+    price: product.price,
+    oldPrice: strikePrice,
+    discount: hasDiscount ? discountPercent : null,
+    currency,
+    inStock: product.inStock,
+  });
 
   const handleRemove = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -108,7 +120,11 @@ export function WishlistMobileProductCard({
       className="relative w-full cursor-pointer rounded-[20px] bg-[#ffeacc]"
       style={{ height: MOBILE_WISHLIST_CARD_HEIGHT_PX }}
     >
-      <StorefrontProductOverlayLink slug={product.slug} label={product.title} />
+      <StorefrontProductOverlayLink
+        slug={product.slug}
+        label={product.title}
+        preview={previewSummary}
+      />
       <div
         className={`absolute left-1 right-1 top-[5px] overflow-hidden rounded-[18px] ${
           product.inStock ? '' : 'opacity-70'

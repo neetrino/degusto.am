@@ -12,6 +12,7 @@ export type MenuCard = {
   oldPrice: number;
   discount: string;
   discountPercent?: number | null;
+  rating?: number | null;
   inStock?: boolean;
   defaultVariantId?: string | null;
   supportsSpicy?: boolean;

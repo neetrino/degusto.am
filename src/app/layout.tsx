@@ -14,10 +14,19 @@ import { getSiteMetadataCopy } from '@/lib/i18n/metadata';
 export const viewport: Viewport = LOCKED_MOBILE_VIEWPORT;
 
 const defaultSiteMetadata = getSiteMetadataCopy(PRIMARY_LOCALE);
+const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL ?? process.env.APP_URL ?? 'http://localhost:3000';
+const metadataBase = (() => {
+  try {
+    return new URL(rawAppUrl);
+  } catch {
+    return new URL('http://localhost:3000');
+  }
+})();
 
 export const metadata: Metadata = {
   title: defaultSiteMetadata.title,
   description: defaultSiteMetadata.description,
+  metadataBase,
 };
 
 export default function RootLayout({

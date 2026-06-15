@@ -127,6 +127,7 @@ export async function loadProductProgressive({
         details.globalDiscount ??
         firstVariant?.globalDiscount ??
         null,
+      rating: null,
       category: details.categories?.[0]
         ? {
             slug: details.categories[0].slug,
@@ -160,6 +161,7 @@ export async function loadProductProgressive({
           details.globalDiscount ??
           firstVariant?.globalDiscount ??
           null,
+        rating: null,
         category: details.categories?.[0]
           ? {
               slug: details.categories[0].slug,

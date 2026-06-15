@@ -21,6 +21,7 @@ import {
 } from '@/constants/pdp-figma-tokens';
 import { resolveStorefrontDiscountPercent } from '@/lib/storefront/discount-percent';
 import { t } from '../../lib/i18n';
+import { createProductPreviewSummary } from '@/lib/products/product-preview';
 
 const FIGMA_HOT_ICON = '/api/r2/product/20260512-dWv7-ZfxP1.svg';
 const FIGMA_RIBBON_ICON = '/api/r2/product/20260512-lmzrYlGD39.svg';
@@ -119,6 +120,20 @@ export function RelatedProductCard({
       (cardRoot?.querySelector('[data-product-fly-origin]') as HTMLElement | null) ?? button;
     void addToCart({ origin, imageUrl: imageSrc });
   };
+  const previewSummary = createProductPreviewSummary({
+    id: product.id,
+    slug: product.slug,
+    title: product.title,
+    image: imageSrc,
+    price: product.price,
+    oldPrice: comparePrice,
+    discount: resolvedDiscountPercent,
+    category: categoryLabel ? { slug: `preview-${product.id}`, title: categoryLabel } : null,
+    rating: 4.7,
+    currency,
+    inStock: product.inStock,
+    defaultVariantId: product.defaultVariantId ?? null,
+  });
 
   return (
     <div
@@ -128,6 +143,7 @@ export function RelatedProductCard({
       <div data-related-product-card className="group relative flex h-full flex-col items-center py-[7px]">
         <ProductPageLink
           slug={product.slug}
+          preview={previewSummary}
           className={
             compact
               ? 'flex w-full flex-1 cursor-pointer flex-col'

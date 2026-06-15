@@ -154,6 +154,19 @@ export function getShopProductSelect(locale: StorefrontLocale): Prisma.ProductSe
             published: true,
           },
         },
+        reviews: {
+          where: {
+            published: true,
+          },
+        },
+      },
+    },
+    reviews: {
+      where: {
+        published: true,
+      },
+      select: {
+        rating: true,
       },
     },
   };

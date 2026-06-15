@@ -6,6 +6,7 @@ import { resolveStorefrontProductImage } from '@/constants/storefront-product-im
 import { Button } from '@shop/ui';
 import { formatPrice, type CurrencyCode } from '../../lib/currency';
 import { WishlistMobileProductCard } from './WishlistMobileProductCard';
+import { createProductPreviewSummary } from '@/lib/products/product-preview';
 
 export interface WishlistProductCardProduct {
   id: string;
@@ -33,12 +34,14 @@ interface WishlistCardImageLinkProps {
   slug: string;
   title: string;
   image: string | null;
+  preview: ReturnType<typeof createProductPreviewSummary>;
 }
 
-function WishlistCardImageLink({ slug, title, image }: WishlistCardImageLinkProps) {
+function WishlistCardImageLink({ slug, title, image, preview }: WishlistCardImageLinkProps) {
   return (
     <ProductPageLink
       slug={slug}
+      preview={preview}
       className="absolute inset-0 block outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
     >
       <Image
@@ -126,6 +129,7 @@ interface WishlistCardInfoPanelProps {
   isRecentlyAddedToCart: boolean;
   onAddToCart: (product: WishlistProductCardProduct) => void;
   t: (key: string) => string;
+  preview: ReturnType<typeof createProductPreviewSummary>;
 }
 
 function WishlistCardInfoPanel({
@@ -135,11 +139,13 @@ function WishlistCardInfoPanel({
   isRecentlyAddedToCart,
   onAddToCart,
   t,
+  preview,
 }: WishlistCardInfoPanelProps) {
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-2.5 border-t border-brand/10 bg-white px-4 pb-4 pt-3">
       <ProductPageLink
         slug={product.slug}
+        preview={preview}
         className="block rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
       >
         <h3 className="line-clamp-2 text-[0.9375rem] font-semibold leading-snug tracking-tight text-gray-900 transition-colors group-hover/card:text-brand">
@@ -187,6 +193,25 @@ export function WishlistProductCard({
   onAddToCart,
   t,
 }: WishlistProductCardProps) {
+  const image = resolveStorefrontProductImage(product.image);
+  const oldPrice =
+    product.originalPrice != null && product.originalPrice > product.price
+      ? product.originalPrice
+      : product.compareAtPrice != null && product.compareAtPrice > product.price
+        ? product.compareAtPrice
+        : null;
+  const previewSummary = createProductPreviewSummary({
+    id: product.id,
+    slug: product.slug,
+    title: product.title,
+    image,
+    price: product.price,
+    oldPrice,
+    discount: product.discountPercent,
+    currency,
+    inStock: product.inStock,
+  });
+
   return (
     <>
       <div className="sm:hidden">
@@ -202,7 +227,12 @@ export function WishlistProductCard({
       </div>
       <article className="group/card relative hidden flex-col overflow-hidden rounded-xl border border-gray-200/90 bg-white shadow-sm ring-1 ring-brand/5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-brand/25 hover:shadow-lg hover:ring-brand/15 sm:flex">
         <div className="relative aspect-square shrink-0 overflow-hidden bg-gradient-to-b from-brand/5 to-gray-100">
-          <WishlistCardImageLink slug={product.slug} title={product.title} image={product.image} />
+          <WishlistCardImageLink
+            slug={product.slug}
+            title={product.title}
+            image={product.image}
+            preview={previewSummary}
+          />
           <WishlistCardRemove
             productId={product.id}
             removeLabel={t('common.ariaLabels.removeFromWishlist')}
@@ -216,6 +246,7 @@ export function WishlistProductCard({
           isRecentlyAddedToCart={isRecentlyAddedToCart}
           onAddToCart={onAddToCart}
           t={t}
+          preview={previewSummary}
         />
       </article>
     </>

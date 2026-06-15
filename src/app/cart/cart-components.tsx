@@ -12,6 +12,7 @@ import { getEffectiveMaxQuantity, isUnlimitedStock } from '@/lib/product-stock';
 import { useCartDrawer } from '@/components/cart-drawer/cart-drawer-context';
 import { useTranslation } from '@/lib/i18n-client';
 import { formatPdpExclusionsDisplayList } from '@/app/products/[slug]/utils/pdp-customization-selection';
+import { createProductPreviewSummary } from '@/lib/products/product-preview';
 
 type DisplayLine = NonNullable<CartItem['variant']['displayLines']>[number];
 
@@ -166,11 +167,27 @@ export function CartItemRow({
   const currencyCode = currency as CurrencyCode;
   const lines = item.variant.displayLines ?? [];
   const isDrawer = appearance === 'drawer';
+  const previewSummary = createProductPreviewSummary({
+    id: item.variant.product.id,
+    slug: item.variant.product.slug,
+    title: item.variant.product.title,
+    image: resolveStorefrontProductImage(item.variant.product.image),
+    price: item.price,
+    oldPrice: item.originalPrice && item.originalPrice > item.price ? item.originalPrice : null,
+    category:
+      lines[0]?.valueLabel != null
+        ? { slug: `preview-${item.variant.product.id}`, title: lines[0].valueLabel }
+        : null,
+    currency: currencyCode,
+    inStock: (item.variant.stock ?? 0) > 0 || isUnlimitedStock(item.variant.stock),
+    defaultVariantId: item.variant.id,
+  });
 
   return (
     <div className={cartItemRowClassName(appearance)}>
       <ProductPageLink
         slug={item.variant.product.slug}
+        preview={previewSummary}
         className={cartItemImageLinkClassName(appearance)}
         aria-label={item.variant.product.title}
       >
@@ -188,6 +205,7 @@ export function CartItemRow({
         <div className="min-w-0 pr-1">
           <ProductPageLink
             slug={item.variant.product.slug}
+            preview={previewSummary}
             className={
               isDrawer
                 ? 'line-clamp-2 text-base font-bold text-white transition-colors hover:text-white/90'
