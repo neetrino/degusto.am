@@ -15,6 +15,7 @@ import type { HomeFeaturedProduct } from './home-page-types';
 import { resolveMobileHomeDiscountPercent } from './home-mobile-helpers';
 import { HomeOptimizedImage } from './HomeOptimizedImage';
 import { PRODUCT_CARD_CART_BTN_HOVER_CLASS } from '@/constants/product-card-action-hover';
+import { createProductPreviewSummary } from '@/lib/products/product-preview';
 
 type MobileHomeDailyOfferProps = {
   product: HomeFeaturedProduct;
@@ -46,6 +47,18 @@ export function MobileHomeDailyOffer({ product, dailyOfferAddToCartSrc }: Mobile
       (card?.querySelector('[data-product-fly-origin]') as HTMLElement | null) ?? button;
     void addToCart({ origin, imageUrl: imageSrc });
   };
+  const previewSummary = createProductPreviewSummary({
+    id: product.id,
+    slug: product.slug,
+    title,
+    image: imageSrc,
+    price: product.price,
+    oldPrice: product.oldPrice,
+    discount: discountPercent,
+    currency,
+    inStock: product.inStock ?? true,
+    defaultVariantId: product.defaultVariantId ?? null,
+  });
 
   return (
     <article
@@ -54,6 +67,7 @@ export function MobileHomeDailyOffer({ product, dailyOfferAddToCartSrc }: Mobile
     >
       <ProductPageLink
         slug={product.slug}
+        preview={previewSummary}
         className="absolute inset-0 z-[1] rounded-[inherit] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f66913]"
         aria-label={title}
       />

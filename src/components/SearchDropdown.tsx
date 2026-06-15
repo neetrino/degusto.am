@@ -7,6 +7,7 @@ import { useTranslation } from '../lib/i18n-client';
 import { formatPrice, getStoredCurrency } from '../lib/currency';
 import type { InstantSearchResultItem } from './hooks/useInstantSearch';
 import { resolveStorefrontProductImage } from '../constants/storefront-product-image';
+import { createProductPreviewSummary } from '@/lib/products/product-preview';
 
 export interface SearchDropdownProps {
   results: InstantSearchResultItem[];
@@ -70,11 +71,25 @@ export function SearchDropdown({
           <ul className="py-1" role="group">
             {results.map((result, index) => {
               const imageSrc = resolveStorefrontProductImage(result.image);
+              const previewSummary = createProductPreviewSummary({
+                id: result.id,
+                slug: result.slug,
+                title: result.title,
+                image: imageSrc,
+                price: result.price,
+                oldPrice:
+                  result.compareAtPrice != null && result.compareAtPrice > result.price
+                    ? result.compareAtPrice
+                    : null,
+                category: result.category ? { slug: `preview-${result.id}`, title: result.category } : null,
+                currency,
+              });
 
               return (
                 <li key={result.id} role="option" aria-selected={index === selectedIndex}>
                   <ProductPageLink
                     slug={result.slug}
+                    preview={previewSummary}
                     onClick={() => {
                       onClose();
                       onResultClick?.(result);

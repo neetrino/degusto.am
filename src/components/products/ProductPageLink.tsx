@@ -6,10 +6,15 @@ import { useRouter } from 'next/navigation';
 import { buildProductPageHref } from '@/lib/products/build-product-page-href';
 import { prefetchProductRoute } from '@/lib/products/prefetch-product-route';
 import { beginPdpNavigationMetric } from '@/lib/products/pdp-progressive-metrics';
+import {
+  setProductSummarySnapshot,
+  type ProductSummarySnapshot,
+} from '@/lib/products/product-summary-cache';
 
 export type ProductPageLinkProps = Omit<ComponentProps<typeof Link>, 'href' | 'prefetch'> & {
   slug: string;
   children?: ReactNode;
+  preview?: Omit<ProductSummarySnapshot, 'updatedAt'> | null;
 };
 
 /**
@@ -18,16 +23,26 @@ export type ProductPageLinkProps = Omit<ComponentProps<typeof Link>, 'href' | 'p
 export function ProductPageLink({
   slug,
   children,
+  preview = null,
   onMouseEnter,
   onFocus,
   onPointerDown,
   onTouchStart,
+  onClick,
   ...rest
 }: ProductPageLinkProps) {
   const router = useRouter();
   const href = buildProductPageHref(slug);
 
+  const registerPreview = () => {
+    if (!preview) {
+      return;
+    }
+    setProductSummarySnapshot(preview);
+  };
+
   const warm = () => {
+    registerPreview();
     prefetchProductRoute(router, slug);
   };
 
@@ -52,6 +67,10 @@ export function ProductPageLink({
         warm();
         beginPdpNavigationMetric(slug);
         onTouchStart?.(event);
+      }}
+      onClick={(event) => {
+        registerPreview();
+        onClick?.(event);
       }}
       {...rest}
     >

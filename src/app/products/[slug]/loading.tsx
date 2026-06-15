@@ -1,6 +1,6 @@
-import { ProductPageShell } from './ProductPageShell';
+import { ProductPageInstantLoading } from './ProductPageInstantLoading';
 
-/** Instant PDP skeleton while the RSC payload streams after card navigation. */
+/** Instant PDP loading UI: cached preview hero when available, full skeleton otherwise. */
 export default function ProductPageLoading() {
-  return <ProductPageShell />;
+  return <ProductPageInstantLoading />;
 }

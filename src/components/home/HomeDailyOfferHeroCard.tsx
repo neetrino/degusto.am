@@ -11,6 +11,7 @@ import { StorefrontProductOverlayLink } from './StorefrontProductOverlayLink';
 import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
 import type { HomeFeaturedProduct } from './home-page-types';
 import { PRODUCT_CARD_CART_BTN_HOVER_CLASS } from '@/constants/product-card-action-hover';
+import { createProductPreviewSummary } from '@/lib/products/product-preview';
 
 type HomeDailyOfferHeroCardAssets = {
   offerBadgeSrc: string;
@@ -57,13 +58,27 @@ export function HomeDailyOfferHeroCard({
       (card?.querySelector('[data-product-fly-origin]') as HTMLElement | null) ?? button;
     void addToCart({ origin, imageUrl: imageSrc });
   };
+  const previewSummary = createProductPreviewSummary({
+    id: product.id,
+    slug: product.slug,
+    title,
+    image: imageSrc,
+    price: product.price,
+    oldPrice: product.oldPrice,
+    discount: product.discountPercent,
+    category: subtitle ? { slug: `preview-${product.id}`, title: subtitle } : null,
+    rating: 4.7,
+    currency,
+    inStock: product.inStock ?? true,
+    defaultVariantId: product.defaultVariantId ?? null,
+  });
 
   return (
     <article
       data-home-daily-offer-hero
       className="relative z-20 h-[284px] w-[236px] shrink-0 cursor-pointer rounded-[20px]"
     >
-      <StorefrontProductOverlayLink slug={product.slug} label={title} />
+      <StorefrontProductOverlayLink slug={product.slug} label={title} preview={previewSummary} />
       <div className="absolute inset-0 rounded-[20px] bg-white shadow-xl" />
       <div
         data-product-fly-origin

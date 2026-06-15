@@ -21,6 +21,8 @@ import { StorefrontProductOverlayLink } from './StorefrontProductOverlayLink';
 import { usePrefetchProductWhenVisible } from '../hooks/usePrefetchProductWhenVisible';
 import { prefetchProductRoute } from '@/lib/products/prefetch-product-route';
 import { shouldShowMenuCardStrikethroughPrice } from '@/lib/storefront/menu-card-pricing';
+import { createProductPreviewSummary } from '@/lib/products/product-preview';
+import { convertPrice } from '@/lib/currency';
 import type { MenuCard } from './menu-types';
 
 /** Above storefront overlay link — must not include `relative` (breaks `absolute` positioning). */
@@ -110,6 +112,20 @@ export function ShopMobileProductCard({
   };
 
   const visibilityRef = usePrefetchProductWhenVisible(card.slug);
+  const previewSummary = createProductPreviewSummary({
+    id: card.id,
+    slug: card.slug,
+    title,
+    image: imageSrc,
+    price: convertPrice(card.price, 'USD', currency),
+    oldPrice: showStrikethroughPrice ? convertPrice(card.oldPrice, 'USD', currency) : null,
+    discount: hasDiscount ? effectiveDiscountPercent : null,
+    category: category ? { slug: `preview-${card.id}`, title: category } : null,
+    rating: 4.7,
+    currency,
+    inStock: card.inStock ?? true,
+    defaultVariantId: card.defaultVariantId ?? null,
+  });
   const warmProductRoute = useCallback(() => {
     prefetchProductRoute(router, card.slug);
   }, [router, card.slug]);
@@ -238,7 +254,7 @@ export function ShopMobileProductCard({
           loading="lazy"
         />
       </button>
-      <StorefrontProductOverlayLink slug={card.slug} label={title} />
+      <StorefrontProductOverlayLink slug={card.slug} label={title} preview={previewSummary} />
     </article>
   );
 }

@@ -32,6 +32,7 @@ import { StorefrontCategoryLink } from '../routing/StorefrontCategoryLink';
 import { resolveHomeDailyOfferProduct } from './home-daily-offer';
 import type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
 import { STOREFRONT_DESKTOP_SECTION_CLASS } from '@/constants/storefront-desktop-layout';
+import { createProductPreviewSummary } from '@/lib/products/product-preview';
 
 export type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
 
@@ -106,13 +107,27 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
     }
     void toggleWishlist();
   };
+  const previewSummary = createProductPreviewSummary({
+    id: item.id,
+    slug: item.slug,
+    title,
+    image: imageSrc,
+    price: item.price,
+    oldPrice: item.oldPrice,
+    discount: item.discountPercent,
+    category: subtitle ? { slug: `preview-${item.id}`, title: subtitle } : null,
+    rating: 4.7,
+    currency,
+    inStock: item.inStock ?? true,
+    defaultVariantId: item.defaultVariantId ?? null,
+  });
 
   return (
     <article
       data-home-product-card
       className={`relative h-[284px] w-[236px] shrink-0 cursor-pointer rounded-[20px] border-[1.5px] border-[#dedede] bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} hover:shadow-md`}
     >
-      <StorefrontProductOverlayLink slug={item.slug} label={title} />
+      <StorefrontProductOverlayLink slug={item.slug} label={title} preview={previewSummary} />
       <div data-product-fly-origin className="absolute left-1/2 top-1 h-[147px] w-[227px] -translate-x-1/2 overflow-hidden rounded-[18px]">
         <HomeOptimizedImage
           src={imageSrc}

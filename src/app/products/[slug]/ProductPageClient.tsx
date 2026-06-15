@@ -17,6 +17,8 @@ import { ProductImageGallery } from './ProductImageGallery';
 import { ProductInfoAndActions } from './ProductInfoAndActions';
 import { ProductInfoColumnSkeleton } from './ProductInfoColumnSkeleton';
 import { ProductPageBelowFold } from './ProductPageBelowFold';
+import { ProductReviewsLoading } from '@/components/ProductReviews/ProductReviewsLoading';
+import { RelatedProducts } from '@/components/RelatedProducts';
 import { ProductPageShell } from './ProductPageShell';
 import { ProductPrimaryMeta } from './ProductPrimaryMeta';
 import { useProductPage } from './useProductPage';
@@ -58,6 +60,7 @@ import {
   PDP_HERO_IMAGE_OFFSET_CLASS,
   PDP_HERO_INFO_OFFSET_CLASS,
   PDP_MOBILE_HERO_INSET_CLASS,
+  PDP_RELATED_SECTION_GAP_CLASS,
 } from '@/constants/pdp-figma-tokens';
 import { STOREFRONT_DESKTOP_SECTION_CLASS } from '@/constants/storefront-desktop-layout';
 import { UNIVERSAL_HEADER_DESKTOP_UNDERLAP_CLASS } from '@/constants/universal-header-layout';
@@ -107,6 +110,53 @@ const PDP_BODY_BACKGROUND = '#ffffff';
 
 const PDP_HEADER_DESKTOP_UNDERLAP_CLASS =
   `lg:relative lg:z-10 ${UNIVERSAL_HEADER_DESKTOP_UNDERLAP_CLASS}`;
+
+function ProductPageNotFoundContent({
+  language,
+  children,
+}: {
+  language: LanguageCode;
+  children?: ReactNode;
+}) {
+  return (
+    <>
+      <BodyBackground color={PDP_BODY_BACKGROUND} />
+      <div className={PDP_HEADER_DESKTOP_UNDERLAP_CLASS}>
+        <div
+          className={`${PDP_HEADER_DESKTOP_UNDERLAP_CLASS} ${STOREFRONT_DESKTOP_SECTION_CLASS} py-16 text-center space-y-4 max-lg:px-4`}
+        >
+          <p className="text-lg text-neutral-600">
+            {t(language, 'common.messages.noProductsFound')}
+          </p>
+          <Link
+            href="/shop"
+            className="inline-flex h-10 items-center rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-50"
+          >
+            {t(language, 'common.navigation.products')}
+          </Link>
+        </div>
+      </div>
+      {children}
+    </>
+  );
+}
+
+function ProductPagePendingScaffold({ relatedSection }: { relatedSection: ReactNode }) {
+  return (
+    <>
+      {relatedSection}
+      <div className={PDP_CONTENT_SHELL_CLASS}>
+        <div
+          id="product-reviews"
+          className="mt-8 scroll-mt-24 max-lg:mt-8 lg:mt-10"
+          aria-busy="true"
+        >
+          <ProductReviewsLoading />
+        </div>
+      </div>
+    </>
+  );
+}
 
 export interface ProductPageClientProps {
   slug: string;
@@ -237,6 +287,7 @@ export function ProductPageClient({
         product.globalDiscount ??
         firstVariant?.globalDiscount ??
         null,
+      rating: averageRating > 0 ? averageRating : null,
       category,
       brand: null,
       currency: 'USD',
@@ -431,10 +482,23 @@ export function ProductPageClient({
     </>
   );
 
+  const relatedSection = (
+    <div className={PDP_RELATED_SECTION_GAP_CLASS}>
+      <RelatedProducts
+        productSlug={slug}
+        categorySlug={product?.categories?.[0]?.slug}
+        currentProductId={product?.id ?? '__loading__'}
+        initialProducts={initialRelatedProducts}
+        initialLanguage={serverLocale}
+      />
+    </div>
+  );
+
   if (awaitingDetails) {
     return (
       <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
         {shell}
+        <ProductPagePendingScaffold relatedSection={relatedSection} />
         {children}
       </ProductPageHydrationProvider>
     );
@@ -443,21 +507,9 @@ export function ProductPageClient({
   if (notFound && !product) {
     return (
       <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
-        <BodyBackground color={PDP_BODY_BACKGROUND} />
-        <div className={PDP_HEADER_DESKTOP_UNDERLAP_CLASS}>
-          <div className={`${PDP_HEADER_DESKTOP_UNDERLAP_CLASS} ${STOREFRONT_DESKTOP_SECTION_CLASS} py-16 text-center space-y-4 max-lg:px-4`}>
-            <p className="text-lg text-neutral-600">
-              {t(language, 'common.messages.noProductsFound')}
-            </p>
-            <Link
-              href="/shop"
-              className="inline-flex h-10 items-center rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-50"
-            >
-              {t(language, 'common.navigation.products')}
-            </Link>
-          </div>
-        </div>
-        {children}
+        <ProductPageNotFoundContent language={language}>
+          {children}
+        </ProductPageNotFoundContent>
       </ProductPageHydrationProvider>
     );
   }
@@ -465,7 +517,12 @@ export function ProductPageClient({
   if (!product) {
     return (
       <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
-        {streamDetails ? shell : null}
+        {streamDetails ? (
+          <>
+            {shell}
+            <ProductPagePendingScaffold relatedSection={relatedSection} />
+          </>
+        ) : null}
         {children}
       </ProductPageHydrationProvider>
     );
@@ -546,10 +603,7 @@ export function ProductPageClient({
         </div>
 
           {detailsPending ? (
-            <div className="space-y-6 px-4 pb-10 pt-2 lg:px-0 lg:pb-16" aria-busy="true">
-              <div className="h-40 animate-pulse rounded-2xl bg-neutral-100" />
-              <div className="h-56 animate-pulse rounded-2xl bg-neutral-100" />
-            </div>
+            <ProductPagePendingScaffold relatedSection={relatedSection} />
           ) : (
             <ProductPageBelowFold
               slug={slug}
