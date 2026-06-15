@@ -50,6 +50,7 @@ export function RelatedProducts({
 }: RelatedProductsProps) {
   const [language, setLanguage] = useState<LanguageCode>(initialLanguage ?? 'en');
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
+  const [revealedCount, setRevealedCount] = useState(0);
 
   const visibleCards = useVisibleCards();
   /** One card per swipe; viewport still shows `visibleCards` (2 on mobile). */
@@ -67,6 +68,10 @@ export function RelatedProducts({
     initialProducts,
     initialLanguage,
   });
+  const displayedProducts = useMemo(
+    () => products.slice(0, revealedCount),
+    [products, revealedCount]
+  );
 
   const {
     currentIndex,
@@ -84,7 +89,7 @@ export function RelatedProducts({
     handleTouchEnd,
     handleWheel,
   } = useCarousel({
-    itemCount: products.length,
+    itemCount: displayedProducts.length,
     visibleItems: visibleCards,
     scrollStep,
   });
@@ -94,6 +99,30 @@ export function RelatedProducts({
     [visibleCards],
   );
   const skeletonCardWidth = `${100 / visibleCards}%`;
+
+  useEffect(() => {
+    if (products.length === 0) {
+      setRevealedCount(0);
+      return;
+    }
+    setRevealedCount((prev) => {
+      const initialBatch = Math.min(5, products.length);
+      if (prev === 0) {
+        return initialBatch;
+      }
+      return Math.min(prev, products.length);
+    });
+  }, [products]);
+
+  useEffect(() => {
+    if (revealedCount >= products.length || products.length === 0) {
+      return;
+    }
+    const timer = setTimeout(() => {
+      setRevealedCount((prev) => Math.min(prev + 1, products.length));
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [products.length, revealedCount]);
 
   // Initialize language from localStorage after mount to prevent hydration mismatch
   useEffect(() => {
@@ -172,7 +201,7 @@ export function RelatedProducts({
               ))}
             </div>
           </div>
-        ) : products.length === 0 ? (
+        ) : displayedProducts.length === 0 ? (
           <div className="py-12 text-center">
             <p className="text-lg text-neutral-400">{t(language, 'product.noRelatedProducts')}</p>
           </div>
@@ -197,7 +226,7 @@ export function RelatedProducts({
                   transition: isDragging ? 'none' : 'transform 0.5s ease-in-out',
                 }}
               >
-                {products.map((product) => (
+                {displayedProducts.map((product) => (
                   <RelatedProductCard
                     key={product.id}
                     product={product}
@@ -213,7 +242,7 @@ export function RelatedProducts({
               </div>
             </div>
 
-            {products.length > visibleCards && (
+            {displayedProducts.length > visibleCards && (
               <CarouselNavigation
                 language={language}
                 onPrevious={goToPrevious}
@@ -221,10 +250,10 @@ export function RelatedProducts({
               />
             )}
 
-            {products.length > visibleCards && (
+            {displayedProducts.length > visibleCards && (
               <div className={PDP_RELATED_CAROUSEL_DOTS_CLASS}>
                 <CarouselDots
-                  totalItems={products.length}
+                  totalItems={displayedProducts.length}
                   visibleItems={visibleCards}
                   currentIndex={currentIndex}
                   onDotClick={goToIndex}

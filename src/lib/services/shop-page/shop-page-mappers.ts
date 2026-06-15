@@ -6,29 +6,37 @@ import type { ShopMobileCategoryCard } from './shop-page-query.types';
 export function mapCategoryEntriesToMenuCategories(
   categoryEntries: ShopCategoryEntry[],
   allProductCount: number,
-  slugToProductCount: Map<string, number>
+  slugToProductCount: Map<string, number>,
+  includeProductCounts = true
 ): MenuCategory[] {
   return categoryEntries.map((entry) => ({
     id: entry.id,
     slug: entry.slug,
     title: entry.title,
     iconUrl: entry.iconUrl,
-    productCount:
-      entry.slug === '' ? allProductCount : (slugToProductCount.get(entry.slug) ?? 0),
+    productCount: includeProductCounts
+      ? entry.slug === ''
+        ? allProductCount
+        : (slugToProductCount.get(entry.slug) ?? 0)
+      : undefined,
   }));
 }
 
 export function mapCategoryEntriesToMobileCategories(
   categoryEntries: ShopCategoryEntry[],
   allProductCount: number,
-  slugToProductCount: Map<string, number>
+  slugToProductCount: Map<string, number>,
+  includeProductCounts = true
 ): ShopMobileCategoryCard[] {
   return categoryEntries.map((entry) => ({
     id: entry.id,
     slug: entry.slug === '' ? STOREFRONT_ALL_CATEGORY_SLUG : entry.slug,
     title: entry.title,
     iconUrl: entry.iconUrl,
-    productCount:
-      entry.slug === '' ? allProductCount : (slugToProductCount.get(entry.slug) ?? 0),
+    productCount: includeProductCounts
+      ? entry.slug === ''
+        ? allProductCount
+        : (slugToProductCount.get(entry.slug) ?? 0)
+      : undefined,
   }));
 }

@@ -33,7 +33,9 @@ export const STOREFRONT_CACHE_KEYS = {
   productVisual: (lang: string, slug: string) => `product:visual:${lang}:${slug}`,
   productDetails: (lang: string, slug: string) => `product:details:v3:${lang}:${slug}`,
   productPdpBundle: (lang: string, slug: string) => `product:pdp-bundle:v2:${lang}:${slug}`,
-  productRelated: (lang: string, slug: string) => `product:related:${lang}:${slug}`,
+  productRelated: (lang: string, slug: string) => `product:related:v2:${lang}:${slug}`,
+  productRelatedCategory: (lang: string, categorySlug: string) =>
+    `product:related-category:v2:${lang}:${categorySlug}`,
   productSlugId: (slug: string) => `product:slug-id:${slug}`,
 } as const;
 
@@ -105,6 +107,7 @@ export async function invalidateStorefrontAfterAdminSettingsUpdate(): Promise<vo
     cacheService.deletePattern("product:details:*"),
     cacheService.deletePattern("product:pdp-bundle:*"),
     cacheService.deletePattern("product:related:*"),
+    cacheService.deletePattern("product:related-category:*"),
     cacheService.deletePattern("product:slug-id:*"),
   ]);
   await invalidateStorefrontProductRelatedCaches();
@@ -117,6 +120,7 @@ export async function invalidateProductPageCaches(): Promise<void> {
     cacheService.deletePattern("product:details:*"),
     cacheService.deletePattern("product:pdp-bundle:*"),
     cacheService.deletePattern("product:related:*"),
+    cacheService.deletePattern("product:related-category:*"),
     cacheService.deletePattern("product:slug-id:*"),
   ]);
 }

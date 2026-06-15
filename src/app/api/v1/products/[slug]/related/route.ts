@@ -8,6 +8,7 @@ import {
 } from "@/lib/cache/storefront-cache";
 import { resolveStorefrontLocaleFromSearchParams } from "@/lib/i18n/locale";
 import { findRelatedByProductSlug } from "@/lib/services/products-slug/product-related.service";
+import { getRelatedProductsBatchForPdp } from "@/lib/services/products-slug/get-related-products-cached";
 import { logger } from "@/lib/utils/logger";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +20,22 @@ export async function GET(
   try {
     const { searchParams } = new URL(req.url);
     const lang = resolveStorefrontLocaleFromSearchParams(searchParams);
+    const offset = Number(searchParams.get("offset") ?? "0");
+    const limit = Number(searchParams.get("limit") ?? "5");
+    const safeOffset = Number.isFinite(offset) && offset >= 0 ? offset : 0;
+    const safeLimit = Number.isFinite(limit) && limit >= 1 ? Math.min(limit, 5) : 5;
     const { slug } = await params;
+
+    if (safeOffset > 0) {
+      const batched = await getRelatedProductsBatchForPdp(
+        slug,
+        lang,
+        safeOffset,
+        safeLimit
+      );
+      return NextResponse.json({ data: batched.data, meta: { total: batched.total } });
+    }
+
     const cacheKey = STOREFRONT_CACHE_KEYS.productRelated(lang, slug);
     const cached = await readJsonCache<unknown>(cacheKey);
     if (cached) {
