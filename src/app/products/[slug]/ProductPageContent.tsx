@@ -5,6 +5,7 @@ import type { StorefrontLocale } from '@/lib/i18n/locale';
 import { ProductPageClient } from './ProductPageClient';
 import { ProductDetailsServer } from './ProductDetailsServer';
 import type { Product } from './types';
+import { logger } from '@/lib/utils/logger';
 import {
   mapProductToVisualSnapshot,
   mapVisualPayloadToSnapshot,
@@ -26,13 +27,46 @@ export async function ProductPageContent({
   variantIdFromUrl,
   serverLocale,
 }: ProductPageContentProps) {
-  const [visualPayload, initialRelatedProducts] = await Promise.all([
-    getProductVisualCached(slug, serverLocale),
-    getRelatedProductsForPdp(slug, serverLocale),
-  ]);
+  let visualPayload = null;
+  let initialRelatedProducts: Awaited<ReturnType<typeof getRelatedProductsForPdp>> = [];
+  try {
+    [visualPayload, initialRelatedProducts] = await Promise.all([
+      getProductVisualCached(slug, serverLocale),
+      getRelatedProductsForPdp(slug, serverLocale),
+    ]);
+  } catch (error: unknown) {
+    logger.warn('[PDP] Failed to load visual/related payload', {
+      slug,
+      locale: serverLocale,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
 
   if (!visualPayload) {
-    const pageData = await getProductPageData(slug, serverLocale);
+    let pageData: Awaited<ReturnType<typeof getProductPageData>> | null = null;
+    try {
+      pageData = await getProductPageData(slug, serverLocale);
+    } catch (error: unknown) {
+      logger.error('[PDP] Failed to load full product page data', {
+        slug,
+        locale: serverLocale,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+    if (!pageData) {
+      return (
+        <ProductPageClient
+          slug={slug}
+          variantIdFromUrl={variantIdFromUrl}
+          initialVisual={null}
+          initialProduct={null}
+          initialReviewSummary={EMPTY_REVIEW_SUMMARY}
+          initialRelatedProducts={initialRelatedProducts}
+          initialNotFound
+          serverLocale={serverLocale}
+        />
+      );
+    }
     if (pageData.status === 'not_found') {
       return (
         <ProductPageClient
