@@ -116,78 +116,108 @@ class CartService {
     }
 
     const ownerWhere = this.cartOwnerWhere(userId, guestToken);
-    // Get discount settings
-    const discountSettings = await db.settings.findMany({
-      where: {
-        key: {
-          in: ["globalDiscount", "categoryDiscounts"],
-        },
-      },
-    });
-
-    const globalDiscount =
-      Number(
-        discountSettings.find((s: { key: string; value: unknown }) => s.key === "globalDiscount")?.value
-      ) || 0;
-    
-    const categoryDiscountsSetting = discountSettings.find((s: { key: string; value: unknown }) => s.key === "categoryDiscounts");
-    const categoryDiscounts = categoryDiscountsSetting ? (categoryDiscountsSetting.value as Record<string, number>) || {} : {};
-    
-    const findCart = async () =>
-      db.cart.findFirst({
-        where: ownerWhere,
-        include: {
-          items: {
-            include: {
-              variant: {
-                include: {
-                  options: {
-                    include: {
-                      attributeValue: {
-                        include: {
-                          attribute: { select: { key: true } },
-                          translations: true,
-                        },
+    const translationLocales = locale === "en" ? ["en"] : [locale, "en"];
+    const cartSelect = {
+      id: true,
+      items: {
+        select: {
+          id: true,
+          variantId: true,
+          quantity: true,
+          customizations: true,
+          priceSnapshot: true,
+          variant: {
+            select: {
+              id: true,
+              sku: true,
+              stock: true,
+              price: true,
+              compareAtPrice: true,
+              imageUrl: true,
+              options: {
+                select: {
+                  attributeKey: true,
+                  value: true,
+                  attributeValue: {
+                    select: {
+                      value: true,
+                      attribute: { select: { key: true } },
+                      translations: {
+                        where: { locale: { in: translationLocales } },
+                        select: { locale: true, label: true },
                       },
-                    },
-                  },
-                  product: {
-                    include: {
-                      translations: true,
-                      categories: {
-                        include: {
-                          translations: true,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-              product: {
-                include: {
-                  translations: true,
-                  categories: {
-                    include: {
-                      translations: true,
                     },
                   },
                 },
               },
             },
           },
+          product: {
+            select: {
+              id: true,
+              media: true,
+              primaryCategoryId: true,
+              discountPercent: true,
+              translations: {
+                where: { locale: { in: translationLocales } },
+                select: { locale: true, title: true, slug: true },
+              },
+              categories: {
+                select: {
+                  id: true,
+                  translations: {
+                    where: { locale: { in: translationLocales } },
+                    select: { locale: true, title: true, slug: true },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    } as const;
+
+    const loadDiscountSettings = () =>
+      db.settings.findMany({
+        where: {
+          key: {
+            in: ["globalDiscount", "categoryDiscounts"],
+          },
+        },
+        select: {
+          key: true,
+          value: true,
         },
       });
 
+    const findCart = async () =>
+      db.cart.findFirst({
+        where: ownerWhere,
+        select: cartSelect,
+      });
+
     let cart: Awaited<ReturnType<typeof findCart>>;
+    let discountSettings: Array<{ key: string; value: Prisma.JsonValue }>;
     try {
-      cart = await findCart();
+      [cart, discountSettings] = await Promise.all([findCart(), loadDiscountSettings()]);
     } catch (error: unknown) {
       const recovered = await this.ensureCartCustomizationsColumnIfMissing(error);
       if (!recovered) {
         throw error;
       }
-      cart = await findCart();
+      [cart, discountSettings] = await Promise.all([findCart(), loadDiscountSettings()]);
     }
+
+    const globalDiscount =
+      Number(
+        discountSettings.find((s: { key: string; value: unknown }) => s.key === "globalDiscount")?.value
+      ) || 0;
+    const categoryDiscountsSetting = discountSettings.find(
+      (s: { key: string; value: unknown }) => s.key === "categoryDiscounts"
+    );
+    const categoryDiscounts = categoryDiscountsSetting
+      ? (categoryDiscountsSetting.value as Record<string, number>) || {}
+      : {};
 
     if (!cart) {
       const createCart = async () =>
@@ -198,41 +228,7 @@ class CartService {
               create: [],
             },
           },
-          include: {
-            items: {
-              include: {
-                variant: {
-                  include: {
-                    options: {
-                      include: {
-                        attributeValue: {
-                          include: {
-                            attribute: { select: { key: true } },
-                            translations: true,
-                          },
-                        },
-                      },
-                    },
-                    product: {
-                      include: {
-                        translations: true,
-                      },
-                    },
-                  },
-                },
-                product: {
-                  include: {
-                    translations: true,
-                    categories: {
-                      include: {
-                        translations: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
+          select: cartSelect,
         });
 
       try {
@@ -246,11 +242,15 @@ class CartService {
       }
     }
 
+    const variantIds = Array.from(new Set(cart.items.map((item) => item.variantId)));
     const customByVariantId = new Map(
-      cart.items.map((item) => [item.variantId, normalizeProductCustomizations(item.customizations)] as const)
+      cart.items.map((item) => [
+        item.variantId,
+        normalizeProductCustomizations(item.customizations),
+      ] as const)
     );
     const adjustmentByVariantId = await sumLineCustomizationPriceAdjustmentsByVariant(
-      cart.items.map((item) => item.variantId),
+      variantIds,
       customByVariantId
     );
     const attributeAdjustments = cart.items.map((item) => ({

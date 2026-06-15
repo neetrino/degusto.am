@@ -16,7 +16,8 @@ import { useOrderSummary } from './hooks/useOrderSummary';
 import type { CheckoutFormData } from './types';
 import { calculateBagAmountByUniqueCategories } from '@/lib/cart/bag-fee';
 import { apiClient } from '../../lib/api-client';
-import { publishCartForceReload } from '@/lib/cart/cart-events';
+import { useCartDrawer } from '@/components/cart-drawer/cart-drawer-context';
+import { handleRemoveItem } from '@/app/cart/cart-handlers';
 
 export function useCheckout() {
   const router = useRouter();
@@ -69,6 +70,7 @@ export function useCheckout() {
     loadingDeliveryPrice,
   } = useDeliveryPrice(shippingMethod, shippingCity);
   const { cart, loading, fetchCart } = useCart(isLoggedIn);
+  const { setCart: setDrawerCart, reloadCart: reloadDrawerCart } = useCartDrawer();
   useUserProfile(isLoggedIn, isLoading, setValue);
   const bagFee = useMemo(() => {
     if (!cart) {
@@ -187,10 +189,21 @@ export function useCheckout() {
   };
 
   const removeCartItem = async (itemId: string) => {
+    if (!cart) {
+      return;
+    }
+
     try {
-      await apiClient.delete(`/api/v1/cart/items/${itemId}`);
-      await fetchCart();
-      publishCartForceReload();
+      await handleRemoveItem(
+        itemId,
+        cart,
+        isLoggedIn,
+        setDrawerCart,
+        async () => {
+          await reloadDrawerCart({ silent: true });
+          await fetchCart();
+        }
+      );
     } catch {
       setError(t('common.messages.failedToRemoveFromCart'));
     }

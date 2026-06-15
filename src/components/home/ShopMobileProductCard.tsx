@@ -128,12 +128,12 @@ export function ShopMobileProductCard({
         data-product-fly-origin
         className="absolute left-1 right-1 top-[5px] h-[143px]"
       >
-        <div className="relative h-full w-full overflow-hidden rounded-[18px]">
+        <div className="relative h-full w-full overflow-hidden rounded-[20px]">
           <HomeOptimizedImage
             src={imageSrc}
             alt={title}
             fill
-            className="object-cover"
+            className="rounded-[20px] object-cover"
             loading="lazy"
             sizes="50vw"
           />

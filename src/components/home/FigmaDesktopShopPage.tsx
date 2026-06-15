@@ -57,7 +57,7 @@ const assets = {
   productCardRibbon: r2Asset('product/20260512-lmzrYlGD39.svg'),
   productCardStar: r2Asset('product/20260512-7jf6Wihrew.svg'),
   switcherLeafRibbon: r2Asset('product/20260512-vCDQ1I3ZtJ.svg'),
-  switcherPepper: r2Asset('product/20260512-Y6Ue4PwD26.svg'),
+  switcherPepper: r2Asset('product/20260512-dWv7-ZfxP1.svg'),
 };
 
 /** Desktop shop grid card — 3 columns, taller product photo (was 147px @ 227px wide). */
@@ -369,12 +369,12 @@ function MenuCardItemBase({ card }: { card: MenuCard }) {
     >
       <StorefrontProductOverlayLink slug={card.slug} label={title} />
       <div className={DESKTOP_MENU_CARD_IMAGE_FRAME_CLASS}>
-        <div data-product-fly-origin className="h-full w-full overflow-hidden rounded-[18px]">
+        <div data-product-fly-origin className="h-full w-full overflow-hidden rounded-[20px]">
           <HomeOptimizedImage
             src={imageSrc}
             alt={title}
             fill
-            className="h-full w-full object-cover"
+            className="h-full w-full rounded-[20px] object-cover"
             sizes="(min-width: 1280px) 24vw, (min-width: 1024px) 30vw, 50vw"
             loading="lazy"
           />
@@ -469,9 +469,31 @@ function FoodAttributeSwitcher({
     >
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute left-[6px] top-1/2 z-20 h-[28px] w-[28px] -translate-y-1/2 rounded-full border-2 border-white bg-white shadow-sm transition-transform duration-200"
+        className="pointer-events-none absolute left-[6px] top-1/2 z-20 inline-flex h-[28px] w-[28px] -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-white shadow-sm transition-transform duration-200"
         style={{ transform: `translate(${selectedIndex * 38}px, -50%)` }}
-      />
+      >
+        {selectedOption === 'leaf' ? (
+          <img src={assets.switcherLeafRibbon} alt="" className="h-[28px] w-[28px] object-contain" />
+        ) : null}
+        {selectedOption === 'neutral' ? (
+          <svg
+            className="h-[14px] w-[14px] text-[#b5b5b8]"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path d="M6 6L18 18" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+            <path d="M18 6L6 18" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+          </svg>
+        ) : null}
+        {selectedOption === 'pepper' ? (
+          <img
+            src={assets.switcherPepper}
+            alt=""
+            className="h-[18px] w-[18px] -rotate-[13deg] object-contain"
+          />
+        ) : null}
+      </span>
 
       <button
         type="button"

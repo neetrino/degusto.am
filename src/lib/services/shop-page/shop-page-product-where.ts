@@ -137,7 +137,6 @@ export function getShopProductSelect(locale: StorefrontLocale): Prisma.ProductSe
       orderBy: {
         price: 'asc',
       },
-      take: 2,
       select: {
         id: true,
         published: true,
