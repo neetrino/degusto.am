@@ -5,7 +5,7 @@
   "main": "index.ts",
   "types": "index.ts",
   "scripts": {
-    "db:generate": "prisma generate",
+    "db:generate": "node prisma/generate-with-retry.cjs",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
