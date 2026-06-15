@@ -13,6 +13,7 @@ import { logger } from '../../lib/utils/logger';
 import { WishlistHeartIcon } from '../../components/icons/WishlistHeartIcon';
 import { emitWishlistUpdated } from '../../lib/wishlist';
 import { fetchWishlistIds } from '../../lib/wishlist-api';
+import { useWishlistIdsContext } from '../../lib/wishlist/WishlistIdsProvider';
 import { MOBILE_SHOP_PRODUCTS_GRID_CLASS } from '../../constants/mobile-figma-storefront';
 import { STOREFRONT_PAGE_CONTAINER_CLASS } from '@/constants/storefront-desktop-layout';
 import { WishlistProductCard, type WishlistProductCardProduct } from './WishlistProductCard';
@@ -61,6 +62,7 @@ function writeCachedWishlistProducts(products: Product[]): void {
 export default function WishlistPage() {
   const router = useRouter();
   const { isLoggedIn } = useAuth();
+  const { setProductInWishlist } = useWishlistIdsContext();
   const { t } = useTranslation();
   const [products, setProducts] = useState<Product[]>(() => readCachedWishlistProducts());
   const [wishlistIds, setWishlistIds] = useState<string[]>([]);
@@ -185,26 +187,27 @@ export default function WishlistPage() {
 
   const handleRemove = async (productId: string) => {
     logger.debug(`[Wishlist] Removing product ${productId} from wishlist UI`);
-    
+
     // Mark as local update to prevent re-fetch in event handler
     isLocalUpdateRef.current = true;
-    
-    // Optimistic update: remove from UI immediately (no loading state, no page reload)
-    const updatedIds = wishlistIds.filter((id) => id !== productId);
-    const updatedProducts = products.filter((p) => p.id !== productId);
+
+    const previousIds = wishlistIds;
+    const previousProducts = products;
+    const updatedIds = previousIds.filter((id) => id !== productId);
+    const updatedProducts = previousProducts.filter((p) => p.id !== productId);
 
     setWishlistIds(updatedIds);
     setProducts(updatedProducts);
-
-    emitWishlistUpdated();
+    setProductInWishlist(productId, false);
 
     try {
       await apiClient.delete(`/api/v1/users/wishlist/${productId}`);
+      emitWishlistUpdated();
     } catch (error) {
       logger.error('[Wishlist] Failed to remove item from server wishlist', { error });
-      const rollbackIds = [...wishlistIds];
-      setWishlistIds(rollbackIds);
-      setProducts(products);
+      setWishlistIds(previousIds);
+      setProducts(previousProducts);
+      setProductInWishlist(productId, true);
       emitWishlistUpdated();
     }
   };
