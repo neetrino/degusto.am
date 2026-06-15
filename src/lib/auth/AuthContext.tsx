@@ -209,7 +209,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logger.debug('🔄 [AUTH] Redirecting to home page...');
       router.push('/');
     } catch (error: unknown) {
-      console.error('❌ [AUTH] Registration error:', error);
+      if (error instanceof ApiError && error.status === 409) {
+        logger.debug('ℹ️ [AUTH] Registration conflict: user already exists');
+      } else {
+        logger.warn('⚠️ [AUTH] Registration request failed', {
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
 
       let errorMessage = 'Registration failed. Please try again.';
 
@@ -244,7 +250,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      console.error('❌ [AUTH] Final error message:', errorMessage);
+      logger.debug('ℹ️ [AUTH] Registration error message resolved', { errorMessage });
       throw new Error(errorMessage);
     } finally {
       setIsLoading(false);

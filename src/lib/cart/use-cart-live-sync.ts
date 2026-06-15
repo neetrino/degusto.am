@@ -16,21 +16,89 @@ import { createEmptyCart } from '@/lib/cart/empty-cart';
 const CART_RECONCILE_DEBOUNCE_MS = 400;
 const CART_OPTIMISTIC_RECONCILE_IDLE_MS = 900;
 const CART_RECONCILE_MIN_GAP_MS = 1500;
+const CART_SNAPSHOT_CACHE_KEY = 'shop_cart_snapshot_cache';
+const CART_SNAPSHOT_MAX_AGE_MS = 1000 * 60 * 5;
 
 type UseCartLiveSyncOptions = {
   isLoggedIn: boolean;
   isAuthLoading: boolean;
   t: (key: string) => string;
-  /** Open cart drawer when an optimistic add is applied (instant feedback). */
-  onOptimisticAdd?: () => void;
 };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object';
+}
+
+function isCartSnapshotPayload(value: unknown): value is { cart: Cart; updatedAt: number } {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  const updatedAt = value.updatedAt;
+  const cart = value.cart;
+  if (typeof updatedAt !== 'number' || !Number.isFinite(updatedAt)) {
+    return false;
+  }
+  if (!isRecord(cart)) {
+    return false;
+  }
+
+  const items = cart.items;
+  const totals = cart.totals;
+  return Array.isArray(items) && isRecord(totals) && typeof cart.itemsCount === 'number';
+}
+
+function readCartSnapshotCache(): Cart | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(CART_SNAPSHOT_CACHE_KEY);
+    if (!raw) {
+      return null;
+    }
+
+    const parsed: unknown = JSON.parse(raw);
+    if (!isCartSnapshotPayload(parsed)) {
+      return null;
+    }
+
+    if (Date.now() - parsed.updatedAt > CART_SNAPSHOT_MAX_AGE_MS) {
+      return null;
+    }
+
+    return normalizeCartPayload(parsed.cart);
+  } catch {
+    return null;
+  }
+}
+
+function writeCartSnapshotCache(cart: Cart | null): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  if (!cart || cart.itemsCount <= 0 || cart.items.length === 0) {
+    window.localStorage.removeItem(CART_SNAPSHOT_CACHE_KEY);
+    return;
+  }
+
+  window.localStorage.setItem(
+    CART_SNAPSHOT_CACHE_KEY,
+    JSON.stringify({
+      cart,
+      updatedAt: Date.now(),
+    })
+  );
+}
 
 function resolveInitialCartState(): Cart | null {
   if (typeof window === 'undefined') {
     return null;
   }
 
-  return createEmptyCart();
+  return readCartSnapshotCache() ?? createEmptyCart();
 }
 
 function normalizeCartPayload(cartData: Cart | null): Cart {
@@ -41,7 +109,6 @@ export function useCartLiveSync({
   isLoggedIn,
   isAuthLoading,
   t,
-  onOptimisticAdd,
 }: UseCartLiveSyncOptions) {
   const [cart, setCart] = useState<Cart | null>(resolveInitialCartState);
   const [cartLoading, setCartLoading] = useState(false);
@@ -66,6 +133,7 @@ export function useCartLiveSync({
     if (!badgeSyncReadyRef.current) {
       return;
     }
+    writeCartSnapshotCache(cart);
     dispatchCartSummarySync(cart);
   }, [cart]);
 
@@ -173,7 +241,6 @@ export function useCartLiveSync({
       if (snapshot) {
         commitCart(applyOptimisticCartAdd(cartRef.current, snapshot));
         setCartLoading(false);
-        onOptimisticAdd?.();
         scheduleOptimisticBurstReconcile();
       }
 
@@ -195,7 +262,6 @@ export function useCartLiveSync({
   }, [
     commitCart,
     invalidateInFlightReload,
-    onOptimisticAdd,
     scheduleOptimisticBurstReconcile,
     reloadCart,
     scheduleReconcile,
