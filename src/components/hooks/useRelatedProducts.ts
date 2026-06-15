@@ -5,6 +5,7 @@ import { apiClient } from '../../lib/api-client';
 import type { LanguageCode } from '../../lib/language';
 import { logger } from '@/lib/utils/logger';
 import type { RelatedCardPayload } from '@/lib/services/products-slug/product-related-transform';
+import { setRelatedProductsSnapshot } from '@/lib/products/related-products-cache';
 
 interface UseRelatedProductsProps {
   categorySlug?: string;
@@ -97,6 +98,14 @@ export function useRelatedProducts({
               if (nextBatch.length === 0) {
                 break;
               }
+              setRelatedProductsSnapshot(
+                productSlug,
+                language,
+                mergeUniqueRelatedProducts([...initialProducts, ...nextResponse.data]).slice(
+                  0,
+                  RELATED_PRODUCTS_MAX
+                )
+              );
               setProducts((prev) =>
                 mergeUniqueRelatedProducts([...prev, ...nextBatch]).slice(0, RELATED_PRODUCTS_MAX)
               );
@@ -121,6 +130,7 @@ export function useRelatedProducts({
             RELATED_PRODUCTS_MAX
           );
           setProducts(firstBatch);
+          setRelatedProductsSnapshot(productSlug, language, firstResponse.data);
 
           let loaded = firstResponse.data.length;
           while (loaded < total) {
@@ -138,6 +148,14 @@ export function useRelatedProducts({
             if (nextBatch.length === 0) {
               break;
             }
+            setRelatedProductsSnapshot(
+              productSlug,
+              language,
+              mergeUniqueRelatedProducts([...firstResponse.data, ...nextResponse.data]).slice(
+                0,
+                RELATED_PRODUCTS_MAX
+              )
+            );
             setProducts((prev) =>
               mergeUniqueRelatedProducts([...prev, ...nextBatch]).slice(0, RELATED_PRODUCTS_MAX)
             );

@@ -27,6 +27,10 @@ import {
   PDP_RELATED_VIEW_MORE_CLASS,
 } from '@/constants/pdp-figma-tokens';
 import type { RelatedCardPayload } from '@/lib/services/products-slug/product-related-transform';
+import {
+  getRelatedProductsSnapshot,
+  setRelatedProductsSnapshot,
+} from '@/lib/products/related-products-cache';
 
 interface RelatedProductsProps {
   categorySlug?: string;
@@ -48,15 +52,33 @@ export function RelatedProducts({
   initialProducts,
   initialLanguage,
 }: RelatedProductsProps) {
+  const cachedSnapshot =
+    productSlug != null
+      ? getRelatedProductsSnapshot(productSlug)
+      : null;
+  const effectiveInitialProducts =
+    initialProducts && initialProducts.length > 0
+      ? initialProducts
+      : cachedSnapshot?.products ?? initialProducts;
+  const effectiveInitialLanguage =
+    initialLanguage ?? cachedSnapshot?.language;
+
   const [language, setLanguage] = useState<LanguageCode>(initialLanguage ?? 'en');
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   const [revealedCount, setRevealedCount] = useState(0);
+
+  useEffect(() => {
+    if (!productSlug || !effectiveInitialProducts || effectiveInitialProducts.length === 0) {
+      return;
+    }
+    setRelatedProductsSnapshot(productSlug, effectiveInitialLanguage ?? 'en', effectiveInitialProducts);
+  }, [effectiveInitialLanguage, effectiveInitialProducts, productSlug]);
 
   const visibleCards = useVisibleCards();
   /** One card per swipe; viewport still shows `visibleCards` (2 on mobile). */
   const scrollStep = 1;
   const isCompactCarousel = visibleCards === 2;
-  const hasInitialProducts = (initialProducts?.length ?? 0) > 0;
+  const hasInitialProducts = (effectiveInitialProducts?.length ?? 0) > 0;
   const { ref: lazyRef, inView } = useLazyInView(hasInitialProducts ? '0px' : undefined);
 
   const { products, loading } = useRelatedProducts({
@@ -64,9 +86,9 @@ export function RelatedProducts({
     currentProductId,
     language,
     productSlug,
-    enabled: hasInitialProducts || inView,
-    initialProducts,
-    initialLanguage,
+    enabled: productSlug ? true : (hasInitialProducts || inView),
+    initialProducts: effectiveInitialProducts,
+    initialLanguage: effectiveInitialLanguage,
   });
   const displayedProducts = useMemo(
     () => products.slice(0, revealedCount),
