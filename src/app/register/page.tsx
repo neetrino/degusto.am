@@ -89,7 +89,15 @@ export default function RegisterPage() {
       }, 1000);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      logger.error('❌ [REGISTER PAGE] Registration error:', message);
+      const normalizedMessage = message.toLowerCase();
+      const isExpectedConflict =
+        normalizedMessage.includes('already exists') || normalizedMessage.includes('409');
+
+      if (isExpectedConflict) {
+        logger.debug('ℹ️ [REGISTER PAGE] Registration conflict', { message });
+      } else {
+        logger.error('❌ [REGISTER PAGE] Registration error:', message);
+      }
       setError(resolveRegisterApiError(message, t));
     } finally {
       setIsSubmitting(false);

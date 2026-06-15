@@ -123,6 +123,8 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
             src={assets.footerPastaVisual}
             alt="Degusto footer visual"
             className="pointer-events-none absolute -right-[10px] top-[-115px] hidden h-[min(800px,90vh)] w-[min(512px,42vw)] max-w-none -rotate-90 -scale-x-100 object-contain [aspect-ratio:90/173] lg:block xl:h-[800px] xl:w-[512px]"
+            loading="lazy"
+            decoding="async"
           />
 
           <div className={`relative z-10 ${STOREFRONT_DESKTOP_FOOTER_GRID_CLASS} lg:pt-[73px]`}>
@@ -246,7 +248,13 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
           <div className="relative z-10 mt-8 border-t border-white/20 pt-4 lg:absolute lg:bottom-[52px] lg:left-0 lg:right-0 lg:mt-0 lg:pt-[18px]">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <Link href="/" className="inline-flex shrink-0" aria-label={t('common.navigation.home')}>
-                <img src={assets.footerBrandLogo} alt="Degusto" className="h-[42px] w-[117px] object-contain" />
+                <img
+                  src={assets.footerBrandLogo}
+                  alt="Degusto"
+                  className="h-[42px] w-[117px] object-contain"
+                  loading="lazy"
+                  decoding="async"
+                />
               </Link>
               <p className="text-[14px] leading-[23px] text-white lg:pr-[24px]">
                 Copyright © 2026 | All rights reserved | Created by{' '}
@@ -262,16 +270,40 @@ export function Footer({ outerBackgroundClassName = 'bg-white' }: FooterProps) {
               </p>
               <div className="flex items-center gap-[11px]">
                 <span className="inline-flex h-[30px] w-[73px] items-center justify-center rounded-lg bg-white px-1">
-                  <img src={assets.footerIdramLogo} alt="Idram" className="h-[17px] w-[66px] object-contain" />
+                  <img
+                    src={assets.footerIdramLogo}
+                    alt="Idram"
+                    className="h-[17px] w-[66px] object-contain"
+                    loading="lazy"
+                    decoding="async"
+                  />
                 </span>
                 <span className="inline-flex h-[30px] w-[73px] items-center justify-center rounded-lg bg-white px-1">
-                  <img src={assets.footerFastshiftLogo} alt="Fastshift" className="h-4 w-[61px] object-contain" />
+                  <img
+                    src={assets.footerFastshiftLogo}
+                    alt="Fastshift"
+                    className="h-4 w-[61px] object-contain"
+                    loading="lazy"
+                    decoding="async"
+                  />
                 </span>
                 <span className="inline-flex h-[30px] w-[74px] items-center justify-center rounded-lg bg-white px-1">
-                  <img src={assets.footerArcaLogo} alt="Arca" className="h-[13px] w-[50px] object-contain" />
+                  <img
+                    src={assets.footerArcaLogo}
+                    alt="Arca"
+                    className="h-[13px] w-[50px] object-contain"
+                    loading="lazy"
+                    decoding="async"
+                  />
                 </span>
                 <span className="inline-flex h-[30px] w-[73px] items-center justify-center rounded-lg bg-white px-1">
-                  <img src={assets.footerVisaLogo} alt="Visa" className="h-[22px] w-12 object-contain" />
+                  <img
+                    src={assets.footerVisaLogo}
+                    alt="Visa"
+                    className="h-[22px] w-12 object-contain"
+                    loading="lazy"
+                    decoding="async"
+                  />
                 </span>
               </div>
             </div>

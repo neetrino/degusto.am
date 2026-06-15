@@ -92,7 +92,7 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
       return;
     }
 
-    void reloadCart({ silent: true });
+    void reloadCart({ silent: false });
   }, [isVisible, cart, cartLoading, reloadCart]);
 
   useEffect(() => {
@@ -122,15 +122,21 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
   }, [isVisible, onClose]);
 
   useEffect(() => {
-    if (!isVisible || !isMobileViewport) {
+    if (!isVisible) {
       return;
     }
-    const prev = document.body.style.overflow;
+
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+
     document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+
     return () => {
-      document.body.style.overflow = prev;
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
     };
-  }, [isMobileViewport, isVisible]);
+  }, [isVisible]);
 
   const loadCartWithLoading = useCallback(async () => {
     await reloadCart({ silent: true });

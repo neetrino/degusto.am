@@ -24,8 +24,60 @@ function isCartItemNotFoundError(error: unknown): boolean {
   if (error instanceof ApiError && error.status === 404) {
     return true;
   }
-  const errorObj = error as { status?: number };
-  return errorObj.status === 404;
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+
+  const errorObj = error as {
+    status?: number;
+    message?: string;
+    data?: unknown;
+    response?: { status?: number };
+    cause?: unknown;
+  };
+
+  const nestedStatus =
+    errorObj.status ??
+    errorObj.response?.status ??
+    ((errorObj.cause as { status?: number } | undefined)?.status ?? undefined);
+
+  if (nestedStatus === 404) {
+    return true;
+  }
+
+  const nestedData = errorObj.data as { status?: number; detail?: string; message?: string } | undefined;
+  if (nestedData?.status === 404) {
+    return true;
+  }
+
+  const message = (nestedData?.detail ?? nestedData?.message ?? errorObj.message ?? '').toLowerCase();
+  return message.includes('404') || message.includes('not found');
+}
+
+function serializeError(error: unknown): Record<string, unknown> {
+  if (error instanceof ApiError) {
+    const apiData = (error.data as { detail?: string; message?: string } | null) ?? null;
+    return {
+      name: error.name,
+      message: error.message,
+      status: error.status,
+      statusText: error.statusText,
+      detail: apiData?.detail ?? apiData?.message ?? null,
+    };
+  }
+
+  if (error instanceof Error) {
+    return {
+      name: error.name,
+      message: error.message,
+    };
+  }
+
+  if (typeof error === 'object' && error !== null) {
+    return error as Record<string, unknown>;
+  }
+
+  return { message: String(error) };
 }
 
 /**
@@ -145,7 +197,10 @@ export async function handleRemoveItem(
       return;
     }
 
-    logger.error('Error removing item', { error, itemId });
+    logger.error('Error removing item', {
+      itemId,
+      error: serializeError(error),
+    });
     await fetchCart();
     publishCartForceReload();
   }
@@ -223,7 +278,10 @@ export async function handleUpdateQuantity(
     }
 
     const errorObj = error as { detail?: string; message?: string };
-    logger.error('Error updating quantity', { error, itemId });
+    logger.error('Error updating quantity', {
+      itemId,
+      error: serializeError(error),
+    });
 
     const errorMessage =
       errorObj?.detail || errorObj?.message || t('common.messages.failedToUpdateQuantity');

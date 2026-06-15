@@ -92,6 +92,14 @@ export function isQuietCartItemNotFoundError(status: number, url: string): boole
 }
 
 /**
+ * Registration can legitimately return 409 when email/phone is already taken.
+ * It is an expected validation outcome and should be handled by the form UI.
+ */
+export function isQuietRegisterConflictError(status: number, url: string): boolean {
+  return status === 409 && /\/api\/v1\/auth\/register(?:\?|$)/.test(url);
+}
+
+/**
  * Guest-session reads that legitimately return 401 must not trigger global login redirect.
  */
 export function isQuietGuestSessionAuthError(status: number, url: string): boolean {

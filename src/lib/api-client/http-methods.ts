@@ -14,6 +14,7 @@ import {
   isQuietCartReadServerError,
   isQuietAdminDashboardReadServerError,
   isQuietCartItemNotFoundError,
+  isQuietRegisterConflictError,
   shouldRedirectOnUnauthorized,
 } from "./error-handler";
 import { logger } from "@/lib/utils/logger";
@@ -104,6 +105,7 @@ async function handleErrorResponse(
   const quietCartReadServerError = isQuietCartReadServerError(response.status, url);
   const quietAdminDashboardReadServerError = isQuietAdminDashboardReadServerError(response.status, url);
   const quietCartItemNotFound = isQuietCartItemNotFoundError(response.status, url);
+  const quietRegisterConflict = isQuietRegisterConflictError(response.status, url);
 
   // Log 404 as warning (expected situation - resource doesn't exist)
   if (shouldLogWarning(response.status) && !quietCartItemNotFound) {
@@ -115,6 +117,7 @@ async function handleErrorResponse(
     !quietCartReadServerError &&
     !quietAdminDashboardReadServerError &&
     !quietCartItemNotFound &&
+    !quietRegisterConflict &&
     shouldLogError(response.status)
   ) {
     console.error(`❌ [API CLIENT] Error: ${response.status} ${response.statusText}`, {
@@ -139,6 +142,8 @@ async function handleErrorResponse(
     });
   } else if (quietCartItemNotFound) {
     logger.debug("[API CLIENT] Cart line already removed (404)", { url });
+  } else if (quietRegisterConflict) {
+    logger.debug("[API CLIENT] Registration conflict (409)", { url, errorData });
   }
 
   // Handle 401 Unauthorized - clear token and redirect
@@ -156,6 +161,7 @@ async function handleErrorResponse(
     !quietCartReadServerError &&
     !quietAdminDashboardReadServerError &&
     !quietCartItemNotFound &&
+    !quietRegisterConflict &&
     shouldLogError(response.status)
   ) {
     console.error("❌ [API CLIENT] Error response:", errorData || errorText);

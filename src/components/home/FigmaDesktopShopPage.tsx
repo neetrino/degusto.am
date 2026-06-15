@@ -6,7 +6,7 @@ import { useCurrency } from '../hooks/useCurrency';
 import { formatPrice } from '../../lib/currency';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { KeyboardEvent, MouseEvent } from 'react';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useAddToCart } from '../hooks/useAddToCart';
 import { useWishlist } from '../hooks/useWishlist';
 import { useAuth } from '../../lib/auth/AuthContext';
@@ -42,6 +42,7 @@ import { r2Asset } from '@/lib/r2-public-url';
 import { useRoutePrefetch } from './useRoutePrefetch';
 import { useShopCategorySoftNav } from './useShopCategorySoftNav';
 import { ShopDesktopProductsSkeleton } from './ShopDesktopProductsSkeleton';
+import { HomeOptimizedImage } from './HomeOptimizedImage';
 import {
   STOREFRONT_DESKTOP_MAIN_COLUMN_CLASS,
   STOREFRONT_DESKTOP_PRODUCT_GRID_CLASS,
@@ -90,6 +91,8 @@ type DesktopMenuPageProps = {
   };
   /** When false, hides the mobile product list (e.g. mobile shop category grid on `/shop`). */
   showMobileProductsList?: boolean;
+  /** When false, skips desktop section render (used on mobile to reduce hydration/DOM cost). */
+  renderDesktopLayout?: boolean;
   /** When categories are omitted server-side (mobile product list), still show the picker button. */
   showCategoryPicker?: boolean;
 };
@@ -283,17 +286,6 @@ function useBuildMenuTargetPath(
   }, [searchParams, searchTerm, minPrice, maxPrice, foodFilter, routeBasePath]);
 }
 
-function buildCategoryOnlyShopPath(routeBasePath: string, categorySlug: string): string {
-  const params = new URLSearchParams();
-  if (isStorefrontAllCategorySlug(categorySlug)) {
-    params.set('category', STOREFRONT_ALL_CATEGORY_SLUG);
-  } else if (categorySlug) {
-    params.set('category', categorySlug);
-  }
-  const queryString = params.toString();
-  return queryString ? `${routeBasePath}?${queryString}` : routeBasePath;
-}
-
 function isMenuCategoryEmpty(category: MenuCategory): boolean {
   return (
     typeof category.productCount === 'number' &&
@@ -309,7 +301,7 @@ function formatCategoryLabelWithCount(category: MenuCategory): string {
   return `${category.title} (${category.productCount})`;
 }
 
-function MenuCardItem({ card }: { card: MenuCard }) {
+function MenuCardItemBase({ card }: { card: MenuCard }) {
   const { t } = useTranslation();
   const currency = useCurrency();
   const router = useRouter();
@@ -378,7 +370,14 @@ function MenuCardItem({ card }: { card: MenuCard }) {
       <StorefrontProductOverlayLink slug={card.slug} label={title} />
       <div className={DESKTOP_MENU_CARD_IMAGE_FRAME_CLASS}>
         <div data-product-fly-origin className="h-full w-full overflow-hidden rounded-[18px]">
-          <img src={imageSrc} alt={title} className="h-full w-full object-cover" />
+          <HomeOptimizedImage
+            src={imageSrc}
+            alt={title}
+            fill
+            className="h-full w-full object-cover"
+            sizes="(min-width: 1280px) 24vw, (min-width: 1024px) 30vw, 50vw"
+            loading="lazy"
+          />
         </div>
         <HomeProductFoodAttributeBadges
           variant="desktop-card"
@@ -442,6 +441,8 @@ function MenuCardItem({ card }: { card: MenuCard }) {
     </article>
   );
 }
+
+const MenuCardItem = memo(MenuCardItemBase);
 
 function FoodAttributeSwitcher({
   selectedOption,
@@ -533,6 +534,7 @@ export function FigmaDesktopMenuPage({
   initialFoodFilter = 'neutral',
   menuPagination,
   showMobileProductsList = true,
+  renderDesktopLayout = true,
   showCategoryPicker,
 }: DesktopMenuPageProps) {
   const { t } = useTranslation();
@@ -620,25 +622,9 @@ export function FigmaDesktopMenuPage({
     [categoryNavItems]
   );
 
-  const categorySlugsPrefetchKey = useMemo(() => {
-    if (!Array.isArray(dbCategories)) {
-      return '';
-    }
-    return dbCategories.map((category) => category.slug).join('\0');
-  }, [dbCategories]);
-
   const { getPrefetchHandlers } = useRoutePrefetch(
     enableSoftCategoryNav ? [] : categoryNavHrefs
   );
-
-  useEffect(() => {
-    if (!enableSoftCategoryNav || !categorySlugsPrefetchKey || !Array.isArray(dbCategories)) {
-      return;
-    }
-    for (const category of dbCategories) {
-      prefetchCategory(buildCategoryOnlyShopPath(routeBasePath, category.slug));
-    }
-  }, [categorySlugsPrefetchKey, dbCategories, enableSoftCategoryNav, prefetchCategory, routeBasePath]);
 
   const openMobileCategoryPicker = useCallback(() => {
     router.push(routeBasePath);
@@ -733,6 +719,7 @@ export function FigmaDesktopMenuPage({
       </div>
       ) : null}
 
+      {renderDesktopLayout ? (
       <div className="hidden bg-white pb-20 pt-5 lg:block">
         <div className={`${STOREFRONT_DESKTOP_SHOP_SECTION_CLASS} flex min-w-0 ${STOREFRONT_DESKTOP_SIDEBAR_GAP_CLASS}`}>
         <aside className={`${UNIVERSAL_HEADER_STICKY_SIDEBAR_CLASS} ${STOREFRONT_DESKTOP_SIDEBAR_WIDTH_CLASS} flex-col overflow-hidden rounded-[20px] bg-black pb-5 text-white`}>
@@ -922,6 +909,7 @@ export function FigmaDesktopMenuPage({
         </section>
       </div>
     </div>
+      ) : null}
     </>
   );
 }

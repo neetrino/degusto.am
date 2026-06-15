@@ -14,9 +14,9 @@ type SearchParamsInput = Record<string, string | string[] | undefined>;
 export default async function ShopPage({
   searchParams,
 }: {
-  searchParams?: Promise<SearchParamsInput> | SearchParamsInput;
+  searchParams?: Promise<SearchParamsInput>;
 }) {
-  const params = searchParams instanceof Promise ? await searchParams : searchParams;
+  const params = (await searchParams) ?? {};
   const [cookieStore, headersList] = await Promise.all([cookies(), headers()]);
   const locale = resolveStorefrontLocaleFromCookie(cookieStore.get('shop_language')?.value);
   const rawCategorySlug =
@@ -75,6 +75,7 @@ export default async function ShopPage({
     });
 
   const isMobileCategoryGridMode = showMobileCategoryGrid && isMobileClient;
+  const shouldRenderDesktopLayout = !isMobileClient;
 
   return (
     <div className="min-h-screen bg-white">
@@ -100,6 +101,7 @@ export default async function ShopPage({
               totalPages,
             }}
             showMobileProductsList={!showMobileCategoryGrid}
+            renderDesktopLayout={shouldRenderDesktopLayout}
             showCategoryPicker={showCategoryPicker}
           />
         </Suspense>
