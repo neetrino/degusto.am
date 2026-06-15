@@ -25,6 +25,77 @@ export const COMBO_MENU_CACHE_TAG = 'combo-menu';
 
 export const COMBO_MENU_REVALIDATE_SECONDS = 60;
 
+async function fetchComboProductsPage(
+  locale: StorefrontLocale,
+  query: ComboMenuQuery,
+  productWhere: ReturnType<typeof buildComboProductWhere>
+): Promise<Pick<ComboMenuDbResult, 'productTotal' | 'productRows'>> {
+  const countStartedAt = Date.now();
+  const productTotalPromise = db.product
+    .count({ where: productWhere })
+    .then((value) => ({ value, durationMs: Date.now() - countStartedAt }));
+  const rowsStartedAt = Date.now();
+  const productRowsPromise = db.product
+    .findMany({
+      where: productWhere,
+      orderBy: {
+        updatedAt: 'desc',
+      },
+      skip: (query.requestedPage - 1) * STORE_MENU_PAGE_SIZE,
+      take: STORE_MENU_PAGE_SIZE,
+      select: getComboProductSelect(locale),
+    })
+    .then((value) => ({ value, durationMs: Date.now() - rowsStartedAt }));
+  const [productTotalResult, productRowsResult] = await Promise.all([
+    productTotalPromise,
+    productRowsPromise,
+  ]);
+  const productTotal = productTotalResult.value;
+  const productRows = productRowsResult.value as unknown as ShopMenuProductRow[];
+
+  logger.info('[COMBO PERF] db product page query timings', {
+    locale,
+    page: query.requestedPage,
+    dbCountMs: productTotalResult.durationMs,
+    dbRowsMs: productRowsResult.durationMs,
+    productTotal,
+    rowCount: productRows.length,
+  });
+
+  const totalPages = productTotal === 0 ? 0 : Math.ceil(productTotal / STORE_MENU_PAGE_SIZE);
+  const effectivePage = totalPages === 0 ? 1 : Math.min(query.requestedPage, totalPages);
+
+  if (effectivePage === query.requestedPage) {
+    return {
+      productTotal,
+      productRows,
+    };
+  }
+
+  const clampStartedAt = Date.now();
+  const clampedRows = (await db.product.findMany({
+    where: productWhere,
+    orderBy: {
+      updatedAt: 'desc',
+    },
+    skip: (effectivePage - 1) * STORE_MENU_PAGE_SIZE,
+    take: STORE_MENU_PAGE_SIZE,
+    select: getComboProductSelect(locale),
+  })) as unknown as ShopMenuProductRow[];
+  logger.info('[COMBO PERF] db clamped product page query timing', {
+    locale,
+    requestedPage: query.requestedPage,
+    effectivePage,
+    dbClampRowsMs: Date.now() - clampStartedAt,
+    rowCount: clampedRows.length,
+  });
+
+  return {
+    productTotal,
+    productRows: clampedRows,
+  };
+}
+
 /**
  * Loads combo menu categories, product counts, and paginated product cards from the database.
  */
@@ -36,84 +107,89 @@ export async function loadComboMenuData(query: ComboMenuQuery): Promise<ComboMen
   const { productTotal, productRows, categoryRows, allProductCount, countBySlug } =
     await withPrismaResilience<ComboMenuDbResult>(
       async () => {
-        const nextCategoryRows = await db.category.findMany({
-          where: {
-            published: true,
-            deletedAt: null,
-            translations: {
-              some: {
-                locale: 'en',
-                slug: 'combo',
-              },
-            },
-          },
-          orderBy: {
-            position: 'asc',
-          },
-          select: {
-            id: true,
-            media: true,
-            translations: {
-              where: {
-                locale: {
-                  in: [locale, 'en'],
+        const productWhere = buildComboProductWhere(locale, query, productWhereBase);
+        const categoryStartedAt = Date.now();
+        const categoryPayloadPromise = db.category
+          .findMany({
+            where: {
+              published: true,
+              deletedAt: null,
+              translations: {
+                some: {
+                  locale: 'en',
+                  slug: 'combo',
                 },
               },
-              select: {
-                locale: true,
-                title: true,
-                slug: true,
+            },
+            orderBy: {
+              position: 'asc',
+            },
+            select: {
+              id: true,
+              media: true,
+              translations: {
+                where: {
+                  locale: {
+                    in: [locale, 'en'],
+                  },
+                },
+                select: {
+                  locale: true,
+                  title: true,
+                  slug: true,
+                },
               },
             },
-          },
+          })
+          .then(async (nextCategoryRows) => {
+            const nextCategoryEntries = buildShopCategoryEntries(
+              locale,
+              allCategoriesLabel,
+              nextCategoryRows
+            );
+            const nextSlugsToCount = nextCategoryEntries
+              .filter((item) => item.slug !== '')
+              .map((item) => item.slug);
+
+            let nextAllProductCount = 0;
+            let nextCountBySlug: Record<string, number> = {};
+            try {
+              const counts = await fetchComboMenuCategoryProductCounts(
+                locale,
+                query,
+                nextSlugsToCount
+              );
+              nextAllProductCount = counts.allProductCount;
+              nextCountBySlug = counts.countBySlug;
+            } catch (countsError) {
+              logger.error('[COMBO] Category product counts failed', countsError);
+            }
+
+            return {
+              categoryRows: nextCategoryRows,
+              allProductCount: nextAllProductCount,
+              countBySlug: nextCountBySlug,
+            };
+          });
+        const productsPayloadPromise = fetchComboProductsPage(locale, query, productWhere);
+
+        const [categoryPayload, productsPayload] = await Promise.all([
+          categoryPayloadPromise,
+          productsPayloadPromise,
+        ]);
+        logger.info('[COMBO PERF] category + counts query complete', {
+          locale,
+          durationMs: Date.now() - categoryStartedAt,
+          categoryCount: categoryPayload.categoryRows.length,
+          allProductCount: categoryPayload.allProductCount,
         });
 
-        const nextCategoryEntries = buildShopCategoryEntries(
-          locale,
-          allCategoriesLabel,
-          nextCategoryRows
-        );
-        const nextSlugsToCount = nextCategoryEntries
-          .filter((item) => item.slug !== '')
-          .map((item) => item.slug);
-
-        let nextAllProductCount = 0;
-        let nextCountBySlug: Record<string, number> = {};
-        try {
-          const counts = await fetchComboMenuCategoryProductCounts(
-            locale,
-            query,
-            nextSlugsToCount
-          );
-          nextAllProductCount = counts.allProductCount;
-          nextCountBySlug = counts.countBySlug;
-        } catch (countsError) {
-          logger.error('[COMBO] Category product counts failed', countsError);
-        }
-
-        const productWhere = buildComboProductWhere(locale, query, productWhereBase);
-        const nextProductTotal = await db.product.count({ where: productWhere });
-        const nextTotalPages =
-          nextProductTotal === 0 ? 0 : Math.ceil(nextProductTotal / STORE_MENU_PAGE_SIZE);
-        const nextEffectivePage =
-          nextTotalPages === 0 ? 1 : Math.min(query.requestedPage, nextTotalPages);
-
-        const nextProductRows = (await db.product.findMany({
-          where: productWhere,
-          orderBy: {
-            updatedAt: 'desc',
-          },
-          skip: (nextEffectivePage - 1) * STORE_MENU_PAGE_SIZE,
-          take: STORE_MENU_PAGE_SIZE,
-          select: getComboProductSelect(locale),
-        })) as unknown as ShopMenuProductRow[];
-
         return {
-          productTotal: nextProductTotal,
-          productRows: nextProductRows,
-          categoryRows: nextCategoryRows,
-          allProductCount: nextAllProductCount,
-          countBySlug: nextCountBySlug,
+          productTotal: productsPayload.productTotal,
+          productRows: productsPayload.productRows,
+          categoryRows: categoryPayload.categoryRows,
+          allProductCount: categoryPayload.allProductCount,
+          countBySlug: categoryPayload.countBySlug,
         };
       },
       {
