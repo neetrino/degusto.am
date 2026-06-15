@@ -393,6 +393,7 @@ export function ProductPageClient({
       );
       clearCartLineRemoved({
         variant: { id: currentVariant.id },
+        productId: product.id,
         customizations,
       });
 

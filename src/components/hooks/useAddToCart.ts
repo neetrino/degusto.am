@@ -120,7 +120,11 @@ export function useAddToCart({
       });
 
       rememberCartLineId(productId, variantId, response.item.id, response.item.quantity);
-      clearCartLineRemoved({ variant: { id: variantId }, customizations: undefined });
+      clearCartLineRemoved({
+        variant: { id: variantId },
+        productId,
+        customizations: undefined,
+      });
 
       const summary = response.cartSummary ?? (() => {
         const cache = readCartSummaryCache();

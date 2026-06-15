@@ -122,7 +122,7 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
   }, [isVisible, onClose]);
 
   useEffect(() => {
-    if (!isVisible) {
+    if (!isVisible || !isMobileViewport) {
       return;
     }
     const prev = document.body.style.overflow;
@@ -130,7 +130,7 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
     return () => {
       document.body.style.overflow = prev;
     };
-  }, [isVisible]);
+  }, [isMobileViewport, isVisible]);
 
   const loadCartWithLoading = useCallback(async () => {
     await reloadCart({ silent: true });

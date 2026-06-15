@@ -1,0 +1,34 @@
+{
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": [
+        "next.config.js",
+        "tailwind.config.ts",
+        "postcss.config.js",
+        "eslint.config.mjs",
+        "vitest.config.ts",
+        "middleware.ts",
+        "src/app/layout.tsx",
+        "src/app/**/page.tsx",
+        "src/app/**/layout.tsx",
+        "src/app/**/route.ts",
+        "src/app/**/loading.tsx",
+        "src/app/**/error.tsx",
+        "src/app/**/not-found.tsx",
+        "scripts/**/*.{js,ts,mjs,cjs}",
+        "src/scripts/**/*.{js,ts,mjs,cjs}",
+        "shared/db/prisma/**/*.{cjs,js}"
+      ],
+      "project": [
+        "src/**/*.{ts,tsx,js,jsx}",
+        "shared/**/*.{ts,tsx,js,jsx,cjs}",
+        "*.{js,mjs,cjs,ts}"
+      ],
+      "ignoreDependencies": [
+        "@shop/design-tokens",
+        "@vitest/coverage-v8"
+      ]
+    }
+  }
+}

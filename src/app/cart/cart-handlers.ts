@@ -13,7 +13,11 @@ import {
   isOptimisticCartItemId,
   markCartLineRemoved,
 } from '@/lib/cart/pending-cart-removals';
-import { removeCachedLineId } from '@/lib/cart/cart-line-id-cache';
+import { getCartLineId, removeCachedLineId } from '@/lib/cart/cart-line-id-cache';
+import {
+  normalizeProductCustomizations,
+  serializeProductCustomizations,
+} from '@/lib/cart/customizations';
 
 /** Item already removed server-side (e.g. duplicate minus click after optimistic delete). */
 function isCartItemNotFoundError(error: unknown): boolean {
@@ -36,8 +40,21 @@ function calculateCartTotals(items: CartItem[], existingTotals: Cart['totals']):
   };
 }
 
-async function deleteMatchingLineOnServer(item: CartItem): Promise<void> {
+function buildProductCustomizationKey(item: CartItem): string {
+  const normalized = normalizeProductCustomizations(item.customizations);
+  return `${item.variant.product.id}::${serializeProductCustomizations(normalized)}`;
+}
+
+async function deleteMatchingLineOnServer(
+  item: CartItem,
+  preferredServerItemId?: string
+): Promise<void> {
   try {
+    if (preferredServerItemId) {
+      await apiClient.delete(`/api/v1/cart/items/${preferredServerItemId}`);
+      return;
+    }
+
     const response = await apiClient.get<{ cart: Cart | null }>('/api/v1/cart');
     const serverCart = response.cart;
     if (!serverCart) {
@@ -45,17 +62,23 @@ async function deleteMatchingLineOnServer(item: CartItem): Promise<void> {
     }
 
     const lineKey = buildCartLineRemovalKey(item);
-    const match = serverCart.items.find(
+    const productCustomizationKey = buildProductCustomizationKey(item);
+    const matches = serverCart.items.filter(
       (serverItem) =>
-        buildCartLineRemovalKey(serverItem) === lineKey &&
+        (buildCartLineRemovalKey(serverItem) === lineKey ||
+          buildProductCustomizationKey(serverItem) === productCustomizationKey) &&
         !isOptimisticCartItemId(serverItem.id)
     );
 
-    if (!match) {
+    if (matches.length === 0) {
       return;
     }
 
-    await apiClient.delete(`/api/v1/cart/items/${match.id}`);
+    await Promise.all(
+      matches.map(async (match) => {
+        await apiClient.delete(`/api/v1/cart/items/${match.id}`);
+      })
+    );
   } catch (error: unknown) {
     if (isCartItemNotFoundError(error)) {
       return;
@@ -82,6 +105,11 @@ export async function handleRemoveItem(
   }
 
   markCartLineRemoved(itemToRemove);
+  const cachedLine = getCartLineId(
+    itemToRemove.variant.product.id,
+    itemToRemove.variant.id,
+    itemToRemove.customizations
+  );
   removeCachedLineId(
     itemToRemove.variant.product.id,
     itemToRemove.variant.id,
@@ -105,7 +133,7 @@ export async function handleRemoveItem(
   }
 
   if (isOptimisticCartItemId(itemId)) {
-    void deleteMatchingLineOnServer(itemToRemove);
+    void deleteMatchingLineOnServer(itemToRemove, cachedLine?.cartItemId);
     return;
   }
 

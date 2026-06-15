@@ -78,6 +78,7 @@ export function applyOptimisticCartAdd(
 ): Cart {
   clearCartLineRemoved({
     variant: { id: snapshot.variantId },
+    productId: snapshot.productId,
     customizations: normalizeProductCustomizations(snapshot.customizations),
   });
 

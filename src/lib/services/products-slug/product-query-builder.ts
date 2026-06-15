@@ -16,7 +16,6 @@ const LOCALE_TRANSLATION_TAKE = 2;
 function getBaseInclude(lang: string) {
   const localeWhere = translationLocaleWhere(lang);
   return {
-    pdpCustomization: true,
     translations: {
       where: localeWhere,
       take: LOCALE_TRANSLATION_TAKE,
@@ -69,7 +68,6 @@ function getBaseInclude(lang: string) {
 function getBaseIncludeWithoutAttributeValue(lang: string) {
   const localeWhere = translationLocaleWhere(lang);
   return {
-    pdpCustomization: true,
     translations: {
       where: localeWhere,
       take: LOCALE_TRANSLATION_TAKE,
