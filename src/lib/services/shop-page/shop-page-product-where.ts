@@ -137,6 +137,7 @@ export function getShopProductSelect(locale: StorefrontLocale): Prisma.ProductSe
       orderBy: {
         price: 'asc',
       },
+      take: 2,
       select: {
         id: true,
         published: true,
@@ -145,6 +146,15 @@ export function getShopProductSelect(locale: StorefrontLocale): Prisma.ProductSe
         stock: true,
         /** Spicy/greens badges need all published variants (see product-food-attributes). */
         attributes: true,
+      },
+    },
+    _count: {
+      select: {
+        variants: {
+          where: {
+            published: true,
+          },
+        },
       },
     },
   };

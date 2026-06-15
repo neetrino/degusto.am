@@ -10,9 +10,9 @@ type SearchParamsInput = Record<string, string | string[] | undefined>;
 export default async function ComboPage({
   searchParams,
 }: {
-  searchParams?: Promise<SearchParamsInput> | SearchParamsInput;
+  searchParams?: Promise<SearchParamsInput>;
 }) {
-  const params = searchParams instanceof Promise ? await searchParams : searchParams;
+  const params = (await searchParams) ?? {};
   const cookieStore = await cookies();
   const locale = resolveStorefrontLocaleFromCookie(cookieStore.get('shop_language')?.value);
   const selectedCategorySlug =

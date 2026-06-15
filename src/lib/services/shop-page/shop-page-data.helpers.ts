@@ -77,6 +77,9 @@ export type ShopMenuProductRow = {
     stock: number;
     attributes: unknown;
   }>;
+  _count?: {
+    variants?: number;
+  };
 };
 
 export function toShopMenuImageUrl(media: unknown): string | null {
@@ -147,7 +150,10 @@ export function mapShopProductRowsToMenuCards(
     const variant = row.variants[0];
     const price = variant?.price ?? 0;
     const oldPrice = resolveMenuCardCompareAtPrice(price, variant?.compareAtPrice);
-    const foodAttrs = resolveFoodAttributeFlagsFromVariants(row.variants);
+    const hasVariantChoice = (row._count?.variants ?? row.variants.length) > 1;
+    const foodAttrs = hasVariantChoice
+      ? resolveFoodAttributeFlagsFromVariants(row.variants)
+      : { supportsSpicy: false, supportsGreens: false };
 
     return {
       id: row.id,

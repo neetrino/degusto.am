@@ -34,6 +34,9 @@ export type {
 } from './shop-page-query.types';
 
 export type ShopMenuProductsPage = Pick<ShopMenuData, 'cards' | 'effectivePage' | 'totalPages'>;
+export type ShopMenuProductsMetrics = {
+  totalServiceMs: number;
+};
 
 export type ShopMenuSidebarPayload = Pick<
   ShopMenuData,
@@ -112,9 +115,13 @@ async function fetchShopProductPage(
   productWhereBase: ReturnType<typeof buildShopProductWhereBase>
 ): Promise<Pick<ShopMenuDbResult, 'productTotal' | 'productRows'>> {
   const productWhere = buildShopProductWhere(locale, query as ShopMenuQuery, productWhereBase);
-  const [productTotal, productRows] = await Promise.all([
-    db.product.count({ where: productWhere }),
-    db.product.findMany({
+  const countStartedAt = Date.now();
+  const productTotalPromise = db.product
+    .count({ where: productWhere })
+    .then((value) => ({ value, durationMs: Date.now() - countStartedAt }));
+  const rowsStartedAt = Date.now();
+  const productRowsPromise = db.product
+    .findMany({
       where: productWhere,
       orderBy: {
         updatedAt: 'desc',
@@ -122,8 +129,22 @@ async function fetchShopProductPage(
       skip: (query.requestedPage - 1) * STORE_MENU_PAGE_SIZE,
       take: STORE_MENU_PAGE_SIZE,
       select: getShopProductSelect(locale),
-    }),
+    })
+    .then((value) => ({ value, durationMs: Date.now() - rowsStartedAt }));
+  const [productTotalResult, productRowsResult] = await Promise.all([
+    productTotalPromise,
+    productRowsPromise,
   ]);
+  const productTotal = productTotalResult.value;
+  const productRows = productRowsResult.value;
+  logger.info('[SHOP PERF] db product page query timings', {
+    locale,
+    page: query.requestedPage,
+    dbCountMs: productTotalResult.durationMs,
+    dbRowsMs: productRowsResult.durationMs,
+    productTotal,
+    rowCount: productRows.length,
+  });
 
   const totalPages = productTotal === 0 ? 0 : Math.ceil(productTotal / STORE_MENU_PAGE_SIZE);
   const effectivePage = totalPages === 0 ? 1 : Math.min(query.requestedPage, totalPages);
@@ -135,6 +156,7 @@ async function fetchShopProductPage(
     };
   }
 
+  const clampStartedAt = Date.now();
   const clampedRows = (await db.product.findMany({
     where: productWhere,
     orderBy: {
@@ -144,6 +166,13 @@ async function fetchShopProductPage(
     take: STORE_MENU_PAGE_SIZE,
     select: getShopProductSelect(locale),
   })) as unknown as ShopMenuProductRow[];
+  logger.info('[SHOP PERF] db clamped product page query timing', {
+    locale,
+    requestedPage: query.requestedPage,
+    effectivePage,
+    dbClampRowsMs: Date.now() - clampStartedAt,
+    rowCount: clampedRows.length,
+  });
 
   return {
     productTotal,
@@ -169,6 +198,7 @@ function mapProductsPage(
 }
 
 async function loadShopMenuSidebar(filter: ShopMenuFilterKey): Promise<ShopMenuSidebarPayload> {
+  const startedAt = Date.now();
   const allCategoriesLabel = filter.locale === 'hy' ? 'Բոլորը' : 'All';
   const filterQuery: ShopMenuQuery = {
     ...filter,
@@ -202,6 +232,12 @@ async function loadShopMenuSidebar(filter: ShopMenuFilterKey): Promise<ShopMenuS
   }
 
   const slugToProductCount = new Map<string, number>(Object.entries(countBySlug));
+  logger.info('[SHOP PERF] sidebar query complete', {
+    locale: filter.locale,
+    categoryCount: categoryEntries.length,
+    allProductCount,
+    durationMs: Date.now() - startedAt,
+  });
 
   return {
     categories: mapCategoryEntriesToMenuCategories(
@@ -230,6 +266,7 @@ async function loadShopMenuProducts(
     | 'requestedPage'
   >
 ): Promise<ShopMenuProductsPage> {
+  const startedAt = Date.now();
   const productWhereBase = buildShopProductWhereBase(query.locale, query as ShopMenuQuery);
   const { productTotal, productRows } = await withPrismaResilience(
     () => fetchShopProductPage(query.locale, query, productWhereBase),
@@ -237,6 +274,15 @@ async function loadShopMenuProducts(
     'SHOP',
     'product list'
   );
+  logger.info('[SHOP PERF] products query complete', {
+    locale: query.locale,
+    category: query.selectedCategorySlug || 'all',
+    page: query.requestedPage,
+    searchLength: query.selectedSearchQuery.length,
+    rows: productRows.length,
+    total: productTotal,
+    durationMs: Date.now() - startedAt,
+  });
 
   return mapProductsPage(
     query.locale,
@@ -316,7 +362,39 @@ const getShopMenuProductsCached = unstable_cache(
 );
 
 /** Product grid only — used by soft category navigation API. */
-export function getShopMenuProductsPage(
+export async function getShopMenuProductsPageWithMetrics(
+  query: Pick<
+    ShopMenuQuery,
+    | 'locale'
+    | 'selectedCategorySlug'
+    | 'selectedSearchQuery'
+    | 'tasteFilter'
+    | 'minPriceAmd'
+    | 'maxPriceAmd'
+    | 'requestedPage'
+  >
+): Promise<{ data: ShopMenuProductsPage; metrics: ShopMenuProductsMetrics }> {
+  const serviceStartedAt = Date.now();
+  const data = await getShopMenuProductsCached(
+    query.locale,
+    query.selectedCategorySlug,
+    query.selectedSearchQuery,
+    query.tasteFilter ?? '',
+    query.minPriceAmd === null ? '' : String(query.minPriceAmd),
+    query.maxPriceAmd === null ? '' : String(query.maxPriceAmd),
+    String(query.requestedPage)
+  );
+  const totalServiceMs = Date.now() - serviceStartedAt;
+  return {
+    data,
+    metrics: {
+      totalServiceMs,
+    },
+  };
+}
+
+/** Product grid only — used by soft category navigation API. */
+export async function getShopMenuProductsPage(
   query: Pick<
     ShopMenuQuery,
     | 'locale'
@@ -328,15 +406,8 @@ export function getShopMenuProductsPage(
     | 'requestedPage'
   >
 ): Promise<ShopMenuProductsPage> {
-  return getShopMenuProductsCached(
-    query.locale,
-    query.selectedCategorySlug,
-    query.selectedSearchQuery,
-    query.tasteFilter ?? '',
-    query.minPriceAmd === null ? '' : String(query.minPriceAmd),
-    query.maxPriceAmd === null ? '' : String(query.maxPriceAmd),
-    String(query.requestedPage)
-  );
+  const { data } = await getShopMenuProductsPageWithMetrics(query);
+  return data;
 }
 
 /**
