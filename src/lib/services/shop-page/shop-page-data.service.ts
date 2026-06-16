@@ -43,6 +43,18 @@ export type ShopMenuSidebarPayload = Pick<
   'categories' | 'mobileShopCategories' | 'showCategoryPicker'
 >;
 
+const EMPTY_SHOP_MENU_PRODUCTS_PAGE: ShopMenuProductsPage = {
+  cards: [],
+  effectivePage: 1,
+  totalPages: 0,
+};
+
+const EMPTY_SHOP_MENU_SIDEBAR_PAYLOAD: ShopMenuSidebarPayload = {
+  categories: [],
+  mobileShopCategories: [],
+  showCategoryPicker: false,
+};
+
 type ShopMenuFilterKey = {
   locale: StorefrontLocale;
   selectedSearchQuery: string;
@@ -207,7 +219,12 @@ async function loadShopMenuSidebar(filter: ShopMenuFilterKey): Promise<ShopMenuS
     loadProfile: 'full',
   };
 
-  const categoryRows = await fetchShopCategoryRows(filter.locale);
+  const categoryRows = await withPrismaResilience(
+    () => fetchShopCategoryRows(filter.locale),
+    [] as CategoryRow[],
+    'SHOP',
+    'sidebar categories'
+  );
   const categoryEntries = buildShopCategoryEntries(
     filter.locale,
     allCategoriesLabel,
@@ -462,7 +479,12 @@ export async function loadShopMenuData(query: ShopMenuQuery): Promise<ShopMenuDa
   };
 
   const [sidebar, products] = await Promise.all([
-    loadShopMenuSidebar(filterKey),
+    withPrismaResilience(
+      () => loadShopMenuSidebar(filterKey),
+      EMPTY_SHOP_MENU_SIDEBAR_PAYLOAD,
+      'SHOP',
+      'sidebar'
+    ),
     loadShopMenuProducts(query),
   ]);
 
@@ -526,10 +548,24 @@ export function getShopMenuData(query: ShopMenuQuery): Promise<ShopMenuData> {
         query.maxPriceAmd === null ? '' : String(query.maxPriceAmd)
       ),
       getShopMenuProductsPage(query),
-    ]).then(([sidebar, products]) => ({
-      ...sidebar,
-      ...products,
-    }));
+    ]).then(([sidebar, products]) => {
+      const safeSidebar = sidebar ?? EMPTY_SHOP_MENU_SIDEBAR_PAYLOAD;
+      const safeProducts = products ?? EMPTY_SHOP_MENU_PRODUCTS_PAGE;
+      return {
+        ...safeSidebar,
+        ...safeProducts,
+      };
+    }).catch((error: unknown) => {
+      logger.warn('[SHOP] Full payload failed; using safe fallback', {
+        category: query.selectedCategorySlug || 'all',
+        page: query.requestedPage,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return {
+        ...EMPTY_SHOP_MENU_SIDEBAR_PAYLOAD,
+        ...EMPTY_SHOP_MENU_PRODUCTS_PAGE,
+      };
+    });
   }
 
   return getShopMenuDataCached(

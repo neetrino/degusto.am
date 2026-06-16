@@ -23,6 +23,7 @@ import {
 } from '../constants/admin-table-classes';
 import { logger } from "@/lib/utils/logger";
 import { useAdminDialogs } from '../context/AdminDialogsContext';
+import { formatHydrationSafeDate } from '@/lib/format-date';
 
 interface User {
   id: string;
@@ -414,7 +415,7 @@ export default function UsersPage() {
                           </button>
                         </td>
                         <td className={`${ADMIN_TABLE_TD} whitespace-nowrap text-left tabular-nums text-gray-600`}>
-                          {new Date(user.createdAt).toLocaleDateString()}
+                          {formatHydrationSafeDate(user.createdAt)}
                         </td>
                       </tr>
                     ))}

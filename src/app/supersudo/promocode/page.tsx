@@ -9,6 +9,7 @@ import { apiClient } from '../../../lib/api-client';
 import { logger } from '../../../lib/utils/logger';
 import { useAdminDialogs } from '../context/AdminDialogsContext';
 import { PromocodeCodeWithCopy } from './PromocodeCodeWithCopy';
+import { formatHydrationSafeDateTime } from '@/lib/format-date';
 
 interface CouponItem {
   code: string;
@@ -178,8 +179,8 @@ export default function PromocodePage() {
                         : `${coupon.maxUsesPerUser} ${t('admin.promocode.timesSuffix')}`}
                     </td>
                     <td className="px-3 py-3 text-gray-600">
-                      {coupon.startsAt ? new Date(coupon.startsAt).toLocaleString() : '-'} -{' '}
-                      {coupon.expiresAt ? new Date(coupon.expiresAt).toLocaleString() : '-'}
+                      {coupon.startsAt ? formatHydrationSafeDateTime(coupon.startsAt) : '-'} -{' '}
+                      {coupon.expiresAt ? formatHydrationSafeDateTime(coupon.expiresAt) : '-'}
                     </td>
                     <td className="px-3 py-3">
                       <span

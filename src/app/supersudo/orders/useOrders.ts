@@ -4,7 +4,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { apiClient } from '../../../lib/api-client';
 import { useTranslation } from '../../../lib/i18n-client';
-import { formatPriceInCurrency, convertPrice, getStoredCurrency, initializeCurrencyRates, CurrencyCode } from '../../../lib/currency';
+import {
+  formatPriceInCurrency,
+  convertPrice,
+  getStoredCurrency,
+  initializeCurrencyRates,
+  HYDRATION_SAFE_CURRENCY,
+  CurrencyCode,
+} from '../../../lib/currency';
 import { logger } from "@/lib/utils/logger";
 import { useAdminDialogs } from '../context/AdminDialogsContext';
 import { ADMIN_NEW_ORDER_EVENT } from '@/lib/admin/admin-order-alert.constants';
@@ -112,7 +119,7 @@ export function useOrders() {
   const searchQuery = searchParams.get('search') ?? '';
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currency, setCurrency] = useState<CurrencyCode>(getStoredCurrency());
+  const [currency, setCurrency] = useState<CurrencyCode>(HYDRATION_SAFE_CURRENCY);
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState<OrdersResponse['meta'] | null>(null);
   const [sortBy, setSortBy] = useState<string>('createdAt');
