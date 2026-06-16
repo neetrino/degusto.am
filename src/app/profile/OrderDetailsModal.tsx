@@ -5,6 +5,7 @@ import { formatPriceInCurrency, convertPrice, type CurrencyCode } from '../../li
 import { useTranslation } from '../../lib/i18n-client';
 import { getStatusColor, getPaymentStatusColor, getColorValue } from './utils';
 import { formatOrderStatusLabel } from '../../lib/order-status-labels';
+import { formatHydrationSafeDate } from '../../lib/format-date';
 import type { OrderDetails } from './types';
 
 interface OrderDetailsModalProps {
@@ -187,7 +188,7 @@ export function OrderDetailsModal({
             <div>
               <h2 className="text-2xl font-bold text-gray-900">{t('profile.orderDetails.title')}{selectedOrder.number}</h2>
               <p className="text-sm text-gray-600 mt-1">
-                {t('profile.orderDetails.placedOn')} {new Date(selectedOrder.createdAt).toLocaleDateString()}
+                {t('profile.orderDetails.placedOn')} {formatHydrationSafeDate(selectedOrder.createdAt)}
               </p>
             </div>
             <div className="flex items-center gap-3">

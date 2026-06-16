@@ -24,6 +24,7 @@ import {
 } from '../constants/admin-table-classes';
 import { logger } from "@/lib/utils/logger";
 import { useAdminDialogs } from '../context/AdminDialogsContext';
+import { formatHydrationSafeDate, formatHydrationSafeDateTime } from '@/lib/format-date';
 
 interface Message {
   id: string;
@@ -93,7 +94,7 @@ function MessageDetailsModal({ message, onClose, t }: MessageDetailsModalProps) 
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{t('admin.messages.date')}</p>
-            <p className="mt-1 text-sm text-gray-900">{new Date(message.createdAt).toLocaleString()}</p>
+            <p className="mt-1 text-sm text-gray-900">{formatHydrationSafeDateTime(message.createdAt)}</p>
           </div>
         </div>
         <div className="mt-6 flex justify-end">
@@ -303,7 +304,7 @@ export default function MessagesPage() {
                           </button>
                         </td>
                         <td className={`${ADMIN_TABLE_TD} whitespace-nowrap text-left tabular-nums text-gray-600`}>
-                          {new Date(message.createdAt).toLocaleDateString()}
+                          {formatHydrationSafeDate(message.createdAt)}
                         </td>
                       </tr>
                     ))}

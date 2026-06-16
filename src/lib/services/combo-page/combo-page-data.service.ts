@@ -29,6 +29,13 @@ export const COMBO_MENU_CACHE_TAG = 'combo-menu';
 
 export const COMBO_MENU_REVALIDATE_SECONDS = 60;
 
+const EMPTY_COMBO_MENU_DATA: ComboMenuData = {
+  cards: [],
+  categories: [],
+  effectivePage: 1,
+  totalPages: 0,
+};
+
 async function fetchComboProductsPage(
   locale: StorefrontLocale,
   query: ComboMenuQuery,
@@ -306,5 +313,12 @@ export function getComboMenuData(query: ComboMenuQuery): Promise<ComboMenuData> 
     query.maxPriceAmd === null ? '' : String(query.maxPriceAmd),
     String(query.requestedPage),
     query.loadProfile
-  );
+  ).catch((error: unknown) => {
+    logger.warn('[COMBO] Menu payload failed; using safe fallback', {
+      category: query.selectedCategorySlug || 'all',
+      page: query.requestedPage,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return EMPTY_COMBO_MENU_DATA;
+  });
 }

@@ -4,6 +4,7 @@ import { useTranslation } from '../../../lib/i18n-client';
 import { convertPrice, CurrencyCode } from '../../../lib/currency';
 import { getPaymentStatusColor, getStatusColor } from '../../supersudo/orders/utils/orderUtils';
 import type { Order } from '../../supersudo/orders/useOrders';
+import { formatHydrationSafeDate } from '@/lib/format-date';
 import { formatOrderNumber } from '@/lib/orders/format-order-number';
 import { ADMIN_MOBILE_CARD_CLASS, ADMIN_MOBILE_FIELD_CLASS } from './admin-mobile-ui';
 
@@ -66,11 +67,7 @@ export function AdminMobileOrderCard({
           <div className="shrink-0 text-right">
             <p className="text-base font-bold text-gray-900">{formatOrderTotal(order, formatCurrency)}</p>
             <p className="text-xs text-gray-500">
-              {new Date(order.createdAt).toLocaleDateString(undefined, {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
-              })}
+              {formatHydrationSafeDate(order.createdAt)}
             </p>
             <p className="mt-0.5 text-xs text-gray-500">
               {order.itemsCount} {t('admin.orders.items')}
