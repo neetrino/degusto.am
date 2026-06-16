@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 import type { Dispatch, RefCallback, SetStateAction } from 'react';
 import { RelatedProducts } from '../../../components/RelatedProducts';
+import { ProductReviewsLoading } from '@/components/ProductReviews/ProductReviewsLoading';
 import type { Review } from '../../../components/ProductReviews/utils';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
 import type { RelatedCardPayload } from '@/lib/services/products-slug/product-related-transform';
@@ -19,7 +20,7 @@ const ProductReviews = dynamic(
     import('../../../components/ProductReviews').then((module) => ({
       default: module.ProductReviews,
     })),
-  { loading: () => null }
+  { loading: () => <ProductReviewsLoading /> }
 );
 
 export interface ProductPageBelowFoldProps {

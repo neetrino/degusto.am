@@ -44,7 +44,6 @@ import { useShopCategorySoftNav } from './useShopCategorySoftNav';
 import { ShopDesktopProductsSkeleton } from './ShopDesktopProductsSkeleton';
 import { HomeOptimizedImage } from './HomeOptimizedImage';
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
-import { convertPrice } from '@/lib/currency';
 import {
   STOREFRONT_DESKTOP_MAIN_COLUMN_CLASS,
   STOREFRONT_DESKTOP_PRODUCT_GRID_CLASS,
@@ -52,6 +51,7 @@ import {
   STOREFRONT_DESKTOP_SIDEBAR_GAP_CLASS,
   STOREFRONT_DESKTOP_SIDEBAR_WIDTH_CLASS,
 } from '@/constants/storefront-desktop-layout';
+import { RatingStars } from '@/components/RatingStars';
 
 const assets = {
   productCardAddToCart: r2Asset('product/20260512-g67zkm13ZH.svg'),
@@ -356,16 +356,17 @@ function MenuCardItemBase({ card }: { card: MenuCard }) {
 
   const visibilityRef = usePrefetchProductWhenVisible(card.slug);
   const displayRating = card.rating ?? 5;
+  const effectiveDisplayRating = displayRating > 0 ? displayRating : 5;
   const previewSummary = createProductPreviewSummary({
     id: card.id,
     slug: card.slug,
     title,
     image: imageSrc,
-    price: convertPrice(card.price, 'USD', currency),
-    oldPrice: showStrikethroughPrice ? convertPrice(card.oldPrice, 'USD', currency) : null,
+    price: card.price,
+    oldPrice: showStrikethroughPrice ? card.oldPrice : null,
     discount: hasDiscount ? effectiveDiscountPercent : null,
     category: null,
-    rating: displayRating,
+    rating: displayRating > 0 ? displayRating : 5,
     currency,
     inStock: card.inStock ?? true,
     defaultVariantId: card.defaultVariantId ?? null,
@@ -433,9 +434,15 @@ function MenuCardItemBase({ card }: { card: MenuCard }) {
         <img src={assets.productCardAddToCart} alt="" className="h-[52px] w-[51px] object-contain" />
       </button>
       <div className={`absolute left-[14px] ${DESKTOP_MENU_CARD_META_TOP_CLASS} flex items-center gap-[6px]`}>
-        <img src={assets.productCardStar} alt="" className="h-5 w-5 object-contain" />
+        <RatingStars
+          rating={effectiveDisplayRating / 5}
+          starSrc={assets.productCardStar}
+          className="flex items-center"
+          starClassName="h-4 w-4"
+          maxStars={1}
+        />
         <p className="text-base font-medium leading-[1.35] text-[rgba(60,47,47,0.62)]">
-          {displayRating.toFixed(1)}
+          {effectiveDisplayRating.toFixed(1)}
         </p>
       </div>
       <div className={`absolute left-[14px] right-[100px] ${DESKTOP_MENU_CARD_TITLE_TOP_CLASS} min-w-0`}>
@@ -658,10 +665,7 @@ export function FigmaDesktopMenuPage({
     }));
   }, [buildTargetPath, dbCategories]);
 
-  const categoryNavHrefs = useMemo(
-    () => categoryNavItems.map((item) => item.href),
-    [categoryNavItems]
-  );
+  const categoryNavHrefs = useMemo(() => categoryNavItems.map((item) => item.href), [categoryNavItems]);
 
   const { getPrefetchHandlers } = useRoutePrefetch(
     enableSoftCategoryNav ? [] : categoryNavHrefs

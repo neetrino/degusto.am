@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { apiClient } from '../../lib/api-client';
 import { ApiError } from '../../lib/api-client/types';
 import { isQuietCartStockValidationError } from '../../lib/api-client/error-handler';
@@ -19,6 +19,7 @@ import { clearCartLineRemoved } from '@/lib/cart/pending-cart-removals';
 import { readCartSummaryCache } from '../../lib/cartSummaryCache';
 
 const CART_ACTION_RETRY_AFTER_MS = 3000;
+const ADD_TO_CART_BLOCK_WINDOW_MS = 700;
 
 interface ProductDetails {
   id: string;
@@ -76,6 +77,34 @@ export function useAddToCart({
   const [isUpdatingQuantity, setIsUpdatingQuantity] = useState(false);
   const [quantity, setQuantity] = useState(0);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const addBlockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const releaseAddToCartBlock = (resetState: boolean) => {
+    if (addBlockTimerRef.current) {
+      clearTimeout(addBlockTimerRef.current);
+      addBlockTimerRef.current = null;
+    }
+    if (resetState) {
+      setIsAddingToCart(false);
+    }
+  };
+
+  const scheduleAddToCartBlockRelease = () => {
+    if (addBlockTimerRef.current) {
+      clearTimeout(addBlockTimerRef.current);
+    }
+    addBlockTimerRef.current = setTimeout(() => {
+      setIsAddingToCart(false);
+      addBlockTimerRef.current = null;
+    }, ADD_TO_CART_BLOCK_WINDOW_MS);
+  };
+
+  useEffect(
+    () => () => {
+      releaseAddToCartBlock(false);
+    },
+    []
+  );
 
   const resolveVariantId = async (): Promise<string | null> => {
     if (defaultVariantId) {
@@ -197,8 +226,6 @@ export function useAddToCart({
       logger.error('[PRODUCT CARD] Error adding to cart', { error });
       alert(t('common.alerts.failedToAddToCart'));
       publishCartForceReload();
-    } finally {
-      setIsAddingToCart(false);
     }
   };
 
@@ -213,6 +240,7 @@ export function useAddToCart({
       return;
     }
     setIsAddingToCart(true);
+    scheduleAddToCartBlockRelease();
 
     playCartFlyAnimation({
       fromElement: fly?.origin ?? null,

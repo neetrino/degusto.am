@@ -123,10 +123,22 @@ export function useReviewForm({
             if (!reviewExists) {
               setReviews([existingReview, ...reviews]);
             }
-            
-            // Show in edit mode
-            handleEditReview(existingReview);
-            alert(t('common.reviews.alreadyReviewedEditable'));
+
+            // Seamless UX: apply current form values as an update to existing review.
+            const updatedReview = await apiClient.put<Review>(`/api/v1/reviews/${existingReview.id}`, {
+              rating,
+              comment: comment.trim(),
+            });
+            setReviews((prev) => prev.map((item) => (item.id === updatedReview.id ? updatedReview : item)));
+            setRating(0);
+            setComment('');
+            setShowForm(false);
+            setEditingReviewId(null);
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new Event('review-updated'));
+            }
+            onReviewUpdated?.();
+            alert(t('common.reviews.updatedAfterConflict'));
           } else {
             alert(t('common.reviews.alreadyReviewed'));
           }

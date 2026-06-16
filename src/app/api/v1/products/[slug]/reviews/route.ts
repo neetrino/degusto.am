@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { problemTypes } from "@/lib/http/problem-details";
-import { apiRouteErrorResponse } from "@/lib/http/api-route-errors";
+import { apiRouteCatchErrorResponse } from "@/lib/http/api-route-errors";
 import { resolveStorefrontLocaleFromSearchParams } from "@/lib/i18n/locale";
 import { reviewsService } from "@/lib/services/reviews.service";
 import { resolveReviewsProductId } from "@/lib/services/reviews/resolve-reviews-product-id";
@@ -112,7 +112,7 @@ export async function GET(
 
     return NextResponse.json(reviews);
   } catch (error: unknown) {
-    return apiRouteErrorResponse(req, error, "[REVIEWS API] GET Error");
+    return apiRouteCatchErrorResponse(req, error, "[REVIEWS API] GET Error");
   }
 }
 
@@ -214,7 +214,7 @@ export async function POST(
 
     return NextResponse.json(review, { status: 201 });
   } catch (error: unknown) {
-    return apiRouteErrorResponse(req, error, "[REVIEWS API] POST Error");
+    return apiRouteCatchErrorResponse(req, error, "[REVIEWS API] POST Error");
   }
 }
 

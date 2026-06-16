@@ -7,6 +7,7 @@ export type HomeFeaturedProduct = {
   oldPrice: number | null;
   image: string | null;
   discountPercent: number | null;
+  rating?: number | null;
   inStock?: boolean;
   defaultVariantId?: string | null;
   supportsSpicy?: boolean;

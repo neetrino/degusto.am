@@ -33,6 +33,7 @@ import { resolveHomeDailyOfferProduct } from './home-daily-offer';
 import type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
 import { STOREFRONT_DESKTOP_SECTION_CLASS } from '@/constants/storefront-desktop-layout';
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
+import { RatingStars } from '@/components/RatingStars';
 
 export type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
 
@@ -78,6 +79,7 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
   const formattedPrice = keepCurrencySymbolAttached(formatPrice(item.price || 0, currency));
   const formattedOldPrice = item.oldPrice ? keepCurrencySymbolAttached(formatPrice(item.oldPrice, currency)) : null;
   const mainPriceClassName = formattedPrice.length > 12 ? 'text-[18px]' : 'text-[20px]';
+  const displayRating = item.rating ?? 5;
   const productHref = `/products/${item.slug}`;
   const { isLoggedIn } = useAuth();
   const { isInWishlist, toggleWishlist } = useWishlist(item.id);
@@ -116,7 +118,7 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
     oldPrice: item.oldPrice,
     discount: item.discountPercent,
     category: subtitle ? { slug: `preview-${item.id}`, title: subtitle } : null,
-    rating: 4.7,
+    rating: item.rating ?? 5,
     currency,
     inStock: item.inStock ?? true,
     defaultVariantId: item.defaultVariantId ?? null,
@@ -166,15 +168,16 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
         </span>
       </button>
       <div className="absolute left-[14px] top-[170px] flex items-center gap-[6px]">
-        <HomeOptimizedImage
-          src={assets.productCardStar}
-          alt=""
-          width={20}
-          height={20}
-          className="h-5 w-5 object-contain"
-          loading="lazy"
+        <RatingStars
+          rating={displayRating / 5}
+          starSrc={assets.productCardStar}
+          className="flex items-center"
+          starClassName="h-4 w-4"
+          maxStars={1}
         />
-        <p className="text-base font-medium leading-[1.35] text-[rgba(60,47,47,0.62)]">4.7</p>
+        <p className="text-base font-medium leading-[1.35] text-[rgba(60,47,47,0.62)]">
+          {displayRating.toFixed(1)}
+        </p>
       </div>
       <div className="absolute left-[14px] top-[194px] w-[130px]">
         <h3 className="text-base font-bold leading-[1.05] text-[#3c2f2f]">

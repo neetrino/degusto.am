@@ -22,8 +22,8 @@ import { usePrefetchProductWhenVisible } from '../hooks/usePrefetchProductWhenVi
 import { prefetchProductRoute } from '@/lib/products/prefetch-product-route';
 import { shouldShowMenuCardStrikethroughPrice } from '@/lib/storefront/menu-card-pricing';
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
-import { convertPrice } from '@/lib/currency';
 import type { MenuCard } from './menu-types';
+import { RatingStars } from '@/components/RatingStars';
 
 /** Above storefront overlay link — must not include `relative` (breaks `absolute` positioning). */
 const MOBILE_PRODUCT_CARD_ACTION_Z_CLASS = 'z-20';
@@ -79,6 +79,7 @@ export function ShopMobileProductCard({
   const discountText = hasDiscount ? `-${effectiveDiscountPercent}%` : '';
   const supportsSpicy = card.supportsSpicy ?? false;
   const supportsGreens = card.supportsGreens ?? false;
+  const displayRating = card.rating ?? 5;
   const greensTopClass = supportsSpicy ? 'top-[38px]' : 'top-[11px]';
   const productHref = `/products/${card.slug}`;
   const { isAddingToCart, addToCart } = useAddToCart({
@@ -117,11 +118,11 @@ export function ShopMobileProductCard({
     slug: card.slug,
     title,
     image: imageSrc,
-    price: convertPrice(card.price, 'USD', currency),
-    oldPrice: showStrikethroughPrice ? convertPrice(card.oldPrice, 'USD', currency) : null,
+    price: card.price,
+    oldPrice: showStrikethroughPrice ? card.oldPrice : null,
     discount: hasDiscount ? effectiveDiscountPercent : null,
     category: category ? { slug: `preview-${card.id}`, title: category } : null,
-    rating: 4.7,
+    rating: card.rating ?? 5,
     currency,
     inStock: card.inStock ?? true,
     defaultVariantId: card.defaultVariantId ?? null,
@@ -199,15 +200,16 @@ export function ShopMobileProductCard({
       ) : null}
 
       <div className="absolute left-[9px] top-[150px] flex items-center gap-1.5">
-        <HomeOptimizedImage
-          src={MOBILE_SHOP_PRODUCT_CARD_ASSETS.star}
-          alt=""
-          width={19}
-          height={19}
-          className="h-[19px] w-[19px] object-contain"
-          loading="lazy"
+        <RatingStars
+          rating={displayRating / 5}
+          starSrc={MOBILE_SHOP_PRODUCT_CARD_ASSETS.star}
+          className="flex items-center"
+          starClassName="h-[16px] w-[16px]"
+          maxStars={1}
         />
-        <p className="text-sm font-medium leading-none text-[rgba(60,47,47,0.62)]">4.7</p>
+        <p className="text-sm font-medium leading-none text-[rgba(60,47,47,0.62)]">
+          {displayRating.toFixed(1)}
+        </p>
       </div>
 
       <div className="absolute left-[9px] top-[172px] w-[calc(100%-90px)] pr-1">

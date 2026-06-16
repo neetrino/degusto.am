@@ -5,6 +5,7 @@ import {
   PDP_RATING_STAR_GAP_CLASS,
   PDP_RATING_STAR_SIZE_CLASS,
 } from '@/constants/pdp-figma-tokens';
+import { RatingStars } from '@/components/RatingStars';
 
 const PDP_RATING_STAR_SRC = r2Asset('product/20260512-7jf6Wihrew.svg');
 
@@ -18,24 +19,13 @@ export function ProductRatingSummary({
   reviewsCount,
 }: ProductRatingSummaryProps) {
   const effectiveRating = reviewsCount > 0 ? averageRating : 5;
-  const filledStars = Math.min(5, Math.max(0, Math.round(effectiveRating)));
 
   return (
-    <div className={`mb-5 flex items-center ${PDP_RATING_STAR_GAP_CLASS}`} aria-hidden>
-      {Array.from({ length: 5 }, (_, index) => {
-        const starNumber = index + 1;
-        const isFilled = starNumber <= filledStars;
-        return (
-          <img
-            key={starNumber}
-            src={PDP_RATING_STAR_SRC}
-            alt=""
-            className={`${PDP_RATING_STAR_SIZE_CLASS} object-contain ${
-              isFilled ? '' : 'opacity-35 grayscale'
-            }`}
-          />
-        );
-      })}
-    </div>
+    <RatingStars
+      rating={effectiveRating}
+      starSrc={PDP_RATING_STAR_SRC}
+      className={`mb-5 flex items-center ${PDP_RATING_STAR_GAP_CLASS}`}
+      starClassName={PDP_RATING_STAR_SIZE_CLASS}
+    />
   );
 }

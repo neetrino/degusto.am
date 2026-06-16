@@ -22,6 +22,7 @@ import {
 import { resolveStorefrontDiscountPercent } from '@/lib/storefront/discount-percent';
 import { t } from '../../lib/i18n';
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
+import { RatingStars } from '@/components/RatingStars';
 
 const FIGMA_HOT_ICON = '/api/r2/product/20260512-dWv7-ZfxP1.svg';
 const FIGMA_RIBBON_ICON = '/api/r2/product/20260512-lmzrYlGD39.svg';
@@ -39,6 +40,7 @@ interface RelatedProduct {
   defaultVariantId?: string | null;
   image: string | null;
   inStock: boolean;
+  rating?: number | null;
   categories?: Array<{
     id: string;
     slug: string;
@@ -102,6 +104,7 @@ export function RelatedProductCard({
   const showDiscountBadge =
     resolvedDiscountPercent != null && resolvedDiscountPercent > 0;
   const discountText = showDiscountBadge ? `-${resolvedDiscountPercent}%` : '';
+  const displayRating = product.rating ?? 5;
   const cardFontClass = montserratArmFont.className;
   const { isAddingToCart, addToCart } = useAddToCart({
     productId: product.id,
@@ -129,7 +132,7 @@ export function RelatedProductCard({
     oldPrice: comparePrice,
     discount: resolvedDiscountPercent,
     category: categoryLabel ? { slug: `preview-${product.id}`, title: categoryLabel } : null,
-    rating: 4.7,
+    rating: product.rating ?? 5,
     currency,
     inStock: product.inStock,
     defaultVariantId: product.defaultVariantId ?? null,
@@ -194,8 +197,16 @@ export function RelatedProductCard({
               >
                 <div className="flex min-w-0 flex-1 flex-col self-stretch">
                   <div className="mb-1 flex items-center gap-1.5">
-                    <img src={FIGMA_STAR_ICON} alt="" className="size-4 object-contain" />
-                    <p className="text-sm font-medium leading-none text-[rgba(60,47,47,0.62)]">4.7</p>
+                    <RatingStars
+                      rating={displayRating / 5}
+                      starSrc={FIGMA_STAR_ICON}
+                      className="flex items-center"
+                      starClassName="size-4"
+                      maxStars={1}
+                    />
+                    <p className="text-sm font-medium leading-none text-[rgba(60,47,47,0.62)]">
+                      {displayRating.toFixed(1)}
+                    </p>
                   </div>
                   <h3 className="text-sm font-bold leading-snug text-[#3c2f2f]">
                     <span className="line-clamp-2">{product.title}</span>
@@ -259,9 +270,15 @@ export function RelatedProductCard({
             >
               <div className="w-[120px] shrink-0">
                 <div className="mb-[5px] flex items-center gap-1.5">
-                  <img src={FIGMA_STAR_ICON} alt="" className="size-5 object-contain" />
+                  <RatingStars
+                    rating={displayRating / 5}
+                    starSrc={FIGMA_STAR_ICON}
+                    className="flex items-center"
+                    starClassName="size-5"
+                    maxStars={1}
+                  />
                   <p className="text-base font-medium leading-[1.35] text-[rgba(60,47,47,0.62)]">
-                    4.7
+                    {displayRating.toFixed(1)}
                   </p>
                 </div>
                 <h3 className="text-base font-bold leading-normal text-[#3c2f2f]">

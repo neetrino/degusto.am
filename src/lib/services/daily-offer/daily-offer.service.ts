@@ -26,6 +26,12 @@ type DailyOfferProductRow = {
     stock: number;
     attributes: unknown;
   }>;
+  reviews: Array<{
+    rating: number;
+  }>;
+  _count?: {
+    reviews?: number;
+  };
 };
 
 function toPositiveNumber(value: number | null | undefined): number | null {
@@ -84,6 +90,23 @@ function getHomeProductSelect(homeLang: StorefrontLocale) {
         attributes: true,
       },
     },
+    _count: {
+      select: {
+        reviews: {
+          where: {
+            published: true,
+          },
+        },
+      },
+    },
+    reviews: {
+      where: {
+        published: true,
+      },
+      select: {
+        rating: true,
+      },
+    },
   };
 }
 
@@ -100,6 +123,11 @@ function mapProductRowToHomeFeatured(
     firstCategory?.translations[0];
   const mainVariant = product.variants[0];
   const foodAttrs = resolveFoodAttributeFlagsFromVariants(product.variants);
+  const reviewCount = product._count?.reviews ?? product.reviews.length;
+  const rating =
+    reviewCount > 0
+      ? product.reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount
+      : 5;
 
   return {
     id: product.id,
@@ -110,6 +138,7 @@ function mapProductRowToHomeFeatured(
     oldPrice: toPositiveNumber(mainVariant?.compareAtPrice),
     image: resolveStorefrontProductImageFromMedia(product.media),
     discountPercent: toPositiveNumber(product.discountPercent),
+    rating,
     inStock: isPublishedVariantInStock(mainVariant),
     defaultVariantId: mainVariant?.id ?? null,
     supportsSpicy: foodAttrs.supportsSpicy,
