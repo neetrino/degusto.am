@@ -494,7 +494,7 @@ export function ProductPageClient({
     slug,
     serverLocale,
     productRef,
-    skipMountFetch: Boolean(initialProduct) || streamDetails,
+    skipMountFetch: Boolean(initialProduct) || streamDetails || Boolean(fullProduct),
     onLoaded: (next) => {
       setFullProduct(next);
       productRef.current = next;

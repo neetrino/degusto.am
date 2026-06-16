@@ -10,6 +10,7 @@ export type ComboMenuQuery = {
   minPriceAmd: number | null;
   maxPriceAmd: number | null;
   requestedPage: number;
+  loadProfile: 'full' | 'products-only';
 };
 
 export type ComboMenuData = {
