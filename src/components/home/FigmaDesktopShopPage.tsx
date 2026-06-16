@@ -497,29 +497,7 @@ function FoodAttributeSwitcher({
         aria-hidden="true"
         className="pointer-events-none absolute left-[6px] top-1/2 z-20 inline-flex h-[28px] w-[28px] -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-white shadow-sm transition-transform duration-200"
         style={{ transform: `translate(${selectedIndex * 38}px, -50%)` }}
-      >
-        {selectedOption === 'leaf' ? (
-          <img src={assets.switcherLeafRibbon} alt="" className="h-[28px] w-[28px] object-contain" />
-        ) : null}
-        {selectedOption === 'neutral' ? (
-          <svg
-            className="h-[14px] w-[14px] text-[#b5b5b8]"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path d="M6 6L18 18" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-            <path d="M18 6L6 18" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-          </svg>
-        ) : null}
-        {selectedOption === 'pepper' ? (
-          <img
-            src={assets.switcherPepper}
-            alt=""
-            className="h-[18px] w-[18px] -rotate-[13deg] object-contain"
-          />
-        ) : null}
-      </span>
+      />
 
       <button
         type="button"
@@ -743,7 +721,11 @@ export function FigmaDesktopMenuPage({
           {menuCards.length > 0 ? (
             <div className={`mt-8 ${MOBILE_SHOP_PRODUCTS_GRID_CLASS}`}>
               {menuCards.map((card) => (
-                <ShopMobileProductCard key={card.id} card={card} />
+                <ShopMobileProductCard
+                  key={card.id}
+                  card={card}
+                  hideGreensBadge={foodFilter === 'leaf'}
+                />
               ))}
             </div>
           ) : (

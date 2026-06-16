@@ -185,6 +185,7 @@ function UniversalHeaderSearchSync({
 
 export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: UniversalHeaderProps) {
   const { cartCount, cartTotal } = useCartBadgeDisplay();
+  const [isHydrated, setIsHydrated] = useState(false);
   const { wishlistCount } = useWishlistIdsContext();
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isSearchPopupOpen, setIsSearchPopupOpen] = useState(false);
@@ -215,6 +216,10 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
     minQueryLength: 1,
     maxResults: 6,
   });
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   useEffect(() => {
     setSearchPopupPortalTarget(document.body);
@@ -324,6 +329,8 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
     onCloseDropdown: closeSearchDropdown,
     t,
   };
+  const safeCartCount = isHydrated ? cartCount : 0;
+  const safeCartTotal = isHydrated ? cartTotal : 0;
   const navHrefs = ['/', '/shop', '/combo', '/about', '/wishlist', '/profile', '/login'] as const;
   const { getPrefetchHandlers } = useRoutePrefetch(navHrefs);
 
@@ -367,7 +374,7 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
               type="button"
               onClick={() => openCartDrawer()}
               className={UNIVERSAL_HEADER_CART_BUTTON_CLASS}
-              aria-label={`${t('common.navigation.cart')}, ${formatPrice(cartTotal, currency)}`}
+              aria-label={`${t('common.navigation.cart')}, ${formatPrice(safeCartTotal, currency)}`}
             >
               <span data-cart-fly-target className={UNIVERSAL_HEADER_CART_ICON_WRAP_CLASS}>
                 <img src={HEADER_PUBLIC_ASSETS.cartIcon} alt="" className="h-[34px] w-[37px] object-contain" />
@@ -378,12 +385,12 @@ export function UniversalHeader({ spacerBackgroundClassName = 'bg-white' }: Univ
                     className="absolute h-6 w-6 object-contain"
                   />
                   <span className="relative text-sm font-bold leading-6 text-white">
-                    {cartCount > 99 ? '99+' : cartCount}
+                    {safeCartCount > 99 ? '99+' : safeCartCount}
                   </span>
                 </span>
               </span>
               <span aria-hidden className={UNIVERSAL_HEADER_CART_TOTAL_PILL_CLASS}>
-                {formatPrice(cartTotal, currency)}
+                {formatPrice(safeCartTotal, currency)}
               </span>
             </button>
             <Link
