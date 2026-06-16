@@ -53,6 +53,7 @@ import {
   getProductSummarySnapshot,
   setProductSummarySnapshot,
 } from '@/lib/products/product-summary-cache';
+import { getProductDetailsSnapshot, setProductDetailsSnapshot } from '@/lib/products/product-details-cache';
 import { useHasMounted } from '@/hooks/useHasMounted';
 import {
   PDP_CONTENT_SHELL_CLASS,
@@ -328,9 +329,11 @@ export function ProductPageClient({
   children,
 }: ProductPageClientProps) {
   const hasMounted = useHasMounted();
+  const initialCachedProduct =
+    !initialProduct && !initialNotFound ? getProductDetailsSnapshot(slug) : null;
   const { ref: reviewsSectionRef, inView: reviewsInView } = useLazyInView('320px');
 
-  const [fullProduct, setFullProduct] = useState<Product | null>(initialProduct);
+  const [fullProduct, setFullProduct] = useState<Product | null>(initialProduct ?? initialCachedProduct);
   const [reviewSummary, setReviewSummary] =
     useState<ProductReviewSummary>(initialReviewSummary);
   const [notFound, setNotFound] = useState(initialNotFound);
@@ -428,6 +431,13 @@ export function ProductPageClient({
   );
 
   useEffect(() => {
+    if (!fullProduct) {
+      return;
+    }
+    setProductDetailsSnapshot(fullProduct);
+  }, [fullProduct]);
+
+  useEffect(() => {
     if (!product) {
       return;
     }
@@ -494,7 +504,7 @@ export function ProductPageClient({
     slug,
     serverLocale,
     productRef,
-    skipMountFetch: Boolean(initialProduct) || streamDetails || Boolean(fullProduct),
+    skipMountFetch: Boolean(initialProduct) || streamDetails,
     onLoaded: (next) => {
       setFullProduct(next);
       productRef.current = next;

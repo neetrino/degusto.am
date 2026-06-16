@@ -8,6 +8,7 @@ import {
   getProductSummarySnapshot,
   setProductSummarySnapshot,
 } from '@/lib/products/product-summary-cache';
+import { setProductDetailsSnapshot } from '@/lib/products/product-details-cache';
 
 function isNotFoundError(error: unknown): boolean {
   return Boolean(
@@ -52,9 +53,13 @@ async function fetchDetails(slug: string, lang: string): Promise<Product> {
 /** Full PDP payload only (skip progressive /visual when SSR already hydrated hero). */
 export async function fetchProductDetails(slug: string, lang: string): Promise<Product> {
   try {
-    return await fetchDetails(slug, lang);
+    const details = await fetchDetails(slug, lang);
+    setProductDetailsSnapshot(details);
+    return details;
   } catch (detailsError: unknown) {
-    return fetchDetailsLegacy(slug, lang);
+    const details = await fetchDetailsLegacy(slug, lang);
+    setProductDetailsSnapshot(details);
+    return details;
   }
 }
 
@@ -110,6 +115,7 @@ export async function loadProductProgressive({
 
   try {
     const details = await fetchDetails(slug, lang);
+    setProductDetailsSnapshot(details);
     const firstVariant = details.variants[0] ?? null;
     setProductSummarySnapshot({
       id: details.id,
@@ -144,6 +150,7 @@ export async function loadProductProgressive({
   } catch (detailsError: unknown) {
     try {
       const details = await fetchDetailsLegacy(slug, lang);
+      setProductDetailsSnapshot(details);
       const firstVariant = details.variants[0] ?? null;
       setProductSummarySnapshot({
         id: details.id,
