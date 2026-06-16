@@ -12,10 +12,42 @@ export type ShopMenuProductsResponse = {
 
 const inflightRequests = new Map<string, Promise<ShopMenuProductsResponse>>();
 const responseCache = new Map<string, ShopMenuProductsResponse>();
+const MAX_RESPONSE_CACHE_ENTRIES = 40;
+
+function buildCanonicalSearch(search: string): string {
+  const normalized = search.startsWith('?') ? search.slice(1) : search;
+  if (!normalized) {
+    return '';
+  }
+  const params = new URLSearchParams(normalized);
+  const entries = Array.from(params.entries()).sort(([keyA, valueA], [keyB, valueB]) => {
+    const keyCompare = keyA.localeCompare(keyB);
+    if (keyCompare !== 0) {
+      return keyCompare;
+    }
+    return valueA.localeCompare(valueB);
+  });
+  const stableParams = new URLSearchParams();
+  for (const [key, value] of entries) {
+    stableParams.append(key, value);
+  }
+  return stableParams.toString();
+}
+
+function rememberResponse(url: string, data: ShopMenuProductsResponse): void {
+  responseCache.set(url, data);
+  if (responseCache.size <= MAX_RESPONSE_CACHE_ENTRIES) {
+    return;
+  }
+  const oldestKey = responseCache.keys().next().value;
+  if (typeof oldestKey === 'string') {
+    responseCache.delete(oldestKey);
+  }
+}
 
 function buildMenuProductsApiUrl(search: string): string {
-  const normalized = search.startsWith('?') ? search.slice(1) : search;
-  return normalized ? `/api/v1/shop/menu-products?${normalized}` : '/api/v1/shop/menu-products';
+  const canonical = buildCanonicalSearch(search);
+  return canonical ? `/api/v1/shop/menu-products?${canonical}` : '/api/v1/shop/menu-products';
 }
 
 function hrefToSearch(href: string): string {
@@ -38,7 +70,7 @@ export function prefetchShopMenuProducts(href: string): void {
       return (await response.json()) as ShopMenuProductsResponse;
     })
     .then((data) => {
-      responseCache.set(url, data);
+      rememberResponse(url, data);
       return data;
     })
     .catch((error: unknown) => {
@@ -79,7 +111,7 @@ export async function fetchShopMenuProducts(href: string): Promise<ShopMenuProdu
       return (await response.json()) as ShopMenuProductsResponse;
     })
     .then((data) => {
-      responseCache.set(url, data);
+      rememberResponse(url, data);
       return data;
     })
     .finally(() => {

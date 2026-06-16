@@ -4,28 +4,129 @@ import { adminService } from "./admin.service";
 import { ProductWithRelations } from "./products-find-query.service";
 
 class ProductsFiltersService {
+  private buildLocaleFallbackChain(lang?: string): string[] {
+    const requested = typeof lang === "string" ? lang.trim() : "";
+    if (!requested || requested === "en") {
+      return ["en"];
+    }
+    return [requested, "en"];
+  }
+
+  private getAttributeOptionSelectForFilters(locales: string[]) {
+    return {
+      price: true,
+      options: {
+        select: {
+          attributeKey: true,
+          key: true,
+          attribute: true,
+          value: true,
+          label: true,
+          attributeValue: {
+            select: {
+              value: true,
+              imageUrl: true,
+              colors: true,
+              attribute: {
+                select: {
+                  key: true,
+                },
+              },
+              translations: {
+                where: {
+                  locale: {
+                    in: locales,
+                  },
+                },
+                select: {
+                  locale: true,
+                  label: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    } as const;
+  }
+
+  private getProductAttributesSelectForFilters(locales: string[]) {
+    return {
+      productAttributes: {
+        select: {
+          attribute: {
+            select: {
+              key: true,
+              values: {
+                select: {
+                  value: true,
+                  imageUrl: true,
+                  colors: true,
+                  translations: {
+                    where: {
+                      locale: {
+                        in: locales,
+                      },
+                    },
+                    select: {
+                      locale: true,
+                      label: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    } as const;
+  }
+
   /**
    * Get all child category IDs recursively
    */
   private async getAllChildCategoryIds(parentId: string): Promise<string[]> {
-    const children = await db.category.findMany({
+    const rows = await db.category.findMany({
       where: {
-        parentId: parentId,
         published: true,
         deletedAt: null,
       },
-      select: { id: true },
+      select: { id: true, parentId: true },
     });
-    
-    let allChildIds = children.map((c: { id: string }) => c.id);
-    
-    // Recursively get children of children
-    for (const child of children) {
-      const grandChildren = await this.getAllChildCategoryIds(child.id);
-      allChildIds = [...allChildIds, ...grandChildren];
+
+    if (rows.length === 0) {
+      return [];
     }
-    
-    return allChildIds;
+
+    const childrenByParent = new Map<string, string[]>();
+    for (const row of rows) {
+      if (!row.parentId) {
+        continue;
+      }
+      const next = childrenByParent.get(row.parentId);
+      if (next) {
+        next.push(row.id);
+        continue;
+      }
+      childrenByParent.set(row.parentId, [row.id]);
+    }
+
+    const queue: string[] = [...(childrenByParent.get(parentId) ?? [])];
+    const result: string[] = [];
+
+    while (queue.length > 0) {
+      const currentId = queue.shift();
+      if (!currentId) {
+        continue;
+      }
+      result.push(currentId);
+      const nested = childrenByParent.get(currentId);
+      if (nested && nested.length > 0) {
+        queue.push(...nested);
+      }
+    }
+
+    return result;
   }
 
   /**
@@ -39,6 +140,7 @@ class ProductsFiltersService {
     lang?: string;
   }) {
     try {
+      const locales = this.buildLocaleFallbackChain(filters.lang);
       const where: Prisma.ProductWhereInput = {
         published: true,
         deletedAt: null,
@@ -132,37 +234,14 @@ class ProductsFiltersService {
         products = (await db.product.findMany({
           where,
           take: FILTERS_PRODUCTS_LIMIT,
-          include: {
+          select: {
             variants: {
               where: {
                 published: true,
               },
-              include: {
-                options: {
-                  include: {
-                    attributeValue: {
-                      include: {
-                        attribute: true,
-                        translations: true,
-                      },
-                    },
-                  },
-                },
-              },
+              select: this.getAttributeOptionSelectForFilters(locales),
             },
-            productAttributes: {
-              include: {
-                attribute: {
-                  include: {
-                    values: {
-                      include: {
-                        translations: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
+            ...this.getProductAttributesSelectForFilters(locales),
           },
         })) as unknown as ProductWithRelations[];
       } catch (dbError) {

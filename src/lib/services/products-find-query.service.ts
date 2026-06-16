@@ -36,7 +36,7 @@ class ProductsFindQueryService {
     if (!needOverFetch) {
       const [total, products] = await Promise.all([
         db.product.count({ where }),
-        executeProductQuery(where, limit, (page - 1) * limit),
+        executeProductQuery(where, limit, (page - 1) * limit, filters.lang),
       ]);
       return {
         products,
@@ -46,7 +46,7 @@ class ProductsFindQueryService {
     }
 
     const fetchLimit = Math.min(limit * 10, 200);
-    const products = await executeProductQuery(where, fetchLimit, 0);
+    const products = await executeProductQuery(where, fetchLimit, 0, filters.lang);
 
     return {
       products,

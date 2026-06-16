@@ -45,6 +45,7 @@ export function useShopCategorySoftNav({
   const hydratedFromServerRef = useRef(false);
   const navigationGenerationRef = useRef(0);
   const enabledRef = useRef(enabled);
+  const activeHrefRef = useRef<string | null>(null);
 
   useEffect(() => {
     enabledRef.current = enabled;
@@ -61,9 +62,16 @@ export function useShopCategorySoftNav({
     setDisplayPagination(initialPagination);
   }, [initialActiveCategorySlug, initialCards, initialPagination]);
 
+  useEffect(() => {
+    activeHrefRef.current = `${window.location.pathname}${window.location.search}`;
+  }, []);
+
   const loadProductsForHref = useCallback(
     async (href: string, categorySlug: string, updateHistory = true) => {
       if (!enabledRef.current) {
+        return;
+      }
+      if (href === activeHrefRef.current) {
         return;
       }
 
@@ -81,6 +89,7 @@ export function useShopCategorySoftNav({
           currentPage: data.effectivePage,
           totalPages: data.totalPages,
         });
+        activeHrefRef.current = href;
         if (updateHistory) {
           window.history.pushState({ shopSoftNav: true }, '', href);
         }
@@ -117,6 +126,7 @@ export function useShopCategorySoftNav({
 
     const handlePopState = () => {
       const href = `${window.location.pathname}${window.location.search}`;
+      activeHrefRef.current = href;
       const params = new URLSearchParams(window.location.search);
       const rawCategory = params.get('category')?.trim() ?? '';
       void loadProductsForHref(href, rawCategory, false);
