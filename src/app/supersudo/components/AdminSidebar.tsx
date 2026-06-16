@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import type { AdminMenuItem } from '../../../components/AdminMenuDrawer';
 import { usePathname, useRouter } from 'next/navigation';
 import { AdminMenuDrawer } from '../../../components/AdminMenuDrawer';
@@ -70,6 +70,27 @@ export function AdminSidebar() {
     };
   }, [adminTabs]);
 
+  const prefetchPaths = useMemo(() => {
+    return Array.from(new Set(adminTabs.map((tab) => tab.path)));
+  }, [adminTabs]);
+
+  useEffect(() => {
+    for (const path of prefetchPaths) {
+      router.prefetch(path);
+    }
+  }, [prefetchPaths, router]);
+
+  function navigateTo(path: string): void {
+    if (pathname === path) {
+      return;
+    }
+    router.push(path);
+  }
+
+  function prefetchPath(path: string): void {
+    router.prefetch(path);
+  }
+
   return (
     <>
       <div className={ADMIN_SIDEBAR_MOBILE_DRAWER_WRAP}>
@@ -109,8 +130,10 @@ export function AdminSidebar() {
                           type="button"
                           title={tab.label}
                           onClick={() => {
-                            router.push(tab.path);
+                            navigateTo(tab.path);
                           }}
+                          onMouseEnter={() => prefetchPath(tab.path)}
+                          onFocus={() => prefetchPath(tab.path)}
                           className={`flex min-w-0 flex-1 items-center ${collapsed ? 'justify-center' : 'gap-3.5'} text-left`}
                         >
                           <span className={`shrink-0 [&>svg]:h-6 [&>svg]:w-6 ${iconClasses}`}>{tab.icon}</span>
@@ -156,8 +179,10 @@ export function AdminSidebar() {
                                   type="button"
                                   title={nestedTab.label}
                                   onClick={() => {
-                                    router.push(nestedTab.path);
+                                    navigateTo(nestedTab.path);
                                   }}
+                                  onMouseEnter={() => prefetchPath(nestedTab.path)}
+                                  onFocus={() => prefetchPath(nestedTab.path)}
                                   className={`relative flex w-full items-center gap-3 rounded-xl py-2.5 pl-8 pr-3 text-left text-sm font-medium transition-all duration-300 ${
                                     nestedActive
                                       ? 'bg-white/12 text-white'
@@ -188,8 +213,10 @@ export function AdminSidebar() {
                     type="button"
                     title={tab.label}
                     onClick={() => {
-                      router.push(tab.path);
+                      navigateTo(tab.path);
                     }}
+                    onMouseEnter={() => prefetchPath(tab.path)}
+                    onFocus={() => prefetchPath(tab.path)}
                     className={rowClasses}
                   >
                     <span className={`shrink-0 [&>svg]:h-6 [&>svg]:w-6 ${iconClasses}`}>{tab.icon}</span>
