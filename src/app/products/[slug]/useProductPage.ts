@@ -1,8 +1,16 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { getStoredCurrency, type CurrencyCode } from '../../../lib/currency';
-import { getStoredLanguage, type LanguageCode } from '../../../lib/language';
+import {
+  getStoredCurrency,
+  HYDRATION_SAFE_CURRENCY,
+  type CurrencyCode,
+} from '../../../lib/currency';
+import {
+  getStoredLanguage,
+  HYDRATION_SAFE_LANGUAGE,
+  type LanguageCode,
+} from '../../../lib/language';
 import { useAttributeGroups } from './useAttributeGroups';
 import { useProductImages } from './hooks/useProductImages';
 import { useReviews } from '../../../components/ProductReviews/hooks/useReviews';
@@ -37,8 +45,8 @@ export function useProductPage({
   initialReviews,
 }: UseProductPageProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [currency, setCurrency] = useState(getStoredCurrency());
-  const [language, setLanguage] = useState<LanguageCode>('en');
+  const [currency, setCurrency] = useState<CurrencyCode>(HYDRATION_SAFE_CURRENCY);
+  const [language, setLanguage] = useState<LanguageCode>(HYDRATION_SAFE_LANGUAGE);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [thumbnailStartIndex, setThumbnailStartIndex] = useState(0);
   const [additions, setAdditions] = useState('');

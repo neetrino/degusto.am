@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@shop/ui';
 import { apiClient } from '../../lib/api-client';
-import { getStoredCurrency } from '../../lib/currency';
+import { getStoredCurrency, HYDRATION_SAFE_CURRENCY } from '../../lib/currency';
 import { getStoredLanguage } from '../../lib/language';
 import { useTranslation } from '../../lib/i18n-client';
 import { useAuth } from '../../lib/auth/AuthContext';
@@ -66,7 +66,7 @@ export default function WishlistPage() {
   const { t } = useTranslation();
   const [products, setProducts] = useState<Product[]>(() => readCachedWishlistProducts());
   const [wishlistIds, setWishlistIds] = useState<string[]>([]);
-  const [currency, setCurrency] = useState(getStoredCurrency());
+  const [currency, setCurrency] = useState(HYDRATION_SAFE_CURRENCY);
   const [queueingAddToCart, setQueueingAddToCart] = useState<Set<string>>(new Set());
   const [recentlyAddedToCart, setRecentlyAddedToCart] = useState<Set<string>>(new Set());
   // Track if we updated locally to prevent unnecessary re-fetch

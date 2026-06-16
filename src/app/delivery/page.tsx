@@ -3,12 +3,11 @@
 import { Card } from '@shop/ui';
 import { useEffect, useState } from 'react';
 import { useTranslation } from '../../lib/i18n-client';
-import { getStoredLanguage } from '../../lib/language';
 import { loadTranslation } from '../../lib/i18n';
 import { SITE_CONTACT_EMAIL, SITE_CONTACT_PHONES } from '../../lib/site-contact';
 
 export default function DeliveryPage() {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [methods, setMethods] = useState<Array<{
     id: string;
     enabled: boolean;
@@ -21,14 +20,13 @@ export default function DeliveryPage() {
 
   useEffect(() => {
     const loadMethods = () => {
-      const lang = getStoredLanguage();
       const deliveryData = loadTranslation(lang, 'delivery') as { methods?: typeof methods } | null;
       setMethods(deliveryData?.methods ?? []);
     };
     loadMethods();
-    window.addEventListener('language-updated', loadMethods);
-    return () => window.removeEventListener('language-updated', loadMethods);
-  }, []);
+  }, [lang]);
+
+  const deliveryData = loadTranslation(lang, 'delivery');
   
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -107,27 +105,21 @@ export default function DeliveryPage() {
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">{t('delivery.returnPolicy.returnConditions.title')}</h3>
               <ul className="list-disc list-inside text-gray-600 space-y-1">
-                {(() => {
-                  const lang = getStoredLanguage();
-                  const deliveryData = loadTranslation(lang, 'delivery');
-                  const items = deliveryData?.returnPolicy?.returnConditions?.items || [];
-                  return Array.isArray(items) ? items.map((item: string, idx: number) => (
-                    <li key={idx}>{item}</li>
-                  )) : null;
-                })()}
+                {Array.isArray(deliveryData?.returnPolicy?.returnConditions?.items)
+                  ? deliveryData.returnPolicy.returnConditions.items.map((item: string, idx: number) => (
+                      <li key={idx}>{item}</li>
+                    ))
+                  : null}
               </ul>
             </div>
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">{t('delivery.returnPolicy.howToReturn.title')}</h3>
               <ol className="list-decimal list-inside text-gray-600 space-y-1">
-                {(() => {
-                  const lang = getStoredLanguage();
-                  const deliveryData = loadTranslation(lang, 'delivery');
-                  const steps = deliveryData?.returnPolicy?.howToReturn?.steps || [];
-                  return Array.isArray(steps) ? steps.map((step: string, idx: number) => (
-                    <li key={idx}>{step}</li>
-                  )) : null;
-                })()}
+                {Array.isArray(deliveryData?.returnPolicy?.howToReturn?.steps)
+                  ? deliveryData.returnPolicy.howToReturn.steps.map((step: string, idx: number) => (
+                      <li key={idx}>{step}</li>
+                    ))
+                  : null}
               </ol>
             </div>
             <div>
@@ -139,14 +131,11 @@ export default function DeliveryPage() {
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">{t('delivery.returnPolicy.nonReturnableItems.title')}</h3>
               <ul className="list-disc list-inside text-gray-600 space-y-1">
-                {(() => {
-                  const lang = getStoredLanguage();
-                  const deliveryData = loadTranslation(lang, 'delivery');
-                  const items = deliveryData?.returnPolicy?.nonReturnableItems?.items || [];
-                  return Array.isArray(items) ? items.map((item: string, idx: number) => (
-                    <li key={idx}>{item}</li>
-                  )) : null;
-                })()}
+                {Array.isArray(deliveryData?.returnPolicy?.nonReturnableItems?.items)
+                  ? deliveryData.returnPolicy.nonReturnableItems.items.map((item: string, idx: number) => (
+                      <li key={idx}>{item}</li>
+                    ))
+                  : null}
               </ul>
             </div>
           </div>

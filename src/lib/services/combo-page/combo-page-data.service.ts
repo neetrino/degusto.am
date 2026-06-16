@@ -16,7 +16,11 @@ import {
   buildComboProductWhereBase,
   getComboProductSelect,
 } from './combo-page-product-where';
-import type { ComboMenuData, ComboMenuDbResult, ComboMenuQuery } from './combo-page-query.types';
+import type {
+  ComboMenuData,
+  ComboMenuDbResult,
+  ComboMenuQuery,
+} from './combo-page-query.types';
 
 export type { ComboMenuData, ComboMenuQuery } from './combo-page-query.types';
 
@@ -100,9 +104,30 @@ async function fetchComboProductsPage(
  * Loads combo menu categories, product counts, and paginated product cards from the database.
  */
 export async function loadComboMenuData(query: ComboMenuQuery): Promise<ComboMenuData> {
-  const { locale } = query;
+  const { locale, loadProfile } = query;
   const allCategoriesLabel = locale === 'hy' ? 'Բոլորը' : 'All';
   const productWhereBase = buildComboProductWhereBase(locale, query);
+
+  if (loadProfile === 'products-only') {
+    const productWhere = buildComboProductWhere(locale, query, productWhereBase);
+    const { productTotal, productRows } = await withPrismaResilience(
+      () => fetchComboProductsPage(locale, query, productWhere),
+      { productTotal: 0, productRows: [] as ShopMenuProductRow[] },
+      'COMBO',
+      'products-only'
+    );
+    const totalPages =
+      productTotal === 0 ? 0 : Math.ceil(productTotal / STORE_MENU_PAGE_SIZE);
+    const effectivePage = totalPages === 0 ? 1 : Math.min(query.requestedPage, totalPages);
+
+    return {
+      cards: mapShopProductRowsToMenuCards(locale, productRows),
+      categories: [],
+      effectivePage,
+      totalPages,
+    };
+  }
+
   const shouldSkipCountsForFastFirstOpen =
     !query.selectedSearchQuery &&
     !query.tasteFilter &&
@@ -237,7 +262,8 @@ const getComboMenuDataCached = unstable_cache(
     tasteFilter: '' | 'leaf' | 'pepper',
     minPriceAmdKey: string,
     maxPriceAmdKey: string,
-    requestedPageKey: string
+    requestedPageKey: string,
+    loadProfileKey: ComboMenuQuery['loadProfile']
   ) => {
     const parsedPage = parseInt(requestedPageKey, 10);
     const minPriceAmd = minPriceAmdKey === '' ? null : Number(minPriceAmdKey);
@@ -257,6 +283,7 @@ const getComboMenuDataCached = unstable_cache(
           ? maxPriceAmd
           : null,
       requestedPage: Number.isFinite(parsedPage) && parsedPage >= 1 ? parsedPage : 1,
+      loadProfile: loadProfileKey,
     });
   },
   ['combo-menu-data-v3'],
@@ -277,6 +304,7 @@ export function getComboMenuData(query: ComboMenuQuery): Promise<ComboMenuData> 
     query.tasteFilter ?? '',
     query.minPriceAmd === null ? '' : String(query.minPriceAmd),
     query.maxPriceAmd === null ? '' : String(query.maxPriceAmd),
-    String(query.requestedPage)
+    String(query.requestedPage),
+    query.loadProfile
   );
 }

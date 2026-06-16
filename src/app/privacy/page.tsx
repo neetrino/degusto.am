@@ -37,18 +37,19 @@ const PRIVACY_SECTIONS: ReadonlyArray<{
  */
 export default function PrivacyPage() {
   const { t, lang } = useTranslation();
+  const fixedLastUpdatedIsoDate = '2026-06-16T00:00:00.000Z';
+  const lastUpdatedDateLabel = new Date(fixedLastUpdatedIsoDate).toLocaleDateString(lang, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
   return (
     <div className="policy-page">
       <div className="policy-page-inner">
         <h1 className="text-4xl font-bold text-gray-900">{t('privacy.title')}</h1>
         <p className="text-gray-600">
-          {t('privacy.lastUpdated')}{' '}
-          {new Date().toLocaleDateString(lang, {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          })}
+          {t('privacy.lastUpdated')} {lastUpdatedDateLabel}
         </p>
 
         <div className="mt-8 space-y-6">

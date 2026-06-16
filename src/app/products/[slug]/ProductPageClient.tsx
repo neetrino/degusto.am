@@ -53,6 +53,7 @@ import {
   getProductSummarySnapshot,
   setProductSummarySnapshot,
 } from '@/lib/products/product-summary-cache';
+import { useHasMounted } from '@/hooks/useHasMounted';
 import {
   PDP_CONTENT_SHELL_CLASS,
   PDP_HERO_FRAME_CLASS,
@@ -326,6 +327,7 @@ export function ProductPageClient({
   streamDetails = false,
   children,
 }: ProductPageClientProps) {
+  const hasMounted = useHasMounted();
   const { ref: reviewsSectionRef, inView: reviewsInView } = useLazyInView('320px');
 
   const [fullProduct, setFullProduct] = useState<Product | null>(initialProduct);
@@ -333,30 +335,39 @@ export function ProductPageClient({
     useState<ProductReviewSummary>(initialReviewSummary);
   const [notFound, setNotFound] = useState(initialNotFound);
 
-  const cachedSummaryProduct = useMemo(() => {
+  const [cachedSummaryProduct, setCachedSummaryProduct] = useState<Product | null>(null);
+
+  useEffect(() => {
+    if (!hasMounted) {
+      return;
+    }
     if (initialProduct || initialNotFound) {
-      return null;
+      setCachedSummaryProduct(null);
+      return;
     }
     const summary = getProductSummarySnapshot(slug);
     if (!summary) {
-      return null;
+      setCachedSummaryProduct(null);
+      return;
     }
-    return mergeVisualIntoProduct(null, {
-      id: summary.id,
-      slug: summary.slug,
-      title: summary.title,
-      category: summary.category,
-      brand: summary.brand,
-      price: summary.price,
-      oldPrice: summary.oldPrice,
-      discountPercent: summary.discount,
-      currency: summary.currency,
-      inStock: summary.inStock,
-      defaultVariantId: summary.defaultVariantId,
-      labels: summary.labels,
-      galleryImages: summary.image ? [summary.image] : [],
-    });
-  }, [initialProduct, initialNotFound, slug]);
+    setCachedSummaryProduct(
+      mergeVisualIntoProduct(null, {
+        id: summary.id,
+        slug: summary.slug,
+        title: summary.title,
+        category: summary.category,
+        brand: summary.brand,
+        price: summary.price,
+        oldPrice: summary.oldPrice,
+        discountPercent: summary.discount,
+        currency: summary.currency,
+        inStock: summary.inStock,
+        defaultVariantId: summary.defaultVariantId,
+        labels: summary.labels,
+        galleryImages: summary.image ? [summary.image] : [],
+      })
+    );
+  }, [hasMounted, initialProduct, initialNotFound, slug]);
 
   const partialProduct = useMemo(() => {
     if (!initialVisual) {
@@ -483,7 +494,7 @@ export function ProductPageClient({
     slug,
     serverLocale,
     productRef,
-    skipMountFetch: Boolean(initialProduct) || streamDetails,
+    skipMountFetch: Boolean(initialProduct) || streamDetails || Boolean(fullProduct),
     onLoaded: (next) => {
       setFullProduct(next);
       productRef.current = next;

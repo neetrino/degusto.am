@@ -17,6 +17,8 @@ interface FigmaDesktopComboPageProps {
     currentPage: number;
     totalPages: number;
   };
+  showMobileProductsList?: boolean;
+  renderDesktopLayout?: boolean;
 }
 
 export function FigmaDesktopComboPage({
@@ -28,6 +30,8 @@ export function FigmaDesktopComboPage({
   initialMaxPrice = '',
   initialFoodFilter = 'neutral',
   menuPagination,
+  showMobileProductsList = true,
+  renderDesktopLayout = true,
 }: FigmaDesktopComboPageProps) {
   return (
     <FigmaDesktopMenuPage
@@ -42,6 +46,8 @@ export function FigmaDesktopComboPage({
       initialMaxPrice={initialMaxPrice}
       initialFoodFilter={initialFoodFilter}
       menuPagination={menuPagination}
+      showMobileProductsList={showMobileProductsList}
+      renderDesktopLayout={renderDesktopLayout}
     />
   );
 }

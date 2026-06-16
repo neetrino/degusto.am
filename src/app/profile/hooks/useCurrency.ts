@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
-import { getStoredCurrency, type CurrencyCode } from '../../../lib/currency';
+import {
+  getStoredCurrency,
+  HYDRATION_SAFE_CURRENCY,
+  type CurrencyCode,
+} from '../../../lib/currency';
 import { logger } from "@/lib/utils/logger";
 
 export function useCurrency() {
-  const [currency, setCurrency] = useState<CurrencyCode>(() => getStoredCurrency());
+  const [currency, setCurrency] = useState<CurrencyCode>(HYDRATION_SAFE_CURRENCY);
 
   // Initialize currency and listen for currency changes
   useEffect(() => {

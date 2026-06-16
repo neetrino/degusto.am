@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from 'framer-motion';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef } from 'react';
-import { getStoredCurrency } from '@/lib/currency';
+import { getStoredCurrency, HYDRATION_SAFE_CURRENCY } from '@/lib/currency';
 import { useTranslation } from '@/lib/i18n-client';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { handleRemoveItem, handleUpdateQuantity } from '@/app/cart/cart-handlers';
@@ -71,7 +71,7 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
     cartLoading,
     reloadCart,
   } = useCartDrawer();
-  const [currency, setCurrency] = useState(getStoredCurrency());
+  const [currency, setCurrency] = useState(HYDRATION_SAFE_CURRENCY);
   const isLocalUpdateRef = useRef(false);
 
   useEffect(() => {
