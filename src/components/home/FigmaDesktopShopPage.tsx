@@ -724,7 +724,6 @@ export function FigmaDesktopMenuPage({
                 <ShopMobileProductCard
                   key={card.id}
                   card={card}
-                  hideGreensBadge={foodFilter === 'leaf'}
                 />
               ))}
             </div>
