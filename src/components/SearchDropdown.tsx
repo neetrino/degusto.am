@@ -3,8 +3,15 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { ProductPageLink } from '@/components/products/ProductPageLink';
+import { useEffect, useState } from 'react';
 import { useTranslation } from '../lib/i18n-client';
-import { formatPrice, getStoredCurrency } from '../lib/currency';
+import {
+  formatPrice,
+  getStoredCurrency,
+  HYDRATION_SAFE_CURRENCY,
+  type CurrencyCode,
+} from '../lib/currency';
+import { useHasMounted } from '@/hooks/useHasMounted';
 import type { InstantSearchResultItem } from './hooks/useInstantSearch';
 import { resolveStorefrontProductImage } from '../constants/storefront-product-image';
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
@@ -35,7 +42,24 @@ export function SearchDropdown({
   className = '',
 }: SearchDropdownProps) {
   const { t } = useTranslation();
-  const currency = getStoredCurrency();
+  const hasMounted = useHasMounted();
+  const [currency, setCurrency] = useState<CurrencyCode>(HYDRATION_SAFE_CURRENCY);
+
+  useEffect(() => {
+    if (!hasMounted) {
+      return;
+    }
+    const handleCurrencyUpdate = () => {
+      setCurrency(getStoredCurrency());
+    };
+    handleCurrencyUpdate();
+    window.addEventListener('currency-updated', handleCurrencyUpdate);
+    window.addEventListener('currency-rates-updated', handleCurrencyUpdate);
+    return () => {
+      window.removeEventListener('currency-updated', handleCurrencyUpdate);
+      window.removeEventListener('currency-rates-updated', handleCurrencyUpdate);
+    };
+  }, [hasMounted]);
 
   if (!isOpen) {
     return null;

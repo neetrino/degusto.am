@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@shop/ui';
 import { apiClient } from '../../lib/api-client';
-import { getStoredCurrency } from '../../lib/currency';
+import { getStoredCurrency, HYDRATION_SAFE_CURRENCY } from '../../lib/currency';
 import { getStoredLanguage } from '../../lib/language';
 import { useTranslation } from '../../lib/i18n-client';
 import { emitCompareUpdated } from '../../lib/compare-api';
@@ -63,7 +63,7 @@ export default function ComparePage() {
   const [products, setProducts] = useState<CompareProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [compareIds, setCompareIds] = useState<string[]>([]);
-  const [currency, setCurrency] = useState(getStoredCurrency());
+  const [currency, setCurrency] = useState(HYDRATION_SAFE_CURRENCY);
   const [addingToCart, setAddingToCart] = useState<Set<string>>(new Set());
   /**
    * Fetch compare products for provided ids and update UI state.

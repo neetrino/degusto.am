@@ -4,9 +4,8 @@ import Link from 'next/link';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useState, useEffect, useLayoutEffect, useRef, Suspense } from 'react';
 import type { FormEvent, ReactNode, MouseEvent as ReactMouseEvent } from 'react';
-import { getStoredCurrency, setStoredCurrency, type CurrencyCode, CURRENCIES, formatPrice, initializeCurrencyRates, clearCurrencyRatesCache } from '../lib/currency';
+import { getStoredCurrency, setStoredCurrency, type CurrencyCode, CURRENCIES, formatPrice, initializeCurrencyRates, clearCurrencyRatesCache, HYDRATION_SAFE_CURRENCY } from '../lib/currency';
 import { useTranslation } from '../lib/i18n-client';
-import { getStoredLanguage } from '../lib/language';
 import { useInstantSearch } from './hooks/useInstantSearch';
 import { useHeaderScrollVisibility } from './hooks/useHeaderScrollVisibility';
 import {
@@ -231,17 +230,16 @@ export function Header() {
   const { isLoggedIn, isAdmin } = useAuth();
   const { wishlistCount } = useWishlistIdsContext();
   const { compareCount } = useCompareIdsContext();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const { cartCount, cartTotal } = useCartBadgeDisplay();
   const [showCurrency, setShowCurrency] = useState(false);
   const [showMobileCurrency, setShowMobileCurrency] = useState(false);
   const [searchHoverExpanded, setSearchHoverExpanded] = useState(false);
   const [searchFocusExpanded, setSearchFocusExpanded] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [selectedCurrency, setSelectedCurrency] = useState<CurrencyCode>('AMD');
+  const [selectedCurrency, setSelectedCurrency] = useState<CurrencyCode>(HYDRATION_SAFE_CURRENCY);
   const [categories, setCategories] = useState<Category[]>([]);
   const [, setSelectedCategory] = useState<Category | null>(null);
-  const currentYear = new Date().getFullYear();
 
   const currencyRef = useRef<HTMLDivElement>(null);
   const mobileCurrencyRef = useRef<HTMLDivElement>(null);
@@ -306,7 +304,7 @@ export function Header() {
     debounceMs: 200,
     minQueryLength: 1,
     maxResults: 6,
-    lang: getStoredLanguage(),
+    lang,
   });
 
   useEffect(() => {
@@ -1004,7 +1002,7 @@ export function Header() {
                 </div>
 
                 <div className="border-t border-gray-200 px-4 py-4 text-xs font-medium tracking-wide text-gray-500 normal-case">
-                  © {currentYear} Degusto
+                  © Degusto
                 </div>
               </nav>
             </div>

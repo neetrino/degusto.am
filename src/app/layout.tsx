@@ -35,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="h-full" style={{ backgroundColor: '#ffffff' }} suppressHydrationWarning>
+    <html lang="en" className="h-full" style={{ backgroundColor: '#ffffff' }}>
       <body
         className="font-sans text-gray-900 antialiased min-h-full"
         style={{ backgroundColor: '#ffffff' }}

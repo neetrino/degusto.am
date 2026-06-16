@@ -1,8 +1,12 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { getStoredCurrency } from '../lib/currency';
-import { getStoredLanguage, type LanguageCode } from '../lib/language';
+import { getStoredCurrency, HYDRATION_SAFE_CURRENCY } from '../lib/currency';
+import {
+  getStoredLanguage,
+  HYDRATION_SAFE_LANGUAGE,
+  type LanguageCode,
+} from '../lib/language';
 import { t } from '../lib/i18n';
 import { useRelatedProducts } from './hooks/useRelatedProducts';
 import { useLazyInView } from './hooks/useLazyInView';
@@ -31,6 +35,7 @@ import {
   getRelatedProductsSnapshot,
   setRelatedProductsSnapshot,
 } from '@/lib/products/related-products-cache';
+import { useHasMounted } from '@/hooks/useHasMounted';
 
 interface RelatedProductsProps {
   categorySlug?: string;
@@ -52,6 +57,7 @@ export function RelatedProducts({
   initialProducts,
   initialLanguage,
 }: RelatedProductsProps) {
+  const hasMounted = useHasMounted();
   const cachedSnapshot =
     productSlug != null
       ? getRelatedProductsSnapshot(productSlug)
@@ -63,7 +69,10 @@ export function RelatedProducts({
   const effectiveInitialLanguage =
     initialLanguage ?? cachedSnapshot?.language;
 
-  const [language, setLanguage] = useState<LanguageCode>(initialLanguage ?? 'en');
+  const [language, setLanguage] = useState<LanguageCode>(
+    initialLanguage ?? HYDRATION_SAFE_LANGUAGE
+  );
+  const [currency, setCurrency] = useState(HYDRATION_SAFE_CURRENCY);
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   const initialRevealedCount = useMemo(
     () => Math.min(5, effectiveInitialProducts?.length ?? 0),
@@ -152,6 +161,9 @@ export function RelatedProducts({
 
   // Initialize language from localStorage after mount to prevent hydration mismatch
   useEffect(() => {
+    if (!hasMounted) {
+      return;
+    }
     setLanguage(getStoredLanguage());
 
     const handleLanguageUpdate = () => {
@@ -162,9 +174,24 @@ export function RelatedProducts({
     return () => {
       window.removeEventListener('language-updated', handleLanguageUpdate);
     };
-  }, []);
+  }, [hasMounted]);
 
-  const currency = getStoredCurrency();
+  useEffect(() => {
+    if (!hasMounted) {
+      return;
+    }
+    const handleCurrencyUpdate = () => {
+      setCurrency(getStoredCurrency());
+    };
+    handleCurrencyUpdate();
+    window.addEventListener('currency-updated', handleCurrencyUpdate);
+    window.addEventListener('currency-rates-updated', handleCurrencyUpdate);
+    return () => {
+      window.removeEventListener('currency-updated', handleCurrencyUpdate);
+      window.removeEventListener('currency-rates-updated', handleCurrencyUpdate);
+    };
+  }, [hasMounted]);
+
   const handleImageError = (productId: string) => {
     setImageErrors((prev) => new Set(prev).add(productId));
   };

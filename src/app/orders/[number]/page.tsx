@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { apiClient } from '../../../lib/api-client';
-import { getStoredCurrency } from '../../../lib/currency';
+import { getStoredCurrency, HYDRATION_SAFE_CURRENCY } from '../../../lib/currency';
 import { useAuth } from '../../../lib/auth/AuthContext';
 import { useTranslation } from '../../../lib/i18n-client';
 import { BodyBackground } from '../../../components/BodyBackground';
@@ -21,7 +21,7 @@ export default function OrderPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currency, setCurrency] = useState(getStoredCurrency());
+  const [currency, setCurrency] = useState(HYDRATION_SAFE_CURRENCY);
 
   useEffect(() => {
     if (!isLoggedIn) {
