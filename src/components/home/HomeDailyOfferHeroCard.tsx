@@ -12,6 +12,7 @@ import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges
 import type { HomeFeaturedProduct } from './home-page-types';
 import { PRODUCT_CARD_CART_BTN_HOVER_CLASS } from '@/constants/product-card-action-hover';
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
+import { RatingStars } from '@/components/RatingStars';
 
 type HomeDailyOfferHeroCardAssets = {
   offerBadgeSrc: string;
@@ -41,6 +42,7 @@ export function HomeDailyOfferHeroCard({
   const productHref = `/products/${product.slug}`;
   const imageSrc = resolveStorefrontProductImage(product.image);
   const discountPercent = Math.round(product.discountPercent ?? 0);
+  const displayRating = product.rating ?? 5;
   const { isAddingToCart, addToCart } = useAddToCart({
     productId: product.id,
     productSlug: product.slug,
@@ -67,7 +69,7 @@ export function HomeDailyOfferHeroCard({
     oldPrice: product.oldPrice,
     discount: product.discountPercent,
     category: subtitle ? { slug: `preview-${product.id}`, title: subtitle } : null,
-    rating: 4.7,
+    rating: product.rating ?? 5,
     currency,
     inStock: product.inStock ?? true,
     defaultVariantId: product.defaultVariantId ?? null,
@@ -103,15 +105,16 @@ export function HomeDailyOfferHeroCard({
         />
       </div>
       <div className="absolute left-[14px] top-[172px] flex items-center gap-1.5">
-        <HomeOptimizedImage
-          src={starIconSrc}
-          alt=""
-          width={20}
-          height={20}
-          className="h-5 w-5 object-contain"
-          loading="lazy"
+        <RatingStars
+          rating={displayRating / 5}
+          starSrc={starIconSrc}
+          className="flex items-center"
+          starClassName="h-4 w-4"
+          maxStars={1}
         />
-        <p className="text-base font-medium leading-none text-[rgba(60,47,47,0.62)]">4.7</p>
+        <p className="text-base font-medium leading-none text-[rgba(60,47,47,0.62)]">
+          {displayRating.toFixed(1)}
+        </p>
       </div>
       <div className="absolute left-[14px] top-[194px] w-[130px] min-w-0">
         <h2 className="text-base font-bold leading-[1.05] text-[#3c2f2f]">

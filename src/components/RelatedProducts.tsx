@@ -65,7 +65,11 @@ export function RelatedProducts({
 
   const [language, setLanguage] = useState<LanguageCode>(initialLanguage ?? 'en');
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
-  const [revealedCount, setRevealedCount] = useState(0);
+  const initialRevealedCount = useMemo(
+    () => Math.min(5, effectiveInitialProducts?.length ?? 0),
+    [effectiveInitialProducts]
+  );
+  const [revealedCount, setRevealedCount] = useState(initialRevealedCount);
 
   useEffect(() => {
     if (!productSlug || !effectiveInitialProducts || effectiveInitialProducts.length === 0) {
@@ -223,7 +227,7 @@ export function RelatedProducts({
               ))}
             </div>
           </div>
-        ) : displayedProducts.length === 0 ? (
+        ) : displayedProducts.length === 0 && products.length === 0 ? (
           <div className="py-12 text-center">
             <p className="text-lg text-neutral-400">{t(language, 'product.noRelatedProducts')}</p>
           </div>

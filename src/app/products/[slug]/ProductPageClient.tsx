@@ -107,6 +107,7 @@ function collectSelectedAttributeValueIdsForCart(
 }
 
 const PDP_BODY_BACKGROUND = '#ffffff';
+const PDP_ADD_TO_CART_BLOCK_WINDOW_MS = 700;
 
 const PDP_HEADER_DESKTOP_UNDERLAP_CLASS =
   `lg:relative lg:z-10 ${UNIVERSAL_HEADER_DESKTOP_UNDERLAP_CLASS}`;
@@ -158,6 +159,147 @@ function ProductPagePendingScaffold({ relatedSection }: { relatedSection: ReactN
   );
 }
 
+interface UseProductAddToCartHandlerParams {
+  canAddToCart: boolean;
+  isAddingToCart: boolean;
+  product: Product | null;
+  currentVariant: ProductVariant | null;
+  setIsAddingToCart: (next: boolean) => void;
+  addToCartBlockTimerRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
+  selectedAttributeValues: Map<string, string>;
+  additions: string;
+  exclusions: string;
+  language: LanguageCode;
+  images: string[];
+  currentImageIndex: number;
+  unitPriceUsd: number;
+  quantity: number;
+}
+
+function useProductAddToCartHandler({
+  canAddToCart,
+  isAddingToCart,
+  product,
+  currentVariant,
+  setIsAddingToCart,
+  addToCartBlockTimerRef,
+  selectedAttributeValues,
+  additions,
+  exclusions,
+  language,
+  images,
+  currentImageIndex,
+  unitPriceUsd,
+  quantity,
+}: UseProductAddToCartHandlerParams) {
+  return useCallback(async () => {
+    if (!canAddToCart || isAddingToCart || !product || !currentVariant) return;
+
+    setIsAddingToCart(true);
+    if (addToCartBlockTimerRef.current) {
+      clearTimeout(addToCartBlockTimerRef.current);
+    }
+    addToCartBlockTimerRef.current = setTimeout(() => {
+      setIsAddingToCart(false);
+      addToCartBlockTimerRef.current = null;
+    }, PDP_ADD_TO_CART_BLOCK_WINDOW_MS);
+
+    const selectedIds = collectSelectedAttributeValueIdsForCart(
+      product,
+      selectedAttributeValues,
+      additions,
+      language,
+      currentVariant
+    );
+    const customizations = normalizeProductCustomizations({
+      additions,
+      exclusions,
+      ...(selectedIds.length > 0 ? { selectedAttributeValueIds: selectedIds } : {}),
+    });
+    const flyOrigin = document.querySelector('[data-product-fly-origin]');
+    const imageUrl = images[currentImageIndex] ?? images[0] ?? null;
+    const optimisticVariantId = currentVariant.id;
+
+    publishOptimisticCartAdd({
+      productId: product.id,
+      productSlug: product.slug,
+      variantId: optimisticVariantId,
+      title: product.title,
+      image: imageUrl,
+      price: unitPriceUsd,
+      quantity,
+      customizations,
+    });
+
+    playCartFlyAnimation({
+      fromElement: flyOrigin,
+    });
+
+    try {
+      const response = await apiClient.post<{
+        item: { id: string; quantity: number; price: number };
+        cartSummary?: { itemsCount: number; total: number };
+      }>('/api/v1/cart/items', {
+        productId: product.id,
+        variantId: currentVariant.id,
+        quantity,
+        customizations,
+      });
+
+      rememberCartLineId(
+        product.id,
+        currentVariant.id,
+        response.item.id,
+        response.item.quantity,
+        customizations
+      );
+      clearCartLineRemoved({
+        variant: { id: currentVariant.id },
+        productId: product.id,
+        customizations,
+      });
+
+      const summary = response.cartSummary ?? {
+        itemsCount: 0,
+        total: 0,
+      };
+
+      publishCartLineConfirmed(
+        {
+          productId: product.id,
+          previousVariantId: optimisticVariantId,
+          variantId: currentVariant.id,
+          customizations,
+          serverItemId: response.item.id,
+          quantity: response.item.quantity,
+          price: response.item.price,
+        },
+        summary
+      );
+    } catch (error: unknown) {
+      logger.warn('Add to cart failed', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      publishCartForceReload();
+    }
+  }, [
+    canAddToCart,
+    isAddingToCart,
+    product,
+    currentVariant,
+    setIsAddingToCart,
+    addToCartBlockTimerRef,
+    selectedAttributeValues,
+    additions,
+    exclusions,
+    language,
+    images,
+    currentImageIndex,
+    unitPriceUsd,
+    quantity,
+  ]);
+}
+
 export interface ProductPageClientProps {
   slug: string;
   variantIdFromUrl: string | null;
@@ -191,12 +333,8 @@ export function ProductPageClient({
     useState<ProductReviewSummary>(initialReviewSummary);
   const [notFound, setNotFound] = useState(initialNotFound);
 
-  const partialProduct = useMemo(
-    () => (initialVisual ? mergeVisualIntoProduct(null, initialVisual) : null),
-    [initialVisual]
-  );
   const cachedSummaryProduct = useMemo(() => {
-    if (initialProduct || partialProduct || initialNotFound) {
+    if (initialProduct || initialNotFound) {
       return null;
     }
     const summary = getProductSummarySnapshot(slug);
@@ -218,13 +356,22 @@ export function ProductPageClient({
       labels: summary.labels,
       galleryImages: summary.image ? [summary.image] : [],
     });
-  }, [initialProduct, partialProduct, initialNotFound, slug]);
+  }, [initialProduct, initialNotFound, slug]);
+
+  const partialProduct = useMemo(() => {
+    if (!initialVisual) {
+      return null;
+    }
+    // Preserve clicked-card snapshot price/currency during loading if available.
+    return mergeVisualIntoProduct(cachedSummaryProduct, initialVisual);
+  }, [cachedSummaryProduct, initialVisual]);
 
   const product = fullProduct ?? partialProduct ?? cachedSummaryProduct;
   const detailsPending = Boolean((partialProduct || cachedSummaryProduct) && !fullProduct && !notFound);
   const awaitingDetails =
     !product && !notFound && !initialNotFound && !streamDetails;
   const productRef = useRef<Product | null>(product);
+  const addToCartBlockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { setDesktopChromeReady } = usePdpChrome();
 
   const isDesktopChromeReady =
@@ -258,6 +405,16 @@ export function ProductPageClient({
   useEffect(() => {
     productRef.current = product;
   }, [product]);
+
+  useEffect(
+    () => () => {
+      if (addToCartBlockTimerRef.current) {
+        clearTimeout(addToCartBlockTimerRef.current);
+        addToCartBlockTimerRef.current = null;
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     if (!product) {
@@ -355,6 +512,8 @@ export function ProductPageClient({
     selectedColor,
     selectedSize,
     selectedAttributeValues,
+    isAddingToCart,
+    setIsAddingToCart,
     additions,
     exclusions,
     setAdditions,
@@ -391,87 +550,22 @@ export function ProductPageClient({
     window.scrollTo(0, 0);
   }, [product?.id]);
 
-  const handleAddToCart = async () => {
-    if (!canAddToCart || !product || !currentVariant) return;
-    const selectedIds = collectSelectedAttributeValueIdsForCart(
-      product,
-      selectedAttributeValues,
-      additions,
-      language,
-      currentVariant
-    );
-    const customizations = normalizeProductCustomizations({
-      additions,
-      exclusions,
-      ...(selectedIds.length > 0 ? { selectedAttributeValueIds: selectedIds } : {}),
-    });
-    const flyOrigin = document.querySelector('[data-product-fly-origin]');
-    const imageUrl = images[currentImageIndex] ?? images[0] ?? null;
-    const optimisticVariantId = currentVariant.id;
-
-    publishOptimisticCartAdd({
-      productId: product.id,
-      productSlug: product.slug,
-      variantId: optimisticVariantId,
-      title: product.title,
-      image: imageUrl,
-      price: unitPriceUsd,
-      quantity,
-      customizations,
-    });
-
-    playCartFlyAnimation({
-      fromElement: flyOrigin,
-    });
-
-    try {
-      const response = await apiClient.post<{
-        item: { id: string; quantity: number; price: number };
-        cartSummary?: { itemsCount: number; total: number };
-      }>('/api/v1/cart/items', {
-        productId: product.id,
-        variantId: currentVariant.id,
-        quantity,
-        customizations,
-      });
-
-      rememberCartLineId(
-        product.id,
-        currentVariant.id,
-        response.item.id,
-        response.item.quantity,
-        customizations
-      );
-      clearCartLineRemoved({
-        variant: { id: currentVariant.id },
-        productId: product.id,
-        customizations,
-      });
-
-      const summary = response.cartSummary ?? {
-        itemsCount: 0,
-        total: 0,
-      };
-
-      publishCartLineConfirmed(
-        {
-          productId: product.id,
-          previousVariantId: optimisticVariantId,
-          variantId: currentVariant.id,
-          customizations,
-          serverItemId: response.item.id,
-          quantity: response.item.quantity,
-          price: response.item.price,
-        },
-        summary
-      );
-    } catch (error: unknown) {
-      logger.warn('Add to cart failed', {
-        error: error instanceof Error ? error.message : String(error),
-      });
-      publishCartForceReload();
-    }
-  };
+  const handleAddToCart = useProductAddToCartHandler({
+    canAddToCart,
+    isAddingToCart,
+    product,
+    currentVariant,
+    setIsAddingToCart,
+    addToCartBlockTimerRef,
+    selectedAttributeValues,
+    additions,
+    exclusions,
+    language,
+    images,
+    currentImageIndex,
+    unitPriceUsd,
+    quantity,
+  });
 
   const shell = (
     <>
@@ -575,7 +669,7 @@ export function ProductPageClient({
                     isOutOfStock={isOutOfStock}
                     unavailableAttributes={unavailableAttributes}
                     canAddToCart={canAddToCart}
-                    isAddingToCart={false}
+                    isAddingToCart={isAddingToCart}
                     currentVariant={currentVariant}
                     attributeGroups={attributeGroups}
                     selectedColor={selectedColor}

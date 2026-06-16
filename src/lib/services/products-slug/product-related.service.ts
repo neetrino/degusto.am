@@ -10,7 +10,7 @@ import {
 } from "./product-related-transform";
 
 const RELATED_CANDIDATE_LIMIT = 14;
-const RELATED_RESPONSE_LIMIT = 5;
+const RELATED_RESPONSE_LIMIT = 10;
 
 const relatedProductSelect = {
   id: true,
@@ -30,6 +30,19 @@ const relatedProductSelect = {
       price: true,
       compareAtPrice: true,
       stock: true,
+    },
+  },
+  _count: {
+    select: {
+      reviews: {
+        where: { published: true },
+      },
+    },
+  },
+  reviews: {
+    where: { published: true },
+    select: {
+      rating: true,
     },
   },
   categories: {

@@ -115,6 +115,7 @@
     "submitError": "Չհաջողվեց ուղարկել կարծիքը",
     "alreadyReviewed": "Դուք արդեն գրել եք կարծիք այս ապրանքի մասին",
     "alreadyReviewedEditable": "Դուք արդեն գրել եք կարծիք: Կարող եք թարմացնել ստորև:",
+    "updatedAfterConflict": "Ձեր կարծիքն արդեն գոյություն ուներ, և նոր տարբերակը հաջողությամբ թարմացվեց:",
     "updateReviewTitle": "Թարմացնել կարծիքը",
     "updateReviewButton": "Թարմացնել",
     "editReview": "Խմբագրել",

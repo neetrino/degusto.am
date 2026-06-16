@@ -115,6 +115,7 @@
     "submitError": "Не удалось отправить отзыв",
     "alreadyReviewed": "Вы уже оставили отзыв на этот товар",
     "alreadyReviewedEditable": "Вы уже оставили отзыв. Вы можете обновить его ниже.",
+    "updatedAfterConflict": "Ваш существующий отзыв успешно обновлен.",
     "updateReviewTitle": "Обновить отзыв",
     "updateReviewButton": "Обновить отзыв",
     "editReview": "Изменить",

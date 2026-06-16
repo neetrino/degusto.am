@@ -8,6 +8,7 @@ import {
 } from "@/lib/cache/storefront-cache";
 import type { StorefrontLocale } from "@/lib/i18n/locale";
 import { getShopMenuProductsPage } from "@/lib/services/shop-page/shop-page-data.service";
+import { withPrismaResilience } from "@/lib/db/with-prisma-resilience";
 import {
   findRelatedByProductSlug,
   resolveProductRelatedContextBySlug,
@@ -18,6 +19,9 @@ import type { MenuCard } from "@/components/home/menu-types";
 
 const PDP_RELATED_BATCH_SIZE = 5;
 const PDP_RELATED_MAX = 10;
+
+const PDP_RELATED_RESILIENCE_SCOPE = "PDP_RELATED";
+const PDP_RELATED_RESILIENCE_STEP = "load related products";
 
 async function loadRelatedProductsUncached(
   slug: string,
@@ -106,6 +110,7 @@ function mapShopCardsToRelatedPayload(cards: MenuCard[]): RelatedCardPayload[] {
     defaultVariantId: card.defaultVariantId ?? null,
     image: card.image ?? null,
     inStock: card.inStock ?? true,
+    rating: card.rating ?? 5,
     categories: [],
   }));
 }
@@ -119,8 +124,14 @@ export function getRelatedProductsForPdp(
 ): Promise<RelatedCardPayload[]> {
   return cache(async (s: string, l: StorefrontLocale) => {
     return unstable_cache(
-      () => loadRelatedProductsUncached(s, l),
-      ["pdp-related-v1", s, l],
+      () =>
+        withPrismaResilience(
+          () => loadRelatedProductsUncached(s, l),
+          [] as RelatedCardPayload[],
+          PDP_RELATED_RESILIENCE_SCOPE,
+          PDP_RELATED_RESILIENCE_STEP
+        ),
+      ["pdp-related-v2", s, l],
       {
         revalidate: STOREFRONT_CACHE_TTL.productRelated,
         tags: [pdpPageCacheTag(s)],
@@ -139,8 +150,14 @@ export async function getRelatedProductsBatchForPdp(
   const safeLimit = Math.min(Math.max(1, limit), PDP_RELATED_BATCH_SIZE);
   const pool = await cache(async (s: string, l: StorefrontLocale) => {
     return unstable_cache(
-      () => loadRelatedProductsUncached(s, l),
-      ["pdp-related-v1", s, l],
+      () =>
+        withPrismaResilience(
+          () => loadRelatedProductsUncached(s, l),
+          [] as RelatedCardPayload[],
+          PDP_RELATED_RESILIENCE_SCOPE,
+          PDP_RELATED_RESILIENCE_STEP
+        ),
+      ["pdp-related-v2", s, l],
       {
         revalidate: STOREFRONT_CACHE_TTL.productRelated,
         tags: [pdpPageCacheTag(s)],

@@ -100,6 +100,13 @@ export function isQuietRegisterConflictError(status: number, url: string): boole
 }
 
 /**
+ * Reviews are unique per user+product. Re-submitting should be handled in UI as edit flow.
+ */
+export function isQuietReviewConflictError(status: number, url: string): boolean {
+  return status === 409 && /\/api\/v1\/products\/[^/]+\/reviews(?:\?|$)/.test(url);
+}
+
+/**
  * Guest-session reads that legitimately return 401 must not trigger global login redirect.
  */
 export function isQuietGuestSessionAuthError(status: number, url: string): boolean {

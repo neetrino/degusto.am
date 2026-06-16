@@ -43,6 +43,7 @@ import { RelatedProducts } from '@/components/RelatedProducts';
 import { ProductReviewsLoading } from '@/components/ProductReviews/ProductReviewsLoading';
 import { PDP_RELATED_SECTION_GAP_CLASS } from '@/constants/pdp-figma-tokens';
 import { getRelatedProductsSnapshot } from '@/lib/products/related-products-cache';
+import { RatingStars } from '@/components/RatingStars';
 
 const PDP_RATING_STAR_SRC = r2Asset('product/20260512-7jf6Wihrew.svg');
 
@@ -139,16 +140,12 @@ export function ProductPageInstantLoading() {
               >
                 {title}
               </h1>
-              <div className={`mb-5 flex items-center ${PDP_RATING_STAR_GAP_CLASS}`} aria-hidden>
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <img
-                    key={index}
-                    src={PDP_RATING_STAR_SRC}
-                    alt=""
-                    className={`${PDP_RATING_STAR_SIZE_CLASS} object-contain`}
-                  />
-                ))}
-              </div>
+              <RatingStars
+                rating={summary.rating ?? 5}
+                starSrc={PDP_RATING_STAR_SRC}
+                className={`mb-5 flex items-center ${PDP_RATING_STAR_GAP_CLASS}`}
+                starClassName={PDP_RATING_STAR_SIZE_CLASS}
+              />
               <div className={PDP_PRICE_ROW_CLASS}>
                 <p
                   className={`${PDP_PRICE_CLASS} ${montserratArmFont.className}`}

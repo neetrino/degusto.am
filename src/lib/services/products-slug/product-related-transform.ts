@@ -15,6 +15,12 @@ export interface RelatedProductRow {
     compareAtPrice: number | null;
     stock: number;
   }>;
+  reviews: Array<{
+    rating: number;
+  }>;
+  _count?: {
+    reviews?: number;
+  };
   categories: Array<{
     id: string;
     translations: Array<{ slug: string; title: string; locale: string }>;
@@ -32,6 +38,7 @@ export interface RelatedCardPayload {
   defaultVariantId: string | null;
   image: string | null;
   inStock: boolean;
+  rating: number;
   categories: Array<{ id: string; slug: string; title: string }>;
 }
 
@@ -51,6 +58,18 @@ function pickAppliedDiscount(
 
 function pickTranslation<T extends { locale: string }>(rows: T[], lang: string): T | null {
   return rows.find((t) => t.locale === lang) ?? rows[0] ?? null;
+}
+
+function resolveRelatedProductRating(product: RelatedProductRow): number {
+  const reviewCount = product._count?.reviews ?? product.reviews.length;
+  if (reviewCount <= 0) {
+    return 5;
+  }
+  const averageRating = product.reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount;
+  if (!Number.isFinite(averageRating) || averageRating <= 0) {
+    return 5;
+  }
+  return averageRating;
 }
 
 /**
@@ -117,6 +136,7 @@ export async function transformRelatedProductRows(
       defaultVariantId: variant?.id ?? null,
       image,
       inStock: (variant?.stock ?? 0) > 0,
+      rating: resolveRelatedProductRating(product),
       categories,
     };
   });
