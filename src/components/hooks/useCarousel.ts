@@ -201,7 +201,9 @@ export function useCarousel({
     if (absX <= absY || absX === 0) {
       return;
     }
-    e.preventDefault();
+    if (e.nativeEvent.cancelable) {
+      e.preventDefault();
+    }
     const delta = e.deltaX > 0 ? step : -step;
     setCurrentIndex((prevIndex) => snapToScrollStep(prevIndex + delta, maxIndex, step));
   };
