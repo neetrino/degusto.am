@@ -44,6 +44,8 @@ type ShopMobileProductCardProps = {
   card: MenuCard;
   /** Enables near-viewport PDP prefetch (can be disabled on heavy grids like home sections). */
   enableVisibilityPrefetch?: boolean;
+  /** Hides the greens/viggie badge while viggie filter itself is active. */
+  hideGreensBadge?: boolean;
 };
 
 /**
@@ -52,6 +54,7 @@ type ShopMobileProductCardProps = {
 export function ShopMobileProductCard({
   card,
   enableVisibilityPrefetch = true,
+  hideGreensBadge = false,
 }: ShopMobileProductCardProps) {
   const { t } = useTranslation();
   const currency = useCurrency();
@@ -78,7 +81,7 @@ export function ShopMobileProductCard({
   const showStrikethroughPrice = shouldShowMenuCardStrikethroughPrice(card.price, card.oldPrice);
   const discountText = hasDiscount ? `-${effectiveDiscountPercent}%` : '';
   const supportsSpicy = card.supportsSpicy ?? false;
-  const supportsGreens = card.supportsGreens ?? false;
+  const supportsGreens = hideGreensBadge ? false : (card.supportsGreens ?? false);
   const displayRating = card.rating ?? 5;
   const greensTopClass = supportsSpicy ? 'top-[38px]' : 'top-[11px]';
   const productHref = `/products/${card.slug}`;

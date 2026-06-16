@@ -232,8 +232,14 @@ export function useCartLiveSync({
       }
 
       if (detail.confirmedLine) {
-        commitCart(confirmOptimisticCartLine(cartRef.current, detail.confirmedLine));
+        const nextCart = confirmOptimisticCartLine(cartRef.current, detail.confirmedLine);
+        commitCart(nextCart);
         setCartLoading(false);
+        if (nextCart === cartRef.current) {
+          // No optimistic row to promote: fetch persisted cart before exposing new line.
+          void reloadCart({ silent: true });
+          return;
+        }
         scheduleOptimisticBurstReconcile();
       }
 
@@ -244,7 +250,7 @@ export function useCartLiveSync({
         scheduleOptimisticBurstReconcile();
       }
 
-      if (!detail.skipReconcile && (snapshot || detail.itemsCount !== undefined)) {
+      if (!detail.skipReconcile && detail.itemsCount !== undefined) {
         scheduleReconcile();
       }
     };

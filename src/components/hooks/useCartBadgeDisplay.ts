@@ -8,7 +8,7 @@ import {
   parseCartUpdatedDetail,
 } from '@/lib/cart/cart-events';
 
-type CartBadgeSnapshot = {
+export type CartBadgeSnapshot = {
   cartCount: number;
   cartTotal: number;
 };
