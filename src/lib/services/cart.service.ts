@@ -18,6 +18,20 @@ import { isStockSufficient, totalVariantQuantityInCart } from "../product-stock"
 import { ensureCartItemCustomizationsColumn } from "../utils/db-ensure";
 
 class CartService {
+  private cartOwnerOrderBy(userId: string | null): Prisma.CartOrderByWithRelationInput[] | undefined {
+    if (!userId) {
+      return undefined;
+    }
+    return [{ updatedAt: "desc" }, { createdAt: "desc" }];
+  }
+
+  private async touchCart(cartId: string): Promise<void> {
+    await db.cart.update({
+      where: { id: cartId },
+      data: { updatedAt: new Date() },
+    });
+  }
+
   private toCartSummaryPayload(
     cartId: string,
     rows: Array<{ quantity: number; priceSnapshot: Prisma.Decimal | number | null }>
@@ -116,6 +130,7 @@ class CartService {
     }
 
     const ownerWhere = this.cartOwnerWhere(userId, guestToken);
+    const ownerOrderBy = this.cartOwnerOrderBy(userId);
     const translationLocales = locale === "en" ? ["en"] : [locale, "en"];
     const cartSelect = {
       id: true,
@@ -193,6 +208,7 @@ class CartService {
     const findCart = async () =>
       db.cart.findFirst({
         where: ownerWhere,
+        ...(ownerOrderBy ? { orderBy: ownerOrderBy } : {}),
         select: cartSelect,
       });
 
@@ -385,8 +401,10 @@ class CartService {
     }
 
     const ownerWhere = this.cartOwnerWhere(userId, guestToken);
+    const ownerOrderBy = this.cartOwnerOrderBy(userId);
     const cart = await db.cart.findFirst({
       where: ownerWhere,
+      ...(ownerOrderBy ? { orderBy: ownerOrderBy } : {}),
       select: {
         id: true,
         items: {
@@ -422,6 +440,7 @@ class CartService {
     const { variantId, productId, quantity = 1 } = data;
     const normalizedCustomizations = normalizeProductCustomizations(data.customizations);
     const ownerWhere = this.cartOwnerWhere(userId, guestToken);
+    const ownerOrderBy = this.cartOwnerOrderBy(userId);
 
     if (!variantId || !productId) {
       throw {
@@ -436,6 +455,7 @@ class CartService {
       Promise.all([
         db.cart.findFirst({
           where: ownerWhere,
+          ...(ownerOrderBy ? { orderBy: ownerOrderBy } : {}),
           include: { items: true },
         }),
         db.productVariant.findUnique({
@@ -551,6 +571,7 @@ class CartService {
         }
         item = await updateItem();
       }
+      await this.touchCart(resolvedCart.id);
       // Summary from current state: other items + this updated item (no extra DB query)
       const otherItems = resolvedCart.items.filter((i: { id: string }) => i.id !== existingItem.id);
       const itemsForSum = [
@@ -595,6 +616,7 @@ class CartService {
         }
         item = await createItem();
       }
+      await this.touchCart(resolvedCart.id);
       const itemsForSum = [
         ...resolvedCart.items.map((i: { quantity: number; priceSnapshot: unknown }) => ({ q: i.quantity, p: Number(i.priceSnapshot) })),
         { q: quantity, p: unitPriceWithAdjustments },
@@ -698,6 +720,7 @@ class CartService {
         title: "Cart item not found",
       };
     }
+    await this.touchCart(cart.id);
 
     const updatedItem = await db.cartItem.findUnique({
       where: { id: itemId },
@@ -763,6 +786,7 @@ class CartService {
         title: "Cart item not found",
       };
     }
+    await this.touchCart(cart.id);
 
     return null;
   }
