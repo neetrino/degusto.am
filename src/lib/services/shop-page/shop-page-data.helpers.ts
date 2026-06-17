@@ -60,9 +60,10 @@ export type ShopMenuProductRow = {
   id: string;
   discountPercent: number | null;
   media: unknown;
-  reviews: Array<{
-    rating: number;
-  }>;
+  ratingSummary?: {
+    avgRating: number;
+    reviewCount: number;
+  };
   categories: Array<{
     translations: CategoryTranslationRow[];
   }>;
@@ -155,11 +156,8 @@ export function mapShopProductRowsToMenuCards(
     const price = variant?.price ?? 0;
     const oldPrice = resolveMenuCardCompareAtPrice(price, variant?.compareAtPrice);
     const hasVariantChoice = (row._count?.variants ?? row.variants.length) > 1;
-    const reviewCount = row._count?.reviews ?? row.reviews.length;
-    const rating =
-      reviewCount > 0
-        ? row.reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount
-        : 5;
+    const reviewCount = row.ratingSummary?.reviewCount ?? row._count?.reviews ?? 0;
+    const rating = reviewCount > 0 ? row.ratingSummary?.avgRating ?? 5 : 5;
     const foodAttrs = hasVariantChoice
       ? resolveFoodAttributeFlagsFromVariants(row.variants)
       : { supportsSpicy: false, supportsGreens: false };

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@shop/ui';
 import { useAuth } from '../../../lib/auth/AuthContext';
@@ -16,6 +16,20 @@ import { aggregateStockValues, hasSellableStock } from '@/lib/product-stock';
 import { EMPTY_DAILY_OFFER_SELECTION, type DailyOfferSelection } from '@/lib/services/daily-offer/daily-offer.types';
 import { logger } from "@/lib/utils/logger";
 
+type ProductSortField = 'price' | 'createdAt' | 'title' | 'stock';
+
+const SORT_TOGGLE_CONFIG: Record<ProductSortField, { asc: string; desc: string }> = {
+  price: { asc: 'price-asc', desc: 'price-desc' },
+  createdAt: { asc: 'createdAt-asc', desc: 'createdAt-desc' },
+  title: { asc: 'title-asc', desc: 'title-desc' },
+  stock: { asc: 'stock-asc', desc: 'stock-desc' },
+};
+
+const getNextSortValue = (field: ProductSortField, current: string): string => {
+  const config = SORT_TOGGLE_CONFIG[field];
+  return current === config.asc ? config.desc : config.asc;
+};
+
 export default function ProductsPage() {
   const { t } = useTranslation();
   const { isLoggedIn, isAdmin, isLoading } = useAuth();
@@ -23,11 +37,13 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [categoriesExpanded, setCategoriesExpanded] = useState(false);
   const [skuSearch, setSkuSearch] = useState('');
+  const [debouncedSkuSearch, setDebouncedSkuSearch] = useState('');
   const [stockFilter, setStockFilter] = useState<'all' | 'inStock' | 'outOfStock'>('all');
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState<ProductsResponse['meta'] | null>(null);
@@ -41,6 +57,8 @@ export default function ProductsPage() {
     EMPTY_DAILY_OFFER_SELECTION
   );
   const [currency, setCurrency] = useState<CurrencyCode>('USD');
+  const productsAbortRef = useRef<AbortController | null>(null);
+  const productsRequestGenerationRef = useRef(0);
 
   useEffect(() => {
     if (!isLoading) {
@@ -50,6 +68,31 @@ export default function ProductsPage() {
       }
     }
   }, [isLoggedIn, isAdmin, isLoading, router]);
+
+  useEffect(() => {
+    return () => {
+      productsAbortRef.current?.abort();
+      productsAbortRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 250);
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [search]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setDebouncedSkuSearch(skuSearch);
+    }, 250);
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [skuSearch]);
 
   // Initialize currency rates and listen for currency changes
   useEffect(() => {
@@ -145,9 +188,9 @@ export default function ProductsPage() {
     isLoggedIn,
     isAdmin,
     page,
-    search,
+    debouncedSearch,
     categoryFilterKey,
-    skuSearch,
+    debouncedSkuSearch,
     stockFilter,
     sortParamForApi,
     minPrice,
@@ -155,6 +198,7 @@ export default function ProductsPage() {
   ]);
 
   const fetchProducts = async () => {
+    let requestGeneration = 0;
     try {
       setLoading(true);
       const params: Record<string, string> = {
@@ -162,16 +206,16 @@ export default function ProductsPage() {
         limit: '20',
       };
       
-      if (search.trim()) {
-        params.search = search.trim();
+      if (debouncedSearch.trim()) {
+        params.search = debouncedSearch.trim();
       }
 
       if (selectedCategories.size > 0) {
         params.category = Array.from(selectedCategories).join(',');
       }
 
-      if (skuSearch.trim()) {
-        params.sku = skuSearch.trim();
+      if (debouncedSkuSearch.trim()) {
+        params.sku = debouncedSkuSearch.trim();
       }
 
       if (minPrice.trim()) {
@@ -186,9 +230,19 @@ export default function ProductsPage() {
         params.sort = sortBy;
       }
 
+      productsAbortRef.current?.abort();
+      requestGeneration = ++productsRequestGenerationRef.current;
+      const abortController = new AbortController();
+      productsAbortRef.current = abortController;
+
       const response = await apiClient.get<ProductsResponse>('/api/v1/admin/products', {
         params,
+        signal: abortController.signal,
       });
+
+      if (requestGeneration !== productsRequestGenerationRef.current) {
+        return;
+      }
       
       let filteredProducts = response.data || [];
 
@@ -213,11 +267,25 @@ export default function ProductsPage() {
 
       setProducts(filteredProducts);
       setMeta(response.meta || null);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const isAbortError =
+        err instanceof DOMException
+          ? err.name === 'AbortError'
+          : err instanceof Error && err.name === 'AbortError';
+      if (isAbortError) {
+        return;
+      }
+      const errorMessage =
+        err instanceof Error ? err.message : t('admin.common.unknownErrorFallback');
       console.error('❌ [ADMIN] Error fetching products:', err);
-      alert(t('admin.products.errorLoading').replace('{message}', err.message || t('admin.common.unknownErrorFallback')));
+      alert(t('admin.products.errorLoading').replace('{message}', errorMessage));
     } finally {
-      setLoading(false);
+      if (
+        requestGeneration === 0 ||
+        requestGeneration === productsRequestGenerationRef.current
+      ) {
+        setLoading(false);
+      }
     }
   };
 
@@ -287,44 +355,11 @@ export default function ProductsPage() {
     };
   }, [meta?.total, sortedProducts]);
 
-  const handleHeaderSort = (field: 'price' | 'createdAt' | 'title' | 'stock') => {
+  const handleHeaderSort = (field: ProductSortField) => {
     setPage(1);
 
     setSortBy((current) => {
-      let next = current;
-
-      if (field === 'price') {
-        if (current === 'price-asc') {
-          next = 'price-desc';
-        } else {
-          next = 'price-asc';
-        }
-      }
-
-      if (field === 'createdAt') {
-        if (current === 'createdAt-asc') {
-          next = 'createdAt-desc';
-        } else {
-          next = 'createdAt-asc';
-        }
-      }
-
-      if (field === 'title') {
-        if (current === 'title-asc') {
-          next = 'title-desc';
-        } else {
-          next = 'title-asc';
-        }
-      }
-
-      if (field === 'stock') {
-        if (current === 'stock-asc') {
-          next = 'stock-desc';
-        } else {
-          next = 'stock-asc';
-        }
-      }
-
+      const next = getNextSortValue(field, current);
       logger.debug('📊 [ADMIN] Sort changed from', current, 'to', next, 'by header click');
       return next;
     });

@@ -90,7 +90,10 @@ export function prefetchShopMenuProducts(href: string): void {
 }
 
 /** Fetches paginated shop product cards without a full RSC navigation. */
-export async function fetchShopMenuProducts(href: string): Promise<ShopMenuProductsResponse> {
+export async function fetchShopMenuProducts(
+  href: string,
+  options?: { signal?: AbortSignal }
+): Promise<ShopMenuProductsResponse> {
   const search = hrefToSearch(href);
   const url = buildMenuProductsApiUrl(search);
   const cached = responseCache.get(url);
@@ -103,7 +106,7 @@ export async function fetchShopMenuProducts(href: string): Promise<ShopMenuProdu
     return inflight;
   }
 
-  const request = fetch(url, { credentials: 'include' })
+  const request = fetch(url, { credentials: 'include', signal: options?.signal })
     .then(async (response) => {
       if (!response.ok) {
         throw new Error(`Shop menu products fetch failed: ${response.status}`);
