@@ -8,6 +8,7 @@ import {
   fetchShopMenuProducts,
 } from '@/lib/shop/fetch-shop-menu-products.client';
 import { prefetchStorefrontRoute } from '@/lib/routing/prefetch-storefront-route';
+import { logger } from '@/lib/utils/logger';
 
 type ShopMenuPagination = {
   currentPage: number;
@@ -46,6 +47,7 @@ export function useShopCategorySoftNav({
   const navigationGenerationRef = useRef(0);
   const enabledRef = useRef(enabled);
   const activeHrefRef = useRef<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     enabledRef.current = enabled;
@@ -76,11 +78,14 @@ export function useShopCategorySoftNav({
       }
 
       const generation = ++navigationGenerationRef.current;
+      abortControllerRef.current?.abort();
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
       setDisplayActiveCategorySlug(categorySlug);
       setIsProductsPending(true);
 
       try {
-        const data = await fetchShopMenuProducts(href);
+        const data = await fetchShopMenuProducts(href, { signal: abortController.signal });
         if (generation !== navigationGenerationRef.current) {
           return;
         }
@@ -92,6 +97,18 @@ export function useShopCategorySoftNav({
         activeHrefRef.current = href;
         if (updateHistory) {
           window.history.pushState({ shopSoftNav: true }, '', href);
+        }
+      } catch (error: unknown) {
+        const isAbortError =
+          error instanceof DOMException
+            ? error.name === 'AbortError'
+            : error instanceof Error && error.name === 'AbortError';
+        if (!isAbortError) {
+          logger.warn('[Shop] Soft category navigation failed', {
+            href,
+            categorySlug,
+            error: error instanceof Error ? error.message : String(error),
+          });
         }
       } finally {
         if (generation === navigationGenerationRef.current) {
@@ -116,7 +133,7 @@ export function useShopCategorySoftNav({
     if (!enabledRef.current) {
       return;
     }
-    prefetchStorefrontRoute(router, href);
+    prefetchStorefrontRoute(router, href, { prefetchRsc: false });
   }, [router]);
 
   useEffect(() => {
@@ -134,6 +151,8 @@ export function useShopCategorySoftNav({
 
     window.addEventListener('popstate', handlePopState);
     return () => {
+      abortControllerRef.current?.abort();
+      abortControllerRef.current = null;
       window.removeEventListener('popstate', handlePopState);
     };
   }, [enabled, loadProductsForHref]);

@@ -9,6 +9,7 @@ import {
   confirmOptimisticCartLine,
   snapshotFromCartDetail,
 } from '@/lib/cart/optimistic-cart-add';
+import { buildCustomizationLineKey, normalizeProductCustomizations } from '@/lib/cart/customizations';
 import { applyRemovedLinesFilter } from '@/lib/cart/pending-cart-removals';
 import { dispatchCartSummarySync } from '@/lib/cart/cart-summary-sync';
 import { createEmptyCart } from '@/lib/cart/empty-cart';
@@ -105,6 +106,16 @@ function normalizeCartPayload(cartData: Cart | null): Cart {
   return applyRemovedLinesFilter(cartData) ?? createEmptyCart();
 }
 
+function buildPendingOptimisticLineKey(input: {
+  variantId: string;
+  customizations?: Parameters<typeof normalizeProductCustomizations>[0];
+}): string {
+  return buildCustomizationLineKey(
+    input.variantId,
+    normalizeProductCustomizations(input.customizations)
+  );
+}
+
 export function useCartLiveSync({
   isLoggedIn,
   isAuthLoading,
@@ -119,6 +130,7 @@ export function useCartLiveSync({
   const reloadGenerationRef = useRef(0);
   const badgeSyncReadyRef = useRef(false);
   const lastReconcileAtRef = useRef(0);
+  const pendingOptimisticLinesRef = useRef<Map<string, number>>(new Map());
 
   useEffect(() => {
     cartRef.current = cart;
@@ -187,6 +199,11 @@ export function useCartLiveSync({
 
     optimisticReconcileTimerRef.current = setTimeout(() => {
       optimisticReconcileTimerRef.current = null;
+      if (pendingOptimisticLinesRef.current.size > 0) {
+        // Wait until optimistic lines are confirmed to avoid "appear -> disappear -> appear".
+        scheduleOptimisticBurstReconcile();
+        return;
+      }
       const now = Date.now();
       const elapsed = now - lastReconcileAtRef.current;
       if (elapsed < CART_RECONCILE_MIN_GAP_MS) {
@@ -219,6 +236,7 @@ export function useCartLiveSync({
       }
 
       if (detail.forceReload) {
+        pendingOptimisticLinesRef.current.clear();
         void reloadCart({ silent: true });
         return;
       }
@@ -232,6 +250,17 @@ export function useCartLiveSync({
       }
 
       if (detail.confirmedLine) {
+        const confirmedKey = buildPendingOptimisticLineKey({
+          variantId: detail.confirmedLine.previousVariantId,
+          customizations: detail.confirmedLine.customizations,
+        });
+        const pendingCount = pendingOptimisticLinesRef.current.get(confirmedKey) ?? 0;
+        if (pendingCount <= 1) {
+          pendingOptimisticLinesRef.current.delete(confirmedKey);
+        } else {
+          pendingOptimisticLinesRef.current.set(confirmedKey, pendingCount - 1);
+        }
+
         const nextCart = confirmOptimisticCartLine(cartRef.current, detail.confirmedLine);
         commitCart(nextCart);
         setCartLoading(false);
@@ -245,6 +274,14 @@ export function useCartLiveSync({
 
       const snapshot = snapshotFromCartDetail(detail);
       if (snapshot) {
+        const pendingKey = buildPendingOptimisticLineKey({
+          variantId: snapshot.variantId,
+          customizations: snapshot.customizations,
+        });
+        pendingOptimisticLinesRef.current.set(
+          pendingKey,
+          (pendingOptimisticLinesRef.current.get(pendingKey) ?? 0) + 1
+        );
         commitCart(applyOptimisticCartAdd(cartRef.current, snapshot));
         setCartLoading(false);
         scheduleOptimisticBurstReconcile();

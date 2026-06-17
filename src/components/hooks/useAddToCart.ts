@@ -15,7 +15,6 @@ import {
   removeCachedLineId,
   updateCachedLineQuantity,
 } from '../../lib/cart/cart-line-id-cache';
-import { clearCartLineRemoved } from '@/lib/cart/pending-cart-removals';
 import { readCartSummaryCache } from '../../lib/cartSummaryCache';
 
 const CART_ACTION_RETRY_AFTER_MS = 3000;
@@ -152,11 +151,6 @@ export function useAddToCart({
       });
 
       rememberCartLineId(productId, variantId, response.item.id, response.item.quantity);
-      clearCartLineRemoved({
-        variant: { id: variantId },
-        productId,
-        customizations: undefined,
-      });
 
       const summary = response.cartSummary ?? (() => {
         const cache = readCartSummaryCache();

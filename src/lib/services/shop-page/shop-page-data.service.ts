@@ -3,6 +3,7 @@ import { STORE_MENU_PAGE_SIZE } from '@/constants/store-menu-page-size';
 import { withPrismaResilience } from '@/lib/db/with-prisma-resilience';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
 import { db } from '@white-shop/db';
+import { Prisma } from '@prisma/client';
 import {
   buildShopCategoryEntries,
   mapShopProductRowsToMenuCards,
@@ -93,6 +94,77 @@ const CATEGORY_LIST_SELECT = {
 
 type CategoryRow = ShopMenuDbResult['categoryRows'][number];
 
+type ShopRatingSummaryRow = {
+  productId: string;
+  avgRating: number | string | null;
+  reviewCount: number | string | bigint;
+};
+
+function toFiniteNumber(value: unknown): number {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : 0;
+  }
+  if (typeof value === 'bigint') {
+    return Number(value);
+  }
+  if (typeof value === 'string') {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+}
+
+async function appendRatingSummariesToRows(
+  productRows: ShopMenuProductRow[]
+): Promise<ShopMenuProductRow[]> {
+  if (productRows.length === 0) {
+    return productRows;
+  }
+
+  const productIds = productRows.map((row) => row.id);
+  const ratingRows = await db.$queryRaw<ShopRatingSummaryRow[]>(Prisma.sql`
+    SELECT
+      r."productId" AS "productId",
+      AVG(r.rating)::float8 AS "avgRating",
+      COUNT(*)::bigint AS "reviewCount"
+    FROM "product_reviews" r
+    WHERE r.published = true
+      AND r."productId" IN (${Prisma.join(productIds)})
+    GROUP BY r."productId"
+  `);
+
+  if (ratingRows.length === 0) {
+    return productRows.map((row) => ({
+      ...row,
+      ratingSummary: {
+        avgRating: 5,
+        reviewCount: 0,
+      },
+    }));
+  }
+
+  const ratingByProductId = new Map(
+    ratingRows.map((row) => [
+      row.productId,
+      {
+        avgRating: toFiniteNumber(row.avgRating),
+        reviewCount: toFiniteNumber(row.reviewCount),
+      },
+    ])
+  );
+
+  return productRows.map((row) => {
+    const summary = ratingByProductId.get(row.id);
+    return {
+      ...row,
+      ratingSummary: {
+        avgRating: summary?.avgRating ?? 5,
+        reviewCount: summary?.reviewCount ?? 0,
+      },
+    };
+  });
+}
+
 async function fetchShopCategoryRows(locale: StorefrontLocale): Promise<CategoryRow[]> {
   return db.category.findMany({
     where: CATEGORY_LIST_WHERE,
@@ -148,7 +220,9 @@ async function fetchShopProductPage(
     productRowsPromise,
   ]);
   const productTotal = productTotalResult.value;
-  const productRows = productRowsResult.value;
+  const productRows = await appendRatingSummariesToRows(
+    productRowsResult.value as unknown as ShopMenuProductRow[]
+  );
   logger.info('[SHOP PERF] db product page query timings', {
     locale,
     page: query.requestedPage,
@@ -164,12 +238,12 @@ async function fetchShopProductPage(
   if (effectivePage === query.requestedPage) {
     return {
       productTotal,
-      productRows: productRows as unknown as ShopMenuProductRow[],
+      productRows,
     };
   }
 
   const clampStartedAt = Date.now();
-  const clampedRows = (await db.product.findMany({
+  const clampedRowsRaw = (await db.product.findMany({
     where: productWhere,
     orderBy: {
       updatedAt: 'desc',
@@ -178,6 +252,7 @@ async function fetchShopProductPage(
     take: STORE_MENU_PAGE_SIZE,
     select: getShopProductSelect(locale),
   })) as unknown as ShopMenuProductRow[];
+  const clampedRows = await appendRatingSummariesToRows(clampedRowsRaw);
   logger.info('[SHOP PERF] db clamped product page query timing', {
     locale,
     requestedPage: query.requestedPage,

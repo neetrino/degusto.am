@@ -6,6 +6,7 @@ type RouterWithPrefetch = {
 };
 
 type PrefetchStorefrontRouteOptions = {
+  prefetchRsc?: boolean;
   prefetchMenuProducts?: boolean;
   prefetchProductBundle?: boolean;
 };
@@ -35,10 +36,13 @@ export function prefetchStorefrontRoute(
   if (!normalized) {
     return;
   }
+  const prefetchRsc = options?.prefetchRsc ?? true;
   const prefetchMenuProducts = options?.prefetchMenuProducts ?? true;
   const prefetchProductBundle = options?.prefetchProductBundle ?? true;
 
-  void router.prefetch(normalized);
+  if (prefetchRsc) {
+    void router.prefetch(normalized);
+  }
 
   if (isShopOrComboHref(normalized)) {
     if (prefetchMenuProducts && hasSearchParams(normalized)) {

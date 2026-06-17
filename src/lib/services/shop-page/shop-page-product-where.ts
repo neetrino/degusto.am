@@ -161,13 +161,5 @@ export function getShopProductSelect(locale: StorefrontLocale): Prisma.ProductSe
         },
       },
     },
-    reviews: {
-      where: {
-        published: true,
-      },
-      select: {
-        rating: true,
-      },
-    },
   };
 }

@@ -97,6 +97,15 @@ function buildProductCustomizationKey(item: CartItem): string {
   return `${item.variant.product.id}::${serializeProductCustomizations(normalized)}`;
 }
 
+const REMOVE_OPTIMISTIC_RETRY_ATTEMPTS = 4;
+const REMOVE_OPTIMISTIC_RETRY_DELAY_MS = 180;
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
 async function deleteMatchingLineOnServer(
   item: CartItem,
   preferredServerItemId?: string
@@ -107,30 +116,36 @@ async function deleteMatchingLineOnServer(
       return;
     }
 
-    const response = await apiClient.get<{ cart: Cart | null }>('/api/v1/cart');
-    const serverCart = response.cart;
-    if (!serverCart) {
-      return;
-    }
-
     const lineKey = buildCartLineRemovalKey(item);
     const productCustomizationKey = buildProductCustomizationKey(item);
-    const matches = serverCart.items.filter(
-      (serverItem) =>
-        (buildCartLineRemovalKey(serverItem) === lineKey ||
-          buildProductCustomizationKey(serverItem) === productCustomizationKey) &&
-        !isOptimisticCartItemId(serverItem.id)
-    );
 
-    if (matches.length === 0) {
-      return;
+    for (let attempt = 0; attempt < REMOVE_OPTIMISTIC_RETRY_ATTEMPTS; attempt += 1) {
+      const response = await apiClient.get<{ cart: Cart | null }>('/api/v1/cart');
+      const serverCart = response.cart;
+      if (!serverCart) {
+        return;
+      }
+
+      const matches = serverCart.items.filter(
+        (serverItem) =>
+          (buildCartLineRemovalKey(serverItem) === lineKey ||
+            buildProductCustomizationKey(serverItem) === productCustomizationKey) &&
+          !isOptimisticCartItemId(serverItem.id)
+      );
+
+      if (matches.length > 0) {
+        await Promise.all(
+          matches.map(async (match) => {
+            await apiClient.delete(`/api/v1/cart/items/${match.id}`);
+          })
+        );
+        return;
+      }
+
+      if (attempt < REMOVE_OPTIMISTIC_RETRY_ATTEMPTS - 1) {
+        await delay(REMOVE_OPTIMISTIC_RETRY_DELAY_MS);
+      }
     }
-
-    await Promise.all(
-      matches.map(async (match) => {
-        await apiClient.delete(`/api/v1/cart/items/${match.id}`);
-      })
-    );
   } catch (error: unknown) {
     if (isCartItemNotFoundError(error)) {
       return;
