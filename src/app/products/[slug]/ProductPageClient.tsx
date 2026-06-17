@@ -28,6 +28,7 @@ import { publishOptimisticCartAdd, publishCartLineConfirmed, publishCartForceRel
 import { rememberCartLineId } from '@/lib/cart/cart-line-id-cache';
 import { clearCartLineRemoved } from '@/lib/cart/pending-cart-removals';
 import { logger } from '@/lib/utils/logger';
+import { readCartSummaryCache } from '@/lib/cartSummaryCache';
 import {
   normalizeProductCustomizations,
 } from '../../../lib/cart/customizations';
@@ -261,10 +262,13 @@ function useProductAddToCartHandler({
         customizations,
       });
 
-      const summary = response.cartSummary ?? {
-        itemsCount: 0,
-        total: 0,
-      };
+      const summary = response.cartSummary ?? (() => {
+        const cached = readCartSummaryCache();
+        return {
+          itemsCount: cached?.itemsCount ?? 0,
+          total: cached?.total ?? 0,
+        };
+      })();
 
       publishCartLineConfirmed(
         {

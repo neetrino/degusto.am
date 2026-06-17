@@ -170,7 +170,8 @@ export function useCartLiveSync({
         if (generation !== reloadGenerationRef.current) {
           return;
         }
-        commitCart(createEmptyCart());
+        // Preserve the last known cart on transient read failures.
+        commitCart((previous) => previous ?? createEmptyCart());
       } finally {
         if (generation === reloadGenerationRef.current) {
           setCartLoading(false);
