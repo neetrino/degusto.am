@@ -7,7 +7,7 @@ import { logger } from "@/lib/utils/logger";
 
 /**
  * PATCH /api/v1/admin/categories/reorder
- * Reorder sibling categories under the same parent.
+ * Reorder categories in a flat list.
  */
 export async function PATCH(req: NextRequest) {
   try {
@@ -33,26 +33,6 @@ export async function PATCH(req: NextRequest) {
           title: "Validation Error",
           status: 400,
           detail: "Request body must be a valid JSON object",
-          instance: req.url,
-        },
-        { status: 400 },
-      );
-    }
-
-    const parentId =
-      body.parentId === null || body.parentId === undefined
-        ? null
-        : typeof body.parentId === "string"
-          ? body.parentId
-          : undefined;
-
-    if (parentId === undefined) {
-      return NextResponse.json(
-        {
-          type: problemTypes.validationError,
-          title: "Validation Error",
-          status: 400,
-          detail: "Field 'parentId' must be a string or null",
           instance: req.url,
         },
         { status: 400 },
@@ -85,10 +65,9 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    logger.debug("Admin categories reorder request", { parentId, orderedIds: body.orderedIds });
+    logger.debug("Admin categories reorder request", { orderedIds: body.orderedIds });
 
     const result = await adminService.reorderCategories({
-      parentId,
       orderedIds: body.orderedIds as string[],
     });
 
