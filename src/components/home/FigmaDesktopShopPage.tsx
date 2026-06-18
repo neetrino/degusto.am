@@ -624,11 +624,7 @@ export function FigmaDesktopMenuPage({
     routeBasePath
   );
 
-  const currentPageFromSearch = useMemo(() => {
-    const rawPage = searchParams.get('page');
-    const parsedPage = rawPage ? Number.parseInt(rawPage, 10) : 1;
-    return Number.isFinite(parsedPage) && parsedPage >= 1 ? parsedPage : 1;
-  }, [searchParams]);
+  const currentPageFromSearch = Math.max(1, Number.parseInt(searchParams.get('page') ?? '1', 10) || 1);
 
   const { scheduleSearchQueryUrlSync, flushSearchQueryUrlSync, schedulePriceFilterUrlSync } =
     useMenuSearchUrlSync(
