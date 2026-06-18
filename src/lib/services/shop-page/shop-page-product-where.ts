@@ -68,28 +68,40 @@ export function buildShopProductWhereBase(
 export function buildShopProductWhere(
   locale: StorefrontLocale,
   query: ShopMenuQuery,
-  productWhereBase: Prisma.ProductWhereInput
+  productWhereBase: Prisma.ProductWhereInput,
+  selectedCategoryIds: string[] = []
 ): Prisma.ProductWhereInput {
   if (!query.selectedCategorySlug) {
     return productWhereBase;
   }
 
+  const categorySlugFilter: Prisma.ProductWhereInput = {
+    categories: {
+      some: {
+        deletedAt: null,
+        published: true,
+        translations: {
+          some: {
+            locale: { in: [locale, 'en'] },
+            slug: query.selectedCategorySlug,
+          },
+        },
+      },
+    },
+  };
+  const categoryIdBackfillFilter: Prisma.ProductWhereInput[] =
+    selectedCategoryIds.length > 0
+      ? [
+          { primaryCategoryId: { in: selectedCategoryIds } },
+          { categoryIds: { hasSome: selectedCategoryIds } },
+        ]
+      : [];
+
   return {
     AND: [
       productWhereBase,
       {
-        categories: {
-          some: {
-            deletedAt: null,
-            published: true,
-            translations: {
-              some: {
-                locale: { in: [locale, 'en'] },
-                slug: query.selectedCategorySlug,
-              },
-            },
-          },
-        },
+        OR: [categorySlugFilter, ...categoryIdBackfillFilter],
       },
     ],
   };
