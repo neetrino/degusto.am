@@ -17,6 +17,32 @@ export type RouteCatchFields = {
   message?: string;
 };
 
+type ErrorMeta = {
+  name: string;
+  message: string;
+  code?: string;
+};
+
+function extractErrorMeta(error: unknown): ErrorMeta {
+  if (error instanceof Error) {
+    const withCode = error as Error & { code?: unknown };
+    return {
+      name: error.name,
+      message: error.message,
+      code: typeof withCode.code === "string" ? withCode.code : undefined,
+    };
+  }
+  if (typeof error === "object" && error !== null) {
+    const record = error as Record<string, unknown>;
+    return {
+      name: typeof record.name === "string" ? record.name : "UnknownError",
+      message: typeof record.message === "string" ? record.message : String(error),
+      code: typeof record.code === "string" ? record.code : undefined,
+    };
+  }
+  return { name: "UnknownError", message: String(error) };
+}
+
 /**
  * Narrow `unknown` from route catch blocks for JSON error bodies (strict TS, no `catch (e: any)`).
  */
@@ -71,11 +97,16 @@ export function apiRouteErrorResponse(
   logLabel: string
 ): NextResponse {
   const instance = req.url;
+  const errorMeta = extractErrorMeta(error);
 
   if (isPrismaConnectionError(error)) {
     const code = isPrismaKnownRequestError(error) ? error.code : "init";
     logger.warn(`${logLabel} database unreachable`, {
       code,
+      requestPath: req.nextUrl.pathname,
+      method: req.method,
+      errorName: errorMeta.name,
+      errorMessage: errorMeta.message,
       ...buildDatabaseUrlLogFields(
         (process.env.DATABASE_URL ?? "").trim(),
         (process.env.DIRECT_URL ?? "").trim()
@@ -84,7 +115,13 @@ export function apiRouteErrorResponse(
     return serviceUnavailableResponse(instance);
   }
 
-  logger.error(logLabel, error);
+  logger.error(logLabel, {
+    requestPath: req.nextUrl.pathname,
+    method: req.method,
+    errorName: errorMeta.name,
+    errorMessage: errorMeta.message,
+    errorCode: errorMeta.code ?? null,
+  });
   const safeDetail =
     process.env.NODE_ENV === "production"
       ? "An error occurred"
@@ -108,12 +145,25 @@ export function apiRouteCatchErrorResponse(
   }
 
   const e = parseRouteCatchError(error);
+  const errorMeta = extractErrorMeta(error);
   const status = e.status;
   if (typeof status === "number" && status >= 400 && status < 600) {
     if (status >= 500) {
-      logger.error(logLabel, error);
+      logger.error(logLabel, {
+        requestPath: req.nextUrl.pathname,
+        method: req.method,
+        status,
+        errorName: errorMeta.name,
+        errorMessage: errorMeta.message,
+        errorCode: errorMeta.code ?? null,
+      });
     } else {
-      logger.warn(logLabel, { status, detail: e.detail ?? e.message });
+      logger.warn(logLabel, {
+        requestPath: req.nextUrl.pathname,
+        method: req.method,
+        status,
+        detail: e.detail ?? e.message,
+      });
     }
     return problemJson(
       {

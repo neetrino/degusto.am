@@ -128,6 +128,9 @@ export function useCartLiveSync({
   const reconcileTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const optimisticReconcileTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reloadGenerationRef = useRef(0);
+  const inFlightReloadRef = useRef<Promise<void> | null>(null);
+  const queuedReloadRef = useRef(false);
+  const queuedReloadSilentRef = useRef(true);
   const badgeSyncReadyRef = useRef(false);
   const lastReconcileAtRef = useRef(0);
   const pendingOptimisticLinesRef = useRef<Map<string, number>>(new Map());
@@ -155,30 +158,52 @@ export function useCartLiveSync({
 
   const reloadCart = useCallback(
     async (options?: { silent?: boolean }) => {
+      if (inFlightReloadRef.current) {
+        queuedReloadRef.current = true;
+        queuedReloadSilentRef.current = queuedReloadSilentRef.current && (options?.silent ?? false);
+        return inFlightReloadRef.current;
+      }
+
+      queuedReloadSilentRef.current = true;
       const generation = ++reloadGenerationRef.current;
       const silent = options?.silent ?? false;
-      if (!silent) {
-        setCartLoading(true);
-      }
-      try {
-        const cartData = await fetchCart(isLoggedIn, t);
-        if (generation !== reloadGenerationRef.current) {
-          return;
+      const runReload = async () => {
+        if (!silent) {
+          setCartLoading(true);
         }
-        commitCart(normalizeCartPayload(cartData));
-      } catch {
-        if (generation !== reloadGenerationRef.current) {
-          return;
+        try {
+          const cartData = await fetchCart(isLoggedIn, t);
+          if (generation !== reloadGenerationRef.current) {
+            return;
+          }
+          commitCart(normalizeCartPayload(cartData));
+        } catch {
+          if (generation !== reloadGenerationRef.current) {
+            return;
+          }
+          // Preserve the last known cart on transient read failures.
+          commitCart((previous) => previous ?? createEmptyCart());
+        } finally {
+          if (generation === reloadGenerationRef.current) {
+            setCartLoading(false);
+            setIsCartResolved(true);
+            badgeSyncReadyRef.current = true;
+          }
         }
-        // Preserve the last known cart on transient read failures.
-        commitCart((previous) => previous ?? createEmptyCart());
-      } finally {
-        if (generation === reloadGenerationRef.current) {
-          setCartLoading(false);
-          setIsCartResolved(true);
-          badgeSyncReadyRef.current = true;
+      };
+
+      const reloadPromise = runReload().finally(() => {
+        inFlightReloadRef.current = null;
+        if (queuedReloadRef.current) {
+          const queuedSilent = queuedReloadSilentRef.current;
+          queuedReloadRef.current = false;
+          queuedReloadSilentRef.current = true;
+          void reloadCart({ silent: queuedSilent });
         }
-      }
+      });
+
+      inFlightReloadRef.current = reloadPromise;
+      return reloadPromise;
     },
     [commitCart, isLoggedIn, t]
   );

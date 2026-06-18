@@ -10,8 +10,10 @@ import {
 } from "@/lib/cart/guest-cart-cookies";
 import { safeParseCartItemRequest } from "@/lib/schemas/cart.schema";
 import { enforceRouteRateLimit } from "@/lib/http/route-rate-limit";
+import { logger } from "@/lib/utils/logger";
 
 export async function POST(req: NextRequest) {
+  const startedAt = Date.now();
   try {
     const rateLimited = await enforceRouteRateLimit(req, {
       prefix: "ratelimit:cart-items",
@@ -47,6 +49,18 @@ export async function POST(req: NextRequest) {
       locale,
       activeGuestToken
     );
+
+    logger.info("[CART] add item ok", {
+      requestPath: req.nextUrl.pathname,
+      method: req.method,
+      responseStatus: 201,
+      durationMs: Date.now() - startedAt,
+      hasUser: Boolean(user?.id),
+      hasGuestToken: Boolean(activeGuestToken),
+      cartItemId: result.item.id,
+      variantId: result.item.variantId,
+      quantity: result.item.quantity,
+    });
 
     const response = NextResponse.json(result, { status: 201 });
     if (isNewGuestSession && activeGuestToken) {

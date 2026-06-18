@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { apiRouteCatchErrorResponse } from "@/lib/http/api-route-errors";
 import { cartService } from "@/lib/services/cart.service";
 import { resolveCartRequestContext } from "@/lib/cart/cart-request-context";
+import { logger } from "@/lib/utils/logger";
 
 export async function GET(req: NextRequest) {
   const startedAt = Date.now();
@@ -21,10 +22,14 @@ export async function GET(req: NextRequest) {
       : await cartService.getCart(user?.id ?? null, locale, guestToken);
     const durationMs = Date.now() - startedAt;
     const itemsCount = Array.isArray(result.cart?.items) ? result.cart.items.length : 0;
-    console.debug("[perf] GET /api/v1/cart", {
+    logger.info("[CART] read ok", {
+      requestPath: req.nextUrl.pathname,
+      method: req.method,
       durationMs,
+      responseStatus: 200,
       hasUser: Boolean(user?.id),
       hasGuestToken: Boolean(guestToken),
+      cartId: result.cart?.id ?? null,
       itemsCount,
       summaryOnly,
     });
