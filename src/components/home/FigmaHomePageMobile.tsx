@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { ViewMoreButton } from '../view-more/ViewMoreButton';
 import { t as translateKey } from '@/lib/i18n';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
-import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
+import { montserratArmFont } from '@/fonts/montserrat-arm-font';
 import type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
 import {
   MOBILE_FIGMA_HEADER_HORIZONTAL_INSET_CLASS,
@@ -110,7 +110,7 @@ export function FigmaHomePageMobile({
   const { newArrivalProducts, categoryProductsA, categoryProductsB } =
     sliceMobileHomeProductSections(featuredProducts);
   const displayCategories = buildMobileDisplayCategories(categories);
-  const categoriesTitleClassName = lang === 'hy' ? mirageExpandedFont.className : undefined;
+  const categoriesTitleClassName = lang === 'hy' ? montserratArmFont.className : undefined;
   const viewMoreLabel = t('common.buttons.viewMore');
 
   return (

@@ -15,7 +15,7 @@ import { useAuth } from '../../lib/auth/AuthContext';
 import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
 import { getHomeCategoryHref } from './homeCategoryLinks';
 import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
-import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
+import { montserratArmFont } from '@/fonts/montserrat-arm-font';
 import { FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS } from '@/constants/mobile-figma-storefront';
 import {
   getProductCardWishlistHoverClasses,
@@ -253,6 +253,7 @@ export function FigmaHomePage({
   const { t, lang } = useTranslation();
   const specialOfferProducts = featuredProducts.slice(0, DESKTOP_HOME_SPECIAL_OFFERS_PRODUCT_COUNT);
   const heroProduct = resolveHomeDailyOfferProduct(featuredProducts, dailyOfferProduct);
+  const armenianHeadingClassName = lang === 'hy' ? montserratArmFont.className : '';
 
   return (
     <div className="hidden min-h-screen w-full overflow-x-clip bg-[var(--project-color)] lg:block">
@@ -297,9 +298,7 @@ export function FigmaHomePage({
             className={`${HOME_DESKTOP_SPECIAL_OFFERS_HEADER_STACKING_CLASS} flex flex-col gap-6 pt-[70px] sm:flex-row sm:items-end sm:justify-between`}
           >
             <h2
-              className={`relative z-40 text-4xl font-black text-white md:text-6xl${
-                lang === 'hy' ? ` ${mirageExpandedFont.className}` : ''
-              }`}
+              className={`relative z-40 text-4xl font-black text-white md:text-6xl ${armenianHeadingClassName}`}
             >
               <span className="text-[#f66913]">{t('home.figma.desktop.specialOffersTitleAccent')}</span>
               {t('home.figma.desktop.specialOffersTitleMain')}
@@ -328,9 +327,7 @@ export function FigmaHomePage({
         <section className={`rounded-t-[40px] pb-20 pt-10 ${HOME_DESKTOP_CATEGORY_SURFACE_CLASS}`}>
           <div className={STOREFRONT_DESKTOP_SECTION_CLASS}>
             <h2
-              className={`mb-8 text-5xl font-black text-black md:text-6xl${
-                lang === 'hy' ? ` ${mirageExpandedFont.className}` : ''
-              }`}
+              className={`mb-8 text-5xl font-black text-black md:text-6xl ${armenianHeadingClassName}`}
             >
               {t('home.figma.desktop.categoriesTitle')}
             </h2>
