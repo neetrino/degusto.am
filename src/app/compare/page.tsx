@@ -192,7 +192,9 @@ export default function ComparePage() {
         }>;
       }
 
-      const productDetails = await apiClient.get<ProductDetails>(`/api/v1/products/${product.slug}`);
+      const productDetails = await apiClient.get<ProductDetails>(
+        `/api/v1/products/${encodeURIComponent(product.slug)}/details`
+      );
 
       if (!productDetails.variants || productDetails.variants.length === 0) {
         alert(t('common.alerts.noVariantsAvailable'));

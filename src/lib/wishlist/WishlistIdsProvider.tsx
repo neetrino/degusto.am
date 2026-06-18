@@ -14,6 +14,7 @@ import { useAuth } from '../auth/AuthContext';
 import { fetchWishlistIds } from '../wishlist-api';
 
 type WishlistIdsContextValue = {
+  wishlistIds: string[];
   isInWishlist: (productId: string) => boolean;
   setProductInWishlist: (productId: string, inWishlist: boolean) => void;
   wishlistCount: number;
@@ -76,6 +77,7 @@ export function WishlistIdsProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<WishlistIdsContextValue>(
     () => ({
+      wishlistIds: Array.from(wishlistIds),
       isInWishlist: (productId: string) => wishlistIds.has(productId),
       setProductInWishlist,
       wishlistCount: wishlistIds.size,

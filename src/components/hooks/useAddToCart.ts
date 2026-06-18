@@ -51,6 +51,10 @@ interface UseAddToCartProps {
   image?: string | null;
 }
 
+interface ResolvedVariantSnapshot {
+  variantId: string;
+}
+
 /**
  * Hook for adding products to cart (persisted in database for all users).
  */
@@ -68,6 +72,7 @@ export function useAddToCart({
   const [quantity, setQuantity] = useState(0);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const addBlockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const resolvedVariantSnapshotRef = useRef<ResolvedVariantSnapshot | null>(null);
 
   const releaseAddToCartBlock = (resetState: boolean) => {
     if (addBlockTimerRef.current) {
@@ -96,18 +101,32 @@ export function useAddToCart({
     []
   );
 
-  const resolveVariantId = async (): Promise<string | null> => {
+  const resolveVariantSnapshot = async (): Promise<ResolvedVariantSnapshot | null> => {
+    if (resolvedVariantSnapshotRef.current) {
+      return resolvedVariantSnapshotRef.current;
+    }
+
     if (defaultVariantId) {
-      return defaultVariantId;
+      const snapshot = {
+        variantId: defaultVariantId,
+      };
+      resolvedVariantSnapshotRef.current = snapshot;
+      return snapshot;
     }
 
     const encodedSlug = encodeURIComponent(productSlug.trim());
-    const productDetails = await apiClient.get<ProductDetails>(`/api/v1/products/${encodedSlug}`);
+    const productDetails = await apiClient.get<ProductDetails>(`/api/v1/products/${encodedSlug}/details`);
     if (!productDetails.variants || productDetails.variants.length === 0) {
       alert(t('common.alerts.noVariantsAvailable'));
       return null;
     }
-    return productDetails.variants[0].id;
+
+    const firstVariant = productDetails.variants[0];
+    const snapshot = {
+      variantId: firstVariant.id,
+    };
+    resolvedVariantSnapshotRef.current = snapshot;
+    return snapshot;
   };
 
   const persistAddToCart = async (
@@ -121,22 +140,13 @@ export function useAddToCart({
     };
 
     try {
-      let variantId = defaultVariantId ?? null;
-      let unitPrice = propPrice ?? 0;
-
-      if (!variantId) {
-        const encodedSlug = encodeURIComponent(productSlug.trim());
-        const productDetails = await apiClient.get<ProductDetails>(`/api/v1/products/${encodedSlug}`);
-        if (!productDetails.variants || productDetails.variants.length === 0) {
-          alert(t('common.alerts.noVariantsAvailable'));
-          rollbackLocalQuantity();
-          publishCartForceReload();
-          return;
-        }
-        const firstVariant = productDetails.variants[0];
-        variantId = firstVariant.id;
-        unitPrice = propPrice ?? firstVariant.price;
+      const snapshot = await resolveVariantSnapshot();
+      if (!snapshot) {
+        rollbackLocalQuantity();
+        publishCartForceReload();
+        return;
       }
+      const variantId = snapshot.variantId;
 
       const response = await apiClient.post<unknown>('/api/v1/cart/items', {
         productId,
@@ -325,11 +335,12 @@ export function useAddToCart({
     setQuantity(nextQuantity);
 
     try {
-      const variantId = defaultVariantId ?? (await resolveVariantId());
-      if (!variantId) {
+      const snapshot = await resolveVariantSnapshot();
+      if (!snapshot) {
         setQuantity(previousQuantity);
         return;
       }
+      const variantId = snapshot.variantId;
 
       const summaryCache = readCartSummaryCache();
       const estimatedTotal = summaryCache

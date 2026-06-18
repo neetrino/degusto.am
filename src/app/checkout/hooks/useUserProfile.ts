@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { UseFormSetValue } from 'react-hook-form';
-import { apiClient } from '../../../lib/api-client';
 import { useAuth } from '../../../lib/auth/AuthContext';
+import { fetchUserProfileCached } from '@/lib/users/fetch-user-profile';
 import type { CheckoutFormData } from '../types';
 
 export function useUserProfile(
@@ -34,26 +34,7 @@ export function useUserProfile(
         }
         
         try {
-          const profile = await apiClient.get<{
-            id: string;
-            email?: string;
-            phone?: string;
-            firstName?: string;
-            lastName?: string;
-            addresses?: Array<{
-              id: string;
-              firstName?: string;
-              lastName?: string;
-              addressLine1?: string;
-              addressLine2?: string;
-              city?: string;
-              state?: string;
-              postalCode?: string;
-              countryCode?: string;
-              phone?: string;
-              isDefault?: boolean;
-            }>;
-          }>('/api/v1/users/profile');
+          const profile = await fetchUserProfileCached();
           
           if (profile.firstName) {
             setValue('firstName', profile.firstName);

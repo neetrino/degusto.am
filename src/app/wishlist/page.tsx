@@ -12,7 +12,6 @@ import { useAuth } from '../../lib/auth/AuthContext';
 import { logger } from '../../lib/utils/logger';
 import { WishlistHeartIcon } from '../../components/icons/WishlistHeartIcon';
 import { emitWishlistUpdated } from '../../lib/wishlist';
-import { fetchWishlistIds } from '../../lib/wishlist-api';
 import { useWishlistIdsContext } from '../../lib/wishlist/WishlistIdsProvider';
 import { MOBILE_SHOP_PRODUCTS_GRID_CLASS } from '../../constants/mobile-figma-storefront';
 import { STOREFRONT_PAGE_CONTAINER_CLASS } from '@/constants/storefront-desktop-layout';
@@ -65,15 +64,12 @@ function writeCachedWishlistProducts(products: Product[]): void {
 export default function WishlistPage() {
   const router = useRouter();
   const { isLoggedIn } = useAuth();
-  const { setProductInWishlist } = useWishlistIdsContext();
+  const { setProductInWishlist, wishlistIds: sharedWishlistIds } = useWishlistIdsContext();
   const { t } = useTranslation();
   const [products, setProducts] = useState<Product[]>(() => readCachedWishlistProducts());
-  const [wishlistIds, setWishlistIds] = useState<string[]>([]);
   const [currency, setCurrency] = useState(HYDRATION_SAFE_CURRENCY);
   const [queueingAddToCart, setQueueingAddToCart] = useState<Set<string>>(new Set());
   const [recentlyAddedToCart, setRecentlyAddedToCart] = useState<Set<string>>(new Set());
-  // Track if we updated locally to prevent unnecessary re-fetch
-  const isLocalUpdateRef = useRef(false);
   const addBadgeTimersRef = useRef<Map<string, number>>(new Map());
 
   /**
@@ -115,7 +111,6 @@ export default function WishlistPage() {
 
       const normalizedIds = wishlistProducts.map((product) => product.id);
       if (normalizedIds.length !== idsToLoad.length) {
-        setWishlistIds(normalizedIds);
         emitWishlistUpdated();
       }
     } catch (error) {
@@ -124,60 +119,24 @@ export default function WishlistPage() {
   }, []);
 
   useEffect(() => {
-    const hydrateWishlist = async () => {
-      if (!isLoggedIn) {
-        setWishlistIds([]);
-        setProducts([]);
-        writeCachedWishlistProducts([]);
-        return;
-      }
+    if (!isLoggedIn) {
+      setProducts([]);
+      writeCachedWishlistProducts([]);
+      return;
+    }
 
-      try {
-        const ids = await fetchWishlistIds();
-        setWishlistIds(ids);
-        await fetchWishlistProducts(ids);
-      } catch (error) {
-        logger.error('[Wishlist] Failed to load server wishlist', { error });
-        setWishlistIds([]);
-        setProducts([]);
-        writeCachedWishlistProducts([]);
-      }
-    };
-
-    void hydrateWishlist();
-
-    const handleWishlistUpdate = async () => {
-      if (isLocalUpdateRef.current) {
-        isLocalUpdateRef.current = false;
-        return;
-      }
-
-      if (!isLoggedIn) {
-        return;
-      }
-
-      const updatedIds = await fetchWishlistIds();
-      setWishlistIds(updatedIds);
-      void fetchWishlistProducts(updatedIds);
-    };
-
-    const handleAuthUpdate = () => {
-      void hydrateWishlist();
-    };
+    void fetchWishlistProducts(sharedWishlistIds);
 
     const handleCurrencyUpdate = () => {
       setCurrency(getStoredCurrency());
     };
 
-    window.addEventListener('wishlist-updated', handleWishlistUpdate);
-    window.addEventListener('auth-updated', handleAuthUpdate);
     window.addEventListener('currency-updated', handleCurrencyUpdate);
+
     return () => {
-      window.removeEventListener('wishlist-updated', handleWishlistUpdate);
-      window.removeEventListener('auth-updated', handleAuthUpdate);
       window.removeEventListener('currency-updated', handleCurrencyUpdate);
     };
-  }, [fetchWishlistProducts, isLoggedIn]);
+  }, [fetchWishlistProducts, isLoggedIn, sharedWishlistIds]);
 
   useEffect(() => {
     return () => {
@@ -190,16 +149,9 @@ export default function WishlistPage() {
 
   const handleRemove = async (productId: string) => {
     logger.debug(`[Wishlist] Removing product ${productId} from wishlist UI`);
-
-    // Mark as local update to prevent re-fetch in event handler
-    isLocalUpdateRef.current = true;
-
-    const previousIds = wishlistIds;
     const previousProducts = products;
-    const updatedIds = previousIds.filter((id) => id !== productId);
     const updatedProducts = previousProducts.filter((p) => p.id !== productId);
 
-    setWishlistIds(updatedIds);
     setProducts(updatedProducts);
     setProductInWishlist(productId, false);
 
@@ -208,7 +160,6 @@ export default function WishlistPage() {
       emitWishlistUpdated();
     } catch (error) {
       logger.error('[Wishlist] Failed to remove item from server wishlist', { error });
-      setWishlistIds(previousIds);
       setProducts(previousProducts);
       setProductInWishlist(productId, true);
       emitWishlistUpdated();
@@ -275,7 +226,9 @@ export default function WishlistPage() {
         }>;
       }
 
-      const productDetails = await apiClient.get<ProductDetails>(`/api/v1/products/${product.slug}`);
+      const productDetails = await apiClient.get<ProductDetails>(
+        `/api/v1/products/${encodeURIComponent(product.slug)}/details`
+      );
 
       if (!productDetails.variants || productDetails.variants.length === 0) {
         alert(t('common.alerts.noVariantsAvailable'));
