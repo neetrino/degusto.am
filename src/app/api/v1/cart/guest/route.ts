@@ -10,6 +10,7 @@ import {
 import { sumLineCustomizationPriceAdjustment } from "@/lib/cart/attribute-price-adjustment";
 import { computeLineUnitPriceUsd } from "@/lib/cart/line-unit-price";
 import { cartVariantDisplayLinesFromPrismaOptions } from "@/lib/cart/cart-variant-display-lines";
+import { toCartApiStableResponse } from "@/lib/cart/cart-api-response";
 
 interface GuestCartItemInput {
   lineId?: string;
@@ -59,23 +60,6 @@ interface GuestCartLine {
   price: number;
   originalPrice: number | null;
   total: number;
-}
-
-interface GuestCartResponse {
-  cart: {
-    id: string;
-    items: GuestCartLine[];
-    totals: {
-      subtotal: number;
-      discount: number;
-      shipping: number;
-      tax: number;
-      total: number;
-      currency: string;
-    };
-    itemsCount: number;
-  } | null;
-  normalizedItems: GuestCartItemInput[];
 }
 
 function pickFirstImage(media: unknown): string | null {
@@ -136,11 +120,7 @@ export async function POST(req: NextRequest) {
     const lang = resolveStorefrontLocale(body.lang);
 
     if (items.length === 0) {
-      const empty: GuestCartResponse = {
-        cart: null,
-        normalizedItems: [],
-      };
-      return NextResponse.json(empty);
+      return NextResponse.json(toCartApiStableResponse(null));
     }
 
     const uniqueProductIds = Array.from(new Set(items.map((item) => item.productId)));
@@ -200,7 +180,6 @@ export async function POST(req: NextRequest) {
     });
 
     const productMap = new Map(products.map((product) => [product.id, product]));
-    const normalizedItems: GuestCartItemInput[] = [];
     const cartItems: GuestCartLine[] = [];
 
     for (const item of items) {
@@ -240,16 +219,6 @@ export async function POST(req: NextRequest) {
           ? computeLineUnitPriceUsd(selectedVariant.compareAtPrice, adj)
           : null;
 
-      normalizedItems.push({
-        lineId: item.lineId || buildCustomizationLineKey(selectedVariant.id, item.customizations),
-        productId: item.productId,
-        productSlug: productSlug || undefined,
-        variantId: selectedVariant.id,
-        quantity: item.quantity,
-        price: unitPrice,
-        customizations: item.customizations,
-      });
-
       cartItems.push({
         id: `${item.productId}:${item.lineId || buildCustomizationLineKey(selectedVariant.id, item.customizations)}`,
         variant: {
@@ -284,19 +253,16 @@ export async function POST(req: NextRequest) {
     }
 
     if (cartItems.length === 0) {
-      const empty: GuestCartResponse = {
-        cart: null,
-        normalizedItems: [],
-      };
-      return NextResponse.json(empty);
+      return NextResponse.json(toCartApiStableResponse(null));
     }
 
     const subtotal = cartItems.reduce((sum, item) => sum + item.total, 0);
     const itemsCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
-    const response: GuestCartResponse = {
+    const response = {
       cart: {
         id: "guest-cart",
+        updatedAt: new Date(),
         items: cartItems,
         totals: {
           subtotal,
@@ -308,10 +274,9 @@ export async function POST(req: NextRequest) {
         },
         itemsCount,
       },
-      normalizedItems,
     };
 
-    return NextResponse.json(response);
+    return NextResponse.json(toCartApiStableResponse(response.cart));
   } catch (error: unknown) {
     return apiRouteCatchErrorResponse(req, error, "[CART][GUEST] POST");
   }

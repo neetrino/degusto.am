@@ -28,7 +28,10 @@ import { publishOptimisticCartAdd, publishCartLineConfirmed, publishCartForceRel
 import { rememberCartLineId } from '@/lib/cart/cart-line-id-cache';
 import { clearCartLineRemoved } from '@/lib/cart/pending-cart-removals';
 import { logger } from '@/lib/utils/logger';
-import { readCartSummaryCache } from '@/lib/cartSummaryCache';
+import {
+  findCartLineByContext,
+  normalizeCartApiResponse,
+} from '@/lib/cart/cart-client-normalization';
 import {
   normalizeProductCustomizations,
 } from '../../../lib/cart/customizations';
@@ -239,21 +242,28 @@ function useProductAddToCartHandler({
     });
 
     try {
-      const response = await apiClient.post<{
-        item: { id: string; quantity: number; price: number };
-        cartSummary?: { itemsCount: number; total: number };
-      }>('/api/v1/cart/items', {
+      const response = await apiClient.post<unknown>('/api/v1/cart/items', {
         productId: product.id,
         variantId: currentVariant.id,
         quantity,
         customizations,
       });
+      const cart = normalizeCartApiResponse(response);
+      const line = findCartLineByContext(cart, {
+        productId: product.id,
+        variantId: currentVariant.id,
+        customizations,
+      });
+      if (!line) {
+        publishCartForceReload();
+        return;
+      }
 
       rememberCartLineId(
         product.id,
         currentVariant.id,
-        response.item.id,
-        response.item.quantity,
+        line.id,
+        line.quantity,
         customizations
       );
       clearCartLineRemoved({
@@ -262,13 +272,10 @@ function useProductAddToCartHandler({
         customizations,
       });
 
-      const summary = response.cartSummary ?? (() => {
-        const cached = readCartSummaryCache();
-        return {
-          itemsCount: cached?.itemsCount ?? 0,
-          total: cached?.total ?? 0,
-        };
-      })();
+      const summary = {
+        itemsCount: cart.itemsCount,
+        total: cart.totals.total,
+      };
 
       publishCartLineConfirmed(
         {
@@ -276,9 +283,9 @@ function useProductAddToCartHandler({
           previousVariantId: optimisticVariantId,
           variantId: currentVariant.id,
           customizations,
-          serverItemId: response.item.id,
-          quantity: response.item.quantity,
-          price: response.item.price,
+          serverItemId: line.id,
+          quantity: line.quantity,
+          price: line.price,
         },
         summary
       );

@@ -14,6 +14,7 @@ import {
 } from '@/lib/cart/pending-cart-removals';
 import { getCartLineId, removeCachedLineId } from '@/lib/cart/cart-line-id-cache';
 import { deleteMatchingCartLineInBackground } from '@/lib/cart/background-line-cleanup';
+import { normalizeCartApiResponse } from '@/lib/cart/cart-client-normalization';
 
 /** Item already removed server-side (e.g. duplicate minus click after optimistic delete). */
 function isCartItemNotFoundError(error: unknown): boolean {
@@ -137,7 +138,12 @@ export async function handleRemoveItem(
   }
 
   try {
-    await apiClient.delete(`/api/v1/cart/items/${itemId}`);
+    const response = await apiClient.delete<unknown>(`/api/v1/cart/items/${itemId}`);
+    const normalizedCart = normalizeCartApiResponse(response);
+    setCart(normalizedCart);
+    publishCartUpdated(normalizedCart.itemsCount, normalizedCart.totals.total, {
+      skipReconcile: true,
+    });
   } catch (error: unknown) {
     if (isCartItemNotFoundError(error)) {
       logger.debug('Cart item already removed', { itemId });
@@ -215,7 +221,14 @@ export async function handleUpdateQuantity(
   }
 
   try {
-    await apiClient.patch(`/api/v1/cart/items/${itemId}`, { quantity });
+    const response = await apiClient.patch<unknown>(`/api/v1/cart/items/${itemId}`, {
+      quantity,
+    });
+    const normalizedCart = normalizeCartApiResponse(response);
+    setCart(normalizedCart);
+    publishCartUpdated(normalizedCart.itemsCount, normalizedCart.totals.total, {
+      skipReconcile: true,
+    });
   } catch (error: unknown) {
     await fetchCart();
     publishCartForceReload();

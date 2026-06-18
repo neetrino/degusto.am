@@ -1,11 +1,12 @@
 import { apiClient } from '../../lib/api-client';
 import type { Cart } from './types';
 import { publishCartForceReload } from '../../lib/cart/cart-events';
+import { normalizeCartApiResponse } from '@/lib/cart/cart-client-normalization';
 
 export async function fetchCartForGuest(): Promise<Cart | null> {
   try {
-    const response = await apiClient.get<{ cart: Cart | null }>('/api/v1/cart');
-    return response.cart;
+    const response = await apiClient.get<unknown>('/api/v1/cart');
+    return normalizeCartApiResponse(response);
   } catch {
     return null;
   }

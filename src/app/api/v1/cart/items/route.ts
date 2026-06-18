@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     const isNewGuestSession = !user && !guestToken;
     const activeGuestToken = user ? null : guestToken ?? createGuestCartToken();
 
-    const result = await cartService.addItem(
+    await cartService.addItem(
       user?.id ?? null,
       data,
       locale,
@@ -64,19 +64,11 @@ export async function POST(req: NextRequest) {
       durationMs: Date.now() - startedAt,
       hasUser: Boolean(user?.id),
       hasGuestToken: Boolean(activeGuestToken),
-      cartItemId: result.item.id,
-      variantId: result.item.variantId,
-      quantity: result.item.quantity,
+      cartId: normalized.cart.id || null,
+      itemsCount: normalized.cart.items.reduce((sum, item) => sum + item.quantity, 0),
     });
 
-    const response = NextResponse.json(
-      {
-        ...normalized,
-        item: result.item,
-        cartSummary: result.cartSummary,
-      },
-      { status: 200 }
-    );
+    const response = NextResponse.json(normalized, { status: 200 });
     if (isNewGuestSession && activeGuestToken) {
       setGuestCartTokenOnResponse(response, activeGuestToken);
     }

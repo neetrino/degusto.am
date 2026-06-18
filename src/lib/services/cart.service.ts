@@ -34,7 +34,8 @@ class CartService {
 
   private toCartSummaryPayload(
     cartId: string,
-    rows: Array<{ quantity: number; priceSnapshot: Prisma.Decimal | number | null }>
+    rows: Array<{ quantity: number; priceSnapshot: Prisma.Decimal | number | null }>,
+    updatedAt?: Date
   ) {
     const itemsCount = rows.reduce((sum, item) => sum + item.quantity, 0);
     const subtotal = rows.reduce(
@@ -44,6 +45,7 @@ class CartService {
     return {
       cart: {
         id: cartId,
+        updatedAt,
         items: [],
         totals: {
           subtotal,
@@ -134,6 +136,7 @@ class CartService {
     const translationLocales = locale === "en" ? ["en"] : [locale, "en"];
     const cartSelect = {
       id: true,
+      updatedAt: true,
       items: {
         select: {
           id: true,
@@ -146,6 +149,7 @@ class CartService {
               id: true,
               sku: true,
               stock: true,
+              published: true,
               price: true,
               compareAtPrice: true,
               imageUrl: true,
@@ -170,6 +174,8 @@ class CartService {
           product: {
             select: {
               id: true,
+              published: true,
+              deletedAt: true,
               media: true,
               primaryCategoryId: true,
               discountPercent: true,
@@ -373,6 +379,7 @@ class CartService {
     return {
       cart: {
         id: cart.id,
+        updatedAt: cart.updatedAt,
         items: itemsWithDetails,
         totals: {
           subtotal,
@@ -407,6 +414,7 @@ class CartService {
       ...(ownerOrderBy ? { orderBy: ownerOrderBy } : {}),
       select: {
         id: true,
+        updatedAt: true,
         items: {
           select: {
             quantity: true,
@@ -420,7 +428,7 @@ class CartService {
       return { cart: null };
     }
 
-    return this.toCartSummaryPayload(cart.id, cart.items);
+    return this.toCartSummaryPayload(cart.id, cart.items, cart.updatedAt);
   }
 
   /**

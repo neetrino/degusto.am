@@ -16,6 +16,10 @@ import {
   updateCachedLineQuantity,
 } from '../../lib/cart/cart-line-id-cache';
 import { readCartSummaryCache } from '../../lib/cartSummaryCache';
+import {
+  findCartLineByContext,
+  normalizeCartApiResponse,
+} from '@/lib/cart/cart-client-normalization';
 
 const CART_ACTION_RETRY_AFTER_MS = 3000;
 const ADD_TO_CART_BLOCK_WINDOW_MS = 700;
@@ -30,19 +34,6 @@ interface ProductDetails {
     stock: number;
     available: boolean;
   }>;
-}
-
-interface ServerCartResponse {
-  cart: {
-    items: Array<{
-      id: string;
-      quantity: number;
-      variant: {
-        id: string;
-        product: { id: string };
-      };
-    }>;
-  };
 }
 
 export interface AddToCartFlyContext {
@@ -145,33 +136,33 @@ export function useAddToCart({
         unitPrice = propPrice ?? firstVariant.price;
       }
 
-      const response = await apiClient.post<{
-        item: { id: string; quantity: number; price: number };
-        cartSummary?: { itemsCount: number; total: number };
-      }>('/api/v1/cart/items', {
+      const response = await apiClient.post<unknown>('/api/v1/cart/items', {
         productId,
         variantId,
         quantity: addedQuantity,
       });
+      const cart = normalizeCartApiResponse(response);
+      const line = findCartLineByContext(cart, { productId, variantId });
+      if (!line) {
+        publishCartForceReload();
+        return;
+      }
 
-      rememberCartLineId(productId, variantId, response.item.id, response.item.quantity);
+      rememberCartLineId(productId, variantId, line.id, line.quantity);
 
-      const summary = response.cartSummary ?? (() => {
-        const cache = readCartSummaryCache();
-        return {
-          itemsCount: (cache?.itemsCount ?? 0),
-          total: cache?.total ?? 0,
-        };
-      })();
+      const summary = {
+        itemsCount: cart.itemsCount,
+        total: cart.totals.total,
+      };
 
       publishCartLineConfirmed(
         {
           productId,
           previousVariantId: optimisticVariantId,
           variantId,
-          serverItemId: response.item.id,
-          quantity: response.item.quantity,
-          price: response.item.price,
+          serverItemId: line.id,
+          quantity: line.quantity,
+          price: line.price,
         },
         summary
       );
@@ -303,10 +294,9 @@ export function useAddToCart({
         return;
       }
 
-      const cartResponse = await apiClient.get<ServerCartResponse>('/api/v1/cart');
-      const cartItem = cartResponse.cart?.items.find(
-        (item) => item.variant.product.id === productId && item.variant.id === variantId
-      );
+      const cartResponse = await apiClient.get<unknown>('/api/v1/cart');
+      const normalizedCart = normalizeCartApiResponse(cartResponse);
+      const cartItem = findCartLineByContext(normalizedCart, { productId, variantId });
 
       if (!cartItem) {
         setQuantity(0);

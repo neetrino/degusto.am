@@ -7,6 +7,7 @@ import {
   normalizeProductCustomizations,
   serializeProductCustomizations,
 } from '@/lib/cart/customizations';
+import { normalizeCartApiResponse } from '@/lib/cart/cart-client-normalization';
 
 const BACKGROUND_DELETE_MAX_ATTEMPTS = 4;
 const BACKGROUND_DELETE_BASE_DELAY_MS = 180;
@@ -113,12 +114,12 @@ export async function deleteMatchingCartLineInBackground(
   const cleanupTask = (async () => {
     try {
       for (let attempt = 0; attempt < BACKGROUND_DELETE_MAX_ATTEMPTS; attempt += 1) {
-        const response = await apiClient.get<{ cart: Cart | null }>('/api/v1/cart', {
+        const response = await apiClient.get<unknown>('/api/v1/cart', {
           signal: controller.signal,
           timeoutMs: BACKGROUND_DELETE_TIMEOUT_MS,
         });
-        const serverCart = response.cart;
-        if (!serverCart) {
+        const serverCart = normalizeCartApiResponse(response);
+        if (serverCart.items.length === 0) {
           failedDeletesByKey.delete(cleanupKey);
           return;
         }

@@ -3,6 +3,7 @@ import { ApiError } from '../../lib/api-client/types';
 import { isQuietCartReadServerError } from '../../lib/api-client/error-handler';
 import { logger } from '../../lib/utils/logger';
 import type { Cart } from './types';
+import { normalizeCartApiResponse } from '@/lib/cart/cart-client-normalization';
 
 let inFlightCartRequest: Promise<Cart | null> | null = null;
 
@@ -18,8 +19,8 @@ export async function fetchCartFromApi(): Promise<Cart | null> {
     try {
       // Drawer/live cart state requires full line items; summary-only payload causes
       // count/items mismatches after refresh (itemsCount > 0 while items is empty).
-      const response = await apiClient.get<{ cart: Cart | null }>('/api/v1/cart');
-      return response.cart;
+      const response = await apiClient.get<unknown>('/api/v1/cart');
+      return normalizeCartApiResponse(response);
     } catch (error: unknown) {
       if (error instanceof ApiError && isQuietCartReadServerError(error.status, '/api/v1/cart')) {
         logger.warn('[CART] Cart read failed with server error; preserving current state', {

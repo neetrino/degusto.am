@@ -17,13 +17,13 @@ const updateCartItemQuantitySchema = z.object({
   quantity: z.number().int().min(1).max(999),
 });
 
-export async function PATCH(
+async function updateQuantity(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const startedAt = Date.now();
   try {
-    const { user, guestToken } = await resolveCartRequestContext(req);
+    const { user, guestToken, locale } = await resolveCartRequestContext(req);
     if (!user && !guestToken) {
       return NextResponse.json(
         {
@@ -62,12 +62,14 @@ export async function PATCH(
       );
     }
 
-    const result = await cartService.updateItem(
+    await cartService.updateItem(
       user?.id ?? null,
       idParsed.data,
       dataParsed.data.quantity,
       guestToken
     );
+    const updatedCart = await cartService.getCart(user?.id ?? null, locale, guestToken);
+    const normalized = toCartApiStableResponse(updatedCart.cart);
     logger.info("[CART] update item ok", {
       requestPath: req.nextUrl.pathname,
       method: req.method,
@@ -76,12 +78,26 @@ export async function PATCH(
       hasUser: Boolean(user?.id),
       hasGuestToken: Boolean(guestToken),
       cartItemId: idParsed.data,
-      quantity: result.item.quantity,
+      quantity: dataParsed.data.quantity,
     });
-    return NextResponse.json(result);
+    return NextResponse.json(normalized, { status: 200 });
   } catch (error: unknown) {
-    return apiRouteCatchErrorResponse(req, error, "[CART] PATCH item");
+    return apiRouteCatchErrorResponse(req, error, "[CART] UPDATE item");
   }
+}
+
+export async function PATCH(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  return updateQuantity(req, context);
+}
+
+export async function PUT(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  return updateQuantity(req, context);
 }
 
 export async function DELETE(
