@@ -21,6 +21,7 @@ import { StorefrontProductOverlayLink } from './StorefrontProductOverlayLink';
 import { usePrefetchProductWhenVisible } from '../hooks/usePrefetchProductWhenVisible';
 import { prefetchProductRoute } from '@/lib/products/prefetch-product-route';
 import { shouldShowMenuCardStrikethroughPrice } from '@/lib/storefront/menu-card-pricing';
+import { resolveMenuCardCategoryLabel } from '@/lib/storefront/menu-card-category-label';
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
 import type { MenuCard } from './menu-types';
 import { RatingStars } from '@/components/RatingStars';
@@ -62,7 +63,7 @@ export function ShopMobileProductCard({
   const { isLoggedIn } = useAuth();
   const { isInWishlist, toggleWishlist } = useWishlist(card.id);
   const title = card.title || (card.titleKey ? t(card.titleKey) : '');
-  const category = card.category || (card.categoryKey ? t(card.categoryKey) : '');
+  const category = resolveMenuCardCategoryLabel(card, t);
   const imageSrc = resolveStorefrontProductImage(card.image);
   const formattedPrice = formatPrice(card.price, currency);
   const formattedOldPrice = formatPrice(card.oldPrice, currency);

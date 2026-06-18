@@ -11,6 +11,7 @@ import {
 } from '@/constants/mobile-figma-storefront';
 import { HomeOptimizedImage } from './HomeOptimizedImage';
 import { StorefrontCategoryLink } from '../routing/StorefrontCategoryLink';
+import { resolveStorefrontCategoryLabel } from '@/lib/storefront/menu-card-category-label';
 
 export type MobileShopCategoryCard = {
   id: string;
@@ -44,7 +45,11 @@ export function MobileShopCategoriesView({ categories }: MobileShopCategoriesVie
       {selectableCategories.length > 0 ? (
         <div className={MOBILE_SHOP_CATEGORY_GRID_CLASS}>
           {selectableCategories.map((category) => {
-            const href = getHomeCategoryHref({ slug: category.slug, title: category.title });
+            const categoryLabel = resolveStorefrontCategoryLabel(
+              { slug: category.slug, title: category.title },
+              t
+            );
+            const href = getHomeCategoryHref({ slug: category.slug, title: categoryLabel });
             const imageSrc = resolveMobileShopCategoryImage(category.slug, category.iconUrl);
             const isPending = pendingSlug === category.slug;
 
@@ -61,7 +66,7 @@ export function MobileShopCategoriesView({ categories }: MobileShopCategoriesVie
                 }`}
               >
                 <p className="relative z-10 px-[13px] pt-5 text-xs font-medium leading-[18px] text-white">
-                  {category.title}
+                  {categoryLabel}
                 </p>
                 <div className={MOBILE_SHOP_CATEGORY_CARD_IMAGE_CLASS}>
                   <HomeOptimizedImage

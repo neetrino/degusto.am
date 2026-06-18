@@ -31,63 +31,38 @@ class CategoriesService {
       },
     });
 
-    // Build tree structure
-    const categoryMap = new Map();
-    const rootCategories: any[] = [];
-
-    categories.forEach((category: {
-      id: string;
-      parentId: string | null;
-      translations: Array<{ locale: string; slug: string; title: string; fullPath: string }>;
-    }) => {
+    const flatCategories = categories
+      .map((category: {
+        id: string;
+        translations: Array<{ locale: string; slug: string; title: string; fullPath: string }>;
+      }) => {
       const translation =
         category.translations.find((t: { locale: string }) => t.locale === lang) ||
         category.translations[0];
-      if (!translation) return;
+      if (!translation) return null;
 
-      const categoryData = {
+      return {
         id: category.id,
         slug: translation.slug,
         title: translation.title,
         fullPath: translation.fullPath,
-        children: [] as any[],
       };
-
-      categoryMap.set(category.id, categoryData);
-
-      if (!category.parentId) {
-        rootCategories.push(categoryData);
-      }
-    });
-
-    // Build parent-child relationships
-    categories.forEach((category: {
-      id: string;
-      parentId: string | null;
-    }) => {
-      if (category.parentId) {
-        const parent = categoryMap.get(category.parentId);
-        const child = categoryMap.get(category.id);
-        if (parent && child) {
-          parent.children.push(child);
-        }
-      }
-    });
+    })
+      .filter((category): category is { id: string; slug: string; title: string; fullPath: string } => Boolean(category));
 
     return {
-      data: rootCategories,
+      data: flatCategories,
     };
   }
 
   /**
-   * Top-level published categories for the home page (no tree build, no children).
+   * Published categories for the home page.
    */
   async getHomeRootCategories(lang: string, limit: number): Promise<HomeRootCategoryItem[]> {
     const categories = await db.category.findMany({
       where: {
         published: true,
         deletedAt: null,
-        parentId: null,
       },
       orderBy: {
         position: "asc",

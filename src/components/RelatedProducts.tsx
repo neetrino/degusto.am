@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { getStoredCurrency, HYDRATION_SAFE_CURRENCY } from '../lib/currency';
 import {
   getStoredLanguage,
@@ -192,9 +192,9 @@ export function RelatedProducts({
     };
   }, [hasMounted]);
 
-  const handleImageError = (productId: string) => {
+  const handleImageError = useCallback((productId: string) => {
     setImageErrors((prev) => new Set(prev).add(productId));
-  };
+  }, []);
 
   const showOffscreenPlaceholder =
     !hasInitialProducts && !inView && products.length === 0;

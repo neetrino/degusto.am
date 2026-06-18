@@ -60,7 +60,7 @@ export function CheckoutForm({
       {/* Contact Information */}
       <Card className={`p-4 md:p-6 ${CHECKOUT_CARD_FRAME}`}>
         <h2 className={CHECKOUT_SECTION_TITLE}>{t('checkout.contactInformation')}</h2>
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <Input
             label={t('checkout.form.firstName')}
             type="text"

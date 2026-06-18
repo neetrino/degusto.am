@@ -5,6 +5,7 @@ import type { AdminMenuItem } from '../../../components/AdminMenuDrawer';
 import { usePathname, useRouter } from 'next/navigation';
 import { AdminMenuDrawer } from '../../../components/AdminMenuDrawer';
 import { useTranslation } from '../../../lib/i18n-client';
+import { LANGUAGES, type LanguageCode, setStoredLanguage } from '../../../lib/language';
 import { getAdminMenuTABS } from '../admin-menu.config';
 import {
   ADMIN_SIDEBAR_ASIDE,
@@ -52,7 +53,7 @@ function getSectionForTab(tabId: string): 'primary' | 'insights' | 'system' {
 }
 
 export function AdminSidebar() {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const router = useRouter();
   const pathname = usePathname() ?? '/supersudo';
   const adminTabs = useMemo(() => getAdminMenuTABS(t), [t]);
@@ -89,6 +90,13 @@ export function AdminSidebar() {
 
   function prefetchPath(path: string): void {
     router.prefetch(path);
+  }
+
+  function changeAdminLanguage(nextLanguage: LanguageCode): void {
+    if (nextLanguage === lang) {
+      return;
+    }
+    setStoredLanguage(nextLanguage);
   }
 
   return (
@@ -228,6 +236,38 @@ export function AdminSidebar() {
             </div>
           ))}
         </nav>
+        <div className={`${collapsed ? 'px-2 pb-4' : 'px-3 pb-4'}`}>
+          <div
+            className={`rounded-2xl border border-white/15 bg-white/[0.04] backdrop-blur-xl ${
+              collapsed ? 'p-2' : 'px-3 py-2.5'
+            }`}
+          >
+            {!collapsed ? (
+              <p className="mb-2 text-[11px] uppercase tracking-[0.16em] text-white/65">Language</p>
+            ) : null}
+            <div className={`grid ${collapsed ? 'grid-cols-1 gap-1.5' : 'grid-cols-3 gap-1.5'}`}>
+              {(Object.keys(LANGUAGES) as LanguageCode[]).map((languageCode) => {
+                const isActive = lang === languageCode;
+                return (
+                  <button
+                    key={languageCode}
+                    type="button"
+                    onClick={() => changeAdminLanguage(languageCode)}
+                    className={`rounded-xl border px-2 py-2 text-center text-xs font-semibold transition-colors ${
+                      isActive
+                        ? 'border-[rgba(120,255,160,0.35)] bg-[linear-gradient(90deg,rgba(35,180,90,0.35),rgba(23,100,60,0.45))] text-white'
+                        : 'border-white/15 bg-black/10 text-white/75 hover:border-white/30 hover:text-white'
+                    }`}
+                    aria-label={`Switch language to ${LANGUAGES[languageCode].name}`}
+                    title={LANGUAGES[languageCode].nativeName}
+                  >
+                    {languageCode.toUpperCase()}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </aside>
     </>
   );
