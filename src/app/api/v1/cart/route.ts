@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { apiRouteCatchErrorResponse } from "@/lib/http/api-route-errors";
 import { cartService } from "@/lib/services/cart.service";
 import { resolveCartRequestContext } from "@/lib/cart/cart-request-context";
+import { toCartApiStableResponse } from "@/lib/cart/cart-api-response";
 import { logger } from "@/lib/utils/logger";
 
 export async function GET(req: NextRequest) {
@@ -14,14 +15,15 @@ export async function GET(req: NextRequest) {
     const { user, locale, guestToken } = await resolveCartRequestContext(req);
 
     if (!user && !guestToken) {
-      return NextResponse.json({ cart: null });
+      return NextResponse.json(toCartApiStableResponse(null));
     }
 
     const result = summaryOnly
       ? await cartService.getCartSummary(user?.id ?? null, locale, guestToken)
       : await cartService.getCart(user?.id ?? null, locale, guestToken);
     const durationMs = Date.now() - startedAt;
-    const itemsCount = Array.isArray(result.cart?.items) ? result.cart.items.length : 0;
+    const normalized = toCartApiStableResponse(result.cart);
+    const itemsCount = normalized.cart.items.length;
     logger.info("[CART] read ok", {
       requestPath: req.nextUrl.pathname,
       method: req.method,
@@ -29,11 +31,11 @@ export async function GET(req: NextRequest) {
       responseStatus: 200,
       hasUser: Boolean(user?.id),
       hasGuestToken: Boolean(guestToken),
-      cartId: result.cart?.id ?? null,
+      cartId: normalized.cart.id || null,
       itemsCount,
       summaryOnly,
     });
-    return NextResponse.json(result);
+    return NextResponse.json(normalized);
   } catch (error: unknown) {
     return apiRouteCatchErrorResponse(req, error, "[CART] GET");
   }

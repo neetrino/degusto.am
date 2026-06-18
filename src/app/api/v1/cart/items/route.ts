@@ -8,6 +8,7 @@ import {
   createGuestCartToken,
   setGuestCartTokenOnResponse,
 } from "@/lib/cart/guest-cart-cookies";
+import { toCartApiStableResponse } from "@/lib/cart/cart-api-response";
 import { safeParseCartItemRequest } from "@/lib/schemas/cart.schema";
 import { enforceRouteRateLimit } from "@/lib/http/route-rate-limit";
 import { logger } from "@/lib/utils/logger";
@@ -49,11 +50,17 @@ export async function POST(req: NextRequest) {
       locale,
       activeGuestToken
     );
+    const updatedCart = await cartService.getCart(
+      user?.id ?? null,
+      locale,
+      activeGuestToken
+    );
+    const normalized = toCartApiStableResponse(updatedCart.cart);
 
     logger.info("[CART] add item ok", {
       requestPath: req.nextUrl.pathname,
       method: req.method,
-      responseStatus: 201,
+      responseStatus: 200,
       durationMs: Date.now() - startedAt,
       hasUser: Boolean(user?.id),
       hasGuestToken: Boolean(activeGuestToken),
@@ -62,7 +69,14 @@ export async function POST(req: NextRequest) {
       quantity: result.item.quantity,
     });
 
-    const response = NextResponse.json(result, { status: 201 });
+    const response = NextResponse.json(
+      {
+        ...normalized,
+        item: result.item,
+        cartSummary: result.cartSummary,
+      },
+      { status: 200 }
+    );
     if (isNewGuestSession && activeGuestToken) {
       setGuestCartTokenOnResponse(response, activeGuestToken);
     }

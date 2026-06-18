@@ -456,7 +456,18 @@ class CartService {
         db.cart.findFirst({
           where: ownerWhere,
           ...(ownerOrderBy ? { orderBy: ownerOrderBy } : {}),
-          include: { items: true },
+          select: {
+            id: true,
+            items: {
+              select: {
+                id: true,
+                variantId: true,
+                quantity: true,
+                customizations: true,
+                priceSnapshot: true,
+              },
+            },
+          },
         }),
         db.productVariant.findUnique({
           where: { id: variantId },
@@ -485,7 +496,18 @@ class CartService {
             ...this.cartCreateData(userId, guestToken, locale),
             items: { create: [] },
           },
-          include: { items: true },
+          select: {
+            id: true,
+            items: {
+              select: {
+                id: true,
+                variantId: true,
+                quantity: true,
+                customizations: true,
+                priceSnapshot: true,
+              },
+            },
+          },
         });
       try {
         resolvedCart = await createCart();
@@ -534,9 +556,9 @@ class CartService {
         availableStock: variant.stock,
       });
       throw {
-        status: 422,
-        type: problemTypes.validationError,
-        title: "Insufficient stock",
+        status: 409,
+        type: problemTypes.conflict,
+        title: "Product unavailable",
         detail: `No more stock available. Maximum available: ${variant.stock}, already in cart: ${alreadyInCart}, requested: ${quantity}`,
       };
     }
@@ -665,8 +687,15 @@ class CartService {
           },
         },
       },
-      include: {
-        items: true,
+      select: {
+        id: true,
+        items: {
+          select: {
+            id: true,
+            variantId: true,
+            quantity: true,
+          },
+        },
       },
     });
 
@@ -698,9 +727,9 @@ class CartService {
 
     if (!variant || !isStockSufficient(variant.stock, totalVariantQty)) {
       throw {
-        status: 422,
-        type: problemTypes.validationError,
-        title: "Insufficient stock",
+        status: 409,
+        type: problemTypes.conflict,
+        title: "Product unavailable",
         detail: `Requested quantity (${quantity}) exceeds available stock (${variant?.stock || 0})`,
       };
     }
