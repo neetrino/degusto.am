@@ -160,7 +160,9 @@
     "product": "Product",
     "quantity": "Quantity",
     "subtotal": "Subtotal",
-    "sku": "SKU"
+    "sku": "SKU",
+    "cartSyncStale": "Cart is temporarily out of sync. Your current items are kept and we will retry shortly.",
+    "cartSyncFailed": "Unable to sync cart right now. Your current cart remains visible."
   },
   "alerts": {
     "compareMaxReached": "You can compare a maximum of 4 products",

@@ -67,6 +67,7 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
   const { t } = useTranslation();
   const {
     cart,
+    cartState,
     setCart,
     cartLoading,
     reloadCart,
@@ -169,6 +170,8 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
   const cachedItemsCount = readCartSummaryCache()?.itemsCount ?? 0;
   const showLoading =
     cartLoading && cachedItemsCount > 0 && !cartHasVisibleItems(cart);
+  const isStaleState = cartState.status === 'stale';
+  const isFailedState = cartState.status === 'failed';
 
   if (!isVisible) {
     return (
@@ -230,6 +233,26 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
           initial="hidden"
           animate="visible"
         >
+          {isStaleState ? (
+            <motion.div
+              variants={fadeItem}
+              className="mb-3 rounded-lg border border-amber-300/45 bg-amber-100/90 px-3 py-2 text-xs text-amber-900 lg:bg-amber-100/70"
+              role="status"
+              aria-live="polite"
+            >
+              {t('common.messages.cartSyncStale')}
+            </motion.div>
+          ) : null}
+          {isFailedState ? (
+            <motion.div
+              variants={fadeItem}
+              className="mb-3 rounded-lg border border-rose-300/45 bg-rose-100/90 px-3 py-2 text-xs text-rose-900 lg:bg-rose-100/70"
+              role="alert"
+              aria-live="polite"
+            >
+              {cartState.error || t('common.messages.cartSyncFailed')}
+            </motion.div>
+          ) : null}
           {showLoading ? (
             <motion.div
               key="loading"

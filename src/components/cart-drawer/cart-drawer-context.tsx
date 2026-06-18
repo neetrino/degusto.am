@@ -13,7 +13,11 @@ import {
 import type { Cart } from '@/app/cart/types';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useTranslation } from '@/lib/i18n-client';
-import { useCartLiveSync, type CartSyncState } from '@/lib/cart/use-cart-live-sync';
+import {
+  useCartLiveSync,
+  type CartSyncState,
+  type StableCartState,
+} from '@/lib/cart/use-cart-live-sync';
 import { readCartSummaryCache } from '@/lib/cartSummaryCache';
 import { cartHasVisibleItems } from '@/lib/cart/cart-summary-sync';
 
@@ -22,6 +26,7 @@ export type CartDrawerContextValue = {
   closeCartDrawer: () => void;
   isCartDrawerOpen: boolean;
   cart: Cart | null;
+  cartState: StableCartState;
   setCart: Dispatch<SetStateAction<Cart | null>>;
   cartLoading: boolean;
   cartSyncState: CartSyncState;
@@ -48,6 +53,7 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
 
   const {
     cart,
+    cartState,
     setCart,
     cartLoading,
     cartSyncState,
@@ -80,6 +86,7 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
       closeCartDrawer,
       isCartDrawerOpen,
       cart,
+      cartState,
       setCart,
       cartLoading,
       cartSyncState,
@@ -90,6 +97,7 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
     }),
     [
       cart,
+      cartState,
       cartLoading,
       cartSyncState,
       closeCartDrawer,

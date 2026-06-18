@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, type SetStateAction } from 'react';
-import type { Cart } from '@/app/cart/types';
+import type { Cart, CartItem } from '@/app/cart/types';
 import { fetchCart } from '@/app/cart/cart-fetcher';
 import { parseCartUpdatedDetail } from '@/lib/cart/cart-events';
 import {
@@ -13,6 +13,7 @@ import { buildCustomizationLineKey, normalizeProductCustomizations } from '@/lib
 import { applyRemovedLinesFilter } from '@/lib/cart/pending-cart-removals';
 import { dispatchCartSummarySync } from '@/lib/cart/cart-summary-sync';
 import { createEmptyCart } from '@/lib/cart/empty-cart';
+import { ApiError } from '@/lib/api-client/types';
 
 const CART_RECONCILE_DEBOUNCE_MS = 400;
 const CART_OPTIMISTIC_RECONCILE_IDLE_MS = 900;
@@ -26,7 +27,15 @@ type UseCartLiveSyncOptions = {
   t: (key: string) => string;
 };
 
-export type CartSyncState = 'idle' | 'syncing' | 'synced' | 'stale' | 'failed';
+export type CartSyncState = 'idle' | 'loading' | 'syncing' | 'synced' | 'stale' | 'failed';
+
+export type StableCartState = {
+  items: CartItem[];
+  total: number;
+  status: CartSyncState;
+  lastSuccessfulSyncAt: number | null;
+  error: string | null;
+};
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object';
@@ -49,6 +58,59 @@ function isCartSnapshotPayload(value: unknown): value is { cart: Cart; updatedAt
   const items = cart.items;
   const totals = cart.totals;
   return Array.isArray(items) && isRecord(totals) && typeof cart.itemsCount === 'number';
+}
+
+function mergeDuplicateCartItems(items: CartItem[]): CartItem[] {
+  const merged = new Map<string, CartItem>();
+  for (const item of items) {
+    const key = buildCustomizationLineKey(
+      item.variant.id,
+      normalizeProductCustomizations(item.customizations)
+    );
+    const existing = merged.get(key);
+    if (!existing) {
+      merged.set(key, item);
+      continue;
+    }
+    const quantity = existing.quantity + item.quantity;
+    merged.set(key, {
+      ...existing,
+      total: existing.total + item.total,
+      quantity,
+    });
+  }
+  return Array.from(merged.values());
+}
+
+function sanitizeCartState(cart: Cart): Cart {
+  const mergedItems = mergeDuplicateCartItems(cart.items);
+  const itemsCount = mergedItems.reduce((sum, item) => sum + item.quantity, 0);
+  const subtotal = mergedItems.reduce((sum, item) => sum + item.total, 0);
+  return {
+    ...cart,
+    items: mergedItems,
+    itemsCount,
+    totals: {
+      ...cart.totals,
+      subtotal,
+      total: subtotal + cart.totals.tax + cart.totals.shipping - cart.totals.discount,
+    },
+  };
+}
+
+function normalizeCartPayload(cartData: Cart | null): Cart | null {
+  const filtered = applyRemovedLinesFilter(cartData);
+  return filtered ? sanitizeCartState(filtered) : null;
+}
+
+function toCartErrorMessage(error: unknown): string {
+  if (error instanceof ApiError) {
+    return error.message || `Cart sync failed (${error.status})`;
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return 'Cart sync failed';
 }
 
 function readCartSnapshotCache(): Cart | null {
@@ -101,11 +163,7 @@ function resolveInitialCartState(): Cart | null {
     return null;
   }
 
-  return readCartSnapshotCache() ?? createEmptyCart();
-}
-
-function normalizeCartPayload(cartData: Cart | null): Cart {
-  return applyRemovedLinesFilter(cartData) ?? createEmptyCart();
+  return readCartSnapshotCache();
 }
 
 function buildPendingOptimisticLineKey(input: {
@@ -126,6 +184,8 @@ export function useCartLiveSync({
   const [cart, setCart] = useState<Cart | null>(resolveInitialCartState);
   const [cartLoading, setCartLoading] = useState(false);
   const [cartSyncState, setCartSyncState] = useState<CartSyncState>('idle');
+  const [cartError, setCartError] = useState<string | null>(null);
+  const [lastSuccessfulSyncAt, setLastSuccessfulSyncAt] = useState<number | null>(null);
   const [isCartResolved, setIsCartResolved] = useState(false);
   const cartRef = useRef<Cart | null>(null);
   const reconcileTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -180,7 +240,8 @@ export function useCartLiveSync({
       const generation = ++reloadGenerationRef.current;
       const silent = options?.silent ?? false;
       const runReload = async () => {
-        setCartSyncState('syncing');
+        setCartSyncState(cartRef.current ? 'syncing' : 'loading');
+        setCartError(null);
         if (!silent) {
           setCartLoading(true);
         }
@@ -193,15 +254,19 @@ export function useCartLiveSync({
           if (requestMutationSequence !== mutationSequenceRef.current) {
             return;
           }
-          applyCart(normalizeCartPayload(cartData));
+          applyCart(normalizeCartPayload(cartData) ?? createEmptyCart());
           setCartSyncState('synced');
-        } catch {
+          setLastSuccessfulSyncAt(Date.now());
+          setCartError(null);
+        } catch (error: unknown) {
           if (generation !== reloadGenerationRef.current) {
             return;
           }
-          // Preserve the last known cart on transient read failures.
-          applyCart((previous) => previous ?? createEmptyCart());
-          setCartSyncState(cartRef.current ? 'stale' : 'failed');
+          const snapshotFallback = readCartSnapshotCache();
+          // Keep current UI cart as source of truth; fallback only when no state exists at all.
+          applyCart((previous) => previous ?? snapshotFallback ?? createEmptyCart());
+          setCartSyncState(cartRef.current || snapshotFallback ? 'stale' : 'failed');
+          setCartError(toCartErrorMessage(error));
         } finally {
           if (generation === reloadGenerationRef.current) {
             setCartLoading(false);
@@ -360,8 +425,17 @@ export function useCartLiveSync({
     scheduleReconcile,
   ]);
 
+  const cartState: StableCartState = {
+    items: cart?.items ?? [],
+    total: cart?.totals?.total ?? 0,
+    status: cartSyncState,
+    lastSuccessfulSyncAt,
+    error: cartError,
+  };
+
   return {
     cart,
+    cartState,
     setCart: commitCartMutation,
     cartLoading,
     cartSyncState,
