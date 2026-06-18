@@ -1,4 +1,5 @@
 import { unstable_cache } from 'next/cache';
+import { cache } from 'react';
 import { STORE_MENU_PAGE_SIZE } from '@/constants/store-menu-page-size';
 import { withPrismaResilience } from '@/lib/db/with-prisma-resilience';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
@@ -165,7 +166,7 @@ async function appendRatingSummariesToRows(
   });
 }
 
-async function fetchShopCategoryRows(locale: StorefrontLocale): Promise<CategoryRow[]> {
+const fetchShopCategoryRowsForRequest = cache((locale: StorefrontLocale): Promise<CategoryRow[]> => {
   return db.category.findMany({
     where: CATEGORY_LIST_WHERE,
     orderBy: {
@@ -183,6 +184,10 @@ async function fetchShopCategoryRows(locale: StorefrontLocale): Promise<Category
       },
     },
   });
+});
+
+async function fetchShopCategoryRows(locale: StorefrontLocale): Promise<CategoryRow[]> {
+  return fetchShopCategoryRowsForRequest(locale);
 }
 
 async function fetchShopProductPage(
@@ -195,10 +200,12 @@ async function fetchShopProductPage(
     | 'minPriceAmd'
     | 'maxPriceAmd'
     | 'requestedPage'
+    | 'menuFast'
   >,
   productWhereBase: ReturnType<typeof buildShopProductWhereBase>
 ): Promise<Pick<ShopMenuDbResult, 'productTotal' | 'productRows'>> {
   const productWhere = buildShopProductWhere(locale, query as ShopMenuQuery, productWhereBase);
+  const menuFast = query.menuFast === true;
   const countStartedAt = Date.now();
   const productTotalPromise = db.product
     .count({ where: productWhere })
@@ -212,7 +219,7 @@ async function fetchShopProductPage(
       },
       skip: (query.requestedPage - 1) * STORE_MENU_PAGE_SIZE,
       take: STORE_MENU_PAGE_SIZE,
-      select: getShopProductSelect(locale),
+      select: getShopProductSelect(locale, { menuFast }),
     })
     .then((value) => ({ value, durationMs: Date.now() - rowsStartedAt }));
   const [productTotalResult, productRowsResult] = await Promise.all([
@@ -220,9 +227,11 @@ async function fetchShopProductPage(
     productRowsPromise,
   ]);
   const productTotal = productTotalResult.value;
-  const productRows = await appendRatingSummariesToRows(
-    productRowsResult.value as unknown as ShopMenuProductRow[]
-  );
+  const productRows = menuFast
+    ? (productRowsResult.value as unknown as ShopMenuProductRow[])
+    : await appendRatingSummariesToRows(
+        productRowsResult.value as unknown as ShopMenuProductRow[]
+      );
   logger.info('[SHOP PERF] db product page query timings', {
     locale,
     page: query.requestedPage,
@@ -250,9 +259,11 @@ async function fetchShopProductPage(
     },
     skip: (effectivePage - 1) * STORE_MENU_PAGE_SIZE,
     take: STORE_MENU_PAGE_SIZE,
-    select: getShopProductSelect(locale),
+    select: getShopProductSelect(locale, { menuFast }),
   })) as unknown as ShopMenuProductRow[];
-  const clampedRows = await appendRatingSummariesToRows(clampedRowsRaw);
+  const clampedRows = menuFast
+    ? clampedRowsRaw
+    : await appendRatingSummariesToRows(clampedRowsRaw);
   logger.info('[SHOP PERF] db clamped product page query timing', {
     locale,
     requestedPage: query.requestedPage,
@@ -365,6 +376,7 @@ async function loadShopMenuProducts(
     | 'minPriceAmd'
     | 'maxPriceAmd'
     | 'requestedPage'
+    | 'menuFast'
   >
 ): Promise<ShopMenuProductsPage> {
   const startedAt = Date.now();
@@ -382,6 +394,7 @@ async function loadShopMenuProducts(
     searchLength: query.selectedSearchQuery.length,
     rows: productRows.length,
     total: productTotal,
+    menuFast: query.menuFast === true,
     durationMs: Date.now() - startedAt,
   });
 
@@ -418,9 +431,9 @@ const getShopMenuSidebarCached = unstable_cache(
           : null,
     });
   },
-  ['shop-sidebar-v1'],
+  ['shop-sidebar-v2'],
   {
-    revalidate: SHOP_MENU_REVALIDATE_SECONDS,
+    revalidate: 300,
     tags: [SHOP_MENU_CACHE_TAG],
   }
 );
@@ -433,7 +446,8 @@ const getShopMenuProductsCached = unstable_cache(
     tasteFilter: '' | 'leaf' | 'pepper',
     minPriceAmdKey: string,
     maxPriceAmdKey: string,
-    requestedPageKey: string
+    requestedPageKey: string,
+    menuFastKey: '0' | '1'
   ) => {
     const parsedPage = parseInt(requestedPageKey, 10);
     const minPriceAmd = minPriceAmdKey === '' ? null : Number(minPriceAmdKey);
@@ -453,9 +467,10 @@ const getShopMenuProductsCached = unstable_cache(
           ? maxPriceAmd
           : null,
       requestedPage: Number.isFinite(parsedPage) && parsedPage >= 1 ? parsedPage : 1,
+      menuFast: menuFastKey === '1',
     });
   },
-  ['shop-products-v1'],
+  ['shop-products-v2'],
   {
     revalidate: SHOP_MENU_REVALIDATE_SECONDS,
     tags: [SHOP_MENU_CACHE_TAG],
@@ -473,6 +488,7 @@ export async function getShopMenuProductsPageWithMetrics(
     | 'minPriceAmd'
     | 'maxPriceAmd'
     | 'requestedPage'
+    | 'menuFast'
   >
 ): Promise<{ data: ShopMenuProductsPage; metrics: ShopMenuProductsMetrics }> {
   const serviceStartedAt = Date.now();
@@ -483,7 +499,8 @@ export async function getShopMenuProductsPageWithMetrics(
     query.tasteFilter ?? '',
     query.minPriceAmd === null ? '' : String(query.minPriceAmd),
     query.maxPriceAmd === null ? '' : String(query.maxPriceAmd),
-    String(query.requestedPage)
+    String(query.requestedPage),
+    query.menuFast ? '1' : '0'
   );
   const totalServiceMs = Date.now() - serviceStartedAt;
   return {
@@ -505,6 +522,7 @@ export async function getShopMenuProductsPage(
     | 'minPriceAmd'
     | 'maxPriceAmd'
     | 'requestedPage'
+    | 'menuFast'
   >
 ): Promise<ShopMenuProductsPage> {
   const { data } = await getShopMenuProductsPageWithMetrics(query);
@@ -609,6 +627,19 @@ const getShopMenuDataCached = unstable_cache(
 );
 
 /**
+ * Sidebar categories for shop menu routes (cached 5 min, shared across shop/combo writes).
+ */
+export function getShopMenuSidebarPayload(filter: ShopMenuFilterKey): Promise<ShopMenuSidebarPayload> {
+  return getShopMenuSidebarCached(
+    filter.locale,
+    filter.selectedSearchQuery,
+    filter.tasteFilter ?? '',
+    filter.minPriceAmd === null ? '' : String(filter.minPriceAmd),
+    filter.maxPriceAmd === null ? '' : String(filter.maxPriceAmd)
+  );
+}
+
+/**
  * Shop menu payload with per-query Data Cache (60s TTL, invalidated via `SHOP_MENU_CACHE_TAG`).
  * Desktop `full` profile loads sidebar + products from separate cache entries (category switch reuses sidebar).
  */
@@ -622,7 +653,16 @@ export function getShopMenuData(query: ShopMenuQuery): Promise<ShopMenuData> {
         query.minPriceAmd === null ? '' : String(query.minPriceAmd),
         query.maxPriceAmd === null ? '' : String(query.maxPriceAmd)
       ),
-      getShopMenuProductsPage(query),
+      getShopMenuProductsPage({
+        locale: query.locale,
+        selectedCategorySlug: query.selectedCategorySlug,
+        selectedSearchQuery: query.selectedSearchQuery,
+        tasteFilter: query.tasteFilter,
+        minPriceAmd: query.minPriceAmd,
+        maxPriceAmd: query.maxPriceAmd,
+        requestedPage: query.requestedPage,
+        menuFast: query.menuFast,
+      }),
     ]).then(([sidebar, products]) => {
       const safeSidebar = sidebar ?? EMPTY_SHOP_MENU_SIDEBAR_PAYLOAD;
       const safeProducts = products ?? EMPTY_SHOP_MENU_PRODUCTS_PAGE;

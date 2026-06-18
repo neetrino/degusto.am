@@ -1,8 +1,8 @@
 import { Suspense } from 'react';
 import { BodyBackground } from '../../components/BodyBackground';
 import { FigmaDesktopComboPage } from '../../components/home/FigmaDesktopComboPage';
-import { cookies, headers } from 'next/headers';
-import { userAgent } from 'next/server';
+import { StorefrontMenuPageShell } from '../../components/home/StorefrontMenuPageShell';
+import { cookies } from 'next/headers';
 import { resolveStorefrontLocaleFromCookie } from '@/lib/i18n/locale';
 import { getComboMenuData } from '@/lib/services/combo-page/combo-page-data.service';
 
@@ -14,7 +14,7 @@ export default async function ComboPage({
   searchParams?: Promise<SearchParamsInput>;
 }) {
   const params = (await searchParams) ?? {};
-  const [cookieStore, headersList] = await Promise.all([cookies(), headers()]);
+  const cookieStore = await cookies();
   const locale = resolveStorefrontLocaleFromCookie(cookieStore.get('shop_language')?.value);
   const selectedCategorySlug =
     typeof params?.category === 'string' ? params.category.trim() : '';
@@ -38,9 +38,6 @@ export default async function ComboPage({
   const parsedPage = parseInt(rawPage || '1', 10);
   const requestedPage =
     Number.isFinite(parsedPage) && parsedPage >= 1 ? parsedPage : 1;
-  const { device } = userAgent({ headers: headersList });
-  const isMobileClient = device.type === 'mobile';
-  const loadProfile = isMobileClient ? 'products-only' : 'full';
 
   const { cards, categories, effectivePage, totalPages } = await getComboMenuData({
     locale,
@@ -50,13 +47,24 @@ export default async function ComboPage({
     minPriceAmd,
     maxPriceAmd,
     requestedPage,
-    loadProfile,
+    loadProfile: 'full',
   });
+
+  const shellProps = {
+    locale,
+    routeBasePath: '/combo' as const,
+    titleKey: 'common.navigation.combo',
+    subtitleKey: 'home.figma.desktop.combo.subtitle',
+    cards,
+    categories,
+    activeCategorySlug: selectedCategorySlug,
+    showMobileProductsList: true,
+  };
 
   return (
     <div className="min-h-screen bg-white">
       <BodyBackground color="#ffffff" />
-      <Suspense fallback={<div className="min-h-[480px] animate-pulse bg-white" aria-hidden />}>
+      <Suspense fallback={<StorefrontMenuPageShell {...shellProps} />}>
         <FigmaDesktopComboPage
           cards={cards}
           categories={categories}
@@ -70,7 +78,6 @@ export default async function ComboPage({
             totalPages,
           }}
           showMobileProductsList
-          renderDesktopLayout={!isMobileClient}
         />
       </Suspense>
     </div>

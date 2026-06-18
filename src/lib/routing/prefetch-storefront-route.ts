@@ -45,8 +45,8 @@ export function prefetchStorefrontRoute(
   }
 
   if (isShopOrComboHref(normalized)) {
-    if (prefetchMenuProducts && hasSearchParams(normalized)) {
-      prefetchShopMenuProducts(normalized);
+    if (prefetchMenuProducts) {
+      prefetchShopMenuProducts(hasSearchParams(normalized) ? normalized : '/shop');
     }
     return;
   }

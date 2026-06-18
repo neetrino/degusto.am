@@ -11,9 +11,10 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const parsed = parseShopMenuSearchParams(searchParams);
-    const { data: products, metrics } = await getShopMenuProductsPageWithMetrics(
-      toShopMenuProductsQuery(parsed)
-    );
+    const { data: products, metrics } = await getShopMenuProductsPageWithMetrics({
+      ...toShopMenuProductsQuery(parsed),
+      menuFast: true,
+    });
     const totalMs = Date.now() - startedAt;
 
     return NextResponse.json(products, {

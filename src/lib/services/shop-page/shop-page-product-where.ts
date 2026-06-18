@@ -5,7 +5,12 @@ import {
   resolveVariantUsdBoundsFromAmd,
 } from '@/lib/storefront/variant-price-filter';
 import type { Prisma } from '@prisma/client';
+import { SHOP_MENU_FAST_VARIANT_SAMPLE_SIZE } from '@/constants/shop-menu-perf';
 import type { ShopMenuQuery } from './shop-page-query.types';
+
+type ShopProductSelectOptions = {
+  menuFast?: boolean;
+};
 
 const COMBO_EXCLUSION_CATEGORY_FILTER = {
   categories: {
@@ -90,8 +95,12 @@ export function buildShopProductWhere(
   };
 }
 
-export function getShopProductSelect(locale: StorefrontLocale): Prisma.ProductSelect {
+export function getShopProductSelect(
+  locale: StorefrontLocale,
+  options?: ShopProductSelectOptions
+): Prisma.ProductSelect {
   const localeFilter = { in: [locale, 'en'] };
+  const menuFast = options?.menuFast === true;
 
   return {
     id: true,
@@ -137,13 +146,14 @@ export function getShopProductSelect(locale: StorefrontLocale): Prisma.ProductSe
       orderBy: {
         price: 'asc',
       },
+      ...(menuFast ? { take: SHOP_MENU_FAST_VARIANT_SAMPLE_SIZE } : {}),
       select: {
         id: true,
         published: true,
         price: true,
         compareAtPrice: true,
         stock: true,
-        /** Spicy/greens badges need all published variants (see product-food-attributes). */
+        /** Spicy/greens badges need published variant attributes (see product-food-attributes). */
         attributes: true,
       },
     },
@@ -154,11 +164,15 @@ export function getShopProductSelect(locale: StorefrontLocale): Prisma.ProductSe
             published: true,
           },
         },
-        reviews: {
-          where: {
-            published: true,
-          },
-        },
+        ...(menuFast
+          ? {}
+          : {
+              reviews: {
+                where: {
+                  published: true,
+                },
+              },
+            }),
       },
     },
   };
