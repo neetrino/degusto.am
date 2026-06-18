@@ -624,6 +624,8 @@ export function FigmaDesktopMenuPage({
     routeBasePath
   );
 
+  const currentPageFromSearch = Math.max(1, Number.parseInt(searchParams.get('page') ?? '1', 10) || 1);
+
   const { scheduleSearchQueryUrlSync, flushSearchQueryUrlSync, schedulePriceFilterUrlSync } =
     useMenuSearchUrlSync(
       router,
@@ -640,9 +642,9 @@ export function FigmaDesktopMenuPage({
     }
     return dbCategories.map((category) => ({
       category,
-      href: buildTargetPath(category.slug),
+      href: buildTargetPath(category.slug, { page: currentPageFromSearch }),
     }));
-  }, [buildTargetPath, dbCategories]);
+  }, [buildTargetPath, currentPageFromSearch, dbCategories]);
 
   const categoryNavHrefs = useMemo(() => categoryNavItems.map((item) => item.href), [categoryNavItems]);
 
