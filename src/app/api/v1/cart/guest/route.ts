@@ -11,6 +11,10 @@ import { sumLineCustomizationPriceAdjustment } from "@/lib/cart/attribute-price-
 import { computeLineUnitPriceUsd } from "@/lib/cart/line-unit-price";
 import { cartVariantDisplayLinesFromPrismaOptions } from "@/lib/cart/cart-variant-display-lines";
 import { toCartApiStableResponse } from "@/lib/cart/cart-api-response";
+import {
+  createCartRequestSequenceId,
+  logCartApiDiagnostic,
+} from "@/lib/cart/cart-api-observability";
 
 interface GuestCartItemInput {
   lineId?: string;
@@ -114,13 +118,27 @@ function sanitizeItems(items: GuestCartItemInput[] | undefined): GuestCartItemIn
 }
 
 export async function POST(req: NextRequest) {
+  const startedAt = Date.now();
+  const requestSequenceId = createCartRequestSequenceId(req);
+  let hasCartId = false;
   try {
     const body = (await req.json()) as GuestCartRequestBody;
     const items = sanitizeItems(body.items);
     const lang = resolveStorefrontLocale(body.lang);
 
     if (items.length === 0) {
-      return NextResponse.json(toCartApiStableResponse(null));
+      const response = NextResponse.json(toCartApiStableResponse(null));
+      logCartApiDiagnostic({
+        request: req,
+        operation: "read",
+        startedAt,
+        status: response.status,
+        hasCartId,
+        hasUser: false,
+        hasSession: false,
+        requestSequenceId,
+      });
+      return response;
     }
 
     const uniqueProductIds = Array.from(new Set(items.map((item) => item.productId)));
@@ -253,7 +271,18 @@ export async function POST(req: NextRequest) {
     }
 
     if (cartItems.length === 0) {
-      return NextResponse.json(toCartApiStableResponse(null));
+      const response = NextResponse.json(toCartApiStableResponse(null));
+      logCartApiDiagnostic({
+        request: req,
+        operation: "read",
+        startedAt,
+        status: response.status,
+        hasCartId,
+        hasUser: false,
+        hasSession: false,
+        requestSequenceId,
+      });
+      return response;
     }
 
     const subtotal = cartItems.reduce((sum, item) => sum + item.total, 0);
@@ -276,9 +305,35 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    return NextResponse.json(toCartApiStableResponse(response.cart));
+    const apiResponse = NextResponse.json(toCartApiStableResponse(response.cart));
+    hasCartId = true;
+    logCartApiDiagnostic({
+      request: req,
+      operation: "read",
+      startedAt,
+      status: apiResponse.status,
+      hasCartId,
+      hasUser: false,
+      hasSession: false,
+      requestSequenceId,
+    });
+    return apiResponse;
   } catch (error: unknown) {
-    return apiRouteCatchErrorResponse(req, error, "[CART][GUEST] POST");
+    const response = apiRouteCatchErrorResponse(req, error, "[CART][GUEST] POST", {
+      suppressLogging: true,
+    });
+    logCartApiDiagnostic({
+      request: req,
+      operation: "read",
+      startedAt,
+      status: response.status,
+      hasCartId,
+      hasUser: false,
+      hasSession: false,
+      requestSequenceId,
+      error,
+    });
+    return response;
   }
 }
 

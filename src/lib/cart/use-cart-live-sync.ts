@@ -14,10 +14,12 @@ import { applyRemovedLinesFilter } from '@/lib/cart/pending-cart-removals';
 import { dispatchCartSummarySync } from '@/lib/cart/cart-summary-sync';
 import { createEmptyCart } from '@/lib/cart/empty-cart';
 import { ApiError } from '@/lib/api-client/types';
+import { logCartFrontendDiagnostic } from '@/lib/cart/cart-frontend-diagnostics';
 
 const CART_RECONCILE_DEBOUNCE_MS = 400;
 const CART_SNAPSHOT_CACHE_KEY = 'shop_cart_snapshot_cache';
 const CART_SNAPSHOT_MAX_AGE_MS = 1000 * 60 * 5;
+const CART_ENDPOINT = '/api/v1/cart';
 
 type UseCartLiveSyncOptions = {
   isLoggedIn: boolean;
@@ -243,9 +245,25 @@ export function useCartLiveSync({
           const requestMutationSequence = mutationSequenceRef.current;
           const cartData = await fetchCartFromApi();
           if (generation !== reloadGenerationRef.current) {
+            logCartFrontendDiagnostic({
+              event: 'stale_response_ignored',
+              operation: 'read',
+              endpoint: CART_ENDPOINT,
+              requestSequenceId: `reload-${generation}`,
+              preservedPreviousState: true,
+              details: { reason: 'generation_mismatch' },
+            });
             return;
           }
           if (requestMutationSequence !== mutationSequenceRef.current) {
+            logCartFrontendDiagnostic({
+              event: 'stale_response_ignored',
+              operation: 'read',
+              endpoint: CART_ENDPOINT,
+              requestSequenceId: `reload-${generation}`,
+              preservedPreviousState: true,
+              details: { reason: 'mutation_sequence_changed' },
+            });
             return;
           }
           applyCart(normalizeCartPayload(cartData) ?? createEmptyCart());
@@ -257,10 +275,28 @@ export function useCartLiveSync({
             return;
           }
           const snapshotFallback = readCartSnapshotCache();
+          const preservedPreviousState = Boolean(cartRef.current);
+          const fallbackSource = preservedPreviousState
+            ? 'previous_cart'
+            : snapshotFallback
+              ? 'snapshot_cache'
+              : 'empty_cart';
           // Keep current UI cart as source of truth; fallback only when no state exists at all.
           applyCart((previous) => previous ?? snapshotFallback ?? createEmptyCart());
           setCartSyncState(cartRef.current || snapshotFallback ? 'stale' : 'failed');
           setCartError(toCartErrorMessage(error));
+          logCartFrontendDiagnostic({
+            event: 'fallback_used',
+            operation: 'read',
+            endpoint: CART_ENDPOINT,
+            requestSequenceId: `reload-${generation}`,
+            status: error instanceof ApiError ? error.status : null,
+            preservedPreviousState,
+            error,
+            details: {
+              fallbackSource,
+            },
+          });
         } finally {
           if (generation === reloadGenerationRef.current) {
             setCartLoading(false);
@@ -341,10 +377,22 @@ export function useCartLiveSync({
         }
 
         const nextCart = confirmOptimisticCartLine(cartRef.current, detail.confirmedLine);
+        const promotedOptimisticLine = nextCart !== cartRef.current;
         commitCartMutation(nextCart);
         setCartSyncState('synced');
         setCartLoading(false);
         setLastSuccessfulSyncAt(Date.now());
+        logCartFrontendDiagnostic({
+          event: 'optimistic_item_reconciliation',
+          operation: 'reconcile',
+          endpoint: '/api/v1/cart/items',
+          requestSequenceId: `confirm-${mutationSequenceRef.current}`,
+          preservedPreviousState: true,
+          details: {
+            promotedOptimisticLine,
+            serverItemId: detail.confirmedLine.serverItemId,
+          },
+        });
         if (nextCart === cartRef.current) {
           // No optimistic row to promote: fetch persisted cart before exposing new line.
           void reloadCart({ silent: true });

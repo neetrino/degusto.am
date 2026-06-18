@@ -6,7 +6,10 @@ import { problemJson } from "@/lib/http/problem-response";
 import { cartService } from "@/lib/services/cart.service";
 import { resolveCartRequestContext } from "@/lib/cart/cart-request-context";
 import { toCartApiStableResponse } from "@/lib/cart/cart-api-response";
-import { logger } from "@/lib/utils/logger";
+import {
+  createCartRequestSequenceId,
+  logCartApiDiagnostic,
+} from "@/lib/cart/cart-api-observability";
 
 const cartItemIdSchema = z
   .string()
@@ -22,10 +25,16 @@ async function updateQuantity(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const startedAt = Date.now();
+  const requestSequenceId = createCartRequestSequenceId(req);
+  let hasUser = false;
+  let hasSession = false;
+  let hasCartId = false;
   try {
     const { user, guestToken, locale } = await resolveCartRequestContext(req);
+    hasUser = Boolean(user?.id);
+    hasSession = Boolean(user?.id || guestToken);
     if (!user && !guestToken) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         {
           type: problemTypes.unauthorized,
           title: "Unauthorized",
@@ -35,12 +44,24 @@ async function updateQuantity(
         },
         { status: 401 }
       );
+      logCartApiDiagnostic({
+        request: req,
+        operation: "update",
+        startedAt,
+        status: response.status,
+        hasCartId,
+        hasUser,
+        hasSession,
+        requestSequenceId,
+        error: { name: "SessionError", message: "Cart session required" },
+      });
+      return response;
     }
 
     const { id } = await params;
     const idParsed = cartItemIdSchema.safeParse(id);
     if (!idParsed.success) {
-      return problemJson(
+      const response = problemJson(
         createProblem("badRequest", {
           status: 400,
           title: "Bad Request",
@@ -48,11 +69,23 @@ async function updateQuantity(
           instance: req.url,
         })
       );
+      logCartApiDiagnostic({
+        request: req,
+        operation: "update",
+        startedAt,
+        status: response.status,
+        hasCartId,
+        hasUser,
+        hasSession,
+        requestSequenceId,
+        error: idParsed.error,
+      });
+      return response;
     }
 
     const dataParsed = updateCartItemQuantitySchema.safeParse(await req.json());
     if (!dataParsed.success) {
-      return problemJson(
+      const response = problemJson(
         createProblem("validationError", {
           status: 400,
           title: "Validation Error",
@@ -60,6 +93,18 @@ async function updateQuantity(
           instance: req.url,
         })
       );
+      logCartApiDiagnostic({
+        request: req,
+        operation: "update",
+        startedAt,
+        status: response.status,
+        hasCartId,
+        hasUser,
+        hasSession,
+        requestSequenceId,
+        error: dataParsed.error,
+      });
+      return response;
     }
 
     await cartService.updateItem(
@@ -70,19 +115,35 @@ async function updateQuantity(
     );
     const updatedCart = await cartService.getCart(user?.id ?? null, locale, guestToken);
     const normalized = toCartApiStableResponse(updatedCart.cart);
-    logger.info("[CART] update item ok", {
-      requestPath: req.nextUrl.pathname,
-      method: req.method,
-      responseStatus: 200,
-      durationMs: Date.now() - startedAt,
-      hasUser: Boolean(user?.id),
-      hasGuestToken: Boolean(guestToken),
-      cartItemId: idParsed.data,
-      quantity: dataParsed.data.quantity,
+    hasCartId = Boolean(normalized.cart.id);
+    const response = NextResponse.json(normalized, { status: 200 });
+    logCartApiDiagnostic({
+      request: req,
+      operation: "update",
+      startedAt,
+      status: response.status,
+      hasCartId,
+      hasUser,
+      hasSession,
+      requestSequenceId,
     });
-    return NextResponse.json(normalized, { status: 200 });
+    return response;
   } catch (error: unknown) {
-    return apiRouteCatchErrorResponse(req, error, "[CART] UPDATE item");
+    const response = apiRouteCatchErrorResponse(req, error, "[CART] UPDATE item", {
+      suppressLogging: true,
+    });
+    logCartApiDiagnostic({
+      request: req,
+      operation: "update",
+      startedAt,
+      status: response.status,
+      hasCartId,
+      hasUser,
+      hasSession,
+      requestSequenceId,
+      error,
+    });
+    return response;
   }
 }
 
@@ -105,10 +166,16 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const startedAt = Date.now();
+  const requestSequenceId = createCartRequestSequenceId(req);
+  let hasUser = false;
+  let hasSession = false;
+  let hasCartId = false;
   try {
     const { user, guestToken, locale } = await resolveCartRequestContext(req);
+    hasUser = Boolean(user?.id);
+    hasSession = Boolean(user?.id || guestToken);
     if (!user && !guestToken) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         {
           type: problemTypes.unauthorized,
           title: "Unauthorized",
@@ -118,12 +185,24 @@ export async function DELETE(
         },
         { status: 401 }
       );
+      logCartApiDiagnostic({
+        request: req,
+        operation: "delete",
+        startedAt,
+        status: response.status,
+        hasCartId,
+        hasUser,
+        hasSession,
+        requestSequenceId,
+        error: { name: "SessionError", message: "Cart session required" },
+      });
+      return response;
     }
 
     const { id } = await params;
     const idParsed = cartItemIdSchema.safeParse(id);
     if (!idParsed.success) {
-      return problemJson(
+      const response = problemJson(
         createProblem("badRequest", {
           status: 400,
           title: "Bad Request",
@@ -131,23 +210,51 @@ export async function DELETE(
           instance: req.url,
         })
       );
+      logCartApiDiagnostic({
+        request: req,
+        operation: "delete",
+        startedAt,
+        status: response.status,
+        hasCartId,
+        hasUser,
+        hasSession,
+        requestSequenceId,
+        error: idParsed.error,
+      });
+      return response;
     }
 
     await cartService.removeItem(user?.id ?? null, idParsed.data, guestToken);
     const updatedCart = await cartService.getCart(user?.id ?? null, locale, guestToken);
     const normalized = toCartApiStableResponse(updatedCart.cart);
-
-    logger.info("[CART] delete item ok", {
-      requestPath: req.nextUrl.pathname,
-      method: req.method,
-      responseStatus: 200,
-      durationMs: Date.now() - startedAt,
-      hasUser: Boolean(user?.id),
-      hasGuestToken: Boolean(guestToken),
-      cartItemId: idParsed.data,
+    hasCartId = Boolean(normalized.cart.id);
+    const response = NextResponse.json(normalized, { status: 200 });
+    logCartApiDiagnostic({
+      request: req,
+      operation: "delete",
+      startedAt,
+      status: response.status,
+      hasCartId,
+      hasUser,
+      hasSession,
+      requestSequenceId,
     });
-    return NextResponse.json(normalized, { status: 200 });
+    return response;
   } catch (error: unknown) {
-    return apiRouteCatchErrorResponse(req, error, "[CART] DELETE item");
+    const response = apiRouteCatchErrorResponse(req, error, "[CART] DELETE item", {
+      suppressLogging: true,
+    });
+    logCartApiDiagnostic({
+      request: req,
+      operation: "delete",
+      startedAt,
+      status: response.status,
+      hasCartId,
+      hasUser,
+      hasSession,
+      requestSequenceId,
+      error,
+    });
+    return response;
   }
 }

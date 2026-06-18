@@ -5,7 +5,6 @@ import { apiClient } from '../../lib/api-client';
 import { ApiError } from '../../lib/api-client/types';
 import { isQuietCartStockValidationError } from '../../lib/api-client/error-handler';
 import { DATABASE_UNAVAILABLE_PUBLIC_DETAIL } from '@/lib/http/problem-details';
-import { logger } from '../../lib/utils/logger';
 import { useTranslation } from '../../lib/i18n-client';
 import { playCartFlyAnimation } from '../../lib/cart-fly-animation';
 import { publishCartUpdated, publishCartForceReload, publishOptimisticCartAdd, publishCartLineConfirmed } from '../../lib/cart/cart-events';
@@ -20,6 +19,7 @@ import {
   findCartLineByContext,
   normalizeCartApiResponse,
 } from '@/lib/cart/cart-client-normalization';
+import { logCartFrontendDiagnostic } from '@/lib/cart/cart-frontend-diagnostics';
 
 const CART_ACTION_RETRY_AFTER_MS = 3000;
 const ADD_TO_CART_BLOCK_WINDOW_MS = 700;
@@ -114,6 +114,8 @@ export function useAddToCart({
     optimisticVariantId: string,
     addedQuantity: number
   ): Promise<void> => {
+    const requestSequenceId = `add-${Date.now().toString(36)}`;
+    const endpoint = '/api/v1/cart/items';
     const rollbackLocalQuantity = () => {
       setQuantity((prev) => Math.max(0, prev - addedQuantity));
     };
@@ -176,6 +178,16 @@ export function useAddToCart({
       };
 
       if (error instanceof ApiError && isQuietCartStockValidationError(error.status, error.data)) {
+        logCartFrontendDiagnostic({
+          event: 'mutation_failed',
+          operation: 'add',
+          endpoint,
+          requestSequenceId,
+          status: error.status,
+          preservedPreviousState: true,
+          error,
+          details: { reason: 'insufficient_stock' },
+        });
         rollbackLocalQuantity();
         alert(t('common.alerts.noMoreStockAvailable'));
         publishCartForceReload();
@@ -188,6 +200,16 @@ export function useAddToCart({
         err?.status === 404 ||
         err?.statusCode === 404
       ) {
+        logCartFrontendDiagnostic({
+          event: 'mutation_failed',
+          operation: 'add',
+          endpoint,
+          requestSequenceId,
+          status: 404,
+          preservedPreviousState: true,
+          error,
+          details: { reason: 'product_not_found' },
+        });
         rollbackLocalQuantity();
         alert(t('common.alerts.productNotFound'));
         publishCartForceReload();
@@ -199,6 +221,16 @@ export function useAddToCart({
         err.response?.data?.detail?.includes('exceeds available stock') ||
         err.response?.data?.title === 'Insufficient stock'
       ) {
+        logCartFrontendDiagnostic({
+          event: 'mutation_failed',
+          operation: 'add',
+          endpoint,
+          requestSequenceId,
+          status: error instanceof ApiError ? error.status : null,
+          preservedPreviousState: true,
+          error,
+          details: { reason: 'insufficient_stock_response' },
+        });
         rollbackLocalQuantity();
         alert(t('common.alerts.noMoreStockAvailable'));
         publishCartForceReload();
@@ -206,6 +238,16 @@ export function useAddToCart({
       }
 
       if (error instanceof ApiError && error.status === 503) {
+        logCartFrontendDiagnostic({
+          event: 'mutation_failed',
+          operation: 'add',
+          endpoint,
+          requestSequenceId,
+          status: error.status,
+          preservedPreviousState: true,
+          error,
+          details: { reason: 'service_unavailable' },
+        });
         alert(
           `${error.message || DATABASE_UNAVAILABLE_PUBLIC_DETAIL}\n\n` +
             `Please try again in ${CART_ACTION_RETRY_AFTER_MS / 1000} seconds.`
@@ -213,7 +255,15 @@ export function useAddToCart({
         return;
       }
 
-      logger.error('[PRODUCT CARD] Error adding to cart', { error });
+      logCartFrontendDiagnostic({
+        event: 'mutation_failed',
+        operation: 'add',
+        endpoint,
+        requestSequenceId,
+        status: error instanceof ApiError ? error.status : null,
+        preservedPreviousState: true,
+        error,
+      });
       alert(t('common.alerts.failedToAddToCart'));
       publishCartForceReload();
     }
@@ -225,7 +275,14 @@ export function useAddToCart({
     }
 
     if (!productSlug || productSlug.trim() === '' || productSlug.includes(' ')) {
-      logger.warn('[PRODUCT CARD] Invalid product slug', { productSlug });
+      logCartFrontendDiagnostic({
+        event: 'mutation_failed',
+        operation: 'add',
+        endpoint: '/api/v1/cart/items',
+        requestSequenceId: `add-${Date.now().toString(36)}`,
+        preservedPreviousState: true,
+        details: { reason: 'invalid_product_slug' },
+      });
       alert(t('common.alerts.invalidProduct'));
       return;
     }
@@ -263,6 +320,8 @@ export function useAddToCart({
 
     const previousQuantity = quantity;
     const nextQuantity = quantity - 1;
+    const requestSequenceId = `delete-${Date.now().toString(36)}`;
+    const endpoint = '/api/v1/cart/items';
     setQuantity(nextQuantity);
 
     try {
@@ -312,7 +371,15 @@ export function useAddToCart({
         rememberCartLineId(productId, variantId, cartItem.id, patchedQty);
       }
     } catch (error: unknown) {
-      logger.error('[PRODUCT CARD] Error removing from cart', { error });
+      logCartFrontendDiagnostic({
+        event: 'mutation_failed',
+        operation: 'delete',
+        endpoint,
+        requestSequenceId,
+        status: error instanceof ApiError ? error.status : null,
+        preservedPreviousState: true,
+        error,
+      });
       setQuantity(previousQuantity);
       alert(t('common.messages.failedToUpdateQuantity'));
       publishCartForceReload();

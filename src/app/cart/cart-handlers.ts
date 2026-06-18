@@ -1,6 +1,5 @@
 import { apiClient } from '../../lib/api-client';
 import { ApiError } from '../../lib/api-client/types';
-import { logger } from '../../lib/utils/logger';
 import type { Cart, CartItem } from './types';
 import {
   publishCartUpdated,
@@ -15,6 +14,7 @@ import {
 import { getCartLineId, removeCachedLineId } from '@/lib/cart/cart-line-id-cache';
 import { deleteMatchingCartLineInBackground } from '@/lib/cart/background-line-cleanup';
 import { normalizeCartApiResponse } from '@/lib/cart/cart-client-normalization';
+import { logCartFrontendDiagnostic } from '@/lib/cart/cart-frontend-diagnostics';
 
 /** Item already removed server-side (e.g. duplicate minus click after optimistic delete). */
 function isCartItemNotFoundError(error: unknown): boolean {
@@ -51,32 +51,6 @@ function isCartItemNotFoundError(error: unknown): boolean {
   return message.includes('404') || message.includes('not found');
 }
 
-function serializeError(error: unknown): Record<string, unknown> {
-  if (error instanceof ApiError) {
-    const apiData = (error.data as { detail?: string; message?: string } | null) ?? null;
-    return {
-      name: error.name,
-      message: error.message,
-      status: error.status,
-      statusText: error.statusText,
-      detail: apiData?.detail ?? apiData?.message ?? null,
-    };
-  }
-
-  if (error instanceof Error) {
-    return {
-      name: error.name,
-      message: error.message,
-    };
-  }
-
-  if (typeof error === 'object' && error !== null) {
-    return error as Record<string, unknown>;
-  }
-
-  return { message: String(error) };
-}
-
 /**
  * Calculate cart totals
  */
@@ -99,6 +73,8 @@ export async function handleRemoveItem(
   setCart: (cart: Cart | null) => void,
   fetchCart: () => Promise<void>
 ): Promise<void> {
+  const requestSequenceId = `delete-${Date.now().toString(36)}`;
+  const endpoint = `/api/v1/cart/items/${itemId}`;
   const itemToRemove = cart.items.find((item) => item.id === itemId);
   if (!itemToRemove) {
     return;
@@ -138,7 +114,7 @@ export async function handleRemoveItem(
   }
 
   try {
-    const response = await apiClient.delete<unknown>(`/api/v1/cart/items/${itemId}`);
+    const response = await apiClient.delete<unknown>(endpoint);
     const normalizedCart = normalizeCartApiResponse(response);
     setCart(normalizedCart);
     publishCartUpdated(normalizedCart.itemsCount, normalizedCart.totals.total, {
@@ -146,13 +122,29 @@ export async function handleRemoveItem(
     });
   } catch (error: unknown) {
     if (isCartItemNotFoundError(error)) {
-      logger.debug('Cart item already removed', { itemId });
+      logCartFrontendDiagnostic({
+        event: 'mutation_failed',
+        operation: 'delete',
+        endpoint,
+        requestSequenceId,
+        status: 404,
+        preservedPreviousState: true,
+        details: { reason: 'already_removed' },
+      });
       return;
     }
 
-    logger.error('Error removing item', {
-      itemId,
-      error: serializeError(error),
+    logCartFrontendDiagnostic({
+      event: 'mutation_failed',
+      operation: 'delete',
+      endpoint,
+      requestSequenceId,
+      status: error instanceof ApiError ? error.status : null,
+      preservedPreviousState: true,
+      error,
+      details: {
+        itemId,
+      },
     });
     await fetchCart();
     publishCartForceReload();
@@ -171,6 +163,8 @@ export async function handleUpdateQuantity(
   fetchCart: () => Promise<void>,
   t: (key: string) => string
 ): Promise<void> {
+  const requestSequenceId = `update-${Date.now().toString(36)}`;
+  const endpoint = `/api/v1/cart/items/${itemId}`;
   if (quantity < 1) {
     if (cart) {
       await handleRemoveItem(itemId, cart, false, setCart, fetchCart);
@@ -221,7 +215,7 @@ export async function handleUpdateQuantity(
   }
 
   try {
-    const response = await apiClient.patch<unknown>(`/api/v1/cart/items/${itemId}`, {
+    const response = await apiClient.patch<unknown>(endpoint, {
       quantity,
     });
     const normalizedCart = normalizeCartApiResponse(response);
@@ -238,9 +232,18 @@ export async function handleUpdateQuantity(
     }
 
     const errorObj = error as { detail?: string; message?: string };
-    logger.error('Error updating quantity', {
-      itemId,
-      error: serializeError(error),
+    logCartFrontendDiagnostic({
+      event: 'mutation_failed',
+      operation: 'update',
+      endpoint,
+      requestSequenceId,
+      status: error instanceof ApiError ? error.status : null,
+      preservedPreviousState: true,
+      error,
+      details: {
+        itemId,
+        attemptedQuantity: quantity,
+      },
     });
 
     const errorMessage =

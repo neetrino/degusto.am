@@ -11,10 +11,17 @@ import {
 import { toCartApiStableResponse } from "@/lib/cart/cart-api-response";
 import { safeParseCartItemRequest } from "@/lib/schemas/cart.schema";
 import { enforceRouteRateLimit } from "@/lib/http/route-rate-limit";
-import { logger } from "@/lib/utils/logger";
+import {
+  createCartRequestSequenceId,
+  logCartApiDiagnostic,
+} from "@/lib/cart/cart-api-observability";
 
 export async function POST(req: NextRequest) {
   const startedAt = Date.now();
+  const requestSequenceId = createCartRequestSequenceId(req);
+  let hasUser = false;
+  let hasSession = false;
+  let hasCartId = false;
   try {
     const rateLimited = await enforceRouteRateLimit(req, {
       prefix: "ratelimit:cart-items",
@@ -27,10 +34,12 @@ export async function POST(req: NextRequest) {
     }
 
     const { user, locale, guestToken } = await resolveCartRequestContext(req);
+    hasUser = Boolean(user?.id);
+    hasSession = Boolean(user?.id || guestToken);
     const body = await req.json();
     const parsed = safeParseCartItemRequest(body);
     if (!parsed.success) {
-      return problemJson(
+      const response = problemJson(
         createProblem("validationError", {
           status: 400,
           title: "Validation Error",
@@ -38,6 +47,18 @@ export async function POST(req: NextRequest) {
           instance: req.url,
         })
       );
+      logCartApiDiagnostic({
+        request: req,
+        operation: "add",
+        startedAt,
+        status: response.status,
+        hasCartId,
+        hasUser,
+        hasSession,
+        requestSequenceId,
+        error: parsed.error,
+      });
+      return response;
     }
     const data = parsed.data;
 
@@ -56,24 +77,39 @@ export async function POST(req: NextRequest) {
       activeGuestToken
     );
     const normalized = toCartApiStableResponse(updatedCart.cart);
-
-    logger.info("[CART] add item ok", {
-      requestPath: req.nextUrl.pathname,
-      method: req.method,
-      responseStatus: 200,
-      durationMs: Date.now() - startedAt,
-      hasUser: Boolean(user?.id),
-      hasGuestToken: Boolean(activeGuestToken),
-      cartId: normalized.cart.id || null,
-      itemsCount: normalized.cart.items.reduce((sum, item) => sum + item.quantity, 0),
-    });
+    hasCartId = Boolean(normalized.cart.id);
+    hasSession = Boolean(user?.id || activeGuestToken);
 
     const response = NextResponse.json(normalized, { status: 200 });
     if (isNewGuestSession && activeGuestToken) {
       setGuestCartTokenOnResponse(response, activeGuestToken);
     }
+    logCartApiDiagnostic({
+      request: req,
+      operation: "add",
+      startedAt,
+      status: response.status,
+      hasCartId,
+      hasUser,
+      hasSession,
+      requestSequenceId,
+    });
     return response;
   } catch (error: unknown) {
-    return apiRouteCatchErrorResponse(req, error, "[CART] POST add item");
+    const response = apiRouteCatchErrorResponse(req, error, "[CART] POST add item", {
+      suppressLogging: true,
+    });
+    logCartApiDiagnostic({
+      request: req,
+      operation: "add",
+      startedAt,
+      status: response.status,
+      hasCartId,
+      hasUser,
+      hasSession,
+      requestSequenceId,
+      error,
+    });
+    return response;
   }
 }
