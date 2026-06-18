@@ -3,6 +3,7 @@ import { apiClient } from '../../../lib/api-client';
 import { useAuth } from '../../../lib/auth/AuthContext';
 import { useTranslation } from '../../../lib/i18n-client';
 import type { UserProfile } from '../types';
+import { invalidateUserProfileCache } from '@/lib/users/fetch-user-profile';
 
 interface PersonalInfoForm {
   firstName: string;
@@ -55,6 +56,7 @@ export function usePersonalInfo({
 
     try {
       const updated = await apiClient.put<UserProfile>('/api/v1/users/profile', personalInfo);
+      invalidateUserProfileCache();
       onProfileUpdate(updated);
       onSuccess(t('profile.personal.updatedSuccess'));
       

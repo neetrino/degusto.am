@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../lib/auth/AuthContext';
-import { apiClient } from '../../../lib/api-client';
 import { useTranslation } from '../../../lib/i18n-client';
 import type { UserProfile } from '../types';
+import { fetchUserProfileCached } from '@/lib/users/fetch-user-profile';
 
 export function useProfile() {
   const router = useRouter();
@@ -33,7 +33,7 @@ export function useProfile() {
     try {
       setLoading(true);
       setError(null);
-      const data = await apiClient.get<UserProfile>('/api/v1/users/profile');
+      const data = await fetchUserProfileCached();
       setProfile(data);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : String(err);

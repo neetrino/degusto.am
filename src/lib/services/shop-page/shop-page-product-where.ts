@@ -1,69 +1,19 @@
 import type { StorefrontLocale } from '@/lib/i18n/locale';
 import { getStorefrontCategorySlugCandidates } from '@/constants/storefront-all-category-slug';
-import { buildProductWhereTasteCapability } from '@/lib/product-food-attributes';
-import {
-  buildPublishedVariantPriceSomeWhere,
-  resolveVariantUsdBoundsFromAmd,
-} from '@/lib/storefront/variant-price-filter';
 import type { Prisma } from '@prisma/client';
 import { SHOP_MENU_FAST_VARIANT_SAMPLE_SIZE } from '@/constants/shop-menu-perf';
+import { buildMenuProductWhereBase } from '../menu-page/menu-page-product-where-base';
 import type { ShopMenuQuery } from './shop-page-query.types';
 
 type ShopProductSelectOptions = {
   menuFast?: boolean;
 };
 
-const COMBO_EXCLUSION_CATEGORY_FILTER = {
-  categories: {
-    none: {
-      translations: {
-        some: {
-          locale: 'en',
-          slug: 'combo',
-        },
-      },
-    },
-  },
-} as const;
-
 export function buildShopProductWhereBase(
   locale: StorefrontLocale,
   query: ShopMenuQuery
 ): Prisma.ProductWhereInput {
-  const variantPriceSome = buildPublishedVariantPriceSomeWhere(
-    resolveVariantUsdBoundsFromAmd(query.minPriceAmd, query.maxPriceAmd)
-  );
-
-  return {
-    published: true,
-    deletedAt: null,
-    ...COMBO_EXCLUSION_CATEGORY_FILTER,
-    ...(query.selectedSearchQuery
-      ? {
-          translations: {
-            some: {
-              locale: { in: [query.locale, 'en'] },
-              OR: [
-                {
-                  title: {
-                    contains: query.selectedSearchQuery,
-                    mode: 'insensitive' as const,
-                  },
-                },
-                {
-                  subtitle: {
-                    contains: query.selectedSearchQuery,
-                    mode: 'insensitive' as const,
-                  },
-                },
-              ],
-            },
-          },
-        }
-      : {}),
-    ...(variantPriceSome ? { variants: { some: variantPriceSome } } : {}),
-    ...(query.tasteFilter ? buildProductWhereTasteCapability(query.tasteFilter) : {}),
-  };
+  return buildMenuProductWhereBase(locale, query, 'exclude');
 }
 
 export function buildShopProductWhere(

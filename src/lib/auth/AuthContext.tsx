@@ -10,6 +10,7 @@ import {
   setAuthUserClientCookie,
   type AuthCookieUser,
 } from '@/lib/auth/auth-cookies';
+import { fetchUserProfileCached } from '@/lib/users/fetch-user-profile';
 import { logger } from "@/lib/utils/logger";
 
 /**
@@ -93,11 +94,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     logger.debug('⚠️ [AUTH] User missing roles, fetching from API...');
     try {
-      const profileData = await apiClient.get<{ roles: string[] }>('/api/v1/users/profile');
-      if (Array.isArray(profileData.roles)) {
-        const updatedUser: User = { ...candidate, roles: profileData.roles };
+      const profileData = await fetchUserProfileCached();
+      const roles = (profileData as User & { roles?: string[] }).roles;
+      if (Array.isArray(roles)) {
+        const updatedUser: User = { ...candidate, roles };
         setAuthUserClientCookie(updatedUser as AuthCookieUser);
-        logger.debug('✅ [AUTH] Roles updated from API:', profileData.roles);
+        logger.debug('✅ [AUTH] Roles updated from API:', roles);
         return updatedUser;
       }
     } catch (fetchError) {

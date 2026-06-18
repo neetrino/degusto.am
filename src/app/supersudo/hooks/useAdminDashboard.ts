@@ -13,13 +13,6 @@ interface Stats {
   revenue: { total: number; currency: string };
 }
 
-interface ActivityItem {
-  type: string;
-  title: string;
-  description: string;
-  timestamp: string;
-}
-
 interface RecentOrder {
   id: string;
   number: string;
@@ -116,12 +109,10 @@ export async function fetchRecentOrdersShared(limit = 8): Promise<RecentOrder[]>
 
 export function useAdminDashboard({ isLoggedIn, isAdmin, isLoading }: UseAdminDashboardProps) {
   const [stats, setStats] = useState<Stats | null>(null);
-  const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
   const [userActivity, setUserActivity] = useState<UserActivity | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
-  const [activityLoading, setActivityLoading] = useState(true);
   const [recentOrdersLoading, setRecentOrdersLoading] = useState(true);
   const [topProductsLoading, setTopProductsLoading] = useState(true);
   const [userActivityLoading, setUserActivityLoading] = useState(true);
@@ -152,36 +143,6 @@ export function useAdminDashboard({ isLoggedIn, isAdmin, isLoading }: UseAdminDa
       setStats(null);
     } finally {
       setStatsLoading(false);
-    }
-  }, []);
-
-  const fetchActivity = useCallback(async () => {
-    try {
-      logger.debug('📋 [ADMIN] Fetching recent activity...');
-      setActivityLoading(true);
-
-      const response = await apiClient.get<{ data: ActivityItem[] }>('/api/v1/admin/activity', {
-        params: { limit: '10' },
-      });
-      logger.debug('✅ [ADMIN] Activity fetched:', response);
-
-      if (response && response.data && Array.isArray(response.data)) {
-        setActivity(response.data);
-      } else {
-        console.warn('⚠️ [ADMIN] Invalid activity response format:', response);
-        setActivity([]);
-      }
-    } catch (err: unknown) {
-      console.error('❌ [ADMIN] Error fetching activity:', err);
-      if (err && typeof err === 'object' && 'message' in err) {
-        console.error('❌ [ADMIN] Activity error details:', {
-          message: (err as { message?: string }).message,
-          status: (err as { status?: number }).status,
-        });
-      }
-      setActivity([]);
-    } finally {
-      setActivityLoading(false);
     }
   }, []);
 
@@ -241,22 +202,19 @@ export function useAdminDashboard({ isLoggedIn, isAdmin, isLoading }: UseAdminDa
 
   useEffect(() => {
     if (!isLoading && isLoggedIn && isAdmin) {
-      fetchStats();
-      fetchActivity();
-      fetchRecentOrders();
-      fetchTopProducts();
-      fetchUserActivity();
+      void Promise.all([fetchStats(), fetchRecentOrders()]).then(() => {
+        void fetchTopProducts();
+        void fetchUserActivity();
+      });
     }
-  }, [isLoading, isLoggedIn, isAdmin, fetchStats, fetchActivity, fetchRecentOrders, fetchTopProducts, fetchUserActivity]);
+  }, [isLoading, isLoggedIn, isAdmin, fetchStats, fetchRecentOrders, fetchTopProducts, fetchUserActivity]);
 
   return {
     stats,
-    activity,
     recentOrders,
     topProducts,
     userActivity,
     statsLoading,
-    activityLoading,
     recentOrdersLoading,
     topProductsLoading,
     userActivityLoading,

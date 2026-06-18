@@ -256,7 +256,7 @@ export function FigmaHomePage({
   const armenianHeadingClassName = lang === 'hy' ? montserratArmFont.className : '';
 
   return (
-    <div className="hidden min-h-screen w-full overflow-x-clip bg-[var(--project-color)] lg:block">
+    <div className="min-h-screen w-full overflow-x-clip bg-[var(--project-color)] lg:block">
       <section className="relative w-full overflow-x-clip bg-[var(--project-color)] pb-56 pt-8 lg:min-h-[680px] lg:overflow-y-visible lg:pb-0 lg:pt-8 xl:min-h-[780px] 2xl:min-h-[930px]">
         <div
           className={`pointer-events-none absolute inset-x-0 ${HOME_DESKTOP_HERO_BG_TOP_CLASS} z-0 h-[900px] w-full lg:h-full`}

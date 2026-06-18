@@ -114,7 +114,7 @@ export function FigmaHomePageMobile({
   const viewMoreLabel = t('common.buttons.viewMore');
 
   return (
-    <div className="relative min-h-screen w-full overflow-x-clip overflow-y-visible bg-[var(--project-color)] lg:hidden">
+    <div className="relative min-h-screen w-full overflow-x-clip overflow-y-visible bg-[var(--project-color)]">
       <div className="absolute -left-[210px] -top-[123px] h-[434px] w-[418px] rounded-full border-[80px] border-[#3E573D]" />
       <div className="absolute -right-[160px] -top-[184px] h-[320px] w-[360px] rounded-full border-[70px] border-[#3E573D]" />
 

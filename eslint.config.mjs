@@ -62,13 +62,6 @@ const config = [
       "max-depth": "off",
     },
   },
-  {
-    files: ["src/components/Header.tsx"],
-    rules: {
-      "max-lines": "off",
-      "max-lines-per-function": "off",
-    },
-  },
 ];
 
 export default config;
