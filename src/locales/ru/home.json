@@ -55,7 +55,19 @@
         "piesAndPancakes": "Пироги и блины",
         "comboSets": "Комбо-наборы",
         "lunchBoxes": "Ланч-боксы",
-        "grillAndSmokedProducts": "Гриль и копченые продукты"
+        "grillAndSmokedProducts": "Гриль и копченые продукты",
+        "bread": "Хлеб",
+        "pastry": "Выпечка",
+        "friedEggs": "Яичница",
+        "lentenDishes": "Постные блюда",
+        "asianSushi": "Азиатская кухня (Суши)",
+        "pasta": "Паста",
+        "sauces": "Соусы",
+        "restaurant": "Ресторан",
+        "barAlcohol": "Бар (Алкоголь)",
+        "juicesDrinks": "Соки и напитки",
+        "semiFinished": "Полуфабрикаты",
+        "mexican": "Мексиканская кухня"
       }
     },
     "mobile": {

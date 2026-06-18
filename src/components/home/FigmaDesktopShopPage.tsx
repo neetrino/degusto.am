@@ -45,6 +45,10 @@ import { ShopDesktopProductsSkeleton } from './ShopDesktopProductsSkeleton';
 import { HomeOptimizedImage } from './HomeOptimizedImage';
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
 import {
+  resolveMenuCardCategoryLabel,
+  resolveStorefrontCategoryLabel,
+} from '@/lib/storefront/menu-card-category-label';
+import {
   STOREFRONT_DESKTOP_MAIN_COLUMN_CLASS,
   STOREFRONT_DESKTOP_PRODUCT_GRID_CLASS,
   STOREFRONT_DESKTOP_SHOP_SECTION_CLASS,
@@ -296,11 +300,8 @@ function isMenuCategoryEmpty(category: MenuCategory): boolean {
   );
 }
 
-function formatCategoryLabelWithCount(category: MenuCategory): string {
-  if (typeof category.productCount !== 'number') {
-    return category.title;
-  }
-  return `${category.title} (${category.productCount})`;
+function formatCategoryLabelWithCount(categoryLabel: string, productCount?: number): string {
+  return typeof productCount === 'number' ? `${categoryLabel} (${productCount})` : categoryLabel;
 }
 
 function MenuCardItemBase({ card }: { card: MenuCard }) {
@@ -310,7 +311,7 @@ function MenuCardItemBase({ card }: { card: MenuCard }) {
   const { isLoggedIn } = useAuth();
   const { isInWishlist, toggleWishlist } = useWishlist(card.id);
   const title = card.title || (card.titleKey ? t(card.titleKey) : '');
-  const category = card.category || (card.categoryKey ? t(card.categoryKey) : '');
+  const category = resolveMenuCardCategoryLabel(card, t);
   const imageSrc = resolveStorefrontProductImage(card.image);
   const calculatedDiscountPercent =
     card.oldPrice > card.price && card.oldPrice > 0
@@ -794,6 +795,10 @@ export function FigmaDesktopMenuPage({
                     }`;
 
                     if (empty) {
+                      const categoryLabel = resolveStorefrontCategoryLabel(
+                        { slug: category.slug, title: category.title },
+                        t
+                      );
                       return (
                         <span
                           key={category.id}
@@ -803,12 +808,18 @@ export function FigmaDesktopMenuPage({
                           <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center" aria-hidden="true">
                             {category.iconUrl ? <img src={category.iconUrl} alt="" className="h-6 w-6 object-contain" /> : null}
                           </span>
-                          <span className="min-w-0 flex-1 truncate">{formatCategoryLabelWithCount(category)}</span>
+                          <span className="min-w-0 flex-1 truncate">
+                            {formatCategoryLabelWithCount(categoryLabel, category.productCount)}
+                          </span>
                         </span>
                       );
                     }
 
                     if (enableSoftCategoryNav) {
+                      const categoryLabel = resolveStorefrontCategoryLabel(
+                        { slug: category.slug, title: category.title },
+                        t
+                      );
                       return (
                         <a
                           key={category.id}
@@ -827,11 +838,17 @@ export function FigmaDesktopMenuPage({
                           <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center" aria-hidden="true">
                             {category.iconUrl ? <img src={category.iconUrl} alt="" className="h-6 w-6 object-contain" /> : null}
                           </span>
-                          <span className="min-w-0 flex-1 truncate">{formatCategoryLabelWithCount(category)}</span>
+                          <span className="min-w-0 flex-1 truncate">
+                            {formatCategoryLabelWithCount(categoryLabel, category.productCount)}
+                          </span>
                         </a>
                       );
                     }
 
+                    const categoryLabel = resolveStorefrontCategoryLabel(
+                      { slug: category.slug, title: category.title },
+                      t
+                    );
                     return (
                       <Link
                         key={category.id}
@@ -844,7 +861,9 @@ export function FigmaDesktopMenuPage({
                         <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center" aria-hidden="true">
                           {category.iconUrl ? <img src={category.iconUrl} alt="" className="h-6 w-6 object-contain" /> : null}
                         </span>
-                        <span className="min-w-0 flex-1 truncate">{formatCategoryLabelWithCount(category)}</span>
+                        <span className="min-w-0 flex-1 truncate">
+                          {formatCategoryLabelWithCount(categoryLabel, category.productCount)}
+                        </span>
                       </Link>
                     );
                   })
@@ -939,6 +958,4 @@ export function FigmaDesktopMenuPage({
     </>
   );
 }
-
 export type { MenuCard, MenuCategory } from './menu-types';
-

@@ -55,7 +55,19 @@
         "piesAndPancakes": "Կարկանդակներ եւ նրբաբլիթներ",
         "comboSets": "Կոմբո փաթեթներ",
         "lunchBoxes": "Լանչ Բոքսեր",
-        "grillAndSmokedProducts": "Գրիլ եւ ապխտած արտադրանքներ"
+        "grillAndSmokedProducts": "Գրիլ եւ ապխտած արտադրանքներ",
+        "bread": "Հաց",
+        "pastry": "Խմորեղեն",
+        "friedEggs": "Ձվածեղ",
+        "lentenDishes": "Պահքի ուտեստներ",
+        "asianSushi": "Ասիական խոհանոց (Սուշի)",
+        "pasta": "Պաստաներ",
+        "sauces": "Սոուսներ",
+        "restaurant": "Ռեստորան",
+        "barAlcohol": "Բար (Ալկոհոլ)",
+        "juicesDrinks": "Հյութեր և Ըմպելիքներ",
+        "semiFinished": "Կիսաֆաբրիկատներ",
+        "mexican": "Մեքսիկական խոհանոց"
       }
     },
     "mobile": {
