@@ -123,6 +123,10 @@ export function useAddToCart({
     optimisticVariantId: string,
     addedQuantity: number
   ): Promise<void> => {
+    const rollbackLocalQuantity = () => {
+      setQuantity((prev) => Math.max(0, prev - addedQuantity));
+    };
+
     try {
       let variantId = defaultVariantId ?? null;
       let unitPrice = propPrice ?? 0;
@@ -132,7 +136,7 @@ export function useAddToCart({
         const productDetails = await apiClient.get<ProductDetails>(`/api/v1/products/${encodedSlug}`);
         if (!productDetails.variants || productDetails.variants.length === 0) {
           alert(t('common.alerts.noVariantsAvailable'));
-          setQuantity((prev) => Math.max(0, prev - addedQuantity));
+          rollbackLocalQuantity();
           publishCartForceReload();
           return;
         }
@@ -172,8 +176,6 @@ export function useAddToCart({
         summary
       );
     } catch (error: unknown) {
-      setQuantity((prev) => Math.max(0, prev - addedQuantity));
-
       const err = error as {
         message?: string;
         status?: number;
@@ -183,6 +185,7 @@ export function useAddToCart({
       };
 
       if (error instanceof ApiError && isQuietCartStockValidationError(error.status, error.data)) {
+        rollbackLocalQuantity();
         alert(t('common.alerts.noMoreStockAvailable'));
         publishCartForceReload();
         return;
@@ -194,6 +197,7 @@ export function useAddToCart({
         err?.status === 404 ||
         err?.statusCode === 404
       ) {
+        rollbackLocalQuantity();
         alert(t('common.alerts.productNotFound'));
         publishCartForceReload();
         return;
@@ -204,6 +208,7 @@ export function useAddToCart({
         err.response?.data?.detail?.includes('exceeds available stock') ||
         err.response?.data?.title === 'Insufficient stock'
       ) {
+        rollbackLocalQuantity();
         alert(t('common.alerts.noMoreStockAvailable'));
         publishCartForceReload();
         return;

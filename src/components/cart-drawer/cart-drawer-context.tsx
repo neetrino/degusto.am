@@ -13,7 +13,7 @@ import {
 import type { Cart } from '@/app/cart/types';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useTranslation } from '@/lib/i18n-client';
-import { useCartLiveSync } from '@/lib/cart/use-cart-live-sync';
+import { useCartLiveSync, type CartSyncState } from '@/lib/cart/use-cart-live-sync';
 import { readCartSummaryCache } from '@/lib/cartSummaryCache';
 import { cartHasVisibleItems } from '@/lib/cart/cart-summary-sync';
 
@@ -24,6 +24,7 @@ export type CartDrawerContextValue = {
   cart: Cart | null;
   setCart: Dispatch<SetStateAction<Cart | null>>;
   cartLoading: boolean;
+  cartSyncState: CartSyncState;
   isCartResolved: boolean;
   setCartLoading: Dispatch<SetStateAction<boolean>>;
   reloadCart: (options?: { silent?: boolean }) => Promise<void>;
@@ -49,6 +50,7 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
     cart,
     setCart,
     cartLoading,
+    cartSyncState,
     isCartResolved,
     setCartLoading,
     reloadCart,
@@ -80,6 +82,7 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
       cart,
       setCart,
       cartLoading,
+      cartSyncState,
       isCartResolved,
       setCartLoading,
       reloadCart,
@@ -88,6 +91,7 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
     [
       cart,
       cartLoading,
+      cartSyncState,
       closeCartDrawer,
       isCartDrawerOpen,
       isCartResolved,

@@ -13,6 +13,7 @@ import { useCartDrawer } from '@/components/cart-drawer/cart-drawer-context';
 import { useTranslation } from '@/lib/i18n-client';
 import { formatPdpExclusionsDisplayList } from '@/app/products/[slug]/utils/pdp-customization-selection';
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
+import { buildCustomizationLineKey } from '@/lib/cart/customizations';
 
 type DisplayLine = NonNullable<CartItem['variant']['displayLines']>[number];
 
@@ -309,6 +310,10 @@ interface CartTableProps {
   appearance?: CartListAppearance;
 }
 
+function buildCartItemRowKey(item: CartItem): string {
+  return `${item.variant.product.id}:${buildCustomizationLineKey(item.variant.id, item.customizations)}`;
+}
+
 export function CartTable({
   cart,
   currency,
@@ -327,7 +332,7 @@ export function CartTable({
       <div className={listClassName}>
         {cart.items.map((item) => (
           <CartItemRow
-            key={item.id}
+            key={buildCartItemRowKey(item)}
             item={item}
             currency={currency}
             onRemove={onRemove}

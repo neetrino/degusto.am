@@ -15,13 +15,13 @@ export async function fetchCartFromApi(): Promise<Cart | null> {
     return response.cart;
   } catch (error: unknown) {
     if (error instanceof ApiError && isQuietCartReadServerError(error.status, '/api/v1/cart')) {
-      logger.warn('[CART] Cart read failed with server error; using empty state', {
+      logger.warn('[CART] Cart read failed with server error; preserving current state', {
         status: error.status,
       });
-      return null;
+      throw error;
     }
     logger.error('Error fetching cart', { error });
-    return null;
+    throw error;
   }
 }
 
