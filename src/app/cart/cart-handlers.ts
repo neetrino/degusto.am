@@ -9,15 +9,11 @@ import {
 } from '../../lib/cart/cart-events';
 import { maxCartLineQuantity } from '@/lib/product-stock';
 import {
-  buildCartLineRemovalKey,
   isOptimisticCartItemId,
   markCartLineRemoved,
 } from '@/lib/cart/pending-cart-removals';
 import { getCartLineId, removeCachedLineId } from '@/lib/cart/cart-line-id-cache';
-import {
-  normalizeProductCustomizations,
-  serializeProductCustomizations,
-} from '@/lib/cart/customizations';
+import { deleteMatchingCartLineInBackground } from '@/lib/cart/background-line-cleanup';
 
 /** Item already removed server-side (e.g. duplicate minus click after optimistic delete). */
 function isCartItemNotFoundError(error: unknown): boolean {
@@ -92,70 +88,6 @@ function calculateCartTotals(items: CartItem[], existingTotals: Cart['totals']):
   };
 }
 
-function buildProductCustomizationKey(item: CartItem): string {
-  const normalized = normalizeProductCustomizations(item.customizations);
-  return `${item.variant.product.id}::${serializeProductCustomizations(normalized)}`;
-}
-
-const REMOVE_OPTIMISTIC_RETRY_ATTEMPTS = 4;
-const REMOVE_OPTIMISTIC_RETRY_DELAY_MS = 180;
-
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
-
-async function deleteMatchingLineOnServer(
-  item: CartItem,
-  preferredServerItemId?: string
-): Promise<void> {
-  try {
-    if (preferredServerItemId) {
-      await apiClient.delete(`/api/v1/cart/items/${preferredServerItemId}`);
-      return;
-    }
-
-    const lineKey = buildCartLineRemovalKey(item);
-    const productCustomizationKey = buildProductCustomizationKey(item);
-
-    for (let attempt = 0; attempt < REMOVE_OPTIMISTIC_RETRY_ATTEMPTS; attempt += 1) {
-      const response = await apiClient.get<{ cart: Cart | null }>('/api/v1/cart');
-      const serverCart = response.cart;
-      if (!serverCart) {
-        return;
-      }
-
-      const matches = serverCart.items.filter(
-        (serverItem) =>
-          (buildCartLineRemovalKey(serverItem) === lineKey ||
-            buildProductCustomizationKey(serverItem) === productCustomizationKey) &&
-          !isOptimisticCartItemId(serverItem.id)
-      );
-
-      if (matches.length > 0) {
-        await Promise.all(
-          matches.map(async (match) => {
-            await apiClient.delete(`/api/v1/cart/items/${match.id}`);
-          })
-        );
-        return;
-      }
-
-      if (attempt < REMOVE_OPTIMISTIC_RETRY_ATTEMPTS - 1) {
-        await delay(REMOVE_OPTIMISTIC_RETRY_DELAY_MS);
-      }
-    }
-  } catch (error: unknown) {
-    if (isCartItemNotFoundError(error)) {
-      return;
-    }
-    logger.warn('Background cart line delete failed', {
-      error: error instanceof Error ? error.message : String(error),
-    });
-  }
-}
-
 /**
  * Handle remove item from cart
  */
@@ -200,7 +132,7 @@ export async function handleRemoveItem(
   }
 
   if (isOptimisticCartItemId(itemId)) {
-    void deleteMatchingLineOnServer(itemToRemove, cachedLine?.cartItemId);
+    void deleteMatchingCartLineInBackground(itemToRemove, cachedLine?.cartItemId);
     return;
   }
 
