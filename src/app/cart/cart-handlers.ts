@@ -1,6 +1,5 @@
 import { apiClient } from '../../lib/api-client';
 import { ApiError } from '../../lib/api-client/types';
-import { logger } from '../../lib/utils/logger';
 import type { Cart, CartItem } from './types';
 import {
   publishCartUpdated,
@@ -9,15 +8,13 @@ import {
 } from '../../lib/cart/cart-events';
 import { maxCartLineQuantity } from '@/lib/product-stock';
 import {
-  buildCartLineRemovalKey,
   isOptimisticCartItemId,
   markCartLineRemoved,
 } from '@/lib/cart/pending-cart-removals';
 import { getCartLineId, removeCachedLineId } from '@/lib/cart/cart-line-id-cache';
-import {
-  normalizeProductCustomizations,
-  serializeProductCustomizations,
-} from '@/lib/cart/customizations';
+import { deleteMatchingCartLineInBackground } from '@/lib/cart/background-line-cleanup';
+import { normalizeCartApiResponse } from '@/lib/cart/cart-client-normalization';
+import { logCartFrontendDiagnostic } from '@/lib/cart/cart-frontend-diagnostics';
 
 /** Item already removed server-side (e.g. duplicate minus click after optimistic delete). */
 function isCartItemNotFoundError(error: unknown): boolean {
@@ -54,32 +51,6 @@ function isCartItemNotFoundError(error: unknown): boolean {
   return message.includes('404') || message.includes('not found');
 }
 
-function serializeError(error: unknown): Record<string, unknown> {
-  if (error instanceof ApiError) {
-    const apiData = (error.data as { detail?: string; message?: string } | null) ?? null;
-    return {
-      name: error.name,
-      message: error.message,
-      status: error.status,
-      statusText: error.statusText,
-      detail: apiData?.detail ?? apiData?.message ?? null,
-    };
-  }
-
-  if (error instanceof Error) {
-    return {
-      name: error.name,
-      message: error.message,
-    };
-  }
-
-  if (typeof error === 'object' && error !== null) {
-    return error as Record<string, unknown>;
-  }
-
-  return { message: String(error) };
-}
-
 /**
  * Calculate cart totals
  */
@@ -92,70 +63,6 @@ function calculateCartTotals(items: CartItem[], existingTotals: Cart['totals']):
   };
 }
 
-function buildProductCustomizationKey(item: CartItem): string {
-  const normalized = normalizeProductCustomizations(item.customizations);
-  return `${item.variant.product.id}::${serializeProductCustomizations(normalized)}`;
-}
-
-const REMOVE_OPTIMISTIC_RETRY_ATTEMPTS = 4;
-const REMOVE_OPTIMISTIC_RETRY_DELAY_MS = 180;
-
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
-
-async function deleteMatchingLineOnServer(
-  item: CartItem,
-  preferredServerItemId?: string
-): Promise<void> {
-  try {
-    if (preferredServerItemId) {
-      await apiClient.delete(`/api/v1/cart/items/${preferredServerItemId}`);
-      return;
-    }
-
-    const lineKey = buildCartLineRemovalKey(item);
-    const productCustomizationKey = buildProductCustomizationKey(item);
-
-    for (let attempt = 0; attempt < REMOVE_OPTIMISTIC_RETRY_ATTEMPTS; attempt += 1) {
-      const response = await apiClient.get<{ cart: Cart | null }>('/api/v1/cart');
-      const serverCart = response.cart;
-      if (!serverCart) {
-        return;
-      }
-
-      const matches = serverCart.items.filter(
-        (serverItem) =>
-          (buildCartLineRemovalKey(serverItem) === lineKey ||
-            buildProductCustomizationKey(serverItem) === productCustomizationKey) &&
-          !isOptimisticCartItemId(serverItem.id)
-      );
-
-      if (matches.length > 0) {
-        await Promise.all(
-          matches.map(async (match) => {
-            await apiClient.delete(`/api/v1/cart/items/${match.id}`);
-          })
-        );
-        return;
-      }
-
-      if (attempt < REMOVE_OPTIMISTIC_RETRY_ATTEMPTS - 1) {
-        await delay(REMOVE_OPTIMISTIC_RETRY_DELAY_MS);
-      }
-    }
-  } catch (error: unknown) {
-    if (isCartItemNotFoundError(error)) {
-      return;
-    }
-    logger.warn('Background cart line delete failed', {
-      error: error instanceof Error ? error.message : String(error),
-    });
-  }
-}
-
 /**
  * Handle remove item from cart
  */
@@ -166,6 +73,8 @@ export async function handleRemoveItem(
   setCart: (cart: Cart | null) => void,
   fetchCart: () => Promise<void>
 ): Promise<void> {
+  const requestSequenceId = `delete-${Date.now().toString(36)}`;
+  const endpoint = `/api/v1/cart/items/${itemId}`;
   const itemToRemove = cart.items.find((item) => item.id === itemId);
   if (!itemToRemove) {
     return;
@@ -200,21 +109,42 @@ export async function handleRemoveItem(
   }
 
   if (isOptimisticCartItemId(itemId)) {
-    void deleteMatchingLineOnServer(itemToRemove, cachedLine?.cartItemId);
+    void deleteMatchingCartLineInBackground(itemToRemove, cachedLine?.cartItemId);
     return;
   }
 
   try {
-    await apiClient.delete(`/api/v1/cart/items/${itemId}`);
+    const response = await apiClient.delete<unknown>(endpoint);
+    const normalizedCart = normalizeCartApiResponse(response);
+    setCart(normalizedCart);
+    publishCartUpdated(normalizedCart.itemsCount, normalizedCart.totals.total, {
+      skipReconcile: true,
+    });
   } catch (error: unknown) {
     if (isCartItemNotFoundError(error)) {
-      logger.debug('Cart item already removed', { itemId });
+      logCartFrontendDiagnostic({
+        event: 'mutation_failed',
+        operation: 'delete',
+        endpoint,
+        requestSequenceId,
+        status: 404,
+        preservedPreviousState: true,
+        details: { reason: 'already_removed' },
+      });
       return;
     }
 
-    logger.error('Error removing item', {
-      itemId,
-      error: serializeError(error),
+    logCartFrontendDiagnostic({
+      event: 'mutation_failed',
+      operation: 'delete',
+      endpoint,
+      requestSequenceId,
+      status: error instanceof ApiError ? error.status : null,
+      preservedPreviousState: true,
+      error,
+      details: {
+        itemId,
+      },
     });
     await fetchCart();
     publishCartForceReload();
@@ -233,6 +163,8 @@ export async function handleUpdateQuantity(
   fetchCart: () => Promise<void>,
   t: (key: string) => string
 ): Promise<void> {
+  const requestSequenceId = `update-${Date.now().toString(36)}`;
+  const endpoint = `/api/v1/cart/items/${itemId}`;
   if (quantity < 1) {
     if (cart) {
       await handleRemoveItem(itemId, cart, false, setCart, fetchCart);
@@ -283,7 +215,14 @@ export async function handleUpdateQuantity(
   }
 
   try {
-    await apiClient.patch(`/api/v1/cart/items/${itemId}`, { quantity });
+    const response = await apiClient.patch<unknown>(endpoint, {
+      quantity,
+    });
+    const normalizedCart = normalizeCartApiResponse(response);
+    setCart(normalizedCart);
+    publishCartUpdated(normalizedCart.itemsCount, normalizedCart.totals.total, {
+      skipReconcile: true,
+    });
   } catch (error: unknown) {
     await fetchCart();
     publishCartForceReload();
@@ -293,9 +232,18 @@ export async function handleUpdateQuantity(
     }
 
     const errorObj = error as { detail?: string; message?: string };
-    logger.error('Error updating quantity', {
-      itemId,
-      error: serializeError(error),
+    logCartFrontendDiagnostic({
+      event: 'mutation_failed',
+      operation: 'update',
+      endpoint,
+      requestSequenceId,
+      status: error instanceof ApiError ? error.status : null,
+      preservedPreviousState: true,
+      error,
+      details: {
+        itemId,
+        attemptedQuantity: quantity,
+      },
     });
 
     const errorMessage =

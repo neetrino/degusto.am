@@ -22,7 +22,10 @@ import {
   publishCartLineConfirmed,
   publishOptimisticCartAdd,
 } from '@/lib/cart/cart-events';
-import { readCartSummaryCache } from '@/lib/cartSummaryCache';
+import {
+  findCartLineByContext,
+  normalizeCartApiResponse,
+} from '@/lib/cart/cart-client-normalization';
 
 type Product = WishlistProductCardProduct;
 const WISHLIST_PRODUCTS_CACHE_KEY = 'wishlist-page-products-v1';
@@ -281,10 +284,7 @@ export default function WishlistPage() {
 
       const variantId = productDetails.variants[0].id;
       
-      const addToCartResponse = await apiClient.post<{
-        item: { id: string; quantity: number; price: number };
-        cartSummary?: { itemsCount: number; total: number };
-      }>(
+      const addToCartResponse = await apiClient.post<unknown>(
         '/api/v1/cart/items',
         {
           productId: product.id,
@@ -292,23 +292,29 @@ export default function WishlistPage() {
           quantity: 1,
         }
       );
+      const cart = normalizeCartApiResponse(addToCartResponse);
+      const line = findCartLineByContext(cart, {
+        productId: product.id,
+        variantId,
+      });
+      if (!line) {
+        publishCartForceReload();
+        return;
+      }
 
-      const summary = addToCartResponse.cartSummary ?? (() => {
-        const cached = readCartSummaryCache();
-        return {
-          itemsCount: cached?.itemsCount ?? 0,
-          total: cached?.total ?? 0,
-        };
-      })();
+      const summary = {
+        itemsCount: cart.itemsCount,
+        total: cart.totals.total,
+      };
 
       publishCartLineConfirmed(
         {
           productId: product.id,
           previousVariantId: optimisticVariantId,
           variantId,
-          serverItemId: addToCartResponse.item.id,
-          quantity: addToCartResponse.item.quantity,
-          price: addToCartResponse.item.price,
+          serverItemId: line.id,
+          quantity: line.quantity,
+          price: line.price,
         },
         summary
       );

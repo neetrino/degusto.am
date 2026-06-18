@@ -17,6 +17,36 @@ export type RouteCatchFields = {
   message?: string;
 };
 
+type RouteCatchOptions = {
+  suppressLogging?: boolean;
+};
+
+type ErrorMeta = {
+  name: string;
+  message: string;
+  code?: string;
+};
+
+function extractErrorMeta(error: unknown): ErrorMeta {
+  if (error instanceof Error) {
+    const withCode = error as Error & { code?: unknown };
+    return {
+      name: error.name,
+      message: error.message,
+      code: typeof withCode.code === "string" ? withCode.code : undefined,
+    };
+  }
+  if (typeof error === "object" && error !== null) {
+    const record = error as Record<string, unknown>;
+    return {
+      name: typeof record.name === "string" ? record.name : "UnknownError",
+      message: typeof record.message === "string" ? record.message : String(error),
+      code: typeof record.code === "string" ? record.code : undefined,
+    };
+  }
+  return { name: "UnknownError", message: String(error) };
+}
+
 /**
  * Narrow `unknown` from route catch blocks for JSON error bodies (strict TS, no `catch (e: any)`).
  */
@@ -38,6 +68,9 @@ export function parseRouteCatchError(error: unknown): RouteCatchFields {
 }
 
 const PRISMA_CONNECTION_CODES = new Set(["P1001", "P1002", "P1017", "P2024"]);
+const PRISMA_BAD_REQUEST_CODES = new Set(["P2000", "P2009", "P2011", "P2012", "P2023"]);
+const PRISMA_NOT_FOUND_CODES = new Set(["P2001", "P2025"]);
+const PRISMA_CONFLICT_CODES = new Set(["P2002", "P2003", "P2034"]);
 
 /** Avoid importing `@prisma/client` here — it pulls the query engine into Turbopack NFT tracing. */
 function isPrismaKnownRequestError(error: unknown): error is { code: string } {
@@ -50,6 +83,44 @@ function isPrismaKnownRequestError(error: unknown): error is { code: string } {
 
 function isPrismaInitializationError(error: unknown): boolean {
   return error instanceof Error && error.name === "PrismaClientInitializationError";
+}
+
+function mapPrismaKnownRequestError(
+  req: NextRequest,
+  error: { code: string },
+  logLabel: string,
+  options?: RouteCatchOptions
+): NextResponse | null {
+  const instance = req.url;
+  const fallbackDetail = "The request could not be processed.";
+  const mapped = PRISMA_BAD_REQUEST_CODES.has(error.code)
+    ? { type: problemTypes.badRequest, title: "Bad Request", status: 400, detail: fallbackDetail }
+    : PRISMA_NOT_FOUND_CODES.has(error.code)
+      ? {
+          type: problemTypes.notFound,
+          title: "Not Found",
+          status: 404,
+          detail: "Requested resource was not found.",
+        }
+      : PRISMA_CONFLICT_CODES.has(error.code)
+        ? {
+            type: problemTypes.conflict,
+            title: "Conflict",
+            status: 409,
+            detail: "Request conflicts with current resource state.",
+          }
+        : null;
+  if (!mapped) return null;
+
+  if (!options?.suppressLogging) {
+    logger.warn(`${logLabel} prisma request error mapped`, {
+      requestPath: req.nextUrl.pathname,
+      method: req.method,
+      code: error.code,
+      mappedStatus: mapped.status,
+    });
+  }
+  return problemJson({ ...mapped, instance });
 }
 
 /**
@@ -68,23 +139,39 @@ export function isPrismaConnectionError(error: unknown): boolean {
 export function apiRouteErrorResponse(
   req: NextRequest,
   error: unknown,
-  logLabel: string
+  logLabel: string,
+  options?: RouteCatchOptions
 ): NextResponse {
   const instance = req.url;
+  const errorMeta = extractErrorMeta(error);
 
   if (isPrismaConnectionError(error)) {
     const code = isPrismaKnownRequestError(error) ? error.code : "init";
-    logger.warn(`${logLabel} database unreachable`, {
-      code,
-      ...buildDatabaseUrlLogFields(
-        (process.env.DATABASE_URL ?? "").trim(),
-        (process.env.DIRECT_URL ?? "").trim()
-      ),
-    });
+    if (!options?.suppressLogging) {
+      logger.warn(`${logLabel} database unreachable`, {
+        code,
+        requestPath: req.nextUrl.pathname,
+        method: req.method,
+        errorName: errorMeta.name,
+        errorMessage: errorMeta.message,
+        ...buildDatabaseUrlLogFields(
+          (process.env.DATABASE_URL ?? "").trim(),
+          (process.env.DIRECT_URL ?? "").trim()
+        ),
+      });
+    }
     return serviceUnavailableResponse(instance);
   }
 
-  logger.error(logLabel, error);
+  if (!options?.suppressLogging) {
+    logger.error(logLabel, {
+      requestPath: req.nextUrl.pathname,
+      method: req.method,
+      errorName: errorMeta.name,
+      errorMessage: errorMeta.message,
+      errorCode: errorMeta.code ?? null,
+    });
+  }
   const safeDetail =
     process.env.NODE_ENV === "production"
       ? "An error occurred"
@@ -101,19 +188,44 @@ export function apiRouteErrorResponse(
 export function apiRouteCatchErrorResponse(
   req: NextRequest,
   error: unknown,
-  logLabel: string
+  logLabel: string,
+  options?: RouteCatchOptions
 ): NextResponse {
   if (isPrismaConnectionError(error)) {
-    return apiRouteErrorResponse(req, error, logLabel);
+    return apiRouteErrorResponse(req, error, logLabel, options);
+  }
+
+  if (isPrismaKnownRequestError(error)) {
+    const mapped = mapPrismaKnownRequestError(req, error, logLabel, options);
+    if (mapped) {
+      return mapped;
+    }
   }
 
   const e = parseRouteCatchError(error);
+  const errorMeta = extractErrorMeta(error);
   const status = e.status;
   if (typeof status === "number" && status >= 400 && status < 600) {
     if (status >= 500) {
-      logger.error(logLabel, error);
+      if (!options?.suppressLogging) {
+        logger.error(logLabel, {
+          requestPath: req.nextUrl.pathname,
+          method: req.method,
+          status,
+          errorName: errorMeta.name,
+          errorMessage: errorMeta.message,
+          errorCode: errorMeta.code ?? null,
+        });
+      }
     } else {
-      logger.warn(logLabel, { status, detail: e.detail ?? e.message });
+      if (!options?.suppressLogging) {
+        logger.warn(logLabel, {
+          requestPath: req.nextUrl.pathname,
+          method: req.method,
+          status,
+          detail: e.detail ?? e.message,
+        });
+      }
     }
     return problemJson(
       {
@@ -127,5 +239,5 @@ export function apiRouteCatchErrorResponse(
     );
   }
 
-  return apiRouteErrorResponse(req, error, logLabel);
+  return apiRouteErrorResponse(req, error, logLabel, options);
 }

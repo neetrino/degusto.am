@@ -1,5 +1,6 @@
 import type { Cart } from '@/app/cart/types';
 import { getStoredCurrency } from '@/lib/currency';
+import { createEmptyClientCart } from '@/lib/cart/cart-client-normalization';
 
 const EMPTY_CART_TOTALS = {
   subtotal: 0,
@@ -11,13 +12,12 @@ const EMPTY_CART_TOTALS = {
 
 /** Placeholder cart for instant empty UI while the API reconciles. */
 export function createEmptyCart(): Cart {
+  const cart = createEmptyClientCart(getStoredCurrency());
   return {
-    id: '',
-    items: [],
-    itemsCount: 0,
+    ...cart,
     totals: {
       ...EMPTY_CART_TOTALS,
-      currency: getStoredCurrency(),
+      currency: cart.totals.currency,
     },
   };
 }

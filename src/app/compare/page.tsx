@@ -15,6 +15,8 @@ import { logger } from '../../lib/utils/logger';
 import { CompareProductsTable, type CompareProduct } from './CompareProductsTable';
 import { STOREFRONT_PAGE_CONTAINER_CLASS } from '@/constants/storefront-desktop-layout';
 import { useCompareIdsContext } from '@/lib/compare/CompareIdsProvider';
+import { normalizeCartApiResponse } from '@/lib/cart/cart-client-normalization';
+import { publishCartUpdated } from '@/lib/cart/cart-events';
 
 interface CompareSection {
   sectionKey: string;
@@ -199,7 +201,7 @@ export default function ComparePage() {
 
       const variantId = productDetails.variants[0].id;
       
-      await apiClient.post(
+      const response = await apiClient.post<unknown>(
         '/api/v1/cart/items',
         {
           productId: product.id,
@@ -207,9 +209,8 @@ export default function ComparePage() {
           quantity: 1,
         }
       );
-
-      // Trigger cart update event
-      window.dispatchEvent(new Event('cart-updated'));
+      const cart = normalizeCartApiResponse(response);
+      publishCartUpdated(cart.itemsCount, cart.totals.total);
     } catch (error: unknown) {
       logger.error('Error adding to cart from compare', { error });
       const message = error instanceof Error ? error.message : '';
