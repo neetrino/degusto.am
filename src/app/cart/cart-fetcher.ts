@@ -4,24 +4,41 @@ import { isQuietCartReadServerError } from '../../lib/api-client/error-handler';
 import { logger } from '../../lib/utils/logger';
 import type { Cart } from './types';
 
+let inFlightCartRequest: Promise<Cart | null> | null = null;
+
 /**
  * Fetch cart from database (authenticated user or guest session cookie).
  */
 export async function fetchCartFromApi(): Promise<Cart | null> {
-  try {
-    // Drawer/live cart state requires full line items; summary-only payload causes
-    // count/items mismatches after refresh (itemsCount > 0 while items is empty).
-    const response = await apiClient.get<{ cart: Cart | null }>('/api/v1/cart');
-    return response.cart;
-  } catch (error: unknown) {
-    if (error instanceof ApiError && isQuietCartReadServerError(error.status, '/api/v1/cart')) {
-      logger.warn('[CART] Cart read failed with server error; preserving current state', {
-        status: error.status,
-      });
+  if (inFlightCartRequest) {
+    return inFlightCartRequest;
+  }
+
+  const request = (async () => {
+    try {
+      // Drawer/live cart state requires full line items; summary-only payload causes
+      // count/items mismatches after refresh (itemsCount > 0 while items is empty).
+      const response = await apiClient.get<{ cart: Cart | null }>('/api/v1/cart');
+      return response.cart;
+    } catch (error: unknown) {
+      if (error instanceof ApiError && isQuietCartReadServerError(error.status, '/api/v1/cart')) {
+        logger.warn('[CART] Cart read failed with server error; preserving current state', {
+          status: error.status,
+        });
+        throw error;
+      }
+      logger.error('Error fetching cart', { error });
       throw error;
     }
-    logger.error('Error fetching cart', { error });
-    throw error;
+  })();
+
+  inFlightCartRequest = request;
+  try {
+    return await request;
+  } finally {
+    if (inFlightCartRequest === request) {
+      inFlightCartRequest = null;
+    }
   }
 }
 

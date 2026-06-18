@@ -69,7 +69,7 @@ export function useCheckout() {
     deliveryUnavailable,
     loadingDeliveryPrice,
   } = useDeliveryPrice(shippingMethod, shippingCity);
-  const { cart, loading, fetchCart } = useCart(isLoggedIn);
+  const { cart, loading } = useCart(isLoggedIn);
   const { setCart: setDrawerCart, reloadCart: reloadDrawerCart } = useCartDrawer();
   useUserProfile(isLoggedIn, isLoading, setValue);
   const bagFee = useMemo(() => {
@@ -201,7 +201,6 @@ export function useCheckout() {
         setDrawerCart,
         async () => {
           await reloadDrawerCart({ silent: true });
-          await fetchCart();
         }
       );
     } catch {

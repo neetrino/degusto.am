@@ -74,13 +74,23 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
   } = useCartDrawer();
   const [currency, setCurrency] = useState(HYDRATION_SAFE_CURRENCY);
   const isLocalUpdateRef = useRef(false);
+  const requestedOpenReloadRef = useRef(false);
 
   useEffect(() => {
     clearLegacyGuestCartLocalStorage();
   }, []);
 
   useEffect(() => {
-    if (!isVisible || cartLoading) {
+    if (!isVisible) {
+      requestedOpenReloadRef.current = false;
+      return;
+    }
+
+    if (cartLoading) {
+      return;
+    }
+
+    if (requestedOpenReloadRef.current) {
       return;
     }
 
@@ -93,6 +103,7 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
       return;
     }
 
+    requestedOpenReloadRef.current = true;
     void reloadCart({ silent: false });
   }, [isVisible, cart, cartLoading, reloadCart]);
 

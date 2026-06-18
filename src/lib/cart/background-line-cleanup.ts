@@ -11,6 +11,7 @@ import {
 const BACKGROUND_DELETE_MAX_ATTEMPTS = 4;
 const BACKGROUND_DELETE_BASE_DELAY_MS = 180;
 const BACKGROUND_DELETE_TIMEOUT_MS = 8_000;
+const BACKGROUND_DELETE_RETRY_COOLDOWN_MS = 15_000;
 
 const inFlightDeletesByKey = new Map<string, Promise<void>>();
 const failedDeletesByKey = new Map<
@@ -96,6 +97,11 @@ export async function deleteMatchingCartLineInBackground(
   preferredServerItemId?: string
 ): Promise<void> {
   const cleanupKey = buildCartLineRemovalKey(item);
+  const failedRecord = failedDeletesByKey.get(cleanupKey);
+  if (failedRecord && Date.now() - failedRecord.failedAt < BACKGROUND_DELETE_RETRY_COOLDOWN_MS) {
+    return;
+  }
+
   const inFlight = inFlightDeletesByKey.get(cleanupKey);
   if (inFlight) {
     return inFlight;
@@ -138,6 +144,11 @@ export async function deleteMatchingCartLineInBackground(
       logger.debug('Background cart line cleanup skipped: no confirmed server match', {
         cleanupKey,
         preferredServerItemId: preferredServerItemId ?? null,
+      });
+      failedDeletesByKey.set(cleanupKey, {
+        failedAt: Date.now(),
+        message: 'no-confirmed-server-match',
+        status: null,
       });
     } catch (error: unknown) {
       if (isCartItemNotFound(error)) {
