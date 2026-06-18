@@ -12,18 +12,11 @@ function isPrismaPoolTimeout(error: unknown): boolean {
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2024';
 }
 
-function shouldRethrowDatabaseConnectionError(): boolean {
-  if (isNextBuildWithoutDbEnv()) {
-    return false;
-  }
-  return process.env.VERCEL === '1' || process.env.NODE_ENV === 'production';
-}
-
 /**
  * Runs a Prisma-backed operation with retries on pool timeouts.
- * Connection failures rethrow in production/Vercel runtime (error boundary / logs) instead of silent empty UI.
+ * Connection failures return the provided fallback to keep storefront SSR responsive.
  * Next.js production builds without a real DATABASE_URL use empty fallbacks so CI/`next build` can finish.
- * Local development without Postgres may also use fallbacks when not in production runtime.
+ * Local development without Postgres also falls back while still logging diagnostics.
  */
 export async function withPrismaResilience<T>(
   operation: () => Promise<T>,
@@ -43,10 +36,10 @@ export async function withPrismaResilience<T>(
           nodeEnv: process.env.NODE_ENV,
           vercel: process.env.VERCEL === '1',
         });
-        if (shouldRethrowDatabaseConnectionError()) {
-          throw error;
+        if (isNextBuildWithoutDbEnv()) {
+          return fallback;
         }
-        logger.warn(`[${scope}] Using empty fallback for ${step} (development only)`);
+        logger.warn(`[${scope}] Using safe fallback for ${step}`);
         return fallback;
       }
       if (!isPrismaPoolTimeout(error)) {
