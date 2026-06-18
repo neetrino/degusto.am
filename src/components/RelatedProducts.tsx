@@ -99,7 +99,7 @@ export function RelatedProducts({
     currentProductId,
     language,
     productSlug,
-    enabled: productSlug ? true : (hasInitialProducts || inView),
+    enabled: hasInitialProducts || inView,
     initialProducts: effectiveInitialProducts,
     initialLanguage: effectiveInitialLanguage,
   });
