@@ -1,4 +1,5 @@
 import type { StorefrontLocale } from '@/lib/i18n/locale';
+import { getStorefrontCategorySlugCandidates } from '@/constants/storefront-all-category-slug';
 import { buildProductWhereTasteCapability } from '@/lib/product-food-attributes';
 import {
   buildPublishedVariantPriceSomeWhere,
@@ -71,7 +72,8 @@ export function buildShopProductWhere(
   productWhereBase: Prisma.ProductWhereInput,
   selectedCategoryIds: string[] = []
 ): Prisma.ProductWhereInput {
-  if (!query.selectedCategorySlug) {
+  const selectedCategorySlugs = getStorefrontCategorySlugCandidates(query.selectedCategorySlug);
+  if (selectedCategorySlugs.length === 0) {
     return productWhereBase;
   }
 
@@ -83,7 +85,7 @@ export function buildShopProductWhere(
         translations: {
           some: {
             locale: { in: [locale, 'en'] },
-            slug: query.selectedCategorySlug,
+            slug: { in: selectedCategorySlugs },
           },
         },
       },

@@ -1,6 +1,7 @@
 import { unstable_cache } from 'next/cache';
 import { cache } from 'react';
 import { STORE_MENU_PAGE_SIZE } from '@/constants/store-menu-page-size';
+import { getStorefrontCategorySlugCandidates } from '@/constants/storefront-all-category-slug';
 import { withPrismaResilience } from '@/lib/db/with-prisma-resilience';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
 import { db } from '@white-shop/db';
@@ -193,8 +194,8 @@ async function fetchShopCategoryRows(locale: StorefrontLocale): Promise<Category
 async function resolveCategoryIdsForSlug(
   selectedCategorySlug: string
 ): Promise<string[]> {
-  const normalizedSlug = selectedCategorySlug.trim();
-  if (!normalizedSlug) {
+  const slugCandidates = getStorefrontCategorySlugCandidates(selectedCategorySlug);
+  if (slugCandidates.length === 0) {
     return [];
   }
 
@@ -204,7 +205,9 @@ async function resolveCategoryIdsForSlug(
       deletedAt: null,
       translations: {
         some: {
-          slug: normalizedSlug,
+          slug: {
+            in: slugCandidates,
+          },
         },
       },
     },
