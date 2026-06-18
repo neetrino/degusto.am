@@ -22,7 +22,6 @@ class AdminService {
   getUserActivity = adminStatsService.getUserActivity.bind(adminStatsService);
   getRecentOrders = adminStatsService.getRecentOrders.bind(adminStatsService);
   getTopProducts = adminStatsService.getTopProducts.bind(adminStatsService);
-  getActivity = adminStatsService.getActivity.bind(adminStatsService);
   getAnalytics = adminStatsService.getAnalytics.bind(adminStatsService);
 
   // Users methods

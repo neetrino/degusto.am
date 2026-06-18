@@ -2,7 +2,6 @@ import { getStats } from "./admin-stats/stats-calculator";
 import { getUserActivity } from "./admin-stats/user-activity";
 import { getRecentOrders } from "./admin-stats/recent-orders";
 import { getTopProducts } from "./admin-stats/top-products";
-import { getActivity } from "./admin-stats/activity";
 import { getAnalytics } from "./admin-stats/analytics";
 
 /**
@@ -35,13 +34,6 @@ class AdminStatsService {
    */
   async getTopProducts(limit: number = 5) {
     return getTopProducts(limit);
-  }
-
-  /**
-   * Get recent activity for dashboard
-   */
-  async getActivity(limit: number = 10) {
-    return getActivity(limit);
   }
 
   /**
