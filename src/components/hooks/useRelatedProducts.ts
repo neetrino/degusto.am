@@ -21,8 +21,6 @@ interface UseRelatedProductsProps {
 }
 
 const RELATED_PRODUCTS_LIMIT = 5;
-const RELATED_PRODUCTS_MAX = 10;
-const RELATED_PRODUCTS_MAX_PAGES = Math.ceil(RELATED_PRODUCTS_MAX / RELATED_PRODUCTS_LIMIT);
 
 function mergeUniqueRelatedProducts(items: RelatedCardPayload[]): RelatedCardPayload[] {
   const byId = new Map<string, RelatedCardPayload>();
@@ -82,35 +80,6 @@ export function useRelatedProducts({
     });
   };
 
-  const loadRemainingRelatedPages = async (
-    encodedSlug: string,
-    lang: LanguageCode,
-    initialLoadedCount: number
-  ): Promise<RelatedCardPayload[]> => {
-    if (initialLoadedCount >= RELATED_PRODUCTS_MAX) {
-      return [];
-    }
-
-    const offsets: number[] = [];
-    for (
-      let offset = initialLoadedCount;
-      offset < RELATED_PRODUCTS_MAX && offsets.length < RELATED_PRODUCTS_MAX_PAGES;
-      offset += RELATED_PRODUCTS_LIMIT
-    ) {
-      offsets.push(offset);
-    }
-
-    if (offsets.length === 0) {
-      return [];
-    }
-
-    const pageResponses = await Promise.all(
-      offsets.map((offset) => loadRelatedPage(encodedSlug, lang, offset))
-    );
-
-    return pageResponses.flatMap((response) => response.data);
-  };
-
   useEffect(() => {
     if (!enabled) {
       return;
@@ -128,26 +97,8 @@ export function useRelatedProducts({
           const encoded = encodeURIComponent(productSlug.trim());
           if (hasServerSnapshot) {
             const seededSource = initialProducts ?? [];
-            const seeded = filterRelatedProducts(seededSource, currentProductId);
-            setProducts(seeded);
+            setProducts(filterRelatedProducts(seededSource, currentProductId));
             setLoading(false);
-            const remaining = await loadRemainingRelatedPages(
-              encoded,
-              language,
-              seededSource.length
-            );
-            requestCount += Math.ceil(
-              Math.max(0, RELATED_PRODUCTS_MAX - seededSource.length) /
-                RELATED_PRODUCTS_LIMIT
-            );
-            if (remaining.length > 0) {
-              const mergedAll = mergeUniqueRelatedProducts([
-                ...seededSource,
-                ...remaining,
-              ]).slice(0, RELATED_PRODUCTS_MAX);
-              setRelatedProductsSnapshot(productSlug, language, mergedAll);
-              setProducts(filterRelatedProducts(mergedAll, currentProductId));
-            }
             return;
           }
 
@@ -156,23 +107,6 @@ export function useRelatedProducts({
           const firstBatch = filterRelatedProducts(firstResponse.data, currentProductId);
           setProducts(firstBatch);
           setRelatedProductsSnapshot(productSlug, language, firstResponse.data);
-          const remaining = await loadRemainingRelatedPages(
-            encoded,
-            language,
-            firstResponse.data.length
-          );
-          requestCount += Math.ceil(
-            Math.max(0, RELATED_PRODUCTS_MAX - firstResponse.data.length) /
-              RELATED_PRODUCTS_LIMIT
-          );
-          if (remaining.length > 0) {
-            const mergedAll = mergeUniqueRelatedProducts([
-              ...firstResponse.data,
-              ...remaining,
-            ]).slice(0, RELATED_PRODUCTS_MAX);
-            setRelatedProductsSnapshot(productSlug, language, mergedAll);
-            setProducts(filterRelatedProducts(mergedAll, currentProductId));
-          }
           return;
         }
 
