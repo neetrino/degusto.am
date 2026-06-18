@@ -190,6 +190,31 @@ async function fetchShopCategoryRows(locale: StorefrontLocale): Promise<Category
   return fetchShopCategoryRowsForRequest(locale);
 }
 
+async function resolveCategoryIdsForSlug(
+  selectedCategorySlug: string
+): Promise<string[]> {
+  const normalizedSlug = selectedCategorySlug.trim();
+  if (!normalizedSlug) {
+    return [];
+  }
+
+  const rows = await db.category.findMany({
+    where: {
+      published: true,
+      deletedAt: null,
+      translations: {
+        some: {
+          slug: normalizedSlug,
+        },
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+  return rows.map((row) => row.id);
+}
+
 async function fetchShopProductPage(
   locale: StorefrontLocale,
   query: Pick<
@@ -204,7 +229,20 @@ async function fetchShopProductPage(
   >,
   productWhereBase: ReturnType<typeof buildShopProductWhereBase>
 ): Promise<Pick<ShopMenuDbResult, 'productTotal' | 'productRows'>> {
-  const productWhere = buildShopProductWhere(locale, query as ShopMenuQuery, productWhereBase);
+  const selectedCategoryIds = query.selectedCategorySlug
+    ? await withPrismaResilience(
+        () => resolveCategoryIdsForSlug(query.selectedCategorySlug),
+        [] as string[],
+        'SHOP',
+        'category ids by slug'
+      )
+    : [];
+  const productWhere = buildShopProductWhere(
+    locale,
+    query as ShopMenuQuery,
+    productWhereBase,
+    selectedCategoryIds
+  );
   const menuFast = query.menuFast === true;
   const countStartedAt = Date.now();
   const productTotalPromise = db.product
