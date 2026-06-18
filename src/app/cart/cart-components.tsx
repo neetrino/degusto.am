@@ -16,6 +16,25 @@ import { createProductPreviewSummary } from '@/lib/products/product-preview';
 
 type DisplayLine = NonNullable<CartItem['variant']['displayLines']>[number];
 
+function normalizeCartProductTitle(title: string, slug: string): string {
+  const cleanTitle = title.trim();
+  if (!cleanTitle) {
+    return slug.trim();
+  }
+
+  const looksLikeSlug = cleanTitle.includes('-') && !cleanTitle.includes(' ');
+  if (!looksLikeSlug) {
+    return cleanTitle;
+  }
+
+  const humanized = cleanTitle.replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!humanized) {
+    return cleanTitle;
+  }
+
+  return humanized.charAt(0).toUpperCase() + humanized.slice(1);
+}
+
 function CartItemVariantChips({ lines, appearance = 'page' }: { lines: DisplayLine[]; appearance?: CartListAppearance }) {
   if (lines.length === 0) {
     return null;
@@ -166,11 +185,12 @@ export function CartItemRow({
   const { lang } = useTranslation();
   const currencyCode = currency as CurrencyCode;
   const lines = item.variant.displayLines ?? [];
+  const normalizedTitle = normalizeCartProductTitle(item.variant.product.title, item.variant.product.slug);
   const isDrawer = appearance === 'drawer';
   const previewSummary = createProductPreviewSummary({
     id: item.variant.product.id,
     slug: item.variant.product.slug,
-    title: item.variant.product.title,
+    title: normalizedTitle,
     image: resolveStorefrontProductImage(item.variant.product.image),
     price: item.price,
     oldPrice: item.originalPrice && item.originalPrice > item.price ? item.originalPrice : null,
@@ -189,7 +209,7 @@ export function CartItemRow({
         slug={item.variant.product.slug}
         preview={previewSummary}
         className={cartItemImageLinkClassName(appearance)}
-        aria-label={item.variant.product.title}
+        aria-label={normalizedTitle}
       >
         <Image
           src={resolveStorefrontProductImage(item.variant.product.image)}
@@ -208,11 +228,11 @@ export function CartItemRow({
             preview={previewSummary}
             className={
               isDrawer
-                ? 'line-clamp-2 text-base font-bold text-white transition-colors hover:text-white/90'
-                : 'line-clamp-2 text-base font-bold text-gray-900 transition-colors hover:text-[#F66812]'
+                ? 'line-clamp-2 break-words text-base font-bold text-white transition-colors hover:text-white/90'
+                : 'line-clamp-2 break-words text-base font-bold text-gray-900 transition-colors hover:text-[#F66812]'
             }
           >
-            {item.variant.product.title}
+            {normalizedTitle}
           </ProductPageLink>
           {!isDrawer && lines.length > 0 ? <CartItemVariantChips lines={lines} appearance={appearance} /> : null}
           {(item.customizations?.additions || item.customizations?.exclusions) ? (
