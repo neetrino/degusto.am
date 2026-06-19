@@ -14,6 +14,7 @@ type ShopMenuPageLoaderProps = {
   maxPriceAmd: number | null;
   tasteFilter: 'leaf' | 'pepper' | null;
   showMobileProductsList: boolean;
+  renderDesktopLayout: boolean;
 };
 
 /**
@@ -29,6 +30,7 @@ export async function ShopMenuPageLoader({
   maxPriceAmd,
   tasteFilter,
   showMobileProductsList,
+  renderDesktopLayout,
 }: ShopMenuPageLoaderProps) {
   const { cards, categories, showCategoryPicker, effectivePage, totalPages } = await getShopMenuData({
     ...menuQuery,
@@ -64,6 +66,7 @@ export async function ShopMenuPageLoader({
         }}
         showMobileProductsList={showMobileProductsList}
         showCategoryPicker={showCategoryPicker}
+        renderDesktopLayout={renderDesktopLayout}
       />
     </Suspense>
   );

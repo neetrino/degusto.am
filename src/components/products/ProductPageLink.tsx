@@ -49,7 +49,7 @@ export function ProductPageLink({
   return (
     <Link
       href={href}
-      prefetch
+      prefetch={false}
       onMouseEnter={(event) => {
         warm();
         onMouseEnter?.(event);

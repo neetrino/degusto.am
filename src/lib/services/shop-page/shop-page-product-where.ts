@@ -48,13 +48,15 @@ export function buildShopProductWhere(
           { categoryIds: { hasSome: selectedCategoryIds } },
         ]
       : [];
+  const categoryFilter =
+    categoryIdBackfillFilter.length > 0
+      ? { OR: categoryIdBackfillFilter }
+      : { OR: [categorySlugFilter] };
 
   return {
     AND: [
       productWhereBase,
-      {
-        OR: [categorySlugFilter, ...categoryIdBackfillFilter],
-      },
+      categoryFilter,
     ],
   };
 }

@@ -44,9 +44,11 @@ const DESKTOP_MENU_CARD_IMAGE_FRAME_CLASS =
 function FigmaDesktopShopMenuCardItemBase({
   card,
   imagePriority = false,
+  enableVisibilityPrefetch = false,
 }: {
   card: MenuCard;
   imagePriority?: boolean;
+  enableVisibilityPrefetch?: boolean;
 }) {
   const { t, lang } = useTranslation();
   const currency = useCurrency();
@@ -121,7 +123,7 @@ function FigmaDesktopShopMenuCardItemBase({
 
   return (
     <article
-      ref={visibilityRef}
+      ref={enableVisibilityPrefetch ? visibilityRef : null}
       data-home-product-card
       className={`relative ${DESKTOP_MENU_CARD_HEIGHT_CLASS} w-full shrink-0 cursor-pointer rounded-[20px] border-[1.5px] border-[#dedede] bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} hover:shadow-md`}
       onMouseEnter={warmProductRoute}

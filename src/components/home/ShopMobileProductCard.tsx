@@ -59,7 +59,7 @@ type ShopMobileProductCardProps = {
 function ShopMobileProductCardBase({
   card,
   imagePriority = false,
-  enableVisibilityPrefetch = true,
+  enableVisibilityPrefetch = false,
   hideGreensBadge = false,
 }: ShopMobileProductCardProps) {
   const { t, lang } = useTranslation();
