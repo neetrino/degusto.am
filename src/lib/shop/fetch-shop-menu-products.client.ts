@@ -84,7 +84,7 @@ async function fetchShopMenuProductsFromNetwork(
 ): Promise<ShopMenuProductsResponse> {
   const response = await fetch(url, { credentials: 'include', signal });
   if (!response.ok) {
-    throw new Error(`Shop menu products fetch failed: ${response.status}`);
+    throw new Error(`Menu products fetch failed: ${response.status}`);
   }
   return normalizeShopMenuProductsResponse(
     (await response.json()) as {
