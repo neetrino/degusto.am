@@ -93,6 +93,7 @@ export function FigmaDesktopMenuPage({
     displayActiveCategorySlug,
     displayPagination: desktopDisplayPagination,
     isProductsPending,
+    previewTasteFilterForHref,
     navigateCategory,
     syncProductsFromHref,
     prefetchCategory,
@@ -159,21 +160,22 @@ export function FigmaDesktopMenuPage({
   const handleFoodFilterChange = useCallback(
     (nextTaste: 'leaf' | 'neutral' | 'pepper') => {
       setFoodFilter(nextTaste);
-      commitShopUrlChange(
-        buildTargetPath(resolvedActiveCategorySlug, {
-          search: searchTerm,
-          minPrice,
-          maxPrice,
-          taste: nextTaste,
-          page: 1,
-        })
-      );
+      const href = buildTargetPath(resolvedActiveCategorySlug, {
+        search: searchTerm,
+        minPrice,
+        maxPrice,
+        taste: nextTaste,
+        page: 1,
+      });
+      previewTasteFilterForHref(href);
+      commitShopUrlChange(href);
     },
     [
       buildTargetPath,
       commitShopUrlChange,
       maxPrice,
       minPrice,
+      previewTasteFilterForHref,
       resolvedActiveCategorySlug,
       searchTerm,
     ]

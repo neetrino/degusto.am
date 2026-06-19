@@ -115,6 +115,20 @@ export function peekShopMenuProductsCache(url: string): ShopMenuProductsCachePee
   };
 }
 
+/** Visits non-expired cache entries (e.g. taste-filter preview derivation). */
+export function forEachValidShopMenuProductsCacheEntry(
+  visitor: (url: string, data: ShopMenuProductsResponse) => void
+): void {
+  const now = Date.now();
+  for (const [url, entry] of responseCache) {
+    if (!isWithinMaxAge(entry, now)) {
+      responseCache.delete(url);
+      continue;
+    }
+    visitor(url, entry.data);
+  }
+}
+
 /** Seeds client cache from SSR props so repeat soft-nav skips a network round trip. */
 export function seedShopMenuProductsCache(href: string, data: ShopMenuProductsResponse): void {
   rememberShopMenuProductsResponse(hrefToMenuProductsApiUrl(href), data);
