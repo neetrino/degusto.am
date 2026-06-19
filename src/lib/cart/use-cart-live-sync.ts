@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type SetStateAction } from 'react';
 import type { Cart, CartItem } from '@/app/cart/types';
 import { fetchCartFromApi } from '@/app/cart/cart-fetcher';
-import { parseCartUpdatedDetail } from '@/lib/cart/cart-events';
+import { parseCartUpdatedDetail, wasCartCheckoutRecentlyCompleted } from '@/lib/cart/cart-events';
 import {
   applyOptimisticCartAdd,
   confirmOptimisticCartLine,
@@ -12,12 +12,12 @@ import {
 import { buildCustomizationLineKey, normalizeProductCustomizations } from '@/lib/cart/customizations';
 import { applyRemovedLinesFilter } from '@/lib/cart/pending-cart-removals';
 import { dispatchCartSummarySync } from '@/lib/cart/cart-summary-sync';
+import { CART_SNAPSHOT_CACHE_KEY } from '@/lib/cart/cart-snapshot-cache';
 import { createEmptyCart } from '@/lib/cart/empty-cart';
 import { ApiError } from '@/lib/api-client/types';
 import { logCartFrontendDiagnostic } from '@/lib/cart/cart-frontend-diagnostics';
 
 const CART_RECONCILE_DEBOUNCE_MS = 400;
-const CART_SNAPSHOT_CACHE_KEY = 'shop_cart_snapshot_cache';
 const CART_SNAPSHOT_MAX_AGE_MS = 1000 * 60 * 5;
 const CART_ENDPOINT = '/api/v1/cart';
 
@@ -161,6 +161,9 @@ function resolveInitialCartState(): Cart | null {
   if (typeof window === 'undefined') {
     return null;
   }
+  if (wasCartCheckoutRecentlyCompleted()) {
+    return null;
+  }
 
   return readCartSnapshotCache();
 }
@@ -274,7 +277,9 @@ export function useCartLiveSync({
           if (generation !== reloadGenerationRef.current) {
             return;
           }
-          const snapshotFallback = readCartSnapshotCache();
+          const snapshotFallback = wasCartCheckoutRecentlyCompleted()
+            ? null
+            : readCartSnapshotCache();
           const preservedPreviousState = Boolean(cartRef.current);
           const fallbackSource = preservedPreviousState
             ? 'previous_cart'
@@ -341,6 +346,24 @@ export function useCartLiveSync({
   }, [isAuthLoading, isLoggedIn, reloadCart]);
 
   useEffect(() => {
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (!wasCartCheckoutRecentlyCompleted()) {
+        return;
+      }
+      if (!event.persisted) {
+        return;
+      }
+      commitCartMutation(createEmptyCart());
+      void reloadCart({ silent: true });
+    };
+
+    window.addEventListener('pageshow', onPageShow);
+    return () => {
+      window.removeEventListener('pageshow', onPageShow);
+    };
+  }, [commitCartMutation, reloadCart]);
+
+  useEffect(() => {
     const onCartUpdate = (event: Event) => {
       const detail = parseCartUpdatedDetail(event);
       if (!detail) {
@@ -349,10 +372,19 @@ export function useCartLiveSync({
 
       if (detail.forceReload) {
         mutationSequenceRef.current += 1;
-        setCartSyncState('syncing');
         pendingOptimisticLinesRef.current.clear();
+        if ((cartRef.current?.itemsCount ?? 0) > 0) {
+          commitCartMutation(createEmptyCart());
+        }
+        setCartSyncState('syncing');
         void reloadCart({ silent: true });
         return;
+      }
+
+      if (detail.skipReconcile && detail.itemsCount === 0) {
+        if ((cartRef.current?.itemsCount ?? 0) > 0) {
+          commitCartMutation(createEmptyCart());
+        }
       }
 
       if (detail.skipReconcile) {

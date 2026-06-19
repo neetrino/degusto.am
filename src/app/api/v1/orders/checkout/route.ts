@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     
     const result = await ordersService.checkout(data, user?.id, guestToken);
     if (user?.id) {
-      await invalidateUserDashboardCache(user.id);
+      void invalidateUserDashboardCache(user.id);
     }
     
     logger.info("Checkout successful", {

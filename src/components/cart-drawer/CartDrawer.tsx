@@ -20,6 +20,7 @@ import {
 } from './cart-drawer-motion-variants';
 import { readCartSummaryCache } from '@/lib/cartSummaryCache';
 import { cartHasVisibleItems } from '@/lib/cart/cart-summary-sync';
+import { wasCartCheckoutRecentlyCompleted } from '@/lib/cart/cart-events';
 import { clearLegacyGuestCartLocalStorage } from '@/lib/cart/guest-cart-cookies';
 import { useCartDrawer } from './cart-drawer-context';
 import { useState } from 'react';
@@ -94,12 +95,17 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
       return;
     }
 
-    if (cartHasVisibleItems(cart)) {
+    const cached = readCartSummaryCache();
+    const cachedCount = cached?.itemsCount ?? 0;
+    const hasStaleItemsAfterCheckout =
+      wasCartCheckoutRecentlyCompleted() ||
+      (cartHasVisibleItems(cart) && cachedCount === 0);
+
+    if (cartHasVisibleItems(cart) && !hasStaleItemsAfterCheckout) {
       return;
     }
 
-    const cached = readCartSummaryCache();
-    if ((cached?.itemsCount ?? 0) === 0 && cart !== null) {
+    if (!cartHasVisibleItems(cart) && cachedCount === 0 && cart !== null) {
       return;
     }
 

@@ -1,4 +1,6 @@
 import type { MenuCard } from '@/components/home/menu-types';
+import type { LanguageCode } from '@/lib/language';
+import { resolveShopCategoryTitle } from '@/lib/services/shop-page/shop-page-category-titles';
 
 type TranslateFn = (_key: string) => string;
 
@@ -155,10 +157,30 @@ export function resolveStorefrontCategoryLabel(
 /**
  * Resolves product card category label through locale dictionaries when possible.
  */
-export function resolveMenuCardCategoryLabel(card: MenuCard, t: TranslateFn): string {
+export function resolveMenuCardCategoryLabel(
+  card: MenuCard,
+  t: TranslateFn,
+  lang?: LanguageCode
+): string {
   if (card.categoryKey) {
     return t(card.categoryKey);
   }
+
+  const slug = card.categorySlug?.trim();
+  if (slug && lang) {
+    const fromSlugTable = resolveShopCategoryTitle(lang, {
+      slug,
+      locale: lang,
+      title: card.category ?? '',
+    });
+    const normalizedSlug = slug.toLowerCase();
+    const hasCanonicalSlug =
+      STOREFRONT_CATEGORY_TRANSLATION_KEY_BY_SLUG[normalizedSlug] !== undefined;
+    if (hasCanonicalSlug || fromSlugTable !== card.category) {
+      return fromSlugTable;
+    }
+  }
+
   return resolveStorefrontCategoryLabel(
     {
       slug: card.categorySlug,

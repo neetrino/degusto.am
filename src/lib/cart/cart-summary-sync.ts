@@ -1,7 +1,6 @@
 import type { Cart } from '@/app/cart/types';
-import { writeCartSummaryCache } from '../cartSummaryCache';
+import { clearCartSummaryCache, writeCartSummaryCache } from '../cartSummaryCache';
 import type { CartUpdatedDetail } from './cart-events';
-import { resetCartBadgeState } from './cart-events';
 
 /** Keep header badge and drawer cart on the same counts/totals. */
 export function dispatchCartSummarySync(cart: Cart | null): void {
@@ -12,7 +11,7 @@ export function dispatchCartSummarySync(cart: Cart | null): void {
   const itemsCount = cart?.itemsCount ?? 0;
   const total = cart?.totals?.total ?? 0;
   if (itemsCount === 0) {
-    resetCartBadgeState();
+    clearCartSummaryCache();
     return;
   }
   writeCartSummaryCache(itemsCount, total);

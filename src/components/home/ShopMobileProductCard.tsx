@@ -62,13 +62,13 @@ function ShopMobileProductCardBase({
   enableVisibilityPrefetch = true,
   hideGreensBadge = false,
 }: ShopMobileProductCardProps) {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const currency = useCurrency();
   const router = useRouter();
   const { isLoggedIn } = useAuth();
   const { isInWishlist, toggleWishlist } = useWishlist(card.id);
   const title = card.title || (card.titleKey ? t(card.titleKey) : '');
-  const category = resolveMenuCardCategoryLabel(card, t);
+  const category = resolveMenuCardCategoryLabel(card, t, lang);
   const imageSrc = resolveStorefrontProductImage(card.image);
   const formattedPrice = formatPrice(card.price, currency);
   const formattedOldPrice = formatPrice(card.oldPrice, currency);

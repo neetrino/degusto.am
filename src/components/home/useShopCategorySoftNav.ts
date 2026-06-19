@@ -14,6 +14,7 @@ import {
 import {
   hrefToMenuProductsApiUrl,
   peekShopMenuProductsCache,
+  clearShopMenuProductsClientCache,
 } from '@/lib/shop/shop-menu-products-cache';
 import { prefetchStorefrontRoute } from '@/lib/routing/prefetch-storefront-route';
 import { logger } from '@/lib/utils/logger';
@@ -217,6 +218,43 @@ export function useShopCategorySoftNav({
     [applyProductPage]
   );
 
+  const reloadProductsForCurrentHref = useCallback(async () => {
+    if (!enabledRef.current || typeof window === 'undefined') {
+      return;
+    }
+
+    clearShopMenuProductsClientCache();
+
+    const href = `${window.location.pathname}${window.location.search}`;
+    const categorySlug = hrefToCategorySlug(href);
+    const generation = ++navigationGenerationRef.current;
+    abortControllerRef.current?.abort();
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
+    try {
+      const data = await fetchShopMenuProducts(href, {
+        signal: abortController.signal,
+        forceNetwork: true,
+      });
+      if (generation !== navigationGenerationRef.current) {
+        return;
+      }
+      applyProductPage(data, href, categorySlug, 'none');
+    } catch (error: unknown) {
+      if (!isAbortError(error)) {
+        logger.warn('[Shop] Language-change menu products reload failed', {
+          href,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    } finally {
+      if (generation === navigationGenerationRef.current) {
+        setIsProductsPending(false);
+      }
+    }
+  }, [applyProductPage]);
+
   const navigateCategory = useCallback(
     (href: string, categorySlug: string) => {
       if (!enabledRef.current) {
@@ -249,6 +287,12 @@ export function useShopCategorySoftNav({
       return;
     }
 
+    const handleLanguageUpdate = () => {
+      void reloadProductsForCurrentHref();
+    };
+
+    window.addEventListener('language-updated', handleLanguageUpdate);
+
     const handlePopState = () => {
       const href = `${window.location.pathname}${window.location.search}`;
       const rawCategory = hrefToCategorySlug(href);
@@ -259,9 +303,10 @@ export function useShopCategorySoftNav({
     return () => {
       abortControllerRef.current?.abort();
       abortControllerRef.current = null;
+      window.removeEventListener('language-updated', handleLanguageUpdate);
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [enabled, loadProductsForHref]);
+  }, [enabled, loadProductsForHref, reloadProductsForCurrentHref]);
 
   return {
     displayCards,

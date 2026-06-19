@@ -77,12 +77,14 @@ export function OrderSummaryModal({
         <span className={CHECKOUT_TEXT_LABEL}>{t('checkout.summary.shipping')}:</span>
         <span className={`text-right ${CHECKOUT_TEXT_VALUE}`}>{shippingDisplay}</span>
       </div>
-      <div className="flex justify-between gap-2 text-sm">
-        <span className={CHECKOUT_TEXT_LABEL}>{t('checkout.summary.bagFee')}:</span>
-        <span className={CHECKOUT_TEXT_VALUE}>
-          {formatPriceInCurrency(orderSummary.bagFeeDisplay, currency)}
-        </span>
-      </div>
+      {orderSummary.bagFeeDisplay > 0 ? (
+        <div className="flex justify-between gap-2 text-sm">
+          <span className={CHECKOUT_TEXT_LABEL}>{t('checkout.summary.bagFee')}:</span>
+          <span className={CHECKOUT_TEXT_VALUE}>
+            {formatPriceInCurrency(orderSummary.bagFeeDisplay, currency)}
+          </span>
+        </div>
+      ) : null}
       <div className="mt-2 border-t border-[#F66812]/15 pt-2">
         <div className="flex justify-between">
           <span className="font-semibold text-[#1F2E1F]">{t('checkout.summary.total')}:</span>

@@ -11,6 +11,7 @@ import { StorefrontProductOverlayLink } from './StorefrontProductOverlayLink';
 import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
 import type { HomeFeaturedProduct } from './home-page-types';
 import { PRODUCT_CARD_CART_BTN_HOVER_CLASS } from '@/constants/product-card-action-hover';
+import { resolveMenuCardCategoryLabel } from '@/lib/storefront/menu-card-category-label';
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
 import { RatingStars } from '@/components/RatingStars';
 
@@ -38,7 +39,20 @@ export function HomeDailyOfferHeroCard({
   const { t, lang } = useTranslation();
   const currency = useCurrency();
   const title = product.title;
-  const subtitle = product.subtitle ?? '';
+  const categoryLabel = resolveMenuCardCategoryLabel(
+    {
+      id: product.id,
+      slug: product.slug,
+      title,
+      category: product.subtitle,
+      categorySlug: product.categorySlug,
+      price: product.price ?? 0,
+      oldPrice: product.oldPrice ?? 0,
+      discount: '',
+    },
+    t,
+    lang
+  );
   const productHref = `/products/${product.slug}`;
   const imageSrc = resolveStorefrontProductImage(product.image);
   const discountPercent = Math.round(product.discountPercent ?? 0);
@@ -68,7 +82,9 @@ export function HomeDailyOfferHeroCard({
     price: product.price,
     oldPrice: product.oldPrice,
     discount: product.discountPercent,
-    category: subtitle ? { slug: `preview-${product.id}`, title: subtitle } : null,
+    category: categoryLabel
+      ? { slug: product.categorySlug ?? `preview-${product.id}`, title: categoryLabel }
+      : null,
     rating: product.rating ?? 5,
     currency,
     inStock: product.inStock ?? true,
@@ -120,8 +136,8 @@ export function HomeDailyOfferHeroCard({
         <h2 className="text-base font-bold leading-[1.05] text-[#3c2f2f]">
           <span className="block max-h-[34px] overflow-hidden break-words">{title}</span>
         </h2>
-        {subtitle ? (
-          <p className="mt-1 truncate text-base font-medium leading-[1.2] text-[#a1a1a1]">{subtitle}</p>
+        {categoryLabel ? (
+          <p className="mt-1 truncate text-base font-medium leading-[1.2] text-[#a1a1a1]">{categoryLabel}</p>
         ) : null}
       </div>
       {discountPercent > 0 ? (

@@ -102,6 +102,7 @@ function PurchaseHistoryTotals({
   const subtotalLabel = formatUsdMoney(totals.subtotal, currency);
   const discountAmount = totals.discount > 0 ? formatUsdMoney(totals.discount, currency) : null;
   const shippingAmd = totals.shipping;
+  const bagFeeAmd = totals.bagFee ?? 0;
   const shippingLabel =
     shippingMethod === 'pickup'
       ? t('checkout.shipping.freePickup')
@@ -109,13 +110,16 @@ function PurchaseHistoryTotals({
           currency === 'AMD' ? shippingAmd : convertPrice(shippingAmd, 'AMD', currency),
           currency
         );
+  const bagFeeLabel =
+    bagFeeAmd > 0
+      ? formatPriceInCurrency(
+          currency === 'AMD' ? bagFeeAmd : convertPrice(bagFeeAmd, 'AMD', currency),
+          currency
+        )
+      : null;
 
-  const subtotalAmd = convertPrice(totals.subtotal, 'USD', 'AMD');
-  const discountAmd = convertPrice(totals.discount, 'USD', 'AMD');
-  const taxAmd = convertPrice(totals.tax, 'USD', 'AMD');
-  const totalAmd = subtotalAmd - discountAmd + shippingAmd + taxAmd;
   const grandTotal = formatPriceInCurrency(
-    currency === 'AMD' ? totalAmd : convertPrice(totalAmd, 'AMD', currency),
+    currency === 'AMD' ? totals.total : convertPrice(totals.total, 'AMD', currency),
     currency
   );
 
@@ -136,6 +140,12 @@ function PurchaseHistoryTotals({
           <span>{t('orders.orderSummary.shipping')}</span>
           <span className="font-medium text-[#1a1a1a]">{shippingLabel}</span>
         </div>
+        {bagFeeLabel ? (
+          <div className="flex justify-between text-[#666666]">
+            <span>{t('checkout.summary.bagFee')}</span>
+            <span className="font-medium text-[#1a1a1a]">{bagFeeLabel}</span>
+          </div>
+        ) : null}
       </div>
       <div className="mt-4 flex items-center justify-between border-t border-[#eeeeee] pt-4">
         <span className="text-base font-bold text-[#1a1a1a]">

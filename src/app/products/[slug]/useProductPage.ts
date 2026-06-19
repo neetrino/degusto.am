@@ -6,11 +6,7 @@ import {
   HYDRATION_SAFE_CURRENCY,
   type CurrencyCode,
 } from '../../../lib/currency';
-import {
-  getStoredLanguage,
-  HYDRATION_SAFE_LANGUAGE,
-  type LanguageCode,
-} from '../../../lib/language';
+import { useLanguage } from '../../../lib/i18n-client';
 import { useAttributeGroups } from './useAttributeGroups';
 import { useProductImages } from './hooks/useProductImages';
 import { useReviews } from '../../../components/ProductReviews/hooks/useReviews';
@@ -46,7 +42,7 @@ export function useProductPage({
 }: UseProductPageProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currency, setCurrency] = useState<CurrencyCode>(HYDRATION_SAFE_CURRENCY);
-  const [language, setLanguage] = useState<LanguageCode>(HYDRATION_SAFE_LANGUAGE);
+  const language = useLanguage();
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [thumbnailStartIndex, setThumbnailStartIndex] = useState(0);
   const [additions, setAdditions] = useState('');
@@ -126,10 +122,6 @@ export function useProductPage({
   }, [reviews, reviewSummary.averageRating]);
 
   const reviewsCount = reviews.length > 0 ? reviews.length : reviewSummary.count;
-
-  useEffect(() => {
-    setLanguage(getStoredLanguage());
-  }, []);
 
   useEffect(() => {
     const handleCurrencyUpdate = () => setCurrency(getStoredCurrency());

@@ -23,6 +23,8 @@ function mapDtoItemToCartItem(item: CartDtoItem): CartItem {
         title: item.name,
         slug: item.slug ?? item.productId,
         image: item.image,
+        categoryId: item.categoryId ?? null,
+        category: item.category,
       },
     },
     quantity: item.quantity,

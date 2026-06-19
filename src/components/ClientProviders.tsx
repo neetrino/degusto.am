@@ -13,6 +13,7 @@ import { MobilePageScrollCache } from './mobile/MobilePageScrollCache';
 import { MobileRoutePrefetcher } from './mobile/MobileRoutePrefetcher';
 import { PdpChromeProvider } from '../app/products/[slug]/pdp-chrome-context';
 import { NotFoundPageProvider } from './errors/not-found-page.context';
+import { LanguageProvider } from '../lib/i18n-client';
 
 /**
  * ClientProviders component
@@ -20,6 +21,7 @@ import { NotFoundPageProvider } from './errors/not-found-page.context';
  */
 export function ClientProviders({ children }: { children: ReactNode }) {
   return (
+    <LanguageProvider>
     <AuthProvider>
       <WishlistIdsProvider>
       <CompareIdsProvider>
@@ -39,5 +41,6 @@ export function ClientProviders({ children }: { children: ReactNode }) {
       </CompareIdsProvider>
       </WishlistIdsProvider>
     </AuthProvider>
+    </LanguageProvider>
   );
 }

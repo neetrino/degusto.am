@@ -34,7 +34,6 @@ export default async function HomePage() {
         dailyOfferProduct={dailyOfferDesktop}
         mobile={
           <FigmaHomePageMobile
-            lang={locale}
             categories={categories}
             featuredProducts={featuredProducts}
             dailyOfferProduct={dailyOfferMobile}

@@ -1,6 +1,7 @@
+'use client';
+
 import Link from 'next/link';
-import { t } from '@/lib/i18n';
-import type { StorefrontLocale } from '@/lib/i18n/locale';
+import { useTranslation } from '@/lib/i18n-client';
 import { formatPrice } from '@/lib/currency';
 import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 import {
@@ -22,7 +23,6 @@ import {
 import type { MenuCard, MenuCategory } from './menu-types';
 
 type StorefrontMenuPageShellProps = {
-  locale: StorefrontLocale;
   routeBasePath: '/shop' | '/combo';
   titleKey: string;
   subtitleKey: string;
@@ -72,7 +72,6 @@ function StaticMenuProductCard({ card }: { card: MenuCard }) {
  * Server-rendered shop/combo shell shown while interactive menu hydrates.
  */
 export function StorefrontMenuPageShell({
-  locale,
   routeBasePath,
   titleKey,
   subtitleKey,
@@ -81,10 +80,11 @@ export function StorefrontMenuPageShell({
   activeCategorySlug = '',
   showMobileProductsList = true,
 }: StorefrontMenuPageShellProps) {
-  const title = t(locale, titleKey);
-  const subtitle = t(locale, subtitleKey);
-  const noProductsLabel = t(locale, 'common.messages.noProductsFound');
-  const categoriesLabel = t(locale, 'common.navigation.categories');
+  const { t } = useTranslation();
+  const title = t(titleKey);
+  const subtitle = t(subtitleKey);
+  const noProductsLabel = t('common.messages.noProductsFound');
+  const categoriesLabel = t('common.navigation.categories');
 
   return (
     <>

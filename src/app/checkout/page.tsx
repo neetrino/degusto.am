@@ -7,6 +7,7 @@ import { useTranslation } from '../../lib/i18n-client';
 import { CHECKOUT_CARD_FRAME, CHECKOUT_PAGE_GRID_CLASS, CHECKOUT_PAGE_SHELL_CLASS, CHECKOUT_PAGE_TITLE, CHECKOUT_PRIMARY_BUTTON, CHECKOUT_SUMMARY_COLUMN_CLASS, CHECKOUT_TEXT_INK_MUTED } from './checkout-ui';
 import { CheckoutForm } from './CheckoutForm';
 import { CheckoutModals } from './CheckoutModals';
+import { CheckoutLoginRequiredModal } from './components/CheckoutLoginRequiredModal';
 import { OrderSummary } from './OrderSummary';
 import { useCheckout } from './useCheckout';
 
@@ -23,6 +24,8 @@ export default function CheckoutPage() {
     setShowShippingModal,
     showCardModal,
     setShowCardModal,
+    showLoginRequiredModal,
+    setShowLoginRequiredModal,
     deliveryPrice,
     bagFee,
     deliveryUnavailable,
@@ -164,6 +167,11 @@ export default function CheckoutPage() {
         deliveryUnavailable={deliveryUnavailable}
         isLoggedIn={isLoggedIn}
         onSubmit={onSubmit}
+      />
+
+      <CheckoutLoginRequiredModal
+        isOpen={showLoginRequiredModal}
+        onClose={() => setShowLoginRequiredModal(false)}
       />
     </>
   );

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { resolveStorefrontLocaleFromNextRequest } from '@/lib/i18n/locale';
 import { apiRouteErrorResponse } from '@/lib/http/api-route-errors';
 import {
   parseShopMenuSearchParams,
@@ -11,7 +12,8 @@ export async function GET(req: NextRequest) {
   const startedAt = Date.now();
   try {
     const { searchParams } = new URL(req.url);
-    const parsed = parseShopMenuSearchParams(searchParams);
+    const locale = resolveStorefrontLocaleFromNextRequest(req);
+    const parsed = parseShopMenuSearchParams(searchParams, locale);
     const { data: products, metrics } = await getShopMenuProductsPageWithMetrics({
       ...toShopMenuProductsQuery(parsed),
       menuFast: true,

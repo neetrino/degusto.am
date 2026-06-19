@@ -1,3 +1,4 @@
+import { getStoredLanguage } from '@/lib/language';
 import type { ShopMenuProductsResponse } from './fetch-shop-menu-products.client.types';
 import {
   SHOP_MENU_CLIENT_CACHE_FRESH_MS,
@@ -78,11 +79,23 @@ export function resolveMenuRouteBaseFromHref(href: string): StorefrontMenuRouteB
 
 export function buildMenuProductsApiUrl(
   search: string,
-  routeBase: StorefrontMenuRouteBase = '/shop'
+  routeBase: StorefrontMenuRouteBase = '/shop',
+  locale?: string
 ): string {
-  const canonical = buildCanonicalSearch(search);
+  const normalizedSearch = search.startsWith('?') ? search.slice(1) : search;
+  const canonical = buildCanonicalSearch(normalizedSearch);
   const apiPath = MENU_PRODUCTS_API_PATH[routeBase];
-  return canonical ? `${apiPath}?${canonical}` : apiPath;
+  const resolvedLocale =
+    locale ?? (typeof window !== 'undefined' ? getStoredLanguage() : undefined);
+  const langSuffix =
+    resolvedLocale ? `lang=${encodeURIComponent(resolvedLocale)}` : '';
+  if (!canonical && !langSuffix) {
+    return apiPath;
+  }
+  if (!canonical) {
+    return `${apiPath}?${langSuffix}`;
+  }
+  return langSuffix ? `${apiPath}?${canonical}&${langSuffix}` : `${apiPath}?${canonical}`;
 }
 
 export function hrefToMenuProductsApiUrl(href: string): string {

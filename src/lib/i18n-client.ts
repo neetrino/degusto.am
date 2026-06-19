@@ -1,88 +1,85 @@
 'use client';
 
 /**
- * Client-side i18n React hook
- * This file contains React hooks that can only be used in Client Components
+ * Client-side i18n React context and hooks.
+ * Use LanguageProvider at the app root; consume via useTranslation / useLanguage.
  */
 
-import { useMemo, useCallback, useState, useEffect } from 'react';
-import { type LanguageCode } from './language';
-import { getStoredLanguage } from './language';
-import { t, getProductText, getAttributeLabel, clearTranslationCache, type ProductField } from './i18n';
+import {
+  createContext,
+  createElement,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
+import {
+  getStoredLanguage,
+  HYDRATION_SAFE_LANGUAGE,
+  type LanguageCode,
+} from './language';
+import {
+  t as translate,
+  getProductText,
+  getAttributeLabel,
+  clearTranslationCache,
+  type ProductField,
+} from './i18n';
 
-// Import translations to check available languages
-import enCommon from '../locales/en/common.json';
-import hyCommon from '../locales/hy/common.json';
-import ruCommon from '../locales/ru/common.json';
-
-const translations: Partial<Record<LanguageCode, any>> = {
-  en: { common: enCommon },
-  hy: { common: hyCommon },
-  ru: { common: ruCommon },
+type TranslationContextValue = {
+  lang: LanguageCode;
+  t: (path: string) => string;
+  getProductText: (productId: string, field: ProductField) => string;
+  getAttributeLabel: (type: string, value: string) => string;
 };
 
-/**
- * React hook for translations in client components
- * Automatically handles language updates and memoization
- * 
- * @returns Object with translation function and current language
- * 
- * @example
- * ```tsx
- * const { t, lang } = useTranslation();
- * return <button>{t('common.buttons.addToCart')}</button>;
- * ```
- */
-export function useTranslation() {
-  // Start with primary locale and sync from storage after mount.
-  // The language will be updated after mount in useEffect
-  const [lang, setLang] = useState<LanguageCode>('hy');
+const TranslationContext = createContext<TranslationContextValue | null>(null);
 
-  // Listen to language changes and update state reactively
+function warnInvalidPath(path: unknown): void {
+  if (process.env.NODE_ENV === 'development') {
+    console.warn('[i18n] useTranslation: Invalid path provided to t()', path);
+  }
+}
+
+/**
+ * Provides reactive language state for the entire client tree.
+ * Listens to `language-updated` from setStoredLanguage (no page reload).
+ */
+export function LanguageProvider({ children }: { children: ReactNode }) {
+  const [lang, setLang] = useState<LanguageCode>(HYDRATION_SAFE_LANGUAGE);
+
   useEffect(() => {
-    // Update language on mount to ensure we have the latest from localStorage
-    const updateLanguage = () => {
+    const syncLanguage = () => {
       const storedLang = getStoredLanguage();
-      const newLang: LanguageCode = (storedLang && storedLang in translations) ? storedLang : 'hy';
       setLang((currentLang) => {
-        if (newLang !== currentLang) {
-          // Clear translation cache when language changes
+        if (storedLang !== currentLang) {
           clearTranslationCache();
-          return newLang;
+          return storedLang;
         }
         return currentLang;
       });
     };
 
-    // Update immediately on mount
-    updateLanguage();
-
-    // Listen to language-updated events
-    const handleLanguageUpdate = () => {
-      updateLanguage();
-    };
-
-    window.addEventListener('language-updated', handleLanguageUpdate);
+    syncLanguage();
+    window.addEventListener('language-updated', syncLanguage);
     return () => {
-      window.removeEventListener('language-updated', handleLanguageUpdate);
+      window.removeEventListener('language-updated', syncLanguage);
     };
-  }, []); // Empty dependency array - only run on mount/unmount
+  }, []);
 
-  // Memoized translation function with validation
-  const translate = useCallback(
+  const t = useCallback(
     (path: string) => {
       if (!path || typeof path !== 'string') {
-        if (process.env.NODE_ENV === 'development') {
-          console.warn('[i18n] useTranslation: Invalid path provided to t()', path);
-        }
+        warnInvalidPath(path);
         return '';
       }
-      return t(lang, path);
+      return translate(lang, path);
     },
     [lang]
   );
 
-  // Memoized product text getter
   const getProduct = useCallback(
     (productId: string, field: ProductField) => {
       if (!productId || typeof productId !== 'string') {
@@ -93,7 +90,6 @@ export function useTranslation() {
     [lang]
   );
 
-  // Memoized attribute label getter
   const getAttribute = useCallback(
     (type: string, value: string) => {
       if (!type || !value || typeof type !== 'string' || typeof value !== 'string') {
@@ -104,16 +100,32 @@ export function useTranslation() {
     [lang]
   );
 
-  return useMemo(
+  const value = useMemo(
     () => ({
-      t: translate,
       lang,
+      t,
       getProductText: getProduct,
       getAttributeLabel: getAttribute,
     }),
-    [translate, lang, getProduct, getAttribute]
+    [lang, t, getProduct, getAttribute]
   );
+
+  return createElement(TranslationContext.Provider, { value }, children);
 }
 
+/**
+ * React hook for translations in client components.
+ * Automatically handles language updates and memoization.
+ */
+export function useTranslation(): TranslationContextValue {
+  const context = useContext(TranslationContext);
+  if (!context) {
+    throw new Error('useTranslation must be used within LanguageProvider');
+  }
+  return context;
+}
 
-
+/** Current storefront language from context (reactive on header switch). */
+export function useLanguage(): LanguageCode {
+  return useTranslation().lang;
+}

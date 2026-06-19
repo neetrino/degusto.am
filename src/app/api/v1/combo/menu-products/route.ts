@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { resolveStorefrontLocaleFromNextRequest } from '@/lib/i18n/locale';
 import { apiRouteErrorResponse } from '@/lib/http/api-route-errors';
 import { getComboMenuProductsPageWithMetrics } from '@/lib/services/combo-page/combo-page-data.service';
 import {
@@ -11,7 +12,8 @@ export async function GET(req: NextRequest) {
   const startedAt = Date.now();
   try {
     const { searchParams } = new URL(req.url);
-    const parsed = parseShopMenuSearchParams(searchParams);
+    const locale = resolveStorefrontLocaleFromNextRequest(req);
+    const parsed = parseShopMenuSearchParams(searchParams, locale);
     const { data: products, metrics } = await getComboMenuProductsPageWithMetrics({
       ...toShopMenuProductsQuery(parsed),
       menuFast: true,

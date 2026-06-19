@@ -55,6 +55,7 @@ function getHomeProductSelect(homeLang: StorefrontLocale) {
           select: {
             locale: true,
             title: true,
+            slug: true,
           },
         },
       },
@@ -137,7 +138,7 @@ type HomeProductDbRow = {
   discountPercent: number | null;
   media: unknown;
   translations: Array<{ locale: string; slug: string; title: string }>;
-  categories: Array<{ translations: Array<{ locale: string; title: string }> }>;
+  categories: Array<{ translations: Array<{ locale: string; title: string; slug: string }> }>;
   variants: Array<{
     id: string;
     published: boolean;
@@ -237,6 +238,7 @@ export async function loadHomePageData(homeLang: StorefrontLocale): Promise<Home
       slug: preferredTranslation?.slug || 'products',
       title: preferredTranslation?.title || 'Product',
       subtitle: preferredCategoryTranslation?.title || 'Կատեգորիա',
+      categorySlug: preferredCategoryTranslation?.slug ?? '',
       price: toPositiveNumber(mainVariant?.price),
       oldPrice: toPositiveNumber(mainVariant?.compareAtPrice),
       image: resolveStorefrontProductImageFromMedia(product.media),

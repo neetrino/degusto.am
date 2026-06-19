@@ -32,6 +32,7 @@ import { StorefrontCategoryLink } from '../routing/StorefrontCategoryLink';
 import { resolveHomeDailyOfferProduct } from './home-daily-offer';
 import type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
 import { STOREFRONT_DESKTOP_SECTION_CLASS } from '@/constants/storefront-desktop-layout';
+import { resolveMenuCardCategoryLabel } from '@/lib/storefront/menu-card-category-label';
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
 import { RatingStars } from '@/components/RatingStars';
 import { homeFeaturedProductToWishlistSnapshot } from '@/lib/wishlist/wishlist-product-snapshot-mappers';
@@ -68,7 +69,7 @@ const HOME_DESKTOP_CATEGORY_CARD_FILL_CLASS = 'bg-[#121212]';
 const HOME_DESKTOP_CATEGORY_CARD_SIZE_CLASS = 'h-[22.6875rem] w-[19.0625rem]';
 
 function NewsCard({ item }: { item: HomeFeaturedProduct }) {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const currency = useCurrency();
   const router = useRouter();
   const keepCurrencySymbolAttached = (value: string): string => value.replace(/\s+(\S+)$/u, '\u00A0$1');
@@ -76,7 +77,20 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
   const discountPercent = typeof item.discountPercent === 'number' ? Math.round(item.discountPercent) : null;
   const imageSrc = resolveStorefrontProductImage(item.image);
   const title = item.title;
-  const subtitle = item.subtitle ?? '';
+  const categoryLabel = resolveMenuCardCategoryLabel(
+    {
+      id: item.id,
+      slug: item.slug,
+      title,
+      category: item.subtitle,
+      categorySlug: item.categorySlug,
+      price: item.price ?? 0,
+      oldPrice: item.oldPrice ?? 0,
+      discount: '',
+    },
+    t,
+    lang
+  );
   const formattedPrice = keepCurrencySymbolAttached(formatPrice(item.price || 0, currency));
   const formattedOldPrice = item.oldPrice ? keepCurrencySymbolAttached(formatPrice(item.oldPrice, currency)) : null;
   const mainPriceClassName = formattedPrice.length > 12 ? 'text-[18px]' : 'text-[20px]';
@@ -118,7 +132,7 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
     price: item.price,
     oldPrice: item.oldPrice,
     discount: item.discountPercent,
-    category: subtitle ? { slug: `preview-${item.id}`, title: subtitle } : null,
+    category: categoryLabel ? { slug: item.categorySlug ?? `preview-${item.id}`, title: categoryLabel } : null,
     rating: item.rating ?? 5,
     currency,
     inStock: item.inStock ?? true,
@@ -184,7 +198,7 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
         <h3 className="text-base font-bold leading-[1.05] text-[#3c2f2f]">
           <span className="block max-h-[34px] overflow-hidden break-words">{title}</span>
         </h3>
-        <p className="mt-1 truncate text-base font-medium leading-[1.2] text-[#a1a1a1]">{subtitle}</p>
+        <p className="mt-1 truncate text-base font-medium leading-[1.2] text-[#a1a1a1]">{categoryLabel}</p>
       </div>
       {hasDiscount ? (
         <span className="absolute right-px top-[170px] inline-flex h-[30px] items-center rounded-[60px] bg-[#ff7f20] px-[17px] text-sm font-bold leading-none text-black">

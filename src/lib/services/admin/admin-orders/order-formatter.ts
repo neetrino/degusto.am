@@ -4,6 +4,7 @@ import {
   buildOrderItemVariantOptions,
   type OrderItemVariantOption,
 } from "@/lib/services/orders/order-item-display-options";
+import { resolveOrderDeliveryAmount } from "@/lib/orders/resolve-order-delivery-amount";
 
 /**
  * Format order for list response
@@ -241,6 +242,11 @@ export function formatOrderForDetail(
     typeof rawBagFeeAmount === "number" && Number.isFinite(rawBagFeeAmount)
       ? Math.max(0, rawBagFeeAmount)
       : 0;
+  const deliveryAmount = resolveOrderDeliveryAmount({
+    shippingAmount: Number(order.shippingAmount || 0),
+    bagFeeAmount,
+    deliveryPriceFromEvent: eventData?.deliveryPriceAmount,
+  });
 
   return {
     id: order.id,
@@ -253,7 +259,7 @@ export function formatOrderForDetail(
     totals: {
       subtotal: Number(order.subtotal || 0),
       discount: Number(order.discountAmount || 0),
-      shipping: Number(order.shippingAmount || 0),
+      shipping: deliveryAmount,
       bagFee: bagFeeAmount,
       tax: Number(order.taxAmount || 0),
       total: Number(order.total || 0),
