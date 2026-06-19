@@ -66,7 +66,7 @@ export default function WishlistPage() {
   const { isLoggedIn } = useAuth();
   const { setProductInWishlist, wishlistIds: sharedWishlistIds } = useWishlistIdsContext();
   const { t } = useTranslation();
-  const [products, setProducts] = useState<Product[]>(() => readCachedWishlistProducts());
+  const [products, setProducts] = useState<Product[]>([]);
   const [currency, setCurrency] = useState(HYDRATION_SAFE_CURRENCY);
   const [queueingAddToCart, setQueueingAddToCart] = useState<Set<string>>(new Set());
   const [recentlyAddedToCart, setRecentlyAddedToCart] = useState<Set<string>>(new Set());
@@ -115,6 +115,13 @@ export default function WishlistPage() {
       }
     } catch (error) {
       logger.error('[Wishlist] Error fetching wishlist products', { error });
+    }
+  }, []);
+
+  useEffect(() => {
+    const cached = readCachedWishlistProducts();
+    if (cached.length > 0) {
+      setProducts(cached);
     }
   }, []);
 
