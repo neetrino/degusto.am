@@ -118,10 +118,13 @@ function PurchaseHistoryTotals({
         )
       : null;
 
-  const grandTotal = formatPriceInCurrency(
-    currency === 'AMD' ? totals.total : convertPrice(totals.total, 'AMD', currency),
-    currency
-  );
+  const grandTotal = (() => {
+    const subtotalAmd = convertPrice(totals.subtotal, 'USD', 'AMD');
+    const discountAmd = convertPrice(totals.discount, 'USD', 'AMD');
+    const totalAmd = subtotalAmd - discountAmd + shippingAmd + bagFeeAmd;
+    const value = currency === 'AMD' ? totalAmd : convertPrice(totalAmd, 'AMD', currency);
+    return formatPriceInCurrency(value, currency);
+  })();
 
   return (
     <div className="mt-6 border-t border-[#eeeeee] pt-5">
