@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, type MouseEvent } from 'react';
+import { memo, useCallback, type MouseEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '../../lib/i18n-client';
 import { useCurrency } from '../hooks/useCurrency';
@@ -15,7 +15,7 @@ import {
   PRODUCT_CARD_ICON_BTN_INTERACTION_CLASS,
   PRODUCT_CARD_WISHLIST_ICON_HOVER_CLASS,
 } from '@/constants/product-card-action-hover';
-import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
+import { resolveStorefrontProductImage, STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
 import { HomeOptimizedImage } from './HomeOptimizedImage';
 import { StorefrontProductOverlayLink } from './StorefrontProductOverlayLink';
 import { usePrefetchProductWhenVisible } from '../hooks/usePrefetchProductWhenVisible';
@@ -23,6 +23,7 @@ import { prefetchProductRoute } from '@/lib/products/prefetch-product-route';
 import { shouldShowMenuCardStrikethroughPrice } from '@/lib/storefront/menu-card-pricing';
 import { resolveMenuCardCategoryLabel } from '@/lib/storefront/menu-card-category-label';
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
+import { SHOP_MOBILE_PRODUCT_IMAGE_SIZES } from '@/constants/shop-menu-perf';
 import type { MenuCard } from './menu-types';
 import { RatingStars } from '@/components/RatingStars';
 
@@ -43,6 +44,8 @@ function getShopMobileProductCardPriceSizeClass(formattedPrice: string): string 
 
 type ShopMobileProductCardProps = {
   card: MenuCard;
+  /** LCP candidates in the first visible grid rows. */
+  imagePriority?: boolean;
   /** Enables near-viewport PDP prefetch (can be disabled on heavy grids like home sections). */
   enableVisibilityPrefetch?: boolean;
   /** Hides the greens/viggie badge while viggie filter itself is active. */
@@ -52,8 +55,9 @@ type ShopMobileProductCardProps = {
 /**
  * Mobile shop/combo product card — cream Figma layout (node 1:2235), 2-column grid.
  */
-export function ShopMobileProductCard({
+function ShopMobileProductCardBase({
   card,
+  imagePriority = false,
   enableVisibilityPrefetch = true,
   hideGreensBadge = false,
 }: ShopMobileProductCardProps) {
@@ -155,8 +159,10 @@ export function ShopMobileProductCard({
             alt={title}
             fill
             className="rounded-[20px] object-cover"
-            loading="lazy"
-            sizes="50vw"
+            sizes={SHOP_MOBILE_PRODUCT_IMAGE_SIZES}
+            priority={imagePriority}
+            loading={imagePriority ? 'eager' : 'lazy'}
+            fallbackSrc={STOREFRONT_PRODUCT_IMAGE_PATH}
           />
           <button
             type="button"
@@ -182,24 +188,24 @@ export function ShopMobileProductCard({
 
       {supportsSpicy ? (
         <div className="absolute left-[9px] top-[11px] flex h-[22px] w-[22px] items-center justify-center rounded-full bg-[#ff2b2e]">
-          <HomeOptimizedImage
+          <img
             src={MOBILE_SHOP_PRODUCT_CARD_ASSETS.hot}
             alt=""
             width={13}
             height={13}
             className="h-[13px] w-[13px] -rotate-[13deg] object-contain"
-            loading="lazy"
+            decoding="async"
           />
         </div>
       ) : null}
       {supportsGreens ? (
-        <HomeOptimizedImage
+        <img
           src={MOBILE_SHOP_PRODUCT_CARD_ASSETS.ribbon}
           alt=""
           width={22}
           height={22}
           className={`absolute left-[9px] h-[22px] w-[22px] object-contain ${greensTopClass}`}
-          loading="lazy"
+          decoding="async"
         />
       ) : null}
 
@@ -251,16 +257,18 @@ export function ShopMobileProductCard({
         aria-label={t('common.buttons.addToCart')}
         className={`absolute bottom-0 left-1/2 ${MOBILE_PRODUCT_CARD_ACTION_Z_CLASS} inline-flex h-[42px] w-[42px] -translate-x-1/2 translate-y-1/2 items-center justify-center disabled:opacity-50`}
       >
-        <HomeOptimizedImage
+        <img
           src={MOBILE_SHOP_PRODUCT_CARD_ASSETS.addToCart}
           alt=""
           width={42}
           height={42}
           className="h-[42px] w-[42px] object-contain"
-          loading="lazy"
+          decoding="async"
         />
       </button>
       <StorefrontProductOverlayLink slug={card.slug} label={title} preview={previewSummary} />
     </article>
   );
 }
+
+export const ShopMobileProductCard = memo(ShopMobileProductCardBase);

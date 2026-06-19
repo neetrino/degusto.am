@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import {
   ADMIN_MOBILE_ANALYTICS_PATH,
@@ -22,11 +23,16 @@ const MOBILE_ADMIN_PREFETCH_ROUTES = [
  */
 export function MobileRoutePrefetcher(): null {
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     const runPrefetch = () => {
       for (const route of STOREFRONT_PREFETCH_ROUTES) {
-        prefetchStorefrontRoute(router, route);
+        const skipMenuProductsJson =
+          route === '/shop' && (pathname === '/shop' || pathname?.startsWith('/shop?'));
+        prefetchStorefrontRoute(router, route, {
+          prefetchMenuProducts: !skipMenuProductsJson,
+        });
       }
 
       for (const route of MOBILE_ADMIN_PREFETCH_ROUTES) {
@@ -44,7 +50,7 @@ export function MobileRoutePrefetcher(): null {
     return () => {
       window.clearTimeout(timerId);
     };
-  }, [router]);
+  }, [pathname, router]);
 
   return null;
 }

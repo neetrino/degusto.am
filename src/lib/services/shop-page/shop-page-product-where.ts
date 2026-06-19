@@ -96,12 +96,18 @@ export function getShopProductSelect(
       where: {
         locale: localeFilter,
       },
-      select: {
-        locale: true,
-        title: true,
-        subtitle: true,
-        slug: true,
-      },
+      select: menuFast
+        ? {
+            locale: true,
+            title: true,
+            slug: true,
+          }
+        : {
+            locale: true,
+            title: true,
+            subtitle: true,
+            slug: true,
+          },
     },
     variants: {
       where: {
@@ -111,15 +117,22 @@ export function getShopProductSelect(
         price: 'asc',
       },
       ...(menuFast ? { take: SHOP_MENU_FAST_VARIANT_SAMPLE_SIZE } : {}),
-      select: {
-        id: true,
-        published: true,
-        price: true,
-        compareAtPrice: true,
-        stock: true,
-        /** Spicy/greens badges need published variant attributes (see product-food-attributes). */
-        attributes: true,
-      },
+      select: menuFast
+        ? {
+            id: true,
+            price: true,
+            compareAtPrice: true,
+            stock: true,
+            attributes: true,
+          }
+        : {
+            id: true,
+            published: true,
+            price: true,
+            compareAtPrice: true,
+            stock: true,
+            attributes: true,
+          },
     },
     _count: {
       select: {

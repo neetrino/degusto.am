@@ -41,7 +41,7 @@ export function buildComboProductWhere(
   };
 }
 
-/** Lean listing select (same shape as shop menu; no variant options join). */
+/** Lean listing select (same shape as shop menu fast path). */
 export function getComboProductSelect(locale: StorefrontLocale): Prisma.ProductSelect {
-  return getShopProductSelect(locale);
+  return getShopProductSelect(locale, { menuFast: true });
 }

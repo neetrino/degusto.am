@@ -25,6 +25,14 @@ export function RatingStars({
 }: RatingStarsProps) {
   const safeRating = clamp(rating, 0, maxStars);
 
+  if (maxStars === 1) {
+    return (
+      <div className={className} aria-hidden>
+        <img src={starSrc} alt="" className={`${starClassName} object-contain`} decoding="async" />
+      </div>
+    );
+  }
+
   return (
     <div className={className} aria-hidden>
       {Array.from({ length: maxStars }, (_, index) => {
