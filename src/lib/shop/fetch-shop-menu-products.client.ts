@@ -1,131 +1,179 @@
 'use client';
 
-import type { MenuCard } from '@/components/home/menu-types';
-
+import {
+  parseProductCardApiJsonToMenuCard,
+  type ProductCardApiJson,
+} from '@/lib/storefront/product-card-dto';
 import { logger } from '@/lib/utils/logger';
+import type { ShopMenuProductsResponse } from './fetch-shop-menu-products.client.types';
+import {
+  deleteShopMenuProductsInflight,
+  getShopMenuProductsInflight,
+  hrefToMenuProductsApiUrl,
+  peekShopMenuProductsCache,
+  rememberShopMenuProductsResponse,
+  seedShopMenuProductsCache,
+  setShopMenuProductsInflight,
+  clearShopMenuProductsClientCache,
+} from './shop-menu-products-cache';
 
-export type ShopMenuProductsResponse = {
-  cards: MenuCard[];
-  effectivePage: number;
-  totalPages: number;
-};
+export type { ShopMenuProductsResponse } from './fetch-shop-menu-products.client.types';
+export {
+  clearShopMenuProductsClientCache,
+  peekShopMenuProductsCache,
+  seedShopMenuProductsCache,
+} from './shop-menu-products-cache';
 
-const inflightRequests = new Map<string, Promise<ShopMenuProductsResponse>>();
-const responseCache = new Map<string, ShopMenuProductsResponse>();
-const MAX_RESPONSE_CACHE_ENTRIES = 40;
-
-function buildCanonicalSearch(search: string): string {
-  const normalized = search.startsWith('?') ? search.slice(1) : search;
-  if (!normalized) {
-    return '';
+function normalizeShopMenuProductsResponse(
+  payload: {
+    cards: ProductCardApiJson[];
+    effectivePage: number;
+    totalPages: number;
   }
-  const params = new URLSearchParams(normalized);
-  const entries = Array.from(params.entries()).sort(([keyA, valueA], [keyB, valueB]) => {
-    const keyCompare = keyA.localeCompare(keyB);
-    if (keyCompare !== 0) {
-      return keyCompare;
-    }
-    return valueA.localeCompare(valueB);
-  });
-  const stableParams = new URLSearchParams();
-  for (const [key, value] of entries) {
-    stableParams.append(key, value);
-  }
-  return stableParams.toString();
+): ShopMenuProductsResponse {
+  return {
+    cards: payload.cards.map(parseProductCardApiJsonToMenuCard),
+    effectivePage: payload.effectivePage,
+    totalPages: payload.totalPages,
+  };
 }
 
-function rememberResponse(url: string, data: ShopMenuProductsResponse): void {
-  responseCache.set(url, data);
-  if (responseCache.size <= MAX_RESPONSE_CACHE_ENTRIES) {
-    return;
-  }
-  const oldestKey = responseCache.keys().next().value;
-  if (typeof oldestKey === 'string') {
-    responseCache.delete(oldestKey);
+function isAbortError(error: unknown): boolean {
+  return (
+    error instanceof DOMException
+      ? error.name === 'AbortError'
+      : error instanceof Error && error.name === 'AbortError'
+  );
+}
+
+function throwIfAborted(signal: AbortSignal | undefined): void {
+  if (signal?.aborted) {
+    throw new DOMException('Aborted', 'AbortError');
   }
 }
 
-function buildMenuProductsApiUrl(search: string): string {
-  const canonical = buildCanonicalSearch(search);
-  return canonical ? `/api/v1/shop/menu-products?${canonical}` : '/api/v1/shop/menu-products';
-}
-
-function hrefToSearch(href: string): string {
-  const questionIndex = href.indexOf('?');
-  return questionIndex >= 0 ? href.slice(questionIndex) : '';
-}
-
-/** Prefetch product grid JSON for a shop category href (hover / mount). */
-export function prefetchShopMenuProducts(href: string): void {
-  const search = hrefToSearch(href);
-  const url = buildMenuProductsApiUrl(search);
-  if (responseCache.has(url) || inflightRequests.has(url)) {
-    return;
+function raceInflightWithSignal<T>(
+  inflight: Promise<T>,
+  signal: AbortSignal | undefined
+): Promise<T> {
+  if (!signal) {
+    return inflight;
   }
-  const request = fetch(url, { credentials: 'include' })
-    .then(async (response) => {
-      if (!response.ok) {
-        throw new Error(`Shop menu products prefetch failed: ${response.status}`);
+  throwIfAborted(signal);
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => {
+      reject(new DOMException('Aborted', 'AbortError'));
+    };
+    signal.addEventListener('abort', onAbort, { once: true });
+    inflight.then(
+      (value) => {
+        signal.removeEventListener('abort', onAbort);
+        resolve(value);
+      },
+      (error: unknown) => {
+        signal.removeEventListener('abort', onAbort);
+        reject(error);
       }
-      return (await response.json()) as ShopMenuProductsResponse;
-    })
+    );
+  });
+}
+
+async function fetchShopMenuProductsFromNetwork(
+  url: string,
+  signal?: AbortSignal
+): Promise<ShopMenuProductsResponse> {
+  const response = await fetch(url, { credentials: 'include', signal });
+  if (!response.ok) {
+    throw new Error(`Shop menu products fetch failed: ${response.status}`);
+  }
+  return normalizeShopMenuProductsResponse(
+    (await response.json()) as {
+      cards: ProductCardApiJson[];
+      effectivePage: number;
+      totalPages: number;
+    }
+  );
+}
+
+function startNetworkRequest(
+  url: string,
+  signal?: AbortSignal
+): Promise<ShopMenuProductsResponse> {
+  const existing = getShopMenuProductsInflight(url);
+  if (existing) {
+    return raceInflightWithSignal(existing, signal);
+  }
+
+  const request = fetchShopMenuProductsFromNetwork(url, signal)
     .then((data) => {
-      rememberResponse(url, data);
+      rememberShopMenuProductsResponse(url, data);
       return data;
     })
-    .catch((error: unknown) => {
+    .finally(() => {
+      deleteShopMenuProductsInflight(url);
+    });
+
+  setShopMenuProductsInflight(url, request);
+  return raceInflightWithSignal(request, signal);
+}
+
+/** Fire-and-forget revalidation for stale entries (SWR). */
+function revalidateShopMenuProductsInBackground(url: string): void {
+  if (getShopMenuProductsInflight(url) || peekShopMenuProductsCache(url)?.fresh) {
+    return;
+  }
+  void startNetworkRequest(url).catch((error: unknown) => {
+    if (!isAbortError(error)) {
+      logger.warn('[Shop] Background menu products revalidation failed', {
+        url,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  });
+}
+
+/** Prefetch product grid JSON for a shop category href (hover / idle). */
+export function prefetchShopMenuProducts(href: string): void {
+  const url = hrefToMenuProductsApiUrl(href);
+  const cached = peekShopMenuProductsCache(url);
+  if (cached?.fresh) {
+    return;
+  }
+  if (getShopMenuProductsInflight(url)) {
+    return;
+  }
+  void startNetworkRequest(url).catch((error: unknown) => {
+    if (!isAbortError(error)) {
       logger.warn('[Shop] Menu products prefetch failed', {
         url,
         error: error instanceof Error ? error.message : String(error),
       });
-      throw error;
-    })
-    .finally(() => {
-      inflightRequests.delete(url);
-    });
-  void request.catch(() => {
-    // Prefetch is fire-and-forget; rejection is already logged above.
+    }
   });
-  inflightRequests.set(url, request);
 }
 
-/** Fetches paginated shop product cards without a full RSC navigation. */
+/**
+ * Fetches paginated shop product cards without a full RSC navigation.
+ * Fresh cache (<30s): instant. Stale cache (<2m): return + background revalidate.
+ */
 export async function fetchShopMenuProducts(
   href: string,
-  options?: { signal?: AbortSignal }
+  options?: { signal?: AbortSignal; forceNetwork?: boolean }
 ): Promise<ShopMenuProductsResponse> {
-  const search = hrefToSearch(href);
-  const url = buildMenuProductsApiUrl(search);
-  const cached = responseCache.get(url);
-  if (cached) {
-    return cached;
+  throwIfAborted(options?.signal);
+
+  const url = hrefToMenuProductsApiUrl(href);
+
+  if (!options?.forceNetwork) {
+    const cached = peekShopMenuProductsCache(url);
+    if (cached?.fresh) {
+      return cached.data;
+    }
+    if (cached) {
+      revalidateShopMenuProductsInBackground(url);
+      return cached.data;
+    }
   }
 
-  const inflight = inflightRequests.get(url);
-  if (inflight) {
-    return inflight;
-  }
-
-  const request = fetch(url, { credentials: 'include', signal: options?.signal })
-    .then(async (response) => {
-      if (!response.ok) {
-        throw new Error(`Shop menu products fetch failed: ${response.status}`);
-      }
-      return (await response.json()) as ShopMenuProductsResponse;
-    })
-    .then((data) => {
-      rememberResponse(url, data);
-      return data;
-    })
-    .finally(() => {
-      inflightRequests.delete(url);
-    });
-
-  inflightRequests.set(url, request);
-  return request;
-}
-
-/** Clears client cache when filters change server-side (search, price, taste). */
-export function clearShopMenuProductsClientCache(): void {
-  responseCache.clear();
+  return startNetworkRequest(url, options?.signal);
 }

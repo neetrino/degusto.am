@@ -4,11 +4,23 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { MenuCard } from './menu-types';
 import {
-  clearShopMenuProductsClientCache,
   fetchShopMenuProducts,
+  seedShopMenuProductsCache,
 } from '@/lib/shop/fetch-shop-menu-products.client';
+import {
+  hrefToMenuProductsApiUrl,
+  peekShopMenuProductsCache,
+} from '@/lib/shop/shop-menu-products-cache';
 import { prefetchStorefrontRoute } from '@/lib/routing/prefetch-storefront-route';
 import { logger } from '@/lib/utils/logger';
+
+function isAbortError(error: unknown): boolean {
+  return (
+    error instanceof DOMException
+      ? error.name === 'AbortError'
+      : error instanceof Error && error.name === 'AbortError'
+  );
+}
 
 type ShopMenuPagination = {
   currentPage: number;
@@ -23,14 +35,25 @@ type UseShopCategorySoftNavOptions = {
   enabled: boolean;
 };
 
+type HistoryUpdateMode = 'push' | 'replace' | 'none';
+
 type UseShopCategorySoftNavResult = {
   displayCards: MenuCard[];
   displayActiveCategorySlug: string;
   displayPagination: ShopMenuPagination | undefined;
   isProductsPending: boolean;
   navigateCategory: (href: string, categorySlug: string) => void;
+  /** Updates URL via replaceState and loads products without RSC navigation (filters, pagination). */
+  syncProductsFromHref: (href: string) => void;
   prefetchCategory: (href: string) => void;
 };
+
+/** Reads category slug from a shop/combo menu href or search string. */
+export function hrefToCategorySlug(href: string): string {
+  const questionIndex = href.indexOf('?');
+  const search = questionIndex >= 0 ? href.slice(questionIndex + 1) : href.startsWith('?') ? href.slice(1) : '';
+  return new URLSearchParams(search).get('category')?.trim() ?? '';
+}
 
 export function useShopCategorySoftNav({
   initialCards,
@@ -54,22 +77,52 @@ export function useShopCategorySoftNav({
   }, [enabled]);
 
   useEffect(() => {
-    if (!hydratedFromServerRef.current) {
-      hydratedFromServerRef.current = true;
-    } else {
-      clearShopMenuProductsClientCache();
+    if (typeof window === 'undefined') {
+      return;
     }
+    const href = `${window.location.pathname}${window.location.search}`;
+    seedShopMenuProductsCache(href, {
+      cards: initialCards,
+      effectivePage: initialPagination?.currentPage ?? 1,
+      totalPages: initialPagination?.totalPages ?? 0,
+    });
     setDisplayCards(initialCards);
     setDisplayActiveCategorySlug(initialActiveCategorySlug);
     setDisplayPagination(initialPagination);
+    if (!hydratedFromServerRef.current) {
+      hydratedFromServerRef.current = true;
+    }
   }, [initialActiveCategorySlug, initialCards, initialPagination]);
 
   useEffect(() => {
     activeHrefRef.current = `${window.location.pathname}${window.location.search}`;
   }, []);
 
+  const applyProductPage = useCallback(
+    (
+      data: Awaited<ReturnType<typeof fetchShopMenuProducts>>,
+      href: string,
+      categorySlug: string,
+      historyUpdate: HistoryUpdateMode
+    ) => {
+      setDisplayCards(data.cards);
+      setDisplayPagination({
+        currentPage: data.effectivePage,
+        totalPages: data.totalPages,
+      });
+      setDisplayActiveCategorySlug(categorySlug);
+      activeHrefRef.current = href;
+      if (historyUpdate === 'push') {
+        window.history.pushState({ shopSoftNav: true }, '', href);
+      } else if (historyUpdate === 'replace') {
+        window.history.replaceState({ shopSoftNav: true }, '', href);
+      }
+    },
+    []
+  );
+
   const loadProductsForHref = useCallback(
-    async (href: string, categorySlug: string, updateHistory = true) => {
+    async (href: string, categorySlug: string, historyUpdate: HistoryUpdateMode = 'push') => {
       if (!enabledRef.current) {
         return;
       }
@@ -81,29 +134,34 @@ export function useShopCategorySoftNav({
       abortControllerRef.current?.abort();
       const abortController = new AbortController();
       abortControllerRef.current = abortController;
-      setDisplayActiveCategorySlug(categorySlug);
+
+      const apiUrl = hrefToMenuProductsApiUrl(href);
+      const cached = peekShopMenuProductsCache(apiUrl);
+
+      if (cached?.fresh) {
+        applyProductPage(cached.data, href, categorySlug, historyUpdate);
+        return;
+      }
+
+      if (cached) {
+        applyProductPage(cached.data, href, categorySlug, historyUpdate);
+      } else {
+        setDisplayActiveCategorySlug(categorySlug);
+      }
+
       setIsProductsPending(true);
 
       try {
-        const data = await fetchShopMenuProducts(href, { signal: abortController.signal });
+        const data = await fetchShopMenuProducts(href, {
+          signal: abortController.signal,
+          forceNetwork: true,
+        });
         if (generation !== navigationGenerationRef.current) {
           return;
         }
-        setDisplayCards(data.cards);
-        setDisplayPagination({
-          currentPage: data.effectivePage,
-          totalPages: data.totalPages,
-        });
-        activeHrefRef.current = href;
-        if (updateHistory) {
-          window.history.pushState({ shopSoftNav: true }, '', href);
-        }
+        applyProductPage(data, href, categorySlug, historyUpdate);
       } catch (error: unknown) {
-        const isAbortError =
-          error instanceof DOMException
-            ? error.name === 'AbortError'
-            : error instanceof Error && error.name === 'AbortError';
-        if (!isAbortError) {
+        if (!isAbortError(error)) {
           logger.warn('[Shop] Soft category navigation failed', {
             href,
             categorySlug,
@@ -116,7 +174,7 @@ export function useShopCategorySoftNav({
         }
       }
     },
-    []
+    [applyProductPage]
   );
 
   const navigateCategory = useCallback(
@@ -124,7 +182,17 @@ export function useShopCategorySoftNav({
       if (!enabledRef.current) {
         return;
       }
-      void loadProductsForHref(href, categorySlug, true);
+      void loadProductsForHref(href, categorySlug, 'push');
+    },
+    [loadProductsForHref]
+  );
+
+  const syncProductsFromHref = useCallback(
+    (href: string) => {
+      if (!enabledRef.current) {
+        return;
+      }
+      void loadProductsForHref(href, hrefToCategorySlug(href), 'replace');
     },
     [loadProductsForHref]
   );
@@ -143,10 +211,8 @@ export function useShopCategorySoftNav({
 
     const handlePopState = () => {
       const href = `${window.location.pathname}${window.location.search}`;
-      activeHrefRef.current = href;
-      const params = new URLSearchParams(window.location.search);
-      const rawCategory = params.get('category')?.trim() ?? '';
-      void loadProductsForHref(href, rawCategory, false);
+      const rawCategory = hrefToCategorySlug(href);
+      void loadProductsForHref(href, rawCategory, 'none');
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -163,6 +229,7 @@ export function useShopCategorySoftNav({
     displayPagination,
     isProductsPending,
     navigateCategory,
+    syncProductsFromHref,
     prefetchCategory,
   };
 }

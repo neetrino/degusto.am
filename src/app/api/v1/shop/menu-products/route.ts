@@ -5,6 +5,7 @@ import {
   toShopMenuProductsQuery,
 } from '@/lib/services/shop-page/parse-shop-menu-search-params';
 import { getShopMenuProductsPageWithMetrics } from '@/lib/services/shop-page/shop-page-data.service';
+import { menuCardToProductCardApiJson } from '@/lib/storefront/product-card-dto';
 
 export async function GET(req: NextRequest) {
   const startedAt = Date.now();
@@ -17,13 +18,20 @@ export async function GET(req: NextRequest) {
     });
     const totalMs = Date.now() - startedAt;
 
-    return NextResponse.json(products, {
-      headers: {
-        'Cache-Control': 'private, max-age=30, stale-while-revalidate=60',
-        'x-shop-api-total-ms': String(totalMs),
-        'x-shop-service-ms': String(metrics.totalServiceMs),
+    return NextResponse.json(
+      {
+        cards: products.cards.map(menuCardToProductCardApiJson),
+        effectivePage: products.effectivePage,
+        totalPages: products.totalPages,
       },
-    });
+      {
+        headers: {
+          'Cache-Control': 'private, max-age=30, stale-while-revalidate=60',
+          'x-shop-api-total-ms': String(totalMs),
+          'x-shop-service-ms': String(metrics.totalServiceMs),
+        },
+      }
+    );
   } catch (error) {
     return apiRouteErrorResponse(req, error, 'Failed to load shop menu products');
   }

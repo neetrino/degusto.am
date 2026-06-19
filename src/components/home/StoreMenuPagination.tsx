@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import type { MouseEvent } from 'react';
 import { useMemo } from 'react';
 import { useTranslation } from '../../lib/i18n-client';
 import { getCompactPaginationPages } from '../../lib/utils/compact-pagination-pages';
@@ -10,6 +11,8 @@ export type StoreMenuPaginationProps = {
   currentPage: number;
   totalPages: number;
   buildPageHref: (page: number) => string;
+  /** Client-side page change without RSC navigation (shop soft nav). */
+  onSoftNavigate?: (href: string) => void;
 };
 
 const PAGE_LINK_CLASS =
@@ -50,6 +53,7 @@ export function StoreMenuPagination({
   currentPage,
   totalPages,
   buildPageHref,
+  onSoftNavigate,
 }: StoreMenuPaginationProps) {
   const { t } = useTranslation();
   const items = useMemo(
@@ -57,9 +61,20 @@ export function StoreMenuPagination({
     [totalPages, currentPage]
   );
 
+  const handleSoftNavigate = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (!onSoftNavigate) {
+      return;
+    }
+    event.preventDefault();
+    onSoftNavigate(href);
+  };
+
   if (totalPages <= 1) {
     return null;
   }
+
+  const previousHref = buildPageHref(currentPage - 1);
+  const nextHref = buildPageHref(currentPage + 1);
 
   return (
     <nav
@@ -68,7 +83,8 @@ export function StoreMenuPagination({
     >
       {currentPage > 1 ? (
         <Link
-          href={buildPageHref(currentPage - 1)}
+          href={previousHref}
+          onClick={(event) => handleSoftNavigate(event, previousHref)}
           className={MOBILE_EDGE_LINK_CLASS}
           aria-label={t('common.pagination.previous')}
         >
@@ -97,7 +113,11 @@ export function StoreMenuPagination({
                   {item}
                 </span>
               ) : (
-                <Link href={buildPageHref(item)} className={PAGE_LINK_CLASS}>
+                <Link
+                  href={buildPageHref(item)}
+                  onClick={(event) => handleSoftNavigate(event, buildPageHref(item))}
+                  className={PAGE_LINK_CLASS}
+                >
                   {item}
                 </Link>
               )}
@@ -108,7 +128,8 @@ export function StoreMenuPagination({
 
       {currentPage < totalPages ? (
         <Link
-          href={buildPageHref(currentPage + 1)}
+          href={nextHref}
+          onClick={(event) => handleSoftNavigate(event, nextHref)}
           className={MOBILE_EDGE_LINK_CLASS}
           aria-label={t('common.pagination.next')}
         >
