@@ -4,9 +4,10 @@ import { StorefrontMenuPageLoading } from '@/components/home/StorefrontMenuPageL
 import { BodyBackground } from '@/components/BodyBackground';
 import { shouldShowMobileShopCategoryGrid } from '@/lib/shop-mobile-view';
 import { normalizeStorefrontCategorySlug } from '@/constants/storefront-all-category-slug';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { resolveStorefrontLocaleFromCookie } from '@/lib/i18n/locale';
 import { getShopMenuSidebarPayload } from '@/lib/services/shop-page/shop-page-data.service';
+import { isMobileUserAgent } from '@/lib/viewport';
 import { ShopMenuPageLoader } from './ShopMenuPageLoader';
 
 type SearchParamsInput = Record<string, string | string[] | undefined>;
@@ -40,7 +41,7 @@ export default async function ShopPage({
 }: {
   searchParams?: Promise<SearchParamsInput>;
 }) {
-  const [params, cookieStore] = await Promise.all([searchParams, cookies()]);
+  const [params, cookieStore, headersList] = await Promise.all([searchParams, cookies(), headers()]);
   const resolvedParams = params ?? {};
   const locale = resolveStorefrontLocaleFromCookie(cookieStore.get('shop_language')?.value);
   const rawCategorySlug =
@@ -77,6 +78,7 @@ export default async function ShopPage({
   const parsedPage = parseInt(rawPage || '1', 10);
   const requestedPage =
     Number.isFinite(parsedPage) && parsedPage >= 1 ? parsedPage : 1;
+  const renderDesktopLayout = !isMobileUserAgent(headersList.get('user-agent'));
 
   const menuQuery = {
     locale,
@@ -125,6 +127,7 @@ export default async function ShopPage({
           maxPriceAmd={maxPriceAmd}
           tasteFilter={tasteFilter}
           showMobileProductsList={!showMobileCategoryGrid}
+          renderDesktopLayout={renderDesktopLayout}
         />
       </Suspense>
     </div>
