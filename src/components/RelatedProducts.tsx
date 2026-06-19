@@ -2,12 +2,9 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { getStoredCurrency, HYDRATION_SAFE_CURRENCY } from '../lib/currency';
-import {
-  getStoredLanguage,
-  HYDRATION_SAFE_LANGUAGE,
-  type LanguageCode,
-} from '../lib/language';
+import { useLanguage } from '../lib/i18n-client';
 import { t } from '../lib/i18n';
+import type { LanguageCode } from '../lib/language';
 import { useRelatedProducts } from './hooks/useRelatedProducts';
 import { useLazyInView } from './hooks/useLazyInView';
 import { useCarousel } from './hooks/useCarousel';
@@ -69,9 +66,7 @@ export function RelatedProducts({
   const effectiveInitialLanguage =
     initialLanguage ?? cachedSnapshot?.language;
 
-  const [language, setLanguage] = useState<LanguageCode>(
-    initialLanguage ?? HYDRATION_SAFE_LANGUAGE
-  );
+  const language = useLanguage();
   const [currency, setCurrency] = useState(HYDRATION_SAFE_CURRENCY);
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   const initialRevealedCount = useMemo(
@@ -158,23 +153,6 @@ export function RelatedProducts({
     }, 1000);
     return () => clearTimeout(timer);
   }, [products.length, revealedCount]);
-
-  // Initialize language from localStorage after mount to prevent hydration mismatch
-  useEffect(() => {
-    if (!hasMounted) {
-      return;
-    }
-    setLanguage(getStoredLanguage());
-
-    const handleLanguageUpdate = () => {
-      setLanguage(getStoredLanguage());
-    };
-
-    window.addEventListener('language-updated', handleLanguageUpdate);
-    return () => {
-      window.removeEventListener('language-updated', handleLanguageUpdate);
-    };
-  }, [hasMounted]);
 
   useEffect(() => {
     if (!hasMounted) {

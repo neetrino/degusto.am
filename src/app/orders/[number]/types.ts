@@ -27,6 +27,7 @@ export interface Order {
     subtotal: number;
     discount: number;
     shipping: number;
+    bagFee?: number;
     tax: number;
     total: number;
     currency: string;

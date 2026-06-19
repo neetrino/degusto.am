@@ -12,7 +12,7 @@ import {
   normalizeProductCustomizations,
   type ProductCustomizations,
 } from "../cart/customizations";
-import { isStockSufficient } from "../product-stock";
+import { isStockSufficient, UNLIMITED_STOCK } from "../product-stock";
 import { sumLineCustomizationPriceAdjustmentsByVariant } from "../cart/attribute-price-adjustment";
 import { computeLineUnitPriceUsd } from "../cart/line-unit-price";
 import { calculateBagAmountByUniqueCategories } from "../cart/bag-fee";
@@ -517,7 +517,6 @@ async function computeCheckout(params: {
     category: item.category,
   }));
 
-  let shippingAmount = 0;
   let deliveryPriceAmount = 0;
   if (shippingMethod === "delivery") {
     const city = shippingAddress?.city?.trim() || "";
@@ -531,13 +530,11 @@ async function computeCheckout(params: {
       };
     }
     deliveryPriceAmount = resolvedDeliveryPrice;
-    shippingAmount = deliveryPriceAmount + bagFeeAmount;
-  } else {
-    shippingAmount = bagFeeAmount;
   }
 
+  const shippingAmount = deliveryPriceAmount;
   const taxAmount = 0;
-  const total = subtotal - discountAmount + shippingAmount + taxAmount;
+  const total = subtotal - discountAmount + deliveryPriceAmount + bagFeeAmount + taxAmount;
   const normalizedCashChangeFrom =
     typeof cashChangeFrom === "number" && Number.isFinite(cashChangeFrom) && cashChangeFrom > 0
       ? Math.round(cashChangeFrom)
@@ -673,7 +670,7 @@ async function createOrderAndPayment(params: {
         const quantity = Number(item.quantity);
         const variantId = item.variantId;
         const updated = await tx.$executeRaw(
-          Prisma.sql`UPDATE product_variants SET stock = stock - ${quantity} WHERE id = ${variantId} AND stock >= ${quantity}`
+          Prisma.sql`UPDATE product_variants SET stock = CASE WHEN stock = ${UNLIMITED_STOCK} THEN ${UNLIMITED_STOCK} ELSE stock - ${quantity} END WHERE id = ${variantId} AND (stock = ${UNLIMITED_STOCK} OR stock >= ${quantity})`
         );
         if (updated === 0) {
           const variant = await tx.productVariant.findUnique({

@@ -18,6 +18,15 @@ export function invalidateUserProfileCache(): void {
   cachedProfileUpdatedAt = 0;
 }
 
+/** Returns the in-memory profile when still within TTL; otherwise null. */
+export function getCachedUserProfileSync(): UserProfile | null {
+  const now = Date.now();
+  if (hasFreshProfileCache(now) && cachedProfile) {
+    return cachedProfile;
+  }
+  return null;
+}
+
 /** Deduplicates concurrent profile reads and reuses a short-lived in-memory cache. */
 export async function fetchUserProfileCached(): Promise<UserProfile> {
   const now = Date.now();

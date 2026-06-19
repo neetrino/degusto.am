@@ -4,9 +4,10 @@ import Link from 'next/link';
 import { Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { BodyBackground } from '../../../components/BodyBackground';
-import { resetCartBadgeState } from '../../../lib/cart/cart-events';
+import { finalizeCartAfterCheckout } from '../../../lib/cart/cart-events';
 import { useTranslation } from '../../../lib/i18n-client';
 import { formatOrderNumber } from '@/lib/orders/format-order-number';
+import { CHECKOUT_COUPON_CODE_STORAGE_KEY } from '../checkout-coupon-client';
 import { CHECKOUT_OUTLINE_BUTTON, CHECKOUT_PRIMARY_BUTTON, CHECKOUT_TEXT_INK_MUTED, CHECKOUT_TEXT_INK_TERTIARY } from '../checkout-ui';
 
 function CheckoutSuccessContent() {
@@ -15,7 +16,8 @@ function CheckoutSuccessContent() {
   const orderNumber = searchParams.get('order');
 
   useEffect(() => {
-    resetCartBadgeState();
+    finalizeCartAfterCheckout();
+    localStorage.removeItem(CHECKOUT_COUPON_CODE_STORAGE_KEY);
   }, []);
 
   return (

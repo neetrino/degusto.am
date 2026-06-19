@@ -8,8 +8,13 @@ import {
   seedShopMenuProductsCache,
 } from '@/lib/shop/fetch-shop-menu-products.client';
 import {
+  deriveShopMenuTastePreviewFromCache,
+  hrefHasTasteFilter,
+} from '@/lib/shop/derive-shop-menu-taste-preview-from-cache';
+import {
   hrefToMenuProductsApiUrl,
   peekShopMenuProductsCache,
+  clearShopMenuProductsClientCache,
 } from '@/lib/shop/shop-menu-products-cache';
 import { prefetchStorefrontRoute } from '@/lib/routing/prefetch-storefront-route';
 import { logger } from '@/lib/utils/logger';
@@ -42,6 +47,8 @@ type UseShopCategorySoftNavResult = {
   displayActiveCategorySlug: string;
   displayPagination: ShopMenuPagination | undefined;
   isProductsPending: boolean;
+  /** Instantly filters visible cards for hot/veggie before the network round trip. */
+  previewTasteFilterForHref: (href: string) => void;
   navigateCategory: (href: string, categorySlug: string) => void;
   /** Updates URL via replaceState and loads products without RSC navigation (filters, pagination). */
   syncProductsFromHref: (href: string) => void;
@@ -70,11 +77,16 @@ export function useShopCategorySoftNav({
   const navigationGenerationRef = useRef(0);
   const enabledRef = useRef(enabled);
   const activeHrefRef = useRef<string | null>(null);
+  const displayCardsRef = useRef(initialCards);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     enabledRef.current = enabled;
   }, [enabled]);
+
+  useEffect(() => {
+    displayCardsRef.current = displayCards;
+  }, [displayCards]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -121,6 +133,19 @@ export function useShopCategorySoftNav({
     []
   );
 
+  const previewTasteFilterForHref = useCallback((href: string) => {
+    if (!hrefHasTasteFilter(href)) {
+      return;
+    }
+    const preview = deriveShopMenuTastePreviewFromCache(href, displayCardsRef.current);
+    if (preview.length === 0) {
+      return;
+    }
+    setDisplayCards(preview);
+    setDisplayPagination({ currentPage: 1, totalPages: 0 });
+    setIsProductsPending(false);
+  }, []);
+
   const loadProductsForHref = useCallback(
     async (href: string, categorySlug: string, historyUpdate: HistoryUpdateMode = 'push') => {
       if (!enabledRef.current) {
@@ -143,13 +168,29 @@ export function useShopCategorySoftNav({
         return;
       }
 
+      let hasVisibleCards = false;
+
       if (cached) {
         applyProductPage(cached.data, href, categorySlug, historyUpdate);
+        hasVisibleCards = cached.data.cards.length > 0;
+      } else if (hrefHasTasteFilter(href)) {
+        const tastePreview = deriveShopMenuTastePreviewFromCache(href, displayCardsRef.current);
+        if (tastePreview.length > 0) {
+          applyProductPage(
+            { cards: tastePreview, effectivePage: 1, totalPages: 0 },
+            href,
+            categorySlug,
+            historyUpdate
+          );
+          hasVisibleCards = true;
+        } else {
+          setDisplayActiveCategorySlug(categorySlug);
+        }
       } else {
         setDisplayActiveCategorySlug(categorySlug);
       }
 
-      setIsProductsPending(true);
+      setIsProductsPending(!hasVisibleCards);
 
       try {
         const data = await fetchShopMenuProducts(href, {
@@ -176,6 +217,43 @@ export function useShopCategorySoftNav({
     },
     [applyProductPage]
   );
+
+  const reloadProductsForCurrentHref = useCallback(async () => {
+    if (!enabledRef.current || typeof window === 'undefined') {
+      return;
+    }
+
+    clearShopMenuProductsClientCache();
+
+    const href = `${window.location.pathname}${window.location.search}`;
+    const categorySlug = hrefToCategorySlug(href);
+    const generation = ++navigationGenerationRef.current;
+    abortControllerRef.current?.abort();
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
+    try {
+      const data = await fetchShopMenuProducts(href, {
+        signal: abortController.signal,
+        forceNetwork: true,
+      });
+      if (generation !== navigationGenerationRef.current) {
+        return;
+      }
+      applyProductPage(data, href, categorySlug, 'none');
+    } catch (error: unknown) {
+      if (!isAbortError(error)) {
+        logger.warn('[Shop] Language-change menu products reload failed', {
+          href,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    } finally {
+      if (generation === navigationGenerationRef.current) {
+        setIsProductsPending(false);
+      }
+    }
+  }, [applyProductPage]);
 
   const navigateCategory = useCallback(
     (href: string, categorySlug: string) => {
@@ -209,6 +287,12 @@ export function useShopCategorySoftNav({
       return;
     }
 
+    const handleLanguageUpdate = () => {
+      void reloadProductsForCurrentHref();
+    };
+
+    window.addEventListener('language-updated', handleLanguageUpdate);
+
     const handlePopState = () => {
       const href = `${window.location.pathname}${window.location.search}`;
       const rawCategory = hrefToCategorySlug(href);
@@ -219,15 +303,17 @@ export function useShopCategorySoftNav({
     return () => {
       abortControllerRef.current?.abort();
       abortControllerRef.current = null;
+      window.removeEventListener('language-updated', handleLanguageUpdate);
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [enabled, loadProductsForHref]);
+  }, [enabled, loadProductsForHref, reloadProductsForCurrentHref]);
 
   return {
     displayCards,
     displayActiveCategorySlug,
     displayPagination,
     isProductsPending,
+    previewTasteFilterForHref,
     navigateCategory,
     syncProductsFromHref,
     prefetchCategory,

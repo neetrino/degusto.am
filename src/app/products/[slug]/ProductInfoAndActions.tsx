@@ -30,6 +30,8 @@ import {
   PDP_ACTIONS_ROW_CLASS,
   PDP_ACTIONS_MOBILE_TOP_ROW_CLASS,
 } from '@/constants/pdp-figma-tokens';
+import { pdpProductToWishlistSnapshot } from '@/lib/wishlist/wishlist-product-snapshot-mappers';
+import { resolveStorefrontProductImageFromMedia } from '@/constants/storefront-product-image';
 import type { Product, ProductVariant, AttributeGroupValue, VariantOption } from './types';
 
 interface ProductInfoAndActionsProps {
@@ -111,7 +113,21 @@ export function ProductInfoAndActions({
       router.push(`/login?redirect=/products/${encodeURIComponent(product.slug)}`);
       return;
     }
-    void toggleWishlist();
+    const title = getProductText(language, product.id, 'title') || product.title;
+    void toggleWishlist(
+      pdpProductToWishlistSnapshot({
+        id: product.id,
+        slug: product.slug,
+        title,
+        price,
+        originalPrice,
+        compareAtPrice,
+        discountPercent:
+          product.productDiscount ?? product.globalDiscount ?? currentVariant?.productDiscount ?? null,
+        image: resolveStorefrontProductImageFromMedia(product.media),
+        inStock: !isOutOfStock,
+      })
+    );
   };
 
   const comparePrice =

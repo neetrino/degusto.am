@@ -1,3 +1,4 @@
+import { getStoredLanguage } from '@/lib/language';
 import type { ShopMenuProductsResponse } from './fetch-shop-menu-products.client.types';
 import {
   SHOP_MENU_CLIENT_CACHE_FRESH_MS,
@@ -78,11 +79,23 @@ export function resolveMenuRouteBaseFromHref(href: string): StorefrontMenuRouteB
 
 export function buildMenuProductsApiUrl(
   search: string,
-  routeBase: StorefrontMenuRouteBase = '/shop'
+  routeBase: StorefrontMenuRouteBase = '/shop',
+  locale?: string
 ): string {
-  const canonical = buildCanonicalSearch(search);
+  const normalizedSearch = search.startsWith('?') ? search.slice(1) : search;
+  const canonical = buildCanonicalSearch(normalizedSearch);
   const apiPath = MENU_PRODUCTS_API_PATH[routeBase];
-  return canonical ? `${apiPath}?${canonical}` : apiPath;
+  const resolvedLocale =
+    locale ?? (typeof window !== 'undefined' ? getStoredLanguage() : undefined);
+  const langSuffix =
+    resolvedLocale ? `lang=${encodeURIComponent(resolvedLocale)}` : '';
+  if (!canonical && !langSuffix) {
+    return apiPath;
+  }
+  if (!canonical) {
+    return `${apiPath}?${langSuffix}`;
+  }
+  return langSuffix ? `${apiPath}?${canonical}&${langSuffix}` : `${apiPath}?${canonical}`;
 }
 
 export function hrefToMenuProductsApiUrl(href: string): string {
@@ -113,6 +126,20 @@ export function peekShopMenuProductsCache(url: string): ShopMenuProductsCachePee
     data: entry.data,
     fresh: isFresh(entry, now),
   };
+}
+
+/** Visits non-expired cache entries (e.g. taste-filter preview derivation). */
+export function forEachValidShopMenuProductsCacheEntry(
+  visitor: (url: string, data: ShopMenuProductsResponse) => void
+): void {
+  const now = Date.now();
+  for (const [url, entry] of responseCache) {
+    if (!isWithinMaxAge(entry, now)) {
+      responseCache.delete(url);
+      continue;
+    }
+    visitor(url, entry.data);
+  }
 }
 
 /** Seeds client cache from SSR props so repeat soft-nav skips a network round trip. */

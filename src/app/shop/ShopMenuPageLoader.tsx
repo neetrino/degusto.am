@@ -36,7 +36,6 @@ export async function ShopMenuPageLoader({
   });
 
   const shellProps = {
-    locale: menuQuery.locale,
     routeBasePath: '/shop' as const,
     titleKey,
     subtitleKey,

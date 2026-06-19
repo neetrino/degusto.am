@@ -26,6 +26,12 @@ export interface CartDtoItem {
     selectedAttributeValueIds?: string[];
   };
   originalPrice?: number | null;
+  categoryId?: string | null;
+  category?: {
+    id?: string | null;
+    slug?: string | null;
+    name?: string | null;
+  };
 }
 
 export interface CartDto {
@@ -175,6 +181,35 @@ function normalizeCartDtoItem(rawItem: unknown): CartDtoItem | null {
         }
       : {}),
     ...(typeof item.originalPrice === "number" ? { originalPrice: item.originalPrice } : {}),
+    ...(typeof item.categoryId === "string" || item.categoryId === null
+      ? { categoryId: item.categoryId }
+      : typeof legacyProduct?.categoryId === "string" || legacyProduct?.categoryId === null
+        ? { categoryId: legacyProduct.categoryId as string | null }
+        : {}),
+    ...(() => {
+      const rawCategory =
+        item.category && typeof item.category === "object"
+          ? (item.category as Record<string, unknown>)
+          : legacyProduct?.category && typeof legacyProduct.category === "object"
+            ? (legacyProduct.category as Record<string, unknown>)
+            : null;
+      if (!rawCategory) {
+        return {};
+      }
+      return {
+        category: {
+          ...(typeof rawCategory.id === "string" || rawCategory.id === null
+            ? { id: rawCategory.id as string | null }
+            : {}),
+          ...(typeof rawCategory.slug === "string" || rawCategory.slug === null
+            ? { slug: rawCategory.slug as string | null }
+            : {}),
+          ...(typeof rawCategory.name === "string" || rawCategory.name === null
+            ? { name: rawCategory.name as string | null }
+            : {}),
+        },
+      };
+    })(),
   };
 }
 

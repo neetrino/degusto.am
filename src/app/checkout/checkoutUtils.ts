@@ -1,6 +1,6 @@
-import { publishCartForceReload } from '../../lib/cart/cart-events';
+import { finalizeCartAfterCheckout } from '../../lib/cart/cart-events';
 
-/** Refetch cart drawer state after guest checkout (badge already cleared via resetCartBadgeState). */
+/** @deprecated Use finalizeCartAfterCheckout */
 export function clearGuestCart(): void {
-  publishCartForceReload();
+  finalizeCartAfterCheckout();
 }

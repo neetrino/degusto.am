@@ -31,6 +31,7 @@ import { createProductPreviewSummary } from '@/lib/products/product-preview';
 import { resolveMenuCardCategoryLabel } from '@/lib/storefront/menu-card-category-label';
 import { RatingStars } from '@/components/RatingStars';
 import { SHOP_MENU_ASSETS } from './shop-menu-assets';
+import { menuCardToWishlistSnapshot } from '@/lib/wishlist/wishlist-product-snapshot-mappers';
 
 const DESKTOP_MENU_CARD_HEIGHT_CLASS = 'h-[330px]';
 const DESKTOP_MENU_CARD_META_TOP_CLASS = 'top-[215px]';
@@ -47,13 +48,13 @@ function FigmaDesktopShopMenuCardItemBase({
   card: MenuCard;
   imagePriority?: boolean;
 }) {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const currency = useCurrency();
   const router = useRouter();
   const { isLoggedIn } = useAuth();
   const { isInWishlist, toggleWishlist } = useWishlist(card.id);
   const title = card.title || (card.titleKey ? t(card.titleKey) : '');
-  const category = resolveMenuCardCategoryLabel(card, t);
+  const category = resolveMenuCardCategoryLabel(card, t, lang);
   const imageSrc = resolveStorefrontProductImage(card.image);
   const calculatedDiscountPercent =
     card.oldPrice > card.price && card.oldPrice > 0
@@ -94,7 +95,7 @@ function FigmaDesktopShopMenuCardItemBase({
       router.push(`/login?redirect=${encodeURIComponent(productHref)}`);
       return;
     }
-    void toggleWishlist();
+    void toggleWishlist(menuCardToWishlistSnapshot(card, title));
   };
 
   const visibilityRef = usePrefetchProductWhenVisible(card.slug);

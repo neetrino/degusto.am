@@ -85,6 +85,12 @@
     "cardDetails": "{method} Card Details",
     "closeModal": "Close Window"
   },
+  "loginRequired": {
+    "title": "Sign in required",
+    "description": "Sign in to your account to place an order. Don't have an account yet? Create one and continue shopping.",
+    "login": "Sign in",
+    "register": "Register"
+  },
   "messages": {
     "cashOnDeliveryInfo": "Cash on Delivery: You will pay cash when you receive your order. Card details are not required.",
     "cashOnDeliveryPickup": "Cash on Delivery: You will pay cash when you pick up your order. Card details are not required.",

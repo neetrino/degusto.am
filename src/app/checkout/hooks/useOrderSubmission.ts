@@ -1,33 +1,47 @@
-import { useRouter } from 'next/navigation';
+import type { MutableRefObject } from 'react';
 import { apiClient } from '../../../lib/api-client';
 import { useTranslation } from '../../../lib/i18n-client';
-import { clearGuestCart } from '../checkoutUtils';
-import { resetCartBadgeState } from '../../../lib/cart/cart-events';
+import { finalizeCartAfterCheckout } from '../../../lib/cart/cart-events';
 import { CHECKOUT_COUPON_CODE_STORAGE_KEY } from '../checkout-coupon-client';
 import type { CheckoutFormData, Cart } from '../types';
 
 interface UseOrderSubmissionProps {
   cart: Cart | null;
   isLoggedIn: boolean;
-  deliveryPrice: number | null;
-  bagFee: number;
   setError: (error: string | null) => void;
+  orderRedirectPendingRef: MutableRefObject<boolean>;
+}
+
+function redirectAfterCheckout(
+  orderNumber: string,
+  paymentUrl: string | null | undefined
+): void {
+  if (paymentUrl) {
+    window.location.href = paymentUrl;
+    return;
+  }
+
+  const successUrl = `/orders/${encodeURIComponent(orderNumber)}`;
+  window.location.replace(successUrl);
 }
 
 export function useOrderSubmission({
   cart,
   isLoggedIn,
-  deliveryPrice,
-  bagFee,
   setError,
+  orderRedirectPendingRef,
 }: UseOrderSubmissionProps) {
-  const router = useRouter();
   const { t } = useTranslation();
 
   const submitOrder = async (data: CheckoutFormData) => {
     setError(null);
+    orderRedirectPendingRef.current = true;
 
     try {
+      if (!isLoggedIn) {
+        throw new Error(t('checkout.loginRequired.description'));
+      }
+
       if (!cart) {
         throw new Error(t('checkout.errors.cartEmpty'));
       }
@@ -43,10 +57,6 @@ export function useOrderSubmission({
           }
         : undefined;
 
-      const shippingAmount =
-        data.shippingMethod === 'delivery' && deliveryPrice !== null
-          ? deliveryPrice + bagFee
-          : 0;
       const cashChangeFromValue = data.cashChangeFrom?.trim()
         ? Number(data.cashChangeFrom.replace(',', '.'))
         : undefined;
@@ -81,7 +91,6 @@ export function useOrderSubmission({
         phone: data.phone,
         shippingMethod: data.shippingMethod,
         ...(shippingAddress ? { shippingAddress } : {}),
-        shippingAmount: shippingAmount,
         paymentMethod: data.paymentMethod,
         ...(typeof cashChangeFromValue === 'number' && Number.isFinite(cashChangeFromValue)
           ? { cashChangeFrom: cashChangeFromValue }
@@ -90,26 +99,10 @@ export function useOrderSubmission({
         ...(data.orderNotes?.trim() ? { notes: data.orderNotes.trim() } : {}),
       });
 
-      resetCartBadgeState();
-      if (!isLoggedIn) {
-        clearGuestCart();
-      }
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem(CHECKOUT_COUPON_CODE_STORAGE_KEY);
-      }
-
-      if (response.payment?.paymentUrl) {
-        window.location.href = response.payment.paymentUrl;
-        return;
-      }
-
-      if (!isLoggedIn) {
-        router.push(`/checkout/success?order=${encodeURIComponent(response.order.number)}`);
-        return;
-      }
-
-      router.push(`/orders/${response.order.number}`);
+      finalizeCartAfterCheckout();
+      redirectAfterCheckout(response.order.number, response.payment?.paymentUrl);
     } catch (err: unknown) {
+      orderRedirectPendingRef.current = false;
       const error = err as { message?: string };
       setError(error.message || t('checkout.errors.failedToCreateOrder'));
     }

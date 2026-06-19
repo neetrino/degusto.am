@@ -8,6 +8,7 @@ import { logger } from "../utils/logger";
 import { cartService } from "./cart.service";
 import { normalizeProductCustomizations } from "../cart/customizations";
 import { performCheckout } from "./orders.checkout";
+import { resolveOrderDeliveryAmount } from "@/lib/orders/resolve-order-delivery-amount";
 import { resolveOrderLineImageUrl } from "../utils/extractMediaUrl";
 import {
   buildOrderItemVariantOptions,
@@ -389,6 +390,28 @@ class OrdersService {
       locale
     );
 
+    const orderCreatedEvent = Array.isArray(order.events)
+      ? order.events
+          .filter((event) => event.type === "order_created")
+          .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0] ?? null
+      : null;
+    const eventData =
+      orderCreatedEvent &&
+      typeof orderCreatedEvent.data === "object" &&
+      orderCreatedEvent.data !== null
+        ? (orderCreatedEvent.data as Record<string, unknown>)
+        : null;
+    const rawBagFeeAmount = eventData?.bagFeeAmount;
+    const bagFeeAmount =
+      typeof rawBagFeeAmount === "number" && Number.isFinite(rawBagFeeAmount)
+        ? Math.max(0, rawBagFeeAmount)
+        : 0;
+    const deliveryAmount = resolveOrderDeliveryAmount({
+      shippingAmount: Number(order.shippingAmount),
+      bagFeeAmount,
+      deliveryPriceFromEvent: eventData?.deliveryPriceAmount,
+    });
+
     return {
       id: order.id,
       number: order.number,
@@ -409,7 +432,8 @@ class OrdersService {
       totals: {
         subtotal: Number(order.subtotal),
         discount: Number(order.discountAmount),
-        shipping: Number(order.shippingAmount),
+        shipping: deliveryAmount,
+        bagFee: bagFeeAmount,
         tax: Number(order.taxAmount),
         total: Number(order.total),
         currency: order.currency,

@@ -26,6 +26,7 @@ import { createProductPreviewSummary } from '@/lib/products/product-preview';
 import { SHOP_MOBILE_PRODUCT_IMAGE_SIZES } from '@/constants/shop-menu-perf';
 import type { MenuCard } from './menu-types';
 import { RatingStars } from '@/components/RatingStars';
+import { menuCardToWishlistSnapshot } from '@/lib/wishlist/wishlist-product-snapshot-mappers';
 
 /** Above storefront overlay link — must not include `relative` (breaks `absolute` positioning). */
 const MOBILE_PRODUCT_CARD_ACTION_Z_CLASS = 'z-20';
@@ -61,13 +62,13 @@ function ShopMobileProductCardBase({
   enableVisibilityPrefetch = true,
   hideGreensBadge = false,
 }: ShopMobileProductCardProps) {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const currency = useCurrency();
   const router = useRouter();
   const { isLoggedIn } = useAuth();
   const { isInWishlist, toggleWishlist } = useWishlist(card.id);
   const title = card.title || (card.titleKey ? t(card.titleKey) : '');
-  const category = resolveMenuCardCategoryLabel(card, t);
+  const category = resolveMenuCardCategoryLabel(card, t, lang);
   const imageSrc = resolveStorefrontProductImage(card.image);
   const formattedPrice = formatPrice(card.price, currency);
   const formattedOldPrice = formatPrice(card.oldPrice, currency);
@@ -117,7 +118,7 @@ function ShopMobileProductCardBase({
       router.push(`/login?redirect=${encodeURIComponent(productHref)}`);
       return;
     }
-    void toggleWishlist();
+    void toggleWishlist(menuCardToWishlistSnapshot(card, title));
   };
 
   const visibilityRef = usePrefetchProductWhenVisible(card.slug);

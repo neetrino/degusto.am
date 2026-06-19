@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -28,6 +28,7 @@ export function useCheckout() {
   const [language, setLanguage] = useState(HYDRATION_SAFE_LANGUAGE);
   const [showShippingModal, setShowShippingModal] = useState(false);
   const [showCardModal, setShowCardModal] = useState(false);
+  const [showLoginRequiredModal, setShowLoginRequiredModal] = useState(false);
   const [checkoutCouponDiscountUsd, setCheckoutCouponDiscountUsd] = useState(0);
   const [deliveryCities, setDeliveryCities] = useState<string[]>([]);
 
@@ -82,12 +83,13 @@ export function useCheckout() {
     }));
   }, [cart]);
 
+  const orderRedirectPendingRef = useRef(false);
+
   const { submitOrder } = useOrderSubmission({
     cart,
     isLoggedIn,
-    deliveryPrice,
-    bagFee,
     setError,
+    orderRedirectPendingRef,
   });
 
   const { orderSummary } = useOrderSummary({
@@ -100,7 +102,14 @@ export function useCheckout() {
   });
 
   useEffect(() => {
-    if (loading || isLoading) {
+    if (isLoading || isLoggedIn) {
+      return;
+    }
+    setShowLoginRequiredModal(true);
+  }, [isLoading, isLoggedIn]);
+
+  useEffect(() => {
+    if (loading || isLoading || orderRedirectPendingRef.current) {
       return;
     }
     if (!cart || cart.items.length === 0) {
@@ -171,6 +180,11 @@ export function useCheckout() {
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!isLoggedIn) {
+      setShowLoginRequiredModal(true);
+      return;
+    }
+
     if (shippingMethod === 'delivery' && deliveryUnavailable) {
       setError(t('checkout.errors.deliveryOnlyYerevan'));
       return;
@@ -185,6 +199,10 @@ export function useCheckout() {
   };
 
   const onSubmit = (data: CheckoutFormData) => {
+    if (!isLoggedIn) {
+      setShowLoginRequiredModal(true);
+      return;
+    }
     submitOrder(data);
   };
 
@@ -219,6 +237,8 @@ export function useCheckout() {
     setShowShippingModal,
     showCardModal,
     setShowCardModal,
+    showLoginRequiredModal,
+    setShowLoginRequiredModal,
     deliveryPrice,
     bagFee,
     deliveryUnavailable,

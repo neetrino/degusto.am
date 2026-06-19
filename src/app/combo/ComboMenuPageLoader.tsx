@@ -30,7 +30,6 @@ export async function ComboMenuPageLoader({
   });
 
   const shellProps = {
-    locale: menuQuery.locale,
     routeBasePath: '/combo' as const,
     titleKey: 'common.navigation.combo',
     subtitleKey: 'home.figma.desktop.combo.subtitle',

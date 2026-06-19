@@ -1,7 +1,8 @@
+'use client';
+
 import Link from 'next/link';
 import { ViewMoreButton } from '../view-more/ViewMoreButton';
-import { t as translateKey } from '@/lib/i18n';
-import type { StorefrontLocale } from '@/lib/i18n/locale';
+import { useTranslation } from '@/lib/i18n-client';
 import { montserratArmFont } from '@/fonts/montserrat-arm-font';
 import type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
 import {
@@ -90,19 +91,17 @@ function MobileCategoryStrip({
 }
 
 type FigmaHomePageMobileProps = {
-  lang: StorefrontLocale;
   categories: HomeCategoryItem[];
   featuredProducts: HomeFeaturedProduct[];
   dailyOfferProduct?: HomeFeaturedProduct | null;
 };
 
 export function FigmaHomePageMobile({
-  lang,
   categories,
   featuredProducts,
   dailyOfferProduct,
 }: FigmaHomePageMobileProps) {
-  const t = (key: string) => translateKey(lang, key);
+  const { t, lang } = useTranslation();
   const resolvedDailyOfferProduct = resolveHomeDailyOfferProduct(
     featuredProducts,
     dailyOfferProduct
