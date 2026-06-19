@@ -12,10 +12,21 @@ import { useAuth } from '../../lib/auth/AuthContext';
 import { logger } from '../../lib/utils/logger';
 import { WishlistHeartIcon } from '../../components/icons/WishlistHeartIcon';
 import { emitWishlistUpdated } from '../../lib/wishlist';
+import { removeWishlistProductSnapshot } from '@/lib/wishlist/wishlist-products-cache';
 import { useWishlistIdsContext } from '../../lib/wishlist/WishlistIdsProvider';
 import { MOBILE_SHOP_PRODUCTS_GRID_CLASS } from '../../constants/mobile-figma-storefront';
 import { STOREFRONT_PAGE_CONTAINER_CLASS } from '@/constants/storefront-desktop-layout';
 import { WishlistProductCard, type WishlistProductCardProduct } from './WishlistProductCard';
+import {
+  clearWishlistProductSnapshots,
+  getWishlistProductsForIds,
+  mergeWishlistProductSnapshots,
+  readCachedWishlistProducts,
+  upsertWishlistProductSnapshot,
+} from '@/lib/wishlist/wishlist-products-cache';
+import {
+  buildWishlistProductsForIds,
+} from '@/lib/wishlist/sync-wishlist-products';
 import {
   publishCartForceReload,
   publishCartLineConfirmed,
@@ -27,36 +38,8 @@ import {
 } from '@/lib/cart/cart-client-normalization';
 
 type Product = WishlistProductCardProduct;
-const WISHLIST_PRODUCTS_CACHE_KEY = 'wishlist-page-products-v1';
 const WISHLIST_CART_COMMIT_DELAY_MS = 1000;
 const WISHLIST_ADDED_BADGE_MS = 1400;
-
-function readCachedWishlistProducts(): Product[] {
-  if (typeof window === 'undefined') {
-    return [];
-  }
-  try {
-    const raw = window.sessionStorage.getItem(WISHLIST_PRODUCTS_CACHE_KEY);
-    if (!raw) {
-      return [];
-    }
-    const parsed = JSON.parse(raw) as Product[];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeCachedWishlistProducts(products: Product[]): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
-  try {
-    window.sessionStorage.setItem(WISHLIST_PRODUCTS_CACHE_KEY, JSON.stringify(products));
-  } catch {
-    // best-effort cache write only
-  }
-}
 
 /**
  * Wishlist page that shows saved products and supports lightweight CRUD actions.
@@ -71,52 +54,71 @@ export default function WishlistPage() {
   const [queueingAddToCart, setQueueingAddToCart] = useState<Set<string>>(new Set());
   const [recentlyAddedToCart, setRecentlyAddedToCart] = useState<Set<string>>(new Set());
   const addBadgeTimersRef = useRef<Map<string, number>>(new Map());
+  const productsRef = useRef<Product[]>([]);
+  const fetchGenerationRef = useRef(0);
 
-  /**
-   * Fetches wishlist products for provided ids and updates component state.
-   */
-  const fetchWishlistProducts = useCallback(async (idsToLoad: string[]) => {
-    if (idsToLoad.length === 0) {
-      logger.debug('[Wishlist] Skip fetch because ids array is empty');
+  useEffect(() => {
+    productsRef.current = products;
+  }, [products]);
+
+  const applyWishlistIdsLocally = useCallback((ids: string[]) => {
+    if (ids.length === 0) {
       setProducts([]);
-      writeCachedWishlistProducts([]);
       return;
     }
 
-    try {
-      logger.debug(`[Wishlist] Fetching ${idsToLoad.length} products for render`);
-      const languagePreference = getStoredLanguage();
-      const response = await apiClient.get<{
-        data: Product[];
-        meta: {
-          total: number;
-          page: number;
-          limit: number;
-          totalPages: number;
-        };
-      }>('/api/v1/products', {
-        params: {
-          ids: idsToLoad.join(','),
-          limit: String(idsToLoad.length),
-          lang: languagePreference,
-        },
-      });
-
-      const productById = new Map(response.data.map((product) => [product.id, product]));
-      const wishlistProducts = idsToLoad
-        .map((id) => productById.get(id))
-        .filter((product): product is Product => product !== undefined);
-      setProducts(wishlistProducts);
-      writeCachedWishlistProducts(wishlistProducts);
-
-      const normalizedIds = wishlistProducts.map((product) => product.id);
-      if (normalizedIds.length !== idsToLoad.length) {
-        emitWishlistUpdated();
-      }
-    } catch (error) {
-      logger.error('[Wishlist] Error fetching wishlist products', { error });
-    }
+    setProducts((previous) => buildWishlistProductsForIds(ids, previous));
   }, []);
+
+  /**
+   * Background refresh for ids missing cached card snapshots (initial load / legacy items).
+   */
+  const fetchMissingWishlistProducts = useCallback(
+    async (missingIds: string[], orderedIds: string[]) => {
+      if (missingIds.length === 0) {
+        return;
+      }
+
+      const generation = ++fetchGenerationRef.current;
+
+      try {
+        logger.debug(`[Wishlist] Background fetch for ${missingIds.length} products`);
+        const languagePreference = getStoredLanguage();
+        const response = await apiClient.get<{
+          data: Product[];
+          meta: {
+            total: number;
+            page: number;
+            limit: number;
+            totalPages: number;
+          };
+        }>('/api/v1/products', {
+          params: {
+            ids: missingIds.join(','),
+            limit: String(missingIds.length),
+            lang: languagePreference,
+          },
+        });
+
+        if (generation !== fetchGenerationRef.current) {
+          return;
+        }
+
+        mergeWishlistProductSnapshots(response.data);
+        setProducts((previous) =>
+          buildWishlistProductsForIds(orderedIds, [...previous, ...response.data])
+        );
+
+        const fetchedIds = new Set(response.data.map((product) => product.id));
+        if (missingIds.some((id) => !fetchedIds.has(id))) {
+          emitWishlistUpdated();
+        }
+      } catch (error) {
+        logger.error('[Wishlist] Error fetching wishlist products', { error });
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     const cached = readCachedWishlistProducts();
@@ -128,11 +130,21 @@ export default function WishlistPage() {
   useEffect(() => {
     if (!isLoggedIn) {
       setProducts([]);
-      writeCachedWishlistProducts([]);
+      clearWishlistProductSnapshots();
       return;
     }
 
-    void fetchWishlistProducts(sharedWishlistIds);
+    applyWishlistIdsLocally(sharedWishlistIds);
+
+    const missingIds = sharedWishlistIds.filter((id) => {
+      const hasCachedSnapshot = getWishlistProductsForIds([id]).length > 0;
+      const hasRenderedProduct = productsRef.current.some((product) => product.id === id);
+      return !hasCachedSnapshot && !hasRenderedProduct;
+    });
+
+    if (missingIds.length > 0) {
+      void fetchMissingWishlistProducts(missingIds, sharedWishlistIds);
+    }
 
     const handleCurrencyUpdate = () => {
       setCurrency(getStoredCurrency());
@@ -143,7 +155,7 @@ export default function WishlistPage() {
     return () => {
       window.removeEventListener('currency-updated', handleCurrencyUpdate);
     };
-  }, [fetchWishlistProducts, isLoggedIn, sharedWishlistIds]);
+  }, [applyWishlistIdsLocally, fetchMissingWishlistProducts, isLoggedIn, sharedWishlistIds]);
 
   useEffect(() => {
     return () => {
@@ -154,23 +166,28 @@ export default function WishlistPage() {
     };
   }, []);
 
-  const handleRemove = async (productId: string) => {
+  const handleRemove = (productId: string) => {
     logger.debug(`[Wishlist] Removing product ${productId} from wishlist UI`);
-    const previousProducts = products;
-    const updatedProducts = previousProducts.filter((p) => p.id !== productId);
+    const previousProducts = productsRef.current;
+    const removedProduct = previousProducts.find((product) => product.id === productId);
+    const updatedProducts = previousProducts.filter((product) => product.id !== productId);
 
     setProducts(updatedProducts);
     setProductInWishlist(productId, false);
+    removeWishlistProductSnapshot(productId);
 
-    try {
-      await apiClient.delete(`/api/v1/users/wishlist/${productId}`);
-      emitWishlistUpdated();
-    } catch (error) {
-      logger.error('[Wishlist] Failed to remove item from server wishlist', { error });
-      setProducts(previousProducts);
-      setProductInWishlist(productId, true);
-      emitWishlistUpdated();
-    }
+    void (async () => {
+      try {
+        await apiClient.delete(`/api/v1/users/wishlist/${productId}`);
+      } catch (error) {
+        logger.error('[Wishlist] Failed to remove item from server wishlist', { error });
+        setProducts(previousProducts);
+        setProductInWishlist(productId, true);
+        if (removedProduct) {
+          upsertWishlistProductSnapshot(removedProduct);
+        }
+      }
+    })();
   };
 
   const handleAddToCart = async (product: Product) => {

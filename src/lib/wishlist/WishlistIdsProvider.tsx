@@ -47,19 +47,19 @@ export function WishlistIdsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     void refreshWishlistIds();
 
-    const handleWishlistUpdated = () => {
-      void refreshWishlistIds();
-    };
     const handleAuthUpdated = () => {
       void refreshWishlistIds();
     };
+    const handleWishlistReconcile = () => {
+      void refreshWishlistIds();
+    };
 
-    window.addEventListener('wishlist-updated', handleWishlistUpdated);
     window.addEventListener('auth-updated', handleAuthUpdated);
+    window.addEventListener('wishlist-updated', handleWishlistReconcile);
 
     return () => {
-      window.removeEventListener('wishlist-updated', handleWishlistUpdated);
       window.removeEventListener('auth-updated', handleAuthUpdated);
+      window.removeEventListener('wishlist-updated', handleWishlistReconcile);
     };
   }, [refreshWishlistIds]);
 

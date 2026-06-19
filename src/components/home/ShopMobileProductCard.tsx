@@ -26,6 +26,7 @@ import { createProductPreviewSummary } from '@/lib/products/product-preview';
 import { SHOP_MOBILE_PRODUCT_IMAGE_SIZES } from '@/constants/shop-menu-perf';
 import type { MenuCard } from './menu-types';
 import { RatingStars } from '@/components/RatingStars';
+import { menuCardToWishlistSnapshot } from '@/lib/wishlist/wishlist-product-snapshot-mappers';
 
 /** Above storefront overlay link — must not include `relative` (breaks `absolute` positioning). */
 const MOBILE_PRODUCT_CARD_ACTION_Z_CLASS = 'z-20';
@@ -117,7 +118,7 @@ function ShopMobileProductCardBase({
       router.push(`/login?redirect=${encodeURIComponent(productHref)}`);
       return;
     }
-    void toggleWishlist();
+    void toggleWishlist(menuCardToWishlistSnapshot(card, title));
   };
 
   const visibilityRef = usePrefetchProductWhenVisible(card.slug);

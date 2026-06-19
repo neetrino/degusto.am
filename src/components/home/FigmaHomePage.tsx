@@ -34,6 +34,7 @@ import type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
 import { STOREFRONT_DESKTOP_SECTION_CLASS } from '@/constants/storefront-desktop-layout';
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
 import { RatingStars } from '@/components/RatingStars';
+import { homeFeaturedProductToWishlistSnapshot } from '@/lib/wishlist/wishlist-product-snapshot-mappers';
 
 export type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
 
@@ -107,7 +108,7 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
       router.push(`/login?redirect=${encodeURIComponent(productHref)}`);
       return;
     }
-    void toggleWishlist();
+    void toggleWishlist(homeFeaturedProductToWishlistSnapshot(item));
   };
   const previewSummary = createProductPreviewSummary({
     id: item.id,

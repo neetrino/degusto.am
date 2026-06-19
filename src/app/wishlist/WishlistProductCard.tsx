@@ -7,18 +7,9 @@ import { Button } from '@shop/ui';
 import { formatPrice, type CurrencyCode } from '../../lib/currency';
 import { WishlistMobileProductCard } from './WishlistMobileProductCard';
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
+import type { WishlistProductSnapshot } from '@/lib/wishlist/wishlist-products-cache';
 
-export interface WishlistProductCardProduct {
-  id: string;
-  slug: string;
-  title: string;
-  price: number;
-  originalPrice: number | null;
-  compareAtPrice: number | null;
-  discountPercent: number | null;
-  image: string | null;
-  inStock: boolean;
-}
+export type WishlistProductCardProduct = WishlistProductSnapshot;
 
 export interface WishlistProductCardProps {
   product: WishlistProductCardProduct;
