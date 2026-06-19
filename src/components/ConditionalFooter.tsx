@@ -10,7 +10,6 @@ const AUTH_FOOTER_BACKGROUND_CLASS = 'bg-[#102313]';
 export function ConditionalFooter() {
   const pathname = usePathname();
   const isNotFoundPage = useNotFoundPage();
-  const isShopLikePage = pathname?.startsWith('/shop') || pathname?.startsWith('/combo');
 
   if (pathname === '/' || pathname?.startsWith('/supersudo') || pathname?.startsWith('/admin-mobile')) {
     return null;
@@ -36,18 +35,19 @@ export function ConditionalFooter() {
     );
   }
 
-  const backgroundClassName = isNotFoundPage
-    ? NOT_FOUND_SURFACE_CLASS
-    : isAboutPage
-      ? 'bg-[#F2EBDD]'
-      : 'bg-white';
+  if (isNotFoundPage) {
+    return (
+      <div className={`relative z-10 hidden lg:block ${NOT_FOUND_SURFACE_CLASS}`}>
+        <Footer outerBackgroundClassName="bg-transparent" />
+      </div>
+    );
+  }
+
+  const backgroundClassName = isAboutPage ? 'bg-[#F2EBDD]' : 'bg-white';
 
   return (
     <div className={`hidden lg:block ${backgroundClassName}`}>
-      <Footer
-        outerBackgroundClassName={backgroundClassName}
-        loadHeavyVisual={!isShopLikePage}
-      />
+      <Footer outerBackgroundClassName={backgroundClassName} />
     </div>
   );
 }
