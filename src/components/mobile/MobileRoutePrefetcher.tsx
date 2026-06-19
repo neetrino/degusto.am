@@ -29,7 +29,8 @@ export function MobileRoutePrefetcher(): null {
     const runPrefetch = () => {
       for (const route of STOREFRONT_PREFETCH_ROUTES) {
         const skipMenuProductsJson =
-          route === '/shop' && (pathname === '/shop' || pathname?.startsWith('/shop?'));
+          (route === '/shop' && (pathname === '/shop' || pathname?.startsWith('/shop?'))) ||
+          (route === '/combo' && (pathname === '/combo' || pathname?.startsWith('/combo?')));
         prefetchStorefrontRoute(router, route, {
           prefetchMenuProducts: !skipMenuProductsJson,
         });

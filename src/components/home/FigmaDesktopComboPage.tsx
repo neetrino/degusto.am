@@ -19,6 +19,7 @@ interface FigmaDesktopComboPageProps {
   };
   showMobileProductsList?: boolean;
   renderDesktopLayout?: boolean;
+  showCategoryPicker?: boolean;
 }
 
 export function FigmaDesktopComboPage({
@@ -32,6 +33,7 @@ export function FigmaDesktopComboPage({
   menuPagination,
   showMobileProductsList = true,
   renderDesktopLayout = true,
+  showCategoryPicker,
 }: FigmaDesktopComboPageProps) {
   return (
     <FigmaDesktopMenuPage
@@ -48,6 +50,7 @@ export function FigmaDesktopComboPage({
       menuPagination={menuPagination}
       showMobileProductsList={showMobileProductsList}
       renderDesktopLayout={renderDesktopLayout}
+      showCategoryPicker={showCategoryPicker}
     />
   );
 }

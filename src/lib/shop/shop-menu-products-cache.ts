@@ -59,15 +59,36 @@ export function buildCanonicalSearch(search: string): string {
   return stableParams.toString();
 }
 
-export function buildMenuProductsApiUrl(search: string): string {
+export type StorefrontMenuRouteBase = '/shop' | '/combo';
+
+const MENU_PRODUCTS_API_PATH: Record<StorefrontMenuRouteBase, string> = {
+  '/shop': '/api/v1/shop/menu-products',
+  '/combo': '/api/v1/combo/menu-products',
+};
+
+/** Resolves `/shop` or `/combo` from a storefront menu href. */
+export function resolveMenuRouteBaseFromHref(href: string): StorefrontMenuRouteBase {
+  const pathEnd = href.indexOf('?');
+  const path = pathEnd >= 0 ? href.slice(0, pathEnd) : href;
+  if (path.startsWith('/combo')) {
+    return '/combo';
+  }
+  return '/shop';
+}
+
+export function buildMenuProductsApiUrl(
+  search: string,
+  routeBase: StorefrontMenuRouteBase = '/shop'
+): string {
   const canonical = buildCanonicalSearch(search);
-  return canonical ? `/api/v1/shop/menu-products?${canonical}` : '/api/v1/shop/menu-products';
+  const apiPath = MENU_PRODUCTS_API_PATH[routeBase];
+  return canonical ? `${apiPath}?${canonical}` : apiPath;
 }
 
 export function hrefToMenuProductsApiUrl(href: string): string {
   const questionIndex = href.indexOf('?');
   const search = questionIndex >= 0 ? href.slice(questionIndex) : '';
-  return buildMenuProductsApiUrl(search);
+  return buildMenuProductsApiUrl(search, resolveMenuRouteBaseFromHref(href));
 }
 
 export function rememberShopMenuProductsResponse(url: string, data: ShopMenuProductsResponse): void {
