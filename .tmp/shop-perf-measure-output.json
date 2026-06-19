@@ -1,0 +1,457 @@
+﻿{
+  "measuredAt": "2026-06-19T07:53:50.177Z",
+  "base": "http://localhost:3000",
+  "scenarios": [
+    {
+      "label": "shop-html-base",
+      "url": "http://localhost:3000/shop",
+      "samples": 3,
+      "durationMin": 1196.5515,
+      "durationP50": 1465.2873,
+      "durationP95": 1465.2873,
+      "durationMax": 3183.6531,
+      "sizeBytesP50": 240032,
+      "lastHeaders": {
+        "cache-control": "no-cache, must-revalidate",
+        "connection": "keep-alive",
+        "content-encoding": "gzip",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https: https://vercel.live wss://*.vercel.live; frame-src 'self' https://vercel.live; frame-ancestors 'none'",
+        "content-type": "text/html; charset=utf-8",
+        "date": "Fri, 19 Jun 2026 07:53:09 GMT",
+        "keep-alive": "timeout=5",
+        "link": "</_next/static/media/49b0413e7a9d45b9-s.p.14pje6x1brvrn.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </_next/static/media/75bf52590a303a4e-s.p.0qlcoyhpqndlz.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </_next/static/media/Mirage_Expanded-s.p.0nhew9ufol82q.otf>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/otf\", </_next/static/media/Montserrat_am3_Bold-s.p.0~mx~yuh-bf06.woff>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff\", </_next/static/media/Montserrat_am3_Regular-s.p.0o~f0v.iqg9~f.woff>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff\", </_next/static/media/de04be17600da772-s.p.0ftk0foufyf58.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </_next/static/media/e04993deb817f224-s.p.0la8als0j06t6.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </assets/degusto-logo.png>; rel=preload; as=\"image\", </assets/search-icon.png>; rel=preload; as=\"image\", </assets/cart-icon.png>; rel=preload; as=\"image\", </assets/avatar-circle.png>; rel=preload; as=\"image\", </assets/globe-icon.png>; rel=preload; as=\"image\", </assets/account-arrow-up.png>; rel=preload; as=\"image\", </assets/degusto-logo-mobile.png>; rel=preload; as=\"image\", </api/r2/assets/20260512-oiO5lHqN_7.svg>; rel=preload; as=\"image\", </api/r2/icons/20260512-EM1Vpadi-M.svg>; rel=preload; as=\"image\"",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "transfer-encoding": "chunked",
+        "vary": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, Accept-Encoding",
+        "x-content-type-options": "nosniff",
+        "x-dns-prefetch-control": "on",
+        "x-frame-options": "DENY",
+        "x-powered-by": "Next.js"
+      },
+      "status": 200
+    },
+    {
+      "label": "shop-html-category-pizza",
+      "url": "http://localhost:3000/shop?category=pizza",
+      "samples": 3,
+      "durationMin": 1538.4256000000005,
+      "durationP50": 1813.4405000000006,
+      "durationP95": 1813.4405000000006,
+      "durationMax": 1943.0998,
+      "sizeBytesP50": 289944,
+      "lastHeaders": {
+        "cache-control": "no-cache, must-revalidate",
+        "connection": "keep-alive",
+        "content-encoding": "gzip",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https: https://vercel.live wss://*.vercel.live; frame-src 'self' https://vercel.live; frame-ancestors 'none'",
+        "content-type": "text/html; charset=utf-8",
+        "date": "Fri, 19 Jun 2026 07:53:14 GMT",
+        "keep-alive": "timeout=5",
+        "link": "</_next/static/media/49b0413e7a9d45b9-s.p.14pje6x1brvrn.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </_next/static/media/75bf52590a303a4e-s.p.0qlcoyhpqndlz.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </_next/static/media/Mirage_Expanded-s.p.0nhew9ufol82q.otf>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/otf\", </_next/static/media/Montserrat_am3_Bold-s.p.0~mx~yuh-bf06.woff>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff\", </_next/static/media/Montserrat_am3_Regular-s.p.0o~f0v.iqg9~f.woff>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff\", </_next/static/media/de04be17600da772-s.p.0ftk0foufyf58.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </_next/static/media/e04993deb817f224-s.p.0la8als0j06t6.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </assets/degusto-logo.png>; rel=preload; as=\"image\", </assets/search-icon.png>; rel=preload; as=\"image\", </assets/cart-icon.png>; rel=preload; as=\"image\", </assets/avatar-circle.png>; rel=preload; as=\"image\", </assets/globe-icon.png>; rel=preload; as=\"image\", </assets/account-arrow-up.png>; rel=preload; as=\"image\", </assets/degusto-logo-mobile.png>; rel=preload; as=\"image\", </api/r2/assets/20260512-oiO5lHqN_7.svg>; rel=preload; as=\"image\", </api/r2/icons/20260512-EM1Vpadi-M.svg>; rel=preload; as=\"image\"",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "transfer-encoding": "chunked",
+        "vary": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, Accept-Encoding",
+        "x-content-type-options": "nosniff",
+        "x-dns-prefetch-control": "on",
+        "x-frame-options": "DENY",
+        "x-powered-by": "Next.js"
+      },
+      "status": 200
+    },
+    {
+      "label": "shop-html-search-cold",
+      "url": "http://localhost:3000/shop?search=perf1781855584683",
+      "samples": 3,
+      "durationMin": 914.6280999999999,
+      "durationP50": 963.3828000000012,
+      "durationP95": 963.3828000000012,
+      "durationMax": 998.5191000000013,
+      "sizeBytesP50": 132663,
+      "lastHeaders": {
+        "cache-control": "no-cache, must-revalidate",
+        "connection": "keep-alive",
+        "content-encoding": "gzip",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https: https://vercel.live wss://*.vercel.live; frame-src 'self' https://vercel.live; frame-ancestors 'none'",
+        "content-type": "text/html; charset=utf-8",
+        "date": "Fri, 19 Jun 2026 07:53:19 GMT",
+        "keep-alive": "timeout=5",
+        "link": "</_next/static/media/49b0413e7a9d45b9-s.p.14pje6x1brvrn.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </_next/static/media/75bf52590a303a4e-s.p.0qlcoyhpqndlz.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </_next/static/media/Mirage_Expanded-s.p.0nhew9ufol82q.otf>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/otf\", </_next/static/media/Montserrat_am3_Bold-s.p.0~mx~yuh-bf06.woff>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff\", </_next/static/media/Montserrat_am3_Regular-s.p.0o~f0v.iqg9~f.woff>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff\", </_next/static/media/de04be17600da772-s.p.0ftk0foufyf58.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </_next/static/media/e04993deb817f224-s.p.0la8als0j06t6.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </assets/degusto-logo.png>; rel=preload; as=\"image\", </assets/search-icon.png>; rel=preload; as=\"image\", </assets/cart-icon.png>; rel=preload; as=\"image\", </assets/avatar-circle.png>; rel=preload; as=\"image\", </assets/globe-icon.png>; rel=preload; as=\"image\", </assets/account-arrow-up.png>; rel=preload; as=\"image\", </assets/degusto-logo-mobile.png>; rel=preload; as=\"image\", </api/r2/assets/20260512-oiO5lHqN_7.svg>; rel=preload; as=\"image\", </api/r2/icons/20260512-EM1Vpadi-M.svg>; rel=preload; as=\"image\"",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "transfer-encoding": "chunked",
+        "vary": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, Accept-Encoding",
+        "x-content-type-options": "nosniff",
+        "x-dns-prefetch-control": "on",
+        "x-frame-options": "DENY",
+        "x-powered-by": "Next.js"
+      },
+      "status": 200
+    },
+    {
+      "label": "shop-html-price-filter",
+      "url": "http://localhost:3000/shop?minPrice=1000&maxPrice=50000",
+      "samples": 3,
+      "durationMin": 1219.7044999999998,
+      "durationP50": 1327.9311000000016,
+      "durationP95": 1327.9311000000016,
+      "durationMax": 1485.579099999999,
+      "sizeBytesP50": 291797,
+      "lastHeaders": {
+        "cache-control": "no-cache, must-revalidate",
+        "connection": "keep-alive",
+        "content-encoding": "gzip",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https: https://vercel.live wss://*.vercel.live; frame-src 'self' https://vercel.live; frame-ancestors 'none'",
+        "content-type": "text/html; charset=utf-8",
+        "date": "Fri, 19 Jun 2026 07:53:23 GMT",
+        "keep-alive": "timeout=5",
+        "link": "</_next/static/media/49b0413e7a9d45b9-s.p.14pje6x1brvrn.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </_next/static/media/75bf52590a303a4e-s.p.0qlcoyhpqndlz.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </_next/static/media/Mirage_Expanded-s.p.0nhew9ufol82q.otf>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/otf\", </_next/static/media/Montserrat_am3_Bold-s.p.0~mx~yuh-bf06.woff>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff\", </_next/static/media/Montserrat_am3_Regular-s.p.0o~f0v.iqg9~f.woff>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff\", </_next/static/media/de04be17600da772-s.p.0ftk0foufyf58.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </_next/static/media/e04993deb817f224-s.p.0la8als0j06t6.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </assets/degusto-logo.png>; rel=preload; as=\"image\", </assets/search-icon.png>; rel=preload; as=\"image\", </assets/cart-icon.png>; rel=preload; as=\"image\", </assets/avatar-circle.png>; rel=preload; as=\"image\", </assets/globe-icon.png>; rel=preload; as=\"image\", </assets/account-arrow-up.png>; rel=preload; as=\"image\", </assets/degusto-logo-mobile.png>; rel=preload; as=\"image\", </api/r2/assets/20260512-oiO5lHqN_7.svg>; rel=preload; as=\"image\", </api/r2/icons/20260512-EM1Vpadi-M.svg>; rel=preload; as=\"image\"",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "transfer-encoding": "chunked",
+        "vary": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, Accept-Encoding",
+        "x-content-type-options": "nosniff",
+        "x-dns-prefetch-control": "on",
+        "x-frame-options": "DENY",
+        "x-powered-by": "Next.js"
+      },
+      "status": 200
+    },
+    {
+      "label": "shop-html-taste-pepper",
+      "url": "http://localhost:3000/shop?taste=pepper",
+      "samples": 3,
+      "durationMin": 1294.5908999999992,
+      "durationP50": 1300.7489999999998,
+      "durationP95": 1300.7489999999998,
+      "durationMax": 1327.7897999999986,
+      "sizeBytesP50": 296825,
+      "lastHeaders": {
+        "cache-control": "no-cache, must-revalidate",
+        "connection": "keep-alive",
+        "content-encoding": "gzip",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https: https://vercel.live wss://*.vercel.live; frame-src 'self' https://vercel.live; frame-ancestors 'none'",
+        "content-type": "text/html; charset=utf-8",
+        "date": "Fri, 19 Jun 2026 07:53:27 GMT",
+        "keep-alive": "timeout=5",
+        "link": "</_next/static/media/49b0413e7a9d45b9-s.p.14pje6x1brvrn.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </_next/static/media/75bf52590a303a4e-s.p.0qlcoyhpqndlz.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </_next/static/media/Mirage_Expanded-s.p.0nhew9ufol82q.otf>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/otf\", </_next/static/media/Montserrat_am3_Bold-s.p.0~mx~yuh-bf06.woff>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff\", </_next/static/media/Montserrat_am3_Regular-s.p.0o~f0v.iqg9~f.woff>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff\", </_next/static/media/de04be17600da772-s.p.0ftk0foufyf58.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </_next/static/media/e04993deb817f224-s.p.0la8als0j06t6.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </assets/degusto-logo.png>; rel=preload; as=\"image\", </assets/search-icon.png>; rel=preload; as=\"image\", </assets/cart-icon.png>; rel=preload; as=\"image\", </assets/avatar-circle.png>; rel=preload; as=\"image\", </assets/globe-icon.png>; rel=preload; as=\"image\", </assets/account-arrow-up.png>; rel=preload; as=\"image\", </assets/degusto-logo-mobile.png>; rel=preload; as=\"image\", </api/r2/assets/20260512-oiO5lHqN_7.svg>; rel=preload; as=\"image\", </api/r2/icons/20260512-EM1Vpadi-M.svg>; rel=preload; as=\"image\"",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "transfer-encoding": "chunked",
+        "vary": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, Accept-Encoding",
+        "x-content-type-options": "nosniff",
+        "x-dns-prefetch-control": "on",
+        "x-frame-options": "DENY",
+        "x-powered-by": "Next.js"
+      },
+      "status": 200
+    },
+    {
+      "label": "shop-html-page-2",
+      "url": "http://localhost:3000/shop?category=all&page=2",
+      "samples": 3,
+      "durationMin": 1223.0467999999964,
+      "durationP50": 1256.5894000000008,
+      "durationP95": 1256.5894000000008,
+      "durationMax": 1387.3824999999997,
+      "sizeBytesP50": 291601,
+      "lastHeaders": {
+        "cache-control": "no-cache, must-revalidate",
+        "connection": "keep-alive",
+        "content-encoding": "gzip",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https: https://vercel.live wss://*.vercel.live; frame-src 'self' https://vercel.live; frame-ancestors 'none'",
+        "content-type": "text/html; charset=utf-8",
+        "date": "Fri, 19 Jun 2026 07:53:31 GMT",
+        "keep-alive": "timeout=5",
+        "link": "</_next/static/media/49b0413e7a9d45b9-s.p.14pje6x1brvrn.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </_next/static/media/75bf52590a303a4e-s.p.0qlcoyhpqndlz.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </_next/static/media/Mirage_Expanded-s.p.0nhew9ufol82q.otf>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/otf\", </_next/static/media/Montserrat_am3_Bold-s.p.0~mx~yuh-bf06.woff>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff\", </_next/static/media/Montserrat_am3_Regular-s.p.0o~f0v.iqg9~f.woff>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff\", </_next/static/media/de04be17600da772-s.p.0ftk0foufyf58.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </_next/static/media/e04993deb817f224-s.p.0la8als0j06t6.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </assets/degusto-logo.png>; rel=preload; as=\"image\", </assets/search-icon.png>; rel=preload; as=\"image\", </assets/cart-icon.png>; rel=preload; as=\"image\", </assets/avatar-circle.png>; rel=preload; as=\"image\", </assets/globe-icon.png>; rel=preload; as=\"image\", </assets/account-arrow-up.png>; rel=preload; as=\"image\", </assets/degusto-logo-mobile.png>; rel=preload; as=\"image\", </api/r2/assets/20260512-oiO5lHqN_7.svg>; rel=preload; as=\"image\", </api/r2/icons/20260512-EM1Vpadi-M.svg>; rel=preload; as=\"image\"",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "transfer-encoding": "chunked",
+        "vary": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, Accept-Encoding",
+        "x-content-type-options": "nosniff",
+        "x-dns-prefetch-control": "on",
+        "x-frame-options": "DENY",
+        "x-powered-by": "Next.js"
+      },
+      "status": 200
+    },
+    {
+      "label": "api-menu-products-base",
+      "url": "http://localhost:3000/api/v1/shop/menu-products?category=all&page=1",
+      "samples": 3,
+      "durationMin": 1090.0661,
+      "durationP50": 1116.1707999999999,
+      "durationP95": 1116.1707999999999,
+      "durationMax": 1323.0105000000003,
+      "sizeBytesP50": 6011,
+      "lastHeaders": {
+        "cache-control": "private, max-age=30, stale-while-revalidate=60",
+        "connection": "keep-alive",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https: https://vercel.live wss://*.vercel.live; frame-src 'self' https://vercel.live; frame-ancestors 'none'",
+        "content-type": "application/json",
+        "date": "Fri, 19 Jun 2026 07:53:37 GMT",
+        "keep-alive": "timeout=5",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "transfer-encoding": "chunked",
+        "vary": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+        "x-content-type-options": "nosniff",
+        "x-dns-prefetch-control": "on",
+        "x-frame-options": "DENY",
+        "x-shop-api-total-ms": "1109",
+        "x-shop-service-ms": "1109"
+      },
+      "status": 200
+    },
+    {
+      "label": "api-menu-products-pizza",
+      "url": "http://localhost:3000/api/v1/shop/menu-products?category=pizza&page=1",
+      "samples": 3,
+      "durationMin": 1429.8229999999967,
+      "durationP50": 1484.9354000000021,
+      "durationP95": 1484.9354000000021,
+      "durationMax": 1565.0728999999992,
+      "sizeBytesP50": 5825,
+      "lastHeaders": {
+        "cache-control": "private, max-age=30, stale-while-revalidate=60",
+        "connection": "keep-alive",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https: https://vercel.live wss://*.vercel.live; frame-src 'self' https://vercel.live; frame-ancestors 'none'",
+        "content-type": "application/json",
+        "date": "Fri, 19 Jun 2026 07:53:42 GMT",
+        "keep-alive": "timeout=5",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "transfer-encoding": "chunked",
+        "vary": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+        "x-content-type-options": "nosniff",
+        "x-dns-prefetch-control": "on",
+        "x-frame-options": "DENY",
+        "x-shop-api-total-ms": "1382",
+        "x-shop-service-ms": "1382"
+      },
+      "status": 200
+    },
+    {
+      "label": "api-menu-products-search-cold",
+      "url": "http://localhost:3000/api/v1/shop/menu-products?search=perf1781855584683&page=1",
+      "samples": 3,
+      "durationMin": 378.1542000000045,
+      "durationP50": 391.91739999999845,
+      "durationP95": 391.91739999999845,
+      "durationMax": 395.4742000000042,
+      "sizeBytesP50": 45,
+      "lastHeaders": {
+        "cache-control": "private, max-age=30, stale-while-revalidate=60",
+        "connection": "keep-alive",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https: https://vercel.live wss://*.vercel.live; frame-src 'self' https://vercel.live; frame-ancestors 'none'",
+        "content-type": "application/json",
+        "date": "Fri, 19 Jun 2026 07:53:43 GMT",
+        "keep-alive": "timeout=5",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "transfer-encoding": "chunked",
+        "vary": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+        "x-content-type-options": "nosniff",
+        "x-dns-prefetch-control": "on",
+        "x-frame-options": "DENY",
+        "x-shop-api-total-ms": "356",
+        "x-shop-service-ms": "356"
+      },
+      "status": 200
+    },
+    {
+      "label": "api-menu-products-filtered",
+      "url": "http://localhost:3000/api/v1/shop/menu-products?category=all&search=chicken&taste=pepper&minPrice=1000&maxPrice=30000&page=1",
+      "samples": 3,
+      "durationMin": 1135.0397999999986,
+      "durationP50": 1148.8766000000032,
+      "durationP95": 1148.8766000000032,
+      "durationMax": 1234.0770000000048,
+      "sizeBytesP50": 6131,
+      "lastHeaders": {
+        "cache-control": "private, max-age=30, stale-while-revalidate=60",
+        "connection": "keep-alive",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https: https://vercel.live wss://*.vercel.live; frame-src 'self' https://vercel.live; frame-ancestors 'none'",
+        "content-type": "application/json",
+        "date": "Fri, 19 Jun 2026 07:53:47 GMT",
+        "keep-alive": "timeout=5",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "transfer-encoding": "chunked",
+        "vary": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+        "x-content-type-options": "nosniff",
+        "x-dns-prefetch-control": "on",
+        "x-frame-options": "DENY",
+        "x-shop-api-total-ms": "1092",
+        "x-shop-service-ms": "1091"
+      },
+      "status": 200
+    }
+  ],
+  "perfHealth": {
+    "status": "ok",
+    "generatedAt": "2026-06-19T07:53:48.309Z",
+    "runsPerScenario": 3,
+    "regressionThresholdMs": 1500,
+    "regressions": [],
+    "scenarios": [
+      {
+        "name": "base-page-1",
+        "query": "category=all&page=1",
+        "totalMs": {
+          "min": 0,
+          "p50": 3,
+          "p95": 3,
+          "max": 25
+        },
+        "serviceMs": {
+          "min": 0,
+          "p50": 3,
+          "p95": 3,
+          "max": 25
+        },
+        "runs": [
+          {
+            "totalMs": 25,
+            "serviceMs": 25,
+            "cardsCount": 12,
+            "totalPages": 44,
+            "effectivePage": 1
+          },
+          {
+            "totalMs": 3,
+            "serviceMs": 3,
+            "cardsCount": 12,
+            "totalPages": 44,
+            "effectivePage": 1
+          },
+          {
+            "totalMs": 0,
+            "serviceMs": 0,
+            "cardsCount": 12,
+            "totalPages": 44,
+            "effectivePage": 1
+          }
+        ]
+      },
+      {
+        "name": "base-page-2",
+        "query": "category=all&page=2",
+        "totalMs": {
+          "min": 0,
+          "p50": 2,
+          "p95": 2,
+          "max": 11
+        },
+        "serviceMs": {
+          "min": 0,
+          "p50": 2,
+          "p95": 2,
+          "max": 11
+        },
+        "runs": [
+          {
+            "totalMs": 11,
+            "serviceMs": 11,
+            "cardsCount": 12,
+            "totalPages": 44,
+            "effectivePage": 2
+          },
+          {
+            "totalMs": 2,
+            "serviceMs": 2,
+            "cardsCount": 12,
+            "totalPages": 44,
+            "effectivePage": 2
+          },
+          {
+            "totalMs": 0,
+            "serviceMs": 0,
+            "cardsCount": 12,
+            "totalPages": 44,
+            "effectivePage": 2
+          }
+        ]
+      },
+      {
+        "name": "search-chicken",
+        "query": "category=all&search=chicken&page=1",
+        "totalMs": {
+          "min": 0,
+          "p50": 1,
+          "p95": 1,
+          "max": 11
+        },
+        "serviceMs": {
+          "min": 0,
+          "p50": 1,
+          "p95": 1,
+          "max": 11
+        },
+        "runs": [
+          {
+            "totalMs": 11,
+            "serviceMs": 11,
+            "cardsCount": 12,
+            "totalPages": 4,
+            "effectivePage": 1
+          },
+          {
+            "totalMs": 1,
+            "serviceMs": 1,
+            "cardsCount": 12,
+            "totalPages": 4,
+            "effectivePage": 1
+          },
+          {
+            "totalMs": 0,
+            "serviceMs": 0,
+            "cardsCount": 12,
+            "totalPages": 4,
+            "effectivePage": 1
+          }
+        ]
+      },
+      {
+        "name": "filtered-spicy",
+        "query": "category=all&search=chicken&taste=pepper&minPrice=1000&maxPrice=30000&page=1",
+        "totalMs": {
+          "min": 1,
+          "p50": 1,
+          "p95": 1,
+          "max": 11
+        },
+        "serviceMs": {
+          "min": 1,
+          "p50": 1,
+          "p95": 1,
+          "max": 11
+        },
+        "runs": [
+          {
+            "totalMs": 11,
+            "serviceMs": 11,
+            "cardsCount": 12,
+            "totalPages": 2,
+            "effectivePage": 1
+          },
+          {
+            "totalMs": 1,
+            "serviceMs": 1,
+            "cardsCount": 12,
+            "totalPages": 2,
+            "effectivePage": 1
+          },
+          {
+            "totalMs": 1,
+            "serviceMs": 1,
+            "cardsCount": 12,
+            "totalPages": 2,
+            "effectivePage": 1
+          }
+        ]
+      }
+    ]
+  }
+}
