@@ -41,22 +41,19 @@ export function buildShopProductWhere(
       },
     },
   };
-  const categoryIdBackfillFilter: Prisma.ProductWhereInput[] =
-    selectedCategoryIds.length > 0
-      ? [
-          { primaryCategoryId: { in: selectedCategoryIds } },
-          { categoryIds: { hasSome: selectedCategoryIds } },
-        ]
-      : [];
-  const categoryFilter =
-    categoryIdBackfillFilter.length > 0
-      ? { OR: categoryIdBackfillFilter }
-      : { OR: [categorySlugFilter] };
+  const categoryFilters: Prisma.ProductWhereInput[] = [categorySlugFilter];
+  if (selectedCategoryIds.length > 0) {
+    categoryFilters.push({
+      primaryCategoryId: {
+        in: selectedCategoryIds,
+      },
+    });
+  }
 
   return {
     AND: [
       productWhereBase,
-      categoryFilter,
+      categoryFilters.length === 1 ? categorySlugFilter : { OR: categoryFilters },
     ],
   };
 }
@@ -136,23 +133,23 @@ export function getShopProductSelect(
             attributes: true,
           },
     },
-    _count: {
-      select: {
-        variants: {
-          where: {
-            published: true,
-          },
-        },
-        ...(menuFast
-          ? {}
-          : {
+    ...(menuFast
+      ? {}
+      : {
+          _count: {
+            select: {
+              variants: {
+                where: {
+                  published: true,
+                },
+              },
               reviews: {
                 where: {
                   published: true,
                 },
               },
-            }),
-      },
-    },
+            },
+          },
+        }),
   };
 }

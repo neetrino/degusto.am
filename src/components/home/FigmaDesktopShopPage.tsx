@@ -143,10 +143,6 @@ export function FigmaDesktopMenuPage({
     [enableSoftCategoryNav, router, syncProductsFromHref]
   );
 
-  const currentPageFromSearch =
-    resolvedMenuPagination?.currentPage ??
-    Math.max(1, Number.parseInt(searchParams.get('page') ?? '1', 10) || 1);
-
   const { scheduleSearchQueryUrlSync, flushSearchQueryUrlSync, schedulePriceFilterUrlSync } =
     useMenuSearchUrlSync(
       commitShopUrlChange,
@@ -197,9 +193,10 @@ export function FigmaDesktopMenuPage({
     }
     return dbCategories.map((category) => ({
       category,
-      href: buildTargetPath(category.slug, { page: currentPageFromSearch }),
+      // Category switches should always start from page 1 to avoid clamped page re-queries.
+      href: buildTargetPath(category.slug, { page: 1 }),
     }));
-  }, [buildTargetPath, currentPageFromSearch, dbCategories]);
+  }, [buildTargetPath, dbCategories]);
 
   const categoryNavHrefs = useMemo(() => categoryNavItems.map((item) => item.href), [categoryNavItems]);
 

@@ -1,5 +1,5 @@
 /** Published variants sampled per product on shop menu fast path (food-attribute badges). */
-export const SHOP_MENU_FAST_VARIANT_SAMPLE_SIZE = 3;
+export const SHOP_MENU_FAST_VARIANT_SAMPLE_SIZE = 2;
 
 /** First visible product photos to load eagerly (2×2 mobile grid). */
 export const SHOP_ABOVE_FOLD_MOBILE_IMAGE_COUNT = 4;

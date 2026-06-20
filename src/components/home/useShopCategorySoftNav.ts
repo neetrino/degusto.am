@@ -114,8 +114,7 @@ export function useShopCategorySoftNav({
     (
       data: Awaited<ReturnType<typeof fetchShopMenuProducts>>,
       href: string,
-      categorySlug: string,
-      historyUpdate: HistoryUpdateMode
+      categorySlug: string
     ) => {
       setDisplayCards(data.cards);
       setDisplayPagination({
@@ -124,11 +123,6 @@ export function useShopCategorySoftNav({
       });
       setDisplayActiveCategorySlug(categorySlug);
       activeHrefRef.current = href;
-      if (historyUpdate === 'push') {
-        window.history.pushState({ shopSoftNav: true }, '', href);
-      } else if (historyUpdate === 'replace') {
-        window.history.replaceState({ shopSoftNav: true }, '', href);
-      }
     },
     []
   );
@@ -154,6 +148,11 @@ export function useShopCategorySoftNav({
       if (href === activeHrefRef.current) {
         return;
       }
+      if (historyUpdate === 'push') {
+        window.history.pushState({ shopSoftNav: true }, '', href);
+      } else if (historyUpdate === 'replace') {
+        window.history.replaceState({ shopSoftNav: true }, '', href);
+      }
 
       const generation = ++navigationGenerationRef.current;
       abortControllerRef.current?.abort();
@@ -164,14 +163,14 @@ export function useShopCategorySoftNav({
       const cached = peekShopMenuProductsCache(apiUrl);
 
       if (cached?.fresh) {
-        applyProductPage(cached.data, href, categorySlug, historyUpdate);
+        applyProductPage(cached.data, href, categorySlug);
         return;
       }
 
       let hasVisibleCards = false;
 
       if (cached) {
-        applyProductPage(cached.data, href, categorySlug, historyUpdate);
+        applyProductPage(cached.data, href, categorySlug);
         hasVisibleCards = cached.data.cards.length > 0;
       } else if (hrefHasTasteFilter(href)) {
         const tastePreview = deriveShopMenuTastePreviewFromCache(href, displayCardsRef.current);
@@ -179,8 +178,7 @@ export function useShopCategorySoftNav({
           applyProductPage(
             { cards: tastePreview, effectivePage: 1, totalPages: 0 },
             href,
-            categorySlug,
-            historyUpdate
+            categorySlug
           );
           hasVisibleCards = true;
         } else {
@@ -200,7 +198,7 @@ export function useShopCategorySoftNav({
         if (generation !== navigationGenerationRef.current) {
           return;
         }
-        applyProductPage(data, href, categorySlug, historyUpdate);
+        applyProductPage(data, href, categorySlug);
       } catch (error: unknown) {
         if (!isAbortError(error)) {
           logger.warn('[Shop] Soft category navigation failed', {
@@ -240,7 +238,7 @@ export function useShopCategorySoftNav({
       if (generation !== navigationGenerationRef.current) {
         return;
       }
-      applyProductPage(data, href, categorySlug, 'none');
+      applyProductPage(data, href, categorySlug);
     } catch (error: unknown) {
       if (!isAbortError(error)) {
         logger.warn('[Shop] Language-change menu products reload failed', {
