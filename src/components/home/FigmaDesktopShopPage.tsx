@@ -79,6 +79,7 @@ export function FigmaDesktopMenuPage({
   const routeBasePath = pathname?.startsWith('/combo') ? '/combo' : '/shop';
   const enableSoftCategoryNav = routeBasePath === '/shop' || routeBasePath === '/combo';
   const isMobileViewport = useIsMobileViewport();
+  const shouldRenderMobileProductsList = showMobileProductsList && (isMobileViewport || !renderDesktopLayout);
   const shouldRenderDesktopLayout = renderDesktopLayout && !isMobileViewport;
 
   useEffect(() => {
@@ -232,7 +233,7 @@ export function FigmaDesktopMenuPage({
 
   return (
     <>
-      {showMobileProductsList ? (
+      {shouldRenderMobileProductsList ? (
         <FigmaDesktopShopMobileSection
           titleKey={titleKey}
           subtitleKey={subtitleKey}

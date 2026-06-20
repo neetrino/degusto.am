@@ -1,11 +1,16 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
-import { Footer } from './Footer';
 import { useNotFoundPage } from './errors/not-found-page.context';
 import { NOT_FOUND_SURFACE_CLASS } from './errors/not-found-page.constants';
 
 const AUTH_FOOTER_BACKGROUND_CLASS = 'bg-[#102313]';
+const DESKTOP_FOOTER_PLACEHOLDER_CLASS = 'h-[576px] w-full';
+const LazyFooter = dynamic(() => import('./Footer').then((module) => module.Footer), {
+  ssr: false,
+  loading: () => <div className={DESKTOP_FOOTER_PLACEHOLDER_CLASS} aria-hidden />,
+});
 
 export function ConditionalFooter() {
   const pathname = usePathname();
@@ -22,7 +27,7 @@ export function ConditionalFooter() {
   if (isProfilePage) {
     return (
       <div className="hidden lg:block">
-        <Footer outerBackgroundClassName="bg-white" />
+        <LazyFooter outerBackgroundClassName="bg-white" />
       </div>
     );
   }
@@ -30,7 +35,7 @@ export function ConditionalFooter() {
   if (isAuthPage) {
     return (
       <div className={`hidden lg:block ${AUTH_FOOTER_BACKGROUND_CLASS}`}>
-        <Footer outerBackgroundClassName="bg-transparent" />
+        <LazyFooter outerBackgroundClassName="bg-transparent" />
       </div>
     );
   }
@@ -38,7 +43,7 @@ export function ConditionalFooter() {
   if (isNotFoundPage) {
     return (
       <div className={`relative z-10 hidden lg:block ${NOT_FOUND_SURFACE_CLASS}`}>
-        <Footer outerBackgroundClassName="bg-transparent" />
+        <LazyFooter outerBackgroundClassName="bg-transparent" />
       </div>
     );
   }
@@ -47,7 +52,7 @@ export function ConditionalFooter() {
 
   return (
     <div className={`hidden lg:block ${backgroundClassName}`}>
-      <Footer outerBackgroundClassName={backgroundClassName} />
+      <LazyFooter outerBackgroundClassName={backgroundClassName} />
     </div>
   );
 }
