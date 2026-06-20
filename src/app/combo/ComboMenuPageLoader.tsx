@@ -11,6 +11,7 @@ type ComboMenuPageLoaderProps = {
   minPriceAmd: number | null;
   maxPriceAmd: number | null;
   tasteFilter: 'leaf' | 'pepper' | null;
+  renderDesktopLayout: boolean;
 };
 
 /**
@@ -23,6 +24,7 @@ export async function ComboMenuPageLoader({
   minPriceAmd,
   maxPriceAmd,
   tasteFilter,
+  renderDesktopLayout,
 }: ComboMenuPageLoaderProps) {
   const { cards, categories, showCategoryPicker, effectivePage, totalPages } = await getComboMenuData({
     ...menuQuery,
@@ -37,6 +39,7 @@ export async function ComboMenuPageLoader({
     categories,
     activeCategorySlug: rawCategorySlug,
     showMobileProductsList: true,
+    renderDesktopLayout,
   };
 
   return (
@@ -54,6 +57,7 @@ export async function ComboMenuPageLoader({
           totalPages,
         }}
         showMobileProductsList
+        renderDesktopLayout={renderDesktopLayout}
         showCategoryPicker={showCategoryPicker}
       />
     </Suspense>

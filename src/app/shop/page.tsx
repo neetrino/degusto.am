@@ -78,7 +78,9 @@ export default async function ShopPage({
   const parsedPage = parseInt(rawPage || '1', 10);
   const requestedPage =
     Number.isFinite(parsedPage) && parsedPage >= 1 ? parsedPage : 1;
-  const renderDesktopLayout = !isMobileUserAgent(headersList.get('user-agent'));
+  const userAgent = headersList.get('user-agent');
+  const clientHintMobile = headersList.get('sec-ch-ua-mobile') === '?1';
+  const renderDesktopLayout = !(isMobileUserAgent(userAgent) || clientHintMobile);
 
   const menuQuery = {
     locale,

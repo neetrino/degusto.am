@@ -2,9 +2,10 @@ import { Suspense } from 'react';
 import { BodyBackground } from '../../components/BodyBackground';
 import { StorefrontMenuPageLoading } from '@/components/home/StorefrontMenuPageLoading';
 import { normalizeStorefrontCategorySlug } from '@/constants/storefront-all-category-slug';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { resolveStorefrontLocaleFromCookie } from '@/lib/i18n/locale';
 import { ComboMenuPageLoader } from './ComboMenuPageLoader';
+import { isMobileUserAgent } from '@/lib/viewport';
 
 type SearchParamsInput = Record<string, string | string[] | undefined>;
 
@@ -13,7 +14,7 @@ export default async function ComboPage({
 }: {
   searchParams?: Promise<SearchParamsInput>;
 }) {
-  const [params, cookieStore] = await Promise.all([searchParams, cookies()]);
+  const [params, cookieStore, headersList] = await Promise.all([searchParams, cookies(), headers()]);
   const resolvedParams = params ?? {};
   const locale = resolveStorefrontLocaleFromCookie(cookieStore.get('shop_language')?.value);
   const rawCategorySlug =
@@ -41,6 +42,9 @@ export default async function ComboPage({
   const parsedPage = parseInt(rawPage || '1', 10);
   const requestedPage =
     Number.isFinite(parsedPage) && parsedPage >= 1 ? parsedPage : 1;
+  const userAgent = headersList.get('user-agent');
+  const clientHintMobile = headersList.get('sec-ch-ua-mobile') === '?1';
+  const renderDesktopLayout = !(isMobileUserAgent(userAgent) || clientHintMobile);
 
   const menuQuery = {
     locale,
@@ -64,6 +68,7 @@ export default async function ComboPage({
           minPriceAmd={minPriceAmd}
           maxPriceAmd={maxPriceAmd}
           tasteFilter={tasteFilter}
+          renderDesktopLayout={renderDesktopLayout}
         />
       </Suspense>
     </div>

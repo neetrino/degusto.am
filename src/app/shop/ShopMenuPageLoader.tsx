@@ -45,6 +45,7 @@ export async function ShopMenuPageLoader({
     categories,
     activeCategorySlug: rawCategorySlug,
     showMobileProductsList,
+    renderDesktopLayout,
   };
 
   return (
