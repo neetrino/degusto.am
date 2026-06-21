@@ -1,7 +1,6 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import dynamic from 'next/dynamic';
 import { AuthProvider } from '../lib/auth/AuthContext';
 import { WishlistIdsProvider } from '../lib/wishlist/WishlistIdsProvider';
 import { CompareIdsProvider } from '../lib/compare/CompareIdsProvider';
@@ -14,11 +13,7 @@ import { MobileRoutePrefetcher } from './mobile/MobileRoutePrefetcher';
 import { PdpChromeProvider } from '../app/products/[slug]/pdp-chrome-context';
 import { NotFoundPageProvider } from './errors/not-found-page.context';
 import { LanguageProvider } from '../lib/i18n-client';
-
-const CartDrawer = dynamic(
-  () => import('./cart-drawer/CartDrawer').then((module) => module.CartDrawer),
-  { ssr: false }
-);
+import { CartDrawerGate } from './cart-drawer/CartDrawerGate';
 
 /**
  * ClientProviders component
@@ -38,7 +33,7 @@ export function ClientProviders({ children }: { children: ReactNode }) {
         <MobilePageScrollCache />
         <LanguageHtmlUpdater />
         {children}
-        <CartDrawer />
+        <CartDrawerGate />
         <ToastContainer />
       </CartDrawerProvider>
       </NotFoundPageProvider>

@@ -183,15 +183,6 @@ class CartService {
                 where: { locale: { in: translationLocales } },
                 select: { locale: true, title: true, slug: true },
               },
-              categories: {
-                select: {
-                  id: true,
-                  translations: {
-                    where: { locale: { in: translationLocales } },
-                    select: { locale: true, title: true, slug: true },
-                  },
-                },
-              },
             },
           },
         },
@@ -292,13 +283,6 @@ class CartService {
           product?.translations?.[0];
 
         const imageUrl = this.extractVariantImageUrl(variant?.imageUrl) ?? extractMediaUrl(product?.media);
-        const primaryCategory =
-          product?.categories?.find((category) => category.id === product?.primaryCategoryId) ??
-          product?.categories?.[0];
-        const categoryTranslation =
-          primaryCategory?.translations?.find((translation) => translation.locale === locale) ??
-          primaryCategory?.translations?.[0];
-
         const productDiscount = product?.discountPercent ?? 0;
         let appliedDiscount = 0;
         if (productDiscount > 0) {
@@ -357,11 +341,11 @@ class CartService {
               slug: translation?.slug ?? "",
               image: imageUrl,
               categoryId: product?.primaryCategoryId ?? null,
-              category: primaryCategory
+              category: product?.primaryCategoryId
                 ? {
-                    id: primaryCategory.id,
-                    slug: categoryTranslation?.slug ?? null,
-                    name: categoryTranslation?.title ?? null,
+                    id: product.primaryCategoryId,
+                    slug: null,
+                    name: null,
                   }
                 : undefined,
             },

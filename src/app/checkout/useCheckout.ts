@@ -3,7 +3,6 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { getStoredCurrency, HYDRATION_SAFE_CURRENCY } from '../../lib/currency';
-import { getStoredLanguage, HYDRATION_SAFE_LANGUAGE } from '../../lib/language';
 import { useAuth } from '../../lib/auth/AuthContext';
 import { useTranslation } from '../../lib/i18n-client';
 import { usePaymentMethods } from './utils/payment-methods';
@@ -25,7 +24,6 @@ export function useCheckout() {
   const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const [currency, setCurrency] = useState(HYDRATION_SAFE_CURRENCY);
-  const [language, setLanguage] = useState(HYDRATION_SAFE_LANGUAGE);
   const [showShippingModal, setShowShippingModal] = useState(false);
   const [showCardModal, setShowCardModal] = useState(false);
   const [showLoginRequiredModal, setShowLoginRequiredModal] = useState(false);
@@ -126,21 +124,15 @@ export function useCheckout() {
       setCurrency(getStoredCurrency());
     };
 
-    const handleLanguageUpdate = () => {
-      setLanguage(getStoredLanguage());
-    };
-
     const handleCurrencyRatesUpdate = () => {
       setCurrency(getStoredCurrency());
     };
 
     window.addEventListener('currency-updated', handleCurrencyUpdate);
-    window.addEventListener('language-updated', handleLanguageUpdate);
     window.addEventListener('currency-rates-updated', handleCurrencyRatesUpdate);
 
     return () => {
       window.removeEventListener('currency-updated', handleCurrencyUpdate);
-      window.removeEventListener('language-updated', handleLanguageUpdate);
       window.removeEventListener('currency-rates-updated', handleCurrencyRatesUpdate);
     };
   }, [isLoggedIn, isLoading]);
