@@ -1,6 +1,7 @@
 'use client';
 
 import { Card, Input } from '@shop/ui';
+import { memo } from 'react';
 import type { UseFormRegister, UseFormSetValue, FieldErrors } from 'react-hook-form';
 import type { CurrencyCode } from '../../lib/currency';
 import { useTranslation } from '../../lib/i18n-client';
@@ -33,7 +34,7 @@ interface CheckoutFormProps {
   onRemoveCartItem: (itemId: string) => void;
 }
 
-export function CheckoutForm({
+function CheckoutFormComponent({
   cart,
   register,
   setValue,
@@ -184,6 +185,8 @@ export function CheckoutForm({
     </div>
   );
 }
+
+export const CheckoutForm = memo(CheckoutFormComponent);
 
 
 

@@ -12,6 +12,65 @@ export function useUserProfile(
   const { user } = useAuth();
 
   useEffect(() => {
+    const applyProfileToForm = (profile: {
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      phone?: string;
+      addresses?: Array<{
+        isDefault?: boolean;
+        phone?: string;
+        addressLine1?: string;
+        addressLine2?: string;
+        city?: string;
+      }>;
+    }) => {
+      if (profile.firstName) {
+        setValue('firstName', profile.firstName);
+      }
+      if (profile.lastName) {
+        setValue('lastName', profile.lastName);
+      }
+      if (profile.email) {
+        setValue('email', profile.email);
+      }
+      if (profile.phone) {
+        setValue('phone', profile.phone);
+      }
+
+      if (profile.addresses && profile.addresses.length > 0) {
+        const defaultAddress = profile.addresses.find((addr) => addr.isDefault) || profile.addresses[0];
+
+        if (defaultAddress) {
+          if (!profile.phone && !user?.phone && defaultAddress.phone) {
+            setValue('phone', defaultAddress.phone);
+          }
+
+          if (defaultAddress.addressLine1) {
+            const fullAddress = defaultAddress.addressLine2
+              ? `${defaultAddress.addressLine1}, ${defaultAddress.addressLine2}`
+              : defaultAddress.addressLine1;
+            setValue('shippingAddress', fullAddress);
+          }
+
+          if (defaultAddress.city) {
+            setValue('shippingCity', defaultAddress.city);
+          }
+        }
+      }
+    };
+
+    const scheduleIdleProfileHydration = (work: () => void) => {
+      if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
+        const idleId = window.requestIdleCallback(work, { timeout: 1500 });
+        return () => window.cancelIdleCallback?.(idleId);
+      }
+      const timer = setTimeout(work, 250);
+      return () => clearTimeout(timer);
+    };
+
+    let cleanup: (() => void) | null = null;
+
     async function loadUserProfile() {
       if (isLoading) {
         return;
@@ -19,63 +78,28 @@ export function useUserProfile(
 
       if (isLoggedIn) {
         if (user) {
-          if (user.firstName) {
-            setValue('firstName', user.firstName);
-          }
-          if (user.lastName) {
-            setValue('lastName', user.lastName);
-          }
-          if (user.email) {
-            setValue('email', user.email);
-          }
-          if (user.phone) {
-            setValue('phone', user.phone);
-          }
+          applyProfileToForm(user);
         }
-        
-        try {
-          const profile = await fetchUserProfileCached();
-          
-          if (profile.firstName) {
-            setValue('firstName', profile.firstName);
-          }
-          if (profile.lastName) {
-            setValue('lastName', profile.lastName);
-          }
-          if (profile.email) {
-            setValue('email', profile.email);
-          }
-          if (profile.phone) {
-            setValue('phone', profile.phone);
-          }
-          
-          if (profile.addresses && profile.addresses.length > 0) {
-            const defaultAddress = profile.addresses.find(addr => addr.isDefault) || profile.addresses[0];
-            
-            if (defaultAddress) {
-              if (!profile.phone && !user?.phone && defaultAddress.phone) {
-                setValue('phone', defaultAddress.phone);
-              }
 
-              if (defaultAddress.addressLine1) {
-                const fullAddress = defaultAddress.addressLine2 
-                  ? `${defaultAddress.addressLine1}, ${defaultAddress.addressLine2}`
-                  : defaultAddress.addressLine1;
-                setValue('shippingAddress', fullAddress);
-              }
-              
-              if (defaultAddress.city) {
-                setValue('shippingCity', defaultAddress.city);
-              }
+        cleanup = scheduleIdleProfileHydration(() => {
+          void (async () => {
+            try {
+              const profile = await fetchUserProfileCached();
+              applyProfileToForm(profile);
+            } catch {
+              // Silently fail - use auth context data instead
             }
-          }
-        } catch {
-          // Silently fail - use auth context data instead
-        }
+          })();
+        });
       }
     }
-    
-    loadUserProfile();
+
+    void loadUserProfile();
+    return () => {
+      if (cleanup) {
+        cleanup();
+      }
+    };
   }, [isLoggedIn, isLoading, user?.id, setValue]);
 }
 

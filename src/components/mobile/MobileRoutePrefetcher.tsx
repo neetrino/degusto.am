@@ -26,6 +26,16 @@ export function MobileRoutePrefetcher(): null {
   const pathname = usePathname();
 
   useEffect(() => {
+    const currentPath = pathname ?? '';
+    const shouldSkipWarmup =
+      currentPath === '/checkout' ||
+      currentPath.startsWith('/checkout/') ||
+      currentPath.startsWith('/orders/');
+
+    if (shouldSkipWarmup) {
+      return;
+    }
+
     const runPrefetch = () => {
       for (const route of STOREFRONT_PREFETCH_ROUTES) {
         const skipMenuProductsJson =
