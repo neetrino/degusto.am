@@ -11,6 +11,7 @@ import {
   isAbortError,
   isQuietCartStockValidationError,
   isQuietCheckoutValidationError,
+  isQuietDeliveryPriceValidationError,
   isQuietCartReadServerError,
   isQuietAdminDashboardReadServerError,
   isQuietCartItemNotFoundError,
@@ -103,6 +104,7 @@ async function handleErrorResponse(
   const { errorText, errorData } = await parseErrorResponse(response);
   const quietStock422 = isQuietCartStockValidationError(response.status, errorData);
   const quietCheckoutValidationError = isQuietCheckoutValidationError(response.status, url);
+  const quietDeliveryPriceValidationError = isQuietDeliveryPriceValidationError(response.status, url);
   const quietCartReadServerError = isQuietCartReadServerError(response.status, url);
   const quietAdminDashboardReadServerError = isQuietAdminDashboardReadServerError(response.status, url);
   const quietCartItemNotFound = isQuietCartItemNotFoundError(response.status, url);
@@ -116,6 +118,7 @@ async function handleErrorResponse(
     !isUnauthorized &&
     !quietStock422 &&
     !quietCheckoutValidationError &&
+    !quietDeliveryPriceValidationError &&
     !quietCartReadServerError &&
     !quietAdminDashboardReadServerError &&
     !quietCartItemNotFound &&
@@ -133,6 +136,8 @@ async function handleErrorResponse(
     logger.debug("[API CLIENT] Cart stock limit (422)", { url, errorData });
   } else if (quietCheckoutValidationError) {
     logger.debug("[API CLIENT] Checkout validation failed (422)", { url, errorData });
+  } else if (quietDeliveryPriceValidationError) {
+    logger.debug("[API CLIENT] Delivery price validation failed (422)", { url, errorData });
   } else if (quietCartReadServerError) {
     logger.warn("[API CLIENT] Cart read failed with server error; using fallback cart state", {
       url,
@@ -163,6 +168,7 @@ async function handleErrorResponse(
     !isUnauthorized &&
     !quietStock422 &&
     !quietCheckoutValidationError &&
+    !quietDeliveryPriceValidationError &&
     !quietCartReadServerError &&
     !quietAdminDashboardReadServerError &&
     !quietCartItemNotFound &&
