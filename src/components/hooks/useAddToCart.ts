@@ -7,7 +7,13 @@ import { isQuietCartStockValidationError } from '../../lib/api-client/error-hand
 import { DATABASE_UNAVAILABLE_PUBLIC_DETAIL } from '@/lib/http/problem-details';
 import { useTranslation } from '../../lib/i18n-client';
 import { playCartFlyAnimation } from '../../lib/cart-fly-animation';
-import { publishCartUpdated, publishCartForceReload, publishOptimisticCartAdd, publishCartLineConfirmed } from '../../lib/cart/cart-events';
+import {
+  clearRecentCheckoutFlag,
+  publishCartUpdated,
+  publishCartForceReload,
+  publishOptimisticCartAdd,
+  publishCartLineConfirmed,
+} from '../../lib/cart/cart-events';
 import {
   getCartLineId,
   rememberCartLineId,
@@ -309,6 +315,9 @@ export function useAddToCart({
     const optimisticImage = propImage ?? fly?.imageUrl ?? null;
     const addedQuantity = 1;
 
+    // After a successful checkout, a short recovery window can force cart reloads.
+    // Clear it on fresh add-to-cart so optimistic rows are not overwritten.
+    clearRecentCheckoutFlag();
     publishOptimisticCartAdd({
       productId,
       productSlug,

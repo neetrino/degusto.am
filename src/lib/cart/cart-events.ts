@@ -140,9 +140,21 @@ export function wasCartCheckoutRecentlyCompleted(): boolean {
   }
   const completedAt = Number(raw);
   if (!Number.isFinite(completedAt)) {
+    sessionStorage.removeItem(CART_CHECKOUT_COMPLETED_KEY);
     return false;
   }
-  return Date.now() - completedAt < CHECKOUT_CART_STALE_MS;
+  const isRecent = Date.now() - completedAt < CHECKOUT_CART_STALE_MS;
+  if (!isRecent) {
+    sessionStorage.removeItem(CART_CHECKOUT_COMPLETED_KEY);
+  }
+  return isRecent;
+}
+
+export function clearRecentCheckoutFlag(): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  sessionStorage.removeItem(CART_CHECKOUT_COMPLETED_KEY);
 }
 
 /** Clear all client cart caches and request a server reconcile after checkout. */
