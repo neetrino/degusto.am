@@ -18,7 +18,6 @@ import { ProductInfoAndActions } from './ProductInfoAndActions';
 import { ProductInfoColumnSkeleton } from './ProductInfoColumnSkeleton';
 import { ProductPageBelowFold } from './ProductPageBelowFold';
 import { ProductReviewsLoading } from '@/components/ProductReviews/ProductReviewsLoading';
-import { RelatedProducts } from '@/components/RelatedProducts';
 import { ProductPageShell } from './ProductPageShell';
 import { ProductPrimaryMeta } from './ProductPrimaryMeta';
 import { useProductPage } from './useProductPage';
@@ -162,6 +161,17 @@ function ProductPagePendingScaffold({ relatedSection }: { relatedSection: ReactN
         </div>
       </div>
     </>
+  );
+}
+
+function ProductRelatedSectionPlaceholder() {
+  return (
+    <div className={PDP_RELATED_SECTION_GAP_CLASS}>
+      <div
+        className="h-[320px] w-full animate-pulse rounded-[24px] bg-neutral-100"
+        aria-hidden
+      />
+    </div>
   );
 }
 
@@ -609,15 +619,7 @@ export function ProductPageClient({
   );
 
   const relatedSection = (
-    <div className={PDP_RELATED_SECTION_GAP_CLASS}>
-      <RelatedProducts
-        productSlug={slug}
-        categorySlug={product?.categories?.[0]?.slug}
-        currentProductId={product?.id ?? '__loading__'}
-        initialProducts={initialRelatedProducts}
-        initialLanguage={serverLocale}
-      />
-    </div>
+    <ProductRelatedSectionPlaceholder />
   );
 
   if (awaitingDetails) {

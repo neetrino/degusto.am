@@ -31,6 +31,7 @@ export function MobileRoutePrefetcher(): null {
       currentPath === '/checkout' ||
       currentPath.startsWith('/checkout/') ||
       currentPath.startsWith('/orders/');
+    const isProductPage = currentPath.startsWith('/products/');
 
     if (shouldSkipWarmup) {
       return;
@@ -39,6 +40,7 @@ export function MobileRoutePrefetcher(): null {
     const runPrefetch = () => {
       for (const route of STOREFRONT_PREFETCH_ROUTES) {
         const skipMenuProductsJson =
+          isProductPage ||
           (route === '/shop' && (pathname === '/shop' || pathname?.startsWith('/shop?'))) ||
           (route === '/combo' && (pathname === '/combo' || pathname?.startsWith('/combo?')));
         prefetchStorefrontRoute(router, route, {

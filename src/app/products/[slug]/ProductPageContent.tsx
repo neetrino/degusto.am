@@ -1,6 +1,7 @@
 import { getProductPageData } from '@/lib/services/products-slug/get-product-page-data';
 import { getProductVisualCached } from '@/lib/services/products-slug/get-product-visual-cached';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
+import { Suspense } from 'react';
 import { ProductPageClient } from './ProductPageClient';
 import { ProductDetailsServer } from './ProductDetailsServer';
 import type { Product } from './types';
@@ -119,7 +120,9 @@ export async function ProductPageContent({
       serverLocale={serverLocale}
       streamDetails
     >
-      <ProductDetailsServer slug={slug} locale={serverLocale} />
+      <Suspense fallback={null}>
+        <ProductDetailsServer slug={slug} locale={serverLocale} />
+      </Suspense>
     </ProductPageClient>
   );
 }

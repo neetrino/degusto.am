@@ -1,9 +1,8 @@
 'use client';
 
 import { Minus, Plus } from 'lucide-react';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import type { MouseEvent } from 'react';
+import { useMemo, type MouseEvent } from 'react';
 import { useWishlist } from '../../../components/hooks/useWishlist';
 import { useAuth } from '../../../lib/auth/AuthContext';
 import { montserratArmFont } from '../../../fonts/montserrat-arm-font';
@@ -106,6 +105,18 @@ export function ProductInfoAndActions({
   const router = useRouter();
   const { isLoggedIn } = useAuth();
   const { isInWishlist, toggleWishlist } = useWishlist(product.id);
+  const localizedTitle = useMemo(
+    () => getProductText(language, product.id, 'title') || product.title,
+    [language, product.id, product.title]
+  );
+  const localizedDescription = useMemo(
+    () => getProductText(language, product.id, 'longDescription') || product.description || '',
+    [language, product.id, product.description]
+  );
+  const sanitizedDescription = useMemo(
+    () => sanitizeHtml(localizedDescription),
+    [localizedDescription]
+  );
 
   const handleWishlistToggle = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -113,12 +124,11 @@ export function ProductInfoAndActions({
       router.push(`/login?redirect=/products/${encodeURIComponent(product.slug)}`);
       return;
     }
-    const title = getProductText(language, product.id, 'title') || product.title;
     void toggleWishlist(
       pdpProductToWishlistSnapshot({
         id: product.id,
         slug: product.slug,
-        title,
+        title: localizedTitle,
         price,
         originalPrice,
         compareAtPrice,
@@ -144,7 +154,7 @@ export function ProductInfoAndActions({
     <div className="flex w-full max-w-full flex-col self-start max-lg:px-0 max-lg:py-0 lg:h-full lg:min-h-0 lg:justify-between lg:self-stretch lg:px-0 lg:py-0">
       <div>
           <h1 className={`${PDP_TITLE_CLASS} ${montserratArmFont.className}`}>
-            {getProductText(language, product.id, 'title') || product.title}
+            {localizedTitle}
           </h1>
           <ProductRatingSummary
             averageRating={averageRating}
@@ -166,9 +176,7 @@ export function ProductInfoAndActions({
             <div
               className={PDP_DESCRIPTION_CLASS}
               dangerouslySetInnerHTML={{
-                __html: sanitizeHtml(
-                  getProductText(language, product.id, 'longDescription') || product.description || ''
-                ),
+                __html: sanitizedDescription,
               }}
             />
           ) : (
