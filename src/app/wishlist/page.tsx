@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@shop/ui';
-import { apiClient } from '../../lib/api-client';
+import { apiClient, ApiError } from '../../lib/api-client';
 import { getStoredCurrency, HYDRATION_SAFE_CURRENCY } from '../../lib/currency';
 import { getStoredLanguage } from '../../lib/language';
 import { useTranslation } from '../../lib/i18n-client';
@@ -113,7 +113,29 @@ export default function WishlistPage() {
         if (missingIds.some((id) => !fetchedIds.has(id))) {
           emitWishlistUpdated();
         }
-      } catch (error) {
+      } catch (error: unknown) {
+        if (error instanceof ApiError) {
+          if (error.status === 401) {
+            logger.warn('[Wishlist] Unauthorized while fetching wishlist products', {
+              status: error.status,
+              message: error.message,
+            });
+            return;
+          }
+          logger.error('[Wishlist] Error fetching wishlist products', {
+            status: error.status,
+            message: error.message,
+            data: error.data,
+          });
+          return;
+        }
+        if (error instanceof Error) {
+          logger.error('[Wishlist] Error fetching wishlist products', {
+            message: error.message,
+            stack: error.stack,
+          });
+          return;
+        }
         logger.error('[Wishlist] Error fetching wishlist products', { error });
       }
     },
@@ -178,9 +200,41 @@ export default function WishlistPage() {
 
     void (async () => {
       try {
-        await apiClient.delete(`/api/v1/users/wishlist/${productId}`);
-      } catch (error) {
-        logger.error('[Wishlist] Failed to remove item from server wishlist', { error });
+        await apiClient.delete(`/api/v1/users/wishlist/${encodeURIComponent(productId)}`);
+      } catch (error: unknown) {
+        if (error instanceof ApiError) {
+          if (error.status === 401) {
+            logger.warn('[Wishlist] Unauthorized while removing wishlist item', {
+              productId,
+              status: error.status,
+              message: error.message,
+            });
+            router.push('/login?redirect=/wishlist');
+            setProducts(previousProducts);
+            setProductInWishlist(productId, true);
+            if (removedProduct) {
+              upsertWishlistProductSnapshot(removedProduct);
+            }
+            return;
+          }
+          logger.error('[Wishlist] Failed to remove item from server wishlist', {
+            productId,
+            status: error.status,
+            message: error.message,
+            data: error.data,
+          });
+          if (error.status === 401) {
+            router.push('/login?redirect=/wishlist');
+          }
+        } else if (error instanceof Error) {
+          logger.error('[Wishlist] Failed to remove item from server wishlist', {
+            productId,
+            message: error.message,
+            stack: error.stack,
+          });
+        } else {
+          logger.error('[Wishlist] Failed to remove item from server wishlist', { productId, error });
+        }
         setProducts(previousProducts);
         setProductInWishlist(productId, true);
         if (removedProduct) {
