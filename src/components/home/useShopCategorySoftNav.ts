@@ -18,6 +18,7 @@ import {
 } from '@/lib/shop/shop-menu-products-cache';
 import { prefetchStorefrontRoute } from '@/lib/routing/prefetch-storefront-route';
 import { logger } from '@/lib/utils/logger';
+import { seedRelatedProductsPool } from '@/lib/products/related-products-cache';
 
 function isAbortError(error: unknown): boolean {
   return (
@@ -86,6 +87,38 @@ export function useShopCategorySoftNav({
 
   useEffect(() => {
     displayCardsRef.current = displayCards;
+  }, [displayCards]);
+
+  useEffect(() => {
+    seedRelatedProductsPool(
+      displayCards.map((card) => {
+        const compareAtPrice =
+          card.oldPrice > card.price ? card.oldPrice : null;
+        return {
+          id: card.id,
+          slug: card.slug,
+          title: card.title || card.slug,
+          price: card.price,
+          originalPrice: compareAtPrice,
+          compareAtPrice,
+          discountPercent: card.discountPercent ?? null,
+          defaultVariantId: card.defaultVariantId ?? null,
+          image: card.image ?? null,
+          inStock: card.inStock ?? true,
+          rating: card.rating ?? 5,
+          categories:
+            card.categorySlug || card.category
+              ? [
+                  {
+                    id: card.categorySlug || card.category || 'uncategorized',
+                    slug: card.categorySlug || '',
+                    title: card.category || '',
+                  },
+                ]
+              : [],
+        };
+      })
+    );
   }, [displayCards]);
 
   useEffect(() => {

@@ -32,3 +32,13 @@ export function ProductDetailsNotFoundSetter() {
 
   return null;
 }
+
+export function ProductDetailsErrorSetter() {
+  const { markHydrationError } = useProductPageHydration();
+
+  useLayoutEffect(() => {
+    markHydrationError();
+  }, [markHydrationError]);
+
+  return null;
+}
