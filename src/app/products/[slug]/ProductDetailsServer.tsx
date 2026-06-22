@@ -1,7 +1,11 @@
 import { getProductPageData } from '@/lib/services/products-slug/get-product-page-data';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
 import type { Product } from './types';
-import { ProductDetailsNotFoundSetter, ProductDetailsSetter } from './ProductDetailsSetter';
+import {
+  ProductDetailsErrorSetter,
+  ProductDetailsNotFoundSetter,
+  ProductDetailsSetter,
+} from './ProductDetailsSetter';
 import { logger } from '@/lib/utils/logger';
 
 interface ProductDetailsServerProps {
@@ -25,7 +29,7 @@ export async function ProductDetailsServer({ slug, locale }: ProductDetailsServe
   }
 
   if (!result) {
-    return <ProductDetailsNotFoundSetter />;
+    return <ProductDetailsErrorSetter />;
   }
 
   if (result.status === 'not_found') {

@@ -2,7 +2,7 @@
 
 import { ViewMoreButton } from '../view-more/ViewMoreButton';
 import { useRouter } from 'next/navigation';
-import type { MouseEvent } from 'react';
+import { useEffect, type MouseEvent } from 'react';
 import { UniversalHeader } from '../UniversalHeader';
 import { ProjectGreenStripes } from '../decor/ProjectGreenStripes';
 import { Footer } from '../Footer';
@@ -36,6 +36,7 @@ import { resolveMenuCardCategoryLabel } from '@/lib/storefront/menu-card-categor
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
 import { RatingStars } from '@/components/RatingStars';
 import { homeFeaturedProductToWishlistSnapshot } from '@/lib/wishlist/wishlist-product-snapshot-mappers';
+import { seedRelatedProductsPool } from '@/lib/products/related-products-cache';
 
 export type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
 
@@ -266,6 +267,37 @@ export function FigmaHomePage({
   dailyOfferProduct?: HomeFeaturedProduct | null;
 }) {
   const { t, lang } = useTranslation();
+  useEffect(() => {
+    seedRelatedProductsPool(
+      featuredProducts.map((product) => {
+        const price = product.price ?? 0;
+        const compareAtPrice =
+          product.oldPrice != null && product.oldPrice > price ? product.oldPrice : null;
+        return {
+          id: product.id,
+          slug: product.slug,
+          title: product.title,
+          price,
+          originalPrice: compareAtPrice,
+          compareAtPrice,
+          discountPercent: product.discountPercent ?? null,
+          defaultVariantId: product.defaultVariantId ?? null,
+          image: resolveStorefrontProductImage(product.image),
+          inStock: product.inStock ?? true,
+          rating: product.rating ?? 5,
+          categories: product.categorySlug
+            ? [
+                {
+                  id: product.categorySlug,
+                  slug: product.categorySlug,
+                  title: product.subtitle || '',
+                },
+              ]
+            : [],
+        };
+      })
+    );
+  }, [featuredProducts]);
   const specialOfferProducts = featuredProducts.slice(0, DESKTOP_HOME_SPECIAL_OFFERS_PRODUCT_COUNT);
   const heroProduct = resolveHomeDailyOfferProduct(featuredProducts, dailyOfferProduct);
   const armenianHeadingClassName = lang === 'hy' ? montserratArmFont.className : '';

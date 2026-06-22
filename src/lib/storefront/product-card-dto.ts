@@ -12,19 +12,29 @@ export type ProductCardDTO = {
   slug: string;
   name: string;
   price: number;
+  oldPrice?: number | null;
+  discount?: number | null;
   image: string | null;
   category?: {
+    id?: string;
     name: string;
     slug: string;
   };
+  brand?: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
+  rating?: number | null;
+  status?: string;
+  /** @deprecated Prefer oldPrice */
   compareAtPrice?: number;
+  /** @deprecated Prefer discount */
   discountPercent?: number | null;
   inStock: boolean;
   defaultVariantId: string | null;
   supportsSpicy: boolean;
   supportsGreens: boolean;
-  /** Omitted on fast list path; defaults to 5 on the client. */
-  rating?: number;
 };
 
 /** JSON shape for `/api/v1/shop/menu-products` (minimal fields over the wire). */
@@ -99,7 +109,9 @@ export function mapShopMenuProductRowToProductCardDto(
           slug: categoryTranslation.slug,
         }
       : undefined,
+    oldPrice: compareAtPrice > price ? compareAtPrice : null,
     compareAtPrice: compareAtPrice > price ? compareAtPrice : undefined,
+    discount: row.discountPercent ?? null,
     discountPercent: row.discountPercent,
     inStock: isPublishedVariantInStock(variant),
     defaultVariantId: variant?.id ?? null,
@@ -118,6 +130,8 @@ export function mapShopMenuProductRowsToProductCardDtos(
 
 /** Adapts DTO to existing `MenuCard` consumed by storefront components. */
 export function productCardDtoToMenuCard(dto: ProductCardDTO): MenuCard {
+  const resolvedOldPrice =
+    dto.oldPrice != null ? dto.oldPrice : dto.compareAtPrice ?? dto.price;
   return {
     id: dto.id,
     slug: dto.slug,
@@ -126,9 +140,9 @@ export function productCardDtoToMenuCard(dto: ProductCardDTO): MenuCard {
     categorySlug: dto.category?.slug ?? '',
     image: dto.image,
     price: dto.price,
-    oldPrice: dto.compareAtPrice ?? dto.price,
+    oldPrice: resolvedOldPrice,
     discount: '',
-    discountPercent: dto.discountPercent,
+    discountPercent: dto.discountPercent ?? dto.discount ?? null,
     rating: dto.rating ?? 5,
     inStock: dto.inStock,
     defaultVariantId: dto.defaultVariantId,
@@ -152,7 +166,11 @@ export function serializeProductCardDtosForApi(dtos: ProductCardDTO[]): ProductC
     image: dto.image,
     ...(dto.category?.name ? { category: dto.category.name } : {}),
     ...(dto.category?.slug ? { categorySlug: dto.category.slug } : {}),
-    ...(dto.discountPercent != null ? { discountPercent: dto.discountPercent } : {}),
+    ...(dto.discountPercent != null
+      ? { discountPercent: dto.discountPercent }
+      : dto.discount != null
+        ? { discountPercent: dto.discount }
+        : {}),
     inStock: dto.inStock,
     defaultVariantId: dto.defaultVariantId,
     supportsSpicy: dto.supportsSpicy,
@@ -162,11 +180,13 @@ export function serializeProductCardDtosForApi(dtos: ProductCardDTO[]): ProductC
 
 /** Restores full `MenuCard` from lean API JSON. */
 export function parseProductCardApiJsonToMenuCard(json: ProductCardApiJson): MenuCard {
+  const resolvedOldPrice = json.oldPrice > json.price ? json.oldPrice : json.price;
   return productCardDtoToMenuCard({
     id: json.id,
     slug: json.slug,
     name: json.title,
     price: json.price,
+    oldPrice: resolvedOldPrice,
     compareAtPrice: json.oldPrice > json.price ? json.oldPrice : undefined,
     image: json.image,
     category:

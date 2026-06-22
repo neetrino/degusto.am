@@ -5,7 +5,10 @@ import { apiClient } from '../../lib/api-client';
 import type { LanguageCode } from '../../lib/language';
 import { logger } from '@/lib/utils/logger';
 import type { RelatedCardPayload } from '@/lib/services/products-slug/product-related-transform';
-import { setRelatedProductsSnapshot } from '@/lib/products/related-products-cache';
+import {
+  seedRelatedProductsPool,
+  setRelatedProductsSnapshot,
+} from '@/lib/products/related-products-cache';
 
 interface UseRelatedProductsProps {
   categorySlug?: string;
@@ -51,17 +54,13 @@ export function useRelatedProducts({
   productSlug,
   enabled = true,
   initialProducts,
-  initialLanguage,
 }: UseRelatedProductsProps) {
-  const hasServerSnapshot =
-    initialProducts != null &&
-    initialLanguage != null &&
-    language === initialLanguage;
+  const hasInitialProducts = (initialProducts?.length ?? 0) > 0;
 
   const [products, setProducts] = useState<RelatedCardPayload[]>(() =>
-    hasServerSnapshot ? filterRelatedProducts(initialProducts, currentProductId) : []
+    hasInitialProducts ? filterRelatedProducts(initialProducts ?? [], currentProductId) : []
   );
-  const [loading, setLoading] = useState(!hasServerSnapshot);
+  const [loading, setLoading] = useState(!hasInitialProducts);
 
   const loadRelatedPage = async (
     encodedSlug: string,
@@ -85,34 +84,27 @@ export function useRelatedProducts({
       return;
     }
 
+    let cancelled = false;
+
     const fetchRelatedProducts = async () => {
       const startedAt = Date.now();
       let requestCount = 0;
       try {
-        if (!hasServerSnapshot) {
+        if (!hasInitialProducts) {
           setLoading(true);
         }
 
         if (productSlug) {
           const encoded = encodeURIComponent(productSlug.trim());
-          if (hasServerSnapshot) {
-            const seededSource = initialProducts ?? [];
-            setProducts(filterRelatedProducts(seededSource, currentProductId));
-            setLoading(false);
+          const firstResponse = await loadRelatedPage(encoded, language, 0);
+          if (cancelled) {
             return;
           }
-
-          const firstResponse = await loadRelatedPage(encoded, language, 0);
           requestCount += 1;
           const firstBatch = filterRelatedProducts(firstResponse.data, currentProductId);
           setProducts(firstBatch);
+          seedRelatedProductsPool(firstBatch);
           setRelatedProductsSnapshot(productSlug, language, firstResponse.data);
-          return;
-        }
-
-        if (hasServerSnapshot) {
-          setProducts(filterRelatedProducts(initialProducts, currentProductId));
-          setLoading(false);
           return;
         }
 
@@ -137,30 +129,38 @@ export function useRelatedProducts({
           params,
         });
 
-        setProducts(filterRelatedProducts(response.data, currentProductId));
+        if (cancelled) {
+          return;
+        }
+        const nextProducts = filterRelatedProducts(response.data, currentProductId);
+        setProducts(nextProducts);
+        seedRelatedProductsPool(nextProducts);
       } catch (error: unknown) {
         logger.warn('[RelatedProducts] Error fetching related products', {
           error: error instanceof Error ? error.message : String(error),
         });
-        setProducts([]);
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
         logger.debug('[RelatedProducts] Fetch complete', {
           productSlug,
           requestCount,
           durationMs: Date.now() - startedAt,
-          hasServerSnapshot,
+          hasInitialProducts,
         });
       }
     };
 
     void fetchRelatedProducts();
+    return () => {
+      cancelled = true;
+    };
   }, [
     categorySlug,
     currentProductId,
     enabled,
-    hasServerSnapshot,
-    initialProducts,
+    hasInitialProducts,
     language,
     productSlug,
   ]);

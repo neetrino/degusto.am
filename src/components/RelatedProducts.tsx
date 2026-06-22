@@ -30,9 +30,40 @@ import {
 import type { RelatedCardPayload } from '@/lib/services/products-slug/product-related-transform';
 import {
   getRelatedProductsSnapshot,
+  getRelatedProductsPool,
+  seedRelatedProductsPool,
   setRelatedProductsSnapshot,
 } from '@/lib/products/related-products-cache';
 import { useHasMounted } from '@/hooks/useHasMounted';
+import { forEachValidShopMenuProductsCacheEntry } from '@/lib/shop/shop-menu-products-cache';
+import type { MenuCard } from '@/components/home/menu-types';
+
+function mapMenuCardToRelatedCard(card: MenuCard): RelatedCardPayload {
+  const compareAtPrice = card.oldPrice > card.price ? card.oldPrice : null;
+  return {
+    id: card.id,
+    slug: card.slug,
+    title: card.title || card.slug,
+    price: card.price,
+    originalPrice: compareAtPrice,
+    compareAtPrice,
+    discountPercent: card.discountPercent ?? null,
+    defaultVariantId: card.defaultVariantId ?? null,
+    image: card.image ?? null,
+    inStock: card.inStock ?? true,
+    rating: card.rating ?? 5,
+    categories:
+      card.categorySlug || card.category
+        ? [
+            {
+              id: card.categorySlug || card.category || 'uncategorized',
+              slug: card.categorySlug || '',
+              title: card.category || '',
+            },
+          ]
+        : [],
+  };
+}
 
 interface RelatedProductsProps {
   categorySlug?: string;
@@ -59,10 +90,40 @@ export function RelatedProducts({
     productSlug != null
       ? getRelatedProductsSnapshot(productSlug)
       : null;
+  const pooledProducts = useMemo(
+    () =>
+      getRelatedProductsPool({
+        excludeProductId: currentProductId,
+        excludeSlug: productSlug,
+        limit: 8,
+      }),
+    [currentProductId, productSlug]
+  );
+  const menuCacheProducts = useMemo(() => {
+    const cards: RelatedCardPayload[] = [];
+    forEachValidShopMenuProductsCacheEntry((_, data) => {
+      for (const card of data.cards) {
+        cards.push(mapMenuCardToRelatedCard(card));
+      }
+    });
+    return cards;
+  }, []);
+
+  useEffect(() => {
+    if (menuCacheProducts.length === 0) {
+      return;
+    }
+    seedRelatedProductsPool(menuCacheProducts);
+  }, [menuCacheProducts]);
+
+  const cacheFirstProducts = useMemo(
+    () => (pooledProducts.length > 0 ? pooledProducts : menuCacheProducts),
+    [menuCacheProducts, pooledProducts]
+  );
   const effectiveInitialProducts =
     initialProducts && initialProducts.length > 0
       ? initialProducts
-      : cachedSnapshot?.products ?? initialProducts;
+      : cachedSnapshot?.products ?? cacheFirstProducts;
   const effectiveInitialLanguage =
     initialLanguage ?? cachedSnapshot?.language;
 
@@ -79,6 +140,7 @@ export function RelatedProducts({
     if (!productSlug || !effectiveInitialProducts || effectiveInitialProducts.length === 0) {
       return;
     }
+    seedRelatedProductsPool(effectiveInitialProducts);
     setRelatedProductsSnapshot(productSlug, effectiveInitialLanguage ?? 'en', effectiveInitialProducts);
   }, [effectiveInitialLanguage, effectiveInitialProducts, productSlug]);
 

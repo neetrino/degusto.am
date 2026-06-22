@@ -70,7 +70,7 @@ export async function ProductPageContent({
           initialProduct={null}
           initialReviewSummary={EMPTY_REVIEW_SUMMARY}
           initialRelatedProducts={initialRelatedProducts}
-          initialNotFound
+          initialNotFound={false}
           serverLocale={serverLocale}
         />
       );

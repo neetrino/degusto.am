@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect } from 'react';
 import { ViewMoreButton } from '../view-more/ViewMoreButton';
 import { useTranslation } from '@/lib/i18n-client';
 import { montserratArmFont } from '@/fonts/montserrat-arm-font';
@@ -25,6 +26,8 @@ import { MobileHomeHeaderActions } from './MobileHomeHeaderActions';
 import { MobileHomeProductGrid } from './MobileHomeProductGrid';
 import { MobileCategoryCarousel } from './MobileCategoryCarousel';
 import { MobileDailyOfferCarousel } from './MobileDailyOfferCarousel';
+import { seedRelatedProductsPool } from '@/lib/products/related-products-cache';
+import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 
 const mobileAssets = {
   ...MOBILE_FIGMA_STOREFRONT_ASSETS,
@@ -102,6 +105,37 @@ export function FigmaHomePageMobile({
   dailyOfferProduct,
 }: FigmaHomePageMobileProps) {
   const { t, lang } = useTranslation();
+  useEffect(() => {
+    seedRelatedProductsPool(
+      featuredProducts.map((product) => {
+        const price = product.price ?? 0;
+        const compareAtPrice =
+          product.oldPrice != null && product.oldPrice > price ? product.oldPrice : null;
+        return {
+          id: product.id,
+          slug: product.slug,
+          title: product.title,
+          price,
+          originalPrice: compareAtPrice,
+          compareAtPrice,
+          discountPercent: product.discountPercent ?? null,
+          defaultVariantId: product.defaultVariantId ?? null,
+          image: resolveStorefrontProductImage(product.image),
+          inStock: product.inStock ?? true,
+          rating: product.rating ?? 5,
+          categories: product.categorySlug
+            ? [
+                {
+                  id: product.categorySlug,
+                  slug: product.categorySlug,
+                  title: product.subtitle || '',
+                },
+              ]
+            : [],
+        };
+      })
+    );
+  }, [featuredProducts]);
   const resolvedDailyOfferProduct = resolveHomeDailyOfferProduct(
     featuredProducts,
     dailyOfferProduct

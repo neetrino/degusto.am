@@ -358,6 +358,7 @@ export function ProductPageClient({
   const [reviewSummary, setReviewSummary] =
     useState<ProductReviewSummary>(initialReviewSummary);
   const [notFound, setNotFound] = useState(initialNotFound);
+  const [detailsHydrationFailed, setDetailsHydrationFailed] = useState(false);
 
   const [cachedSummaryProduct, setCachedSummaryProduct] = useState<Product | null>(null);
 
@@ -503,12 +504,18 @@ export function ProductPageClient({
     setFullProduct(next);
     setReviewSummary(summary);
     setNotFound(false);
+    setDetailsHydrationFailed(false);
     productRef.current = next;
   }, []);
 
   const markNotFound = useCallback(() => {
     setFullProduct(null);
     setNotFound(true);
+    setDetailsHydrationFailed(false);
+  }, []);
+
+  const markHydrationError = useCallback(() => {
+    setDetailsHydrationFailed(true);
   }, []);
 
   const applyReviewSummary = useCallback((summary: ProductReviewSummary) => {
@@ -525,10 +532,11 @@ export function ProductPageClient({
     slug,
     serverLocale,
     productRef,
-    skipMountFetch: Boolean(initialProduct) || streamDetails,
+    skipMountFetch: Boolean(initialProduct) || (streamDetails && !detailsHydrationFailed),
     onLoaded: (next) => {
       setFullProduct(next);
       productRef.current = next;
+      setDetailsHydrationFailed(false);
     },
     onNotFound: markNotFound,
   });
@@ -624,7 +632,11 @@ export function ProductPageClient({
 
   if (awaitingDetails) {
     return (
-      <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
+      <ProductPageHydrationProvider
+        hydrateDetails={hydrateDetails}
+        markNotFound={markNotFound}
+        markHydrationError={markHydrationError}
+      >
         {shell}
         <ProductPagePendingScaffold relatedSection={relatedSection} />
         {children}
@@ -634,7 +646,11 @@ export function ProductPageClient({
 
   if (notFound && !product) {
     return (
-      <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
+      <ProductPageHydrationProvider
+        hydrateDetails={hydrateDetails}
+        markNotFound={markNotFound}
+        markHydrationError={markHydrationError}
+      >
         <ProductPageNotFoundContent language={language}>
           {children}
         </ProductPageNotFoundContent>
@@ -644,7 +660,11 @@ export function ProductPageClient({
 
   if (!product) {
     return (
-      <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
+      <ProductPageHydrationProvider
+        hydrateDetails={hydrateDetails}
+        markNotFound={markNotFound}
+        markHydrationError={markHydrationError}
+      >
         {streamDetails ? (
           <>
             {shell}
@@ -657,7 +677,11 @@ export function ProductPageClient({
   }
 
   return (
-    <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
+    <ProductPageHydrationProvider
+      hydrateDetails={hydrateDetails}
+      markNotFound={markNotFound}
+      markHydrationError={markHydrationError}
+    >
       <BodyBackground color={PDP_BODY_BACKGROUND} />
       <div
         className={`${PDP_HEADER_DESKTOP_UNDERLAP_CLASS} min-h-dvh max-lg:overflow-x-visible overflow-x-hidden bg-white max-lg:min-h-0 lg:min-h-dvh`}

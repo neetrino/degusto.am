@@ -7,6 +7,7 @@ import type { ProductReviewSummary } from '@/lib/services/reviews/product-review
 interface ProductPageHydrationContextValue {
   hydrateDetails: (product: Product, reviewSummary: ProductReviewSummary) => void;
   markNotFound: () => void;
+  markHydrationError: () => void;
 }
 
 const ProductPageHydrationContext = createContext<ProductPageHydrationContextValue | null>(
@@ -17,13 +18,17 @@ export function ProductPageHydrationProvider({
   children,
   hydrateDetails,
   markNotFound,
+  markHydrationError,
 }: {
   children: ReactNode;
   hydrateDetails: (product: Product, reviewSummary: ProductReviewSummary) => void;
   markNotFound: () => void;
+  markHydrationError: () => void;
 }) {
   return (
-    <ProductPageHydrationContext.Provider value={{ hydrateDetails, markNotFound }}>
+    <ProductPageHydrationContext.Provider
+      value={{ hydrateDetails, markNotFound, markHydrationError }}
+    >
       {children}
     </ProductPageHydrationContext.Provider>
   );
