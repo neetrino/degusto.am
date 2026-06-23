@@ -1,11 +1,14 @@
 import { Suspense } from 'react';
 import { BodyBackground } from '../../components/BodyBackground';
 import { FigmaDesktopComboPage } from '../../components/home/FigmaDesktopComboPage';
-import { cookies } from 'next/headers';
-import { resolveStorefrontLocaleFromCookie } from '@/lib/i18n/locale';
+import { StorefrontLocaleUrlSync } from '@/components/routing/StorefrontLocaleUrlSync';
+import { resolveStorefrontLocaleFromPageSearchParams } from '@/lib/i18n/locale';
 import { getComboMenuData } from '@/lib/services/combo-page/combo-page-data.service';
 
 type SearchParamsInput = Record<string, string | string[] | undefined>;
+
+/** Keep in sync with `STOREFRONT_ISR_REVALIDATE_SECONDS` in `@/constants/storefront-isr`. */
+export const revalidate = 86_400;
 
 export default async function ComboPage({
   searchParams,
@@ -13,8 +16,7 @@ export default async function ComboPage({
   searchParams?: Promise<SearchParamsInput>;
 }) {
   const params = (await searchParams) ?? {};
-  const cookieStore = await cookies();
-  const locale = resolveStorefrontLocaleFromCookie(cookieStore.get('shop_language')?.value);
+  const locale = resolveStorefrontLocaleFromPageSearchParams(params);
   const selectedCategorySlug =
     typeof params?.category === 'string' ? params.category.trim() : '';
   const selectedSearchQuery =
@@ -51,6 +53,9 @@ export default async function ComboPage({
   return (
     <div className="min-h-screen bg-white">
       <BodyBackground color="#ffffff" />
+      <Suspense fallback={null}>
+        <StorefrontLocaleUrlSync />
+      </Suspense>
       <Suspense fallback={<div className="min-h-[480px] animate-pulse bg-white" aria-hidden />}>
         <FigmaDesktopComboPage
           cards={cards}

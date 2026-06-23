@@ -22,8 +22,13 @@ const globalForPrisma = globalThis as typeof globalThis & {
   neonSqlPool?: Pool;
 };
 
-let databaseUrl = normalizeDatabaseEnvUrl(process.env.DATABASE_URL ?? "");
-let directUrl = normalizeDatabaseEnvUrl(process.env.DIRECT_URL ?? "");
+/** Bracket access — Turbopack must not inline `process.env.DATABASE_URL` at compile time. */
+function readDatabaseEnvVar(name: "DATABASE_URL" | "DIRECT_URL"): string {
+  return normalizeDatabaseEnvUrl(process.env[name] ?? "");
+}
+
+let databaseUrl = readDatabaseEnvVar("DATABASE_URL");
+let directUrl = readDatabaseEnvVar("DIRECT_URL");
 
 if ((!databaseUrl || !directUrl) && isNextBuildWithoutDbEnv()) {
   databaseUrl = databaseUrl || NEXT_BUILD_DB_PLACEHOLDER;

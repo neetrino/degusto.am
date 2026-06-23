@@ -6,6 +6,7 @@ import {
 } from '@/lib/storefront/variant-price-filter';
 import type { Prisma } from '@prisma/client';
 import type { ShopMenuQuery } from './shop-page-query.types';
+import { getShopMenuProductSelect } from './shop-menu-product-select';
 
 const COMBO_EXCLUSION_CATEGORY_FILTER = {
   categories: {
@@ -90,84 +91,7 @@ export function buildShopProductWhere(
   };
 }
 
+/** @deprecated Prefer `getShopMenuProductSelect` — kept for existing imports. */
 export function getShopProductSelect(locale: StorefrontLocale): Prisma.ProductSelect {
-  const localeFilter = { in: [locale, 'en'] };
-
-  return {
-    id: true,
-    discountPercent: true,
-    media: true,
-    categories: {
-      where: {
-        deletedAt: null,
-        published: true,
-      },
-      orderBy: {
-        position: 'asc',
-      },
-      take: 1,
-      select: {
-        translations: {
-          where: {
-            locale: localeFilter,
-          },
-          select: {
-            locale: true,
-            title: true,
-            slug: true,
-          },
-        },
-      },
-    },
-    translations: {
-      where: {
-        locale: localeFilter,
-      },
-      select: {
-        locale: true,
-        title: true,
-        subtitle: true,
-        slug: true,
-      },
-    },
-    variants: {
-      where: {
-        published: true,
-      },
-      orderBy: {
-        price: 'asc',
-      },
-      select: {
-        id: true,
-        published: true,
-        price: true,
-        compareAtPrice: true,
-        stock: true,
-        /** Spicy/greens badges need all published variants (see product-food-attributes). */
-        attributes: true,
-      },
-    },
-    _count: {
-      select: {
-        variants: {
-          where: {
-            published: true,
-          },
-        },
-        reviews: {
-          where: {
-            published: true,
-          },
-        },
-      },
-    },
-    reviews: {
-      where: {
-        published: true,
-      },
-      select: {
-        rating: true,
-      },
-    },
-  };
+  return getShopMenuProductSelect(locale);
 }

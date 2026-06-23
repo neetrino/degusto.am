@@ -5,6 +5,11 @@ import { logger } from './utils/logger';
 
 let inflightWishlistIdsRequest: Promise<string[]> | null = null;
 
+/** Clears in-flight GET dedupe so the next fetch reflects a recent add/remove. */
+export function invalidateWishlistIdsCache(): void {
+  inflightWishlistIdsRequest = null;
+}
+
 export async function fetchWishlistIds(): Promise<string[]> {
   if (inflightWishlistIdsRequest) {
     return inflightWishlistIdsRequest;

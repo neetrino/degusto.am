@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@shop/ui';
 import { useAuth } from '../../../lib/auth/AuthContext';
 import { apiClient } from '../../../lib/api-client';
+import { fetchWithInflightKey } from '@/lib/admin/inflight-get-cache';
 import { useTranslation } from '../../../lib/i18n-client';
 import { getStoredCurrency, initializeCurrencyRates, type CurrencyCode } from '../../../lib/currency';
 import { ProductBulkSelectionBar } from './components/ProductBulkSelectionBar';
@@ -81,12 +82,110 @@ export default function ProductsPage() {
     }
   }, []);
 
-  // Fetch categories on mount
+  const fetchCategories = useCallback(async () => {
+    try {
+      setCategoriesLoading(true);
+      logger.debug('📂 [ADMIN] Fetching categories...');
+      const response = await fetchWithInflightKey('admin-categories', () =>
+        apiClient.get<{ data: Category[] }>('/api/v1/admin/categories'),
+      );
+      setCategories(response.data || []);
+      logger.debug('✅ [ADMIN] Categories loaded:', response.data?.length || 0);
+    } catch (err: unknown) {
+      console.error('❌ [ADMIN] Error fetching categories:', err);
+      setCategories([]);
+    } finally {
+      setCategoriesLoading(false);
+    }
+  }, []);
+
+  /** Only `createdAt-*` is applied on the server; other sorts are client-only (avoids refetch on every header click). */
+  const categoryFilterKey = [...selectedCategories].sort().join(',');
+
+  const fetchProducts = useCallback(async () => {
+    try {
+      setLoading(true);
+      const params: Record<string, string> = {
+        page: page.toString(),
+        limit: '20',
+      };
+
+      if (search.trim()) {
+        params.search = search.trim();
+      }
+
+      if (selectedCategories.size > 0) {
+        params.category = Array.from(selectedCategories).join(',');
+      }
+
+      if (skuSearch.trim()) {
+        params.sku = skuSearch.trim();
+      }
+
+      if (minPrice.trim()) {
+        params.minPrice = minPrice.trim();
+      }
+
+      if (maxPrice.trim()) {
+        params.maxPrice = maxPrice.trim();
+      }
+
+      if (sortBy && sortBy.startsWith('createdAt')) {
+        params.sort = sortBy;
+      }
+
+      const requestKey = `admin-products:${JSON.stringify(params)}`;
+      const response = await fetchWithInflightKey(requestKey, () =>
+        apiClient.get<ProductsResponse>('/api/v1/admin/products', { params }),
+      );
+
+      let filteredProducts = response.data || [];
+
+      // Stock filter (client-side)
+      if (stockFilter !== 'all') {
+        filteredProducts = filteredProducts.filter(product => {
+          const getTotalStock = (p: Product) => {
+            if (p.colorStocks && p.colorStocks.length > 0) {
+              return aggregateStockValues(p.colorStocks.map((cs) => cs.stock || 0));
+            }
+            return p.stock ?? 0;
+          };
+          const totalStock = getTotalStock(product);
+          if (stockFilter === 'inStock') {
+            return hasSellableStock(totalStock);
+          } else if (stockFilter === 'outOfStock') {
+            return !hasSellableStock(totalStock);
+          }
+          return true;
+        });
+      }
+
+      setProducts(filteredProducts);
+      setMeta(response.meta || null);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : t('admin.common.unknownErrorFallback');
+      console.error('❌ [ADMIN] Error fetching products:', err);
+      alert(t('admin.products.errorLoading').replace('{message}', message));
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    page,
+    search,
+    categoryFilterKey,
+    skuSearch,
+    stockFilter,
+    sortBy,
+    minPrice,
+    maxPrice,
+    t,
+  ]);
+
   useEffect(() => {
     if (isLoggedIn && isAdmin) {
-      fetchCategories();
+      void fetchCategories();
     }
-  }, [isLoggedIn, isAdmin]);
+  }, [isLoggedIn, isAdmin, fetchCategories]);
 
   useEffect(() => {
     if (!isLoggedIn || !isAdmin) {
@@ -118,108 +217,11 @@ export default function ProductsPage() {
     }
   }, [categoriesExpanded]);
 
-  const fetchCategories = async () => {
-    try {
-      setCategoriesLoading(true);
-      logger.debug('📂 [ADMIN] Fetching categories...');
-      const response = await apiClient.get<{ data: Category[] }>('/api/v1/admin/categories');
-      setCategories(response.data || []);
-      logger.debug('✅ [ADMIN] Categories loaded:', response.data?.length || 0);
-    } catch (err: any) {
-      console.error('❌ [ADMIN] Error fetching categories:', err);
-      setCategories([]);
-    } finally {
-      setCategoriesLoading(false);
-    }
-  };
-
-  /** Only `createdAt-*` is applied on the server; other sorts are client-only (avoids refetch on every header click). */
-  const sortParamForApi = sortBy.startsWith('createdAt') ? sortBy : '';
-  const categoryFilterKey = [...selectedCategories].sort().join(',');
-
   useEffect(() => {
     if (isLoggedIn && isAdmin) {
       void fetchProducts();
     }
-  }, [
-    isLoggedIn,
-    isAdmin,
-    page,
-    search,
-    categoryFilterKey,
-    skuSearch,
-    stockFilter,
-    sortParamForApi,
-    minPrice,
-    maxPrice,
-  ]);
-
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      const params: Record<string, string> = {
-        page: page.toString(),
-        limit: '20',
-      };
-      
-      if (search.trim()) {
-        params.search = search.trim();
-      }
-
-      if (selectedCategories.size > 0) {
-        params.category = Array.from(selectedCategories).join(',');
-      }
-
-      if (skuSearch.trim()) {
-        params.sku = skuSearch.trim();
-      }
-
-      if (minPrice.trim()) {
-        params.minPrice = minPrice.trim();
-      }
-
-      if (maxPrice.trim()) {
-        params.maxPrice = maxPrice.trim();
-      }
-
-      if (sortBy && sortBy.startsWith('createdAt')) {
-        params.sort = sortBy;
-      }
-
-      const response = await apiClient.get<ProductsResponse>('/api/v1/admin/products', {
-        params,
-      });
-      
-      let filteredProducts = response.data || [];
-
-      // Stock filter (client-side)
-      if (stockFilter !== 'all') {
-        filteredProducts = filteredProducts.filter(product => {
-          const getTotalStock = (p: Product) => {
-            if (p.colorStocks && p.colorStocks.length > 0) {
-              return aggregateStockValues(p.colorStocks.map((cs) => cs.stock || 0));
-            }
-            return p.stock ?? 0;
-          };
-          const totalStock = getTotalStock(product);
-          if (stockFilter === 'inStock') {
-            return hasSellableStock(totalStock);
-          } else if (stockFilter === 'outOfStock') {
-            return !hasSellableStock(totalStock);
-          }
-          return true;
-        });
-      }
-
-      setProducts(filteredProducts);
-      setMeta(response.meta || null);
-    } catch (err: any) {
-      console.error('❌ [ADMIN] Error fetching products:', err);
-      alert(t('admin.products.errorLoading').replace('{message}', err.message || t('admin.common.unknownErrorFallback')));
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [isLoggedIn, isAdmin, fetchProducts]);
 
   // Client-side sorting for Product / Price / Stock columns
   const sortedProducts = useMemo(() => {

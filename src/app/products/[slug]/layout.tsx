@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
-import { resolveStorefrontLocaleFromCookie } from "@/lib/i18n/locale";
+import { PRIMARY_LOCALE } from "@/lib/i18n/locale";
 import { getProductMetadataFallbackCopy } from "@/lib/i18n/metadata";
 import { getProductVisualCached } from "@/lib/services/products-slug/get-product-visual-cached";
 import { parseProductSlugParam } from "./parse-product-slug-param";
@@ -14,8 +13,7 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug: rawSlug } = await params;
   const { slug } = parseProductSlugParam(rawSlug);
-  const cookieStore = await cookies();
-  const locale = resolveStorefrontLocaleFromCookie(cookieStore.get("shop_language")?.value);
+  const locale = PRIMARY_LOCALE;
   const fallback = getProductMetadataFallbackCopy(locale);
   try {
     const visual = await getProductVisualCached(slug, locale);

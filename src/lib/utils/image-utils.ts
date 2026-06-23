@@ -3,6 +3,7 @@
  */
 
 import imageCompression from 'browser-image-compression';
+import { resolveR2AssetUrl } from '@/lib/r2-public-url';
 import { logger } from './logger';
 
 function isR2StorageAssetUrl(urlValue: string): boolean {
@@ -15,6 +16,16 @@ function isR2StorageAssetUrl(urlValue: string): boolean {
   } catch {
     return false;
   }
+}
+
+function isR2ProxyOrObjectKey(urlValue: string): boolean {
+  const trimmed = urlValue.trim();
+  if (trimmed.startsWith('/api/r2/')) {
+    return true;
+  }
+  return /^(products|product|homepage|navigation|categories|category|combo|footer|hero|search|assets|icons)\//i.test(
+    trimmed
+  );
 }
 
 /**
@@ -73,6 +84,10 @@ export function processImageUrl(url: ImageUrlInput): string | null {
     } catch {
       // Keep original URL when parsing fails
     }
+  }
+
+  if (isR2ProxyOrObjectKey(finalUrl)) {
+    finalUrl = resolveR2AssetUrl(finalUrl);
   }
   
   // Validate

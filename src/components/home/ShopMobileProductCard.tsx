@@ -21,6 +21,7 @@ import { StorefrontProductOverlayLink } from './StorefrontProductOverlayLink';
 import { usePrefetchProductWhenVisible } from '../hooks/usePrefetchProductWhenVisible';
 import { prefetchProductRoute } from '@/lib/products/prefetch-product-route';
 import { shouldShowMenuCardStrikethroughPrice } from '@/lib/storefront/menu-card-pricing';
+import { buildWishlistSnapshotFromMenuCard } from '@/lib/wishlist/wishlist-product-snapshot';
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
 import type { MenuCard } from './menu-types';
 import { RatingStars } from '@/components/RatingStars';
@@ -109,7 +110,7 @@ export function ShopMobileProductCard({
       router.push(`/login?redirect=${encodeURIComponent(productHref)}`);
       return;
     }
-    void toggleWishlist();
+    void toggleWishlist(buildWishlistSnapshotFromMenuCard(card, title));
   };
 
   const visibilityRef = usePrefetchProductWhenVisible(card.slug);
@@ -131,6 +132,10 @@ export function ShopMobileProductCard({
     prefetchProductRoute(router, card.slug);
   }, [router, card.slug]);
 
+  const warmProductRouteForClick = useCallback(() => {
+    prefetchProductRoute(router, card.slug, undefined, { warmPdpBundle: true });
+  }, [router, card.slug]);
+
   return (
     <article
       ref={enableVisibilityPrefetch ? visibilityRef : null}
@@ -138,8 +143,8 @@ export function ShopMobileProductCard({
       className="relative h-[240px] w-full cursor-pointer rounded-[20px] border-[1.5px] border-[#dedede] bg-white transition-colors"
       onMouseEnter={warmProductRoute}
       onFocus={warmProductRoute}
-      onPointerDown={warmProductRoute}
-      onTouchStart={warmProductRoute}
+      onPointerDown={warmProductRouteForClick}
+      onTouchStart={warmProductRouteForClick}
     >
       <div
         data-product-fly-origin

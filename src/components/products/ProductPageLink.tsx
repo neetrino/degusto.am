@@ -41,9 +41,14 @@ export function ProductPageLink({
     setProductSummarySnapshot(preview);
   };
 
-  const warm = () => {
+  const warmRsc = () => {
     registerPreview();
     prefetchProductRoute(router, slug);
+  };
+
+  const warmForNavigation = () => {
+    registerPreview();
+    prefetchProductRoute(router, slug, undefined, { warmPdpBundle: true });
   };
 
   return (
@@ -51,20 +56,20 @@ export function ProductPageLink({
       href={href}
       prefetch
       onMouseEnter={(event) => {
-        warm();
+        warmRsc();
         onMouseEnter?.(event);
       }}
       onFocus={(event) => {
-        warm();
+        warmRsc();
         onFocus?.(event);
       }}
       onPointerDown={(event) => {
-        warm();
+        warmForNavigation();
         beginPdpNavigationMetric(slug);
         onPointerDown?.(event);
       }}
       onTouchStart={(event) => {
-        warm();
+        warmForNavigation();
         beginPdpNavigationMetric(slug);
         onTouchStart?.(event);
       }}

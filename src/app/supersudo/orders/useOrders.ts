@@ -8,6 +8,7 @@ import { formatPriceInCurrency, convertPrice, getStoredCurrency, initializeCurre
 import { logger } from "@/lib/utils/logger";
 import { useAdminDialogs } from '../context/AdminDialogsContext';
 import { ADMIN_NEW_ORDER_EVENT } from '@/lib/admin/admin-order-alert.constants';
+import { fetchWithInflightKey } from '@/lib/admin/inflight-get-cache';
 
 export interface Order {
   id: string;
@@ -127,21 +128,32 @@ export function useOrders() {
   const [loadingOrderDetails, setLoadingOrderDetails] = useState(false);
 
   const fetchOrders = useCallback(async () => {
+    const requestKey = [
+      page,
+      statusFilter,
+      paymentStatusFilter,
+      searchQuery,
+      sortBy,
+      sortOrder,
+    ].join('|');
+
     try {
       setLoading(true);
       logger.debug('📦 [ADMIN] Fetching orders...', { page, statusFilter, paymentStatusFilter, searchQuery, sortBy, sortOrder });
-      
-      const response = await apiClient.get<OrdersResponse>('/api/v1/admin/orders', {
-        params: {
-          page: page.toString(),
-          limit: '20',
-          status: statusFilter || '',
-          paymentStatus: paymentStatusFilter || '',
-          search: searchQuery || '',
-          sortBy: sortBy || '',
-          sortOrder: sortOrder || '',
-        },
-      });
+
+      const response = await fetchWithInflightKey(requestKey, () =>
+        apiClient.get<OrdersResponse>('/api/v1/admin/orders', {
+          params: {
+            page: page.toString(),
+            limit: '20',
+            status: statusFilter || '',
+            paymentStatus: paymentStatusFilter || '',
+            search: searchQuery || '',
+            sortBy: sortBy || '',
+            sortOrder: sortOrder || '',
+          },
+        }),
+      );
 
       logger.debug('✅ [ADMIN] Orders fetched:', response);
       setOrders(response.data || []);

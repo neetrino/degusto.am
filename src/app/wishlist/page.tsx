@@ -12,8 +12,16 @@ import { useAuth } from '../../lib/auth/AuthContext';
 import { logger } from '../../lib/utils/logger';
 import { WishlistHeartIcon } from '../../components/icons/WishlistHeartIcon';
 import { emitWishlistUpdated } from '../../lib/wishlist';
-import { fetchWishlistIds } from '../../lib/wishlist-api';
+import { fetchWishlistIds, invalidateWishlistIdsCache } from '../../lib/wishlist-api';
 import { useWishlistIdsContext } from '../../lib/wishlist/WishlistIdsProvider';
+import {
+  mergeWishlistProductsByIds,
+} from '../../lib/wishlist/wishlist-product-snapshot';
+import {
+  readCachedWishlistProducts,
+  removeWishlistProductFromCache,
+  writeCachedWishlistProducts,
+} from '../../lib/wishlist/wishlist-products-cache';
 import { MOBILE_SHOP_PRODUCTS_GRID_CLASS } from '../../constants/mobile-figma-storefront';
 import { STOREFRONT_PAGE_CONTAINER_CLASS } from '@/constants/storefront-desktop-layout';
 import { WishlistProductCard, type WishlistProductCardProduct } from './WishlistProductCard';
@@ -25,35 +33,15 @@ import {
 import { readCartSummaryCache } from '@/lib/cartSummaryCache';
 
 type Product = WishlistProductCardProduct;
-const WISHLIST_PRODUCTS_CACHE_KEY = 'wishlist-page-products-v1';
 const WISHLIST_CART_COMMIT_DELAY_MS = 1000;
 const WISHLIST_ADDED_BADGE_MS = 1400;
 
-function readCachedWishlistProducts(): Product[] {
-  if (typeof window === 'undefined') {
-    return [];
+function buildInitialWishlistProducts(contextIds: string[]): Product[] {
+  const cached = readCachedWishlistProducts();
+  if (contextIds.length === 0) {
+    return cached;
   }
-  try {
-    const raw = window.sessionStorage.getItem(WISHLIST_PRODUCTS_CACHE_KEY);
-    if (!raw) {
-      return [];
-    }
-    const parsed = JSON.parse(raw) as Product[];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeCachedWishlistProducts(products: Product[]): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
-  try {
-    window.sessionStorage.setItem(WISHLIST_PRODUCTS_CACHE_KEY, JSON.stringify(products));
-  } catch {
-    // best-effort cache write only
-  }
+  return mergeWishlistProductsByIds(contextIds, cached);
 }
 
 /**
@@ -62,9 +50,11 @@ function writeCachedWishlistProducts(products: Product[]): void {
 export default function WishlistPage() {
   const router = useRouter();
   const { isLoggedIn } = useAuth();
-  const { setProductInWishlist } = useWishlistIdsContext();
+  const { setProductInWishlist, wishlistProductIds } = useWishlistIdsContext();
   const { t } = useTranslation();
-  const [products, setProducts] = useState<Product[]>(() => readCachedWishlistProducts());
+  const [products, setProducts] = useState<Product[]>(() =>
+    buildInitialWishlistProducts(wishlistProductIds)
+  );
   const [wishlistIds, setWishlistIds] = useState<string[]>([]);
   const [currency, setCurrency] = useState(getStoredCurrency());
   const [queueingAddToCart, setQueueingAddToCart] = useState<Set<string>>(new Set());
@@ -72,16 +62,24 @@ export default function WishlistPage() {
   // Track if we updated locally to prevent unnecessary re-fetch
   const isLocalUpdateRef = useRef(false);
   const addBadgeTimersRef = useRef<Map<string, number>>(new Map());
+  const productsRef = useRef(products);
+  productsRef.current = products;
 
   /**
    * Fetches wishlist products for provided ids and updates component state.
    */
-  const fetchWishlistProducts = useCallback(async (idsToLoad: string[]) => {
+  const fetchWishlistProducts = useCallback(async (idsToLoad: string[], currentProducts: Product[]) => {
     if (idsToLoad.length === 0) {
       logger.debug('[Wishlist] Skip fetch because ids array is empty');
       setProducts([]);
       writeCachedWishlistProducts([]);
       return;
+    }
+
+    const cached = readCachedWishlistProducts();
+    const optimisticProducts = mergeWishlistProductsByIds(idsToLoad, cached, currentProducts);
+    if (optimisticProducts.length > 0) {
+      setProducts(optimisticProducts);
     }
 
     try {
@@ -103,10 +101,12 @@ export default function WishlistPage() {
         },
       });
 
-      const productById = new Map(response.data.map((product) => [product.id, product]));
-      const wishlistProducts = idsToLoad
-        .map((id) => productById.get(id))
-        .filter((product): product is Product => product !== undefined);
+      const wishlistProducts = mergeWishlistProductsByIds(
+        idsToLoad,
+        cached,
+        currentProducts,
+        response.data
+      );
       setProducts(wishlistProducts);
       writeCachedWishlistProducts(wishlistProducts);
 
@@ -130,9 +130,10 @@ export default function WishlistPage() {
       }
 
       try {
+        invalidateWishlistIdsCache();
         const ids = await fetchWishlistIds();
         setWishlistIds(ids);
-        await fetchWishlistProducts(ids);
+        await fetchWishlistProducts(ids, buildInitialWishlistProducts(ids));
       } catch (error) {
         logger.error('[Wishlist] Failed to load server wishlist', { error });
         setWishlistIds([]);
@@ -153,9 +154,14 @@ export default function WishlistPage() {
         return;
       }
 
+      invalidateWishlistIdsCache();
       const updatedIds = await fetchWishlistIds();
       setWishlistIds(updatedIds);
-      void fetchWishlistProducts(updatedIds);
+
+      const cached = readCachedWishlistProducts();
+      const merged = mergeWishlistProductsByIds(updatedIds, cached, productsRef.current);
+      setProducts(merged);
+      void fetchWishlistProducts(updatedIds, merged);
     };
 
     const handleAuthUpdate = () => {
@@ -175,6 +181,23 @@ export default function WishlistPage() {
       window.removeEventListener('currency-updated', handleCurrencyUpdate);
     };
   }, [fetchWishlistProducts, isLoggedIn]);
+
+  useEffect(() => {
+    if (!isLoggedIn || wishlistProductIds.length === 0) {
+      return;
+    }
+    setProducts((current) => {
+      const merged = mergeWishlistProductsByIds(
+        wishlistProductIds,
+        readCachedWishlistProducts(),
+        current
+      );
+      return merged.length === current.length &&
+        merged.every((product, index) => product.id === current[index]?.id)
+        ? current
+        : merged;
+    });
+  }, [isLoggedIn, wishlistProductIds]);
 
   useEffect(() => {
     return () => {
@@ -199,6 +222,8 @@ export default function WishlistPage() {
     setWishlistIds(updatedIds);
     setProducts(updatedProducts);
     setProductInWishlist(productId, false);
+    removeWishlistProductFromCache(productId);
+    writeCachedWishlistProducts(updatedProducts);
 
     try {
       await apiClient.delete(`/api/v1/users/wishlist/${productId}`);

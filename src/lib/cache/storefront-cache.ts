@@ -1,26 +1,27 @@
 import { revalidateTag } from "next/cache";
+import { STOREFRONT_REDIS_TTL_SECONDS } from "@/constants/storefront-isr";
 import { cacheService } from "@/lib/services/cache.service";
 import { STOREFRONT_DISCOUNT_SETTINGS_CACHE_TAG } from "@/lib/services/storefront/get-storefront-discount-settings";
 
 /**
  * Central TTLs (seconds) for public storefront HTTP responses stored in Redis / in-memory fallback.
- * Tune via env only if needed later; defaults favor freshness vs load.
+ * Long TTL + admin invalidation — see `SIDE_CHECKLIST_SPEED.md`.
  */
 export const STOREFRONT_CACHE_TTL = {
-  categoriesTree: 300,
-  categoryBySlug: 300,
-  navigationPreviews: 180,
-  currencyRates: 180,
-  productsFilters: 120,
-  productsPriceRange: 120,
+  categoriesTree: STOREFRONT_REDIS_TTL_SECONDS,
+  categoryBySlug: STOREFRONT_REDIS_TTL_SECONDS,
+  navigationPreviews: STOREFRONT_REDIS_TTL_SECONDS,
+  currencyRates: STOREFRONT_REDIS_TTL_SECONDS,
+  productsFilters: STOREFRONT_REDIS_TTL_SECONDS,
+  productsPriceRange: STOREFRONT_REDIS_TTL_SECONDS,
   /** PDP first paint (images + identifiers). */
-  productVisual: 300,
+  productVisual: STOREFRONT_REDIS_TTL_SECONDS,
   /** PDP full product JSON for info column. */
-  productDetails: 300,
+  productDetails: STOREFRONT_REDIS_TTL_SECONDS,
   /** PDP bundle: product + review summary (SSR critical path). */
-  productPdpBundle: 300,
+  productPdpBundle: STOREFRONT_REDIS_TTL_SECONDS,
   /** PDP related carousel (same shape as list items). */
-  productRelated: 180,
+  productRelated: STOREFRONT_REDIS_TTL_SECONDS,
 } as const;
 
 export const STOREFRONT_CACHE_KEYS = {
@@ -59,6 +60,25 @@ export async function readJsonCache<T>(key: string): Promise<T | null> {
 
 export async function writeJsonCache(key: string, ttlSeconds: number, body: unknown): Promise<void> {
   await cacheService.setex(key, ttlSeconds, JSON.stringify(body));
+}
+
+/**
+ * Read-through JSON cache: Redis/memory first, then `fetcher` on miss.
+ * Single pattern for public storefront GET payloads.
+ */
+export async function getCachedJson<T>(
+  key: string,
+  ttlSeconds: number,
+  fetcher: () => Promise<T>
+): Promise<T> {
+  const cached = await readJsonCache<T>(key);
+  if (cached !== null) {
+    return cached;
+  }
+
+  const fresh = await fetcher();
+  await writeJsonCache(key, ttlSeconds, fresh);
+  return fresh;
 }
 
 /** After category create/update/delete (admin). */
@@ -122,5 +142,14 @@ export async function invalidateProductPageCaches(): Promise<void> {
     cacheService.deletePattern("product:related:*"),
     cacheService.deletePattern("product:related-category:*"),
     cacheService.deletePattern("product:slug-id:*"),
+  ]);
+}
+
+/** PLP + PDP + product-derived Redis caches after catalog writes. */
+export async function invalidateProductReadCaches(): Promise<void> {
+  await Promise.all([
+    cacheService.deletePattern("products:*"),
+    invalidateProductPageCaches(),
+    invalidateStorefrontProductRelatedCaches(),
   ]);
 }

@@ -8,17 +8,9 @@ import { formatPrice, type CurrencyCode } from '../../lib/currency';
 import { WishlistMobileProductCard } from './WishlistMobileProductCard';
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
 
-export interface WishlistProductCardProduct {
-  id: string;
-  slug: string;
-  title: string;
-  price: number;
-  originalPrice: number | null;
-  compareAtPrice: number | null;
-  discountPercent: number | null;
-  image: string | null;
-  inStock: boolean;
-}
+import type { WishlistProductSnapshot } from '@/lib/wishlist/wishlist-product-snapshot';
+
+export type WishlistProductCardProduct = WishlistProductSnapshot;
 
 export interface WishlistProductCardProps {
   product: WishlistProductCardProduct;

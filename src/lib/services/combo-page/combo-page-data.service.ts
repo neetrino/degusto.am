@@ -1,4 +1,5 @@
 import { unstable_cache } from 'next/cache';
+import { STOREFRONT_ISR_REVALIDATE_SECONDS } from '@/constants/storefront-isr';
 import { STORE_MENU_PAGE_SIZE } from '@/constants/store-menu-page-size';
 import { withPrismaResilience } from '@/lib/db/with-prisma-resilience';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
@@ -6,16 +7,12 @@ import { db } from '@white-shop/db';
 import {
   buildShopCategoryEntries,
   mapShopProductRowsToMenuCards,
-  type ShopMenuProductRow,
 } from '../shop-page/shop-page-data.helpers';
 import { mapCategoryEntriesToMenuCategories } from '../shop-page/shop-page-mappers';
 import { fetchComboMenuCategoryProductCounts } from './combo-page-category-counts';
 import { logger } from '@/lib/utils/logger';
-import {
-  buildComboProductWhere,
-  buildComboProductWhereBase,
-  getComboProductSelect,
-} from './combo-page-product-where';
+import { fetchShopMenuProductPage } from '../shop-page/fetch-shop-menu-product-page';
+import { buildComboProductWhere, buildComboProductWhereBase } from './combo-page-product-where';
 import type { ComboMenuData, ComboMenuDbResult, ComboMenuQuery } from './combo-page-query.types';
 
 export type { ComboMenuData, ComboMenuQuery } from './combo-page-query.types';
@@ -23,77 +20,19 @@ export type { ComboMenuData, ComboMenuQuery } from './combo-page-query.types';
 /** Shared cache tag for `revalidateTag` on product/category admin writes. */
 export const COMBO_MENU_CACHE_TAG = 'combo-menu';
 
-export const COMBO_MENU_REVALIDATE_SECONDS = 60;
+export const COMBO_MENU_REVALIDATE_SECONDS = STOREFRONT_ISR_REVALIDATE_SECONDS;
 
 async function fetchComboProductsPage(
   locale: StorefrontLocale,
   query: ComboMenuQuery,
   productWhere: ReturnType<typeof buildComboProductWhere>
 ): Promise<Pick<ComboMenuDbResult, 'productTotal' | 'productRows'>> {
-  const countStartedAt = Date.now();
-  const productTotalPromise = db.product
-    .count({ where: productWhere })
-    .then((value) => ({ value, durationMs: Date.now() - countStartedAt }));
-  const rowsStartedAt = Date.now();
-  const productRowsPromise = db.product
-    .findMany({
-      where: productWhere,
-      orderBy: {
-        updatedAt: 'desc',
-      },
-      skip: (query.requestedPage - 1) * STORE_MENU_PAGE_SIZE,
-      take: STORE_MENU_PAGE_SIZE,
-      select: getComboProductSelect(locale),
-    })
-    .then((value) => ({ value, durationMs: Date.now() - rowsStartedAt }));
-  const [productTotalResult, productRowsResult] = await Promise.all([
-    productTotalPromise,
-    productRowsPromise,
-  ]);
-  const productTotal = productTotalResult.value;
-  const productRows = productRowsResult.value as unknown as ShopMenuProductRow[];
-
-  logger.info('[COMBO PERF] db product page query timings', {
-    locale,
-    page: query.requestedPage,
-    dbCountMs: productTotalResult.durationMs,
-    dbRowsMs: productRowsResult.durationMs,
-    productTotal,
-    rowCount: productRows.length,
-  });
-
-  const totalPages = productTotal === 0 ? 0 : Math.ceil(productTotal / STORE_MENU_PAGE_SIZE);
-  const effectivePage = totalPages === 0 ? 1 : Math.min(query.requestedPage, totalPages);
-
-  if (effectivePage === query.requestedPage) {
-    return {
-      productTotal,
-      productRows,
-    };
-  }
-
-  const clampStartedAt = Date.now();
-  const clampedRows = (await db.product.findMany({
-    where: productWhere,
-    orderBy: {
-      updatedAt: 'desc',
-    },
-    skip: (effectivePage - 1) * STORE_MENU_PAGE_SIZE,
-    take: STORE_MENU_PAGE_SIZE,
-    select: getComboProductSelect(locale),
-  })) as unknown as ShopMenuProductRow[];
-  logger.info('[COMBO PERF] db clamped product page query timing', {
+  return fetchShopMenuProductPage({
     locale,
     requestedPage: query.requestedPage,
-    effectivePage,
-    dbClampRowsMs: Date.now() - clampStartedAt,
-    rowCount: clampedRows.length,
+    productWhere,
+    perfLabel: 'COMBO',
   });
-
-  return {
-    productTotal,
-    productRows: clampedRows,
-  };
 }
 
 /**

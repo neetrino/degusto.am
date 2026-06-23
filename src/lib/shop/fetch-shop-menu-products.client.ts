@@ -2,6 +2,8 @@
 
 import type { MenuCard } from '@/components/home/menu-types';
 
+import { getStoredLanguage } from '@/lib/language';
+import { PRIMARY_LOCALE } from '@/lib/i18n/locale';
 import { logger } from '@/lib/utils/logger';
 
 export type ShopMenuProductsResponse = {
@@ -15,7 +17,13 @@ const responseCache = new Map<string, ShopMenuProductsResponse>();
 
 function buildMenuProductsApiUrl(search: string): string {
   const normalized = search.startsWith('?') ? search.slice(1) : search;
-  return normalized ? `/api/v1/shop/menu-products?${normalized}` : '/api/v1/shop/menu-products';
+  const params = new URLSearchParams(normalized);
+  const clientLang = getStoredLanguage();
+  if (!params.has('lang') && clientLang !== PRIMARY_LOCALE) {
+    params.set('lang', clientLang);
+  }
+  const query = params.toString();
+  return query ? `/api/v1/shop/menu-products?${query}` : '/api/v1/shop/menu-products';
 }
 
 function hrefToSearch(href: string): string {

@@ -6,7 +6,7 @@
   "scripts": {
     "postinstall": "pnpm run db:generate",
     "dev": "next dev",
-    "dev:webpack": "next dev --no-turbo",
+    "dev:webpack": "next dev --webpack",
     "dev:clean": "node -e \"require('fs').rmSync('.next', {recursive: true, force: true})\" && next dev",
     "prebuild": "pnpm run db:generate",
     "prebuild:migrate": "node src/scripts/run-migrations.js",

@@ -33,6 +33,7 @@ import { resolveHomeDailyOfferProduct } from './home-daily-offer';
 import type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
 import { STOREFRONT_DESKTOP_SECTION_CLASS } from '@/constants/storefront-desktop-layout';
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
+import { buildWishlistSnapshotFromHomeFeatured } from '@/lib/wishlist/wishlist-product-snapshot';
 import { RatingStars } from '@/components/RatingStars';
 
 export type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
@@ -107,7 +108,7 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
       router.push(`/login?redirect=${encodeURIComponent(productHref)}`);
       return;
     }
-    void toggleWishlist();
+    void toggleWishlist(buildWishlistSnapshotFromHomeFeatured(item));
   };
   const previewSummary = createProductPreviewSummary({
     id: item.id,

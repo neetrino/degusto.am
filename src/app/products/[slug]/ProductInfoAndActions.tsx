@@ -11,6 +11,7 @@ import { formatPriceInCurrency, type CurrencyCode } from '../../../lib/currency'
 import { t, getProductText } from '../../../lib/i18n';
 import type { LanguageCode } from '../../../lib/language';
 import { sanitizeHtml } from '../../../lib/utils/sanitize';
+import { buildWishlistSnapshotFromPdp } from '@/lib/wishlist/wishlist-product-snapshot';
 import { PdpActionHeartIcon } from './PdpActionHeartIcon';
 import { PdpAnimatedPrice } from './PdpAnimatedPrice';
 import { PdpCustomizationPills } from './PdpCustomizationPills';
@@ -111,7 +112,14 @@ export function ProductInfoAndActions({
       router.push(`/login?redirect=/products/${encodeURIComponent(product.slug)}`);
       return;
     }
-    void toggleWishlist();
+    void toggleWishlist(
+      buildWishlistSnapshotFromPdp(product, {
+        price,
+        originalPrice,
+        compareAtPrice,
+        inStock: !isOutOfStock,
+      })
+    );
   };
 
   const comparePrice =

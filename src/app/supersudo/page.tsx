@@ -20,11 +20,9 @@ export default function AdminPanel() {
     stats,
     recentOrders,
     topProducts,
-    userActivity,
     statsLoading,
     recentOrdersLoading,
     topProductsLoading,
-    userActivityLoading,
   } = useAdminDashboard({
     isLoggedIn,
     isAdmin,
@@ -88,7 +86,7 @@ export default function AdminPanel() {
       <DashboardAnalyticsSection
         stats={stats}
         recentOrders={recentOrders}
-        loading={statsLoading || recentOrdersLoading || topProductsLoading || userActivityLoading || !userActivity}
+        loading={statsLoading || recentOrdersLoading || topProductsLoading}
       />
     </>
   );

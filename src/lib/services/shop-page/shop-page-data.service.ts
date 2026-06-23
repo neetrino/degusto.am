@@ -1,4 +1,5 @@
 import { unstable_cache } from 'next/cache';
+import { STOREFRONT_ISR_REVALIDATE_SECONDS } from '@/constants/storefront-isr';
 import { STORE_MENU_PAGE_SIZE } from '@/constants/store-menu-page-size';
 import { withPrismaResilience } from '@/lib/db/with-prisma-resilience';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
@@ -17,8 +18,8 @@ import { logger } from '@/lib/utils/logger';
 import {
   buildShopProductWhere,
   buildShopProductWhereBase,
-  getShopProductSelect,
 } from './shop-page-product-where';
+import { fetchShopMenuProductPage } from './fetch-shop-menu-product-page';
 import type {
   ShopMenuData,
   ShopMenuDbResult,
@@ -54,7 +55,7 @@ type ShopMenuFilterKey = {
 /** Shared cache tag for `revalidateTag` on product/category admin writes. */
 export const SHOP_MENU_CACHE_TAG = 'shop-menu';
 
-export const SHOP_MENU_REVALIDATE_SECONDS = 60;
+export const SHOP_MENU_REVALIDATE_SECONDS = STOREFRONT_ISR_REVALIDATE_SECONDS;
 
 const CATEGORY_LIST_WHERE = {
   published: true,
@@ -115,69 +116,12 @@ async function fetchShopProductPage(
   productWhereBase: ReturnType<typeof buildShopProductWhereBase>
 ): Promise<Pick<ShopMenuDbResult, 'productTotal' | 'productRows'>> {
   const productWhere = buildShopProductWhere(locale, query as ShopMenuQuery, productWhereBase);
-  const countStartedAt = Date.now();
-  const productTotalPromise = db.product
-    .count({ where: productWhere })
-    .then((value) => ({ value, durationMs: Date.now() - countStartedAt }));
-  const rowsStartedAt = Date.now();
-  const productRowsPromise = db.product
-    .findMany({
-      where: productWhere,
-      orderBy: {
-        updatedAt: 'desc',
-      },
-      skip: (query.requestedPage - 1) * STORE_MENU_PAGE_SIZE,
-      take: STORE_MENU_PAGE_SIZE,
-      select: getShopProductSelect(locale),
-    })
-    .then((value) => ({ value, durationMs: Date.now() - rowsStartedAt }));
-  const [productTotalResult, productRowsResult] = await Promise.all([
-    productTotalPromise,
-    productRowsPromise,
-  ]);
-  const productTotal = productTotalResult.value;
-  const productRows = productRowsResult.value;
-  logger.info('[SHOP PERF] db product page query timings', {
-    locale,
-    page: query.requestedPage,
-    dbCountMs: productTotalResult.durationMs,
-    dbRowsMs: productRowsResult.durationMs,
-    productTotal,
-    rowCount: productRows.length,
-  });
-
-  const totalPages = productTotal === 0 ? 0 : Math.ceil(productTotal / STORE_MENU_PAGE_SIZE);
-  const effectivePage = totalPages === 0 ? 1 : Math.min(query.requestedPage, totalPages);
-
-  if (effectivePage === query.requestedPage) {
-    return {
-      productTotal,
-      productRows: productRows as unknown as ShopMenuProductRow[],
-    };
-  }
-
-  const clampStartedAt = Date.now();
-  const clampedRows = (await db.product.findMany({
-    where: productWhere,
-    orderBy: {
-      updatedAt: 'desc',
-    },
-    skip: (effectivePage - 1) * STORE_MENU_PAGE_SIZE,
-    take: STORE_MENU_PAGE_SIZE,
-    select: getShopProductSelect(locale),
-  })) as unknown as ShopMenuProductRow[];
-  logger.info('[SHOP PERF] db clamped product page query timing', {
+  return fetchShopMenuProductPage({
     locale,
     requestedPage: query.requestedPage,
-    effectivePage,
-    dbClampRowsMs: Date.now() - clampStartedAt,
-    rowCount: clampedRows.length,
+    productWhere,
+    perfLabel: 'SHOP',
   });
-
-  return {
-    productTotal,
-    productRows: clampedRows,
-  };
 }
 
 function mapProductsPage(
@@ -512,7 +456,7 @@ const getShopMenuDataCached = unstable_cache(
 );
 
 /**
- * Shop menu payload with per-query Data Cache (60s TTL, invalidated via `SHOP_MENU_CACHE_TAG`).
+ * Shop menu payload with per-query Data Cache (24h TTL, invalidated via `SHOP_MENU_CACHE_TAG`).
  * Desktop `full` profile loads sidebar + products from separate cache entries (category switch reuses sidebar).
  */
 export function getShopMenuData(query: ShopMenuQuery): Promise<ShopMenuData> {

@@ -11,12 +11,13 @@ import {
   type ReactNode,
 } from 'react';
 import { useAuth } from '../auth/AuthContext';
-import { fetchWishlistIds } from '../wishlist-api';
+import { fetchWishlistIds, invalidateWishlistIdsCache } from '../wishlist-api';
 
 type WishlistIdsContextValue = {
   isInWishlist: (productId: string) => boolean;
   setProductInWishlist: (productId: string, inWishlist: boolean) => void;
   wishlistCount: number;
+  wishlistProductIds: string[];
 };
 
 const WishlistIdsContext = createContext<WishlistIdsContextValue | null>(null);
@@ -47,6 +48,7 @@ export function WishlistIdsProvider({ children }: { children: ReactNode }) {
     void refreshWishlistIds();
 
     const handleWishlistUpdated = () => {
+      invalidateWishlistIdsCache();
       void refreshWishlistIds();
     };
     const handleAuthUpdated = () => {
@@ -79,6 +81,7 @@ export function WishlistIdsProvider({ children }: { children: ReactNode }) {
       isInWishlist: (productId: string) => wishlistIds.has(productId),
       setProductInWishlist,
       wishlistCount: wishlistIds.size,
+      wishlistProductIds: Array.from(wishlistIds),
     }),
     [setProductInWishlist, wishlistIds]
   );

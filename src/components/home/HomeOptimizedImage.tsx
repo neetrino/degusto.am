@@ -56,17 +56,19 @@ export function HomeOptimizedImage({
 
   if (fill) {
     return (
-      <Image
-        src={src}
-        alt={alt}
-        fill
-        className={className}
-        sizes={sizes ?? '100vw'}
-        priority={priority}
-        loading={loading}
-        unoptimized={IS_DEV_UNOPTIMIZED}
-        onError={onError}
-      />
+      <span className="relative block h-full w-full">
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          className={className}
+          sizes={sizes ?? '100vw'}
+          priority={priority}
+          loading={loading}
+          unoptimized={IS_DEV_UNOPTIMIZED}
+          onError={onError}
+        />
+      </span>
     );
   }
 

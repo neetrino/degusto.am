@@ -39,6 +39,21 @@ export function resolveStorefrontLocaleFromSearchParams(
   return resolveStorefrontLocale(searchParams.get(key));
 }
 
+type PageSearchParams = Record<string, string | string[] | undefined>;
+
+/** ISR pages: `?lang=` when present, else `PRIMARY_LOCALE` (no SSR cookies). */
+export function resolveStorefrontLocaleFromPageSearchParams(
+  params: PageSearchParams | undefined,
+  key: string = "lang"
+): StorefrontLocale {
+  if (!params) {
+    return PRIMARY_LOCALE;
+  }
+  const raw = params[key];
+  const value = typeof raw === "string" ? raw : Array.isArray(raw) ? raw[0] : null;
+  return resolveStorefrontLocale(value);
+}
+
 export function getStorefrontLocaleFallbackChain(
   locale: StorefrontLocale
 ): StorefrontLocale[] {

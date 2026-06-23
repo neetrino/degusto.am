@@ -13,6 +13,7 @@ import {
   isQuietCheckoutValidationError,
   isQuietCartReadServerError,
   isQuietAdminDashboardReadServerError,
+  isQuietAdminPollNetworkError,
   isQuietCartItemNotFoundError,
   isQuietRegisterConflictError,
   isQuietReviewConflictError,
@@ -58,16 +59,20 @@ function handleNetworkError(error: unknown, baseUrl: string, url: string): never
     logger.warn('⏱️ [API CLIENT] Request timeout', { message: networkError.message, url });
     throw networkError;
   }
-  
-  console.error('❌ [API CLIENT] Network error during fetch:', networkError);
-  
-  // Check if it's a connection refused error
-  const isConnectionRefused = 
-    networkError.message?.includes('Failed to fetch') || 
+
+  const isConnectionRefused =
+    networkError.message?.includes('Failed to fetch') ||
     networkError.message?.includes('ERR_CONNECTION_REFUSED') ||
     networkError.message?.includes('NetworkError') ||
     networkError.message?.includes('Network request failed');
-  
+
+  if (isConnectionRefused && isQuietAdminPollNetworkError(url)) {
+    logger.warn('[API CLIENT] Admin poll network error (will retry)', { url });
+    throw new Error(`Admin poll unavailable: ${url}`);
+  }
+
+  console.error('❌ [API CLIENT] Network error during fetch:', networkError);
+
   if (isConnectionRefused) {
     const errorMessage = baseUrl 
       ? `⚠️ API սերվերը հասանելի չէ!\n\n` +

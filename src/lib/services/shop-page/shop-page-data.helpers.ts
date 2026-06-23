@@ -60,9 +60,12 @@ export type ShopMenuProductRow = {
   id: string;
   discountPercent: number | null;
   media: unknown;
-  reviews: Array<{
+  /** Populated by enrich step; kept for legacy callers/tests. */
+  reviews?: Array<{
     rating: number;
   }>;
+  /** Batch-computed average when reviews exist; preferred over scanning `reviews`. */
+  averageRating?: number | null;
   categories: Array<{
     translations: CategoryTranslationRow[];
   }>;
@@ -78,7 +81,7 @@ export type ShopMenuProductRow = {
     price: number;
     compareAtPrice: number | null;
     stock: number;
-    attributes: unknown;
+    attributes?: unknown;
   }>;
   _count?: {
     variants?: number;
@@ -155,11 +158,13 @@ export function mapShopProductRowsToMenuCards(
     const price = variant?.price ?? 0;
     const oldPrice = resolveMenuCardCompareAtPrice(price, variant?.compareAtPrice);
     const hasVariantChoice = (row._count?.variants ?? row.variants.length) > 1;
-    const reviewCount = row._count?.reviews ?? row.reviews.length;
+    const reviewCount = row._count?.reviews ?? row.reviews?.length ?? 0;
     const rating =
-      reviewCount > 0
-        ? row.reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount
-        : 5;
+      typeof row.averageRating === 'number' && Number.isFinite(row.averageRating)
+        ? row.averageRating
+        : reviewCount > 0 && row.reviews?.length
+          ? row.reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount
+          : 5;
     const foodAttrs = hasVariantChoice
       ? resolveFoodAttributeFlagsFromVariants(row.variants)
       : { supportsSpicy: false, supportsGreens: false };

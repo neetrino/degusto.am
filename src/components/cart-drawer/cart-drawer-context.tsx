@@ -64,7 +64,7 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
     setIsCartDrawerOpen(true);
     const cached = readCartSummaryCache();
     if ((cached?.itemsCount ?? 0) > 0 && !cartHasVisibleItems(cartRef.current)) {
-      void reloadCart({ silent: false });
+      void reloadCart({ silent: true });
     }
   }, [cartRef, reloadCart]);
 

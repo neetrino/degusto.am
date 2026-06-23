@@ -44,6 +44,7 @@ import { useShopCategorySoftNav } from './useShopCategorySoftNav';
 import { ShopDesktopProductsSkeleton } from './ShopDesktopProductsSkeleton';
 import { HomeOptimizedImage } from './HomeOptimizedImage';
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
+import { buildWishlistSnapshotFromMenuCard } from '@/lib/wishlist/wishlist-product-snapshot';
 import {
   STOREFRONT_DESKTOP_MAIN_COLUMN_CLASS,
   STOREFRONT_DESKTOP_PRODUCT_GRID_CLASS,
@@ -351,7 +352,7 @@ function MenuCardItemBase({ card }: { card: MenuCard }) {
       router.push(`/login?redirect=${encodeURIComponent(productHref)}`);
       return;
     }
-    void toggleWishlist();
+    void toggleWishlist(buildWishlistSnapshotFromMenuCard(card, title));
   };
 
   const visibilityRef = usePrefetchProductWhenVisible(card.slug);
@@ -375,6 +376,10 @@ function MenuCardItemBase({ card }: { card: MenuCard }) {
     prefetchProductRoute(router, card.slug);
   }, [router, card.slug]);
 
+  const warmProductRouteForClick = useCallback(() => {
+    prefetchProductRoute(router, card.slug, undefined, { warmPdpBundle: true });
+  }, [router, card.slug]);
+
   return (
     <article
       ref={visibilityRef}
@@ -382,8 +387,8 @@ function MenuCardItemBase({ card }: { card: MenuCard }) {
       className={`relative ${DESKTOP_MENU_CARD_HEIGHT_CLASS} w-full shrink-0 cursor-pointer rounded-[20px] border-[1.5px] border-[#dedede] bg-white transition-colors ${FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS} hover:shadow-md`}
       onMouseEnter={warmProductRoute}
       onFocus={warmProductRoute}
-      onPointerDown={warmProductRoute}
-      onTouchStart={warmProductRoute}
+      onPointerDown={warmProductRouteForClick}
+      onTouchStart={warmProductRouteForClick}
     >
       <StorefrontProductOverlayLink slug={card.slug} label={title} preview={previewSummary} />
       <div className={DESKTOP_MENU_CARD_IMAGE_FRAME_CLASS}>

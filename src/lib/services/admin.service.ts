@@ -19,6 +19,7 @@ class AdminService {
   
   // Stats methods
   getStats = adminStatsService.getStats.bind(adminStatsService);
+  getDashboard = adminStatsService.getDashboard.bind(adminStatsService);
   getUserActivity = adminStatsService.getUserActivity.bind(adminStatsService);
   getRecentOrders = adminStatsService.getRecentOrders.bind(adminStatsService);
   getTopProducts = adminStatsService.getTopProducts.bind(adminStatsService);

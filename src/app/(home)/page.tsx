@@ -6,7 +6,8 @@ import { PRIMARY_LOCALE } from '@/lib/i18n/locale';
 import { getHomePageData } from '@/lib/services/home-page-data.service';
 
 /** Pre-render home at build time; keep in sync with HOME_PAGE_REVALIDATE_SECONDS. */
-export const revalidate = 60;
+/** Keep in sync with `STOREFRONT_ISR_REVALIDATE_SECONDS` in `@/constants/storefront-isr`. */
+export const revalidate = 86_400;
 
 export default async function HomePage() {
   const { featuredProducts, categories, dailyOfferMobile, dailyOfferDesktop } =
