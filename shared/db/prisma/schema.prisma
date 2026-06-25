@@ -193,6 +193,10 @@ model Product {
   labels            ProductLabel[]
   productAttributes ProductAttribute[]
   discountPercent   Int                  @default(0)
+  /// Show spicy badge on product cards (home, shop, menu).
+  supportsSpicy     Boolean              @default(false)
+  /// Show greens (vegie) badge on product cards.
+  supportsGreens    Boolean              @default(false)
   deletedAt         DateTime?
   createdAt         DateTime             @default(now())
   updatedAt         DateTime             @updatedAt

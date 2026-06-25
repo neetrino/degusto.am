@@ -5,7 +5,7 @@ import { UseFormRegister, UseFormSetValue, UseFormHandleSubmit, FieldErrors } fr
 import { useTranslation } from '../../../lib/i18n-client';
 import { CHECKOUT_MODAL_CLOSE_ICON, CHECKOUT_MODAL_PANEL, CHECKOUT_OUTLINE_BUTTON, CHECKOUT_PRIMARY_BUTTON, CHECKOUT_TEXT_INK } from '../checkout-ui';
 import { ContactInformation } from './ContactInformation';
-import { CardInputFields } from './CardInputFields';
+import { RedirectPaymentNotice } from './RedirectPaymentNotice';
 import { OrderSummaryModal } from './OrderSummaryModal';
 import { CheckoutFormData, Cart } from '../types';
 
@@ -155,18 +155,7 @@ export function ShippingAddressModal({
             )}
 
             {(paymentMethod === 'arca' || paymentMethod === 'idram') && (
-              <div className="space-y-4 mb-6 mt-6">
-                <h3 className="text-lg font-semibold text-[#1F2E1F]">
-                  {t('checkout.payment.paymentDetails')} (
-                  {paymentMethod === 'idram' ? t('checkout.payment.idram') : t('checkout.payment.arca')})
-                </h3>
-                <CardInputFields
-                  register={register}
-                  setValue={setValue}
-                  errors={errors}
-                  isSubmitting={isSubmitting}
-                />
-              </div>
+              <RedirectPaymentNotice paymentMethod={paymentMethod} />
             )}
 
             {paymentMethod === 'cash_on_delivery' && (
@@ -198,18 +187,7 @@ export function ShippingAddressModal({
             </div>
 
             {(paymentMethod === 'arca' || paymentMethod === 'idram') && (
-              <div className="space-y-4 mb-6">
-                <h3 className="text-lg font-semibold text-[#1F2E1F]">
-                  {t('checkout.payment.paymentDetails')} (
-                  {paymentMethod === 'idram' ? t('checkout.payment.idram') : t('checkout.payment.arca')})
-                </h3>
-                <CardInputFields
-                  register={register}
-                  setValue={setValue}
-                  errors={errors}
-                  isSubmitting={isSubmitting}
-                />
-              </div>
+              <RedirectPaymentNotice paymentMethod={paymentMethod} />
             )}
 
             {paymentMethod === 'cash_on_delivery' && (

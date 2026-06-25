@@ -7,7 +7,7 @@ import { useAuth } from '../../../lib/auth/AuthContext';
 import { useTranslation } from '../../../lib/i18n-client';
 import { apiClient } from '../../../lib/api-client';
 import { logger } from '../../../lib/utils/logger';
-import { fetchWithInflightKey } from '@/lib/admin/inflight-get-cache';
+import { adminGet } from '@/lib/admin/admin-read-cache';
 import { useAdminDialogs } from '../context/AdminDialogsContext';
 import { PromocodeCodeWithCopy } from './PromocodeCodeWithCopy';
 
@@ -46,9 +46,7 @@ export default function PromocodePage() {
   const fetchCoupons = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetchWithInflightKey('admin-coupons-list', () =>
-        apiClient.get<CouponsResponse>('/api/v1/admin/coupons'),
-      );
+      const response = await adminGet<CouponsResponse>('/api/v1/admin/coupons');
       setCoupons(Array.isArray(response.data) ? response.data : []);
     } catch (error: unknown) {
       logger.error('Failed to fetch coupons', { error });

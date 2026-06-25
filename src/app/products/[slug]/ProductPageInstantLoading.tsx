@@ -39,7 +39,7 @@ import { HomeOptimizedImage } from '@/components/home/HomeOptimizedImage';
 import { PdpActionHeartIcon } from './PdpActionHeartIcon';
 import { montserratArmFont } from '@/fonts/montserrat-arm-font';
 import { r2Asset } from '@/lib/r2-public-url';
-import { RelatedProducts } from '@/components/RelatedProducts';
+import { RelatedProductsSectionSkeleton } from '@/components/RelatedProducts/RelatedProductsSectionSkeleton';
 import { ProductReviewsLoading } from '@/components/ProductReviews/ProductReviewsLoading';
 import { PDP_RELATED_SECTION_GAP_CLASS } from '@/constants/pdp-figma-tokens';
 import { getRelatedProductsSnapshot } from '@/lib/products/related-products-cache';
@@ -95,7 +95,6 @@ export function ProductPageInstantLoading() {
       ? `-${Math.round(summary.discount)}%`
       : null;
   const productSlug = parseSlugFromPathname(pathname);
-  const currentProductId = summary?.id ?? '__loading__';
   const relatedSnapshot =
     productSlug != null ? getRelatedProductsSnapshot(productSlug) : null;
   return (
@@ -235,11 +234,11 @@ export function ProductPageInstantLoading() {
         </section>
       </div>
       <div className={PDP_RELATED_SECTION_GAP_CLASS}>
-        <RelatedProducts
-          productSlug={productSlug ?? undefined}
-          currentProductId={currentProductId}
-          initialProducts={relatedSnapshot?.products ?? []}
-          initialLanguage={relatedSnapshot?.language}
+        <RelatedProductsSectionSkeleton
+          language={relatedSnapshot?.language ?? 'hy'}
+          skeletonCardWidth="50%"
+          skeletonCount={2}
+          compact
         />
       </div>
       <div className={PDP_CONTENT_SHELL_CLASS}>

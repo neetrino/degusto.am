@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import { isAdminAppPath } from '@/lib/routing/is-admin-app-path';
 import { MobileBottomNavigation } from './home/MobileBottomNavigation';
 import { resolveMobileBottomNavAssets } from './home/mobileBottomNavAssets';
 import { usesCheckoutTabletDesktopLayout } from '../lib/uses-storefront-mobile-chrome';
@@ -8,7 +9,7 @@ import { usesCheckoutTabletDesktopLayout } from '../lib/uses-storefront-mobile-c
 export function ConditionalMobileBottomNav() {
   const pathname = usePathname();
 
-  if (pathname?.startsWith('/supersudo')) {
+  if (isAdminAppPath(pathname)) {
     return null;
   }
 

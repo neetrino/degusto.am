@@ -1,7 +1,3 @@
-import {
-  FOOD_ATTR_GREENS_KEY,
-  FOOD_ATTR_SPICY_KEY,
-} from '@/lib/product-food-attributes';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
 import { resolveVariantUsdBoundsFromAmd } from '@/lib/storefront/variant-price-filter';
 import { db } from '@white-shop/db';
@@ -27,20 +23,6 @@ function toCountNumber(value: unknown): number {
   return 0;
 }
 
-function variantHasAttributeValueExists(attrKey: string, attrValue: string): Prisma.Sql {
-  return Prisma.sql`
-    EXISTS (
-      SELECT 1
-      FROM product_variants pv
-      INNER JOIN product_variant_options pvo ON pvo."variantId" = pv.id
-      INNER JOIN attribute_values av ON av.id = pvo."valueId"
-      INNER JOIN attributes a ON a.id = av."attributeId" AND a.key = ${attrKey}
-      WHERE pv."productId" = p.id
-        AND pv.published = true
-        AND av.value = ${attrValue}
-    )
-  `;
-}
 
 /** SQL AND-clause matching `buildShopProductWhereBase` (products alias `p`). */
 function buildShopProductBaseFilterSql(
@@ -109,11 +91,9 @@ function buildShopProductBaseFilterSql(
   }
 
   if (query.tasteFilter === 'pepper') {
-    clauses.push(variantHasAttributeValueExists(FOOD_ATTR_SPICY_KEY, 'spicy'));
-    clauses.push(variantHasAttributeValueExists(FOOD_ATTR_SPICY_KEY, 'not-spicy'));
+    clauses.push(Prisma.sql`p."supportsSpicy" = true`);
   } else if (query.tasteFilter === 'leaf') {
-    clauses.push(variantHasAttributeValueExists(FOOD_ATTR_GREENS_KEY, 'with-greens'));
-    clauses.push(variantHasAttributeValueExists(FOOD_ATTR_GREENS_KEY, 'without-greens'));
+    clauses.push(Prisma.sql`p."supportsGreens" = true`);
   }
 
   return Prisma.join(clauses, ' AND ');

@@ -120,6 +120,8 @@ class AdminProductsCreateService {
     }>;
     attributeIds?: string[];
     pdpCustomization?: { items: Array<{ valueId: string; role: 'default' | 'addon' }> } | null;
+    supportsSpicy?: boolean;
+    supportsGreens?: boolean;
     variants: Array<{
       price: string | number;
       compareAtPrice?: string | number;
@@ -377,6 +379,8 @@ class AdminProductsCreateService {
             media: finalMedia,
             published: data.published,
             featured: data.featured ?? false,
+            supportsSpicy: data.supportsSpicy ?? false,
+            supportsGreens: data.supportsGreens ?? false,
             publishedAt: data.published ? new Date() : undefined,
             translations: {
               create: {

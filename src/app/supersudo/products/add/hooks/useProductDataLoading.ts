@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { apiClient } from '@/lib/api-client';
+import { adminGet } from '@/lib/admin/admin-read-cache';
 import { CURRENCIES, type CurrencyCode } from '@/lib/currency';
 import { getStoredLanguage } from '@/lib/language';
 import type { Category, Attribute } from '../types';
@@ -82,9 +83,9 @@ export function useProductDataLoading({
       try {
         logger.debug('📥 [ADMIN] Fetching settings, categories, and attributes...');
         const [settingsRes, categoriesRes, attributesRes] = await Promise.all([
-          apiClient.get<{ defaultCurrency?: string }>('/api/v1/admin/settings'),
-          apiClient.get<{ data: Category[] }>(`/api/v1/admin/categories?locale=${locale}`),
-          apiClient.get<{ data: Attribute[] }>('/api/v1/admin/attributes'),
+          adminGet<{ defaultCurrency?: string }>('/api/v1/admin/settings'),
+          adminGet<{ data: Category[] }>('/api/v1/admin/categories', { params: { locale } }),
+          adminGet<{ data: Attribute[] }>('/api/v1/admin/attributes'),
         ]);
         const currency = (settingsRes.defaultCurrency || 'AMD') as CurrencyCode;
         if (currency in CURRENCIES) {

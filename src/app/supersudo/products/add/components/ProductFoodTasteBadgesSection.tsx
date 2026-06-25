@@ -16,7 +16,7 @@ interface ProductFoodTasteBadgesSectionProps {
 type TasteToggleKey = keyof FoodTasteBadgeSelection;
 
 const TOGGLE_CONFIG: Array<{
-  key: TasteToggleKey;
+  key: keyof FoodTasteBadgeSelection;
   iconSrc: string;
   labelKey: 'foodTasteBadgesSpicy' | 'foodTasteBadgesGreens';
   selectedRingClass: string;
@@ -24,7 +24,7 @@ const TOGGLE_CONFIG: Array<{
   iconClass: string;
 }> = [
   {
-    key: 'spicy',
+    key: 'supportsSpicy',
     iconSrc: FOOD_TASTE_HOT_ICON_SRC,
     labelKey: 'foodTasteBadgesSpicy',
     selectedRingClass: 'ring-2 ring-[#ff2b2e] border-[#ff2b2e]',
@@ -32,7 +32,7 @@ const TOGGLE_CONFIG: Array<{
     iconClass: 'h-[19px] w-[19px] -rotate-[13deg] object-contain',
   },
   {
-    key: 'greens',
+    key: 'supportsGreens',
     iconSrc: FOOD_TASTE_GREENS_ICON_SRC,
     labelKey: 'foodTasteBadgesGreens',
     selectedRingClass: 'ring-2 ring-emerald-500 border-emerald-500',
@@ -98,7 +98,7 @@ export function ProductFoodTasteBadgesSection({
         })}
         </div>
 
-        {(selection.spicy || selection.greens) && (
+        {(selection.supportsSpicy || selection.supportsGreens) && (
           <div className="mt-4 pt-4 border-t border-gray-200">
             <p className="text-xs font-medium text-gray-500 mb-3">
               {t('admin.products.add.foodTasteBadgesPreview')}
@@ -106,8 +106,8 @@ export function ProductFoodTasteBadgesSection({
             <div className="relative h-28 w-40 rounded-xl border border-gray-200 bg-white overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-b from-gray-100 to-gray-200" />
               <HomeProductFoodAttributeBadges
-                supportsSpicy={selection.spicy}
-                supportsGreens={selection.greens}
+                supportsSpicy={selection.supportsSpicy}
+                supportsGreens={selection.supportsGreens}
                 hotIconSrc={FOOD_TASTE_HOT_ICON_SRC}
                 greensIconSrc={FOOD_TASTE_GREENS_ICON_SRC}
                 variant="desktop-card"

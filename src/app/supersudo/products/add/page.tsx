@@ -205,6 +205,7 @@ function AddProductPageContent() {
             simpleProductData={formState.simpleProductData}
             categories={formState.categories}
             attributes={formState.attributes}
+            setAttributes={formState.setAttributes}
             selectedPdpCustomizationAttributeIds={formState.selectedPdpCustomizationAttributeIds}
             onSelectedPdpCustomizationAttributeIdsChange={
               formState.setSelectedPdpCustomizationAttributeIds

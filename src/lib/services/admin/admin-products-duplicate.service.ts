@@ -99,6 +99,8 @@ export async function duplicateProductAsDraft(sourceProductId: string): Promise<
       color: l.color ?? undefined,
     })),
     attributeIds: source.attributeIds,
+    supportsSpicy: source.supportsSpicy ?? false,
+    supportsGreens: source.supportsGreens ?? false,
     variants: variantsPayload,
   });
 

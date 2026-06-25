@@ -40,6 +40,7 @@ interface AddProductFormContentProps {
   };
   categories: Category[];
   attributes: Attribute[];
+  setAttributes: React.Dispatch<React.SetStateAction<Attribute[]>>;
   selectedPdpCustomizationAttributeIds: Set<string>;
   onSelectedPdpCustomizationAttributeIdsChange: (updater: (prev: Set<string>) => Set<string>) => void;
   pdpCustomizationForm: PdpCustomizationFormState;
@@ -84,6 +85,7 @@ export function AddProductFormContent({
   simpleProductData,
   categories,
   attributes,
+  setAttributes,
   selectedPdpCustomizationAttributeIds,
   onSelectedPdpCustomizationAttributeIdsChange,
   pdpCustomizationForm,
@@ -168,6 +170,7 @@ export function AddProductFormContent({
 
         <ProductCustomizationSection
           attributes={attributes}
+          setAttributes={setAttributes}
           selectedAttributeIds={selectedPdpCustomizationAttributeIds}
           onSelectedAttributeIdsChange={onSelectedPdpCustomizationAttributeIdsChange}
           formState={pdpCustomizationForm}

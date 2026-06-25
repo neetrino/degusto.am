@@ -41,31 +41,39 @@ const END_PRICE = 28;
 const STOCK_BASE = 24;
 
 const FOOD_OPTION_PRESETS = [
-  { spicy: "not-spicy", greens: "without-greens", priceDelta: 0 },
-  { spicy: "not-spicy", greens: "with-greens", priceDelta: 0.4 },
-  { spicy: "spicy", greens: "without-greens", priceDelta: 0.7 },
-  { spicy: "spicy", greens: "with-greens", priceDelta: 1.1 },
+  { priceDelta: 0 },
+  { priceDelta: 0.4 },
+  { priceDelta: 0.7 },
+  { priceDelta: 1.1 },
 ];
 
-/** Rotates seed behavior: full choice, spicy-only, greens-only, or fixed (no taste UI). */
+/** Rotates seed badge flags and variant count. */
+function getFoodTasteFlagsForProduct(productIndex) {
+  const mode = productIndex % 4;
+  if (mode === 0) {
+    return { supportsSpicy: true, supportsGreens: true };
+  }
+  if (mode === 1) {
+    return { supportsSpicy: true, supportsGreens: false };
+  }
+  if (mode === 2) {
+    return { supportsSpicy: false, supportsGreens: true };
+  }
+  return { supportsSpicy: false, supportsGreens: false };
+}
+
 function getFoodVariantPresets(productIndex) {
   const mode = productIndex % 4;
   if (mode === 0) {
     return FOOD_OPTION_PRESETS;
   }
   if (mode === 1) {
-    return [
-      { spicy: "not-spicy", greens: "without-greens", priceDelta: 0 },
-      { spicy: "spicy", greens: "without-greens", priceDelta: 0.7 },
-    ];
+    return [FOOD_OPTION_PRESETS[0], FOOD_OPTION_PRESETS[2]];
   }
   if (mode === 2) {
-    return [
-      { spicy: "not-spicy", greens: "without-greens", priceDelta: 0 },
-      { spicy: "not-spicy", greens: "with-greens", priceDelta: 0.4 },
-    ];
+    return [FOOD_OPTION_PRESETS[0], FOOD_OPTION_PRESETS[1]];
   }
-  return [{ spicy: "not-spicy", greens: "without-greens", priceDelta: 0 }];
+  return [FOOD_OPTION_PRESETS[0]];
 }
 
 /** Per-variant-index sauce/garlic so each SKU has a unique full preference tuple. */
@@ -217,11 +225,8 @@ async function seedFoodAttributes() {
   return result;
 }
 
-function resolveProductAttributeIds(categorySlug, foodAttributes, isFixedSingleTaste) {
-  let keys = getAttributeKeysForCategorySlug(categorySlug);
-  if (isFixedSingleTaste) {
-    keys = keys.filter((key) => key !== "spicy" && key !== "greens");
-  }
+function resolveProductAttributeIds(categorySlug, foodAttributes) {
+  const keys = getAttributeKeysForCategorySlug(categorySlug);
   return keys.map((key) => foodAttributes[key]?.id).filter(Boolean);
 }
 
@@ -244,15 +249,11 @@ async function resolveSharedProductMedia() {
 }
 
 function buildVariantRows(productIndex, basePrice, stock, foodAttributes) {
-  const spicyAttributeId = foodAttributes.spicy.id;
-  const greensAttributeId = foodAttributes.greens.id;
   const sauceAttributeId = foodAttributes.sauce.id;
   const garlicAttributeId = foodAttributes.garlic.id;
   const presetRows = getFoodVariantPresets(productIndex);
 
   return presetRows.map((preset, variantIndex) => {
-    const spicyValueId = foodAttributes.spicy.valueIds[preset.spicy];
-    const greensValueId = foodAttributes.greens.valueIds[preset.greens];
     const sauceKey = FOOD_SAUCE_BY_VARIANT_INDEX[variantIndex % FOOD_SAUCE_BY_VARIANT_INDEX.length];
     const garlicKey = FOOD_GARLIC_BY_VARIANT_INDEX[variantIndex % FOOD_GARLIC_BY_VARIANT_INDEX.length];
     const sauceValueId = foodAttributes.sauce.valueIds[sauceKey];
@@ -268,26 +269,19 @@ function buildVariantRows(productIndex, basePrice, stock, foodAttributes) {
       position: variantIndex,
       published: true,
       attributes: {
-        spicy: [{ valueId: spicyValueId, value: preset.spicy, attributeKey: "spicy" }],
-        greens: [{ valueId: greensValueId, value: preset.greens, attributeKey: "greens" }],
         sauce: [{ valueId: sauceValueId, value: sauceKey, attributeKey: "sauce" }],
         garlic: [{ valueId: garlicValueId, value: garlicKey, attributeKey: "garlic" }],
       },
       options: {
         create: [
-          { valueId: spicyValueId },
-          { valueId: greensValueId },
           { valueId: sauceValueId },
           { valueId: garlicValueId },
         ],
       },
       attributeIds: {
-        spicy: spicyAttributeId,
-        greens: greensAttributeId,
         sauce: sauceAttributeId,
         garlic: garlicAttributeId,
       },
-      isFixedSingleTaste: presetRows.length === 1,
     };
   });
 }
@@ -331,11 +325,10 @@ async function seedProducts(categoryIdsBySlug, foodAttributes) {
       const stock = STOCK_BASE + (productIndex % 27);
       const featured = productIndex < 12;
       const variantRows = buildVariantRows(productIndex, basePrice, stock, foodAttributes);
-      const isFixedSingleTaste = variantRows[0]?.isFixedSingleTaste ?? false;
+      const tasteFlags = getFoodTasteFlagsForProduct(productIndex);
       const productAttributeIds = resolveProductAttributeIds(
         category.slug,
         foodAttributes,
-        isFixedSingleTaste,
       );
 
       const product = await prisma.product.create({
@@ -344,6 +337,8 @@ async function seedProducts(categoryIdsBySlug, foodAttributes) {
           published: true,
           featured,
           publishedAt: new Date(),
+          supportsSpicy: tasteFlags.supportsSpicy,
+          supportsGreens: tasteFlags.supportsGreens,
           categoryIds: [primaryCategoryId],
           primaryCategoryId,
           attributeIds: productAttributeIds,
@@ -355,9 +350,9 @@ async function seedProducts(categoryIdsBySlug, foodAttributes) {
                 title,
                 slug,
                 subtitle: `${category.titles.en} — ${title}`,
-                descriptionHtml: isFixedSingleTaste
-                  ? `<p>${title} — fixed recipe.</p>`
-                  : `<p>${title} with customizable spicy level and greens preference.</p>`,
+                descriptionHtml: tasteFlags.supportsSpicy || tasteFlags.supportsGreens
+                  ? `<p>${title} with spicy/greens badges on the menu card.</p>`
+                  : `<p>${title} — fixed recipe.</p>`,
               },
               {
                 locale: "hy",
@@ -384,9 +379,8 @@ async function seedProducts(categoryIdsBySlug, foodAttributes) {
             : {}),
           variants: {
             create: variantRows.map((row) => {
-              const { attributeIds, isFixedSingleTaste, ...variant } = row;
+              const { attributeIds, ...variant } = row;
               void attributeIds;
-              void isFixedSingleTaste;
               return variant;
             }),
           },

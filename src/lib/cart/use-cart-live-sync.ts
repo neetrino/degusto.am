@@ -142,14 +142,16 @@ export function useCartLiveSync({
   }, []);
 
   const reloadCart = useCallback(
-    async (options?: { silent?: boolean }) => {
+    async (options?: { silent?: boolean; forceDirect?: boolean }) => {
       const generation = ++reloadGenerationRef.current;
       const silent = options?.silent ?? false;
       if (!silent) {
         setCartLoading(true);
       }
       try {
-        const cartData = await fetchCart(isLoggedIn, t);
+        const cartData = await fetchCart(isLoggedIn, t, {
+          forceDirect: options?.forceDirect,
+        });
         if (generation !== reloadGenerationRef.current) {
           return;
         }
@@ -176,7 +178,7 @@ export function useCartLiveSync({
     }
     reconcileTimerRef.current = setTimeout(() => {
       reconcileTimerRef.current = null;
-      void reloadCart({ silent: true });
+      void reloadCart({ silent: true, forceDirect: true });
     }, CART_RECONCILE_DEBOUNCE_MS);
   }, [reloadCart]);
 
@@ -193,13 +195,13 @@ export function useCartLiveSync({
         optimisticReconcileTimerRef.current = setTimeout(() => {
           optimisticReconcileTimerRef.current = null;
           lastReconcileAtRef.current = Date.now();
-          void reloadCart({ silent: true });
+          void reloadCart({ silent: true, forceDirect: true });
         }, CART_RECONCILE_MIN_GAP_MS - elapsed);
         return;
       }
 
       lastReconcileAtRef.current = now;
-      void reloadCart({ silent: true });
+      void reloadCart({ silent: true, forceDirect: true });
     }, CART_OPTIMISTIC_RECONCILE_IDLE_MS);
   }, [reloadCart]);
 
@@ -219,7 +221,7 @@ export function useCartLiveSync({
       }
 
       if (detail.forceReload) {
-        void reloadCart({ silent: true });
+        void reloadCart({ silent: true, forceDirect: true });
         return;
       }
 

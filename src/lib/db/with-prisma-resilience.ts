@@ -35,6 +35,24 @@ export async function withPrismaResilience<T>(
     try {
       return await operation();
     } catch (error: unknown) {
+      if (isPrismaPoolTimeout(error)) {
+        const isLastAttempt = attempt === PRISMA_POOL_RETRY_ATTEMPTS;
+        logger.warn(`[${scope}] Prisma connection pool timeout in ${step}`, {
+          attempt: attempt + 1,
+          maxAttempts: PRISMA_POOL_RETRY_ATTEMPTS + 1,
+        });
+        if (isLastAttempt) {
+          logger.error(`[${scope}] Falling back after repeated pool timeouts in ${step}`, { error });
+          if (shouldRethrowDatabaseConnectionError()) {
+            throw error;
+          }
+          return fallback;
+        }
+        await new Promise((resolve) =>
+          setTimeout(resolve, PRISMA_POOL_RETRY_DELAY_MS * (attempt + 1))
+        );
+        continue;
+      }
       if (isPrismaConnectionError(error)) {
         const code =
           error instanceof Prisma.PrismaClientKnownRequestError ? error.code : 'initialization';
@@ -49,21 +67,7 @@ export async function withPrismaResilience<T>(
         logger.warn(`[${scope}] Using empty fallback for ${step} (development only)`);
         return fallback;
       }
-      if (!isPrismaPoolTimeout(error)) {
-        throw error;
-      }
-      const isLastAttempt = attempt === PRISMA_POOL_RETRY_ATTEMPTS;
-      logger.warn(`[${scope}] Prisma connection pool timeout in ${step}`, {
-        attempt: attempt + 1,
-        maxAttempts: PRISMA_POOL_RETRY_ATTEMPTS + 1,
-      });
-      if (isLastAttempt) {
-        logger.error(`[${scope}] Falling back after repeated pool timeouts in ${step}`, { error });
-        return fallback;
-      }
-      await new Promise((resolve) =>
-        setTimeout(resolve, PRISMA_POOL_RETRY_DELAY_MS * (attempt + 1))
-      );
+      throw error;
     }
   }
 

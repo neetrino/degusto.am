@@ -34,10 +34,12 @@ function readCartBadgeSnapshot(cart: ReturnType<typeof useCartDrawer>['cart']): 
  */
 export function useCartBadgeDisplay(): CartBadgeSnapshot {
   const { cart, cartLoading, isCartResolved } = useCartDrawer();
+  const [hasMounted, setHasMounted] = useState(false);
   const [eventBadge, setEventBadge] = useState<CartBadgeSnapshot | null>(null);
   const [cachedBadge, setCachedBadge] = useState<CartBadgeSnapshot | null>(null);
 
   useEffect(() => {
+    setHasMounted(true);
     setCachedBadge(readCachedBadgeSnapshot());
   }, []);
 
@@ -58,6 +60,10 @@ export function useCartBadgeDisplay(): CartBadgeSnapshot {
       setEventBadge(null);
     }
   }, [cart, cartLoading, isCartResolved]);
+
+  if (!hasMounted) {
+    return { cartCount: 0, cartTotal: 0 };
+  }
 
   if (eventBadge) {
     return eventBadge;

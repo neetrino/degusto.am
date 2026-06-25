@@ -88,7 +88,9 @@
   "messages": {
     "cashOnDeliveryInfo": "Cash on Delivery: You will pay cash when you receive your order. Card details are not required.",
     "cashOnDeliveryPickup": "Cash on Delivery: You will pay cash when you pick up your order. Card details are not required.",
-    "storePickupInfo": "Store Pickup: You will pick up your order from our store. Delivery is free."
+    "storePickupInfo": "Store Pickup: You will pick up your order from our store. Delivery is free.",
+    "arcaRedirectInfo": "You will be redirected to the bank's secure payment page to enter your card details. Card data is not collected on this site.",
+    "idramRedirectInfo": "You will be redirected to Idram's secure payment page to complete payment. Card data is not collected on this site."
   },
   "errors": {
     "firstNameRequired": "First name is required",
@@ -114,7 +116,8 @@
     "deliveryOnlyYerevan": "Delivery is unavailable for selected city",
     "cartEmpty": "Cart is empty",
     "failedToLoadCart": "Failed to load cart",
-    "failedToCreateOrder": "Failed to create order. Please try again."
+    "failedToCreateOrder": "Failed to create order. Please try again.",
+    "arcaPaymentUnavailable": "Card payment is temporarily unavailable. Verify Arca test credentials in Postman or choose another payment method."
   },
   "pageError": {
     "title": "Checkout error",
@@ -124,6 +127,12 @@
     "orderNumber": "Your order number is {number}.",
     "generic": "Your order has been created successfully.",
     "contactNote": "Our team will contact you shortly to confirm the order details."
+  },
+  "error": {
+    "title": "Payment failed",
+    "orderNumber": "Payment for order {number} was not completed.",
+    "generic": "Your payment could not be processed. Please try again.",
+    "tryAgain": "Try again"
   },
   "paymentGateway": {
     "title": "Redirecting to payment...",

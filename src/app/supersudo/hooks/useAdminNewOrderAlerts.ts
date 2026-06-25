@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { logger } from '@/lib/utils/logger';
 import {
   ADMIN_NEW_ORDER_EVENT,
-  ADMIN_NEW_ORDER_POLL_INTERVAL_MS,
+  resolveAdminNewOrderPollIntervalMs,
   type AdminNewOrderEventDetail,
 } from '@/lib/admin/admin-order-alert.constants';
 import { ADMIN_RECENT_ORDERS_POLL_LIMIT } from '@/lib/admin/admin-dashboard-cache.constants';
@@ -91,7 +91,7 @@ export function useAdminNewOrderAlerts({
 
   useVisibilityAwareInterval({
     enabled,
-    intervalMs: ADMIN_NEW_ORDER_POLL_INTERVAL_MS,
+    intervalMs: resolveAdminNewOrderPollIntervalMs(),
     onTick: () => {
       void pollLatestOrders();
     },

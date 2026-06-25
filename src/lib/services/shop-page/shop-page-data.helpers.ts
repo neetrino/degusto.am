@@ -1,6 +1,6 @@
 import { HIDDEN_STOREFRONT_CATEGORY_SLUGS } from '@/constants/hidden-storefront-category-slugs';
 import type { MenuCard } from '@/components/home/menu-types';
-import { resolveFoodAttributeFlagsFromVariants } from '@/lib/product-food-attributes';
+import { resolveFoodTasteFlagsFromProduct } from '@/lib/product-food-attributes';
 import { resolveMenuCardCompareAtPrice } from '@/lib/storefront/menu-card-pricing';
 import { isPublishedVariantInStock } from '@/lib/storefront/variant-in-stock';
 import { resolveStorefrontProductImageFromMedia } from '@/constants/storefront-product-image';
@@ -59,6 +59,8 @@ type CategoryDbRow = {
 export type ShopMenuProductRow = {
   id: string;
   discountPercent: number | null;
+  supportsSpicy?: boolean;
+  supportsGreens?: boolean;
   media: unknown;
   /** Populated by enrich step; kept for legacy callers/tests. */
   reviews?: Array<{
@@ -81,7 +83,6 @@ export type ShopMenuProductRow = {
     price: number;
     compareAtPrice: number | null;
     stock: number;
-    attributes?: unknown;
   }>;
   _count?: {
     variants?: number;
@@ -157,7 +158,6 @@ export function mapShopProductRowsToMenuCards(
     const variant = row.variants[0];
     const price = variant?.price ?? 0;
     const oldPrice = resolveMenuCardCompareAtPrice(price, variant?.compareAtPrice);
-    const hasVariantChoice = (row._count?.variants ?? row.variants.length) > 1;
     const reviewCount = row._count?.reviews ?? row.reviews?.length ?? 0;
     const rating =
       typeof row.averageRating === 'number' && Number.isFinite(row.averageRating)
@@ -165,9 +165,7 @@ export function mapShopProductRowsToMenuCards(
         : reviewCount > 0 && row.reviews?.length
           ? row.reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount
           : 5;
-    const foodAttrs = hasVariantChoice
-      ? resolveFoodAttributeFlagsFromVariants(row.variants)
-      : { supportsSpicy: false, supportsGreens: false };
+    const foodAttrs = resolveFoodTasteFlagsFromProduct(row);
 
     return {
       id: row.id,

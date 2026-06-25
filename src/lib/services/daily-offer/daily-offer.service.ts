@@ -1,7 +1,7 @@
 import { resolveStorefrontProductImageFromMedia } from '@/constants/storefront-product-image';
 import type { HomeFeaturedProduct } from '@/components/home/home-page-types';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
-import { resolveFoodAttributeFlagsFromVariants } from '@/lib/product-food-attributes';
+import { resolveFoodTasteFlagsFromProduct } from '@/lib/product-food-attributes';
 import { isPublishedVariantInStock } from '@/lib/storefront/variant-in-stock';
 import { db } from '@white-shop/db';
 import { revalidateStorefrontMenuCaches } from '@/lib/cache/revalidate-storefront-menu-caches';
@@ -15,6 +15,8 @@ import {
 type DailyOfferProductRow = {
   id: string;
   discountPercent: number;
+  supportsSpicy: boolean;
+  supportsGreens: boolean;
   media: unknown;
   translations: Array<{ locale: string; slug: string; title: string }>;
   categories: Array<{ translations: Array<{ locale: string; title: string }> }>;
@@ -24,7 +26,6 @@ type DailyOfferProductRow = {
     price: number;
     compareAtPrice: number | null;
     stock: number;
-    attributes: unknown;
   }>;
   reviews: Array<{
     rating: number;
@@ -45,6 +46,8 @@ function getHomeProductSelect(homeLang: StorefrontLocale) {
   return {
     id: true,
     discountPercent: true,
+    supportsSpicy: true,
+    supportsGreens: true,
     media: true,
     translations: {
       where: {
@@ -87,7 +90,6 @@ function getHomeProductSelect(homeLang: StorefrontLocale) {
         price: true,
         compareAtPrice: true,
         stock: true,
-        attributes: true,
       },
     },
     _count: {
@@ -122,7 +124,7 @@ function mapProductRowToHomeFeatured(
     firstCategory?.translations.find((translation) => translation.locale === homeLang) ??
     firstCategory?.translations[0];
   const mainVariant = product.variants[0];
-  const foodAttrs = resolveFoodAttributeFlagsFromVariants(product.variants);
+  const foodAttrs = resolveFoodTasteFlagsFromProduct(product);
   const reviewCount = product._count?.reviews ?? product.reviews.length;
   const rating =
     reviewCount > 0
@@ -223,39 +225,44 @@ export async function toggleDailyOfferProduct(productId: string): Promise<DailyO
   });
 }
 
-async function loadHomeFeaturedProductById(
-  productId: string,
+async function loadHomeFeaturedProductsByIds(
+  productIds: string[],
   homeLang: StorefrontLocale
-): Promise<HomeFeaturedProduct | null> {
-  const product = await db.product.findFirst({
+): Promise<Map<string, HomeFeaturedProduct>> {
+  const uniqueIds = [...new Set(productIds.filter(Boolean))];
+  if (uniqueIds.length === 0) {
+    return new Map();
+  }
+
+  const products = await db.product.findMany({
     where: {
-      id: productId,
+      id: { in: uniqueIds },
       published: true,
       deletedAt: null,
     },
     select: getHomeProductSelect(homeLang),
   });
 
-  if (!product) {
-    return null;
-  }
-
-  return mapProductRowToHomeFeatured(product, homeLang);
+  return new Map(
+    products.map((product) => [product.id, mapProductRowToHomeFeatured(product, homeLang)])
+  );
 }
 
 export async function loadActiveDailyOffersForHome(
   homeLang: StorefrontLocale
 ): Promise<{ mobile: HomeFeaturedProduct | null; desktop: HomeFeaturedProduct | null }> {
   const selection = await getDailyOfferSelection();
+  const productIds = [selection.mobileProductId, selection.desktopProductId].filter(
+    (id): id is string => typeof id === 'string' && id.length > 0
+  );
+  const productsById = await loadHomeFeaturedProductsByIds(productIds, homeLang);
 
-  const [mobile, desktop] = await Promise.all([
-    selection.mobileProductId
-      ? loadHomeFeaturedProductById(selection.mobileProductId, homeLang)
-      : Promise.resolve(null),
-    selection.desktopProductId
-      ? loadHomeFeaturedProductById(selection.desktopProductId, homeLang)
-      : Promise.resolve(null),
-  ]);
-
-  return { mobile, desktop };
+  return {
+    mobile: selection.mobileProductId
+      ? productsById.get(selection.mobileProductId) ?? null
+      : null,
+    desktop: selection.desktopProductId
+      ? productsById.get(selection.desktopProductId) ?? null
+      : null,
+  };
 }

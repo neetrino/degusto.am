@@ -2,6 +2,7 @@ import { apiClient } from '@/lib/api-client';
 import { ApiError } from '@/lib/api-client/types';
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import type { PdpCustomizationConfig } from '@/lib/products/pdp-customization-config';
+import type { ProductFoodTasteFlags } from '@/lib/product-food-attributes';
 import { resolveProductSlug } from '../utils/productUtils';
 import { logger } from "@/lib/utils/logger";
 
@@ -21,6 +22,7 @@ interface CreateAndSubmitPayloadProps {
   finalPrimaryCategoryId: string;
   variants: any[];
   attributeIds: string[];
+  foodTasteFlags: ProductFoodTasteFlags;
   pdpCustomization: PdpCustomizationConfig | null;
   finalMedia: string[];
   mainImage: string | null;
@@ -36,6 +38,7 @@ export async function createAndSubmitPayload({
   finalPrimaryCategoryId,
   variants,
   attributeIds,
+  foodTasteFlags,
   pdpCustomization,
   finalMedia,
   mainImage,
@@ -63,6 +66,8 @@ export async function createAndSubmitPayload({
       locale: 'en',
       variants: variants,
       attributeIds: attributeIds.length > 0 ? attributeIds : undefined,
+      supportsSpicy: foodTasteFlags.supportsSpicy,
+      supportsGreens: foodTasteFlags.supportsGreens,
       pdpCustomization: pdpCustomization ?? undefined,
     };
     

@@ -71,6 +71,8 @@ export interface ProductData {
   pdpCustomization?: { items: Array<{ valueId: string; role: 'default' | 'addon' }> } | null;
   published: boolean;
   featured?: boolean;
+  supportsSpicy?: boolean;
+  supportsGreens?: boolean;
   media?: string[];
   labels?: ProductLabel[];
   variants?: Array<{

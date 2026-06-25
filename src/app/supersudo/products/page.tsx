@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@shop/ui';
 import { useAuth } from '../../../lib/auth/AuthContext';
 import { apiClient } from '../../../lib/api-client';
-import { fetchWithInflightKey } from '@/lib/admin/inflight-get-cache';
+import { adminGet, buildAdminReadCacheKey } from '@/lib/admin/admin-read-cache';
 import { useTranslation } from '../../../lib/i18n-client';
 import { getStoredCurrency, initializeCurrencyRates, type CurrencyCode } from '../../../lib/currency';
 import { ProductBulkSelectionBar } from './components/ProductBulkSelectionBar';
@@ -15,6 +15,7 @@ import { useProductHandlers } from './hooks/useProductHandlers';
 import type { Product, ProductsResponse, Category } from './types';
 import { aggregateStockValues, hasSellableStock } from '@/lib/product-stock';
 import { EMPTY_DAILY_OFFER_SELECTION, type DailyOfferSelection } from '@/lib/services/daily-offer/daily-offer.types';
+import type { AdminProductsPageData } from '@/lib/services/admin/admin-products-page-data.service';
 import { logger } from "@/lib/utils/logger";
 
 export default function ProductsPage() {
@@ -82,18 +83,20 @@ export default function ProductsPage() {
     }
   }, []);
 
-  const fetchCategories = useCallback(async () => {
+  const loadPageData = useCallback(async () => {
     try {
       setCategoriesLoading(true);
-      logger.debug('📂 [ADMIN] Fetching categories...');
-      const response = await fetchWithInflightKey('admin-categories', () =>
-        apiClient.get<{ data: Category[] }>('/api/v1/admin/categories'),
-      );
-      setCategories(response.data || []);
-      logger.debug('✅ [ADMIN] Categories loaded:', response.data?.length || 0);
+      logger.debug('📂 [ADMIN] Loading products page bootstrap...');
+      const data = await adminGet<AdminProductsPageData>('/api/v1/admin/products/page-data');
+      setCategories(data.categories || []);
+      setDailyOfferSelection(data.dailyOfferSelection ?? EMPTY_DAILY_OFFER_SELECTION);
+      logger.debug('✅ [ADMIN] Products page bootstrap loaded:', {
+        categories: data.categories?.length || 0,
+      });
     } catch (err: unknown) {
-      console.error('❌ [ADMIN] Error fetching categories:', err);
+      console.error('❌ [ADMIN] Error loading products page bootstrap:', err);
       setCategories([]);
+      setDailyOfferSelection(EMPTY_DAILY_OFFER_SELECTION);
     } finally {
       setCategoriesLoading(false);
     }
@@ -134,10 +137,11 @@ export default function ProductsPage() {
         params.sort = sortBy;
       }
 
-      const requestKey = `admin-products:${JSON.stringify(params)}`;
-      const response = await fetchWithInflightKey(requestKey, () =>
-        apiClient.get<ProductsResponse>('/api/v1/admin/products', { params }),
-      );
+      const requestKey = buildAdminReadCacheKey('/api/v1/admin/products', params);
+      const response = await adminGet<ProductsResponse>('/api/v1/admin/products', {
+        params,
+        cacheKey: requestKey,
+      });
 
       let filteredProducts = response.data || [];
 
@@ -183,22 +187,9 @@ export default function ProductsPage() {
 
   useEffect(() => {
     if (isLoggedIn && isAdmin) {
-      void fetchCategories();
+      void loadPageData();
     }
-  }, [isLoggedIn, isAdmin, fetchCategories]);
-
-  useEffect(() => {
-    if (!isLoggedIn || !isAdmin) {
-      return;
-    }
-
-    void apiClient
-      .get<DailyOfferSelection>('/api/v1/admin/daily-offers')
-      .then(setDailyOfferSelection)
-      .catch((error: unknown) => {
-        console.error('❌ [ADMIN] Error loading daily offer selection:', error);
-      });
-  }, [isLoggedIn, isAdmin]);
+  }, [isLoggedIn, isAdmin, loadPageData]);
 
   // Close category dropdown when clicking outside
   useEffect(() => {

@@ -1,8 +1,10 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiClient, ApiError } from '../api-client';
+import { invalidateAdminReadCache } from '@/lib/admin/admin-read-cache';
+import { fetchUserProfileCached, invalidateUserProfileCache } from '@/lib/users/user-profile-client';
 import { clearAuthSession } from '../api-client/auth-utils';
 import {
   clearLegacyAuthLocalStorage,
@@ -39,12 +41,14 @@ interface AuthContextType {
   isLoggedIn: boolean;
   isLoading: boolean;
   isAdmin: boolean;
+  mfaEnabled: boolean;
   roles: string[];
   login: (_identifier: string, _password: string) => Promise<LoginResult>;
   verifyMfaLogin: (_mfaToken: string, _code: string) => Promise<User>;
   completePasswordReset: (_password: string) => Promise<LoginResult>;
   register: (_data: RegisterData) => Promise<void>;
   logout: () => void;
+  refreshProfile: () => Promise<void>;
 }
 
 /**
@@ -77,19 +81,13 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [mfaEnabled, setMfaEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   const verifyUserFromApi = async (candidate: User): Promise<User | null> => {
     try {
-      const profileData = await apiClient.get<{
-        id: string;
-        email?: string | null;
-        phone?: string | null;
-        firstName?: string | null;
-        lastName?: string | null;
-        roles?: string[];
-      }>('/api/v1/users/profile');
+      const profileData = await fetchUserProfileCached();
 
       if (!profileData?.id || profileData.id !== candidate.id) {
         return null;
@@ -103,6 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         lastName: profileData.lastName ?? candidate.lastName,
         roles: Array.isArray(profileData.roles) ? profileData.roles : [],
       };
+      setMfaEnabled(Boolean(profileData.mfaEnabled));
       setAuthUserClientCookie(verifiedUser as AuthCookieUser);
       logger.debug('✅ [AUTH] Session verified from API:', {
         userId: verifiedUser.id,
@@ -326,12 +325,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const refreshProfile = useCallback(async (): Promise<void> => {
+    try {
+      const profileData = await fetchUserProfileCached({ force: true });
+      setMfaEnabled(Boolean(profileData.mfaEnabled));
+      setUser((currentUser) => {
+        if (!currentUser || profileData.id !== currentUser.id) {
+          return currentUser;
+        }
+        const updatedUser: User = {
+          ...currentUser,
+          email: profileData.email ?? currentUser.email,
+          phone: profileData.phone ?? currentUser.phone,
+          firstName: profileData.firstName ?? currentUser.firstName,
+          lastName: profileData.lastName ?? currentUser.lastName,
+          roles: Array.isArray(profileData.roles) ? profileData.roles : currentUser.roles,
+        };
+        setAuthUserClientCookie(updatedUser as AuthCookieUser);
+        return updatedUser;
+      });
+    } catch (fetchError) {
+      logger.warn('⚠️ [AUTH] Failed to refresh profile', { fetchError });
+      setMfaEnabled(false);
+    }
+  }, []);
+
   const logout = () => {
     logger.debug('🔐 [AUTH] Logging out...');
 
     void clearAuthSession();
+    invalidateUserProfileCache();
+    invalidateAdminReadCache();
 
     setUser(null);
+    setMfaEnabled(false);
 
     window.dispatchEvent(new Event('auth-updated'));
 
@@ -364,12 +391,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoggedIn: !!user,
     isLoading,
     isAdmin,
+    mfaEnabled,
     roles,
     login,
     verifyMfaLogin,
     completePasswordReset,
     register,
     logout,
+    refreshProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

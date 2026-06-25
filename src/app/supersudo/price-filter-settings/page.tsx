@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../lib/auth/AuthContext';
 import { Card, Button, Input } from '@shop/ui';
 import { apiClient } from '../../../lib/api-client';
+import { adminGet, invalidateAdminReadCacheKey, buildAdminReadCacheKey } from '@/lib/admin/admin-read-cache';
 import { useTranslation } from '../../../lib/i18n-client';
 import { logger } from "@/lib/utils/logger";
 
@@ -29,7 +30,7 @@ export default function PriceFilterSettingsPage() {
     try {
       logger.debug('⚙️ [PRICE FILTER SETTINGS] Fetching settings...');
       setLoading(true);
-      const response = await apiClient.get<{
+      const response = await adminGet<{
         minPrice?: number;
         maxPrice?: number;
         stepSize?: number;
@@ -201,6 +202,8 @@ export default function PriceFilterSettingsPage() {
         stepSize: stepValueUSD, // keep legacy field for backwards compatibility (USD as base)
         stepSizePerCurrency: Object.keys(stepSizePerCurrency).length ? stepSizePerCurrency : null,
       });
+
+      invalidateAdminReadCacheKey(buildAdminReadCacheKey('/api/v1/admin/settings/price-filter'));
       
       alert(t('admin.priceFilter.savedSuccess'));
       logger.debug('✅ [PRICE FILTER SETTINGS] Settings saved');

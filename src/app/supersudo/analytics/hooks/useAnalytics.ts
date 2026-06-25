@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { apiClient } from '../../../../lib/api-client';
+import { adminGet } from '@/lib/admin/admin-read-cache';
 import { logger } from '../../../../lib/utils/logger';
 import { useTranslation } from '../../../../lib/i18n-client';
 import type { AnalyticsData } from '../types';
@@ -52,9 +52,7 @@ export function useAnalytics({
           params.endDate = endDate;
         }
 
-        const response = await apiClient.get<AnalyticsData>('/api/v1/admin/analytics', {
-          params,
-        });
+        const response = await adminGet<AnalyticsData>('/api/v1/admin/analytics', { params });
 
         logger.info('Analytics data loaded', { period, hasData: !!response });
         setAnalytics(response);

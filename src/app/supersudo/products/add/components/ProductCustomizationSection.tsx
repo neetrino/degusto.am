@@ -5,7 +5,6 @@ import {
   filterAdminProductFormCustomizationAttributes,
   getPdpCustomizationLayoutColumn,
 } from '@/lib/products/pdp-customization-config';
-import { filterPdpCustomizationAttributes } from '@/lib/product-food-taste-admin';
 import { useTranslation } from '../../../../../lib/i18n-client';
 import type { Attribute } from '../types';
 import {
@@ -13,10 +12,12 @@ import {
   getSelectedCustomizationAttributes,
   type PdpCustomizationFormState,
 } from '../utils/pdp-customization-form';
+import { useProductCustomizationValueActions } from '../hooks/useProductCustomizationValueActions';
 import { ProductCustomizationAttributeCard } from './ProductCustomizationAttributeCard';
 
 interface ProductCustomizationSectionProps {
   attributes: Attribute[];
+  setAttributes: React.Dispatch<React.SetStateAction<Attribute[]>>;
   selectedAttributeIds: Set<string>;
   onSelectedAttributeIdsChange: (updater: (prev: Set<string>) => Set<string>) => void;
   formState: PdpCustomizationFormState;
@@ -41,15 +42,21 @@ function groupAttributesByLayoutColumn(attributes: Attribute[]) {
 
 export function ProductCustomizationSection({
   attributes,
+  setAttributes,
   selectedAttributeIds,
   onSelectedAttributeIdsChange,
   formState,
   onFormStateChange,
 }: ProductCustomizationSectionProps) {
   const { t } = useTranslation();
+  const exclusionValueActions = useProductCustomizationValueActions({
+    attributes,
+    setAttributes,
+    onFormStateChange,
+  });
 
   const customizationAttributes = useMemo(
-    () => filterAdminProductFormCustomizationAttributes(filterPdpCustomizationAttributes(attributes)),
+    () => filterAdminProductFormCustomizationAttributes(attributes),
     [attributes],
   );
 
@@ -94,6 +101,7 @@ export function ProductCustomizationSection({
         attribute={attribute}
         formState={formState}
         onFormStateChange={onFormStateChange}
+        exclusionValueActions={exclusionValueActions}
       />
     ));
 

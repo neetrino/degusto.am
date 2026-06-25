@@ -2,8 +2,6 @@
 
 > Խորհուրդ տրվող տեխնոլոգիաներ տարբեր տիպի նախագծերի համար։
 
-**Degusto (այս repo).** Ընթացիկում catalog instant search-ը **Prisma `contains`** է PostgreSQL-ի վրա, ոչ Meilisearch և ոչ հերթային ինդեքս։ Մանրամասն՝ [`DEGUSTO_CURRENT_STACK.md`](./DEGUSTO_CURRENT_STACK.md)։
-
 ---
 
 ## 📦 PACKAGE MANAGER
@@ -35,7 +33,7 @@
 | **Icons** | Lucide React | - | Իկոններ |
 | **Storage** | Cloudflare R2 | - | Ֆայլերի պահոց (S3-compatible) |
 
-### Մեծ նախագծերի համար (C) — ավելացնել (roadmap / scale)
+### Մեծ նախագծերի համար (C) — ավելացնել
 
 | Կատեգորիա | Տեխնոլոգիա | Տարբերակ | Նշանակություն |
 |------------|-------------|-----------|----------------|
@@ -43,8 +41,8 @@
 | **Package Manager** | pnpm | 9.x | Արագ մենեջեր |
 | **Backend** | NestJS | 11.x | Enterprise backend |
 | **Cache** | Redis | 7.x | Cache |
-| **Queue** | BullMQ | 5.x | Առաջադրանքների հերթեր (երբ sync-ը բավարար չէ) |
-| **Search** | Meilisearch | 1.x | Ամբողջատեքստային որոնում (երբ Prisma `contains`-ը բավարար չէ) |
+| **Queue** | BullMQ | 5.x | Առաջադրանքների հերթեր |
+| **Search** | Meilisearch | 1.x | Ամբողջատեքստային որոնում |
 | **Logging** | Pino | 9.x | Կառուցվածքային լոգեր |
 | **Monitoring** | Sentry | - | Սխալների մոնիտորինգ |
 
@@ -71,7 +69,7 @@
 
 | Կատեգորիա | Տեխնոլոգիա | Նշանակություն |
 |------------|-------------|----------------|
-| **Queue** | BullMQ | Խորքային առաջադրանքներ (ընտրովի, C-scale) |
+| **Queue** | BullMQ | Խորքային առաջադրանքներ |
 | **Events** | EventEmitter2 | Իրադարձություններ |
 | **Emails** | Nodemailer | Email առաքում |
 | **Files** | Multer | Ֆայլերի բեռնում |
@@ -94,8 +92,8 @@
 | ԲԴ | Նշանակություն |
 |----|----------------|
 | **Redis** | Cache, սեսիաներ, հերթեր |
-| **Elasticsearch** | Ամբողջատեքստային որոնում (ընտրովի) |
-| **Meilisearch** | Որոնում, ավելի պարզ քան ES (ընտրովի; Degusto-ում տե՛ս `DEGUSTO_CURRENT_STACK.md`) |
+| **Elasticsearch** | Ամբողջատեքստային որոնում |
+| **Meilisearch** | Որոնում (ավելի պարզ քան ES) |
 
 ---
 
@@ -174,4 +172,4 @@
 
 ---
 
-**Վերջին թարմացում.** 2026-05-14
+**Վերջին թարմացում.** 2026-02-12

@@ -1,9 +1,12 @@
 import { useRouter } from 'next/navigation';
 import { apiClient } from '../../../lib/api-client';
 import { useTranslation } from '../../../lib/i18n-client';
+import { getStoredLanguage } from '../../../lib/language';
 import { clearGuestCart } from '../checkoutUtils';
 import { resetCartBadgeState } from '../../../lib/cart/cart-events';
 import { CHECKOUT_COUPON_CODE_STORAGE_KEY } from '../checkout-coupon-client';
+import { submitIdramPaymentForm } from '../utils/submit-idram-form';
+import type { IdramFormData } from '@/lib/payments/idram/types';
 import type { CheckoutFormData, Cart } from '../types';
 
 interface UseOrderSubmissionProps {
@@ -90,17 +93,39 @@ export function useOrderSubmission({
         ...(data.orderNotes?.trim() ? { notes: data.orderNotes.trim() } : {}),
       });
 
-      resetCartBadgeState();
-      if (!isLoggedIn) {
-        clearGuestCart();
+      if (response.nextAction === 'redirect_to_payment') {
+        const provider = response.payment.provider;
+        const lang = getStoredLanguage();
+
+        if (provider === 'arca') {
+          const init = await apiClient.post<{ redirectUrl: string }>(
+            '/api/v1/payments/arca/init',
+            { orderNumber: response.order.number, lang }
+          );
+          window.location.href = init.redirectUrl;
+          return;
+        }
+
+        if (provider === 'idram') {
+          const init = await apiClient.post<{
+            formAction: string;
+            formData: IdramFormData;
+          }>('/api/v1/payments/idram/init', {
+            orderNumber: response.order.number,
+            lang,
+          });
+          submitIdramPaymentForm(init.formAction, init.formData);
+          return;
+        }
       }
+
+      resetCartBadgeState();
       if (typeof window !== 'undefined') {
         localStorage.removeItem(CHECKOUT_COUPON_CODE_STORAGE_KEY);
       }
 
-      if (response.payment?.paymentUrl) {
-        window.location.href = response.payment.paymentUrl;
-        return;
+      if (!isLoggedIn) {
+        clearGuestCart();
       }
 
       if (!isLoggedIn) {
@@ -110,8 +135,16 @@ export function useOrderSubmission({
 
       router.push(`/orders/${response.order.number}`);
     } catch (err: unknown) {
-      const error = err as { message?: string };
-      setError(error.message || t('checkout.errors.failedToCreateOrder'));
+      const error = err as { message?: string; data?: { type?: string; detail?: string } };
+      const detail = error.data?.detail?.trim() || error.message?.trim();
+      const isArcaConfigError =
+        error.data?.type === '/problems/config-error' ||
+        detail?.includes('Arca rejected register.do');
+      setError(
+        isArcaConfigError
+          ? t('checkout.errors.arcaPaymentUnavailable')
+          : detail || t('checkout.errors.failedToCreateOrder')
+      );
     }
   };
 

@@ -63,7 +63,9 @@ export function RelatedProducts({
   const effectiveInitialLanguage =
     initialLanguage ?? cachedSnapshot?.language;
 
-  const [language, setLanguage] = useState<LanguageCode>(initialLanguage ?? 'en');
+  const [language, setLanguage] = useState<LanguageCode>(
+    () => effectiveInitialLanguage ?? initialLanguage ?? 'en'
+  );
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   const initialRevealedCount = useMemo(
     () => Math.min(5, effectiveInitialProducts?.length ?? 0),
@@ -150,9 +152,10 @@ export function RelatedProducts({
     return () => clearTimeout(timer);
   }, [products.length, revealedCount]);
 
-  // Initialize language from localStorage after mount to prevent hydration mismatch
+  // Sync with stored locale after mount without refetching when SSR locale already matches.
   useEffect(() => {
-    setLanguage(getStoredLanguage());
+    const stored = getStoredLanguage();
+    setLanguage((previous) => (previous === stored ? previous : stored));
 
     const handleLanguageUpdate = () => {
       setLanguage(getStoredLanguage());

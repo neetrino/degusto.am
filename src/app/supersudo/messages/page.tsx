@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../lib/auth/AuthContext';
 import { Card, Button } from '@shop/ui';
 import { apiClient } from '../../../lib/api-client';
+import { adminGet } from '@/lib/admin/admin-read-cache';
 import { useTranslation } from '../../../lib/i18n-client';
 import {
   ADMIN_TABLE,
@@ -133,7 +134,7 @@ export default function MessagesPage() {
       setLoading(true);
       logger.debug('📧 [ADMIN] Fetching messages...', { page });
       
-      const response = await apiClient.get<MessagesResponse>('/api/v1/admin/messages', {
+      const response = await adminGet<MessagesResponse>('/api/v1/admin/messages', {
         params: {
           page: page.toString(),
           limit: '20',
@@ -155,7 +156,7 @@ export default function MessagesPage() {
       fetchMessages();
     }
      
-  }, [isLoggedIn, isAdmin, page]);
+  }, [isLoggedIn, isAdmin, fetchMessages]);
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => {

@@ -26,9 +26,8 @@ import { sanitizeVariantForCreate } from '../utils/sanitize-admin-variant';
 import { ApiError } from '@/lib/api-client/types';
 import { useTranslation } from '@/lib/i18n-client';
 import {
-  collectFoodTasteAttributeIds,
-  expandVariantsWithFoodTasteOptions,
   productFormSupportsFoodTasteBadges,
+  resolveFoodTasteFlagsForSave,
   type FoodTasteBadgeSelection,
 } from '@/lib/product-food-taste-admin';
 
@@ -179,11 +178,7 @@ export function useProductFormHandlers({
         formData.categoryIds,
         isClothingCategory(),
       );
-      collectFoodTasteAttributeIds(attributes, foodTasteBadges, tasteCategoryEligible).forEach(
-        (id) => {
-          attributeIdsSet.add(id);
-        },
-      );
+      const foodTasteFlags = resolveFoodTasteFlagsForSave(foodTasteBadges, tasteCategoryEligible);
 
       const attributeIds = Array.from(attributeIdsSet);
 
@@ -214,21 +209,13 @@ export function useProductFormHandlers({
         defaultCustomizationOptions,
       );
 
-      const finalVariantsWithFoodTaste = tasteCategoryEligible
-        ? expandVariantsWithFoodTasteOptions(
-            finalVariantsWithCustomization,
-            foodTasteBadges,
-            attributes,
-          )
-        : finalVariantsWithCustomization;
-
       const pdpCustomization = serializePdpCustomizationConfig(
         buildPdpCustomizationItems(pdpCustomizationForm, attributes),
       );
 
       let sanitizedVariants: Record<string, unknown>[];
       try {
-        sanitizedVariants = finalVariantsWithFoodTaste.map((v) =>
+        sanitizedVariants = finalVariantsWithCustomization.map((v) =>
           sanitizeVariantForCreate(v as Record<string, unknown>),
         );
       } catch {
@@ -248,6 +235,7 @@ export function useProductFormHandlers({
         finalPrimaryCategoryId,
         variants: sanitizedVariants,
         attributeIds,
+        foodTasteFlags,
         pdpCustomization,
         finalMedia,
         mainImage,

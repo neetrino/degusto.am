@@ -21,6 +21,8 @@ export interface UpdateProductData {
   }>;
   attributeIds?: string[];
   pdpCustomization?: { items: Array<{ valueId: string; role: 'default' | 'addon' }> } | null;
+  supportsSpicy?: boolean;
+  supportsGreens?: boolean;
   variants?: Array<{
     id?: string;
     price: string | number;

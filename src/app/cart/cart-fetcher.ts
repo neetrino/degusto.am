@@ -1,18 +1,35 @@
 import { apiClient } from '../../lib/api-client';
 import { ApiError } from '../../lib/api-client/types';
 import { isQuietCartReadServerError } from '../../lib/api-client/error-handler';
+import { fetchWithInflightKey } from '@/lib/admin/inflight-get-cache';
+import { fetchCartViaCommerceBootstrap } from '@/lib/storefront/fetch-storefront-commerce-state';
 import { logger } from '../../lib/utils/logger';
 import type { Cart } from './types';
+
+const CART_DIRECT_INFLIGHT_KEY = 'storefront-cart-direct';
+
+type FetchCartOptions = {
+  /** Bypass commerce bootstrap and read cart directly (post-mutation reconcile). */
+  forceDirect?: boolean;
+};
+
+async function fetchCartDirectFromApi(): Promise<Cart | null> {
+  return fetchWithInflightKey(CART_DIRECT_INFLIGHT_KEY, async () => {
+    const response = await apiClient.get<{ cart: Cart | null }>('/api/v1/cart');
+    return response.cart;
+  });
+}
 
 /**
  * Fetch cart from database (authenticated user or guest session cookie).
  */
-export async function fetchCartFromApi(): Promise<Cart | null> {
+export async function fetchCartFromApi(options?: FetchCartOptions): Promise<Cart | null> {
   try {
-    // Drawer/live cart state requires full line items; summary-only payload causes
-    // count/items mismatches after refresh (itemsCount > 0 while items is empty).
-    const response = await apiClient.get<{ cart: Cart | null }>('/api/v1/cart');
-    return response.cart;
+    if (!options?.forceDirect) {
+      return await fetchCartViaCommerceBootstrap();
+    }
+
+    return await fetchCartDirectFromApi();
   } catch (error: unknown) {
     if (error instanceof ApiError && isQuietCartReadServerError(error.status, '/api/v1/cart')) {
       logger.warn('[CART] Cart read failed with server error; using empty state', {
@@ -28,7 +45,8 @@ export async function fetchCartFromApi(): Promise<Cart | null> {
 /** @deprecated Use fetchCartFromApi — kept for call-site compatibility. */
 export async function fetchCart(
   _isLoggedIn: boolean,
-  _t: (key: string) => string
+  _t: (key: string) => string,
+  options?: FetchCartOptions
 ): Promise<Cart | null> {
-  return fetchCartFromApi();
+  return fetchCartFromApi(options);
 }

@@ -101,6 +101,8 @@ export async function getProductById(productId: string) {
     attributeIds: allAttributeIds, // All attribute IDs that this product has
     pdpCustomization,
     published: product.published,
+    supportsSpicy: product.supportsSpicy ?? false,
+    supportsGreens: product.supportsGreens ?? false,
     media: Array.isArray(product.media) ? product.media : [],
     labels: labels.map((label: { id: string; type: string; value: string; position: string; color: string | null }) => ({
       id: label.id,

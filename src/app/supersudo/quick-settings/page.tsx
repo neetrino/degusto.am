@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../lib/auth/AuthContext';
 import { apiClient } from '../../../lib/api-client';
-import { fetchWithInflightKey } from '@/lib/admin/inflight-get-cache';
+import { adminGet } from '@/lib/admin/admin-read-cache';
 import { useTranslation } from '../../../lib/i18n-client';
 import { QuickSettingsContent } from './QuickSettingsContent';
 import { logger } from "@/lib/utils/logger";
@@ -62,9 +62,7 @@ export default function QuickSettingsPage() {
     try {
       logger.debug('⚙️ [QUICK SETTINGS] Fetching settings...');
       setDiscountLoading(true);
-      const settings = await fetchWithInflightKey('admin-settings', () =>
-        apiClient.get<AdminSettingsResponse>('/api/v1/admin/settings'),
-      );
+      const settings = await adminGet<AdminSettingsResponse>('/api/v1/admin/settings');
       setGlobalDiscount(settings.globalDiscount || 0);
       setCategoryDiscounts(settings.categoryDiscounts || {});
       logger.debug('✅ [QUICK SETTINGS] Settings loaded:', settings);
@@ -82,16 +80,12 @@ export default function QuickSettingsPage() {
       setProductsLoading(true);
       const normalizedSearch = search.trim();
 
-      const requestKey = `admin-products:${page}:${normalizedSearch}`;
-      const response = await fetchWithInflightKey(requestKey, () =>
-        apiClient.get<AdminProductsResponse>('/api/v1/admin/products', {
-          params: {
-            page: page.toString(),
-            limit: PRODUCTS_PAGE_LIMIT.toString(),
-            ...(normalizedSearch ? { search: normalizedSearch } : {}),
-          },
-        }),
-      );
+      const params = {
+        page: page.toString(),
+        limit: PRODUCTS_PAGE_LIMIT.toString(),
+        ...(normalizedSearch ? { search: normalizedSearch } : {}),
+      };
+      const response = await adminGet<AdminProductsResponse>('/api/v1/admin/products', { params });
 
       if (response?.data && Array.isArray(response.data)) {
         const safeTotalPages = Math.max(1, response.meta?.totalPages || 1);
@@ -139,9 +133,7 @@ export default function QuickSettingsPage() {
     try {
       logger.debug('📂 [QUICK SETTINGS] Fetching categories...');
       setCategoriesLoading(true);
-      const response = await fetchWithInflightKey('admin-categories', () =>
-        apiClient.get<{ data: AdminCategory[] }>('/api/v1/admin/categories'),
-      );
+      const response = await adminGet<{ data: AdminCategory[] }>('/api/v1/admin/categories');
       if (response?.data && Array.isArray(response.data)) {
         setCategories(response.data);
         logger.debug('✅ [QUICK SETTINGS] Categories loaded:', response.data.length);

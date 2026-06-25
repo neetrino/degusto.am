@@ -30,14 +30,14 @@ export function WishlistIdsProvider({ children }: { children: ReactNode }) {
   const [wishlistIds, setWishlistIds] = useState<Set<string>>(() => new Set());
   const fetchGenerationRef = useRef(0);
 
-  const refreshWishlistIds = useCallback(async () => {
+  const refreshWishlistIds = useCallback(async (options?: { forceDirect?: boolean }) => {
     if (!isLoggedIn) {
       setWishlistIds(new Set());
       return;
     }
 
     const generation = ++fetchGenerationRef.current;
-    const ids = await fetchWishlistIds();
+    const ids = await fetchWishlistIds(options);
     if (generation !== fetchGenerationRef.current) {
       return;
     }
@@ -49,7 +49,7 @@ export function WishlistIdsProvider({ children }: { children: ReactNode }) {
 
     const handleWishlistUpdated = () => {
       invalidateWishlistIdsCache();
-      void refreshWishlistIds();
+      void refreshWishlistIds({ forceDirect: true });
     };
     const handleAuthUpdated = () => {
       void refreshWishlistIds();
