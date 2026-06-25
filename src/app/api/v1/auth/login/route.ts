@@ -6,6 +6,7 @@ import {
 } from "@/lib/cart/guest-cart-cookies";
 import { problemTypes } from "@/lib/http/problem-details";
 import { authService } from "@/lib/services/auth.service";
+import { mfaService } from "@/lib/services/mfa.service";
 import { cartService } from "@/lib/services/cart.service";
 import { compareService } from "@/lib/services/compare.service";
 import { toApiError } from "@/lib/types/errors";
@@ -33,6 +34,15 @@ export async function POST(req: NextRequest) {
       );
     }
     const result = await authService.login(parsed.data);
+
+    if (await mfaService.shouldRequireMfa(result.user.id)) {
+      const challenge = mfaService.createChallenge(result.user.id);
+      return NextResponse.json({
+        requiresMfa: true,
+        mfaToken: challenge.mfaToken,
+      });
+    }
+
     const response = NextResponse.json({ user: result.user });
     setAuthCookiesOnResponse(response, result.token, result.user);
 

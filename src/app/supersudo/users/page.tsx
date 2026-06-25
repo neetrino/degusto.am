@@ -22,7 +22,7 @@ import {
   ADMIN_TABLE_THEAD,
 } from '../constants/admin-table-classes';
 import { logger } from "@/lib/utils/logger";
-import { fetchWithInflightKey } from '@/lib/admin/inflight-get-cache';
+import { adminGet } from '@/lib/admin/admin-read-cache';
 import { useAdminDialogs } from '../context/AdminDialogsContext';
 
 interface User {
@@ -71,22 +71,18 @@ export default function UsersPage() {
   }, [isLoggedIn, isAdmin, isLoading, router]);
 
   const fetchUsers = useCallback(async () => {
-    const requestKey = `admin-users:${[page, search, roleFilter].join('|')}`;
-
     try {
       setLoading(true);
       logger.debug('👥 [ADMIN] Fetching users...', { page, search, roleFilter });
 
-      const response = await fetchWithInflightKey(requestKey, () =>
-        apiClient.get<UsersResponse>('/api/v1/admin/users', {
-          params: {
-            page: page.toString(),
-            limit: '20',
-            search: search || '',
-            role: roleFilter === 'all' ? '' : roleFilter,
-          },
-        }),
-      );
+      const response = await adminGet<UsersResponse>('/api/v1/admin/users', {
+        params: {
+          page: page.toString(),
+          limit: '20',
+          search: search || '',
+          role: roleFilter === 'all' ? '' : roleFilter,
+        },
+      });
 
       logger.debug('✅ [ADMIN] Users fetched:', response);
       setUsers(response.data || []);

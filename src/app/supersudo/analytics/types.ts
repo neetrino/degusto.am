@@ -39,14 +39,7 @@ export interface AnalyticsData {
     lowStockVariants: number;
     outOfStockVariants: number;
   };
-}
-
-export interface AdminStatsSummary {
-  users?: {
-    total?: number;
+  users: {
+    total: number;
   };
 }
-
-
-
-

@@ -1,6 +1,7 @@
 import * as bcrypt from "bcryptjs";
 import { problemTypes } from "@/lib/http/problem-details";
-import * as jwt from "jsonwebtoken";
+import { createAuthToken } from "@/lib/auth/create-auth-token";
+import { MIN_PASSWORD_LENGTH } from "@/lib/auth/password.constants";
 import { db } from "@white-shop/db";
 import { logger } from "../utils/logger";
 import { usersService } from "./users.service";
@@ -51,12 +52,12 @@ class AuthService {
       };
     }
 
-    if (!data.password || data.password.length < 6) {
+    if (!data.password || data.password.length < MIN_PASSWORD_LENGTH) {
       throw {
         status: 400,
         type: problemTypes.validationError,
         title: "Validation failed",
-        detail: "Password must be at least 6 characters",
+        detail: `Password must be at least ${MIN_PASSWORD_LENGTH} characters`,
       };
     }
 
@@ -131,22 +132,7 @@ class AuthService {
       throw error;
     }
 
-    // Generate JWT token
-    if (!process.env.JWT_SECRET) {
-      logger.error("Auth config error: JWT_SECRET is not set");
-      throw {
-        status: 500,
-        type: problemTypes.internalError,
-        title: "Internal Server Error",
-        detail: "Server configuration error",
-      };
-    }
-
-    const token = jwt.sign(
-      { userId: user.id },
-      process.env.JWT_SECRET as string,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" } as jwt.SignOptions
-    );
+    const token = await createAuthToken(user.id, user.roles);
     logger.info("Auth registration success", { userId: user.id });
 
     return {
@@ -243,21 +229,7 @@ class AuthService {
       };
     }
 
-    // Generate JWT token
-    if (!process.env.JWT_SECRET) {
-      throw {
-        status: 500,
-        type: problemTypes.internalError,
-        title: "Internal Server Error",
-        detail: "Server configuration error",
-      };
-    }
-
-    const token = jwt.sign(
-      { userId: user.id },
-      process.env.JWT_SECRET as string,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" } as jwt.SignOptions
-    );
+    const token = await createAuthToken(user.id, user.roles);
 
     logger.info("Auth login success", { userId: user.id });
 

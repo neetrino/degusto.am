@@ -4,7 +4,6 @@ import {
   isExclusionSelectionOnlyAttributeKey,
   isAdminProductFormCustomizationAttributeKey,
 } from '@/lib/products/pdp-customization-config';
-import { isFoodTasteAttributeKey } from '@/lib/product-food-attributes';
 import type { PdpCustomizationConfig, PdpCustomizationItem, PdpCustomizationRole } from '@/lib/products/pdp-customization-config';
 import { parsePdpCustomizationConfig } from '@/lib/products/pdp-customization-config';
 import type { Attribute } from '../types';
@@ -18,7 +17,7 @@ export type PdpCustomizationValueFormState = {
 export type PdpCustomizationFormState = Record<string, PdpCustomizationValueFormState>;
 
 export function getCustomizationAttributes(attributes: Attribute[]): Attribute[] {
-  return attributes.filter((a) => isCustomizationAttributeKey(a.key) && !isFoodTasteAttributeKey(a.key));
+  return attributes.filter((a) => isCustomizationAttributeKey(a.key));
 }
 
 /** Attributes chosen in the product form for PDP customization. */
@@ -64,16 +63,13 @@ export function inferSelectedCustomizationAttributeIds(
   if (config?.items.length) {
     for (const item of config.items) {
       const attr = attributes.find((a) => a.values.some((v) => v.id === item.valueId));
-      if (attr && !isFoodTasteAttributeKey(attr.key)) {
+      if (attr) {
         ids.add(attr.id);
       }
     }
   }
 
   for (const attr of attributes) {
-    if (isFoodTasteAttributeKey(attr.key)) {
-      continue;
-    }
     if (attr.values.some((v) => formState[v.id]?.enabled)) {
       ids.add(attr.id);
     }
@@ -118,7 +114,7 @@ export function hydrateCustomizationFormState(
     for (const item of config.items) {
       roleMap.set(item.valueId, item.role);
       const attr = attributes.find((a) => a.values.some((v) => v.id === item.valueId));
-      if (attr && !isFoodTasteAttributeKey(attr.key)) {
+      if (attr) {
         attrsToSeed.add(attr.id);
       }
     }
@@ -126,7 +122,7 @@ export function hydrateCustomizationFormState(
 
   for (const valueId of variantDefaultValueIds) {
     const attr = attributes.find((a) => a.values.some((v) => v.id === valueId));
-    if (attr && !isFoodTasteAttributeKey(attr.key)) {
+    if (attr) {
       attrsToSeed.add(attr.id);
     }
   }
@@ -151,9 +147,6 @@ export function hydrateCustomizationFormState(
   if (config) {
     for (const item of config.items) {
       const attr = attributes.find((a) => a.values.some((v) => v.id === item.valueId));
-      if (attr && isFoodTasteAttributeKey(attr.key)) {
-        continue;
-      }
       if (attr) {
         state = ensureFormStateForAttribute(state, attr);
       }
@@ -190,10 +183,9 @@ export function collectVariantDefaultCustomizationValueIds(
         continue;
       }
       const attr = attributes.find((a) => a.values.some((v) => v.id === valueId));
-      if (attr && isFoodTasteAttributeKey(attr.key)) {
-        continue;
+      if (attr) {
+        ids.add(valueId);
       }
-      ids.add(valueId);
     }
   }
   return Array.from(ids);

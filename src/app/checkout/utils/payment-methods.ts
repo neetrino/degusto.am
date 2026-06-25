@@ -12,10 +12,12 @@ export interface PaymentMethod {
   iconKind: PaymentMethodIconKind;
 }
 
+const ARCA_CHECKOUT_ENABLED = process.env.NEXT_PUBLIC_ARCA_CHECKOUT_ENABLED === 'true';
+
 export function usePaymentMethods(): PaymentMethod[] {
   const { t } = useTranslation();
 
-  return [
+  const methods: PaymentMethod[] = [
     {
       id: 'cash_on_delivery',
       name: t('checkout.payment.cashOnDelivery'),
@@ -23,21 +25,27 @@ export function usePaymentMethods(): PaymentMethod[] {
       description: t('checkout.payment.cashOnDeliveryDescription'),
       iconKind: 'cash',
     },
-    {
+  ];
+
+  if (ARCA_CHECKOUT_ENABLED) {
+    methods.push({
       id: 'arca',
       name: t('checkout.payment.arca'),
       shortName: t('checkout.payment.arcaShort'),
       description: t('checkout.payment.arcaDescription'),
       iconKind: 'cardBrands',
-    },
-    {
-      id: 'idram',
-      name: t('checkout.payment.idram'),
-      shortName: t('checkout.payment.idramShort'),
-      description: t('checkout.payment.idramDescription'),
-      iconKind: 'idram',
-    },
-  ];
+    });
+  }
+
+  methods.push({
+    id: 'idram',
+    name: t('checkout.payment.idram'),
+    shortName: t('checkout.payment.idramShort'),
+    description: t('checkout.payment.idramDescription'),
+    iconKind: 'idram',
+  });
+
+  return methods;
 }
 
 

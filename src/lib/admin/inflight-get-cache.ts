@@ -1,5 +1,8 @@
 /**
  * Short-lived in-flight dedupe for client GETs (e.g. React Strict Mode double mount).
+ *
+ * Pass `ttlMs: 0` for inflight dedupe only — each completed fetch is immediately stale
+ * for `peek()` / `fetch()` TTL hits (scheduled polls that must always reach the network).
  */
 export function createInflightGetCache<T>(ttlMs: number) {
   let cache: T | null = null;

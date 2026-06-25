@@ -10,7 +10,16 @@ export interface AuthCookieUser {
   phone?: string | null;
   firstName?: string | null;
   lastName?: string | null;
-  roles?: string[];
+}
+
+function toClientAuthCookieUser(user: AuthCookieUser & { roles?: string[] }): AuthCookieUser {
+  return {
+    id: user.id,
+    email: user.email,
+    phone: user.phone,
+    firstName: user.firstName,
+    lastName: user.lastName,
+  };
 }
 
 function isProduction(): boolean {
@@ -57,7 +66,7 @@ export function setAuthCookiesOnResponse(
     httpOnly: true,
   });
 
-  response.cookies.set(AUTH_USER_COOKIE, encodeURIComponent(JSON.stringify(user)), {
+  response.cookies.set(AUTH_USER_COOKIE, encodeURIComponent(JSON.stringify(toClientAuthCookieUser(user))), {
     ...base,
     httpOnly: false,
   });
@@ -122,13 +131,14 @@ export function clearClientAuthCookies(): void {
 /**
  * Persists user profile in a readable cookie (JWT remains HttpOnly).
  */
-export function setAuthUserClientCookie(user: AuthCookieUser): void {
+export function setAuthUserClientCookie(user: AuthCookieUser & { roles?: string[] }): void {
   if (typeof document === "undefined") {
     return;
   }
   const maxAge = jwtExpiresInToMaxAgeSeconds();
   const secure = isProduction() ? "; secure" : "";
-  document.cookie = `${AUTH_USER_COOKIE}=${encodeURIComponent(JSON.stringify(user))}; path=/; max-age=${maxAge}; samesite=lax${secure}`;
+  const profile = toClientAuthCookieUser(user);
+  document.cookie = `${AUTH_USER_COOKIE}=${encodeURIComponent(JSON.stringify(profile))}; path=/; max-age=${maxAge}; samesite=lax${secure}`;
 }
 
 /** Removes legacy localStorage auth keys after migration to cookies. */

@@ -6,7 +6,7 @@ import { db } from '@white-shop/db';
 import { Prisma } from '@prisma/client';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
 import { withPrismaResilience } from '@/lib/db/with-prisma-resilience';
-import { resolveFoodAttributeFlagsFromVariants } from '@/lib/product-food-attributes';
+import { resolveFoodTasteFlagsFromProduct } from '@/lib/product-food-attributes';
 import { loadActiveDailyOffersForHome } from '@/lib/services/daily-offer/daily-offer.service';
 import { resolveStorefrontProductImageFromMedia } from '@/constants/storefront-product-image';
 import { isPublishedVariantInStock } from '@/lib/storefront/variant-in-stock';
@@ -31,6 +31,8 @@ function getHomeProductSelect(homeLang: StorefrontLocale) {
   return {
     id: true,
     discountPercent: true,
+    supportsSpicy: true,
+    supportsGreens: true,
     media: true,
     translations: {
       where: {
@@ -73,8 +75,6 @@ function getHomeProductSelect(homeLang: StorefrontLocale) {
         price: true,
         compareAtPrice: true,
         stock: true,
-        /** Spicy/greens badges need all published variants (see product-food-attributes). */
-        attributes: true,
       },
     },
     _count: {
@@ -136,6 +136,8 @@ type HomeProductDbRow = {
   featured: boolean;
   updatedAt: Date;
   discountPercent: number | null;
+  supportsSpicy: boolean;
+  supportsGreens: boolean;
   media: unknown;
   translations: Array<{ locale: string; slug: string; title: string }>;
   categories: Array<{ translations: Array<{ locale: string; title: string }> }>;
@@ -145,7 +147,6 @@ type HomeProductDbRow = {
     price: number;
     compareAtPrice: number | null;
     stock: number;
-    attributes: unknown;
   }>;
   reviews: Array<{
     rating: number;
@@ -226,7 +227,7 @@ export async function loadHomePageData(homeLang: StorefrontLocale): Promise<Home
       firstCategory?.translations.find((translation) => translation.locale === homeLang) ??
       firstCategory?.translations[0];
     const mainVariant = product.variants[0];
-    const foodAttrs = resolveFoodAttributeFlagsFromVariants(product.variants);
+    const foodAttrs = resolveFoodTasteFlagsFromProduct(product);
     const reviewCount = product._count?.reviews ?? product.reviews.length;
     const rating =
       reviewCount > 0
@@ -293,7 +294,7 @@ export async function loadHomePageData(homeLang: StorefrontLocale): Promise<Home
 
 const getHomePageDataCached = unstable_cache(
   async (homeLang: StorefrontLocale) => loadHomePageData(homeLang),
-  ['home-page-data-v6'],
+  ['home-page-data-v7'],
   {
     revalidate: HOME_PAGE_REVALIDATE_SECONDS,
     tags: [HOME_PAGE_CACHE_TAG],

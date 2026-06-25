@@ -18,7 +18,7 @@ type CompareIdsContextValue = {
   setProductInCompare: (productId: string, inCompare: boolean) => void;
   compareIds: string[];
   compareCount: number;
-  refreshCompareIds: () => Promise<void>;
+  refreshCompareIds: (options?: { forceDirect?: boolean }) => Promise<void>;
 };
 
 const CompareIdsContext = createContext<CompareIdsContextValue | null>(null);
@@ -28,14 +28,14 @@ export function CompareIdsProvider({ children }: { children: ReactNode }) {
   const [compareIdSet, setCompareIdSet] = useState<Set<string>>(() => new Set());
   const fetchGenerationRef = useRef(0);
 
-  const refreshCompareIds = useCallback(async () => {
+  const refreshCompareIds = useCallback(async (options?: { forceDirect?: boolean }) => {
     if (!isLoggedIn) {
       setCompareIdSet(new Set());
       return;
     }
 
     const generation = ++fetchGenerationRef.current;
-    const ids = await fetchCompareIds();
+    const ids = await fetchCompareIds(options);
     if (generation !== fetchGenerationRef.current) {
       return;
     }
@@ -46,7 +46,7 @@ export function CompareIdsProvider({ children }: { children: ReactNode }) {
     void refreshCompareIds();
 
     const handleCompareUpdated = () => {
-      void refreshCompareIds();
+      void refreshCompareIds({ forceDirect: true });
     };
     const handleAuthUpdated = () => {
       void refreshCompareIds();

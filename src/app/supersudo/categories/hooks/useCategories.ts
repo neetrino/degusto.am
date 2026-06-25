@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { apiClient } from '../../../../lib/api-client';
+import { adminGet } from '@/lib/admin/admin-read-cache';
 import { logger } from '../../../../lib/utils/logger';
 import type { Category } from '../types';
 
@@ -34,7 +34,9 @@ export function useCategories(): UseCategoriesReturn {
       }
       setError(null);
       logger.debug('Fetching categories', { silent });
-      const response = await apiClient.get<{ data: Category[] }>('/api/v1/admin/categories');
+      const response = await adminGet<{ data: Category[] }>('/api/v1/admin/categories', {
+        force: silent,
+      });
       setCategories(response.data || []);
       logger.info('Categories loaded', { count: response.data?.length || 0 });
     } catch (err: unknown) {

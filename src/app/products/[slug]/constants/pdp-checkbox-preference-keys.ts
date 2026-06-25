@@ -6,8 +6,6 @@ export const PDP_CHECKBOX_PREFERENCE_KEYS: readonly string[] = [];
  * Sauce / garlic use Add / Exclude pills instead.
  */
 export const PDP_HIDDEN_FOOD_PREFERENCE_KEYS: readonly string[] = [
-  'spicy',
-  'greens',
   'sauce',
   'garlic',
 ];

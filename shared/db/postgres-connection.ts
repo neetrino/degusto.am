@@ -96,6 +96,58 @@ function isLikelyNeonPoolerHost(hostname: string): boolean {
   return h.includes("pooler") || h.includes("-pooler");
 }
 
+/**
+ * Long-running local dev should use Neon's direct host; keep pooler on Vercel unless opted in.
+ * Set `PRISMA_USE_NEON_POOLER=1` to force pooler locally (e.g. testing PgBouncer behaviour).
+ */
+export function resolveRuntimeDatabaseUrl(databaseUrl: string, directUrl: string): string {
+  if (process.env.NODE_ENV !== "development" || process.env.VERCEL === "1") {
+    return databaseUrl;
+  }
+  if (process.env.PRISMA_USE_NEON_POOLER === "1") {
+    return databaseUrl;
+  }
+  const dbParsed = tryParsePostgresUrl(databaseUrl);
+  const directParsed = tryParsePostgresUrl(directUrl);
+  if (!dbParsed || !directParsed) {
+    return databaseUrl;
+  }
+  if (
+    isLikelyNeonPoolerHost(dbParsed.hostname) &&
+    isNeonHost(directParsed.hostname) &&
+    !isLikelyNeonPoolerHost(directParsed.hostname)
+  ) {
+    return directUrl;
+  }
+  return databaseUrl;
+}
+
+/** Prisma `connection_limit` per runtime — overridable via `PRISMA_CONNECTION_LIMIT`. */
+function resolvePrismaConnectionLimit(): string | undefined {
+  const fromEnv = process.env.PRISMA_CONNECTION_LIMIT?.trim();
+  if (fromEnv) {
+    return fromEnv;
+  }
+  if (process.env.VERCEL === "1") {
+    return "1";
+  }
+  if (process.env.NODE_ENV === "development") {
+    return "5";
+  }
+  return undefined;
+}
+
+function resolvePrismaPoolTimeout(): string | undefined {
+  const fromEnv = process.env.PRISMA_POOL_TIMEOUT?.trim();
+  if (fromEnv) {
+    return fromEnv;
+  }
+  if (process.env.NODE_ENV === "development") {
+    return "20";
+  }
+  return undefined;
+}
+
 /** Neon expects TLS from cloud runtimes; connection strings sometimes omit sslmode. */
 export function augmentNeonSslIfMissing(url: string): string {
   const parsed = tryParsePostgresUrl(url);
@@ -125,14 +177,40 @@ export function augmentNeonPrismaPoolerParams(url: string): string {
   if (!parsed.searchParams.has("pgbouncer")) {
     parsed.searchParams.set("pgbouncer", "true");
   }
-  if (process.env.VERCEL === "1" && !parsed.searchParams.has("connection_limit")) {
-    parsed.searchParams.set("connection_limit", "1");
+  const connectionLimit = resolvePrismaConnectionLimit();
+  if (connectionLimit && !parsed.searchParams.has("connection_limit")) {
+    parsed.searchParams.set("connection_limit", connectionLimit);
+  }
+  const poolTimeout = resolvePrismaPoolTimeout();
+  if (poolTimeout && !parsed.searchParams.has("pool_timeout")) {
+    parsed.searchParams.set("pool_timeout", poolTimeout);
+  }
+  return parsed.toString();
+}
+
+function augmentDevDirectNeonConnectionCap(url: string): string {
+  const parsed = tryParsePostgresUrl(url);
+  if (!parsed || !isNeonHost(parsed.hostname) || isLikelyNeonPoolerHost(parsed.hostname)) {
+    return url;
+  }
+  if (process.env.NODE_ENV !== "development" || process.env.VERCEL === "1") {
+    return url;
+  }
+  const connectionLimit = resolvePrismaConnectionLimit();
+  if (connectionLimit && !parsed.searchParams.has("connection_limit")) {
+    parsed.searchParams.set("connection_limit", connectionLimit);
+  }
+  const poolTimeout = resolvePrismaPoolTimeout();
+  if (poolTimeout && !parsed.searchParams.has("pool_timeout")) {
+    parsed.searchParams.set("pool_timeout", poolTimeout);
   }
   return parsed.toString();
 }
 
 export function mergePostgresConnectionUrlTuning(raw: string): string {
-  return augmentNeonPrismaPoolerParams(augmentNeonSslIfMissing(augmentCorePostgresParams(raw)));
+  return augmentDevDirectNeonConnectionCap(
+    augmentNeonPrismaPoolerParams(augmentNeonSslIfMissing(augmentCorePostgresParams(raw)))
+  );
 }
 
 export type DatabaseUrlLogFields = {

@@ -12,13 +12,14 @@ import {
   normalizeProductCustomizations,
   type ProductCustomizations,
 } from "../cart/customizations";
-import { isStockSufficient } from "../product-stock";
+import { isStockSufficient, UNLIMITED_STOCK } from "../product-stock";
 import { sumLineCustomizationPriceAdjustmentsByVariant } from "../cart/attribute-price-adjustment";
 import { computeLineUnitPriceUsd } from "../cart/line-unit-price";
 import { calculateBagAmountByUniqueCategories } from "../cart/bag-fee";
 
 const ALLOWED_SHIPPING_METHODS = ["pickup", "delivery"] as const;
 const ALLOWED_PAYMENT_METHODS = ["idram", "arca", "cash_on_delivery"] as const;
+const REDIRECT_PAYMENT_METHODS = ["idram", "arca"] as const;
 
 type CartItemWithRelations = Prisma.CartItemGetPayload<{
   include: {
@@ -90,38 +91,11 @@ type CheckoutTransactionResult = {
   };
 };
 
-function buildPaymentUrl(params: {
-  provider: string;
-  orderNumber: string;
-  total: number;
-  currency: string;
-  isGuest: boolean;
-}): string | null {
+function buildPaymentUrl(params: { provider: string }): string | null {
   if (params.provider !== "idram" && params.provider !== "arca") {
     return null;
   }
-
-  const externalBase =
-    params.provider === "idram"
-      ? process.env.IDRAM_CHECKOUT_URL
-      : process.env.ARCA_CHECKOUT_URL;
-
-  if (externalBase) {
-    const url = new URL(externalBase);
-    url.searchParams.set("orderNumber", params.orderNumber);
-    url.searchParams.set("amount", String(params.total));
-    url.searchParams.set("currency", params.currency);
-    return url.toString();
-  }
-
-  const localPath = `/checkout/payment-gateway?provider=${encodeURIComponent(
-    params.provider
-  )}&order=${encodeURIComponent(params.orderNumber)}&guest=${params.isGuest ? "1" : "0"}`;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL;
-  if (!appUrl) {
-    return localPath;
-  }
-  return new URL(localPath, appUrl).toString();
+  return null;
 }
 
 function normalizeCouponCode(input: unknown): string | null {
@@ -673,7 +647,7 @@ async function createOrderAndPayment(params: {
         const quantity = Number(item.quantity);
         const variantId = item.variantId;
         const updated = await tx.$executeRaw(
-          Prisma.sql`UPDATE product_variants SET stock = stock - ${quantity} WHERE id = ${variantId} AND stock >= ${quantity}`
+          Prisma.sql`UPDATE product_variants SET stock = CASE WHEN stock = ${UNLIMITED_STOCK} THEN ${UNLIMITED_STOCK} ELSE stock - ${quantity} END WHERE id = ${variantId} AND (stock = ${UNLIMITED_STOCK} OR stock >= ${quantity})`
         );
         if (updated === 0) {
           const variant = await tx.productVariant.findUnique({
@@ -700,7 +674,10 @@ async function createOrderAndPayment(params: {
         },
       });
 
-      if (cartId && cartId !== "guest-cart") {
+      const keepsCartUntilPaid = REDIRECT_PAYMENT_METHODS.includes(
+        paymentMethod as (typeof REDIRECT_PAYMENT_METHODS)[number]
+      );
+      if (cartId && cartId !== "guest-cart" && !keepsCartUntilPaid) {
         await tx.cart.delete({
           where: { id: cartId },
         });
@@ -795,10 +772,6 @@ export async function performCheckout(params: {
 
     const paymentUrl = buildPaymentUrl({
       provider: created.payment.provider,
-      orderNumber: created.order.number,
-      total: created.order.total,
-      currency: created.order.currency,
-      isGuest: !userId,
     });
 
     return {

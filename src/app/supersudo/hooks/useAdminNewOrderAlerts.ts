@@ -4,13 +4,15 @@ import { useCallback, useEffect, useRef } from 'react';
 import { logger } from '@/lib/utils/logger';
 import {
   ADMIN_NEW_ORDER_EVENT,
-  ADMIN_NEW_ORDER_POLL_INTERVAL_MS,
+  resolveAdminNewOrderPollIntervalMs,
   type AdminNewOrderEventDetail,
 } from '@/lib/admin/admin-order-alert.constants';
+import { ADMIN_RECENT_ORDERS_POLL_LIMIT } from '@/lib/admin/admin-dashboard-cache.constants';
 import {
-  fetchRecentOrdersShared,
-  invalidateRecentOrdersCache,
-} from './useAdminDashboard';
+  fetchRecentOrdersForPoll,
+  invalidateAdminDashboardCaches,
+} from '@/lib/admin/admin-dashboard-client';
+import { useVisibilityAwareInterval } from '@/lib/hooks/useVisibilityAwareInterval';
 import {
   playAdminOrderAlert,
   primeAdminOrderAlertAudio,
@@ -44,12 +46,22 @@ export function useAdminNewOrderAlerts({
     alertMessageRef.current = alertMessage;
   }, [alertMessage]);
 
+  useEffect(() => {
+    if (enabled) {
+      return;
+    }
+    seenOrderIdsRef.current.clear();
+    initializedRef.current = false;
+  }, [enabled]);
+
   const pollLatestOrders = useCallback(async () => {
     if (!enabled) {
       return;
     }
     try {
-      const orders = (await fetchRecentOrdersShared(8)) as RecentOrderRow[];
+      const orders = (await fetchRecentOrdersForPoll(ADMIN_RECENT_ORDERS_POLL_LIMIT, {
+        requireFresh: initializedRef.current,
+      })) as RecentOrderRow[];
       if (orders.length === 0) {
         return;
       }
@@ -68,7 +80,7 @@ export function useAdminNewOrderAlerts({
         .forEach((order) => {
           seenOrderIdsRef.current.add(order.id);
           notifyNewOrder(order, alertMessageRef.current);
-          invalidateRecentOrdersCache();
+          invalidateAdminDashboardCaches();
         });
     } catch (error: unknown) {
       logger.warn('Admin new-order poll failed', {
@@ -76,6 +88,14 @@ export function useAdminNewOrderAlerts({
       });
     }
   }, [enabled]);
+
+  useVisibilityAwareInterval({
+    enabled,
+    intervalMs: resolveAdminNewOrderPollIntervalMs(),
+    onTick: () => {
+      void pollLatestOrders();
+    },
+  });
 
   useEffect(() => {
     if (!enabled) {
@@ -88,15 +108,9 @@ export function useAdminNewOrderAlerts({
     document.addEventListener('pointerdown', primeOnGesture, { once: true });
     document.addEventListener('keydown', primeOnGesture, { once: true });
 
-    void pollLatestOrders();
-    const intervalId = window.setInterval(() => {
-      void pollLatestOrders();
-    }, ADMIN_NEW_ORDER_POLL_INTERVAL_MS);
-
     return () => {
       document.removeEventListener('pointerdown', primeOnGesture);
       document.removeEventListener('keydown', primeOnGesture);
-      window.clearInterval(intervalId);
     };
-  }, [enabled, pollLatestOrders]);
+  }, [enabled]);
 }

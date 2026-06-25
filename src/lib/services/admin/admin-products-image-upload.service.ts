@@ -1,4 +1,8 @@
 import { nanoid } from "nanoid";
+import {
+  assertBase64ImageWithinSizeLimit,
+  ImageUploadPolicyError,
+} from "@/lib/images/image-upload-policy";
 import { prepareImageBufferForR2Upload } from "@/lib/images/prepare-raster-for-r2";
 import { parseBase64ImageDataUrl } from "@/lib/images/r2-upload-image";
 import { isR2Configured, uploadToR2 } from "@/lib/r2";
@@ -43,9 +47,18 @@ async function uploadSingleBase64Image(
     return cachedResult;
   }
 
+  try {
+    assertBase64ImageWithinSizeLimit(value);
+  } catch (error) {
+    if (error instanceof ImageUploadPolicyError) {
+      throw error;
+    }
+    return value;
+  }
+
   const parsed = parseBase64ImageDataUrl(value);
   if (!parsed) {
-    return value;
+    throw new ImageUploadPolicyError("Invalid or disallowed image data URL");
   }
 
   const prepared = await prepareImageBufferForR2Upload(parsed.buffer, parsed.mime);

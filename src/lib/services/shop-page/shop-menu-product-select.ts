@@ -16,6 +16,8 @@ export function getShopMenuProductSelect(locale: StorefrontLocale): Prisma.Produ
   return {
     id: true,
     discountPercent: true,
+    supportsSpicy: true,
+    supportsGreens: true,
     media: true,
     categories: {
       where: {

@@ -2,8 +2,6 @@
 
 const BASE_CUSTOMIZATION_KEYS = ["sauce", "garlic", "ingredient"];
 
-const VARIANT_PREFERENCE_KEYS = ["spicy", "greens"];
-
 const TOPPING_CATEGORY_SLUGS = new Set([
   "burgers-sandwiches",
   "pizza",
@@ -14,17 +12,6 @@ const TOPPING_CATEGORY_SLUGS = new Set([
   "stuffed-potato",
   "khachapuri",
   "khorovats",
-]);
-
-/** Categories without spicy/greens variant dimensions. */
-const NO_VARIANT_PREFERENCE_SLUGS = new Set([
-  "juices-drinks",
-  "bar-alcohol",
-  "cakes-pancakes",
-  "pastry",
-  "bread",
-  "sauces",
-  "semi-finished",
 ]);
 
 /** Add-pill extras (AMD) — synced to attribute_values.priceAdjustment. */
@@ -42,42 +29,6 @@ const TOPPING_PRICE_ADJUSTMENT_AMD = {
 };
 
 const FOOD_ATTRIBUTE_CONFIGS = [
-  {
-    key: "spicy",
-    names: {
-      en: "Spicy level",
-      hy: "Կծվության մակարդակ",
-      ru: "Уровень остроты",
-    },
-    values: [
-      {
-        value: "spicy",
-        labels: { en: "Spicy", hy: "Կծու", ru: "Острое" },
-      },
-      {
-        value: "not-spicy",
-        labels: { en: "Not spicy", hy: "Առանց կծու", ru: "Не острое" },
-      },
-    ],
-  },
-  {
-    key: "greens",
-    names: {
-      en: "Greens",
-      hy: "Կանաչի",
-      ru: "Зелень",
-    },
-    values: [
-      {
-        value: "with-greens",
-        labels: { en: "With greens", hy: "Կանաչիով", ru: "С зеленью" },
-      },
-      {
-        value: "without-greens",
-        labels: { en: "Without greens", hy: "Առանց կանաչի", ru: "Без зелени" },
-      },
-    ],
-  },
   {
     key: "sauce",
     names: {
@@ -224,10 +175,6 @@ const FOOD_ATTRIBUTE_CONFIGS = [
 function getAttributeKeysForCategorySlug(categorySlug) {
   const keys = [...BASE_CUSTOMIZATION_KEYS];
 
-  if (categorySlug && !NO_VARIANT_PREFERENCE_SLUGS.has(categorySlug)) {
-    keys.unshift(...VARIANT_PREFERENCE_KEYS);
-  }
-
   if (categorySlug && TOPPING_CATEGORY_SLUGS.has(categorySlug)) {
     keys.push("topping");
   }
@@ -239,6 +186,5 @@ module.exports = {
   TOPPING_PRICE_ADJUSTMENT_AMD,
   FOOD_ATTRIBUTE_CONFIGS,
   BASE_CUSTOMIZATION_KEYS,
-  VARIANT_PREFERENCE_KEYS,
   getAttributeKeysForCategorySlug,
 };

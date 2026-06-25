@@ -100,13 +100,13 @@ export function useCheckout() {
   });
 
   useEffect(() => {
-    if (loading || isLoading) {
+    if (loading || isLoading || isSubmitting || error) {
       return;
     }
     if (!cart || cart.items.length === 0) {
       router.replace('/shop');
     }
-  }, [loading, isLoading, cart, router]);
+  }, [loading, isLoading, isSubmitting, error, cart, router]);
 
   useEffect(() => {
     if (isLoading) {
@@ -173,11 +173,6 @@ export function useCheckout() {
 
     if (shippingMethod === 'delivery' && deliveryUnavailable) {
       setError(t('checkout.errors.deliveryOnlyYerevan'));
-      return;
-    }
-
-    if (paymentMethod === 'arca' || paymentMethod === 'idram') {
-      setShowCardModal(true);
       return;
     }
 

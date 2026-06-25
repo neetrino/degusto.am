@@ -1,17 +1,7 @@
-'use client';
+import { requireAdminAppAccess } from '@/lib/auth/require-admin-app-access';
+import { AdminMobileLayoutClient } from './AdminMobileLayoutClient';
 
-import type { ReactNode } from 'react';
-import { AdminDialogsProvider } from '../supersudo/context/AdminDialogsContext';
-import { AdminNewOrderAlerts } from '../supersudo/components/AdminNewOrderAlerts';
-
-/**
- * Mobile admin routes reuse supersudo hooks (e.g. useOrders) that need confirm dialogs.
- */
-export default function AdminMobileLayout({ children }: { children: ReactNode }) {
-  return (
-    <AdminDialogsProvider>
-      <AdminNewOrderAlerts />
-      {children}
-    </AdminDialogsProvider>
-  );
+export default async function AdminMobileLayout({ children }: { children: React.ReactNode }) {
+  await requireAdminAppAccess('/admin-mobile');
+  return <AdminMobileLayoutClient>{children}</AdminMobileLayoutClient>;
 }

@@ -4,6 +4,13 @@ import { nanoid } from "nanoid";
 import { authenticateToken, requireAdmin } from "@/lib/middleware/auth";
 import { prepareBase64ImageForR2Upload } from "@/lib/images/r2-upload-image";
 import { uploadToR2, isR2Configured } from "@/lib/r2";
+import {
+  ADMIN_UPLOAD_MAX_IMAGES,
+} from '@/lib/admin/admin-upload.constants';
+import {
+  ImageUploadPolicyError,
+  validateImageDataUrlForUpload,
+} from '@/lib/images/image-upload-policy';
 import { logger } from "@/lib/utils/logger";
 
 /**
@@ -74,6 +81,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (body.images.length > ADMIN_UPLOAD_MAX_IMAGES) {
+      return NextResponse.json(
+        {
+          type: problemTypes.validationError,
+          title: "Validation Error",
+          status: 400,
+          detail: `Cannot upload more than ${ADMIN_UPLOAD_MAX_IMAGES} images per request`,
+          instance: req.url,
+        },
+        { status: 400 }
+      );
+    }
+
     const validImages: string[] = [];
     for (let i = 0; i < body.images.length; i++) {
       const image = body.images[i];
@@ -84,6 +104,24 @@ export async function POST(req: NextRequest) {
             title: "Validation Error",
             status: 400,
             detail: `Image at index ${i} must be a valid base64 image (data:image/...)`,
+            instance: req.url,
+          },
+          { status: 400 }
+        );
+      }
+      try {
+        validateImageDataUrlForUpload(image);
+      } catch (error) {
+        const detail =
+          error instanceof ImageUploadPolicyError
+            ? `${error.message} (index ${i})`
+            : `Invalid image at index ${i}`;
+        return NextResponse.json(
+          {
+            type: problemTypes.validationError,
+            title: "Validation Error",
+            status: 400,
+            detail,
             instance: req.url,
           },
           { status: 400 }

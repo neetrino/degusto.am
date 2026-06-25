@@ -9,12 +9,14 @@ import {
   mergePostgresConnectionUrlTuning,
   NEXT_BUILD_DB_PLACEHOLDER,
   normalizeDatabaseEnvUrl,
+  resolveRuntimeDatabaseUrl,
   shouldUseNeonDriverAdapterForRuntime,
 } from "./postgres-connection";
 
 declare global {
   var prisma: PrismaClient | undefined;
   var neonSqlPool: Pool | undefined;
+  var __whiteShopDbBootstrapLogged: boolean | undefined;
 }
 
 const globalForPrisma = globalThis as typeof globalThis & {
@@ -48,7 +50,8 @@ if (!directUrl) {
 }
 
 /** Resolved at module load so Prisma does not rely on `env("DATABASE_URL")` inside a Turbopack-bundled generated client (it can be inlined as empty). */
-const resolvedDatabaseUrl = mergePostgresConnectionUrlTuning(databaseUrl);
+const runtimeDatabaseUrl = resolveRuntimeDatabaseUrl(databaseUrl, directUrl);
+const resolvedDatabaseUrl = mergePostgresConnectionUrlTuning(runtimeDatabaseUrl);
 const resolvedDirectUrl = mergePostgresConnectionUrlTuning(directUrl);
 
 assertNoBuildPlaceholderInRuntime(resolvedDatabaseUrl, resolvedDirectUrl);
@@ -121,9 +124,34 @@ function warnIfDirectUrlUsesNeonPooler(): void {
   }
 }
 
+function warnIfLocalDevUsesNeonPooler(): void {
+  if (process.env.NODE_ENV !== "development" || process.env.VERCEL === "1") return;
+  if (runtimeDatabaseUrl !== databaseUrl) return;
+  try {
+    const parsed = new URL(resolvedDatabaseUrl);
+    const host = parsed.hostname.toLowerCase();
+    if (host.endsWith("neon.tech") && (host.includes("pooler") || host.includes("-pooler"))) {
+      console.warn(
+        "[@white-shop/db] Local dev uses Neon pooler (DATABASE_URL). DIRECT_URL is used automatically when available; set PRISMA_USE_NEON_POOLER=1 to keep pooler."
+      );
+    }
+  } catch {
+    /* ignore malformed URL; Prisma will surface the error */
+  }
+}
+
 function logDatabaseBootstrapOnce(): void {
   if (isNextBuildWithoutDbEnv()) return;
+  if (globalThis.__whiteShopDbBootstrapLogged) return;
+  globalThis.__whiteShopDbBootstrapLogged = true;
+
   warnIfDirectUrlUsesNeonPooler();
+  warnIfLocalDevUsesNeonPooler();
+  if (runtimeDatabaseUrl !== databaseUrl) {
+    console.warn(
+      "[@white-shop/db] Local dev Prisma runtime uses DIRECT_URL (non-pooler) for lower latency."
+    );
+  }
   const meta = buildDatabaseUrlLogFields(resolvedDatabaseUrl, resolvedDirectUrl);
   console.warn("[@white-shop/db] Connection config (no secrets)", JSON.stringify(meta));
 }

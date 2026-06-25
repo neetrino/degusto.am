@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { apiClient } from '../../lib/api-client';
+import { fetchRelatedProductsPage } from '@/lib/products/fetch-related-products-client';
 import type { LanguageCode } from '../../lib/language';
 import { logger } from '@/lib/utils/logger';
 import type { RelatedCardPayload } from '@/lib/services/products-slug/product-related-transform';
@@ -76,7 +77,6 @@ export function useRelatedProducts({
         }
 
         if (productSlug) {
-          const encoded = encodeURIComponent(productSlug.trim());
           if (hasServerSnapshot) {
             const seeded = filterRelatedProducts(initialProducts, currentProductId);
             setProducts(seeded);
@@ -84,16 +84,12 @@ export function useRelatedProducts({
 
             let loaded = initialProducts.length;
             while (loaded < RELATED_PRODUCTS_MAX) {
-              const nextResponse = await apiClient.get<{
-                data: RelatedCardPayload[];
-                meta: { total: number };
-              }>(`/api/v1/products/${encoded}/related`, {
-                params: {
-                  lang: language,
-                  offset: String(loaded),
-                  limit: String(RELATED_PRODUCTS_LIMIT),
-                },
-              });
+              const nextResponse = await fetchRelatedProductsPage(
+                productSlug,
+                language,
+                loaded,
+                RELATED_PRODUCTS_LIMIT
+              );
               const nextBatch = filterRelatedProducts(nextResponse.data, currentProductId);
               if (nextBatch.length === 0) {
                 break;
@@ -118,12 +114,12 @@ export function useRelatedProducts({
             return;
           }
 
-          const firstResponse = await apiClient.get<{
-            data: RelatedCardPayload[];
-            meta: { total: number };
-          }>(`/api/v1/products/${encoded}/related`, {
-            params: { lang: language, offset: '0', limit: String(RELATED_PRODUCTS_LIMIT) },
-          });
+          const firstResponse = await fetchRelatedProductsPage(
+            productSlug,
+            language,
+            0,
+            RELATED_PRODUCTS_LIMIT
+          );
           const firstBatch = filterRelatedProducts(firstResponse.data, currentProductId);
           const total = Math.min(
             firstResponse.meta?.total ?? firstBatch.length,
@@ -134,16 +130,12 @@ export function useRelatedProducts({
 
           let loaded = firstResponse.data.length;
           while (loaded < total) {
-            const nextResponse = await apiClient.get<{
-              data: RelatedCardPayload[];
-              meta: { total: number };
-            }>(`/api/v1/products/${encoded}/related`, {
-              params: {
-                lang: language,
-                offset: String(loaded),
-                limit: String(RELATED_PRODUCTS_LIMIT),
-              },
-            });
+            const nextResponse = await fetchRelatedProductsPage(
+              productSlug,
+              language,
+              loaded,
+              RELATED_PRODUCTS_LIMIT
+            );
             const nextBatch = filterRelatedProducts(nextResponse.data, currentProductId);
             if (nextBatch.length === 0) {
               break;

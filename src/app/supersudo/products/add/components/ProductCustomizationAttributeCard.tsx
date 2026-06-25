@@ -7,11 +7,26 @@ import {
 import { useTranslation } from '../../../../../lib/i18n-client';
 import type { Attribute } from '../types';
 import type { PdpCustomizationFormState, PdpCustomizationValueFormState } from '../utils/pdp-customization-form';
+import {
+  ProductCustomizationExclusionAddRow,
+  ProductCustomizationExclusionDeleteButton,
+} from './ProductCustomizationExclusionActions';
+
+interface ExclusionValueActions {
+  getDraftLabel: (attributeId: string) => string;
+  getValueError: (attributeId: string) => string | null;
+  addingToAttributeId: string | null;
+  deletingValueId: string | null;
+  setDraftLabel: (attributeId: string, label: string) => void;
+  handleAddValue: (attributeId: string) => void;
+  handleDeleteValue: (attributeId: string, valueId: string, valueLabel: string) => void;
+}
 
 interface ProductCustomizationAttributeCardProps {
   attribute: Attribute;
   formState: PdpCustomizationFormState;
   onFormStateChange: (updater: (prev: PdpCustomizationFormState) => PdpCustomizationFormState) => void;
+  exclusionValueActions?: ExclusionValueActions;
 }
 
 function updateValueRow(
@@ -30,10 +45,12 @@ export function ProductCustomizationAttributeCard({
   attribute,
   formState,
   onFormStateChange,
+  exclusionValueActions,
 }: ProductCustomizationAttributeCardProps) {
   const { t } = useTranslation();
   const priceOnly = isAdditionPriceOnlyAttributeKey(attribute.key);
   const selectionOnly = isExclusionSelectionOnlyAttributeKey(attribute.key);
+  const showExclusionActions = selectionOnly && exclusionValueActions;
 
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden h-full">
@@ -131,11 +148,33 @@ export function ProductCustomizationAttributeCard({
                     <span className="text-gray-500">֏</span>
                   </label>
                 ) : null}
+
+                {showExclusionActions ? (
+                  <ProductCustomizationExclusionDeleteButton
+                    deletingValueId={exclusionValueActions.deletingValueId}
+                    valueId={value.id}
+                    valueLabel={value.label}
+                    onDeleteValue={(valueId, valueLabel) =>
+                      exclusionValueActions.handleDeleteValue(attribute.id, valueId, valueLabel)
+                    }
+                  />
+                ) : null}
               </div>
             );
           })
         )}
       </div>
+
+      {showExclusionActions ? (
+        <ProductCustomizationExclusionAddRow
+          attributeId={attribute.id}
+          draftLabel={exclusionValueActions.getDraftLabel(attribute.id)}
+          valueError={exclusionValueActions.getValueError(attribute.id)}
+          isAdding={exclusionValueActions.addingToAttributeId === attribute.id}
+          onDraftLabelChange={(label) => exclusionValueActions.setDraftLabel(attribute.id, label)}
+          onAddValue={() => exclusionValueActions.handleAddValue(attribute.id)}
+        />
+      ) : null}
     </div>
   );
 }

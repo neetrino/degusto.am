@@ -15,9 +15,6 @@ export interface RelatedProductRow {
     compareAtPrice: number | null;
     stock: number;
   }>;
-  reviews: Array<{
-    rating: number;
-  }>;
   _count?: {
     reviews?: number;
   };
@@ -60,13 +57,16 @@ function pickTranslation<T extends { locale: string }>(rows: T[], lang: string):
   return rows.find((t) => t.locale === lang) ?? rows[0] ?? null;
 }
 
-function resolveRelatedProductRating(product: RelatedProductRow): number {
-  const reviewCount = product._count?.reviews ?? product.reviews.length;
+function resolveRelatedProductRating(
+  product: RelatedProductRow,
+  averageRatings: ReadonlyMap<string, number>
+): number {
+  const reviewCount = product._count?.reviews ?? 0;
   if (reviewCount <= 0) {
     return 5;
   }
-  const averageRating = product.reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount;
-  if (!Number.isFinite(averageRating) || averageRating <= 0) {
+  const averageRating = averageRatings.get(product.id);
+  if (averageRating == null || !Number.isFinite(averageRating) || averageRating <= 0) {
     return 5;
   }
   return averageRating;
@@ -77,7 +77,8 @@ function resolveRelatedProductRating(product: RelatedProductRow): number {
  */
 export async function transformRelatedProductRows(
   rows: RelatedProductRow[],
-  lang: string
+  lang: string,
+  averageRatings: ReadonlyMap<string, number> = new Map()
 ): Promise<RelatedCardPayload[]> {
   if (rows.length === 0) return [];
 
@@ -136,7 +137,7 @@ export async function transformRelatedProductRows(
       defaultVariantId: variant?.id ?? null,
       image,
       inStock: (variant?.stock ?? 0) > 0,
-      rating: resolveRelatedProductRating(product),
+      rating: resolveRelatedProductRating(product, averageRatings),
       categories,
     };
   });

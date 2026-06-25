@@ -1,8 +1,6 @@
 import type { AttributeGroupValue } from '../types';
 
 const PDP_BINARY_SLUG_PAIRS: Record<string, { onSlug: string; offSlug: string }> = {
-  spicy: { onSlug: 'spicy', offSlug: 'not-spicy' },
-  greens: { onSlug: 'with-greens', offSlug: 'without-greens' },
   garlic: { onSlug: 'with-garlic', offSlug: 'without-garlic' },
 };
 

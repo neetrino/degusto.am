@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef, ChangeEvent } from 'react';
 import { apiClient } from '../../../lib/api-client';
+import { adminGet } from '@/lib/admin/admin-read-cache';
 import { useTranslation } from '../../../lib/i18n-client';
 import { showToast } from '../../../components/Toast';
 import { logger } from "@/lib/utils/logger";
@@ -62,7 +63,7 @@ export function useAttributes() {
     try {
       setLoading(true);
       logger.debug('📋 [ADMIN] Fetching attributes...');
-      const response = await apiClient.get<{ data: Attribute[] }>('/api/v1/admin/attributes');
+      const response = await adminGet<{ data: Attribute[] }>('/api/v1/admin/attributes');
       logger.debug('📋 [ADMIN] Attributes response:', response.data);
       // Log colors for each value to debug
       if (response.data && Array.isArray(response.data)) {

@@ -41,38 +41,6 @@ export function useCheckoutSchema() {
     message: t('checkout.errors.cityRequired'),
     path: ['shippingCity'],
   }).refine((data) => {
-    if (data.paymentMethod === 'arca' || data.paymentMethod === 'idram') {
-      return data.cardNumber && data.cardNumber.replace(/\s/g, '').length >= 13;
-    }
-    return true;
-  }, {
-    message: t('checkout.errors.cardNumberRequired'),
-    path: ['cardNumber'],
-  }).refine((data) => {
-    if (data.paymentMethod === 'arca' || data.paymentMethod === 'idram') {
-      return data.cardExpiry && /^\d{2}\/\d{2}$/.test(data.cardExpiry);
-    }
-    return true;
-  }, {
-    message: t('checkout.errors.cardExpiryRequired'),
-    path: ['cardExpiry'],
-  }).refine((data) => {
-    if (data.paymentMethod === 'arca' || data.paymentMethod === 'idram') {
-      return data.cardCvv && data.cardCvv.length >= 3;
-    }
-    return true;
-  }, {
-    message: t('checkout.errors.cvvRequired'),
-    path: ['cardCvv'],
-  }).refine((data) => {
-    if (data.paymentMethod === 'arca' || data.paymentMethod === 'idram') {
-      return data.cardHolderName && data.cardHolderName.trim().length > 0;
-    }
-    return true;
-  }, {
-    message: t('checkout.errors.cardHolderNameRequired'),
-    path: ['cardHolderName'],
-  }).refine((data) => {
     if (data.paymentMethod !== 'cash_on_delivery') {
       return true;
     }

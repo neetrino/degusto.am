@@ -1,4 +1,6 @@
 import { db } from "@white-shop/db";
+import { bumpSessionEpoch } from "@/lib/auth/auth-session-store";
+import { MIN_PASSWORD_LENGTH } from "@/lib/auth/password.constants";
 import { problemTypes } from "@/lib/http/problem-details";
 import * as bcrypt from "bcryptjs";
 import { getUserDashboard } from "./users/dashboard.service";
@@ -399,6 +401,7 @@ class UsersService {
         lastName: true,
         locale: true,
         roles: true,
+        mfaEnabled: true,
         addresses: true,
         passwordHash: true,
         deletedAt: true,
@@ -421,6 +424,7 @@ class UsersService {
       lastName: user.lastName,
       locale: user.locale,
       roles: user.roles,
+      mfaEnabled: user.mfaEnabled,
       addresses: user.addresses,
       hasPassword: Boolean(user.passwordHash),
     };
@@ -522,6 +526,15 @@ class UsersService {
       };
     }
 
+    if (newPassword.trim().length < MIN_PASSWORD_LENGTH) {
+      throw {
+        status: 400,
+        type: problemTypes.validationError,
+        title: "Validation Error",
+        detail: `New password must be at least ${MIN_PASSWORD_LENGTH} characters`,
+      };
+    }
+
     if (oldPassword.trim() === newPassword.trim()) {
       throw {
         status: 400,
@@ -592,6 +605,8 @@ class UsersService {
         data: { passwordHash: newPasswordHash },
         select: { id: true },
       });
+
+      await bumpSessionEpoch(userId);
 
       return { success: true };
     } catch (hashError: any) {

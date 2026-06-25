@@ -26,7 +26,7 @@ export type CartDrawerContextValue = {
   cartLoading: boolean;
   isCartResolved: boolean;
   setCartLoading: Dispatch<SetStateAction<boolean>>;
-  reloadCart: (options?: { silent?: boolean }) => Promise<void>;
+  reloadCart: (options?: { silent?: boolean; forceDirect?: boolean }) => Promise<void>;
   scheduleReconcile: () => void;
 };
 

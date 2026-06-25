@@ -57,6 +57,8 @@ export function buildProductUpdateData(
   publishedAt?: Date;
   featured?: boolean;
   attributeIds?: string[];
+  supportsSpicy?: boolean;
+  supportsGreens?: boolean;
 } {
   const updateData: {
     primaryCategoryId?: string | null;
@@ -67,6 +69,8 @@ export function buildProductUpdateData(
     publishedAt?: Date;
     featured?: boolean;
     attributeIds?: string[];
+    supportsSpicy?: boolean;
+    supportsGreens?: boolean;
   } = {};
   
   if (data.primaryCategoryId !== undefined) updateData.primaryCategoryId = data.primaryCategoryId || null;
@@ -103,6 +107,13 @@ export function buildProductUpdateData(
 
   if (data.attributeIds !== undefined) {
     updateData.attributeIds = [...data.attributeIds];
+  }
+
+  if (data.supportsSpicy !== undefined) {
+    updateData.supportsSpicy = data.supportsSpicy;
+  }
+  if (data.supportsGreens !== undefined) {
+    updateData.supportsGreens = data.supportsGreens;
   }
 
   return updateData;

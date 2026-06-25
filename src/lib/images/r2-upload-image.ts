@@ -1,3 +1,4 @@
+import { assertAllowedImageDataUrl } from '@/lib/images/image-upload-policy';
 import { prepareImageBufferForR2Upload } from '@/lib/images/prepare-raster-for-r2';
 
 export function parseBase64ImageDataUrl(dataUrl: string): { mime: string; buffer: Buffer } | null {
@@ -6,8 +7,15 @@ export function parseBase64ImageDataUrl(dataUrl: string): { mime: string; buffer
     return null;
   }
 
+  const mime = match[1].toLowerCase();
+  try {
+    assertAllowedImageDataUrl(`data:${mime};base64,${match[2]}`);
+  } catch {
+    return null;
+  }
+
   return {
-    mime: match[1].toLowerCase(),
+    mime,
     buffer: Buffer.from(match[2], 'base64'),
   };
 }

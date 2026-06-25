@@ -5,8 +5,11 @@ import { Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { BodyBackground } from '../../../components/BodyBackground';
 import { resetCartBadgeState } from '../../../lib/cart/cart-events';
+import { apiClient } from '../../../lib/api-client';
 import { useTranslation } from '../../../lib/i18n-client';
 import { formatOrderNumber } from '@/lib/orders/format-order-number';
+import { clearGuestCart } from '../checkoutUtils';
+import { CHECKOUT_COUPON_CODE_STORAGE_KEY } from '../checkout-coupon-client';
 import { CHECKOUT_OUTLINE_BUTTON, CHECKOUT_PRIMARY_BUTTON, CHECKOUT_TEXT_INK_MUTED, CHECKOUT_TEXT_INK_TERTIARY } from '../checkout-ui';
 
 function CheckoutSuccessContent() {
@@ -15,8 +18,38 @@ function CheckoutSuccessContent() {
   const orderNumber = searchParams.get('order');
 
   useEffect(() => {
-    resetCartBadgeState();
-  }, []);
+    if (!orderNumber) {
+      return;
+    }
+
+    const resolvedOrderNumber = orderNumber;
+    let cancelled = false;
+
+    async function finalizePaidCheckout(): Promise<void> {
+      try {
+        const status = await apiClient.get<{
+          orderNumber: string;
+          paymentStatus: string;
+        }>(`/api/v1/orders/${encodeURIComponent(resolvedOrderNumber)}/payment-status`);
+
+        if (cancelled || status.paymentStatus !== 'paid') {
+          return;
+        }
+
+        resetCartBadgeState();
+        clearGuestCart();
+        localStorage.removeItem(CHECKOUT_COUPON_CODE_STORAGE_KEY);
+      } catch {
+        // Success page stays usable even if status lookup fails.
+      }
+    }
+
+    void finalizePaidCheckout();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [orderNumber]);
 
   return (
     <>
