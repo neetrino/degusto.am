@@ -462,6 +462,7 @@
       "pdpCustomizationPickAttributeFirst": "Նախ ընտրեք մեկ կամ մի քանի ատրիբուտ, ապա կկարգավորեք արժեքները։",
       "pdpCustomizationNoValues": "Այս ատրիբուտի արժեքներ չկան — ավելացրեք ստորև։",
       "pdpCustomizationAddValuePlaceholder": "Նոր բացառում…",
+      "pdpCustomizationAddAdditionPlaceholder": "Նոր ավելացում…",
       "priceRequired": "Մուտքագրեք ապրանքի գինը։",
       "variableVariantsRequired": "Փոփոխական ապրանքի համար պետք են տարբերակներ, կամ ընտրեք «Պարզ» տիպը։",
       "duplicateSku": "Կրկնվող SKU — ուղղեք տարբերակների SKU-ները։",

@@ -38,7 +38,6 @@ import {
   STOREFRONT_ALL_CATEGORY_SLUG,
 } from '@/constants/storefront-all-category-slug';
 import { shouldShowMenuCardStrikethroughPrice } from '@/lib/storefront/menu-card-pricing';
-import { r2Asset } from '@/lib/r2-public-url';
 import { useRoutePrefetch } from './useRoutePrefetch';
 import { useShopCategorySoftNav } from './useShopCategorySoftNav';
 import { ShopDesktopProductsSkeleton } from './ShopDesktopProductsSkeleton';
@@ -53,29 +52,19 @@ import {
   STOREFRONT_DESKTOP_SIDEBAR_WIDTH_CLASS,
 } from '@/constants/storefront-desktop-layout';
 import { RatingStars } from '@/components/RatingStars';
+import {
+  DESKTOP_MENU_CARD_COMPARE_PRICE_TOP_CLASS,
+  DESKTOP_MENU_CARD_HEIGHT_CLASS,
+  DESKTOP_MENU_CARD_IMAGE_FRAME_CLASS,
+  DESKTOP_MENU_CARD_META_TOP_CLASS,
+  DESKTOP_MENU_CARD_PRICE_TOP_CLASS,
+  DESKTOP_MENU_CARD_TITLE_TOP_CLASS,
+  FIGMA_DESKTOP_SHOP_ASSETS,
+  PRICE_FILTER_URL_DEBOUNCE_MS,
+  SEARCH_QUERY_URL_DEBOUNCE_MS,
+} from './figma-desktop-shop-page-constants';
 
-const assets = {
-  productCardAddToCart: r2Asset('product/20260512-g67zkm13ZH.svg'),
-  productCardHot: r2Asset('product/20260512-dWv7-ZfxP1.svg'),
-  productCardRibbon: r2Asset('product/20260512-lmzrYlGD39.svg'),
-  productCardStar: r2Asset('product/20260512-7jf6Wihrew.svg'),
-  switcherLeafRibbon: r2Asset('product/20260512-vCDQ1I3ZtJ.svg'),
-  switcherPepper: r2Asset('product/20260512-dWv7-ZfxP1.svg'),
-};
-
-/** Desktop shop grid card — 3 columns, taller product photo (was 147px @ 227px wide). */
-const DESKTOP_MENU_CARD_HEIGHT_CLASS = 'h-[330px]';
-const DESKTOP_MENU_CARD_META_TOP_CLASS = 'top-[215px]';
-const DESKTOP_MENU_CARD_TITLE_TOP_CLASS = 'top-[239px]';
-const DESKTOP_MENU_CARD_PRICE_TOP_CLASS = 'top-[282px]';
-const DESKTOP_MENU_CARD_COMPARE_PRICE_TOP_CLASS = 'top-[308px]';
-const DESKTOP_MENU_CARD_IMAGE_FRAME_CLASS =
-  'relative mx-auto mt-1 h-[180px] w-[calc(100%-10px)]';
-
-/** Debounce before writing search to the URL (server refetch); avoids one request per key. */
-const SEARCH_QUERY_URL_DEBOUNCE_MS = 250;
-/** Debounce min/max price URL updates (same reason as search). */
-const PRICE_FILTER_URL_DEBOUNCE_MS = 300;
+const assets = FIGMA_DESKTOP_SHOP_ASSETS;
 
 type DesktopMenuPageProps = {
   titleKey: string;
