@@ -3,14 +3,10 @@ import {
   readCartSummaryCache,
   writeCartSummaryCache,
 } from '../cartSummaryCache';
-import { clearCartSnapshotCache } from './cart-snapshot-cache';
 import type { CartAddSnapshot, CartLineConfirmation } from './optimistic-cart-add';
 
 const FORCE_RELOAD_MIN_GAP_MS = 2000;
 let lastCartForceReloadAt = 0;
-
-export const CART_CHECKOUT_COMPLETED_KEY = 'shop_cart_checkout_completed_at';
-const CHECKOUT_CART_STALE_MS = 60 * 60 * 1000;
 
 export interface CartUpdatedDetail {
   itemsCount?: number;
@@ -116,9 +112,9 @@ export function publishCartLineConfirmed(
 }
 
 /** Request a full cart reload (e.g. after API error recovery). */
-export function publishCartForceReload(options?: { immediate?: boolean }): void {
+export function publishCartForceReload(): void {
   const now = Date.now();
-  if (!options?.immediate && now - lastCartForceReloadAt < FORCE_RELOAD_MIN_GAP_MS) {
+  if (now - lastCartForceReloadAt < FORCE_RELOAD_MIN_GAP_MS) {
     return;
   }
   lastCartForceReloadAt = now;
@@ -126,54 +122,6 @@ export function publishCartForceReload(options?: { immediate?: boolean }): void 
   window.dispatchEvent(
     new CustomEvent<CartUpdatedDetail>('cart-updated', {
       detail: { forceReload: true },
-    })
-  );
-}
-
-export function wasCartCheckoutRecentlyCompleted(): boolean {
-  if (typeof window === 'undefined') {
-    return false;
-  }
-  const raw = sessionStorage.getItem(CART_CHECKOUT_COMPLETED_KEY);
-  if (!raw) {
-    return false;
-  }
-  const completedAt = Number(raw);
-  if (!Number.isFinite(completedAt)) {
-    sessionStorage.removeItem(CART_CHECKOUT_COMPLETED_KEY);
-    return false;
-  }
-  const isRecent = Date.now() - completedAt < CHECKOUT_CART_STALE_MS;
-  if (!isRecent) {
-    sessionStorage.removeItem(CART_CHECKOUT_COMPLETED_KEY);
-  }
-  return isRecent;
-}
-
-export function clearRecentCheckoutFlag(): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
-  sessionStorage.removeItem(CART_CHECKOUT_COMPLETED_KEY);
-}
-
-/** Clear all client cart caches and request a server reconcile after checkout. */
-export function finalizeCartAfterCheckout(): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
-  clearCartSummaryCache();
-  clearCartSnapshotCache();
-  sessionStorage.setItem(CART_CHECKOUT_COMPLETED_KEY, String(Date.now()));
-  lastCartForceReloadAt = Date.now();
-  window.dispatchEvent(
-    new CustomEvent<CartUpdatedDetail>('cart-updated', {
-      detail: {
-        itemsCount: 0,
-        total: 0,
-        skipReconcile: true,
-        forceReload: true,
-      },
     })
   );
 }

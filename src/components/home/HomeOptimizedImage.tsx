@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useState, type ComponentProps } from 'react';
+import type { ComponentProps } from 'react';
 
 const IS_DEV_UNOPTIMIZED = process.env.NODE_ENV === 'development';
 
@@ -15,7 +15,6 @@ type HomeOptimizedImageProps = {
   sizes?: string;
   priority?: boolean;
   loading?: 'lazy' | 'eager';
-  fallbackSrc?: string;
   onError?: ComponentProps<typeof Image>['onError'];
 };
 
@@ -36,71 +35,59 @@ export function HomeOptimizedImage({
   sizes,
   priority = false,
   loading,
-  fallbackSrc,
   onError,
 }: HomeOptimizedImageProps) {
-  const [resolvedSrc, setResolvedSrc] = useState(src);
-
-  useEffect(() => {
-    setResolvedSrc(src);
-  }, [src]);
-
-  const handleError: ComponentProps<typeof Image>['onError'] = (event) => {
-    onError?.(event);
-    if (fallbackSrc && resolvedSrc !== fallbackSrc) {
-      setResolvedSrc(fallbackSrc);
-    }
-  };
-
-  if (!resolvedSrc) {
+  if (!src) {
     return null;
   }
 
-  if (isSvgAsset(resolvedSrc)) {
+  if (isSvgAsset(src)) {
     return (
       <img
-        src={resolvedSrc}
+        src={src}
         alt={alt}
         className={className}
         loading={loading}
         decoding="async"
-        onError={handleError}
+        onError={onError}
       />
     );
   }
 
   if (fill) {
     return (
-      <Image
-        src={resolvedSrc}
-        alt={alt}
-        fill
-        className={className}
-        sizes={sizes ?? '100vw'}
-        priority={priority}
-        loading={loading}
-        unoptimized={IS_DEV_UNOPTIMIZED}
-        onError={handleError}
-      />
+      <span className="relative block h-full w-full">
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          className={className}
+          sizes={sizes ?? '100vw'}
+          priority={priority}
+          loading={loading}
+          unoptimized={IS_DEV_UNOPTIMIZED}
+          onError={onError}
+        />
+      </span>
     );
   }
 
   if (typeof width !== 'number' || typeof height !== 'number') {
     return (
       <img
-        src={resolvedSrc}
+        src={src}
         alt={alt}
         className={className}
         loading={loading}
         decoding="async"
-        onError={handleError}
+        onError={onError}
       />
     );
   }
 
   return (
     <Image
-      src={resolvedSrc}
+      src={src}
       alt={alt}
       width={width}
       height={height}
@@ -109,7 +96,7 @@ export function HomeOptimizedImage({
       priority={priority}
       loading={loading}
       unoptimized={IS_DEV_UNOPTIMIZED}
-      onError={handleError}
+      onError={onError}
     />
   );
 }

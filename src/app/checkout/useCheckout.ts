@@ -1,8 +1,9 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { getStoredCurrency, HYDRATION_SAFE_CURRENCY } from '../../lib/currency';
+import { getStoredCurrency } from '../../lib/currency';
+import { getStoredLanguage } from '../../lib/language';
 import { useAuth } from '../../lib/auth/AuthContext';
 import { useTranslation } from '../../lib/i18n-client';
 import { usePaymentMethods } from './utils/payment-methods';
@@ -23,10 +24,10 @@ export function useCheckout() {
   const { isLoggedIn, isLoading } = useAuth();
   const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
-  const [currency, setCurrency] = useState(HYDRATION_SAFE_CURRENCY);
+  const [currency, setCurrency] = useState(getStoredCurrency());
+  const [language, setLanguage] = useState(getStoredLanguage());
   const [showShippingModal, setShowShippingModal] = useState(false);
   const [showCardModal, setShowCardModal] = useState(false);
-  const [showLoginRequiredModal, setShowLoginRequiredModal] = useState(false);
   const [checkoutCouponDiscountUsd, setCheckoutCouponDiscountUsd] = useState(0);
   const [deliveryCities, setDeliveryCities] = useState<string[]>([]);
 
@@ -68,7 +69,7 @@ export function useCheckout() {
     deliveryUnavailable,
     loadingDeliveryPrice,
   } = useDeliveryPrice(shippingMethod, shippingCity);
-  const { cart, loading } = useCart(isLoggedIn);
+  const { cart, loading, fetchCart } = useCart(isLoggedIn);
   const { setCart: setDrawerCart, reloadCart: reloadDrawerCart } = useCartDrawer();
   useUserProfile(isLoggedIn, isLoading, setValue);
   const bagFee = useMemo(() => {
@@ -81,13 +82,12 @@ export function useCheckout() {
     }));
   }, [cart]);
 
-  const orderRedirectPendingRef = useRef(false);
-
   const { submitOrder } = useOrderSubmission({
     cart,
     isLoggedIn,
+    deliveryPrice,
+    bagFee,
     setError,
-    orderRedirectPendingRef,
   });
 
   const { orderSummary } = useOrderSummary({
@@ -100,14 +100,7 @@ export function useCheckout() {
   });
 
   useEffect(() => {
-    if (isLoading || isLoggedIn) {
-      return;
-    }
-    setShowLoginRequiredModal(true);
-  }, [isLoading, isLoggedIn]);
-
-  useEffect(() => {
-    if (loading || isLoading || orderRedirectPendingRef.current) {
+    if (loading || isLoading) {
       return;
     }
     if (!cart || cart.items.length === 0) {
@@ -124,15 +117,21 @@ export function useCheckout() {
       setCurrency(getStoredCurrency());
     };
 
+    const handleLanguageUpdate = () => {
+      setLanguage(getStoredLanguage());
+    };
+
     const handleCurrencyRatesUpdate = () => {
       setCurrency(getStoredCurrency());
     };
 
     window.addEventListener('currency-updated', handleCurrencyUpdate);
+    window.addEventListener('language-updated', handleLanguageUpdate);
     window.addEventListener('currency-rates-updated', handleCurrencyRatesUpdate);
 
     return () => {
       window.removeEventListener('currency-updated', handleCurrencyUpdate);
+      window.removeEventListener('language-updated', handleLanguageUpdate);
       window.removeEventListener('currency-rates-updated', handleCurrencyRatesUpdate);
     };
   }, [isLoggedIn, isLoading]);
@@ -172,11 +171,6 @@ export function useCheckout() {
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!isLoggedIn) {
-      setShowLoginRequiredModal(true);
-      return;
-    }
-
     if (shippingMethod === 'delivery' && deliveryUnavailable) {
       setError(t('checkout.errors.deliveryOnlyYerevan'));
       return;
@@ -191,10 +185,6 @@ export function useCheckout() {
   };
 
   const onSubmit = (data: CheckoutFormData) => {
-    if (!isLoggedIn) {
-      setShowLoginRequiredModal(true);
-      return;
-    }
     submitOrder(data);
   };
 
@@ -211,6 +201,7 @@ export function useCheckout() {
         setDrawerCart,
         async () => {
           await reloadDrawerCart({ silent: true });
+          await fetchCart();
         }
       );
     } catch {
@@ -229,8 +220,6 @@ export function useCheckout() {
     setShowShippingModal,
     showCardModal,
     setShowCardModal,
-    showLoginRequiredModal,
-    setShowLoginRequiredModal,
     deliveryPrice,
     bagFee,
     deliveryUnavailable,

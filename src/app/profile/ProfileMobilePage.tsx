@@ -155,7 +155,8 @@ export function ProfileMobilePage({
             role="dialog"
             aria-modal="true"
             aria-label={activeTabLabel}
-            className="h-[72vh] w-full rounded-t-3xl bg-white shadow-2xl"
+            className="w-full rounded-t-3xl bg-white shadow-2xl"
+            style={{ height: '72vh' }}
             onClick={(event) => event.stopPropagation()}
           >
             <div className="mx-auto mt-2 h-1.5 w-14 rounded-full bg-gray-300" />

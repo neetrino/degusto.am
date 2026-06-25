@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { getStoredCurrency, HYDRATION_SAFE_CURRENCY } from '../lib/currency';
-import { useLanguage } from '../lib/i18n-client';
+import { useState, useEffect, useMemo } from 'react';
+import { getStoredCurrency } from '../lib/currency';
+import { getStoredLanguage, type LanguageCode } from '../lib/language';
 import { t } from '../lib/i18n';
-import type { LanguageCode } from '../lib/language';
 import { useRelatedProducts } from './hooks/useRelatedProducts';
 import { useLazyInView } from './hooks/useLazyInView';
 import { useCarousel } from './hooks/useCarousel';
@@ -30,40 +29,8 @@ import {
 import type { RelatedCardPayload } from '@/lib/services/products-slug/product-related-transform';
 import {
   getRelatedProductsSnapshot,
-  getRelatedProductsPool,
-  seedRelatedProductsPool,
   setRelatedProductsSnapshot,
 } from '@/lib/products/related-products-cache';
-import { useHasMounted } from '@/hooks/useHasMounted';
-import { forEachValidShopMenuProductsCacheEntry } from '@/lib/shop/shop-menu-products-cache';
-import type { MenuCard } from '@/components/home/menu-types';
-
-function mapMenuCardToRelatedCard(card: MenuCard): RelatedCardPayload {
-  const compareAtPrice = card.oldPrice > card.price ? card.oldPrice : null;
-  return {
-    id: card.id,
-    slug: card.slug,
-    title: card.title || card.slug,
-    price: card.price,
-    originalPrice: compareAtPrice,
-    compareAtPrice,
-    discountPercent: card.discountPercent ?? null,
-    defaultVariantId: card.defaultVariantId ?? null,
-    image: card.image ?? null,
-    inStock: card.inStock ?? true,
-    rating: card.rating ?? 5,
-    categories:
-      card.categorySlug || card.category
-        ? [
-            {
-              id: card.categorySlug || card.category || 'uncategorized',
-              slug: card.categorySlug || '',
-              title: card.category || '',
-            },
-          ]
-        : [],
-  };
-}
 
 interface RelatedProductsProps {
   categorySlug?: string;
@@ -85,50 +52,18 @@ export function RelatedProducts({
   initialProducts,
   initialLanguage,
 }: RelatedProductsProps) {
-  const hasMounted = useHasMounted();
   const cachedSnapshot =
     productSlug != null
       ? getRelatedProductsSnapshot(productSlug)
       : null;
-  const pooledProducts = useMemo(
-    () =>
-      getRelatedProductsPool({
-        excludeProductId: currentProductId,
-        excludeSlug: productSlug,
-        limit: 8,
-      }),
-    [currentProductId, productSlug]
-  );
-  const menuCacheProducts = useMemo(() => {
-    const cards: RelatedCardPayload[] = [];
-    forEachValidShopMenuProductsCacheEntry((_, data) => {
-      for (const card of data.cards) {
-        cards.push(mapMenuCardToRelatedCard(card));
-      }
-    });
-    return cards;
-  }, []);
-
-  useEffect(() => {
-    if (menuCacheProducts.length === 0) {
-      return;
-    }
-    seedRelatedProductsPool(menuCacheProducts);
-  }, [menuCacheProducts]);
-
-  const cacheFirstProducts = useMemo(
-    () => (pooledProducts.length > 0 ? pooledProducts : menuCacheProducts),
-    [menuCacheProducts, pooledProducts]
-  );
   const effectiveInitialProducts =
     initialProducts && initialProducts.length > 0
       ? initialProducts
-      : cachedSnapshot?.products ?? cacheFirstProducts;
+      : cachedSnapshot?.products ?? initialProducts;
   const effectiveInitialLanguage =
     initialLanguage ?? cachedSnapshot?.language;
 
-  const language = useLanguage();
-  const [currency, setCurrency] = useState(HYDRATION_SAFE_CURRENCY);
+  const [language, setLanguage] = useState<LanguageCode>(initialLanguage ?? 'en');
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   const initialRevealedCount = useMemo(
     () => Math.min(5, effectiveInitialProducts?.length ?? 0),
@@ -140,7 +75,6 @@ export function RelatedProducts({
     if (!productSlug || !effectiveInitialProducts || effectiveInitialProducts.length === 0) {
       return;
     }
-    seedRelatedProductsPool(effectiveInitialProducts);
     setRelatedProductsSnapshot(productSlug, effectiveInitialLanguage ?? 'en', effectiveInitialProducts);
   }, [effectiveInitialLanguage, effectiveInitialProducts, productSlug]);
 
@@ -156,7 +90,7 @@ export function RelatedProducts({
     currentProductId,
     language,
     productSlug,
-    enabled: hasInitialProducts || inView,
+    enabled: productSlug ? true : (hasInitialProducts || inView),
     initialProducts: effectiveInitialProducts,
     initialLanguage: effectiveInitialLanguage,
   });
@@ -216,25 +150,24 @@ export function RelatedProducts({
     return () => clearTimeout(timer);
   }, [products.length, revealedCount]);
 
+  // Initialize language from localStorage after mount to prevent hydration mismatch
   useEffect(() => {
-    if (!hasMounted) {
-      return;
-    }
-    const handleCurrencyUpdate = () => {
-      setCurrency(getStoredCurrency());
-    };
-    handleCurrencyUpdate();
-    window.addEventListener('currency-updated', handleCurrencyUpdate);
-    window.addEventListener('currency-rates-updated', handleCurrencyUpdate);
-    return () => {
-      window.removeEventListener('currency-updated', handleCurrencyUpdate);
-      window.removeEventListener('currency-rates-updated', handleCurrencyUpdate);
-    };
-  }, [hasMounted]);
+    setLanguage(getStoredLanguage());
 
-  const handleImageError = useCallback((productId: string) => {
-    setImageErrors((prev) => new Set(prev).add(productId));
+    const handleLanguageUpdate = () => {
+      setLanguage(getStoredLanguage());
+    };
+
+    window.addEventListener('language-updated', handleLanguageUpdate);
+    return () => {
+      window.removeEventListener('language-updated', handleLanguageUpdate);
+    };
   }, []);
+
+  const currency = getStoredCurrency();
+  const handleImageError = (productId: string) => {
+    setImageErrors((prev) => new Set(prev).add(productId));
+  };
 
   const showOffscreenPlaceholder =
     !hasInitialProducts && !inView && products.length === 0;

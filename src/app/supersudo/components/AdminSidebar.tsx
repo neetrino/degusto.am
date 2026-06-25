@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import type { AdminMenuItem } from '../../../components/AdminMenuDrawer';
 import { usePathname, useRouter } from 'next/navigation';
 import { AdminMenuDrawer } from '../../../components/AdminMenuDrawer';
 import { useTranslation } from '../../../lib/i18n-client';
-import { LANGUAGES, type LanguageCode, setStoredLanguage } from '../../../lib/language';
 import { getAdminMenuTABS } from '../admin-menu.config';
 import {
   ADMIN_SIDEBAR_ASIDE,
@@ -53,7 +52,7 @@ function getSectionForTab(tabId: string): 'primary' | 'insights' | 'system' {
 }
 
 export function AdminSidebar() {
-  const { t, lang } = useTranslation();
+  const { t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname() ?? '/supersudo';
   const adminTabs = useMemo(() => getAdminMenuTABS(t), [t]);
@@ -70,34 +69,6 @@ export function AdminSidebar() {
       productsNested: adminTabs.filter((tab) => tab.parentGroupId === 'products'),
     };
   }, [adminTabs]);
-
-  const prefetchPaths = useMemo(() => {
-    return Array.from(new Set(adminTabs.map((tab) => tab.path)));
-  }, [adminTabs]);
-
-  useEffect(() => {
-    for (const path of prefetchPaths) {
-      router.prefetch(path);
-    }
-  }, [prefetchPaths, router]);
-
-  function navigateTo(path: string): void {
-    if (pathname === path) {
-      return;
-    }
-    router.push(path);
-  }
-
-  function prefetchPath(path: string): void {
-    router.prefetch(path);
-  }
-
-  function changeAdminLanguage(nextLanguage: LanguageCode): void {
-    if (nextLanguage === lang) {
-      return;
-    }
-    setStoredLanguage(nextLanguage);
-  }
 
   return (
     <>
@@ -138,10 +109,8 @@ export function AdminSidebar() {
                           type="button"
                           title={tab.label}
                           onClick={() => {
-                            navigateTo(tab.path);
+                            router.push(tab.path);
                           }}
-                          onMouseEnter={() => prefetchPath(tab.path)}
-                          onFocus={() => prefetchPath(tab.path)}
                           className={`flex min-w-0 flex-1 items-center ${collapsed ? 'justify-center' : 'gap-3.5'} text-left`}
                         >
                           <span className={`shrink-0 [&>svg]:h-6 [&>svg]:w-6 ${iconClasses}`}>{tab.icon}</span>
@@ -187,10 +156,8 @@ export function AdminSidebar() {
                                   type="button"
                                   title={nestedTab.label}
                                   onClick={() => {
-                                    navigateTo(nestedTab.path);
+                                    router.push(nestedTab.path);
                                   }}
-                                  onMouseEnter={() => prefetchPath(nestedTab.path)}
-                                  onFocus={() => prefetchPath(nestedTab.path)}
                                   className={`relative flex w-full items-center gap-3 rounded-xl py-2.5 pl-8 pr-3 text-left text-sm font-medium transition-all duration-300 ${
                                     nestedActive
                                       ? 'bg-white/12 text-white'
@@ -221,10 +188,8 @@ export function AdminSidebar() {
                     type="button"
                     title={tab.label}
                     onClick={() => {
-                      navigateTo(tab.path);
+                      router.push(tab.path);
                     }}
-                    onMouseEnter={() => prefetchPath(tab.path)}
-                    onFocus={() => prefetchPath(tab.path)}
                     className={rowClasses}
                   >
                     <span className={`shrink-0 [&>svg]:h-6 [&>svg]:w-6 ${iconClasses}`}>{tab.icon}</span>
@@ -236,38 +201,6 @@ export function AdminSidebar() {
             </div>
           ))}
         </nav>
-        <div className={`${collapsed ? 'px-2 pb-4' : 'px-3 pb-4'}`}>
-          <div
-            className={`rounded-2xl border border-white/15 bg-white/[0.04] backdrop-blur-xl ${
-              collapsed ? 'p-2' : 'px-3 py-2.5'
-            }`}
-          >
-            {!collapsed ? (
-              <p className="mb-2 text-[11px] uppercase tracking-[0.16em] text-white/65">Language</p>
-            ) : null}
-            <div className={`grid ${collapsed ? 'grid-cols-1 gap-1.5' : 'grid-cols-3 gap-1.5'}`}>
-              {(Object.keys(LANGUAGES) as LanguageCode[]).map((languageCode) => {
-                const isActive = lang === languageCode;
-                return (
-                  <button
-                    key={languageCode}
-                    type="button"
-                    onClick={() => changeAdminLanguage(languageCode)}
-                    className={`rounded-xl border px-2 py-2 text-center text-xs font-semibold transition-colors ${
-                      isActive
-                        ? 'border-[rgba(120,255,160,0.35)] bg-[linear-gradient(90deg,rgba(35,180,90,0.35),rgba(23,100,60,0.45))] text-white'
-                        : 'border-white/15 bg-black/10 text-white/75 hover:border-white/30 hover:text-white'
-                    }`}
-                    aria-label={`Switch language to ${LANGUAGES[languageCode].name}`}
-                    title={LANGUAGES[languageCode].nativeName}
-                  >
-                    {languageCode.toUpperCase()}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
       </aside>
     </>
   );

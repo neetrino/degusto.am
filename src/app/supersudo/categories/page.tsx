@@ -13,11 +13,11 @@ import { EditCategoryModal } from './components/EditCategoryModal';
 import { DeleteCategoryModal } from './components/DeleteCategoryModal';
 
 export default function CategoriesPage() {
-  const { t, lang } = useTranslation();
+  const { t } = useTranslation();
   const { isLoggedIn, isAdmin, isLoading } = useAuth();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
-  const { categories, loading, fetchCategories, applyCategoryReorder } = useCategories(lang);
+  const { categories, loading, fetchCategories, applyCategoryReorder } = useCategories();
   const {
     showAddModal,
     showEditModal,
@@ -114,6 +114,7 @@ export default function CategoriesPage() {
       <AddCategoryModal
         isOpen={showAddModal}
         formData={formData}
+        categories={categories}
         saving={saving}
         imageUploading={imageUploading}
         onClose={() => {
@@ -130,6 +131,7 @@ export default function CategoriesPage() {
         isOpen={showEditModal}
         editingCategory={editingCategory}
         formData={formData}
+        categories={categories}
         saving={saving}
         imageUploading={imageUploading}
         onClose={() => {

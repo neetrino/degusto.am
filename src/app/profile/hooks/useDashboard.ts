@@ -1,11 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
+import { apiClient } from '../../../lib/api-client';
 import { useTranslation } from '../../../lib/i18n-client';
 import type { DashboardData } from '../types';
-import {
-  fetchDashboardCached,
-  getCachedDashboardSync,
-} from '@/lib/users/profile-data-cache';
-import { logger } from '@/lib/utils/logger';
+import { logger } from "@/lib/utils/logger";
 
 interface UseDashboardProps {
   isLoggedIn: boolean;
@@ -21,38 +18,31 @@ export function useDashboard({
   onError,
 }: UseDashboardProps) {
   const { t } = useTranslation();
-  const initialDashboard = getCachedDashboardSync();
-
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(initialDashboard);
-  const [dashboardLoading, setDashboardLoading] = useState(
-    activeTab === 'dashboard' && initialDashboard === null,
-  );
+  
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [dashboardLoading, setDashboardLoading] = useState(false);
 
   const loadDashboard = useCallback(async () => {
-    const cached = getCachedDashboardSync();
-    if (cached) {
-      setDashboardData(cached);
-      setDashboardLoading(false);
-      return;
-    }
-
     try {
+      logger.debug('📊 [PROFILE] Loading dashboard data...');
       setDashboardLoading(true);
       onError('');
-      const data = await fetchDashboardCached();
+      const data = await apiClient.get<DashboardData>('/api/v1/users/dashboard');
+      logger.debug('✅ [PROFILE] Dashboard data loaded:', data);
       setDashboardData(data);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : String(err);
-      logger.error('Error loading dashboard', { error: err });
+      console.error('❌ [PROFILE] Error loading dashboard:', err);
       onError(errorMessage || t('profile.dashboard.failedToLoad'));
     } finally {
       setDashboardLoading(false);
     }
-  }, [onError, t]);
+  }, [t, onError]);
 
+  // Load dashboard when dashboard tab is active
   useEffect(() => {
     if (isLoggedIn && !authLoading && activeTab === 'dashboard') {
-      void loadDashboard();
+      loadDashboard();
     }
   }, [isLoggedIn, authLoading, activeTab, loadDashboard]);
 
@@ -61,3 +51,7 @@ export function useDashboard({
     dashboardLoading,
   };
 }
+
+
+
+

@@ -5,10 +5,7 @@ import { apiClient } from '../../lib/api-client';
 import type { LanguageCode } from '../../lib/language';
 import { logger } from '@/lib/utils/logger';
 import type { RelatedCardPayload } from '@/lib/services/products-slug/product-related-transform';
-import {
-  seedRelatedProductsPool,
-  setRelatedProductsSnapshot,
-} from '@/lib/products/related-products-cache';
+import { setRelatedProductsSnapshot } from '@/lib/products/related-products-cache';
 
 interface UseRelatedProductsProps {
   categorySlug?: string;
@@ -24,6 +21,7 @@ interface UseRelatedProductsProps {
 }
 
 const RELATED_PRODUCTS_LIMIT = 5;
+const RELATED_PRODUCTS_MAX = 10;
 
 function mergeUniqueRelatedProducts(items: RelatedCardPayload[]): RelatedCardPayload[] {
   const byId = new Map<string, RelatedCardPayload>();
@@ -54,57 +52,121 @@ export function useRelatedProducts({
   productSlug,
   enabled = true,
   initialProducts,
+  initialLanguage,
 }: UseRelatedProductsProps) {
-  const hasInitialProducts = (initialProducts?.length ?? 0) > 0;
+  const hasServerSnapshot =
+    initialProducts != null &&
+    initialLanguage != null &&
+    language === initialLanguage;
 
   const [products, setProducts] = useState<RelatedCardPayload[]>(() =>
-    hasInitialProducts ? filterRelatedProducts(initialProducts ?? [], currentProductId) : []
+    hasServerSnapshot ? filterRelatedProducts(initialProducts, currentProductId) : []
   );
-  const [loading, setLoading] = useState(!hasInitialProducts);
-
-  const loadRelatedPage = async (
-    encodedSlug: string,
-    lang: LanguageCode,
-    offset: number
-  ): Promise<{ data: RelatedCardPayload[]; meta: { total: number } }> => {
-    return apiClient.get<{
-      data: RelatedCardPayload[];
-      meta: { total: number };
-    }>(`/api/v1/products/${encodedSlug}/related`, {
-      params: {
-        lang,
-        offset: String(offset),
-        limit: String(RELATED_PRODUCTS_LIMIT),
-      },
-    });
-  };
+  const [loading, setLoading] = useState(!hasServerSnapshot);
 
   useEffect(() => {
     if (!enabled) {
       return;
     }
 
-    let cancelled = false;
-
     const fetchRelatedProducts = async () => {
-      const startedAt = Date.now();
-      let requestCount = 0;
       try {
-        if (!hasInitialProducts) {
+        if (!hasServerSnapshot) {
           setLoading(true);
         }
 
         if (productSlug) {
           const encoded = encodeURIComponent(productSlug.trim());
-          const firstResponse = await loadRelatedPage(encoded, language, 0);
-          if (cancelled) {
+          if (hasServerSnapshot) {
+            const seeded = filterRelatedProducts(initialProducts, currentProductId);
+            setProducts(seeded);
+            setLoading(false);
+
+            let loaded = initialProducts.length;
+            while (loaded < RELATED_PRODUCTS_MAX) {
+              const nextResponse = await apiClient.get<{
+                data: RelatedCardPayload[];
+                meta: { total: number };
+              }>(`/api/v1/products/${encoded}/related`, {
+                params: {
+                  lang: language,
+                  offset: String(loaded),
+                  limit: String(RELATED_PRODUCTS_LIMIT),
+                },
+              });
+              const nextBatch = filterRelatedProducts(nextResponse.data, currentProductId);
+              if (nextBatch.length === 0) {
+                break;
+              }
+              setRelatedProductsSnapshot(
+                productSlug,
+                language,
+                mergeUniqueRelatedProducts([...initialProducts, ...nextResponse.data]).slice(
+                  0,
+                  RELATED_PRODUCTS_MAX
+                )
+              );
+              setProducts((prev) =>
+                mergeUniqueRelatedProducts([...prev, ...nextBatch]).slice(0, RELATED_PRODUCTS_MAX)
+              );
+              loaded += nextResponse.data.length;
+              const total = Math.min(nextResponse.meta?.total ?? loaded, RELATED_PRODUCTS_MAX);
+              if (loaded >= total) {
+                break;
+              }
+            }
             return;
           }
-          requestCount += 1;
+
+          const firstResponse = await apiClient.get<{
+            data: RelatedCardPayload[];
+            meta: { total: number };
+          }>(`/api/v1/products/${encoded}/related`, {
+            params: { lang: language, offset: '0', limit: String(RELATED_PRODUCTS_LIMIT) },
+          });
           const firstBatch = filterRelatedProducts(firstResponse.data, currentProductId);
+          const total = Math.min(
+            firstResponse.meta?.total ?? firstBatch.length,
+            RELATED_PRODUCTS_MAX
+          );
           setProducts(firstBatch);
-          seedRelatedProductsPool(firstBatch);
           setRelatedProductsSnapshot(productSlug, language, firstResponse.data);
+
+          let loaded = firstResponse.data.length;
+          while (loaded < total) {
+            const nextResponse = await apiClient.get<{
+              data: RelatedCardPayload[];
+              meta: { total: number };
+            }>(`/api/v1/products/${encoded}/related`, {
+              params: {
+                lang: language,
+                offset: String(loaded),
+                limit: String(RELATED_PRODUCTS_LIMIT),
+              },
+            });
+            const nextBatch = filterRelatedProducts(nextResponse.data, currentProductId);
+            if (nextBatch.length === 0) {
+              break;
+            }
+            setRelatedProductsSnapshot(
+              productSlug,
+              language,
+              mergeUniqueRelatedProducts([...firstResponse.data, ...nextResponse.data]).slice(
+                0,
+                RELATED_PRODUCTS_MAX
+              )
+            );
+            setProducts((prev) =>
+              mergeUniqueRelatedProducts([...prev, ...nextBatch]).slice(0, RELATED_PRODUCTS_MAX)
+            );
+            loaded += nextResponse.data.length;
+          }
+          return;
+        }
+
+        if (hasServerSnapshot) {
+          setProducts(filterRelatedProducts(initialProducts, currentProductId));
+          setLoading(false);
           return;
         }
 
@@ -129,38 +191,24 @@ export function useRelatedProducts({
           params,
         });
 
-        if (cancelled) {
-          return;
-        }
-        const nextProducts = filterRelatedProducts(response.data, currentProductId);
-        setProducts(nextProducts);
-        seedRelatedProductsPool(nextProducts);
+        setProducts(filterRelatedProducts(response.data, currentProductId));
       } catch (error: unknown) {
         logger.warn('[RelatedProducts] Error fetching related products', {
           error: error instanceof Error ? error.message : String(error),
         });
+        setProducts([]);
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-        logger.debug('[RelatedProducts] Fetch complete', {
-          productSlug,
-          requestCount,
-          durationMs: Date.now() - startedAt,
-          hasInitialProducts,
-        });
+        setLoading(false);
       }
     };
 
     void fetchRelatedProducts();
-    return () => {
-      cancelled = true;
-    };
   }, [
     categorySlug,
     currentProductId,
     enabled,
-    hasInitialProducts,
+    hasServerSnapshot,
+    initialProducts,
     language,
     productSlug,
   ]);

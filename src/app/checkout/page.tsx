@@ -1,27 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import { Card } from '@shop/ui';
 import { BodyBackground } from '../../components/BodyBackground';
 import { useTranslation } from '../../lib/i18n-client';
 import { CHECKOUT_CARD_FRAME, CHECKOUT_PAGE_GRID_CLASS, CHECKOUT_PAGE_SHELL_CLASS, CHECKOUT_PAGE_TITLE, CHECKOUT_PRIMARY_BUTTON, CHECKOUT_SUMMARY_COLUMN_CLASS, CHECKOUT_TEXT_INK_MUTED } from './checkout-ui';
 import { CheckoutForm } from './CheckoutForm';
+import { CheckoutModals } from './CheckoutModals';
 import { OrderSummary } from './OrderSummary';
 import { useCheckout } from './useCheckout';
-
-const CheckoutModals = dynamic(
-  () => import('./CheckoutModals').then((module) => module.CheckoutModals),
-  { ssr: false }
-);
-
-const CheckoutLoginRequiredModal = dynamic(
-  () =>
-    import('./components/CheckoutLoginRequiredModal').then(
-      (module) => module.CheckoutLoginRequiredModal
-    ),
-  { ssr: false }
-);
 
 export default function CheckoutPage() {
   const { t } = useTranslation();
@@ -36,8 +23,6 @@ export default function CheckoutPage() {
     setShowShippingModal,
     showCardModal,
     setShowCardModal,
-    showLoginRequiredModal,
-    setShowLoginRequiredModal,
     deliveryPrice,
     bagFee,
     deliveryUnavailable,
@@ -156,39 +141,30 @@ export default function CheckoutPage() {
       </form>
       </div>
 
-      {showShippingModal || showCardModal ? (
-        <CheckoutModals
-          showShippingModal={showShippingModal}
-          setShowShippingModal={setShowShippingModal}
-          showCardModal={showCardModal}
-          setShowCardModal={setShowCardModal}
-          register={register}
-          setValue={setValue}
-          handleSubmit={handleSubmit}
-          errors={errors}
-          isSubmitting={isSubmitting}
-          shippingMethod={shippingMethod}
-          paymentMethod={paymentMethod}
-          shippingCity={shippingCity}
-          deliveryCities={deliveryCities}
-          cart={cart}
-          orderSummary={orderSummary}
-          currency={currency}
-          loadingDeliveryPrice={loadingDeliveryPrice}
-          deliveryPrice={deliveryPrice}
-          bagFee={bagFee}
-          deliveryUnavailable={deliveryUnavailable}
-          isLoggedIn={isLoggedIn}
-          onSubmit={onSubmit}
-        />
-      ) : null}
-
-      {showLoginRequiredModal ? (
-        <CheckoutLoginRequiredModal
-          isOpen={showLoginRequiredModal}
-          onClose={() => setShowLoginRequiredModal(false)}
-        />
-      ) : null}
+      <CheckoutModals
+        showShippingModal={showShippingModal}
+        setShowShippingModal={setShowShippingModal}
+        showCardModal={showCardModal}
+        setShowCardModal={setShowCardModal}
+        register={register}
+        setValue={setValue}
+        handleSubmit={handleSubmit}
+        errors={errors}
+        isSubmitting={isSubmitting}
+        shippingMethod={shippingMethod}
+        paymentMethod={paymentMethod}
+        shippingCity={shippingCity}
+        deliveryCities={deliveryCities}
+        cart={cart}
+        orderSummary={orderSummary}
+        currency={currency}
+        loadingDeliveryPrice={loadingDeliveryPrice}
+        deliveryPrice={deliveryPrice}
+        bagFee={bagFee}
+        deliveryUnavailable={deliveryUnavailable}
+        isLoggedIn={isLoggedIn}
+        onSubmit={onSubmit}
+      />
     </>
   );
 }

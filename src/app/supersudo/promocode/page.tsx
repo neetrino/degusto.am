@@ -1,15 +1,15 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Card } from '@shop/ui';
 import { useAuth } from '../../../lib/auth/AuthContext';
 import { useTranslation } from '../../../lib/i18n-client';
 import { apiClient } from '../../../lib/api-client';
 import { logger } from '../../../lib/utils/logger';
+import { fetchWithInflightKey } from '@/lib/admin/inflight-get-cache';
 import { useAdminDialogs } from '../context/AdminDialogsContext';
 import { PromocodeCodeWithCopy } from './PromocodeCodeWithCopy';
-import { formatHydrationSafeDateTime } from '@/lib/format-date';
 
 interface CouponItem {
   code: string;
@@ -43,10 +43,12 @@ export default function PromocodePage() {
     [coupons]
   );
 
-  const fetchCoupons = async () => {
+  const fetchCoupons = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get<CouponsResponse>('/api/v1/admin/coupons');
+      const response = await fetchWithInflightKey('admin-coupons-list', () =>
+        apiClient.get<CouponsResponse>('/api/v1/admin/coupons'),
+      );
       setCoupons(Array.isArray(response.data) ? response.data : []);
     } catch (error: unknown) {
       logger.error('Failed to fetch coupons', { error });
@@ -55,7 +57,7 @@ export default function PromocodePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     if (!isLoading && (!isLoggedIn || !isAdmin)) {
@@ -65,9 +67,9 @@ export default function PromocodePage() {
 
   useEffect(() => {
     if (!isLoading && isLoggedIn && isAdmin) {
-      fetchCoupons();
+      void fetchCoupons();
     }
-  }, [isLoading, isLoggedIn, isAdmin]);
+  }, [isLoading, isLoggedIn, isAdmin, fetchCoupons]);
 
   const handleDelete = async (code: string) => {
     const isConfirmed = await confirmDialog({
@@ -179,8 +181,8 @@ export default function PromocodePage() {
                         : `${coupon.maxUsesPerUser} ${t('admin.promocode.timesSuffix')}`}
                     </td>
                     <td className="px-3 py-3 text-gray-600">
-                      {coupon.startsAt ? formatHydrationSafeDateTime(coupon.startsAt) : '-'} -{' '}
-                      {coupon.expiresAt ? formatHydrationSafeDateTime(coupon.expiresAt) : '-'}
+                      {coupon.startsAt ? new Date(coupon.startsAt).toLocaleString() : '-'} -{' '}
+                      {coupon.expiresAt ? new Date(coupon.expiresAt).toLocaleString() : '-'}
                     </td>
                     <td className="px-3 py-3">
                       <span

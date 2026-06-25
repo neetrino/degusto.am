@@ -6,7 +6,7 @@
   "scripts": {
     "postinstall": "pnpm run db:generate",
     "dev": "next dev",
-    "dev:webpack": "next dev --no-turbo",
+    "dev:webpack": "next dev --webpack",
     "dev:clean": "node -e \"require('fs').rmSync('.next', {recursive: true, force: true})\" && next dev",
     "prebuild": "pnpm run db:generate",
     "prebuild:migrate": "node src/scripts/run-migrations.js",
@@ -72,6 +72,7 @@
     "@types/node": "^20.10.0",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
+    "@vitest/coverage-v8": "^4.0.18",
     "autoprefixer": "^10.4.0",
     "eslint": "^9.0.0",
     "eslint-config-next": "^16.0.7",

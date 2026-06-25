@@ -3,7 +3,6 @@ export interface Category {
   slug: string;
   title: string;
   parentId: string | null;
-  productsCount?: number;
   position?: number;
   requiresSizes?: boolean;
   imageUrl?: string | null;
@@ -16,16 +15,12 @@ export interface CategoryWithLevel extends Category {
 }
 
 export interface CategoryFormData {
-  titleHy: string;
-  titleEn: string;
-  titleRu: string;
+  title: string;
+  parentId: string;
   requiresSizes: boolean;
+  subcategoryIds: string[];
   imageUrl: string;
   published: 'published' | 'draft';
-}
-
-export interface CategoryDetails extends Category {
-  translations?: Partial<Record<'hy' | 'en' | 'ru', string>>;
 }
 
 

@@ -43,16 +43,8 @@ export function MobileCategoryCarousel({ categories, frameImageSrc }: MobileCate
       return;
     }
 
-    const maxScrollLeft = Math.max(0, node.scrollWidth - viewportWidth);
-    const pageCount = Math.max(1, Math.ceil(maxScrollLeft / viewportWidth) + 1);
-    const activePage =
-      pageCount <= 1 || maxScrollLeft <= 0
-        ? 0
-        : clamp(
-            Math.round((node.scrollLeft / maxScrollLeft) * (pageCount - 1)),
-            0,
-            pageCount - 1,
-          );
+    const pageCount = Math.max(1, Math.ceil(node.scrollWidth / viewportWidth));
+    const activePage = clamp(Math.round(node.scrollLeft / viewportWidth), 0, pageCount - 1);
     setMetrics({ pageCount, activePage });
   }, []);
 

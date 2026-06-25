@@ -1,11 +1,10 @@
 import {
   readJsonCache,
   STOREFRONT_CACHE_KEYS,
+  STOREFRONT_CACHE_TTL,
   writeJsonCache,
 } from "@/lib/cache/storefront-cache";
 import { resolveProductIdBySlug } from "@/lib/services/products-slug/product-query-builder";
-
-const SLUG_ID_CACHE_TTL_SECONDS = 3600;
 
 /**
  * Redis-backed slug → product id (avoids extra Neon round trip on repeat PDP loads).
@@ -19,7 +18,7 @@ export async function resolveProductIdBySlugCached(slug: string): Promise<string
 
   const productId = await resolveProductIdBySlug(slug);
   if (productId) {
-    void writeJsonCache(cacheKey, SLUG_ID_CACHE_TTL_SECONDS, { id: productId });
+    void writeJsonCache(cacheKey, STOREFRONT_CACHE_TTL.productDetails, { id: productId });
   }
   return productId;
 }

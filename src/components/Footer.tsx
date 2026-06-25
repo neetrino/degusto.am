@@ -6,7 +6,6 @@ import { useTranslation } from '../lib/i18n-client';
 import { SITE_CONTACT_EMAIL, SITE_CONTACT_PHONES } from '../lib/site-contact';
 import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
 import { bigFatBoiiFont } from '@/fonts/big-fat-boii-font';
-import { montserratArmFont } from '@/fonts/montserrat-arm-font';
 import { STOREFRONT_DESKTOP_FOOTER_GRID_CLASS, STOREFRONT_DESKTOP_SECTION_CLASS } from '@/constants/storefront-desktop-layout';
 
 const assets = {
@@ -56,24 +55,23 @@ const footerOrangeHeadingFontProps: { className: string; style: CSSProperties } 
 
 interface FooterProps {
   outerBackgroundClassName?: string;
+  loadHeavyVisual?: boolean;
 }
 
 export function Footer({
   outerBackgroundClassName = 'bg-white',
+  loadHeavyVisual = true,
 }: FooterProps) {
-  const { t, lang } = useTranslation();
-  const footerHeadingClassName = lang === 'hy' ? montserratArmFont.className : footerOrangeHeadingFontProps.className;
-  const footerHeadingStyle = lang === 'hy' ? undefined : footerOrangeHeadingFontProps.style;
-  const footerBodyFontClassName = lang === 'hy' ? montserratArmFont.className : '';
+  const { t } = useTranslation();
 
   return (
     <footer className={outerBackgroundClassName}>
-      <div className={`lg:hidden rounded-t-[28px] bg-[#121212] px-4 pb-8 pt-8 text-white ${footerBodyFontClassName}`}>
+      <div className="lg:hidden rounded-t-[28px] bg-[#121212] px-4 pb-8 pt-8 text-white">
         <div className="space-y-6">
           <div>
             <h3
-              className={`mb-3 text-lg font-black text-[#ff7f20] ${footerHeadingClassName}`}
-              style={footerHeadingStyle}
+              className={`mb-3 text-lg font-black text-[#ff7f20] ${footerOrangeHeadingFontProps.className}`}
+              style={footerOrangeHeadingFontProps.style}
             >
               {t('common.footer.contactInfo')}
             </h3>
@@ -123,21 +121,23 @@ export function Footer({
         </div>
       </div>
 
-      <div className={`hidden overflow-hidden rounded-t-[40px] bg-[#121212] px-4 pb-10 pt-14 text-white md:px-8 lg:block lg:px-0 lg:pb-0 lg:pt-0 ${footerBodyFontClassName}`}>
+      <div className="hidden overflow-hidden rounded-t-[40px] bg-[#121212] px-4 pb-10 pt-14 text-white md:px-8 lg:block lg:px-0 lg:pb-0 lg:pt-0">
         <div className={`relative ${STOREFRONT_DESKTOP_SECTION_CLASS} lg:min-h-[576px]`}>
-          <img
-            src={assets.footerPastaVisual}
-            alt="Degusto footer visual"
-            className="pointer-events-none absolute -right-[10px] top-[-115px] hidden h-[min(800px,90vh)] w-[min(512px,42vw)] max-w-none -rotate-90 -scale-x-100 object-contain [aspect-ratio:90/173] lg:block xl:h-[800px] xl:w-[512px]"
-            loading="lazy"
-            decoding="async"
-          />
+          {loadHeavyVisual ? (
+            <img
+              src={assets.footerPastaVisual}
+              alt="Degusto footer visual"
+              className="pointer-events-none absolute -right-[10px] top-[-115px] hidden h-[min(800px,90vh)] w-[min(512px,42vw)] max-w-none -rotate-90 -scale-x-100 object-contain [aspect-ratio:90/173] lg:block xl:h-[800px] xl:w-[512px]"
+              loading="lazy"
+              decoding="async"
+            />
+          ) : null}
 
           <div className={`relative z-10 ${STOREFRONT_DESKTOP_FOOTER_GRID_CLASS} lg:pt-[73px]`}>
             <div>
               <h3
-                className={`mb-4 flex items-center gap-[6px] text-[20px] font-black leading-6 text-[#ff7f20] ${footerHeadingClassName}`}
-                style={footerHeadingStyle}
+                className={`mb-4 flex items-center gap-[6px] text-[20px] font-black leading-6 text-[#ff7f20] ${footerOrangeHeadingFontProps.className}`}
+                style={footerOrangeHeadingFontProps.style}
               >
                 <img src={assets.footerAddressPinIcon} alt="" className="h-6 w-[18px] object-contain" />
                 <span>{t('profile.tabs.addresses')}</span>
@@ -157,8 +157,8 @@ export function Footer({
 
             <div>
               <h3
-                className={`mb-4 text-[20px] font-black uppercase tracking-[0.55px] text-[#ff7f20] ${footerHeadingClassName}`}
-                style={footerHeadingStyle}
+                className={`mb-4 text-[20px] font-black uppercase tracking-[0.55px] text-[#ff7f20] ${footerOrangeHeadingFontProps.className}`}
+                style={footerOrangeHeadingFontProps.style}
               >
                 {t('common.footer.legal')}
               </h3>
@@ -177,8 +177,8 @@ export function Footer({
 
             <div>
               <h3
-                className={`mb-2 text-[20px] font-black leading-6 text-[#ff7f20] ${footerHeadingClassName}`}
-                style={footerHeadingStyle}
+                className={`mb-2 text-[20px] font-black leading-6 text-[#ff7f20] ${footerOrangeHeadingFontProps.className}`}
+                style={footerOrangeHeadingFontProps.style}
               >
                 {t('common.footer.quickLinks')}
               </h3>
@@ -200,8 +200,8 @@ export function Footer({
 
           <div className="relative z-10 mt-[18px] flex w-full max-w-full flex-col gap-3 lg:mt-8 lg:max-w-[472px]">
             <h3
-              className={`text-[20px] font-black leading-6 text-[#ff7f20] ${footerHeadingClassName}`}
-              style={footerHeadingStyle}
+              className={`text-[20px] font-black leading-6 text-[#ff7f20] ${footerOrangeHeadingFontProps.className}`}
+              style={footerOrangeHeadingFontProps.style}
             >
               {t('common.footer.contactInfo')}
             </h3>

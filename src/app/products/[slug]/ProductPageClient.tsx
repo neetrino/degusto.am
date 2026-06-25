@@ -18,6 +18,7 @@ import { ProductInfoAndActions } from './ProductInfoAndActions';
 import { ProductInfoColumnSkeleton } from './ProductInfoColumnSkeleton';
 import { ProductPageBelowFold } from './ProductPageBelowFold';
 import { ProductReviewsLoading } from '@/components/ProductReviews/ProductReviewsLoading';
+import { RelatedProducts } from '@/components/RelatedProducts';
 import { ProductPageShell } from './ProductPageShell';
 import { ProductPrimaryMeta } from './ProductPrimaryMeta';
 import { useProductPage } from './useProductPage';
@@ -27,10 +28,6 @@ import { publishOptimisticCartAdd, publishCartLineConfirmed, publishCartForceRel
 import { rememberCartLineId } from '@/lib/cart/cart-line-id-cache';
 import { clearCartLineRemoved } from '@/lib/cart/pending-cart-removals';
 import { logger } from '@/lib/utils/logger';
-import {
-  findCartLineByContext,
-  normalizeCartApiResponse,
-} from '@/lib/cart/cart-client-normalization';
 import {
   normalizeProductCustomizations,
 } from '../../../lib/cart/customizations';
@@ -56,8 +53,6 @@ import {
   getProductSummarySnapshot,
   setProductSummarySnapshot,
 } from '@/lib/products/product-summary-cache';
-import { getProductDetailsSnapshot, setProductDetailsSnapshot } from '@/lib/products/product-details-cache';
-import { useHasMounted } from '@/hooks/useHasMounted';
 import {
   PDP_CONTENT_SHELL_CLASS,
   PDP_HERO_FRAME_CLASS,
@@ -164,17 +159,6 @@ function ProductPagePendingScaffold({ relatedSection }: { relatedSection: ReactN
   );
 }
 
-function ProductRelatedSectionPlaceholder() {
-  return (
-    <div className={PDP_RELATED_SECTION_GAP_CLASS}>
-      <div
-        className="h-[320px] w-full animate-pulse rounded-[24px] bg-neutral-100"
-        aria-hidden
-      />
-    </div>
-  );
-}
-
 interface UseProductAddToCartHandlerParams {
   canAddToCart: boolean;
   isAddingToCart: boolean;
@@ -252,28 +236,21 @@ function useProductAddToCartHandler({
     });
 
     try {
-      const response = await apiClient.post<unknown>('/api/v1/cart/items', {
+      const response = await apiClient.post<{
+        item: { id: string; quantity: number; price: number };
+        cartSummary?: { itemsCount: number; total: number };
+      }>('/api/v1/cart/items', {
         productId: product.id,
         variantId: currentVariant.id,
         quantity,
         customizations,
       });
-      const cart = normalizeCartApiResponse(response);
-      const line = findCartLineByContext(cart, {
-        productId: product.id,
-        variantId: currentVariant.id,
-        customizations,
-      });
-      if (!line) {
-        publishCartForceReload();
-        return;
-      }
 
       rememberCartLineId(
         product.id,
         currentVariant.id,
-        line.id,
-        line.quantity,
+        response.item.id,
+        response.item.quantity,
         customizations
       );
       clearCartLineRemoved({
@@ -282,9 +259,9 @@ function useProductAddToCartHandler({
         customizations,
       });
 
-      const summary = {
-        itemsCount: cart.itemsCount,
-        total: cart.totals.total,
+      const summary = response.cartSummary ?? {
+        itemsCount: 0,
+        total: 0,
       };
 
       publishCartLineConfirmed(
@@ -293,9 +270,9 @@ function useProductAddToCartHandler({
           previousVariantId: optimisticVariantId,
           variantId: currentVariant.id,
           customizations,
-          serverItemId: line.id,
-          quantity: line.quantity,
-          price: line.price,
+          serverItemId: response.item.id,
+          quantity: response.item.quantity,
+          price: response.item.price,
         },
         summary
       );
@@ -349,50 +326,37 @@ export function ProductPageClient({
   streamDetails = false,
   children,
 }: ProductPageClientProps) {
-  const hasMounted = useHasMounted();
-  const initialCachedProduct =
-    !initialProduct && !initialNotFound ? getProductDetailsSnapshot(slug) : null;
   const { ref: reviewsSectionRef, inView: reviewsInView } = useLazyInView('320px');
 
-  const [fullProduct, setFullProduct] = useState<Product | null>(initialProduct ?? initialCachedProduct);
+  const [fullProduct, setFullProduct] = useState<Product | null>(initialProduct);
   const [reviewSummary, setReviewSummary] =
     useState<ProductReviewSummary>(initialReviewSummary);
   const [notFound, setNotFound] = useState(initialNotFound);
-  const [detailsHydrationFailed, setDetailsHydrationFailed] = useState(false);
 
-  const [cachedSummaryProduct, setCachedSummaryProduct] = useState<Product | null>(null);
-
-  useEffect(() => {
-    if (!hasMounted) {
-      return;
-    }
+  const cachedSummaryProduct = useMemo(() => {
     if (initialProduct || initialNotFound) {
-      setCachedSummaryProduct(null);
-      return;
+      return null;
     }
     const summary = getProductSummarySnapshot(slug);
     if (!summary) {
-      setCachedSummaryProduct(null);
-      return;
+      return null;
     }
-    setCachedSummaryProduct(
-      mergeVisualIntoProduct(null, {
-        id: summary.id,
-        slug: summary.slug,
-        title: summary.title,
-        category: summary.category,
-        brand: summary.brand,
-        price: summary.price,
-        oldPrice: summary.oldPrice,
-        discountPercent: summary.discount,
-        currency: summary.currency,
-        inStock: summary.inStock,
-        defaultVariantId: summary.defaultVariantId,
-        labels: summary.labels,
-        galleryImages: summary.image ? [summary.image] : [],
-      })
-    );
-  }, [hasMounted, initialProduct, initialNotFound, slug]);
+    return mergeVisualIntoProduct(null, {
+      id: summary.id,
+      slug: summary.slug,
+      title: summary.title,
+      category: summary.category,
+      brand: summary.brand,
+      price: summary.price,
+      oldPrice: summary.oldPrice,
+      discountPercent: summary.discount,
+      currency: summary.currency,
+      inStock: summary.inStock,
+      defaultVariantId: summary.defaultVariantId,
+      labels: summary.labels,
+      galleryImages: summary.image ? [summary.image] : [],
+    });
+  }, [initialProduct, initialNotFound, slug]);
 
   const partialProduct = useMemo(() => {
     if (!initialVisual) {
@@ -453,13 +417,6 @@ export function ProductPageClient({
   );
 
   useEffect(() => {
-    if (!fullProduct) {
-      return;
-    }
-    setProductDetailsSnapshot(fullProduct);
-  }, [fullProduct]);
-
-  useEffect(() => {
     if (!product) {
       return;
     }
@@ -504,18 +461,12 @@ export function ProductPageClient({
     setFullProduct(next);
     setReviewSummary(summary);
     setNotFound(false);
-    setDetailsHydrationFailed(false);
     productRef.current = next;
   }, []);
 
   const markNotFound = useCallback(() => {
     setFullProduct(null);
     setNotFound(true);
-    setDetailsHydrationFailed(false);
-  }, []);
-
-  const markHydrationError = useCallback(() => {
-    setDetailsHydrationFailed(true);
   }, []);
 
   const applyReviewSummary = useCallback((summary: ProductReviewSummary) => {
@@ -532,11 +483,10 @@ export function ProductPageClient({
     slug,
     serverLocale,
     productRef,
-    skipMountFetch: Boolean(initialProduct) || (streamDetails && !detailsHydrationFailed),
+    skipMountFetch: Boolean(initialProduct) || streamDetails,
     onLoaded: (next) => {
       setFullProduct(next);
       productRef.current = next;
-      setDetailsHydrationFailed(false);
     },
     onNotFound: markNotFound,
   });
@@ -627,16 +577,20 @@ export function ProductPageClient({
   );
 
   const relatedSection = (
-    <ProductRelatedSectionPlaceholder />
+    <div className={PDP_RELATED_SECTION_GAP_CLASS}>
+      <RelatedProducts
+        productSlug={slug}
+        categorySlug={product?.categories?.[0]?.slug}
+        currentProductId={product?.id ?? '__loading__'}
+        initialProducts={initialRelatedProducts}
+        initialLanguage={serverLocale}
+      />
+    </div>
   );
 
   if (awaitingDetails) {
     return (
-      <ProductPageHydrationProvider
-        hydrateDetails={hydrateDetails}
-        markNotFound={markNotFound}
-        markHydrationError={markHydrationError}
-      >
+      <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
         {shell}
         <ProductPagePendingScaffold relatedSection={relatedSection} />
         {children}
@@ -646,11 +600,7 @@ export function ProductPageClient({
 
   if (notFound && !product) {
     return (
-      <ProductPageHydrationProvider
-        hydrateDetails={hydrateDetails}
-        markNotFound={markNotFound}
-        markHydrationError={markHydrationError}
-      >
+      <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
         <ProductPageNotFoundContent language={language}>
           {children}
         </ProductPageNotFoundContent>
@@ -660,11 +610,7 @@ export function ProductPageClient({
 
   if (!product) {
     return (
-      <ProductPageHydrationProvider
-        hydrateDetails={hydrateDetails}
-        markNotFound={markNotFound}
-        markHydrationError={markHydrationError}
-      >
+      <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
         {streamDetails ? (
           <>
             {shell}
@@ -677,11 +623,7 @@ export function ProductPageClient({
   }
 
   return (
-    <ProductPageHydrationProvider
-      hydrateDetails={hydrateDetails}
-      markNotFound={markNotFound}
-      markHydrationError={markHydrationError}
-    >
+    <ProductPageHydrationProvider hydrateDetails={hydrateDetails} markNotFound={markNotFound}>
       <BodyBackground color={PDP_BODY_BACKGROUND} />
       <div
         className={`${PDP_HEADER_DESKTOP_UNDERLAP_CLASS} min-h-dvh max-lg:overflow-x-visible overflow-x-hidden bg-white max-lg:min-h-0 lg:min-h-dvh`}

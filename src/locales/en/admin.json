@@ -192,7 +192,6 @@
     "createCategory": "Create Category",
     "updateCategory": "Update Category",
     "categoryTitle": "Category Title",
-    "productsCount": "Products",
     "categoryTitlePlaceholder": "Enter category title",
     "parentCategory": "Parent Category",
     "rootCategory": "None (Root Category)",

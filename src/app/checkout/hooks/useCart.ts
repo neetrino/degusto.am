@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Cart } from '../types';
+import { parseCartUpdatedDetail } from '@/lib/cart/cart-events';
 import { useCartDrawer } from '@/components/cart-drawer/cart-drawer-context';
 
 export function useCart(_isLoggedIn: boolean) {
@@ -16,6 +17,22 @@ export function useCart(_isLoggedIn: boolean) {
     setCart(drawerCart);
     setLoading(false);
   }, [drawerCart, isCartResolved]);
+
+  useEffect(() => {
+    const onCartUpdated = (event: Event) => {
+      const detail = parseCartUpdatedDetail(event);
+      if (detail?.itemsCount === 0 && detail?.total === 0) {
+        setCart(null);
+        return;
+      }
+      if (detail?.skipReconcile) {
+        return;
+      }
+      void reloadDrawerCart({ silent: true });
+    };
+    window.addEventListener('cart-updated', onCartUpdated);
+    return () => window.removeEventListener('cart-updated', onCartUpdated);
+  }, [reloadDrawerCart]);
 
   const fetchSyncedCart = useCallback(async () => {
     try {

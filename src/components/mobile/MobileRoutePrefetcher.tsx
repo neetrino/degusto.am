@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect } from 'react';
-import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import {
   ADMIN_MOBILE_ANALYTICS_PATH,
@@ -23,29 +22,11 @@ const MOBILE_ADMIN_PREFETCH_ROUTES = [
  */
 export function MobileRoutePrefetcher(): null {
   const router = useRouter();
-  const pathname = usePathname();
 
   useEffect(() => {
-    const currentPath = pathname ?? '';
-    const shouldSkipWarmup =
-      currentPath === '/checkout' ||
-      currentPath.startsWith('/checkout/') ||
-      currentPath.startsWith('/orders/');
-    const isProductPage = currentPath.startsWith('/products/');
-
-    if (shouldSkipWarmup) {
-      return;
-    }
-
     const runPrefetch = () => {
       for (const route of STOREFRONT_PREFETCH_ROUTES) {
-        const skipMenuProductsJson =
-          isProductPage ||
-          (route === '/shop' && (pathname === '/shop' || pathname?.startsWith('/shop?'))) ||
-          (route === '/combo' && (pathname === '/combo' || pathname?.startsWith('/combo?')));
-        prefetchStorefrontRoute(router, route, {
-          prefetchMenuProducts: !skipMenuProductsJson,
-        });
+        prefetchStorefrontRoute(router, route);
       }
 
       for (const route of MOBILE_ADMIN_PREFETCH_ROUTES) {
@@ -63,7 +44,7 @@ export function MobileRoutePrefetcher(): null {
     return () => {
       window.clearTimeout(timerId);
     };
-  }, [pathname, router]);
+  }, [router]);
 
   return null;
 }

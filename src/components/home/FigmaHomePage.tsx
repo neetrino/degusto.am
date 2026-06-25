@@ -2,7 +2,7 @@
 
 import { ViewMoreButton } from '../view-more/ViewMoreButton';
 import { useRouter } from 'next/navigation';
-import { useEffect, type MouseEvent } from 'react';
+import type { MouseEvent } from 'react';
 import { UniversalHeader } from '../UniversalHeader';
 import { ProjectGreenStripes } from '../decor/ProjectGreenStripes';
 import { Footer } from '../Footer';
@@ -15,7 +15,7 @@ import { useAuth } from '../../lib/auth/AuthContext';
 import { WishlistHeartIcon } from '../icons/WishlistHeartIcon';
 import { getHomeCategoryHref } from './homeCategoryLinks';
 import { HomeProductFoodAttributeBadges } from './HomeProductFoodAttributeBadges';
-import { montserratArmFont } from '@/fonts/montserrat-arm-font';
+import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
 import { FIGMA_PRODUCT_CARD_CREAM_HOVER_CLASS } from '@/constants/mobile-figma-storefront';
 import {
   getProductCardWishlistHoverClasses,
@@ -32,11 +32,9 @@ import { StorefrontCategoryLink } from '../routing/StorefrontCategoryLink';
 import { resolveHomeDailyOfferProduct } from './home-daily-offer';
 import type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
 import { STOREFRONT_DESKTOP_SECTION_CLASS } from '@/constants/storefront-desktop-layout';
-import { resolveMenuCardCategoryLabel } from '@/lib/storefront/menu-card-category-label';
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
+import { buildWishlistSnapshotFromHomeFeatured } from '@/lib/wishlist/wishlist-product-snapshot';
 import { RatingStars } from '@/components/RatingStars';
-import { homeFeaturedProductToWishlistSnapshot } from '@/lib/wishlist/wishlist-product-snapshot-mappers';
-import { seedRelatedProductsPool } from '@/lib/products/related-products-cache';
 
 export type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
 
@@ -70,7 +68,7 @@ const HOME_DESKTOP_CATEGORY_CARD_FILL_CLASS = 'bg-[#121212]';
 const HOME_DESKTOP_CATEGORY_CARD_SIZE_CLASS = 'h-[22.6875rem] w-[19.0625rem]';
 
 function NewsCard({ item }: { item: HomeFeaturedProduct }) {
-  const { t, lang } = useTranslation();
+  const { t } = useTranslation();
   const currency = useCurrency();
   const router = useRouter();
   const keepCurrencySymbolAttached = (value: string): string => value.replace(/\s+(\S+)$/u, '\u00A0$1');
@@ -78,20 +76,7 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
   const discountPercent = typeof item.discountPercent === 'number' ? Math.round(item.discountPercent) : null;
   const imageSrc = resolveStorefrontProductImage(item.image);
   const title = item.title;
-  const categoryLabel = resolveMenuCardCategoryLabel(
-    {
-      id: item.id,
-      slug: item.slug,
-      title,
-      category: item.subtitle,
-      categorySlug: item.categorySlug,
-      price: item.price ?? 0,
-      oldPrice: item.oldPrice ?? 0,
-      discount: '',
-    },
-    t,
-    lang
-  );
+  const subtitle = item.subtitle ?? '';
   const formattedPrice = keepCurrencySymbolAttached(formatPrice(item.price || 0, currency));
   const formattedOldPrice = item.oldPrice ? keepCurrencySymbolAttached(formatPrice(item.oldPrice, currency)) : null;
   const mainPriceClassName = formattedPrice.length > 12 ? 'text-[18px]' : 'text-[20px]';
@@ -123,7 +108,7 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
       router.push(`/login?redirect=${encodeURIComponent(productHref)}`);
       return;
     }
-    void toggleWishlist(homeFeaturedProductToWishlistSnapshot(item));
+    void toggleWishlist(buildWishlistSnapshotFromHomeFeatured(item));
   };
   const previewSummary = createProductPreviewSummary({
     id: item.id,
@@ -133,7 +118,7 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
     price: item.price,
     oldPrice: item.oldPrice,
     discount: item.discountPercent,
-    category: categoryLabel ? { slug: item.categorySlug ?? `preview-${item.id}`, title: categoryLabel } : null,
+    category: subtitle ? { slug: `preview-${item.id}`, title: subtitle } : null,
     rating: item.rating ?? 5,
     currency,
     inStock: item.inStock ?? true,
@@ -199,7 +184,7 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
         <h3 className="text-base font-bold leading-[1.05] text-[#3c2f2f]">
           <span className="block max-h-[34px] overflow-hidden break-words">{title}</span>
         </h3>
-        <p className="mt-1 truncate text-base font-medium leading-[1.2] text-[#a1a1a1]">{categoryLabel}</p>
+        <p className="mt-1 truncate text-base font-medium leading-[1.2] text-[#a1a1a1]">{subtitle}</p>
       </div>
       {hasDiscount ? (
         <span className="absolute right-px top-[170px] inline-flex h-[30px] items-center rounded-[60px] bg-[#ff7f20] px-[17px] text-sm font-bold leading-none text-black">
@@ -267,43 +252,11 @@ export function FigmaHomePage({
   dailyOfferProduct?: HomeFeaturedProduct | null;
 }) {
   const { t, lang } = useTranslation();
-  useEffect(() => {
-    seedRelatedProductsPool(
-      featuredProducts.map((product) => {
-        const price = product.price ?? 0;
-        const compareAtPrice =
-          product.oldPrice != null && product.oldPrice > price ? product.oldPrice : null;
-        return {
-          id: product.id,
-          slug: product.slug,
-          title: product.title,
-          price,
-          originalPrice: compareAtPrice,
-          compareAtPrice,
-          discountPercent: product.discountPercent ?? null,
-          defaultVariantId: product.defaultVariantId ?? null,
-          image: resolveStorefrontProductImage(product.image),
-          inStock: product.inStock ?? true,
-          rating: product.rating ?? 5,
-          categories: product.categorySlug
-            ? [
-                {
-                  id: product.categorySlug,
-                  slug: product.categorySlug,
-                  title: product.subtitle || '',
-                },
-              ]
-            : [],
-        };
-      })
-    );
-  }, [featuredProducts]);
   const specialOfferProducts = featuredProducts.slice(0, DESKTOP_HOME_SPECIAL_OFFERS_PRODUCT_COUNT);
   const heroProduct = resolveHomeDailyOfferProduct(featuredProducts, dailyOfferProduct);
-  const armenianHeadingClassName = lang === 'hy' ? montserratArmFont.className : '';
 
   return (
-    <div className="min-h-screen w-full overflow-x-clip bg-[var(--project-color)] lg:block">
+    <div className="hidden min-h-screen w-full overflow-x-clip bg-[var(--project-color)] lg:block">
       <section className="relative w-full overflow-x-clip bg-[var(--project-color)] pb-56 pt-8 lg:min-h-[680px] lg:overflow-y-visible lg:pb-0 lg:pt-8 xl:min-h-[780px] 2xl:min-h-[930px]">
         <div
           className={`pointer-events-none absolute inset-x-0 ${HOME_DESKTOP_HERO_BG_TOP_CLASS} z-0 h-[900px] w-full lg:h-full`}
@@ -345,7 +298,9 @@ export function FigmaHomePage({
             className={`${HOME_DESKTOP_SPECIAL_OFFERS_HEADER_STACKING_CLASS} flex flex-col gap-6 pt-[70px] sm:flex-row sm:items-end sm:justify-between`}
           >
             <h2
-              className={`relative z-40 text-4xl font-black text-white md:text-6xl ${armenianHeadingClassName}`}
+              className={`relative z-40 text-4xl font-black text-white md:text-6xl${
+                lang === 'hy' ? ` ${mirageExpandedFont.className}` : ''
+              }`}
             >
               <span className="text-[#f66913]">{t('home.figma.desktop.specialOffersTitleAccent')}</span>
               {t('home.figma.desktop.specialOffersTitleMain')}
@@ -374,7 +329,9 @@ export function FigmaHomePage({
         <section className={`rounded-t-[40px] pb-20 pt-10 ${HOME_DESKTOP_CATEGORY_SURFACE_CLASS}`}>
           <div className={STOREFRONT_DESKTOP_SECTION_CLASS}>
             <h2
-              className={`mb-8 text-5xl font-black text-black md:text-6xl ${armenianHeadingClassName}`}
+              className={`mb-8 text-5xl font-black text-black md:text-6xl${
+                lang === 'hy' ? ` ${mirageExpandedFont.className}` : ''
+              }`}
             >
               {t('home.figma.desktop.categoriesTitle')}
             </h2>

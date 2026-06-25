@@ -1,12 +1,11 @@
 import { getProductPageData } from '@/lib/services/products-slug/get-product-page-data';
+import { getRelatedProductsForPdp } from '@/lib/services/products-slug/get-related-products-cached';
 import { getProductVisualCached } from '@/lib/services/products-slug/get-product-visual-cached';
 import type { StorefrontLocale } from '@/lib/i18n/locale';
-import { Suspense } from 'react';
 import { ProductPageClient } from './ProductPageClient';
 import { ProductDetailsServer } from './ProductDetailsServer';
 import type { Product } from './types';
 import { logger } from '@/lib/utils/logger';
-import type { RelatedCardPayload } from '@/lib/services/products-slug/product-related-transform';
 import {
   mapProductToVisualSnapshot,
   mapVisualPayloadToSnapshot,
@@ -29,21 +28,19 @@ export async function ProductPageContent({
   serverLocale,
 }: ProductPageContentProps) {
   let visualPayload = null;
-  const initialRelatedProducts: RelatedCardPayload[] = [];
+  let initialRelatedProducts: Awaited<ReturnType<typeof getRelatedProductsForPdp>> = [];
   try {
-    visualPayload = await getProductVisualCached(slug, serverLocale);
+    [visualPayload, initialRelatedProducts] = await Promise.all([
+      getProductVisualCached(slug, serverLocale),
+      getRelatedProductsForPdp(slug, serverLocale),
+    ]);
   } catch (error: unknown) {
-    logger.warn('[PDP] Failed to load visual payload', {
+    logger.warn('[PDP] Failed to load visual/related payload', {
       slug,
       locale: serverLocale,
       error: error instanceof Error ? error.message : String(error),
     });
   }
-  logger.info('[PDP PERF] visual payload resolved', {
-    slug,
-    locale: serverLocale,
-    hit: Boolean(visualPayload),
-  });
 
   if (!visualPayload) {
     let pageData: Awaited<ReturnType<typeof getProductPageData>> | null = null;
@@ -56,11 +53,6 @@ export async function ProductPageContent({
         error: error instanceof Error ? error.message : String(error),
       });
     }
-    logger.info('[PDP PERF] full page data fallback resolved', {
-      slug,
-      locale: serverLocale,
-      hit: Boolean(pageData),
-    });
     if (!pageData) {
       return (
         <ProductPageClient
@@ -70,7 +62,7 @@ export async function ProductPageContent({
           initialProduct={null}
           initialReviewSummary={EMPTY_REVIEW_SUMMARY}
           initialRelatedProducts={initialRelatedProducts}
-          initialNotFound={false}
+          initialNotFound
           serverLocale={serverLocale}
         />
       );
@@ -120,9 +112,7 @@ export async function ProductPageContent({
       serverLocale={serverLocale}
       streamDetails
     >
-      <Suspense fallback={null}>
-        <ProductDetailsServer slug={slug} locale={serverLocale} />
-      </Suspense>
+      <ProductDetailsServer slug={slug} locale={serverLocale} />
     </ProductPageClient>
   );
 }

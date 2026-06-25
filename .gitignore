@@ -33,3 +33,4 @@ temp/
 # *.swo
 #docs/reference/payment integration/Example only
 .vercel
+.env*

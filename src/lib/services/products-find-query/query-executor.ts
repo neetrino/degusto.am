@@ -4,20 +4,10 @@ import { ensureProductVariantAttributesColumn } from "../../utils/db-ensure";
 import { logger } from "../../utils/logger";
 import type { ProductWithRelations } from "./types";
 
-function buildLocaleFallbackChain(lang: string): string[] {
-  const requested = typeof lang === "string" ? lang.trim() : "";
-  if (!requested || requested === "en") {
-    return ["en"];
-  }
-  return [requested, "en"];
-}
-
 /**
  * Base include configuration for product queries
  */
-const getBaseInclude = (lang: string) => {
-  const locales = buildLocaleFallbackChain(lang);
-  return {
+const getBaseInclude = () => ({
   translations: true,
   variants: {
     where: {
@@ -29,13 +19,7 @@ const getBaseInclude = (lang: string) => {
           attributeValue: {
             include: {
               attribute: true,
-              translations: {
-                where: {
-                  locale: {
-                    in: locales,
-                  },
-                },
-              },
+              translations: true,
             },
           },
         },
@@ -45,23 +29,16 @@ const getBaseInclude = (lang: string) => {
   labels: true,
   categories: {
     include: {
-      translations: {
-        where: {
-          locale: {
-            in: locales,
-          },
-        },
-      },
+      translations: true,
     },
   },
-};
-};
+});
 
 /**
  * Base include without attributeValue relation (fallback)
  */
-const getBaseIncludeWithoutAttributeValue = (lang: string) => ({
-  ...getBaseInclude(lang),
+const getBaseIncludeWithoutAttributeValue = () => ({
+  ...getBaseInclude(),
   variants: {
     where: {
       published: true,
@@ -75,37 +52,22 @@ const getBaseIncludeWithoutAttributeValue = (lang: string) => ({
 /**
  * ProductAttributes include configuration
  */
-const getProductAttributesInclude = (lang: string) => {
-  const locales = buildLocaleFallbackChain(lang);
-  return {
+const getProductAttributesInclude = () => ({
   productAttributes: {
     include: {
       attribute: {
         include: {
-          translations: {
-            where: {
-              locale: {
-                in: locales,
-              },
-            },
-          },
+          translations: true,
           values: {
             include: {
-              translations: {
-                where: {
-                  locale: {
-                    in: locales,
-                  },
-                },
-              },
+              translations: true,
             },
           },
         },
       },
     },
   },
-};
-};
+});
 
 /**
  * Check if error is related to product_attributes table
@@ -144,17 +106,16 @@ function isAttributeValuesColorsError(error: unknown): boolean {
 export async function executeProductQuery(
   where: Prisma.ProductWhereInput,
   limit: number,
-  skip: number = 0,
-  lang: string = "en"
+  skip: number = 0
 ): Promise<ProductWithRelations[]> {
-  const baseInclude = getBaseInclude(lang);
+  const baseInclude = getBaseInclude();
 
   try {
     const products = await db.product.findMany({
       where,
       include: {
         ...baseInclude,
-        ...getProductAttributesInclude(lang),
+        ...getProductAttributesInclude(),
       },
       skip,
       take: limit,
@@ -167,7 +128,7 @@ export async function executeProductQuery(
       logger.warn('product_attributes table not found, fetching without it', { 
         error: error instanceof Error ? error.message : String(error) 
       });
-      return executeWithoutProductAttributes(where, limit, skip, lang);
+      return executeWithoutProductAttributes(where, limit, skip);
     }
 
     if (isVariantAttributesError(error)) {
@@ -183,7 +144,7 @@ export async function executeProductQuery(
         logger.debug(`Found ${products.length} products from database (after creating attributes column)`);
         return products as unknown as ProductWithRelations[];
       } catch (attributesError: unknown) {
-        return handleAttributesError(attributesError, where, limit, skip, lang);
+        return handleAttributesError(attributesError, where, limit, skip);
       }
     }
 
@@ -191,7 +152,7 @@ export async function executeProductQuery(
       logger.warn('attribute_values.colors column not found, fetching without attributeValue', { 
         error: error instanceof Error ? error.message : String(error) 
       });
-      return executeWithoutAttributeValue(where, limit, skip, lang);
+      return executeWithoutAttributeValue(where, limit, skip);
     }
 
     throw error;
@@ -204,10 +165,9 @@ export async function executeProductQuery(
 async function executeWithoutProductAttributes(
   where: Prisma.ProductWhereInput,
   limit: number,
-  skip: number = 0,
-  lang: string = "en"
+  skip: number = 0
 ): Promise<ProductWithRelations[]> {
-  const baseInclude = getBaseInclude(lang);
+  const baseInclude = getBaseInclude();
 
   try {
     const products = await db.product.findMany({
@@ -232,7 +192,7 @@ async function executeWithoutProductAttributes(
         logger.debug(`Found ${products.length} products from database (after creating attributes column)`);
         return products as unknown as ProductWithRelations[];
       } catch (attributesError: unknown) {
-        return handleAttributesError(attributesError, where, limit, skip, lang);
+        return handleAttributesError(attributesError, where, limit, skip);
       }
     }
 
@@ -240,7 +200,7 @@ async function executeWithoutProductAttributes(
       logger.warn('attribute_values.colors column not found, fetching without attributeValue', { 
         error: retryError instanceof Error ? retryError.message : String(retryError) 
       });
-      return executeWithoutAttributeValue(where, limit, skip, lang);
+      return executeWithoutAttributeValue(where, limit, skip);
     }
 
     throw retryError;
@@ -254,14 +214,13 @@ async function handleAttributesError(
   error: unknown,
   where: Prisma.ProductWhereInput,
   limit: number,
-  skip: number = 0,
-  lang: string = "en"
+  skip: number = 0
 ): Promise<ProductWithRelations[]> {
   if (isAttributeValuesColorsError(error)) {
     logger.warn('attribute_values.colors column not found, fetching without attributeValue', { 
       error: error instanceof Error ? error.message : String(error) 
     });
-    return executeWithoutAttributeValue(where, limit, skip, lang);
+    return executeWithoutAttributeValue(where, limit, skip);
   }
   throw error;
 }
@@ -272,10 +231,9 @@ async function handleAttributesError(
 async function executeWithoutAttributeValue(
   where: Prisma.ProductWhereInput,
   limit: number,
-  skip: number = 0,
-  lang: string = "en"
+  skip: number = 0
 ): Promise<ProductWithRelations[]> {
-  const baseIncludeWithoutAttributeValue = getBaseIncludeWithoutAttributeValue(lang);
+  const baseIncludeWithoutAttributeValue = getBaseIncludeWithoutAttributeValue();
 
   // Try to include productAttributes even in fallback
   try {
@@ -283,7 +241,7 @@ async function executeWithoutAttributeValue(
       where,
       include: {
         ...baseIncludeWithoutAttributeValue,
-        ...getProductAttributesInclude(lang),
+        ...getProductAttributesInclude(),
       },
       skip,
       take: limit,

@@ -18,24 +18,9 @@ import { isStockSufficient, totalVariantQuantityInCart } from "../product-stock"
 import { ensureCartItemCustomizationsColumn } from "../utils/db-ensure";
 
 class CartService {
-  private cartOwnerOrderBy(userId: string | null): Prisma.CartOrderByWithRelationInput[] | undefined {
-    if (!userId) {
-      return undefined;
-    }
-    return [{ updatedAt: "desc" }, { createdAt: "desc" }];
-  }
-
-  private async touchCart(cartId: string): Promise<void> {
-    await db.cart.update({
-      where: { id: cartId },
-      data: { updatedAt: new Date() },
-    });
-  }
-
   private toCartSummaryPayload(
     cartId: string,
-    rows: Array<{ quantity: number; priceSnapshot: Prisma.Decimal | number | null }>,
-    updatedAt?: Date
+    rows: Array<{ quantity: number; priceSnapshot: Prisma.Decimal | number | null }>
   ) {
     const itemsCount = rows.reduce((sum, item) => sum + item.quantity, 0);
     const subtotal = rows.reduce(
@@ -45,7 +30,6 @@ class CartService {
     return {
       cart: {
         id: cartId,
-        updatedAt,
         items: [],
         totals: {
           subtotal,
@@ -132,11 +116,9 @@ class CartService {
     }
 
     const ownerWhere = this.cartOwnerWhere(userId, guestToken);
-    const ownerOrderBy = this.cartOwnerOrderBy(userId);
     const translationLocales = locale === "en" ? ["en"] : [locale, "en"];
     const cartSelect = {
       id: true,
-      updatedAt: true,
       items: {
         select: {
           id: true,
@@ -149,7 +131,6 @@ class CartService {
               id: true,
               sku: true,
               stock: true,
-              published: true,
               price: true,
               compareAtPrice: true,
               imageUrl: true,
@@ -174,14 +155,21 @@ class CartService {
           product: {
             select: {
               id: true,
-              published: true,
-              deletedAt: true,
               media: true,
               primaryCategoryId: true,
               discountPercent: true,
               translations: {
                 where: { locale: { in: translationLocales } },
                 select: { locale: true, title: true, slug: true },
+              },
+              categories: {
+                select: {
+                  id: true,
+                  translations: {
+                    where: { locale: { in: translationLocales } },
+                    select: { locale: true, title: true, slug: true },
+                  },
+                },
               },
             },
           },
@@ -205,7 +193,6 @@ class CartService {
     const findCart = async () =>
       db.cart.findFirst({
         where: ownerWhere,
-        ...(ownerOrderBy ? { orderBy: ownerOrderBy } : {}),
         select: cartSelect,
       });
 
@@ -283,6 +270,13 @@ class CartService {
           product?.translations?.[0];
 
         const imageUrl = this.extractVariantImageUrl(variant?.imageUrl) ?? extractMediaUrl(product?.media);
+        const primaryCategory =
+          product?.categories?.find((category) => category.id === product?.primaryCategoryId) ??
+          product?.categories?.[0];
+        const categoryTranslation =
+          primaryCategory?.translations?.find((translation) => translation.locale === locale) ??
+          primaryCategory?.translations?.[0];
+
         const productDiscount = product?.discountPercent ?? 0;
         let appliedDiscount = 0;
         if (productDiscount > 0) {
@@ -341,11 +335,11 @@ class CartService {
               slug: translation?.slug ?? "",
               image: imageUrl,
               categoryId: product?.primaryCategoryId ?? null,
-              category: product?.primaryCategoryId
+              category: primaryCategory
                 ? {
-                    id: product.primaryCategoryId,
-                    slug: null,
-                    name: null,
+                    id: primaryCategory.id,
+                    slug: categoryTranslation?.slug ?? null,
+                    name: categoryTranslation?.title ?? null,
                   }
                 : undefined,
             },
@@ -363,7 +357,6 @@ class CartService {
     return {
       cart: {
         id: cart.id,
-        updatedAt: cart.updatedAt,
         items: itemsWithDetails,
         totals: {
           subtotal,
@@ -392,13 +385,10 @@ class CartService {
     }
 
     const ownerWhere = this.cartOwnerWhere(userId, guestToken);
-    const ownerOrderBy = this.cartOwnerOrderBy(userId);
     const cart = await db.cart.findFirst({
       where: ownerWhere,
-      ...(ownerOrderBy ? { orderBy: ownerOrderBy } : {}),
       select: {
         id: true,
-        updatedAt: true,
         items: {
           select: {
             quantity: true,
@@ -412,7 +402,7 @@ class CartService {
       return { cart: null };
     }
 
-    return this.toCartSummaryPayload(cart.id, cart.items, cart.updatedAt);
+    return this.toCartSummaryPayload(cart.id, cart.items);
   }
 
   /**
@@ -432,7 +422,6 @@ class CartService {
     const { variantId, productId, quantity = 1 } = data;
     const normalizedCustomizations = normalizeProductCustomizations(data.customizations);
     const ownerWhere = this.cartOwnerWhere(userId, guestToken);
-    const ownerOrderBy = this.cartOwnerOrderBy(userId);
 
     if (!variantId || !productId) {
       throw {
@@ -447,19 +436,7 @@ class CartService {
       Promise.all([
         db.cart.findFirst({
           where: ownerWhere,
-          ...(ownerOrderBy ? { orderBy: ownerOrderBy } : {}),
-          select: {
-            id: true,
-            items: {
-              select: {
-                id: true,
-                variantId: true,
-                quantity: true,
-                customizations: true,
-                priceSnapshot: true,
-              },
-            },
-          },
+          include: { items: true },
         }),
         db.productVariant.findUnique({
           where: { id: variantId },
@@ -488,18 +465,7 @@ class CartService {
             ...this.cartCreateData(userId, guestToken, locale),
             items: { create: [] },
           },
-          select: {
-            id: true,
-            items: {
-              select: {
-                id: true,
-                variantId: true,
-                quantity: true,
-                customizations: true,
-                priceSnapshot: true,
-              },
-            },
-          },
+          include: { items: true },
         });
       try {
         resolvedCart = await createCart();
@@ -548,9 +514,9 @@ class CartService {
         availableStock: variant.stock,
       });
       throw {
-        status: 409,
-        type: problemTypes.conflict,
-        title: "Product unavailable",
+        status: 422,
+        type: problemTypes.validationError,
+        title: "Insufficient stock",
         detail: `No more stock available. Maximum available: ${variant.stock}, already in cart: ${alreadyInCart}, requested: ${quantity}`,
       };
     }
@@ -585,7 +551,6 @@ class CartService {
         }
         item = await updateItem();
       }
-      await this.touchCart(resolvedCart.id);
       // Summary from current state: other items + this updated item (no extra DB query)
       const otherItems = resolvedCart.items.filter((i: { id: string }) => i.id !== existingItem.id);
       const itemsForSum = [
@@ -630,7 +595,6 @@ class CartService {
         }
         item = await createItem();
       }
-      await this.touchCart(resolvedCart.id);
       const itemsForSum = [
         ...resolvedCart.items.map((i: { quantity: number; priceSnapshot: unknown }) => ({ q: i.quantity, p: Number(i.priceSnapshot) })),
         { q: quantity, p: unitPriceWithAdjustments },
@@ -679,15 +643,8 @@ class CartService {
           },
         },
       },
-      select: {
-        id: true,
-        items: {
-          select: {
-            id: true,
-            variantId: true,
-            quantity: true,
-          },
-        },
+      include: {
+        items: true,
       },
     });
 
@@ -719,9 +676,9 @@ class CartService {
 
     if (!variant || !isStockSufficient(variant.stock, totalVariantQty)) {
       throw {
-        status: 409,
-        type: problemTypes.conflict,
-        title: "Product unavailable",
+        status: 422,
+        type: problemTypes.validationError,
+        title: "Insufficient stock",
         detail: `Requested quantity (${quantity}) exceeds available stock (${variant?.stock || 0})`,
       };
     }
@@ -741,7 +698,6 @@ class CartService {
         title: "Cart item not found",
       };
     }
-    await this.touchCart(cart.id);
 
     const updatedItem = await db.cartItem.findUnique({
       where: { id: itemId },
@@ -807,7 +763,6 @@ class CartService {
         title: "Cart item not found",
       };
     }
-    await this.touchCart(cart.id);
 
     return null;
   }

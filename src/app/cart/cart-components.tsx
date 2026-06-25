@@ -13,28 +13,8 @@ import { useCartDrawer } from '@/components/cart-drawer/cart-drawer-context';
 import { useTranslation } from '@/lib/i18n-client';
 import { formatPdpExclusionsDisplayList } from '@/app/products/[slug]/utils/pdp-customization-selection';
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
-import { buildCustomizationLineKey } from '@/lib/cart/customizations';
 
 type DisplayLine = NonNullable<CartItem['variant']['displayLines']>[number];
-
-function normalizeCartProductTitle(title: string, slug: string): string {
-  const cleanTitle = title.trim();
-  if (!cleanTitle) {
-    return slug.trim();
-  }
-
-  const looksLikeSlug = cleanTitle.includes('-') && !cleanTitle.includes(' ');
-  if (!looksLikeSlug) {
-    return cleanTitle;
-  }
-
-  const humanized = cleanTitle.replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim();
-  if (!humanized) {
-    return cleanTitle;
-  }
-
-  return humanized.charAt(0).toUpperCase() + humanized.slice(1);
-}
 
 function CartItemVariantChips({ lines, appearance = 'page' }: { lines: DisplayLine[]; appearance?: CartListAppearance }) {
   if (lines.length === 0) {
@@ -186,12 +166,11 @@ export function CartItemRow({
   const { lang } = useTranslation();
   const currencyCode = currency as CurrencyCode;
   const lines = item.variant.displayLines ?? [];
-  const normalizedTitle = normalizeCartProductTitle(item.variant.product.title, item.variant.product.slug);
   const isDrawer = appearance === 'drawer';
   const previewSummary = createProductPreviewSummary({
     id: item.variant.product.id,
     slug: item.variant.product.slug,
-    title: normalizedTitle,
+    title: item.variant.product.title,
     image: resolveStorefrontProductImage(item.variant.product.image),
     price: item.price,
     oldPrice: item.originalPrice && item.originalPrice > item.price ? item.originalPrice : null,
@@ -210,7 +189,7 @@ export function CartItemRow({
         slug={item.variant.product.slug}
         preview={previewSummary}
         className={cartItemImageLinkClassName(appearance)}
-        aria-label={normalizedTitle}
+        aria-label={item.variant.product.title}
       >
         <Image
           src={resolveStorefrontProductImage(item.variant.product.image)}
@@ -229,11 +208,11 @@ export function CartItemRow({
             preview={previewSummary}
             className={
               isDrawer
-                ? 'line-clamp-2 break-words text-base font-bold text-white transition-colors hover:text-white/90'
-                : 'line-clamp-2 break-words text-base font-bold text-gray-900 transition-colors hover:text-[#F66812]'
+                ? 'line-clamp-2 text-base font-bold text-white transition-colors hover:text-white/90'
+                : 'line-clamp-2 text-base font-bold text-gray-900 transition-colors hover:text-[#F66812]'
             }
           >
-            {normalizedTitle}
+            {item.variant.product.title}
           </ProductPageLink>
           {!isDrawer && lines.length > 0 ? <CartItemVariantChips lines={lines} appearance={appearance} /> : null}
           {(item.customizations?.additions || item.customizations?.exclusions) ? (
@@ -310,10 +289,6 @@ interface CartTableProps {
   appearance?: CartListAppearance;
 }
 
-function buildCartItemRowKey(item: CartItem): string {
-  return `${item.variant.product.id}:${buildCustomizationLineKey(item.variant.id, item.customizations)}`;
-}
-
 export function CartTable({
   cart,
   currency,
@@ -332,7 +307,7 @@ export function CartTable({
       <div className={listClassName}>
         {cart.items.map((item) => (
           <CartItemRow
-            key={buildCartItemRowKey(item)}
+            key={item.id}
             item={item}
             currency={currency}
             onRemove={onRemove}

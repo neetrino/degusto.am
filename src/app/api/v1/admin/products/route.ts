@@ -184,12 +184,7 @@ export async function GET(req: NextRequest) {
       resultCount: result.data?.length || 0,
     });
     
-    return NextResponse.json(result, {
-      headers: {
-        'x-admin-products-total-ms': String(totalTime),
-        'x-admin-products-service-ms': String(serviceTime),
-      },
-    });
+    return NextResponse.json(result);
   } catch (error: unknown) {
     const totalTime = Date.now() - requestStartTime;
     logger.error("Admin products GET failed", { durationMs: totalTime, error });

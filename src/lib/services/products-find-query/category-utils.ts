@@ -2,11 +2,27 @@ import { db } from "@white-shop/db";
 import { logger } from "../../utils/logger";
 
 /**
- * Subcategories are disabled in this project; keep filters flat.
+ * Get all child category IDs recursively
  */
 export async function getAllChildCategoryIds(parentId: string): Promise<string[]> {
-  void parentId;
-  return [];
+  const children = await db.category.findMany({
+    where: {
+      parentId: parentId,
+      published: true,
+      deletedAt: null,
+    },
+    select: { id: true },
+  });
+  
+  let allChildIds = children.map((c: { id: string }) => c.id);
+  
+  // Recursively get children of children
+  for (const child of children) {
+    const grandChildren = await getAllChildCategoryIds(child.id);
+    allChildIds = [...allChildIds, ...grandChildren];
+  }
+  
+  return allChildIds;
 }
 
 /**

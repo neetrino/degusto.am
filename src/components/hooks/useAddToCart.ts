@@ -5,27 +5,18 @@ import { apiClient } from '../../lib/api-client';
 import { ApiError } from '../../lib/api-client/types';
 import { isQuietCartStockValidationError } from '../../lib/api-client/error-handler';
 import { DATABASE_UNAVAILABLE_PUBLIC_DETAIL } from '@/lib/http/problem-details';
+import { logger } from '../../lib/utils/logger';
 import { useTranslation } from '../../lib/i18n-client';
 import { playCartFlyAnimation } from '../../lib/cart-fly-animation';
-import {
-  clearRecentCheckoutFlag,
-  publishCartUpdated,
-  publishCartForceReload,
-  publishOptimisticCartAdd,
-  publishCartLineConfirmed,
-} from '../../lib/cart/cart-events';
+import { publishCartUpdated, publishCartForceReload, publishOptimisticCartAdd, publishCartLineConfirmed } from '../../lib/cart/cart-events';
 import {
   getCartLineId,
   rememberCartLineId,
   removeCachedLineId,
   updateCachedLineQuantity,
 } from '../../lib/cart/cart-line-id-cache';
+import { clearCartLineRemoved } from '@/lib/cart/pending-cart-removals';
 import { readCartSummaryCache } from '../../lib/cartSummaryCache';
-import {
-  findCartLineByContext,
-  normalizeCartApiResponse,
-} from '@/lib/cart/cart-client-normalization';
-import { logCartFrontendDiagnostic } from '@/lib/cart/cart-frontend-diagnostics';
 
 const CART_ACTION_RETRY_AFTER_MS = 3000;
 const ADD_TO_CART_BLOCK_WINDOW_MS = 700;
@@ -42,6 +33,19 @@ interface ProductDetails {
   }>;
 }
 
+interface ServerCartResponse {
+  cart: {
+    items: Array<{
+      id: string;
+      quantity: number;
+      variant: {
+        id: string;
+        product: { id: string };
+      };
+    }>;
+  };
+}
+
 export interface AddToCartFlyContext {
   origin?: HTMLElement | null;
   imageUrl?: string | null;
@@ -55,10 +59,6 @@ interface UseAddToCartProps {
   price?: number;
   title?: string;
   image?: string | null;
-}
-
-interface ResolvedVariantSnapshot {
-  variantId: string;
 }
 
 /**
@@ -78,7 +78,6 @@ export function useAddToCart({
   const [quantity, setQuantity] = useState(0);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const addBlockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const resolvedVariantSnapshotRef = useRef<ResolvedVariantSnapshot | null>(null);
 
   const releaseAddToCartBlock = (resetState: boolean) => {
     if (addBlockTimerRef.current) {
@@ -107,84 +106,80 @@ export function useAddToCart({
     []
   );
 
-  const resolveVariantSnapshot = async (): Promise<ResolvedVariantSnapshot | null> => {
-    if (resolvedVariantSnapshotRef.current) {
-      return resolvedVariantSnapshotRef.current;
-    }
-
+  const resolveVariantId = async (): Promise<string | null> => {
     if (defaultVariantId) {
-      const snapshot = {
-        variantId: defaultVariantId,
-      };
-      resolvedVariantSnapshotRef.current = snapshot;
-      return snapshot;
+      return defaultVariantId;
     }
 
     const encodedSlug = encodeURIComponent(productSlug.trim());
-    const productDetails = await apiClient.get<ProductDetails>(`/api/v1/products/${encodedSlug}/details`);
+    const productDetails = await apiClient.get<ProductDetails>(`/api/v1/products/${encodedSlug}`);
     if (!productDetails.variants || productDetails.variants.length === 0) {
       alert(t('common.alerts.noVariantsAvailable'));
       return null;
     }
-
-    const firstVariant = productDetails.variants[0];
-    const snapshot = {
-      variantId: firstVariant.id,
-    };
-    resolvedVariantSnapshotRef.current = snapshot;
-    return snapshot;
+    return productDetails.variants[0].id;
   };
 
   const persistAddToCart = async (
     optimisticVariantId: string,
     addedQuantity: number
   ): Promise<void> => {
-    const requestSequenceId = `add-${Date.now().toString(36)}`;
-    const endpoint = '/api/v1/cart/items';
-    const rollbackLocalQuantity = () => {
-      setQuantity((prev) => Math.max(0, prev - addedQuantity));
-    };
-
     try {
-      const snapshot = await resolveVariantSnapshot();
-      if (!snapshot) {
-        rollbackLocalQuantity();
-        publishCartForceReload();
-        return;
-      }
-      const variantId = snapshot.variantId;
+      let variantId = defaultVariantId ?? null;
+      let unitPrice = propPrice ?? 0;
 
-      const response = await apiClient.post<unknown>('/api/v1/cart/items', {
+      if (!variantId) {
+        const encodedSlug = encodeURIComponent(productSlug.trim());
+        const productDetails = await apiClient.get<ProductDetails>(`/api/v1/products/${encodedSlug}`);
+        if (!productDetails.variants || productDetails.variants.length === 0) {
+          alert(t('common.alerts.noVariantsAvailable'));
+          setQuantity((prev) => Math.max(0, prev - addedQuantity));
+          publishCartForceReload();
+          return;
+        }
+        const firstVariant = productDetails.variants[0];
+        variantId = firstVariant.id;
+        unitPrice = propPrice ?? firstVariant.price;
+      }
+
+      const response = await apiClient.post<{
+        item: { id: string; quantity: number; price: number };
+        cartSummary?: { itemsCount: number; total: number };
+      }>('/api/v1/cart/items', {
         productId,
         variantId,
         quantity: addedQuantity,
       });
-      const cart = normalizeCartApiResponse(response);
-      const line = findCartLineByContext(cart, { productId, variantId });
-      if (!line) {
-        publishCartForceReload();
-        return;
-      }
 
-      rememberCartLineId(productId, variantId, line.id, line.quantity);
+      rememberCartLineId(productId, variantId, response.item.id, response.item.quantity);
+      clearCartLineRemoved({
+        variant: { id: variantId },
+        productId,
+        customizations: undefined,
+      });
 
-      const summary = {
-        itemsCount: cart.itemsCount,
-        total: cart.totals.total,
-      };
+      const summary = response.cartSummary ?? (() => {
+        const cache = readCartSummaryCache();
+        return {
+          itemsCount: (cache?.itemsCount ?? 0),
+          total: cache?.total ?? 0,
+        };
+      })();
 
       publishCartLineConfirmed(
         {
           productId,
           previousVariantId: optimisticVariantId,
           variantId,
-          serverItemId: line.id,
-          quantity: line.quantity,
-          price: line.price,
+          serverItemId: response.item.id,
+          quantity: response.item.quantity,
+          price: response.item.price,
         },
         summary
       );
     } catch (error: unknown) {
+      setQuantity((prev) => Math.max(0, prev - addedQuantity));
+
       const err = error as {
         message?: string;
         status?: number;
@@ -194,17 +189,6 @@ export function useAddToCart({
       };
 
       if (error instanceof ApiError && isQuietCartStockValidationError(error.status, error.data)) {
-        logCartFrontendDiagnostic({
-          event: 'mutation_failed',
-          operation: 'add',
-          endpoint,
-          requestSequenceId,
-          status: error.status,
-          preservedPreviousState: true,
-          error,
-          details: { reason: 'insufficient_stock' },
-        });
-        rollbackLocalQuantity();
         alert(t('common.alerts.noMoreStockAvailable'));
         publishCartForceReload();
         return;
@@ -216,17 +200,6 @@ export function useAddToCart({
         err?.status === 404 ||
         err?.statusCode === 404
       ) {
-        logCartFrontendDiagnostic({
-          event: 'mutation_failed',
-          operation: 'add',
-          endpoint,
-          requestSequenceId,
-          status: 404,
-          preservedPreviousState: true,
-          error,
-          details: { reason: 'product_not_found' },
-        });
-        rollbackLocalQuantity();
         alert(t('common.alerts.productNotFound'));
         publishCartForceReload();
         return;
@@ -237,33 +210,12 @@ export function useAddToCart({
         err.response?.data?.detail?.includes('exceeds available stock') ||
         err.response?.data?.title === 'Insufficient stock'
       ) {
-        logCartFrontendDiagnostic({
-          event: 'mutation_failed',
-          operation: 'add',
-          endpoint,
-          requestSequenceId,
-          status: error instanceof ApiError ? error.status : null,
-          preservedPreviousState: true,
-          error,
-          details: { reason: 'insufficient_stock_response' },
-        });
-        rollbackLocalQuantity();
         alert(t('common.alerts.noMoreStockAvailable'));
         publishCartForceReload();
         return;
       }
 
       if (error instanceof ApiError && error.status === 503) {
-        logCartFrontendDiagnostic({
-          event: 'mutation_failed',
-          operation: 'add',
-          endpoint,
-          requestSequenceId,
-          status: error.status,
-          preservedPreviousState: true,
-          error,
-          details: { reason: 'service_unavailable' },
-        });
         alert(
           `${error.message || DATABASE_UNAVAILABLE_PUBLIC_DETAIL}\n\n` +
             `Please try again in ${CART_ACTION_RETRY_AFTER_MS / 1000} seconds.`
@@ -271,15 +223,7 @@ export function useAddToCart({
         return;
       }
 
-      logCartFrontendDiagnostic({
-        event: 'mutation_failed',
-        operation: 'add',
-        endpoint,
-        requestSequenceId,
-        status: error instanceof ApiError ? error.status : null,
-        preservedPreviousState: true,
-        error,
-      });
+      logger.error('[PRODUCT CARD] Error adding to cart', { error });
       alert(t('common.alerts.failedToAddToCart'));
       publishCartForceReload();
     }
@@ -291,14 +235,7 @@ export function useAddToCart({
     }
 
     if (!productSlug || productSlug.trim() === '' || productSlug.includes(' ')) {
-      logCartFrontendDiagnostic({
-        event: 'mutation_failed',
-        operation: 'add',
-        endpoint: '/api/v1/cart/items',
-        requestSequenceId: `add-${Date.now().toString(36)}`,
-        preservedPreviousState: true,
-        details: { reason: 'invalid_product_slug' },
-      });
+      logger.warn('[PRODUCT CARD] Invalid product slug', { productSlug });
       alert(t('common.alerts.invalidProduct'));
       return;
     }
@@ -315,9 +252,6 @@ export function useAddToCart({
     const optimisticImage = propImage ?? fly?.imageUrl ?? null;
     const addedQuantity = 1;
 
-    // After a successful checkout, a short recovery window can force cart reloads.
-    // Clear it on fresh add-to-cart so optimistic rows are not overwritten.
-    clearRecentCheckoutFlag();
     publishOptimisticCartAdd({
       productId,
       productSlug,
@@ -339,17 +273,14 @@ export function useAddToCart({
 
     const previousQuantity = quantity;
     const nextQuantity = quantity - 1;
-    const requestSequenceId = `delete-${Date.now().toString(36)}`;
-    const endpoint = '/api/v1/cart/items';
     setQuantity(nextQuantity);
 
     try {
-      const snapshot = await resolveVariantSnapshot();
-      if (!snapshot) {
+      const variantId = defaultVariantId ?? (await resolveVariantId());
+      if (!variantId) {
         setQuantity(previousQuantity);
         return;
       }
-      const variantId = snapshot.variantId;
 
       const summaryCache = readCartSummaryCache();
       const estimatedTotal = summaryCache
@@ -373,9 +304,10 @@ export function useAddToCart({
         return;
       }
 
-      const cartResponse = await apiClient.get<unknown>('/api/v1/cart');
-      const normalizedCart = normalizeCartApiResponse(cartResponse);
-      const cartItem = findCartLineByContext(normalizedCart, { productId, variantId });
+      const cartResponse = await apiClient.get<ServerCartResponse>('/api/v1/cart');
+      const cartItem = cartResponse.cart?.items.find(
+        (item) => item.variant.product.id === productId && item.variant.id === variantId
+      );
 
       if (!cartItem) {
         setQuantity(0);
@@ -391,15 +323,7 @@ export function useAddToCart({
         rememberCartLineId(productId, variantId, cartItem.id, patchedQty);
       }
     } catch (error: unknown) {
-      logCartFrontendDiagnostic({
-        event: 'mutation_failed',
-        operation: 'delete',
-        endpoint,
-        requestSequenceId,
-        status: error instanceof ApiError ? error.status : null,
-        preservedPreviousState: true,
-        error,
-      });
+      logger.error('[PRODUCT CARD] Error removing from cart', { error });
       setQuantity(previousQuantity);
       alert(t('common.messages.failedToUpdateQuantity'));
       publishCartForceReload();

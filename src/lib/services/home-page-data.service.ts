@@ -1,4 +1,5 @@
 import { unstable_cache } from 'next/cache';
+import { STOREFRONT_ISR_REVALIDATE_SECONDS } from '@/constants/storefront-isr';
 import { categoriesService } from '@/lib/services/categories.service';
 import type { HomeCategoryItem, HomeFeaturedProduct } from '@/components/home/home-page-types';
 import { db } from '@white-shop/db';
@@ -14,7 +15,7 @@ import { r2Asset } from '@/lib/r2-public-url';
 /** Shared cache tag for `revalidateTag` on product/category admin writes. */
 export const HOME_PAGE_CACHE_TAG = 'home';
 
-export const HOME_PAGE_REVALIDATE_SECONDS = 60;
+export const HOME_PAGE_REVALIDATE_SECONDS = STOREFRONT_ISR_REVALIDATE_SECONDS;
 
 const HOME_FEATURED_PRODUCTS_LIMIT = 12;
 const HOME_CATEGORIES_LIMIT = 8;
@@ -55,7 +56,6 @@ function getHomeProductSelect(homeLang: StorefrontLocale) {
           select: {
             locale: true,
             title: true,
-            slug: true,
           },
         },
       },
@@ -138,7 +138,7 @@ type HomeProductDbRow = {
   discountPercent: number | null;
   media: unknown;
   translations: Array<{ locale: string; slug: string; title: string }>;
-  categories: Array<{ translations: Array<{ locale: string; title: string; slug: string }> }>;
+  categories: Array<{ translations: Array<{ locale: string; title: string }> }>;
   variants: Array<{
     id: string;
     published: boolean;
@@ -238,7 +238,6 @@ export async function loadHomePageData(homeLang: StorefrontLocale): Promise<Home
       slug: preferredTranslation?.slug || 'products',
       title: preferredTranslation?.title || 'Product',
       subtitle: preferredCategoryTranslation?.title || 'Կատեգորիա',
-      categorySlug: preferredCategoryTranslation?.slug ?? '',
       price: toPositiveNumber(mainVariant?.price),
       oldPrice: toPositiveNumber(mainVariant?.compareAtPrice),
       image: resolveStorefrontProductImageFromMedia(product.media),
@@ -302,7 +301,7 @@ const getHomePageDataCached = unstable_cache(
 );
 
 /**
- * Home page payload with per-locale Data Cache (60s TTL, invalidated via `HOME_PAGE_CACHE_TAG`).
+ * Home page payload with per-locale Data Cache (24h TTL, invalidated via `HOME_PAGE_CACHE_TAG`).
  */
 export function getHomePageData(homeLang: StorefrontLocale): Promise<HomePageData> {
   return getHomePageDataCached(homeLang);

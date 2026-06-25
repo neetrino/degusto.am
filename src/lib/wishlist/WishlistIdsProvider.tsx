@@ -11,13 +11,13 @@ import {
   type ReactNode,
 } from 'react';
 import { useAuth } from '../auth/AuthContext';
-import { fetchWishlistIds } from '../wishlist-api';
+import { fetchWishlistIds, invalidateWishlistIdsCache } from '../wishlist-api';
 
 type WishlistIdsContextValue = {
-  wishlistIds: string[];
   isInWishlist: (productId: string) => boolean;
   setProductInWishlist: (productId: string, inWishlist: boolean) => void;
   wishlistCount: number;
+  wishlistProductIds: string[];
 };
 
 const WishlistIdsContext = createContext<WishlistIdsContextValue | null>(null);
@@ -47,19 +47,20 @@ export function WishlistIdsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     void refreshWishlistIds();
 
+    const handleWishlistUpdated = () => {
+      invalidateWishlistIdsCache();
+      void refreshWishlistIds();
+    };
     const handleAuthUpdated = () => {
       void refreshWishlistIds();
     };
-    const handleWishlistReconcile = () => {
-      void refreshWishlistIds();
-    };
 
+    window.addEventListener('wishlist-updated', handleWishlistUpdated);
     window.addEventListener('auth-updated', handleAuthUpdated);
-    window.addEventListener('wishlist-updated', handleWishlistReconcile);
 
     return () => {
+      window.removeEventListener('wishlist-updated', handleWishlistUpdated);
       window.removeEventListener('auth-updated', handleAuthUpdated);
-      window.removeEventListener('wishlist-updated', handleWishlistReconcile);
     };
   }, [refreshWishlistIds]);
 
@@ -77,10 +78,10 @@ export function WishlistIdsProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<WishlistIdsContextValue>(
     () => ({
-      wishlistIds: Array.from(wishlistIds),
       isInWishlist: (productId: string) => wishlistIds.has(productId),
       setProductInWishlist,
       wishlistCount: wishlistIds.size,
+      wishlistProductIds: Array.from(wishlistIds),
     }),
     [setProductInWishlist, wishlistIds]
   );

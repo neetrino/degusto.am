@@ -3,7 +3,7 @@ import { apiClient } from '../../../../lib/api-client';
 import { logger } from '../../../../lib/utils/logger';
 import { showToast } from '../../../../components/Toast';
 import { useTranslation } from '../../../../lib/i18n-client';
-import type { Category, CategoryDetails, CategoryFormData } from '../types';
+import type { Category, CategoryFormData } from '../types';
 import type { FetchCategoriesFn } from './useCategories';
 
 interface UseCategoryActionsReturn {
@@ -30,36 +30,13 @@ interface UseCategoryActionsReturn {
 }
 
 const initialFormData: CategoryFormData = {
-  titleHy: '',
-  titleEn: '',
-  titleRu: '',
+  title: '',
+  parentId: '',
   requiresSizes: false,
+  subcategoryIds: [],
   imageUrl: '',
   published: 'published',
 };
-
-type SupportedLocale = 'hy' | 'en' | 'ru';
-
-function getLocaleTitles(formData: CategoryFormData): Record<SupportedLocale, string> {
-  return {
-    hy: formData.titleHy.trim(),
-    en: formData.titleEn.trim(),
-    ru: formData.titleRu.trim(),
-  };
-}
-
-function getPrimaryLocaleTitle(localeTitles: Record<SupportedLocale, string>): { locale: SupportedLocale; title: string } | null {
-  if (localeTitles.hy) {
-    return { locale: 'hy', title: localeTitles.hy };
-  }
-  if (localeTitles.en) {
-    return { locale: 'en', title: localeTitles.en };
-  }
-  if (localeTitles.ru) {
-    return { locale: 'ru', title: localeTitles.ru };
-  }
-  return null;
-}
 
 /**
  * Hook for category CRUD operations
@@ -88,38 +65,21 @@ export function useCategoryActions(): UseCategoryActionsReturn {
   };
 
   const handleAddCategory = async (fetchCategories: FetchCategoriesFn) => {
-    const localeTitles = getLocaleTitles(formData);
-    const primaryTranslation = getPrimaryLocaleTitle(localeTitles);
-
-    if (!primaryTranslation) {
+    if (!formData.title.trim()) {
       showToast(t('admin.categories.titleRequired'), 'warning');
       return;
     }
 
     setSaving(true);
     try {
-      const createResponse = await apiClient.post<{ data: { id: string } }>('/api/v1/admin/categories', {
-        title: primaryTranslation.title,
+      await apiClient.post('/api/v1/admin/categories', {
+        title: formData.title.trim(),
+        parentId: formData.parentId || undefined,
         requiresSizes: formData.requiresSizes,
         imageUrl: formData.imageUrl.trim() || undefined,
         published: formData.published === 'published',
-        locale: primaryTranslation.locale,
+        locale: 'en',
       });
-
-      const createdCategoryId = createResponse.data?.id;
-      if (createdCategoryId) {
-        await Promise.all(
-          (Object.keys(localeTitles) as SupportedLocale[])
-            .filter((locale) => locale !== primaryTranslation.locale && localeTitles[locale].length > 0)
-            .map((locale) =>
-              apiClient.put(`/api/v1/admin/categories/${createdCategoryId}`, {
-                locale,
-                title: localeTitles[locale],
-              }),
-            ),
-        );
-      }
-
       setShowAddModal(false);
       resetForm();
       await fetchCategories({ silent: true });
@@ -141,25 +101,24 @@ export function useCategoryActions(): UseCategoryActionsReturn {
     setEditingCategory(category);
     
     try {
-      const response = await apiClient.get<{ data: CategoryDetails }>(`/api/v1/admin/categories/${category.id}`);
+      const response = await apiClient.get<{ data: Category }>(`/api/v1/admin/categories/${category.id}`);
       const categoryWithChildren = response.data;
-      const translations = categoryWithChildren.translations || {};
       
       setFormData({
-        titleHy: translations.hy || '',
-        titleEn: translations.en || '',
-        titleRu: translations.ru || '',
+        title: category.title,
+        parentId: category.parentId || '',
         requiresSizes: category.requiresSizes || false,
+        subcategoryIds: categoryWithChildren.children?.map(child => child.id) || [],
         imageUrl: category.imageUrl || '',
         published: category.published ? 'published' : 'draft',
       });
     } catch (err: unknown) {
       logger.error('Error fetching category children', { error: err });
       setFormData({
-        titleHy: category.title,
-        titleEn: '',
-        titleRu: '',
+        title: category.title,
+        parentId: category.parentId || '',
         requiresSizes: category.requiresSizes || false,
+        subcategoryIds: [],
         imageUrl: category.imageUrl || '',
         published: category.published ? 'published' : 'draft',
       });
@@ -169,35 +128,27 @@ export function useCategoryActions(): UseCategoryActionsReturn {
   };
 
   const handleUpdateCategory = async (fetchCategories: FetchCategoriesFn) => {
-    const localeTitles = getLocaleTitles(formData);
-    const primaryTranslation = getPrimaryLocaleTitle(localeTitles);
-
-    if (!editingCategory || !primaryTranslation) {
+    if (!editingCategory || !formData.title.trim()) {
       showToast(t('admin.categories.titleRequired'), 'warning');
       return;
     }
 
     setSaving(true);
     try {
+      const normalizedParentId = formData.parentId || null;
+      const sanitizedSubcategoryIds = normalizedParentId
+        ? []
+        : Array.from(new Set(formData.subcategoryIds)).filter((subcategoryId) => subcategoryId !== editingCategory.id);
+
       await apiClient.put(`/api/v1/admin/categories/${editingCategory.id}`, {
-        title: primaryTranslation.title,
+        title: formData.title.trim(),
+        parentId: normalizedParentId,
         requiresSizes: formData.requiresSizes,
+        subcategoryIds: sanitizedSubcategoryIds,
         imageUrl: formData.imageUrl.trim() || null,
         published: formData.published === 'published',
-        locale: primaryTranslation.locale,
+        locale: 'en',
       });
-
-      await Promise.all(
-        (Object.keys(localeTitles) as SupportedLocale[])
-          .filter((locale) => locale !== primaryTranslation.locale && localeTitles[locale].length > 0)
-          .map((locale) =>
-            apiClient.put(`/api/v1/admin/categories/${editingCategory.id}`, {
-              locale,
-              title: localeTitles[locale],
-            }),
-          ),
-      );
-
       setShowEditModal(false);
       setEditingCategory(null);
       resetForm();

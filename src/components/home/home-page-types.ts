@@ -3,7 +3,6 @@ export type HomeFeaturedProduct = {
   slug: string;
   title: string;
   subtitle: string;
-  categorySlug?: string;
   price: number | null;
   oldPrice: number | null;
   image: string | null;

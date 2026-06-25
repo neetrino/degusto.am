@@ -1,6 +1,5 @@
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { resolveStorefrontLocaleFromCookie } from '@/lib/i18n/locale';
+import { PRIMARY_LOCALE } from '@/lib/i18n/locale';
 import { ProductPageContent } from './ProductPageContent';
 import { parseProductSlugParam } from './parse-product-slug-param';
 import { RESERVED_ROUTES } from './types';
@@ -8,6 +7,9 @@ import { RESERVED_ROUTES } from './types';
 type PageProps = {
   params: Promise<{ slug: string }>;
 };
+
+/** Keep in sync with `STOREFRONT_ISR_REVALIDATE_SECONDS` in `@/constants/storefront-isr`. */
+export const revalidate = 86_400;
 
 export default async function ProductPage({ params }: PageProps) {
   const { slug: rawSlug } = await params;
@@ -17,16 +19,11 @@ export default async function ProductPage({ params }: PageProps) {
     redirect(`/${slug}`);
   }
 
-  const cookieStore = await cookies();
-  const serverLocale = resolveStorefrontLocaleFromCookie(
-    cookieStore.get('shop_language')?.value
-  );
-
   return (
     <ProductPageContent
       slug={slug}
       variantIdFromUrl={variantIdFromUrl}
-      serverLocale={serverLocale}
+      serverLocale={PRIMARY_LOCALE}
     />
   );
 }

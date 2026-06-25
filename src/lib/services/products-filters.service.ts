@@ -4,90 +4,28 @@ import { adminService } from "./admin.service";
 import { ProductWithRelations } from "./products-find-query.service";
 
 class ProductsFiltersService {
-  private buildLocaleFallbackChain(lang?: string): string[] {
-    const requested = typeof lang === "string" ? lang.trim() : "";
-    if (!requested || requested === "en") {
-      return ["en"];
-    }
-    return [requested, "en"];
-  }
-
-  private getAttributeOptionSelectForFilters(locales: string[]) {
-    return {
-      price: true,
-      options: {
-        select: {
-          attributeKey: true,
-          key: true,
-          attribute: true,
-          value: true,
-          label: true,
-          attributeValue: {
-            select: {
-              value: true,
-              imageUrl: true,
-              colors: true,
-              attribute: {
-                select: {
-                  key: true,
-                },
-              },
-              translations: {
-                where: {
-                  locale: {
-                    in: locales,
-                  },
-                },
-                select: {
-                  locale: true,
-                  label: true,
-                },
-              },
-            },
-          },
-        },
-      },
-    } as const;
-  }
-
-  private getProductAttributesSelectForFilters(locales: string[]) {
-    return {
-      productAttributes: {
-        select: {
-          attribute: {
-            select: {
-              key: true,
-              values: {
-                select: {
-                  value: true,
-                  imageUrl: true,
-                  colors: true,
-                  translations: {
-                    where: {
-                      locale: {
-                        in: locales,
-                      },
-                    },
-                    select: {
-                      locale: true,
-                      label: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    } as const;
-  }
-
   /**
-   * Subcategories are disabled in this project; keep filters flat.
+   * Get all child category IDs recursively
    */
   private async getAllChildCategoryIds(parentId: string): Promise<string[]> {
-    void parentId;
-    return [];
+    const children = await db.category.findMany({
+      where: {
+        parentId: parentId,
+        published: true,
+        deletedAt: null,
+      },
+      select: { id: true },
+    });
+    
+    let allChildIds = children.map((c: { id: string }) => c.id);
+    
+    // Recursively get children of children
+    for (const child of children) {
+      const grandChildren = await this.getAllChildCategoryIds(child.id);
+      allChildIds = [...allChildIds, ...grandChildren];
+    }
+    
+    return allChildIds;
   }
 
   /**
@@ -101,7 +39,6 @@ class ProductsFiltersService {
     lang?: string;
   }) {
     try {
-      const locales = this.buildLocaleFallbackChain(filters.lang);
       const where: Prisma.ProductWhereInput = {
         published: true,
         deletedAt: null,
@@ -195,14 +132,37 @@ class ProductsFiltersService {
         products = (await db.product.findMany({
           where,
           take: FILTERS_PRODUCTS_LIMIT,
-          select: {
+          include: {
             variants: {
               where: {
                 published: true,
               },
-              select: this.getAttributeOptionSelectForFilters(locales),
+              include: {
+                options: {
+                  include: {
+                    attributeValue: {
+                      include: {
+                        attribute: true,
+                        translations: true,
+                      },
+                    },
+                  },
+                },
+              },
             },
-            ...this.getProductAttributesSelectForFilters(locales),
+            productAttributes: {
+              include: {
+                attribute: {
+                  include: {
+                    values: {
+                      include: {
+                        translations: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
           },
         })) as unknown as ProductWithRelations[];
       } catch (dbError) {

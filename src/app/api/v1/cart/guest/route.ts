@@ -10,11 +10,6 @@ import {
 import { sumLineCustomizationPriceAdjustment } from "@/lib/cart/attribute-price-adjustment";
 import { computeLineUnitPriceUsd } from "@/lib/cart/line-unit-price";
 import { cartVariantDisplayLinesFromPrismaOptions } from "@/lib/cart/cart-variant-display-lines";
-import { toCartApiStableResponse } from "@/lib/cart/cart-api-response";
-import {
-  createCartRequestSequenceId,
-  logCartApiDiagnostic,
-} from "@/lib/cart/cart-api-observability";
 
 interface GuestCartItemInput {
   lineId?: string;
@@ -64,6 +59,23 @@ interface GuestCartLine {
   price: number;
   originalPrice: number | null;
   total: number;
+}
+
+interface GuestCartResponse {
+  cart: {
+    id: string;
+    items: GuestCartLine[];
+    totals: {
+      subtotal: number;
+      discount: number;
+      shipping: number;
+      tax: number;
+      total: number;
+      currency: string;
+    };
+    itemsCount: number;
+  } | null;
+  normalizedItems: GuestCartItemInput[];
 }
 
 function pickFirstImage(media: unknown): string | null {
@@ -118,27 +130,17 @@ function sanitizeItems(items: GuestCartItemInput[] | undefined): GuestCartItemIn
 }
 
 export async function POST(req: NextRequest) {
-  const startedAt = Date.now();
-  const requestSequenceId = createCartRequestSequenceId(req);
-  let hasCartId = false;
   try {
     const body = (await req.json()) as GuestCartRequestBody;
     const items = sanitizeItems(body.items);
     const lang = resolveStorefrontLocale(body.lang);
 
     if (items.length === 0) {
-      const response = NextResponse.json(toCartApiStableResponse(null));
-      logCartApiDiagnostic({
-        request: req,
-        operation: "read",
-        startedAt,
-        status: response.status,
-        hasCartId,
-        hasUser: false,
-        hasSession: false,
-        requestSequenceId,
-      });
-      return response;
+      const empty: GuestCartResponse = {
+        cart: null,
+        normalizedItems: [],
+      };
+      return NextResponse.json(empty);
     }
 
     const uniqueProductIds = Array.from(new Set(items.map((item) => item.productId)));
@@ -198,6 +200,7 @@ export async function POST(req: NextRequest) {
     });
 
     const productMap = new Map(products.map((product) => [product.id, product]));
+    const normalizedItems: GuestCartItemInput[] = [];
     const cartItems: GuestCartLine[] = [];
 
     for (const item of items) {
@@ -237,6 +240,16 @@ export async function POST(req: NextRequest) {
           ? computeLineUnitPriceUsd(selectedVariant.compareAtPrice, adj)
           : null;
 
+      normalizedItems.push({
+        lineId: item.lineId || buildCustomizationLineKey(selectedVariant.id, item.customizations),
+        productId: item.productId,
+        productSlug: productSlug || undefined,
+        variantId: selectedVariant.id,
+        quantity: item.quantity,
+        price: unitPrice,
+        customizations: item.customizations,
+      });
+
       cartItems.push({
         id: `${item.productId}:${item.lineId || buildCustomizationLineKey(selectedVariant.id, item.customizations)}`,
         variant: {
@@ -271,27 +284,19 @@ export async function POST(req: NextRequest) {
     }
 
     if (cartItems.length === 0) {
-      const response = NextResponse.json(toCartApiStableResponse(null));
-      logCartApiDiagnostic({
-        request: req,
-        operation: "read",
-        startedAt,
-        status: response.status,
-        hasCartId,
-        hasUser: false,
-        hasSession: false,
-        requestSequenceId,
-      });
-      return response;
+      const empty: GuestCartResponse = {
+        cart: null,
+        normalizedItems: [],
+      };
+      return NextResponse.json(empty);
     }
 
     const subtotal = cartItems.reduce((sum, item) => sum + item.total, 0);
     const itemsCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
-    const response = {
+    const response: GuestCartResponse = {
       cart: {
         id: "guest-cart",
-        updatedAt: new Date(),
         items: cartItems,
         totals: {
           subtotal,
@@ -303,37 +308,12 @@ export async function POST(req: NextRequest) {
         },
         itemsCount,
       },
+      normalizedItems,
     };
 
-    const apiResponse = NextResponse.json(toCartApiStableResponse(response.cart));
-    hasCartId = true;
-    logCartApiDiagnostic({
-      request: req,
-      operation: "read",
-      startedAt,
-      status: apiResponse.status,
-      hasCartId,
-      hasUser: false,
-      hasSession: false,
-      requestSequenceId,
-    });
-    return apiResponse;
+    return NextResponse.json(response);
   } catch (error: unknown) {
-    const response = apiRouteCatchErrorResponse(req, error, "[CART][GUEST] POST", {
-      suppressLogging: true,
-    });
-    logCartApiDiagnostic({
-      request: req,
-      operation: "read",
-      startedAt,
-      status: response.status,
-      hasCartId,
-      hasUser: false,
-      hasSession: false,
-      requestSequenceId,
-      error,
-    });
-    return response;
+    return apiRouteCatchErrorResponse(req, error, "[CART][GUEST] POST");
   }
 }
 

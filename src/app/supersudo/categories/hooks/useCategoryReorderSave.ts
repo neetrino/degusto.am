@@ -8,11 +8,12 @@ import { useTranslation } from '../../../../lib/i18n-client';
 const REORDER_SAVE_DEBOUNCE_MS = 300;
 
 interface ReorderPayload {
+  parentId: string | null;
   orderedIds: string[];
 }
 
 interface UseCategoryReorderSaveProps {
-  onReorderApplied: (orderedIds: string[]) => void;
+  onReorderApplied: (parentId: string | null, orderedIds: string[]) => void;
   onReorderFailed: () => Promise<void>;
 }
 
@@ -41,6 +42,7 @@ export function useCategoryReorderSave({
 
         try {
           await apiClient.patch('/api/v1/admin/categories/reorder', {
+            parentId: payload.parentId,
             orderedIds: payload.orderedIds,
           });
         } catch (error: unknown) {
@@ -59,9 +61,9 @@ export function useCategoryReorderSave({
   }, [onReorderFailed, t]);
 
   const scheduleReorderSave = useCallback(
-    (orderedIds: string[]) => {
-      onReorderApplied(orderedIds);
-      latestPayloadRef.current = { orderedIds };
+    (parentId: string | null, orderedIds: string[]) => {
+      onReorderApplied(parentId, orderedIds);
+      latestPayloadRef.current = { parentId, orderedIds };
 
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);

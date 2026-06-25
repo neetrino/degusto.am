@@ -1,8 +1,9 @@
 'use client';
 
 import { Minus, Plus } from 'lucide-react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useMemo, type MouseEvent } from 'react';
+import type { MouseEvent } from 'react';
 import { useWishlist } from '../../../components/hooks/useWishlist';
 import { useAuth } from '../../../lib/auth/AuthContext';
 import { montserratArmFont } from '../../../fonts/montserrat-arm-font';
@@ -10,6 +11,7 @@ import { formatPriceInCurrency, type CurrencyCode } from '../../../lib/currency'
 import { t, getProductText } from '../../../lib/i18n';
 import type { LanguageCode } from '../../../lib/language';
 import { sanitizeHtml } from '../../../lib/utils/sanitize';
+import { buildWishlistSnapshotFromPdp } from '@/lib/wishlist/wishlist-product-snapshot';
 import { PdpActionHeartIcon } from './PdpActionHeartIcon';
 import { PdpAnimatedPrice } from './PdpAnimatedPrice';
 import { PdpCustomizationPills } from './PdpCustomizationPills';
@@ -29,8 +31,6 @@ import {
   PDP_ACTIONS_ROW_CLASS,
   PDP_ACTIONS_MOBILE_TOP_ROW_CLASS,
 } from '@/constants/pdp-figma-tokens';
-import { pdpProductToWishlistSnapshot } from '@/lib/wishlist/wishlist-product-snapshot-mappers';
-import { resolveStorefrontProductImageFromMedia } from '@/constants/storefront-product-image';
 import type { Product, ProductVariant, AttributeGroupValue, VariantOption } from './types';
 
 interface ProductInfoAndActionsProps {
@@ -105,18 +105,6 @@ export function ProductInfoAndActions({
   const router = useRouter();
   const { isLoggedIn } = useAuth();
   const { isInWishlist, toggleWishlist } = useWishlist(product.id);
-  const localizedTitle = useMemo(
-    () => getProductText(language, product.id, 'title') || product.title,
-    [language, product.id, product.title]
-  );
-  const localizedDescription = useMemo(
-    () => getProductText(language, product.id, 'longDescription') || product.description || '',
-    [language, product.id, product.description]
-  );
-  const sanitizedDescription = useMemo(
-    () => sanitizeHtml(localizedDescription),
-    [localizedDescription]
-  );
 
   const handleWishlistToggle = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -125,16 +113,10 @@ export function ProductInfoAndActions({
       return;
     }
     void toggleWishlist(
-      pdpProductToWishlistSnapshot({
-        id: product.id,
-        slug: product.slug,
-        title: localizedTitle,
+      buildWishlistSnapshotFromPdp(product, {
         price,
         originalPrice,
         compareAtPrice,
-        discountPercent:
-          product.productDiscount ?? product.globalDiscount ?? currentVariant?.productDiscount ?? null,
-        image: resolveStorefrontProductImageFromMedia(product.media),
         inStock: !isOutOfStock,
       })
     );
@@ -154,7 +136,7 @@ export function ProductInfoAndActions({
     <div className="flex w-full max-w-full flex-col self-start max-lg:px-0 max-lg:py-0 lg:h-full lg:min-h-0 lg:justify-between lg:self-stretch lg:px-0 lg:py-0">
       <div>
           <h1 className={`${PDP_TITLE_CLASS} ${montserratArmFont.className}`}>
-            {localizedTitle}
+            {getProductText(language, product.id, 'title') || product.title}
           </h1>
           <ProductRatingSummary
             averageRating={averageRating}
@@ -176,7 +158,9 @@ export function ProductInfoAndActions({
             <div
               className={PDP_DESCRIPTION_CLASS}
               dangerouslySetInnerHTML={{
-                __html: sanitizedDescription,
+                __html: sanitizeHtml(
+                  getProductText(language, product.id, 'longDescription') || product.description || ''
+                ),
               }}
             />
           ) : (

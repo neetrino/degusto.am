@@ -61,7 +61,7 @@ export function OrderDetailsTopSummary({ orderDetails, currency }: OrderDetailsT
         const subtotalAmd = convertPrice(totals.subtotal, 'USD', 'AMD');
         const discountAmd = convertPrice(totals.discount, 'USD', 'AMD');
         const bagFeeAmd = totals.bagFee ?? 0;
-        const deliveryAmd = totals.shipping;
+        const deliveryAmd = Math.max(0, totals.shipping - bagFeeAmd);
         const totalAmd = subtotalAmd - discountAmd + deliveryAmd + bagFeeAmd;
         const value = currency === 'AMD' ? totalAmd : convertPrice(totalAmd, 'AMD', currency as CurrencyCode);
         return formatPriceInCurrency(value, currency as CurrencyCode);

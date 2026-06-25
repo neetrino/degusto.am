@@ -3,7 +3,6 @@ import { Button, Card } from '@shop/ui';
 import { formatPriceInCurrency, convertPrice, type CurrencyCode } from '../../lib/currency';
 import { getStatusColor, getPaymentStatusColor } from './utils';
 import { formatOrderStatusLabel } from '../../lib/order-status-labels';
-import { formatHydrationSafeDate } from '../../lib/format-date';
 import type { DashboardData, ProfileTab } from './types';
 
 interface ProfileDashboardProps {
@@ -175,7 +174,7 @@ export function ProfileDashboard({
                       </div>
                       <p className="text-xs text-gray-600 sm:text-sm">
                         {order.itemsCount} {order.itemsCount !== 1 ? t('profile.orders.items') : t('profile.orders.item')} • {t('profile.dashboard.placedOn')}{' '}
-                        {formatHydrationSafeDate(order.createdAt)}
+                        {new Date(order.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                     <div className="flex flex-row items-end justify-between gap-3 border-t border-[#F66812]/15 pt-3 sm:items-center lg:flex-col lg:items-end lg:border-0 lg:pt-0">

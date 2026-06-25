@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@shop/ui';
 import { useAuth } from '../../../lib/auth/AuthContext';
 import { apiClient } from '../../../lib/api-client';
+import { fetchWithInflightKey } from '@/lib/admin/inflight-get-cache';
 import { useTranslation } from '../../../lib/i18n-client';
 import { getStoredCurrency, initializeCurrencyRates, type CurrencyCode } from '../../../lib/currency';
 import { ProductBulkSelectionBar } from './components/ProductBulkSelectionBar';
@@ -16,20 +17,6 @@ import { aggregateStockValues, hasSellableStock } from '@/lib/product-stock';
 import { EMPTY_DAILY_OFFER_SELECTION, type DailyOfferSelection } from '@/lib/services/daily-offer/daily-offer.types';
 import { logger } from "@/lib/utils/logger";
 
-type ProductSortField = 'price' | 'createdAt' | 'title' | 'stock';
-
-const SORT_TOGGLE_CONFIG: Record<ProductSortField, { asc: string; desc: string }> = {
-  price: { asc: 'price-asc', desc: 'price-desc' },
-  createdAt: { asc: 'createdAt-asc', desc: 'createdAt-desc' },
-  title: { asc: 'title-asc', desc: 'title-desc' },
-  stock: { asc: 'stock-asc', desc: 'stock-desc' },
-};
-
-const getNextSortValue = (field: ProductSortField, current: string): string => {
-  const config = SORT_TOGGLE_CONFIG[field];
-  return current === config.asc ? config.desc : config.asc;
-};
-
 export default function ProductsPage() {
   const { t } = useTranslation();
   const { isLoggedIn, isAdmin, isLoading } = useAuth();
@@ -37,13 +24,11 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [categoriesExpanded, setCategoriesExpanded] = useState(false);
   const [skuSearch, setSkuSearch] = useState('');
-  const [debouncedSkuSearch, setDebouncedSkuSearch] = useState('');
   const [stockFilter, setStockFilter] = useState<'all' | 'inStock' | 'outOfStock'>('all');
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState<ProductsResponse['meta'] | null>(null);
@@ -57,8 +42,6 @@ export default function ProductsPage() {
     EMPTY_DAILY_OFFER_SELECTION
   );
   const [currency, setCurrency] = useState<CurrencyCode>('USD');
-  const productsAbortRef = useRef<AbortController | null>(null);
-  const productsRequestGenerationRef = useRef(0);
 
   useEffect(() => {
     if (!isLoading) {
@@ -68,31 +51,6 @@ export default function ProductsPage() {
       }
     }
   }, [isLoggedIn, isAdmin, isLoading, router]);
-
-  useEffect(() => {
-    return () => {
-      productsAbortRef.current?.abort();
-      productsAbortRef.current = null;
-    };
-  }, []);
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      setDebouncedSearch(search);
-    }, 250);
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [search]);
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      setDebouncedSkuSearch(skuSearch);
-    }, 250);
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [skuSearch]);
 
   // Initialize currency rates and listen for currency changes
   useEffect(() => {
@@ -124,12 +82,110 @@ export default function ProductsPage() {
     }
   }, []);
 
-  // Fetch categories on mount
+  const fetchCategories = useCallback(async () => {
+    try {
+      setCategoriesLoading(true);
+      logger.debug('📂 [ADMIN] Fetching categories...');
+      const response = await fetchWithInflightKey('admin-categories', () =>
+        apiClient.get<{ data: Category[] }>('/api/v1/admin/categories'),
+      );
+      setCategories(response.data || []);
+      logger.debug('✅ [ADMIN] Categories loaded:', response.data?.length || 0);
+    } catch (err: unknown) {
+      console.error('❌ [ADMIN] Error fetching categories:', err);
+      setCategories([]);
+    } finally {
+      setCategoriesLoading(false);
+    }
+  }, []);
+
+  /** Only `createdAt-*` is applied on the server; other sorts are client-only (avoids refetch on every header click). */
+  const categoryFilterKey = [...selectedCategories].sort().join(',');
+
+  const fetchProducts = useCallback(async () => {
+    try {
+      setLoading(true);
+      const params: Record<string, string> = {
+        page: page.toString(),
+        limit: '20',
+      };
+
+      if (search.trim()) {
+        params.search = search.trim();
+      }
+
+      if (selectedCategories.size > 0) {
+        params.category = Array.from(selectedCategories).join(',');
+      }
+
+      if (skuSearch.trim()) {
+        params.sku = skuSearch.trim();
+      }
+
+      if (minPrice.trim()) {
+        params.minPrice = minPrice.trim();
+      }
+
+      if (maxPrice.trim()) {
+        params.maxPrice = maxPrice.trim();
+      }
+
+      if (sortBy && sortBy.startsWith('createdAt')) {
+        params.sort = sortBy;
+      }
+
+      const requestKey = `admin-products:${JSON.stringify(params)}`;
+      const response = await fetchWithInflightKey(requestKey, () =>
+        apiClient.get<ProductsResponse>('/api/v1/admin/products', { params }),
+      );
+
+      let filteredProducts = response.data || [];
+
+      // Stock filter (client-side)
+      if (stockFilter !== 'all') {
+        filteredProducts = filteredProducts.filter(product => {
+          const getTotalStock = (p: Product) => {
+            if (p.colorStocks && p.colorStocks.length > 0) {
+              return aggregateStockValues(p.colorStocks.map((cs) => cs.stock || 0));
+            }
+            return p.stock ?? 0;
+          };
+          const totalStock = getTotalStock(product);
+          if (stockFilter === 'inStock') {
+            return hasSellableStock(totalStock);
+          } else if (stockFilter === 'outOfStock') {
+            return !hasSellableStock(totalStock);
+          }
+          return true;
+        });
+      }
+
+      setProducts(filteredProducts);
+      setMeta(response.meta || null);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : t('admin.common.unknownErrorFallback');
+      console.error('❌ [ADMIN] Error fetching products:', err);
+      alert(t('admin.products.errorLoading').replace('{message}', message));
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    page,
+    search,
+    categoryFilterKey,
+    skuSearch,
+    stockFilter,
+    sortBy,
+    minPrice,
+    maxPrice,
+    t,
+  ]);
+
   useEffect(() => {
     if (isLoggedIn && isAdmin) {
-      fetchCategories();
+      void fetchCategories();
     }
-  }, [isLoggedIn, isAdmin]);
+  }, [isLoggedIn, isAdmin, fetchCategories]);
 
   useEffect(() => {
     if (!isLoggedIn || !isAdmin) {
@@ -161,133 +217,11 @@ export default function ProductsPage() {
     }
   }, [categoriesExpanded]);
 
-  const fetchCategories = async () => {
-    try {
-      setCategoriesLoading(true);
-      logger.debug('📂 [ADMIN] Fetching categories...');
-      const response = await apiClient.get<{ data: Category[] }>('/api/v1/admin/categories');
-      setCategories(response.data || []);
-      logger.debug('✅ [ADMIN] Categories loaded:', response.data?.length || 0);
-    } catch (err: any) {
-      console.error('❌ [ADMIN] Error fetching categories:', err);
-      setCategories([]);
-    } finally {
-      setCategoriesLoading(false);
-    }
-  };
-
-  /** Only `createdAt-*` is applied on the server; other sorts are client-only (avoids refetch on every header click). */
-  const sortParamForApi = sortBy.startsWith('createdAt') ? sortBy : '';
-  const categoryFilterKey = [...selectedCategories].sort().join(',');
-
   useEffect(() => {
     if (isLoggedIn && isAdmin) {
       void fetchProducts();
     }
-  }, [
-    isLoggedIn,
-    isAdmin,
-    page,
-    debouncedSearch,
-    categoryFilterKey,
-    debouncedSkuSearch,
-    stockFilter,
-    sortParamForApi,
-    minPrice,
-    maxPrice,
-  ]);
-
-  const fetchProducts = async () => {
-    let requestGeneration = 0;
-    try {
-      setLoading(true);
-      const params: Record<string, string> = {
-        page: page.toString(),
-        limit: '20',
-      };
-      
-      if (debouncedSearch.trim()) {
-        params.search = debouncedSearch.trim();
-      }
-
-      if (selectedCategories.size > 0) {
-        params.category = Array.from(selectedCategories).join(',');
-      }
-
-      if (debouncedSkuSearch.trim()) {
-        params.sku = debouncedSkuSearch.trim();
-      }
-
-      if (minPrice.trim()) {
-        params.minPrice = minPrice.trim();
-      }
-
-      if (maxPrice.trim()) {
-        params.maxPrice = maxPrice.trim();
-      }
-
-      if (sortBy && sortBy.startsWith('createdAt')) {
-        params.sort = sortBy;
-      }
-
-      productsAbortRef.current?.abort();
-      requestGeneration = ++productsRequestGenerationRef.current;
-      const abortController = new AbortController();
-      productsAbortRef.current = abortController;
-
-      const response = await apiClient.get<ProductsResponse>('/api/v1/admin/products', {
-        params,
-        signal: abortController.signal,
-      });
-
-      if (requestGeneration !== productsRequestGenerationRef.current) {
-        return;
-      }
-      
-      let filteredProducts = response.data || [];
-
-      // Stock filter (client-side)
-      if (stockFilter !== 'all') {
-        filteredProducts = filteredProducts.filter(product => {
-          const getTotalStock = (p: Product) => {
-            if (p.colorStocks && p.colorStocks.length > 0) {
-              return aggregateStockValues(p.colorStocks.map((cs) => cs.stock || 0));
-            }
-            return p.stock ?? 0;
-          };
-          const totalStock = getTotalStock(product);
-          if (stockFilter === 'inStock') {
-            return hasSellableStock(totalStock);
-          } else if (stockFilter === 'outOfStock') {
-            return !hasSellableStock(totalStock);
-          }
-          return true;
-        });
-      }
-
-      setProducts(filteredProducts);
-      setMeta(response.meta || null);
-    } catch (err: unknown) {
-      const isAbortError =
-        err instanceof DOMException
-          ? err.name === 'AbortError'
-          : err instanceof Error && err.name === 'AbortError';
-      if (isAbortError) {
-        return;
-      }
-      const errorMessage =
-        err instanceof Error ? err.message : t('admin.common.unknownErrorFallback');
-      console.error('❌ [ADMIN] Error fetching products:', err);
-      alert(t('admin.products.errorLoading').replace('{message}', errorMessage));
-    } finally {
-      if (
-        requestGeneration === 0 ||
-        requestGeneration === productsRequestGenerationRef.current
-      ) {
-        setLoading(false);
-      }
-    }
-  };
+  }, [isLoggedIn, isAdmin, fetchProducts]);
 
   // Client-side sorting for Product / Price / Stock columns
   const sortedProducts = useMemo(() => {
@@ -355,11 +289,44 @@ export default function ProductsPage() {
     };
   }, [meta?.total, sortedProducts]);
 
-  const handleHeaderSort = (field: ProductSortField) => {
+  const handleHeaderSort = (field: 'price' | 'createdAt' | 'title' | 'stock') => {
     setPage(1);
 
     setSortBy((current) => {
-      const next = getNextSortValue(field, current);
+      let next = current;
+
+      if (field === 'price') {
+        if (current === 'price-asc') {
+          next = 'price-desc';
+        } else {
+          next = 'price-asc';
+        }
+      }
+
+      if (field === 'createdAt') {
+        if (current === 'createdAt-asc') {
+          next = 'createdAt-desc';
+        } else {
+          next = 'createdAt-asc';
+        }
+      }
+
+      if (field === 'title') {
+        if (current === 'title-asc') {
+          next = 'title-desc';
+        } else {
+          next = 'title-asc';
+        }
+      }
+
+      if (field === 'stock') {
+        if (current === 'stock-asc') {
+          next = 'stock-desc';
+        } else {
+          next = 'stock-asc';
+        }
+      }
+
       logger.debug('📊 [ADMIN] Sort changed from', current, 'to', next, 'by header click');
       return next;
     });

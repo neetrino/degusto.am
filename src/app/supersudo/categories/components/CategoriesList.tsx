@@ -17,6 +17,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { useTranslation } from '../../../../lib/i18n-client';
+import { showToast } from '../../../../components/Toast';
 import { buildCategoryTree } from '../utils';
 import { useCategoryReorderSave } from '../hooks/useCategoryReorderSave';
 import { SortableCategoryRow } from './SortableCategoryRow';
@@ -35,8 +36,17 @@ interface CategoriesListProps {
   searchQuery: string;
   onEdit: (category: Category) => void;
   onDelete: (categoryId: string, categoryTitle: string) => void;
-  onReorderApplied: (orderedIds: string[]) => void;
+  onReorderApplied: (parentId: string | null, orderedIds: string[]) => void;
   onReorderFailed: () => Promise<void>;
+}
+
+function getSiblingIds(
+  categories: CategoryWithLevel[],
+  parentId: string | null,
+): string[] {
+  return categories
+    .filter((category) => (category.parentId ?? null) === parentId)
+    .map((category) => category.id);
 }
 
 export function CategoriesList({
@@ -102,7 +112,13 @@ export function CategoriesList({
         return;
       }
 
-      const siblingIds = filteredCategories.map((category) => category.id);
+      const parentId = activeCategory.parentId ?? null;
+      if ((overCategory.parentId ?? null) !== parentId) {
+        showToast(t('admin.categories.reorderSameLevelOnly'), 'warning');
+        return;
+      }
+
+      const siblingIds = getSiblingIds(filteredCategories, parentId);
       const oldIndex = siblingIds.indexOf(activeCategory.id);
       const newIndex = siblingIds.indexOf(overCategory.id);
       if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) {
@@ -110,7 +126,7 @@ export function CategoriesList({
       }
 
       const orderedIds = arrayMove(siblingIds, oldIndex, newIndex);
-      scheduleReorderSave(orderedIds);
+      scheduleReorderSave(parentId, orderedIds);
     },
     [categoryById, dragEnabled, filteredCategories, scheduleReorderSave, t],
   );
@@ -137,7 +153,7 @@ export function CategoriesList({
                 <th className={`${ADMIN_TABLE_TH} w-10`} aria-hidden />
                 <th className={ADMIN_TABLE_TH}>{t('admin.categories.image')}</th>
                 <th className={ADMIN_TABLE_TH}>{t('admin.categories.categoryTitle')}</th>
-                <th className={ADMIN_TABLE_TH_CENTER}>{t('admin.categories.productsCount')}</th>
+                <th className={ADMIN_TABLE_TH}>{t('admin.categories.parentCategory')}</th>
                 <th className={ADMIN_TABLE_TH_CENTER}>{t('admin.products.actions')}</th>
               </tr>
             </thead>
@@ -146,16 +162,23 @@ export function CategoriesList({
               strategy={verticalListSortingStrategy}
             >
               <tbody className={ADMIN_TABLE_TBODY}>
-                {filteredCategories.map((category) => (
-                  <SortableCategoryRow
-                    key={category.id}
-                    category={category}
-                    dragEnabled={dragEnabled}
-                    processImageUrl={processImageUrl}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
-                  />
-                ))}
+                {filteredCategories.map((category) => {
+                  const parentCategory = category.parentId
+                    ? categories.find((item) => item.id === category.parentId)
+                    : null;
+
+                  return (
+                    <SortableCategoryRow
+                      key={category.id}
+                      category={category}
+                      parentTitle={parentCategory ? parentCategory.title : '-'}
+                      dragEnabled={dragEnabled}
+                      processImageUrl={processImageUrl}
+                      onEdit={onEdit}
+                      onDelete={onDelete}
+                    />
+                  );
+                })}
               </tbody>
             </SortableContext>
           </table>

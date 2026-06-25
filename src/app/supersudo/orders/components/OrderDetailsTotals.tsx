@@ -24,14 +24,16 @@ export function OrderDetailsTotals({
   const totalDisplay = (() => {
     const subtotalAmd = convertPrice(orderDetails.totals.subtotal, 'USD', 'AMD');
     const discountAmd = convertPrice(orderDetails.totals.discount, 'USD', 'AMD');
-    const deliveryAmd = orderDetails.totals.shipping;
+    const shippingAmd = orderDetails.totals.shipping;
     const bagFeeAmd = orderDetails.totals.bagFee ?? 0;
+    const deliveryAmd = Math.max(0, shippingAmd - bagFeeAmd);
     const totalAmd = subtotalAmd - discountAmd + deliveryAmd + bagFeeAmd;
     const value = currency === 'AMD' ? totalAmd : convertPrice(totalAmd, 'AMD', currency as CurrencyCode);
     return formatPriceInCurrency(value, currency as CurrencyCode);
   })();
   const bagFeeAmd = orderDetails.totals.bagFee ?? 0;
-  const deliveryAmd = orderDetails.totals.shipping;
+  const shippingAmd = orderDetails.totals.shipping;
+  const deliveryAmd = Math.max(0, shippingAmd - bagFeeAmd);
 
   const shippingLabel =
     orderDetails.shippingMethod === 'pickup'

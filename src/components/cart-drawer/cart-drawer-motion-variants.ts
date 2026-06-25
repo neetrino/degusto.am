@@ -10,9 +10,9 @@ export function cartDrawerPanelTransition(
     return { duration: 0 };
   }
   if (options?.fullScreen) {
-    return { type: 'spring', damping: 30, stiffness: 560, mass: 0.68 };
+    return { duration: 0.34, ease: TEXT_EASE };
   }
-  return { type: 'spring', damping: 34, stiffness: 380, mass: 0.82 };
+  return { duration: 0.3, ease: TEXT_EASE };
 }
 
 export function cartDrawerBackdropTransition(reduceMotion: boolean | null): Transition {
@@ -51,17 +51,13 @@ export function cartDrawerPanelVariants(
   }
 
   return {
-    hidden: { x: '100%', opacity: 0.88, scale: 0.985 },
+    hidden: { x: '100%' },
     visible: {
       x: 0,
-      opacity: 1,
-      scale: 1,
       transition: panelTransition,
     },
     exit: {
       x: '100%',
-      opacity: 0.72,
-      scale: 0.99,
       transition: exitTransition,
     },
   };
@@ -89,7 +85,7 @@ export function cartDrawerBodyStagger(
   reduceMotion: boolean | null,
   options?: { fullScreen?: boolean },
 ): Variants {
-  const delayChildren = reduceMotion ? 0 : options?.fullScreen ? 0.03 : 0.14;
+  const delayChildren = reduceMotion ? 0 : options?.fullScreen ? 0.12 : 0.18;
   const staggerChildren = reduceMotion ? 0 : options?.fullScreen ? 0.025 : 0.075;
 
   return {

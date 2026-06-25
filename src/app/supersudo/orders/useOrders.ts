@@ -4,17 +4,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { apiClient } from '../../../lib/api-client';
 import { useTranslation } from '../../../lib/i18n-client';
-import {
-  formatPriceInCurrency,
-  convertPrice,
-  getStoredCurrency,
-  initializeCurrencyRates,
-  HYDRATION_SAFE_CURRENCY,
-  CurrencyCode,
-} from '../../../lib/currency';
+import { formatPriceInCurrency, convertPrice, getStoredCurrency, initializeCurrencyRates, CurrencyCode } from '../../../lib/currency';
 import { logger } from "@/lib/utils/logger";
 import { useAdminDialogs } from '../context/AdminDialogsContext';
 import { ADMIN_NEW_ORDER_EVENT } from '@/lib/admin/admin-order-alert.constants';
+import { fetchWithInflightKey } from '@/lib/admin/inflight-get-cache';
 
 export interface Order {
   id: string;
@@ -119,7 +113,7 @@ export function useOrders() {
   const searchQuery = searchParams.get('search') ?? '';
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currency, setCurrency] = useState<CurrencyCode>(HYDRATION_SAFE_CURRENCY);
+  const [currency, setCurrency] = useState<CurrencyCode>(getStoredCurrency());
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState<OrdersResponse['meta'] | null>(null);
   const [sortBy, setSortBy] = useState<string>('createdAt');
@@ -134,21 +128,32 @@ export function useOrders() {
   const [loadingOrderDetails, setLoadingOrderDetails] = useState(false);
 
   const fetchOrders = useCallback(async () => {
+    const requestKey = [
+      page,
+      statusFilter,
+      paymentStatusFilter,
+      searchQuery,
+      sortBy,
+      sortOrder,
+    ].join('|');
+
     try {
       setLoading(true);
       logger.debug('📦 [ADMIN] Fetching orders...', { page, statusFilter, paymentStatusFilter, searchQuery, sortBy, sortOrder });
-      
-      const response = await apiClient.get<OrdersResponse>('/api/v1/admin/orders', {
-        params: {
-          page: page.toString(),
-          limit: '20',
-          status: statusFilter || '',
-          paymentStatus: paymentStatusFilter || '',
-          search: searchQuery || '',
-          sortBy: sortBy || '',
-          sortOrder: sortOrder || '',
-        },
-      });
+
+      const response = await fetchWithInflightKey(requestKey, () =>
+        apiClient.get<OrdersResponse>('/api/v1/admin/orders', {
+          params: {
+            page: page.toString(),
+            limit: '20',
+            status: statusFilter || '',
+            paymentStatus: paymentStatusFilter || '',
+            search: searchQuery || '',
+            sortBy: sortBy || '',
+            sortOrder: sortOrder || '',
+          },
+        }),
+      );
 
       logger.debug('✅ [ADMIN] Orders fetched:', response);
       setOrders(response.data || []);

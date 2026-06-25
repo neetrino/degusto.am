@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@shop/ui';
 import { apiClient } from '../../lib/api-client';
-import { getStoredCurrency, HYDRATION_SAFE_CURRENCY } from '../../lib/currency';
+import { getStoredCurrency } from '../../lib/currency';
 import { getStoredLanguage } from '../../lib/language';
 import { useTranslation } from '../../lib/i18n-client';
 import { emitCompareUpdated } from '../../lib/compare-api';
@@ -15,8 +15,6 @@ import { logger } from '../../lib/utils/logger';
 import { CompareProductsTable, type CompareProduct } from './CompareProductsTable';
 import { STOREFRONT_PAGE_CONTAINER_CLASS } from '@/constants/storefront-desktop-layout';
 import { useCompareIdsContext } from '@/lib/compare/CompareIdsProvider';
-import { normalizeCartApiResponse } from '@/lib/cart/cart-client-normalization';
-import { publishCartUpdated } from '@/lib/cart/cart-events';
 
 interface CompareSection {
   sectionKey: string;
@@ -65,7 +63,7 @@ export default function ComparePage() {
   const [products, setProducts] = useState<CompareProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [compareIds, setCompareIds] = useState<string[]>([]);
-  const [currency, setCurrency] = useState(HYDRATION_SAFE_CURRENCY);
+  const [currency, setCurrency] = useState(getStoredCurrency());
   const [addingToCart, setAddingToCart] = useState<Set<string>>(new Set());
   /**
    * Fetch compare products for provided ids and update UI state.
@@ -192,9 +190,7 @@ export default function ComparePage() {
         }>;
       }
 
-      const productDetails = await apiClient.get<ProductDetails>(
-        `/api/v1/products/${encodeURIComponent(product.slug)}/details`
-      );
+      const productDetails = await apiClient.get<ProductDetails>(`/api/v1/products/${product.slug}`);
 
       if (!productDetails.variants || productDetails.variants.length === 0) {
         alert(t('common.alerts.noVariantsAvailable'));
@@ -203,7 +199,7 @@ export default function ComparePage() {
 
       const variantId = productDetails.variants[0].id;
       
-      const response = await apiClient.post<unknown>(
+      await apiClient.post(
         '/api/v1/cart/items',
         {
           productId: product.id,
@@ -211,8 +207,9 @@ export default function ComparePage() {
           quantity: 1,
         }
       );
-      const cart = normalizeCartApiResponse(response);
-      publishCartUpdated(cart.itemsCount, cart.totals.total);
+
+      // Trigger cart update event
+      window.dispatchEvent(new Event('cart-updated'));
     } catch (error: unknown) {
       logger.error('Error adding to cart from compare', { error });
       const message = error instanceof Error ? error.message : '';

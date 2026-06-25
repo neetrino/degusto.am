@@ -5,87 +5,79 @@ import type { ProductFilters } from "./types";
  * Build where clause for product queries
  */
 export function buildProductWhereClause(filters: ProductFilters): Prisma.ProductWhereInput {
-  const andConditions: Prisma.ProductWhereInput[] = [{ deletedAt: null }];
+  const where: Prisma.ProductWhereInput = {
+    deletedAt: null,
+  };
+
+  const orConditions: Prisma.ProductWhereInput[] = [];
 
   // Search filter
   if (filters.search) {
-    andConditions.push({
-      OR: [
-        {
-          translations: {
-            some: {
-              title: {
-                contains: filters.search,
-                mode: "insensitive",
-              },
+    orConditions.push(
+      {
+        translations: {
+          some: {
+            title: {
+              contains: filters.search,
+              mode: "insensitive",
             },
           },
         },
-        {
-          variants: {
-            some: {
-              sku: {
-                contains: filters.search,
-                mode: "insensitive",
-              },
+      },
+      {
+        variants: {
+          some: {
+            sku: {
+              contains: filters.search,
+              mode: "insensitive",
             },
           },
         },
-      ],
-    });
+      }
+    );
   }
 
   // Category filter - support both single category and multiple categories
-  const categoryIds =
-    filters.categories && filters.categories.length > 0
-      ? filters.categories
-      : filters.category
-        ? [filters.category]
-        : [];
-
+  const categoryIds = filters.categories && filters.categories.length > 0 
+    ? filters.categories 
+    : filters.category 
+      ? [filters.category] 
+      : [];
+  
   if (categoryIds.length > 0) {
-    andConditions.push({
-      OR: [
+    const categoryConditions: Prisma.ProductWhereInput[] = [];
+    categoryIds.forEach((categoryId) => {
+      categoryConditions.push(
         {
-          primaryCategoryId: { in: categoryIds },
-        },
-        {
-          categories: {
-            some: {
-              id: { in: categoryIds },
-            },
-          },
+          primaryCategoryId: categoryId,
         },
         {
           categoryIds: {
-            hasSome: categoryIds,
+            has: categoryId,
           },
-        },
-      ],
+        }
+      );
     });
+    orConditions.push(...categoryConditions);
+  }
+
+  if (orConditions.length > 0) {
+    where.OR = orConditions;
   }
 
   // SKU filter
   if (filters.sku) {
-    andConditions.push({
-      variants: {
-        some: {
-          sku: {
-            contains: filters.sku,
-            mode: "insensitive",
-          },
+    where.variants = {
+      some: {
+        sku: {
+          contains: filters.sku,
+          mode: "insensitive",
         },
       },
-    });
+    };
   }
 
-  if (andConditions.length === 1) {
-    return andConditions[0];
-  }
-
-  return {
-    AND: andConditions,
-  };
+  return where;
 }
 
 /**

@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { apiClient } from '../../../lib/api-client';
 import { useTranslation } from '../../../lib/i18n-client';
-import { invalidateDashboardCache } from '@/lib/users/profile-data-cache';
 import type { Address, UserProfile } from '../types';
 
 interface UseAddressesProps {
@@ -53,7 +52,6 @@ export function useAddresses({
       }
       
       await onProfileReload();
-      invalidateDashboardCache();
       setShowAddressForm(false);
       setEditingAddress(null);
       resetAddressForm();
@@ -74,7 +72,6 @@ export function useAddresses({
       await apiClient.delete(`/api/v1/users/addresses/${addressId}`);
       onSuccess(t('profile.addresses.deletedSuccess'));
       await onProfileReload();
-      invalidateDashboardCache();
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : String(err);
       onError(errorMessage || t('profile.addresses.failedToDelete'));
@@ -86,7 +83,6 @@ export function useAddresses({
       await apiClient.patch(`/api/v1/users/addresses/${addressId}/default`);
       onSuccess(t('profile.addresses.defaultUpdatedSuccess'));
       await onProfileReload();
-      invalidateDashboardCache();
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : String(err);
       onError(errorMessage || t('profile.addresses.failedToSetDefault'));

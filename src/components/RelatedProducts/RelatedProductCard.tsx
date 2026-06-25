@@ -3,7 +3,6 @@
 import { ProductPageLink } from '@/components/products/ProductPageLink';
 import Image from 'next/image';
 import type { MouseEvent } from 'react';
-import { memo } from 'react';
 import { formatPrice } from '../../lib/currency';
 import type { CurrencyCode } from '../../lib/currency';
 import type { LanguageCode } from '../../lib/language';
@@ -81,7 +80,7 @@ function resolveComparePrice(product: RelatedProduct): number | null {
 /**
  * Single product card component for RelatedProducts carousel (Figma node 1:634 / 10:1983).
  */
-function RelatedProductCardComponent({
+export function RelatedProductCard({
   product,
   currency,
   language,
@@ -342,23 +341,3 @@ function RelatedProductCardComponent({
     </div>
   );
 }
-
-function areRelatedProductCardPropsEqual(
-  prevProps: RelatedProductCardProps,
-  nextProps: RelatedProductCardProps
-): boolean {
-  return (
-    prevProps.product === nextProps.product &&
-    prevProps.currency === nextProps.currency &&
-    prevProps.language === nextProps.language &&
-    prevProps.hasMoved === nextProps.hasMoved &&
-    prevProps.imageError === nextProps.imageError &&
-    prevProps.width === nextProps.width &&
-    prevProps.compact === nextProps.compact
-  );
-}
-
-export const RelatedProductCard = memo(
-  RelatedProductCardComponent,
-  areRelatedProductCardPropsEqual
-);

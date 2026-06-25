@@ -7,13 +7,17 @@ import { useDashboard } from './hooks/useDashboard';
 import { useOrders } from './hooks/useOrders';
 import { useCoupons } from './hooks/useCoupons';
 import { useProfileTabs } from './hooks/useProfileTabs';
-import { useCurrency } from '../../components/hooks/useCurrency';
+import { useCurrency } from './hooks/useCurrency';
+import { useTranslation } from '../../lib/i18n-client';
 
 export function useProfilePage() {
+  const { t } = useTranslation();
+  
   // Core profile hook
   const {
     profile,
     setProfile,
+    loading,
     error,
     success,
     setError,
@@ -94,9 +98,13 @@ export function useProfilePage() {
   });
 
   // Currency hook
-  const currency = useCurrency();
+  const { currency } = useCurrency();
 
   return {
+    // Auth & loading
+    isLoggedIn,
+    authLoading,
+    loading,
     error,
     success,
     setError,
@@ -169,5 +177,8 @@ export function useProfilePage() {
     
     // Currency
     currency,
+    
+    // Translation
+    t,
   };
 }

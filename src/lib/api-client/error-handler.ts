@@ -61,16 +61,6 @@ export function isQuietCheckoutValidationError(status: number, url: string): boo
 }
 
 /**
- * Delivery price lookup can return 422 for unsupported city/params.
- * This is handled in checkout UI and should not spam console as a hard error.
- */
-export function isQuietDeliveryPriceValidationError(status: number, url: string): boolean {
-  const isValidationError = status === 422;
-  const isDeliveryPriceEndpoint = /\/api\/v1\/delivery\/price(?:\?|$)/.test(url);
-  return isValidationError && isDeliveryPriceEndpoint;
-}
-
-/**
  * Cart read is non-critical for page rendering.
  * When backend is temporarily unstable, avoid noisy console errors for this endpoint.
  */
@@ -87,11 +77,18 @@ export function isQuietCartReadServerError(status: number, url: string): boolean
 export function isQuietAdminDashboardReadServerError(status: number, url: string): boolean {
   const isServerError = status >= 500 && status < 600;
   const isDashboardEndpoint =
+    /\/api\/v1\/admin\/dashboard(?:\?|$)/.test(url) ||
     /\/api\/v1\/admin\/dashboard\/top-products(?:\?|$)/.test(url) ||
     /\/api\/v1\/admin\/dashboard\/recent-orders(?:\?|$)/.test(url) ||
     /\/api\/v1\/admin\/dashboard\/user-activity(?:\?|$)/.test(url);
 
   return isServerError && isDashboardEndpoint;
+}
+
+/** Background admin order-alert poll — network blips should not spam the console. */
+export function isQuietAdminPollNetworkError(url: string): boolean {
+  return /\/api\/v1\/admin\/dashboard\/recent-orders(?:\?|$)/.test(url)
+    || /\/api\/v1\/admin\/dashboard(?:\?|$)/.test(url);
 }
 
 /**

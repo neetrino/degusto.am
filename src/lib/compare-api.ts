@@ -31,3 +31,8 @@ export async function fetchCompareIds(): Promise<string[]> {
 
   return inflightCompareIdsRequest;
 }
+
+export async function fetchCompareCount(): Promise<number> {
+  const ids = await fetchCompareIds();
+  return ids.length;
+}

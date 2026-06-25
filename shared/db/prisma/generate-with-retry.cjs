@@ -33,35 +33,28 @@ for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
     encoding: "utf8",
   });
 
-  const stdout = result.stdout ?? "";
-  const stderr = result.stderr ?? "";
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
 
   const exitCode = typeof result.status === "number" ? result.status : 1;
   lastExitCode = exitCode;
-  const lockError = shouldRetry(stderr, stdout);
 
   if (exitCode === 0) {
-    if (stdout) process.stdout.write(stdout);
-    if (stderr) process.stderr.write(stderr);
     process.exit(0);
   }
 
+  const lockError = shouldRetry(result.stderr ?? "", result.stdout ?? "");
   if (!lockError) {
-    if (stdout) process.stdout.write(stdout);
-    if (stderr) process.stderr.write(stderr);
     process.exit(exitCode);
   }
 
-  if (hasGeneratedClient()) {
-    process.stdout.write(
-      "Prisma generate skipped due to Windows file lock; using existing generated client.\n"
-    );
-    process.exit(0);
-  }
-
   if (attempt === MAX_ATTEMPTS) {
-    if (stdout) process.stdout.write(stdout);
-    if (stderr) process.stderr.write(stderr);
+    if (hasGeneratedClient()) {
+      process.stderr.write(
+        "Prisma generate still hit Windows file lock after retries; using existing generated client.\n"
+      );
+      process.exit(0);
+    }
     process.exit(exitCode);
   }
 

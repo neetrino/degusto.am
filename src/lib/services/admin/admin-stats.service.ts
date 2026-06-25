@@ -2,7 +2,9 @@ import { getStats } from "./admin-stats/stats-calculator";
 import { getUserActivity } from "./admin-stats/user-activity";
 import { getRecentOrders } from "./admin-stats/recent-orders";
 import { getTopProducts } from "./admin-stats/top-products";
+import { getActivity } from "./admin-stats/activity";
 import { getAnalytics } from "./admin-stats/analytics";
+import { getDashboard as loadAdminDashboard } from "./admin-stats/dashboard";
 
 /**
  * Service for admin statistics operations
@@ -13,6 +15,16 @@ class AdminStatsService {
    */
   async getStats() {
     return getStats();
+  }
+
+  /**
+   * Combined admin dashboard payload (stats + recent orders + top products).
+   */
+  async getDashboard(options?: {
+    recentOrdersLimit?: number;
+    topProductsLimit?: number;
+  }) {
+    return loadAdminDashboard(options);
   }
 
   /**
@@ -34,6 +46,13 @@ class AdminStatsService {
    */
   async getTopProducts(limit: number = 5) {
     return getTopProducts(limit);
+  }
+
+  /**
+   * Get recent activity for dashboard
+   */
+  async getActivity(limit: number = 10) {
+    return getActivity(limit);
   }
 
   /**

@@ -1,12 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import {
-  getStoredCurrency,
-  HYDRATION_SAFE_CURRENCY,
-  type CurrencyCode,
-} from '../../../lib/currency';
-import { useLanguage } from '../../../lib/i18n-client';
+import { getStoredCurrency, type CurrencyCode } from '../../../lib/currency';
+import { getStoredLanguage, type LanguageCode } from '../../../lib/language';
 import { useAttributeGroups } from './useAttributeGroups';
 import { useProductImages } from './hooks/useProductImages';
 import { useReviews } from '../../../components/ProductReviews/hooks/useReviews';
@@ -41,8 +37,8 @@ export function useProductPage({
   initialReviews,
 }: UseProductPageProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [currency, setCurrency] = useState<CurrencyCode>(HYDRATION_SAFE_CURRENCY);
-  const language = useLanguage();
+  const [currency, setCurrency] = useState(getStoredCurrency());
+  const [language, setLanguage] = useState<LanguageCode>('en');
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [thumbnailStartIndex, setThumbnailStartIndex] = useState(0);
   const [additions, setAdditions] = useState('');
@@ -122,6 +118,10 @@ export function useProductPage({
   }, [reviews, reviewSummary.averageRating]);
 
   const reviewsCount = reviews.length > 0 ? reviews.length : reviewSummary.count;
+
+  useEffect(() => {
+    setLanguage(getStoredLanguage());
+  }, []);
 
   useEffect(() => {
     const handleCurrencyUpdate = () => setCurrency(getStoredCurrency());

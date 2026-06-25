@@ -1,5 +1,3 @@
-import type { NextRequest } from "next/server";
-
 const STOREFRONT_LOCALES = ["hy", "ru", "en"] as const;
 
 export { STOREFRONT_LOCALES };
@@ -41,26 +39,19 @@ export function resolveStorefrontLocaleFromSearchParams(
   return resolveStorefrontLocale(searchParams.get(key));
 }
 
-/** Resolves locale from `lang` query param, `shop_language` cookie, or Accept-Language. */
-export function resolveStorefrontLocaleFromNextRequest(req: NextRequest): StorefrontLocale {
-  const fromQuery = req.nextUrl.searchParams.get("lang");
-  if (fromQuery) {
-    return resolveStorefrontLocale(fromQuery);
-  }
+type PageSearchParams = Record<string, string | string[] | undefined>;
 
-  const fromCookie = req.cookies.get("shop_language")?.value;
-  if (fromCookie) {
-    return resolveStorefrontLocale(fromCookie);
+/** ISR pages: `?lang=` when present, else `PRIMARY_LOCALE` (no SSR cookies). */
+export function resolveStorefrontLocaleFromPageSearchParams(
+  params: PageSearchParams | undefined,
+  key: string = "lang"
+): StorefrontLocale {
+  if (!params) {
+    return PRIMARY_LOCALE;
   }
-
-  const acceptLanguage = req.headers.get("accept-language");
-  if (acceptLanguage) {
-    const first = acceptLanguage.split(",")[0] ?? "";
-    const normalized = first.split("-")[0] ?? "";
-    return resolveStorefrontLocale(normalized);
-  }
-
-  return PRIMARY_LOCALE;
+  const raw = params[key];
+  const value = typeof raw === "string" ? raw : Array.isArray(raw) ? raw[0] : null;
+  return resolveStorefrontLocale(value);
 }
 
 export function getStorefrontLocaleFallbackChain(

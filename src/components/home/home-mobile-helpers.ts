@@ -28,7 +28,6 @@ export function homeFeaturedProductToMenuCard(product: HomeFeaturedProduct): Men
     title: product.title,
     subtitle: product.subtitle,
     category: product.subtitle,
-    categorySlug: product.categorySlug,
     image: product.image,
     price,
     oldPrice,

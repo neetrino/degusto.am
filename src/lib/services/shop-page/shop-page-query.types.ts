@@ -14,8 +14,6 @@ export type ShopMenuQuery = {
   requestedPage: number;
   /** Controls which DB payloads are loaded for the current viewport/mode. */
   loadProfile: ShopMenuLoadProfile;
-  /** Lighter product query for first shop page paint (skips review aggregation). */
-  menuFast?: boolean;
 };
 
 export type ShopMobileCategoryCard = {

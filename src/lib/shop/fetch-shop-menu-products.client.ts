@@ -1,179 +1,104 @@
 'use client';
 
-import {
-  parseProductCardApiJsonToMenuCard,
-  type ProductCardApiJson,
-} from '@/lib/storefront/product-card-dto';
+import type { MenuCard } from '@/components/home/menu-types';
+
+import { getStoredLanguage } from '@/lib/language';
+import { PRIMARY_LOCALE } from '@/lib/i18n/locale';
 import { logger } from '@/lib/utils/logger';
-import type { ShopMenuProductsResponse } from './fetch-shop-menu-products.client.types';
-import {
-  deleteShopMenuProductsInflight,
-  getShopMenuProductsInflight,
-  hrefToMenuProductsApiUrl,
-  peekShopMenuProductsCache,
-  rememberShopMenuProductsResponse,
-  seedShopMenuProductsCache,
-  setShopMenuProductsInflight,
-  clearShopMenuProductsClientCache,
-} from './shop-menu-products-cache';
 
-export type { ShopMenuProductsResponse } from './fetch-shop-menu-products.client.types';
-export {
-  clearShopMenuProductsClientCache,
-  peekShopMenuProductsCache,
-  seedShopMenuProductsCache,
-} from './shop-menu-products-cache';
+export type ShopMenuProductsResponse = {
+  cards: MenuCard[];
+  effectivePage: number;
+  totalPages: number;
+};
 
-function normalizeShopMenuProductsResponse(
-  payload: {
-    cards: ProductCardApiJson[];
-    effectivePage: number;
-    totalPages: number;
+const inflightRequests = new Map<string, Promise<ShopMenuProductsResponse>>();
+const responseCache = new Map<string, ShopMenuProductsResponse>();
+
+function buildMenuProductsApiUrl(search: string): string {
+  const normalized = search.startsWith('?') ? search.slice(1) : search;
+  const params = new URLSearchParams(normalized);
+  const clientLang = getStoredLanguage();
+  if (!params.has('lang') && clientLang !== PRIMARY_LOCALE) {
+    params.set('lang', clientLang);
   }
-): ShopMenuProductsResponse {
-  return {
-    cards: payload.cards.map(parseProductCardApiJsonToMenuCard),
-    effectivePage: payload.effectivePage,
-    totalPages: payload.totalPages,
-  };
+  const query = params.toString();
+  return query ? `/api/v1/shop/menu-products?${query}` : '/api/v1/shop/menu-products';
 }
 
-function isAbortError(error: unknown): boolean {
-  return (
-    error instanceof DOMException
-      ? error.name === 'AbortError'
-      : error instanceof Error && error.name === 'AbortError'
-  );
+function hrefToSearch(href: string): string {
+  const questionIndex = href.indexOf('?');
+  return questionIndex >= 0 ? href.slice(questionIndex) : '';
 }
 
-function throwIfAborted(signal: AbortSignal | undefined): void {
-  if (signal?.aborted) {
-    throw new DOMException('Aborted', 'AbortError');
+/** Prefetch product grid JSON for a shop category href (hover / mount). */
+export function prefetchShopMenuProducts(href: string): void {
+  const search = hrefToSearch(href);
+  const url = buildMenuProductsApiUrl(search);
+  if (responseCache.has(url) || inflightRequests.has(url)) {
+    return;
   }
-}
-
-function raceInflightWithSignal<T>(
-  inflight: Promise<T>,
-  signal: AbortSignal | undefined
-): Promise<T> {
-  if (!signal) {
-    return inflight;
-  }
-  throwIfAborted(signal);
-  return new Promise<T>((resolve, reject) => {
-    const onAbort = () => {
-      reject(new DOMException('Aborted', 'AbortError'));
-    };
-    signal.addEventListener('abort', onAbort, { once: true });
-    inflight.then(
-      (value) => {
-        signal.removeEventListener('abort', onAbort);
-        resolve(value);
-      },
-      (error: unknown) => {
-        signal.removeEventListener('abort', onAbort);
-        reject(error);
+  const request = fetch(url, { credentials: 'include' })
+    .then(async (response) => {
+      if (!response.ok) {
+        throw new Error(`Shop menu products prefetch failed: ${response.status}`);
       }
-    );
-  });
-}
-
-async function fetchShopMenuProductsFromNetwork(
-  url: string,
-  signal?: AbortSignal
-): Promise<ShopMenuProductsResponse> {
-  const response = await fetch(url, { credentials: 'include', signal });
-  if (!response.ok) {
-    throw new Error(`Menu products fetch failed: ${response.status}`);
-  }
-  return normalizeShopMenuProductsResponse(
-    (await response.json()) as {
-      cards: ProductCardApiJson[];
-      effectivePage: number;
-      totalPages: number;
-    }
-  );
-}
-
-function startNetworkRequest(
-  url: string,
-  signal?: AbortSignal
-): Promise<ShopMenuProductsResponse> {
-  const existing = getShopMenuProductsInflight(url);
-  if (existing) {
-    return raceInflightWithSignal(existing, signal);
-  }
-
-  const request = fetchShopMenuProductsFromNetwork(url, signal)
+      return (await response.json()) as ShopMenuProductsResponse;
+    })
     .then((data) => {
-      rememberShopMenuProductsResponse(url, data);
+      responseCache.set(url, data);
       return data;
     })
-    .finally(() => {
-      deleteShopMenuProductsInflight(url);
-    });
-
-  setShopMenuProductsInflight(url, request);
-  return raceInflightWithSignal(request, signal);
-}
-
-/** Fire-and-forget revalidation for stale entries (SWR). */
-function revalidateShopMenuProductsInBackground(url: string): void {
-  if (getShopMenuProductsInflight(url) || peekShopMenuProductsCache(url)?.fresh) {
-    return;
-  }
-  void startNetworkRequest(url).catch((error: unknown) => {
-    if (!isAbortError(error)) {
-      logger.warn('[Shop] Background menu products revalidation failed', {
-        url,
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
-  });
-}
-
-/** Prefetch product grid JSON for a shop category href (hover / idle). */
-export function prefetchShopMenuProducts(href: string): void {
-  const url = hrefToMenuProductsApiUrl(href);
-  const cached = peekShopMenuProductsCache(url);
-  if (cached?.fresh) {
-    return;
-  }
-  if (getShopMenuProductsInflight(url)) {
-    return;
-  }
-  void startNetworkRequest(url).catch((error: unknown) => {
-    if (!isAbortError(error)) {
+    .catch((error: unknown) => {
       logger.warn('[Shop] Menu products prefetch failed', {
         url,
         error: error instanceof Error ? error.message : String(error),
       });
-    }
+      throw error;
+    })
+    .finally(() => {
+      inflightRequests.delete(url);
+    });
+  void request.catch(() => {
+    // Prefetch is fire-and-forget; rejection is already logged above.
   });
+  inflightRequests.set(url, request);
 }
 
-/**
- * Fetches paginated shop product cards without a full RSC navigation.
- * Fresh cache (<30s): instant. Stale cache (<2m): return + background revalidate.
- */
-export async function fetchShopMenuProducts(
-  href: string,
-  options?: { signal?: AbortSignal; forceNetwork?: boolean }
-): Promise<ShopMenuProductsResponse> {
-  throwIfAborted(options?.signal);
-
-  const url = hrefToMenuProductsApiUrl(href);
-
-  if (!options?.forceNetwork) {
-    const cached = peekShopMenuProductsCache(url);
-    if (cached?.fresh) {
-      return cached.data;
-    }
-    if (cached) {
-      revalidateShopMenuProductsInBackground(url);
-      return cached.data;
-    }
+/** Fetches paginated shop product cards without a full RSC navigation. */
+export async function fetchShopMenuProducts(href: string): Promise<ShopMenuProductsResponse> {
+  const search = hrefToSearch(href);
+  const url = buildMenuProductsApiUrl(search);
+  const cached = responseCache.get(url);
+  if (cached) {
+    return cached;
   }
 
-  return startNetworkRequest(url, options?.signal);
+  const inflight = inflightRequests.get(url);
+  if (inflight) {
+    return inflight;
+  }
+
+  const request = fetch(url, { credentials: 'include' })
+    .then(async (response) => {
+      if (!response.ok) {
+        throw new Error(`Shop menu products fetch failed: ${response.status}`);
+      }
+      return (await response.json()) as ShopMenuProductsResponse;
+    })
+    .then((data) => {
+      responseCache.set(url, data);
+      return data;
+    })
+    .finally(() => {
+      inflightRequests.delete(url);
+    });
+
+  inflightRequests.set(url, request);
+  return request;
+}
+
+/** Clears client cache when filters change server-side (search, price, taste). */
+export function clearShopMenuProductsClientCache(): void {
+  responseCache.clear();
 }

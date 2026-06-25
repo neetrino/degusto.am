@@ -71,7 +71,10 @@ async function initRedis() {
   if (upstashCredentials) {
     try {
       const { Redis } = await import("@upstash/redis");
-      upstashClient = new Redis(upstashCredentials);
+      upstashClient = new Redis({
+        ...upstashCredentials,
+        automaticDeserialization: false,
+      });
       redisAvailable = true;
       connectionAttempted = true;
       return;

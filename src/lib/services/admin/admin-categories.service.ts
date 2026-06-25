@@ -19,7 +19,7 @@ class AdminCategoriesService {
     }
   }
 
-  private async getNextCategoryPosition(): Promise<number> {
+  private async getNextCategoryPosition(_parentId: string | null): Promise<number> {
     const aggregate = await db.category.aggregate({
       where: {
         deletedAt: null,
@@ -108,47 +108,17 @@ class AdminCategoriesService {
         position: "asc",
       },
     });
-    const products = await db.product.findMany({
-      where: {
-        deletedAt: null,
-      },
-      select: {
-        id: true,
-        primaryCategoryId: true,
-        categoryIds: true,
-      },
-    });
-
-    const categoryProductIds = new Map<string, Set<string>>();
-    for (const product of products) {
-      const linkedCategoryIds = new Set<string>();
-      if (typeof product.primaryCategoryId === "string" && product.primaryCategoryId.length > 0) {
-        linkedCategoryIds.add(product.primaryCategoryId);
-      }
-      for (const categoryId of product.categoryIds) {
-        linkedCategoryIds.add(categoryId);
-      }
-      for (const categoryId of linkedCategoryIds) {
-        const existing = categoryProductIds.get(categoryId);
-        if (existing) {
-          existing.add(product.id);
-        } else {
-          categoryProductIds.set(categoryId, new Set([product.id]));
-        }
-      }
-    }
 
     return {
-      data: categories.map((category: { id: string; position: number; requiresSizes: boolean | null; published: boolean | null; media: unknown[]; translations?: Array<{ locale: string; title: string; slug: string }> }) => {
+      data: categories.map((category: { id: string; parentId: string | null; position: number; requiresSizes: boolean | null; published: boolean | null; media: unknown[]; translations?: Array<{ locale: string; title: string; slug: string }> }) => {
         const translations = Array.isArray(category.translations) ? category.translations : [];
         const translation = pickLocaleTranslation(translations, preferredLocale);
         return {
           id: category.id,
           title: translation?.title || translation?.slug || "",
           slug: translation?.slug || "",
-          parentId: null,
+          parentId: category.parentId,
           position: category.position,
-          productsCount: categoryProductIds.get(category.id)?.size ?? 0,
           requiresSizes: category.requiresSizes || false,
           published: Boolean(category.published),
           imageUrl: this.extractImageUrl(category.media),
@@ -158,40 +128,56 @@ class AdminCategoriesService {
   }
 
   /**
-   * Reorder categories as a flat list.
+   * Reorder sibling categories and rebalance global position values depth-first.
    */
-  async reorderCategories(data: { orderedIds: string[] }) {
-    const { orderedIds } = data;
+  async reorderCategories(data: { parentId: string | null; orderedIds: string[] }) {
+    const { parentId, orderedIds } = data;
+    const normalizedParentId = parentId ?? null;
 
     const categories = await db.category.findMany({
       where: { deletedAt: null },
-      select: { id: true },
+      select: { id: true, parentId: true },
       orderBy: { position: "asc" },
     });
 
-    const existingIds = categories.map((category) => category.id);
+    const siblingIds = categories
+      .filter((category) => (category.parentId ?? null) === normalizedParentId)
+      .map((category) => category.id);
     const orderedIdSet = new Set(orderedIds);
 
-    if (existingIds.length !== orderedIds.length) {
+    if (siblingIds.length !== orderedIds.length) {
       throw {
         status: 400,
         type: problemTypes.badRequest,
         title: "Invalid reorder payload",
-        detail: "orderedIds must include every category exactly once",
+        detail: "orderedIds must include every sibling category exactly once",
       };
     }
 
-    if (!existingIds.every((id) => orderedIdSet.has(id))) {
+    if (!siblingIds.every((id) => orderedIdSet.has(id))) {
       throw {
         status: 400,
         type: problemTypes.badRequest,
         title: "Invalid reorder payload",
-        detail: "orderedIds must only contain existing category IDs",
+        detail: "orderedIds must only contain sibling categories under the same parent",
       };
     }
+
+    const siblingOrderByParent = new Map<string | null, string[]>();
+    for (const category of categories) {
+      const key = category.parentId ?? null;
+      if (!siblingOrderByParent.has(key)) {
+        siblingOrderByParent.set(key, []);
+      }
+      siblingOrderByParent.get(key)!.push(category.id);
+    }
+
+    siblingOrderByParent.set(normalizedParentId, orderedIds);
+
+    const depthFirstIds = this.buildDepthFirstCategoryOrder(categories, siblingOrderByParent);
 
     await db.$transaction(
-      orderedIds.map((id, index) =>
+      depthFirstIds.map((id, index) =>
         db.category.update({
           where: { id },
           data: { position: index },
@@ -204,26 +190,60 @@ class AdminCategoriesService {
     return { success: true };
   }
 
+  private buildDepthFirstCategoryOrder(
+    categories: Array<{ id: string; parentId: string | null }>,
+    siblingOrderByParent: Map<string | null, string[]>,
+  ): string[] {
+    const visit = (currentParentId: string | null): string[] => {
+      const childIds =
+        siblingOrderByParent.get(currentParentId) ??
+        categories
+          .filter((category) => (category.parentId ?? null) === currentParentId)
+          .map((category) => category.id);
+
+      return childIds.flatMap((id) => [id, ...visit(id)]);
+    };
+
+    return visit(null);
+  }
+
   /**
    * Create category
    */
   async createCategory(data: {
     title: string;
     locale?: string;
+    parentId?: string;
     requiresSizes?: boolean;
     imageUrl?: string;
     published?: boolean;
   }) {
     const locale = data.locale || "en";
     
+    // Validate parent category exists if parentId is provided
+    if (data.parentId) {
+      const parentCategory = await db.category.findUnique({
+        where: { id: data.parentId },
+      });
+
+      if (!parentCategory) {
+        throw {
+          status: 404,
+          type: problemTypes.notFound,
+          title: "Parent category not found",
+          detail: `Parent category with id '${data.parentId}' does not exist`,
+        };
+      }
+    }
+    
     // Generate slug from title (ReDoS-safe)
     const slug = toSlug(data.title);
 
-    const nextPosition = await this.getNextCategoryPosition();
+    const nextPosition = await this.getNextCategoryPosition(data.parentId ?? null);
 
     const category = await db.category.create({
       data: {
-        parentId: null,
+        parentId: data.parentId || undefined,
         position: nextPosition,
         requiresSizes: data.requiresSizes || false,
         published: data.published ?? true,
@@ -255,7 +275,7 @@ class AdminCategoriesService {
         id: category.id,
         title: translation?.title || "",
         slug: translation?.slug || "",
-        parentId: null,
+        parentId: category.parentId,
         requiresSizes: category.requiresSizes || false,
         imageUrl: this.extractImageUrl(category.media),
         published: Boolean(category.published),
@@ -270,7 +290,18 @@ class AdminCategoriesService {
     const category = await db.category.findUnique({
       where: { id: categoryId },
       include: {
-        translations: true,
+        translations: {
+          where: { locale: "en" },
+          take: 1,
+        },
+        children: {
+          include: {
+            translations: {
+              where: { locale: "en" },
+              take: 1,
+            },
+          },
+        },
       },
     });
 
@@ -280,22 +311,26 @@ class AdminCategoriesService {
 
     const translations = Array.isArray(category.translations) ? category.translations : [];
     const translation = translations[0] || null;
-    const localeTranslations = translations.reduce<Partial<Record<"hy" | "en" | "ru", string>>>((acc, entry) => {
-      if (entry.locale === "hy" || entry.locale === "en" || entry.locale === "ru") {
-        acc[entry.locale] = entry.title;
-      }
-      return acc;
-    }, {});
 
     return {
       id: category.id,
       title: translation?.title || "",
       slug: translation?.slug || "",
-      parentId: null,
+      parentId: category.parentId,
       requiresSizes: category.requiresSizes || false,
       published: Boolean(category.published),
       imageUrl: this.extractImageUrl(category.media),
-      translations: localeTranslations,
+      children: category.children.map((child: { id: string; parentId: string | null; requiresSizes: boolean | null; translations?: Array<{ title: string; slug: string }> }) => {
+        const childTranslations = Array.isArray(child.translations) ? child.translations : [];
+        const childTranslation = childTranslations[0] || null;
+        return {
+          id: child.id,
+          title: childTranslation?.title || "",
+          slug: childTranslation?.slug || "",
+          parentId: child.parentId,
+          requiresSizes: child.requiresSizes || false,
+        };
+      }),
     };
   }
 
@@ -305,7 +340,9 @@ class AdminCategoriesService {
   async updateCategory(categoryId: string, data: {
     title?: string;
     locale?: string;
+    parentId?: string | null;
     requiresSizes?: boolean;
+    subcategoryIds?: string[];
     imageUrl?: string | null;
     published?: boolean;
   }) {
@@ -327,15 +364,92 @@ class AdminCategoriesService {
       };
     }
 
-    const updateData: {
-      parentId?: null;
-      requiresSizes?: boolean;
-      published?: boolean;
-      media?: Array<{ type: string; url: string }>;
-    } = {
-      // Keep categories flat globally.
-      parentId: null,
-    };
+    // Prevent circular reference (category cannot be its own parent)
+    if (data.parentId === categoryId) {
+      throw {
+        status: 400,
+        type: problemTypes.badRequest,
+        title: "Invalid parent",
+        detail: "Category cannot be its own parent",
+      };
+    }
+
+    // Prevent setting parent to a child category (would create circular reference)
+    if (data.parentId) {
+      const potentialParent = await db.category.findUnique({
+        where: { id: data.parentId },
+        include: {
+          children: {
+            where: {
+              deletedAt: null,
+            },
+          },
+        },
+      });
+
+      if (!potentialParent) {
+        throw {
+          status: 404,
+          type: problemTypes.notFound,
+          title: "Parent category not found",
+          detail: `Parent category with id '${data.parentId}' does not exist`,
+        };
+      }
+
+      // Check if the category to update is in the children of the potential parent
+      const isChild = await this.isCategoryDescendant(potentialParent.id, categoryId);
+      if (isChild) {
+        throw {
+          status: 400,
+          type: problemTypes.badRequest,
+          title: "Circular reference",
+          detail: "Cannot set parent to a category that is a descendant of this category",
+        };
+      }
+    }
+
+    // Update subcategories if provided
+    if (data.subcategoryIds !== undefined) {
+      // First, remove all existing children relationships
+      await db.category.updateMany({
+        where: { parentId: categoryId },
+        data: { parentId: null },
+      });
+
+      // Then, set new children relationships (prevent circular references)
+      if (data.subcategoryIds.length > 0) {
+        // Filter out the category itself and its descendants
+        const validSubcategoryIds = data.subcategoryIds.filter(id => id !== categoryId);
+        
+        // Check for circular references
+        for (const subId of validSubcategoryIds) {
+          const isDescendant = await this.isCategoryDescendant(categoryId, subId);
+          if (isDescendant) {
+            throw {
+              status: 400,
+              type: problemTypes.badRequest,
+              title: "Circular reference",
+              detail: "Cannot set a descendant category as subcategory",
+            };
+          }
+        }
+
+        if (validSubcategoryIds.length > 0) {
+          await db.category.updateMany({
+            where: { 
+              id: { in: validSubcategoryIds },
+            },
+            data: { parentId: categoryId },
+          });
+        }
+      }
+    }
+
+    const updateData: any = {};
+    
+    if (data.parentId !== undefined) {
+      updateData.parentId = data.parentId || null;
+    }
     
     if (data.requiresSizes !== undefined) {
       updateData.requiresSizes = data.requiresSizes;
@@ -400,12 +514,40 @@ class AdminCategoriesService {
         id: updatedCategory.id,
         title: translation?.title || "",
         slug: translation?.slug || "",
-        parentId: null,
+        parentId: updatedCategory.parentId,
         requiresSizes: updatedCategory.requiresSizes || false,
         published: Boolean(updatedCategory.published),
         imageUrl: this.extractImageUrl(updatedCategory.media),
       },
     };
+  }
+
+  /**
+   * Helper function to check if a category is a descendant of another category
+   */
+  private async isCategoryDescendant(ancestorId: string, descendantId: string, visited: Set<string> = new Set()): Promise<boolean> {
+    if (visited.has(descendantId)) {
+      // Circular reference detected
+      return false;
+    }
+    visited.add(descendantId);
+
+    const category = await db.category.findUnique({
+      where: { id: descendantId },
+      include: {
+        parent: true,
+      },
+    });
+
+    if (!category || !category.parent) {
+      return false;
+    }
+
+    if (category.parent.id === ancestorId) {
+      return true;
+    }
+
+    return this.isCategoryDescendant(ancestorId, category.parent.id, visited);
   }
 
   /**
@@ -416,6 +558,13 @@ class AdminCategoriesService {
     
     const category = await db.category.findUnique({
       where: { id: categoryId },
+      include: {
+        children: {
+          where: {
+            deletedAt: null,
+          },
+        },
+      },
     });
 
     if (!category) {
@@ -424,6 +573,18 @@ class AdminCategoriesService {
         type: problemTypes.notFound,
         title: "Category not found",
         detail: `Category with id '${categoryId}' does not exist`,
+      };
+    }
+
+    // Check if category has children
+    const childrenCount = category.children ? category.children.length : 0;
+    if (childrenCount > 0) {
+      throw {
+        status: 400,
+        type: problemTypes.badRequest,
+        title: "Cannot delete category",
+        detail: `This category has ${childrenCount} child categor${childrenCount > 1 ? 'ies' : 'y'}. Please delete or move child categories first.`,
+        childrenCount,
       };
     }
 

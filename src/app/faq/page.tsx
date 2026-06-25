@@ -2,16 +2,17 @@
 
 import { Card } from '@shop/ui';
 import Link from 'next/link';
-import { useMemo } from 'react';
 import { useTranslation } from '../../lib/i18n-client';
 import { loadTranslation } from '../../lib/i18n';
+import { getStoredLanguage } from '../../lib/language';
 
 /**
  * FAQ page - displays frequently asked questions
  */
 export default function FAQPage() {
-  const { t, lang } = useTranslation();
-  const faqData = useMemo(() => loadTranslation(lang, 'faq'), [lang]);
+  const { t } = useTranslation();
+  const lang = getStoredLanguage();
+  const faqData = loadTranslation(lang, 'faq');
   
   const faqs = [
     {

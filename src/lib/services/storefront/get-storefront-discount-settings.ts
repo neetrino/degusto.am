@@ -1,10 +1,11 @@
 import { unstable_cache } from "next/cache";
+import { STOREFRONT_ISR_REVALIDATE_SECONDS } from "@/constants/storefront-isr";
 import { db } from "@white-shop/db";
 
 /** `revalidateTag` when admin updates global/category discounts. */
 export const STOREFRONT_DISCOUNT_SETTINGS_CACHE_TAG = "storefront-discount-settings";
 
-const REVALIDATE_SECONDS = 60;
+const REVALIDATE_SECONDS = STOREFRONT_ISR_REVALIDATE_SECONDS;
 
 export interface StorefrontDiscountSettings {
   globalDiscount: number;

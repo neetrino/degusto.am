@@ -1,13 +1,11 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { revalidateStorefrontMenuCaches } from "@/lib/cache/revalidate-storefront-menu-caches";
 import {
-  invalidateProductPageCaches,
-  invalidateStorefrontProductRelatedCaches,
+  invalidateProductReadCaches,
 } from "@/lib/cache/storefront-cache";
 import { pdpPageCacheTag } from "@/lib/services/products-slug/get-product-page-data";
 import { warmProductPageCaches } from "@/lib/services/products-slug/warm-product-page-caches";
 import { logger } from "../../../utils/logger";
-import { cacheService } from "../../cache.service";
 
 function uniqueSlugs(slugs: readonly string[]): string[] {
   return Array.from(new Set(slugs.map((slug) => slug.trim()).filter((slug) => slug.length > 0)));
@@ -43,9 +41,7 @@ export async function revalidateProductCache(
     // @ts-expect-error - revalidateTag type issue in Next.js
     revalidateTag(`product-${productId}`);
 
-    await cacheService.deletePattern("products:*");
-    await invalidateProductPageCaches();
-    await invalidateStorefrontProductRelatedCaches();
+    await invalidateProductReadCaches();
 
     if (slugsToWarm.length > 0) {
       await warmProductPageCaches(slugsToWarm);

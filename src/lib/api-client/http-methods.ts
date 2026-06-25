@@ -11,9 +11,9 @@ import {
   isAbortError,
   isQuietCartStockValidationError,
   isQuietCheckoutValidationError,
-  isQuietDeliveryPriceValidationError,
   isQuietCartReadServerError,
   isQuietAdminDashboardReadServerError,
+  isQuietAdminPollNetworkError,
   isQuietCartItemNotFoundError,
   isQuietRegisterConflictError,
   isQuietReviewConflictError,
@@ -59,16 +59,20 @@ function handleNetworkError(error: unknown, baseUrl: string, url: string): never
     logger.warn('⏱️ [API CLIENT] Request timeout', { message: networkError.message, url });
     throw networkError;
   }
-  
-  console.error('❌ [API CLIENT] Network error during fetch:', networkError);
-  
-  // Check if it's a connection refused error
-  const isConnectionRefused = 
-    networkError.message?.includes('Failed to fetch') || 
+
+  const isConnectionRefused =
+    networkError.message?.includes('Failed to fetch') ||
     networkError.message?.includes('ERR_CONNECTION_REFUSED') ||
     networkError.message?.includes('NetworkError') ||
     networkError.message?.includes('Network request failed');
-  
+
+  if (isConnectionRefused && isQuietAdminPollNetworkError(url)) {
+    logger.warn('[API CLIENT] Admin poll network error (will retry)', { url });
+    throw new Error(`Admin poll unavailable: ${url}`);
+  }
+
+  console.error('❌ [API CLIENT] Network error during fetch:', networkError);
+
   if (isConnectionRefused) {
     const errorMessage = baseUrl 
       ? `⚠️ API սերվերը հասանելի չէ!\n\n` +
@@ -104,7 +108,6 @@ async function handleErrorResponse(
   const { errorText, errorData } = await parseErrorResponse(response);
   const quietStock422 = isQuietCartStockValidationError(response.status, errorData);
   const quietCheckoutValidationError = isQuietCheckoutValidationError(response.status, url);
-  const quietDeliveryPriceValidationError = isQuietDeliveryPriceValidationError(response.status, url);
   const quietCartReadServerError = isQuietCartReadServerError(response.status, url);
   const quietAdminDashboardReadServerError = isQuietAdminDashboardReadServerError(response.status, url);
   const quietCartItemNotFound = isQuietCartItemNotFoundError(response.status, url);
@@ -118,7 +121,6 @@ async function handleErrorResponse(
     !isUnauthorized &&
     !quietStock422 &&
     !quietCheckoutValidationError &&
-    !quietDeliveryPriceValidationError &&
     !quietCartReadServerError &&
     !quietAdminDashboardReadServerError &&
     !quietCartItemNotFound &&
@@ -136,8 +138,6 @@ async function handleErrorResponse(
     logger.debug("[API CLIENT] Cart stock limit (422)", { url, errorData });
   } else if (quietCheckoutValidationError) {
     logger.debug("[API CLIENT] Checkout validation failed (422)", { url, errorData });
-  } else if (quietDeliveryPriceValidationError) {
-    logger.debug("[API CLIENT] Delivery price validation failed (422)", { url, errorData });
   } else if (quietCartReadServerError) {
     logger.warn("[API CLIENT] Cart read failed with server error; using fallback cart state", {
       url,
@@ -168,7 +168,6 @@ async function handleErrorResponse(
     !isUnauthorized &&
     !quietStock422 &&
     !quietCheckoutValidationError &&
-    !quietDeliveryPriceValidationError &&
     !quietCartReadServerError &&
     !quietAdminDashboardReadServerError &&
     !quietCartItemNotFound &&

@@ -1,16 +1,18 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useTranslation } from '../../../lib/i18n-client';
-import type { CouponHistoryItem, ProfileTab, UserCoupon } from '../types';
-import {
-  fetchCouponsCached,
-  getCachedCouponsSync,
-} from '@/lib/users/profile-data-cache';
+import { useCallback, useEffect, useState } from "react";
+import { apiClient } from "../../../lib/api-client";
+import { useTranslation } from "../../../lib/i18n-client";
+import type { CouponHistoryItem, ProfileTab, UserCoupon } from "../types";
 
 interface UseCouponsProps {
   isLoggedIn: boolean;
   authLoading: boolean;
   activeTab: ProfileTab;
   onError: (error: string) => void;
+}
+
+interface CouponsResponse {
+  availableCoupons: UserCoupon[];
+  history: CouponHistoryItem[];
 }
 
 export function useCoupons({
@@ -20,33 +22,17 @@ export function useCoupons({
   onError,
 }: UseCouponsProps) {
   const { t } = useTranslation();
-  const initialCoupons = getCachedCouponsSync();
-
-  const [couponsLoading, setCouponsLoading] = useState(
-    activeTab === 'coupons' && initialCoupons === null,
-  );
-  const [availableCoupons, setAvailableCoupons] = useState<UserCoupon[]>(
-    initialCoupons?.availableCoupons ?? [],
-  );
-  const [couponHistory, setCouponHistory] = useState<CouponHistoryItem[]>(
-    initialCoupons?.history ?? [],
-  );
+  const [couponsLoading, setCouponsLoading] = useState(false);
+  const [availableCoupons, setAvailableCoupons] = useState<UserCoupon[]>([]);
+  const [couponHistory, setCouponHistory] = useState<CouponHistoryItem[]>([]);
 
   const loadCoupons = useCallback(async () => {
-    const cached = getCachedCouponsSync();
-    if (cached) {
-      setAvailableCoupons(cached.availableCoupons);
-      setCouponHistory(cached.history);
-      setCouponsLoading(false);
-      return;
-    }
-
     try {
       setCouponsLoading(true);
-      onError('');
-      const response = await fetchCouponsCached();
-      setAvailableCoupons(response.availableCoupons);
-      setCouponHistory(response.history);
+      onError("");
+      const response = await apiClient.get<CouponsResponse>("/api/v1/users/coupons");
+      setAvailableCoupons(response.availableCoupons ?? []);
+      setCouponHistory(response.history ?? []);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : String(err);
       onError(errorMessage || t('profile.coupons.failedToLoad'));
@@ -56,8 +42,8 @@ export function useCoupons({
   }, [onError, t]);
 
   useEffect(() => {
-    if (isLoggedIn && !authLoading && activeTab === 'coupons') {
-      void loadCoupons();
+    if (isLoggedIn && !authLoading && activeTab === "coupons") {
+      loadCoupons();
     }
   }, [activeTab, authLoading, isLoggedIn, loadCoupons]);
 
@@ -65,5 +51,6 @@ export function useCoupons({
     couponsLoading,
     availableCoupons,
     couponHistory,
+    reloadCoupons: loadCoupons,
   };
 }

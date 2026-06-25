@@ -8,7 +8,6 @@ import { OrderDetailsSummary } from './OrderDetailsSummary';
 import { OrderDetailsAddresses } from './OrderDetailsAddresses';
 import { OrderDetailsTotals } from './OrderDetailsTotals';
 import { OrderDetailsItems } from './OrderDetailsItems';
-import { formatHydrationSafeDateTime } from '@/lib/format-date';
 import type { OrderDetails } from '../useOrders';
 import { formatOrderNumber } from '@/lib/orders/format-order-number';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
@@ -63,7 +62,13 @@ export function OrderDetailsModal({
   }
 
   const createdAtLabel = orderDetails?.createdAt
-    ? formatHydrationSafeDateTime(orderDetails.createdAt)
+    ? new Date(orderDetails.createdAt).toLocaleString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
     : null;
 
   return (

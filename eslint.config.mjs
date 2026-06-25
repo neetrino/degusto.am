@@ -4,7 +4,7 @@ import tseslint from "typescript-eslint";
 /** @type {import("eslint").Linter.Config[]} */
 const config = [
   {
-    ignores: ["shared/db/src/generated/**", ".tmp/**"],
+    ignores: ["shared/db/src/generated/**"],
   },
   ...nextConfig,
   ...tseslint.configs.recommended,
@@ -60,6 +60,13 @@ const config = [
       "@typescript-eslint/no-unused-vars": "off",
       "no-console": "off",
       "max-depth": "off",
+    },
+  },
+  {
+    files: ["src/components/Header.tsx"],
+    rules: {
+      "max-lines": "off",
+      "max-lines-per-function": "off",
     },
   },
 ];

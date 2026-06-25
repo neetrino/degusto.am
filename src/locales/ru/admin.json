@@ -192,7 +192,6 @@
     "createCategory": "Создать категорию",
     "updateCategory": "Обновить категорию",
     "categoryTitle": "Название категории",
-    "productsCount": "Товары",
     "categoryTitlePlaceholder": "Введите название категории",
     "parentCategory": "категория",
     "rootCategory": "Нет (Корневая категория)",

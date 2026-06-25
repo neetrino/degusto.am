@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useCallback, type MouseEvent } from 'react';
+import { useCallback, type MouseEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '../../lib/i18n-client';
 import { useCurrency } from '../hooks/useCurrency';
@@ -15,18 +15,16 @@ import {
   PRODUCT_CARD_ICON_BTN_INTERACTION_CLASS,
   PRODUCT_CARD_WISHLIST_ICON_HOVER_CLASS,
 } from '@/constants/product-card-action-hover';
-import { resolveStorefrontProductImage, STOREFRONT_PRODUCT_IMAGE_PATH } from '@/constants/storefront-product-image';
+import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 import { HomeOptimizedImage } from './HomeOptimizedImage';
 import { StorefrontProductOverlayLink } from './StorefrontProductOverlayLink';
 import { usePrefetchProductWhenVisible } from '../hooks/usePrefetchProductWhenVisible';
 import { prefetchProductRoute } from '@/lib/products/prefetch-product-route';
 import { shouldShowMenuCardStrikethroughPrice } from '@/lib/storefront/menu-card-pricing';
-import { resolveMenuCardCategoryLabel } from '@/lib/storefront/menu-card-category-label';
+import { buildWishlistSnapshotFromMenuCard } from '@/lib/wishlist/wishlist-product-snapshot';
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
-import { SHOP_MOBILE_PRODUCT_IMAGE_SIZES } from '@/constants/shop-menu-perf';
 import type { MenuCard } from './menu-types';
 import { RatingStars } from '@/components/RatingStars';
-import { menuCardToWishlistSnapshot } from '@/lib/wishlist/wishlist-product-snapshot-mappers';
 
 /** Above storefront overlay link — must not include `relative` (breaks `absolute` positioning). */
 const MOBILE_PRODUCT_CARD_ACTION_Z_CLASS = 'z-20';
@@ -45,30 +43,24 @@ function getShopMobileProductCardPriceSizeClass(formattedPrice: string): string 
 
 type ShopMobileProductCardProps = {
   card: MenuCard;
-  /** LCP candidates in the first visible grid rows. */
-  imagePriority?: boolean;
   /** Enables near-viewport PDP prefetch (can be disabled on heavy grids like home sections). */
   enableVisibilityPrefetch?: boolean;
-  /** Hides the greens/viggie badge while viggie filter itself is active. */
-  hideGreensBadge?: boolean;
 };
 
 /**
  * Mobile shop/combo product card — cream Figma layout (node 1:2235), 2-column grid.
  */
-function ShopMobileProductCardBase({
+export function ShopMobileProductCard({
   card,
-  imagePriority = false,
-  enableVisibilityPrefetch = false,
-  hideGreensBadge = false,
+  enableVisibilityPrefetch = true,
 }: ShopMobileProductCardProps) {
-  const { t, lang } = useTranslation();
+  const { t } = useTranslation();
   const currency = useCurrency();
   const router = useRouter();
   const { isLoggedIn } = useAuth();
   const { isInWishlist, toggleWishlist } = useWishlist(card.id);
   const title = card.title || (card.titleKey ? t(card.titleKey) : '');
-  const category = resolveMenuCardCategoryLabel(card, t, lang);
+  const category = card.category || (card.categoryKey ? t(card.categoryKey) : '');
   const imageSrc = resolveStorefrontProductImage(card.image);
   const formattedPrice = formatPrice(card.price, currency);
   const formattedOldPrice = formatPrice(card.oldPrice, currency);
@@ -87,7 +79,7 @@ function ShopMobileProductCardBase({
   const showStrikethroughPrice = shouldShowMenuCardStrikethroughPrice(card.price, card.oldPrice);
   const discountText = hasDiscount ? `-${effectiveDiscountPercent}%` : '';
   const supportsSpicy = card.supportsSpicy ?? false;
-  const supportsGreens = hideGreensBadge ? false : (card.supportsGreens ?? false);
+  const supportsGreens = card.supportsGreens ?? false;
   const displayRating = card.rating ?? 5;
   const greensTopClass = supportsSpicy ? 'top-[38px]' : 'top-[11px]';
   const productHref = `/products/${card.slug}`;
@@ -118,7 +110,7 @@ function ShopMobileProductCardBase({
       router.push(`/login?redirect=${encodeURIComponent(productHref)}`);
       return;
     }
-    void toggleWishlist(menuCardToWishlistSnapshot(card, title));
+    void toggleWishlist(buildWishlistSnapshotFromMenuCard(card, title));
   };
 
   const visibilityRef = usePrefetchProductWhenVisible(card.slug);
@@ -140,6 +132,10 @@ function ShopMobileProductCardBase({
     prefetchProductRoute(router, card.slug);
   }, [router, card.slug]);
 
+  const warmProductRouteForClick = useCallback(() => {
+    prefetchProductRoute(router, card.slug, undefined, { warmPdpBundle: true });
+  }, [router, card.slug]);
+
   return (
     <article
       ref={enableVisibilityPrefetch ? visibilityRef : null}
@@ -147,8 +143,8 @@ function ShopMobileProductCardBase({
       className="relative h-[240px] w-full cursor-pointer rounded-[20px] border-[1.5px] border-[#dedede] bg-white transition-colors"
       onMouseEnter={warmProductRoute}
       onFocus={warmProductRoute}
-      onPointerDown={warmProductRoute}
-      onTouchStart={warmProductRoute}
+      onPointerDown={warmProductRouteForClick}
+      onTouchStart={warmProductRouteForClick}
     >
       <div
         data-product-fly-origin
@@ -160,10 +156,8 @@ function ShopMobileProductCardBase({
             alt={title}
             fill
             className="rounded-[20px] object-cover"
-            sizes={SHOP_MOBILE_PRODUCT_IMAGE_SIZES}
-            priority={imagePriority}
-            loading={imagePriority ? 'eager' : 'lazy'}
-            fallbackSrc={STOREFRONT_PRODUCT_IMAGE_PATH}
+            loading="lazy"
+            sizes="50vw"
           />
           <button
             type="button"
@@ -189,24 +183,24 @@ function ShopMobileProductCardBase({
 
       {supportsSpicy ? (
         <div className="absolute left-[9px] top-[11px] flex h-[22px] w-[22px] items-center justify-center rounded-full bg-[#ff2b2e]">
-          <img
+          <HomeOptimizedImage
             src={MOBILE_SHOP_PRODUCT_CARD_ASSETS.hot}
             alt=""
             width={13}
             height={13}
             className="h-[13px] w-[13px] -rotate-[13deg] object-contain"
-            decoding="async"
+            loading="lazy"
           />
         </div>
       ) : null}
       {supportsGreens ? (
-        <img
+        <HomeOptimizedImage
           src={MOBILE_SHOP_PRODUCT_CARD_ASSETS.ribbon}
           alt=""
           width={22}
           height={22}
           className={`absolute left-[9px] h-[22px] w-[22px] object-contain ${greensTopClass}`}
-          decoding="async"
+          loading="lazy"
         />
       ) : null}
 
@@ -258,18 +252,16 @@ function ShopMobileProductCardBase({
         aria-label={t('common.buttons.addToCart')}
         className={`absolute bottom-0 left-1/2 ${MOBILE_PRODUCT_CARD_ACTION_Z_CLASS} inline-flex h-[42px] w-[42px] -translate-x-1/2 translate-y-1/2 items-center justify-center disabled:opacity-50`}
       >
-        <img
+        <HomeOptimizedImage
           src={MOBILE_SHOP_PRODUCT_CARD_ASSETS.addToCart}
           alt=""
           width={42}
           height={42}
           className="h-[42px] w-[42px] object-contain"
-          decoding="async"
+          loading="lazy"
         />
       </button>
       <StorefrontProductOverlayLink slug={card.slug} label={title} preview={previewSummary} />
     </article>
   );
 }
-
-export const ShopMobileProductCard = memo(ShopMobileProductCardBase);

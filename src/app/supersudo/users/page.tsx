@@ -22,8 +22,8 @@ import {
   ADMIN_TABLE_THEAD,
 } from '../constants/admin-table-classes';
 import { logger } from "@/lib/utils/logger";
+import { fetchWithInflightKey } from '@/lib/admin/inflight-get-cache';
 import { useAdminDialogs } from '../context/AdminDialogsContext';
-import { formatHydrationSafeDate } from '@/lib/format-date';
 
 interface User {
   id: string;
@@ -71,18 +71,22 @@ export default function UsersPage() {
   }, [isLoggedIn, isAdmin, isLoading, router]);
 
   const fetchUsers = useCallback(async () => {
+    const requestKey = `admin-users:${[page, search, roleFilter].join('|')}`;
+
     try {
       setLoading(true);
       logger.debug('👥 [ADMIN] Fetching users...', { page, search, roleFilter });
-      
-      const response = await apiClient.get<UsersResponse>('/api/v1/admin/users', {
-        params: {
-          page: page.toString(),
-          limit: '20',
-          search: search || '',
-          role: roleFilter === 'all' ? '' : roleFilter,
-        },
-      });
+
+      const response = await fetchWithInflightKey(requestKey, () =>
+        apiClient.get<UsersResponse>('/api/v1/admin/users', {
+          params: {
+            page: page.toString(),
+            limit: '20',
+            search: search || '',
+            role: roleFilter === 'all' ? '' : roleFilter,
+          },
+        }),
+      );
 
       logger.debug('✅ [ADMIN] Users fetched:', response);
       setUsers(response.data || []);
@@ -96,10 +100,9 @@ export default function UsersPage() {
 
   useEffect(() => {
     if (isLoggedIn && isAdmin) {
-      fetchUsers();
+      void fetchUsers();
     }
-     
-  }, [isLoggedIn, isAdmin, page, search, roleFilter]);
+  }, [isLoggedIn, isAdmin, fetchUsers]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -415,7 +418,7 @@ export default function UsersPage() {
                           </button>
                         </td>
                         <td className={`${ADMIN_TABLE_TD} whitespace-nowrap text-left tabular-nums text-gray-600`}>
-                          {formatHydrationSafeDate(user.createdAt)}
+                          {new Date(user.createdAt).toLocaleDateString()}
                         </td>
                       </tr>
                     ))}

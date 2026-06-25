@@ -13,6 +13,7 @@ import type { Category, CategoryWithLevel } from '../types';
 
 interface SortableCategoryRowProps {
   category: CategoryWithLevel;
+  parentTitle: string;
   dragEnabled: boolean;
   processImageUrl: (url: string | null | undefined) => string;
   onEdit: (category: Category) => void;
@@ -21,6 +22,7 @@ interface SortableCategoryRowProps {
 
 export function SortableCategoryRow({
   category,
+  parentTitle,
   dragEnabled,
   processImageUrl,
   onEdit,
@@ -83,13 +85,16 @@ export function SortableCategoryRow({
         )}
       </td>
       <td className={`${ADMIN_TABLE_TD} text-left text-gray-900`}>
-        <div className="text-sm font-medium">{category.title}</div>
+        <div
+          className="text-sm font-medium"
+          style={{ paddingLeft: `${category.level * 16}px` }}
+        >
+          {category.title}
+        </div>
         <div className="text-xs text-gray-500">{category.slug}</div>
       </td>
-      <td className={`${ADMIN_TABLE_TD} whitespace-nowrap text-center`}>
-        <span className="inline-flex min-w-10 items-center justify-center rounded-full bg-[#e9f3ec] px-2.5 py-1 text-xs font-semibold text-[#2f8a57]">
-          {category.productsCount ?? 0}
-        </span>
+      <td className={`${ADMIN_TABLE_TD} whitespace-nowrap text-left text-gray-700`}>
+        {parentTitle}
       </td>
       <td className={`${ADMIN_TABLE_TD} whitespace-nowrap text-center`}>
         <div className="flex items-center justify-center gap-1">

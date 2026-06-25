@@ -7,7 +7,8 @@ import { Button } from '@shop/ui';
 import { formatPrice, type CurrencyCode } from '../../lib/currency';
 import { WishlistMobileProductCard } from './WishlistMobileProductCard';
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
-import type { WishlistProductSnapshot } from '@/lib/wishlist/wishlist-products-cache';
+
+import type { WishlistProductSnapshot } from '@/lib/wishlist/wishlist-product-snapshot';
 
 export type WishlistProductCardProduct = WishlistProductSnapshot;
 

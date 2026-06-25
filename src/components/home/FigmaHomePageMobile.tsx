@@ -1,10 +1,8 @@
-'use client';
-
 import Link from 'next/link';
-import { useEffect } from 'react';
 import { ViewMoreButton } from '../view-more/ViewMoreButton';
-import { useTranslation } from '@/lib/i18n-client';
-import { montserratArmFont } from '@/fonts/montserrat-arm-font';
+import { t as translateKey } from '@/lib/i18n';
+import type { StorefrontLocale } from '@/lib/i18n/locale';
+import { mirageExpandedFont } from '@/fonts/mirage-expanded-font';
 import type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
 import {
   MOBILE_FIGMA_HEADER_HORIZONTAL_INSET_CLASS,
@@ -26,8 +24,6 @@ import { MobileHomeHeaderActions } from './MobileHomeHeaderActions';
 import { MobileHomeProductGrid } from './MobileHomeProductGrid';
 import { MobileCategoryCarousel } from './MobileCategoryCarousel';
 import { MobileDailyOfferCarousel } from './MobileDailyOfferCarousel';
-import { seedRelatedProductsPool } from '@/lib/products/related-products-cache';
-import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
 
 const mobileAssets = {
   ...MOBILE_FIGMA_STOREFRONT_ASSETS,
@@ -94,48 +90,19 @@ function MobileCategoryStrip({
 }
 
 type FigmaHomePageMobileProps = {
+  lang: StorefrontLocale;
   categories: HomeCategoryItem[];
   featuredProducts: HomeFeaturedProduct[];
   dailyOfferProduct?: HomeFeaturedProduct | null;
 };
 
 export function FigmaHomePageMobile({
+  lang,
   categories,
   featuredProducts,
   dailyOfferProduct,
 }: FigmaHomePageMobileProps) {
-  const { t, lang } = useTranslation();
-  useEffect(() => {
-    seedRelatedProductsPool(
-      featuredProducts.map((product) => {
-        const price = product.price ?? 0;
-        const compareAtPrice =
-          product.oldPrice != null && product.oldPrice > price ? product.oldPrice : null;
-        return {
-          id: product.id,
-          slug: product.slug,
-          title: product.title,
-          price,
-          originalPrice: compareAtPrice,
-          compareAtPrice,
-          discountPercent: product.discountPercent ?? null,
-          defaultVariantId: product.defaultVariantId ?? null,
-          image: resolveStorefrontProductImage(product.image),
-          inStock: product.inStock ?? true,
-          rating: product.rating ?? 5,
-          categories: product.categorySlug
-            ? [
-                {
-                  id: product.categorySlug,
-                  slug: product.categorySlug,
-                  title: product.subtitle || '',
-                },
-              ]
-            : [],
-        };
-      })
-    );
-  }, [featuredProducts]);
+  const t = (key: string) => translateKey(lang, key);
   const resolvedDailyOfferProduct = resolveHomeDailyOfferProduct(
     featuredProducts,
     dailyOfferProduct
@@ -143,11 +110,11 @@ export function FigmaHomePageMobile({
   const { newArrivalProducts, categoryProductsA, categoryProductsB } =
     sliceMobileHomeProductSections(featuredProducts);
   const displayCategories = buildMobileDisplayCategories(categories);
-  const categoriesTitleClassName = lang === 'hy' ? montserratArmFont.className : undefined;
+  const categoriesTitleClassName = lang === 'hy' ? mirageExpandedFont.className : undefined;
   const viewMoreLabel = t('common.buttons.viewMore');
 
   return (
-    <div className="relative min-h-screen w-full overflow-x-clip overflow-y-visible bg-[var(--project-color)]">
+    <div className="relative min-h-screen w-full overflow-x-clip overflow-y-visible bg-[var(--project-color)] lg:hidden">
       <div className="absolute -left-[210px] -top-[123px] h-[434px] w-[418px] rounded-full border-[80px] border-[#3E573D]" />
       <div className="absolute -right-[160px] -top-[184px] h-[320px] w-[360px] rounded-full border-[70px] border-[#3E573D]" />
 

@@ -8,3 +8,6 @@ export const montserratArmFont = localFont({
   ],
   display: 'swap',
 });
+
+/** Bold subset alias for price (node 10:1888). */
+export const montserratArmBoldFont = montserratArmFont;

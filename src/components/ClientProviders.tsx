@@ -7,13 +7,12 @@ import { CompareIdsProvider } from '../lib/compare/CompareIdsProvider';
 import { ToastContainer } from './Toast';
 import { LanguageHtmlUpdater } from './LanguageHtmlUpdater';
 import { CartDrawerProvider } from './cart-drawer/cart-drawer-context';
+import { CartDrawer } from './cart-drawer/CartDrawer';
 import { DisableMobileZoomGuard } from './mobile/DisableMobileZoomGuard';
 import { MobilePageScrollCache } from './mobile/MobilePageScrollCache';
 import { MobileRoutePrefetcher } from './mobile/MobileRoutePrefetcher';
 import { PdpChromeProvider } from '../app/products/[slug]/pdp-chrome-context';
 import { NotFoundPageProvider } from './errors/not-found-page.context';
-import { LanguageProvider } from '../lib/i18n-client';
-import { CartDrawerGate } from './cart-drawer/CartDrawerGate';
 
 /**
  * ClientProviders component
@@ -21,7 +20,6 @@ import { CartDrawerGate } from './cart-drawer/CartDrawerGate';
  */
 export function ClientProviders({ children }: { children: ReactNode }) {
   return (
-    <LanguageProvider>
     <AuthProvider>
       <WishlistIdsProvider>
       <CompareIdsProvider>
@@ -33,7 +31,7 @@ export function ClientProviders({ children }: { children: ReactNode }) {
         <MobilePageScrollCache />
         <LanguageHtmlUpdater />
         {children}
-        <CartDrawerGate />
+        <CartDrawer />
         <ToastContainer />
       </CartDrawerProvider>
       </NotFoundPageProvider>
@@ -41,6 +39,5 @@ export function ClientProviders({ children }: { children: ReactNode }) {
       </CompareIdsProvider>
       </WishlistIdsProvider>
     </AuthProvider>
-    </LanguageProvider>
   );
 }

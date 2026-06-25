@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiClient, ApiError } from '../api-client';
 import { clearAuthSession } from '../api-client/auth-utils';
@@ -10,7 +10,6 @@ import {
   setAuthUserClientCookie,
   type AuthCookieUser,
 } from '@/lib/auth/auth-cookies';
-import { fetchUserProfileCached } from '@/lib/users/fetch-user-profile';
 import { logger } from "@/lib/utils/logger";
 
 /**
@@ -60,23 +59,6 @@ interface AuthResponse {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-const MISSING_AUTH_PROVIDER_ERROR = 'useAuth must be used within an AuthProvider';
-
-const AUTH_CONTEXT_FALLBACK: AuthContextType = {
-  user: null,
-  token: null,
-  isLoggedIn: false,
-  isLoading: false,
-  isAdmin: false,
-  roles: [],
-  login: async () => {
-    throw new Error(MISSING_AUTH_PROVIDER_ERROR);
-  },
-  register: async () => {
-    throw new Error(MISSING_AUTH_PROVIDER_ERROR);
-  },
-  logout: () => {},
-};
 
 /**
  * Auth Provider component
@@ -94,12 +76,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     logger.debug('⚠️ [AUTH] User missing roles, fetching from API...');
     try {
-      const profileData = await fetchUserProfileCached();
-      const roles = (profileData as User & { roles?: string[] }).roles;
-      if (Array.isArray(roles)) {
-        const updatedUser: User = { ...candidate, roles };
+      const profileData = await apiClient.get<{ roles: string[] }>('/api/v1/users/profile');
+      if (Array.isArray(profileData.roles)) {
+        const updatedUser: User = { ...candidate, roles: profileData.roles };
         setAuthUserClientCookie(updatedUser as AuthCookieUser);
-        logger.debug('✅ [AUTH] Roles updated from API:', roles);
+        logger.debug('✅ [AUTH] Roles updated from API:', profileData.roles);
         return updatedUser;
       }
     } catch (fetchError) {
@@ -328,17 +309,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
  */
 export function useAuth() {
   const context = useContext(AuthContext);
-  const hasWarnedMissingAuthProviderRef = useRef(false);
-  useEffect(() => {
-    if (context !== undefined || hasWarnedMissingAuthProviderRef.current) {
-      return;
-    }
-    hasWarnedMissingAuthProviderRef.current = true;
-    logger.warn('⚠️ [AUTH] AuthProvider is missing in render tree; using guest auth fallback state');
-  }, [context]);
-
   if (context === undefined) {
-    return AUTH_CONTEXT_FALLBACK;
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 }

@@ -1,39 +1,50 @@
 import { Suspense } from 'react';
-import { MobileShopCategoriesView } from '@/components/home/MobileShopCategoriesView';
-import { StorefrontMenuPageLoading } from '@/components/home/StorefrontMenuPageLoading';
-import { BodyBackground } from '@/components/BodyBackground';
+import { FigmaDesktopMenuPage } from '../../components/home/FigmaDesktopShopPage';
+import { MobileShopCategoriesView } from '../../components/home/MobileShopCategoriesView';
+import { BodyBackground } from '../../components/BodyBackground';
+import { StorefrontLocaleUrlSync } from '@/components/routing/StorefrontLocaleUrlSync';
 import { shouldShowMobileShopCategoryGrid } from '@/lib/shop-mobile-view';
 import { normalizeStorefrontCategorySlug } from '@/constants/storefront-all-category-slug';
-import { cookies, headers } from 'next/headers';
-import { resolveStorefrontLocaleFromCookie } from '@/lib/i18n/locale';
-import { getShopMenuSidebarPayload } from '@/lib/services/shop-page/shop-page-data.service';
-import { isMobileUserAgent } from '@/lib/viewport';
-import { ShopMenuPageLoader } from './ShopMenuPageLoader';
+import { resolveStorefrontLocaleFromPageSearchParams } from '@/lib/i18n/locale';
+import { getShopMenuData } from '@/lib/services/shop-page/shop-page-data.service';
+import type { ShopMenuQuery } from '@/lib/services/shop-page/shop-page-query.types';
 
 type SearchParamsInput = Record<string, string | string[] | undefined>;
 
-async function ShopMobileCategoriesLoader({
-  locale,
-  selectedSearchQuery,
-  tasteFilter,
-  minPriceAmd,
-  maxPriceAmd,
-}: {
-  locale: ReturnType<typeof resolveStorefrontLocaleFromCookie>;
-  selectedSearchQuery: string;
-  tasteFilter: 'leaf' | 'pepper' | null;
-  minPriceAmd: number | null;
-  maxPriceAmd: number | null;
-}) {
-  const { mobileShopCategories } = await getShopMenuSidebarPayload({
+/** Keep in sync with `STOREFRONT_ISR_REVALIDATE_SECONDS` in `@/constants/storefront-isr`. */
+export const revalidate = 86_400;
+
+function parseShopPageQuery(params: SearchParamsInput): Omit<ShopMenuQuery, 'loadProfile'> {
+  const locale = resolveStorefrontLocaleFromPageSearchParams(params);
+  const rawCategorySlug =
+    typeof params?.category === 'string' ? params.category.trim() : '';
+  const selectedCategorySlug = normalizeStorefrontCategorySlug(rawCategorySlug);
+  const selectedSearchQuery =
+    typeof params?.search === 'string' ? params.search.trim() : '';
+  const tasteFilter =
+    params?.taste === 'leaf' || params?.taste === 'pepper' ? params.taste : null;
+  const minPriceParam =
+    typeof params?.minPrice === 'string' ? Number(params.minPrice) : null;
+  const maxPriceParam =
+    typeof params?.maxPrice === 'string' ? Number(params.maxPrice) : null;
+  const rawPage = typeof params?.page === 'string' ? params.page.trim() : '';
+  const parsedPage = parseInt(rawPage || '1', 10);
+
+  return {
     locale,
+    selectedCategorySlug,
     selectedSearchQuery,
     tasteFilter,
-    minPriceAmd,
-    maxPriceAmd,
-  });
-
-  return <MobileShopCategoriesView categories={mobileShopCategories} />;
+    minPriceAmd:
+      typeof minPriceParam === 'number' && Number.isFinite(minPriceParam) && minPriceParam >= 0
+        ? minPriceParam
+        : null,
+    maxPriceAmd:
+      typeof maxPriceParam === 'number' && Number.isFinite(maxPriceParam) && maxPriceParam >= 0
+        ? maxPriceParam
+        : null,
+    requestedPage: Number.isFinite(parsedPage) && parsedPage >= 1 ? parsedPage : 1,
+  };
 }
 
 export default async function ShopPage({
@@ -41,95 +52,73 @@ export default async function ShopPage({
 }: {
   searchParams?: Promise<SearchParamsInput>;
 }) {
-  const [params, cookieStore, headersList] = await Promise.all([searchParams, cookies(), headers()]);
-  const resolvedParams = params ?? {};
-  const locale = resolveStorefrontLocaleFromCookie(cookieStore.get('shop_language')?.value);
+  const params = (await searchParams) ?? {};
+  const query = parseShopPageQuery(params);
   const rawCategorySlug =
-    typeof resolvedParams?.category === 'string' ? resolvedParams.category.trim() : '';
-  const selectedCategorySlug = normalizeStorefrontCategorySlug(rawCategorySlug);
-  const selectedSearchQuery =
-    typeof resolvedParams?.search === 'string' ? resolvedParams.search.trim() : '';
-  const tasteParam =
-    typeof resolvedParams?.taste === 'string' ? resolvedParams.taste : null;
-  const tasteFilter: 'leaf' | 'pepper' | null =
-    tasteParam === 'leaf' || tasteParam === 'pepper' ? tasteParam : null;
-  const openFilters = resolvedParams?.openFilters === '1';
-  const minPriceParam =
-    typeof resolvedParams?.minPrice === 'string' ? Number(resolvedParams.minPrice) : null;
-  const maxPriceParam =
-    typeof resolvedParams?.maxPrice === 'string' ? Number(resolvedParams.maxPrice) : null;
-  const minPriceAmd =
-    typeof minPriceParam === 'number' && Number.isFinite(minPriceParam) && minPriceParam >= 0
-      ? minPriceParam
-      : null;
-  const maxPriceAmd =
-    typeof maxPriceParam === 'number' && Number.isFinite(maxPriceParam) && maxPriceParam >= 0
-      ? maxPriceParam
-      : null;
+    typeof params?.category === 'string' ? params.category.trim() : '';
   const showMobileCategoryGrid = shouldShowMobileShopCategoryGrid({
     categorySlug: rawCategorySlug,
-    searchQuery: selectedSearchQuery,
-    tasteFilter,
-    minPriceAmd,
-    maxPriceAmd,
-    openFilters,
+    searchQuery: query.selectedSearchQuery,
+    tasteFilter: query.tasteFilter,
+    minPriceAmd: query.minPriceAmd,
+    maxPriceAmd: query.maxPriceAmd,
+    openFilters: params?.openFilters === '1',
   });
-  const rawPage = typeof resolvedParams?.page === 'string' ? resolvedParams.page.trim() : '';
-  const parsedPage = parseInt(rawPage || '1', 10);
-  const requestedPage =
-    Number.isFinite(parsedPage) && parsedPage >= 1 ? parsedPage : 1;
-  const userAgent = headersList.get('user-agent');
-  const clientHintMobile = headersList.get('sec-ch-ua-mobile') === '?1';
-  const renderDesktopLayout = !(isMobileUserAgent(userAgent) || clientHintMobile);
 
-  const menuQuery = {
-    locale,
-    selectedCategorySlug,
-    selectedSearchQuery,
-    tasteFilter,
-    minPriceAmd,
-    maxPriceAmd,
-    requestedPage,
-    loadProfile: 'full' as const,
-  };
+  const menuData = showMobileCategoryGrid
+    ? await (async () => {
+        const [mobileGrid, full] = await Promise.all([
+          getShopMenuData({ ...query, loadProfile: 'mobile-grid' }),
+          getShopMenuData({ ...query, loadProfile: 'full' }),
+        ]);
+        return {
+          cards: full.cards,
+          categories: full.categories,
+          mobileShopCategories: mobileGrid.mobileShopCategories,
+          showCategoryPicker: full.showCategoryPicker,
+          effectivePage: full.effectivePage,
+          totalPages: full.totalPages,
+        };
+      })()
+    : await getShopMenuData({ ...query, loadProfile: 'full' });
+
+  const {
+    cards,
+    categories,
+    mobileShopCategories,
+    showCategoryPicker,
+    effectivePage,
+    totalPages,
+  } = menuData;
 
   return (
     <div className="min-h-screen bg-white">
       <BodyBackground color="#ffffff" />
+      <Suspense fallback={null}>
+        <StorefrontLocaleUrlSync />
+      </Suspense>
       {showMobileCategoryGrid ? (
-        <Suspense
-          fallback={
-            <div className="space-y-4 px-4 pb-4 pt-6 lg:hidden" aria-busy="true" aria-hidden>
-              <div className="h-5 w-32 animate-pulse rounded-full bg-[#f3f3f5]" />
-              <div className="grid grid-cols-2 gap-3">
-                {Array.from({ length: 4 }, (_, index) => (
-                  <div key={index} className="h-[140px] animate-pulse rounded-[20px] bg-[#f3f3f5]" />
-                ))}
-              </div>
-            </div>
-          }
-        >
-          <ShopMobileCategoriesLoader
-            locale={locale}
-            selectedSearchQuery={selectedSearchQuery}
-            tasteFilter={tasteFilter}
-            minPriceAmd={minPriceAmd}
-            maxPriceAmd={maxPriceAmd}
-          />
-        </Suspense>
+        <MobileShopCategoriesView categories={mobileShopCategories} />
       ) : null}
-      <Suspense fallback={<StorefrontMenuPageLoading />}>
-        <ShopMenuPageLoader
-          menuQuery={menuQuery}
+      <Suspense fallback={<div className="min-h-[480px] animate-pulse bg-white" aria-hidden />}>
+        <FigmaDesktopMenuPage
           titleKey="home.figma.desktop.shop.menuTitle"
           subtitleKey="home.figma.desktop.shop.menuSubtitle"
-          rawCategorySlug={rawCategorySlug}
-          selectedSearchQuery={selectedSearchQuery}
-          minPriceAmd={minPriceAmd}
-          maxPriceAmd={maxPriceAmd}
-          tasteFilter={tasteFilter}
+          activeCategoryIndex={0}
+          cards={cards}
+          categories={categories}
+          activeCategorySlug={rawCategorySlug}
+          initialSearch={query.selectedSearchQuery}
+          initialMinPrice={query.minPriceAmd !== null ? String(query.minPriceAmd) : ''}
+          initialMaxPrice={query.maxPriceAmd !== null ? String(query.maxPriceAmd) : ''}
+          initialFoodFilter={query.tasteFilter ?? 'neutral'}
+          menuPagination={{
+            currentPage: effectivePage,
+            totalPages,
+          }}
           showMobileProductsList={!showMobileCategoryGrid}
-          renderDesktopLayout={renderDesktopLayout}
+          renderDesktopLayout
+          showCategoryPicker={showCategoryPicker}
         />
       </Suspense>
     </div>

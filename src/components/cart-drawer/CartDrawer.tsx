@@ -1,9 +1,9 @@
 'use client';
 
-import { motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import Link from 'next/link';
-import { useCallback, useEffect, useRef } from 'react';
-import { getStoredCurrency, HYDRATION_SAFE_CURRENCY } from '@/lib/currency';
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
+import { getStoredCurrency } from '@/lib/currency';
 import { useTranslation } from '@/lib/i18n-client';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { handleRemoveItem, handleUpdateQuantity } from '@/app/cart/cart-handlers';
@@ -20,10 +20,6 @@ import {
 } from './cart-drawer-motion-variants';
 import { readCartSummaryCache } from '@/lib/cartSummaryCache';
 import { cartHasVisibleItems } from '@/lib/cart/cart-summary-sync';
-import {
-  clearRecentCheckoutFlag,
-  wasCartCheckoutRecentlyCompleted,
-} from '@/lib/cart/cart-events';
 import { clearLegacyGuestCartLocalStorage } from '@/lib/cart/guest-cart-cookies';
 import { useCartDrawer } from './cart-drawer-context';
 import { useState } from 'react';
@@ -37,7 +33,7 @@ const DRAWER_HEADER_CLOSE_CLASS =
 
 /** Mobile: full-viewport sheet (no radius), darker glass. Desktop: right drawer, lighter glass. */
 const DRAWER_PANEL_CLASS =
-  'absolute inset-0 z-[200] flex h-full w-full max-w-none flex-col overflow-hidden rounded-none bg-gradient-to-b from-neutral-950/68 via-neutral-900/62 to-neutral-950/72 shadow-2xl backdrop-blur-2xl backdrop-saturate-150 ring-1 ring-inset ring-white/22 supports-[backdrop-filter]:from-neutral-950/60 supports-[backdrop-filter]:via-neutral-900/55 supports-[backdrop-filter]:to-neutral-950/65 lg:inset-y-0 lg:left-auto lg:right-0 lg:max-w-md lg:rounded-none lg:rounded-l-[2.25rem] lg:from-white/78 lg:via-white/68 lg:to-white/58 lg:ring-white/45 lg:supports-[backdrop-filter]:from-white/68 lg:supports-[backdrop-filter]:via-white/58 lg:supports-[backdrop-filter]:to-white/48';
+  'absolute inset-0 z-[200] flex h-full w-full max-w-none flex-col overflow-hidden rounded-none bg-gradient-to-b from-neutral-950/68 via-neutral-900/62 to-neutral-950/72 shadow-2xl backdrop-blur-2xl backdrop-saturate-150 ring-1 ring-inset ring-white/22 will-change-transform supports-[backdrop-filter]:from-neutral-950/60 supports-[backdrop-filter]:via-neutral-900/55 supports-[backdrop-filter]:to-neutral-950/65 lg:inset-y-0 lg:left-auto lg:right-0 lg:max-w-md lg:rounded-none lg:rounded-l-[2.25rem] lg:from-white/78 lg:via-white/68 lg:to-white/58 lg:ring-white/45 lg:supports-[backdrop-filter]:from-white/68 lg:supports-[backdrop-filter]:via-white/58 lg:supports-[backdrop-filter]:to-white/48';
 
 function CartDrawerBackdrop({
   onClose,
@@ -63,7 +59,7 @@ function CartDrawerBackdrop({
   );
 }
 
-function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisible: boolean }) {
+function CartDrawerMounted({ onClose }: { onClose: () => void }) {
   const isMobileViewport = useIsMobileViewport();
   const reduceMotion = useReducedMotion();
   const panelTransition = cartDrawerPanelTransition(reduceMotion, { fullScreen: isMobileViewport });
@@ -71,55 +67,29 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
   const { t } = useTranslation();
   const {
     cart,
-    cartState,
     setCart,
     cartLoading,
     reloadCart,
   } = useCartDrawer();
-  const [currency, setCurrency] = useState(HYDRATION_SAFE_CURRENCY);
+  const [currency, setCurrency] = useState(getStoredCurrency());
   const isLocalUpdateRef = useRef(false);
-  const requestedOpenReloadRef = useRef(false);
 
   useEffect(() => {
     clearLegacyGuestCartLocalStorage();
   }, []);
 
   useEffect(() => {
-    if (!isVisible) {
-      requestedOpenReloadRef.current = false;
-      return;
-    }
-
-    if (cartLoading) {
-      return;
-    }
-
-    if (requestedOpenReloadRef.current) {
+    if (cartHasVisibleItems(cart)) {
       return;
     }
 
     const cached = readCartSummaryCache();
-    const cachedCount = cached?.itemsCount ?? 0;
-    const hasVisibleItems = cartHasVisibleItems(cart);
-    const checkoutRecentlyCompleted = wasCartCheckoutRecentlyCompleted();
-    if (checkoutRecentlyCompleted && hasVisibleItems) {
-      clearRecentCheckoutFlag();
-    }
-    const hasStaleItemsAfterCheckout =
-      (checkoutRecentlyCompleted && !hasVisibleItems) ||
-      (hasVisibleItems && cachedCount === 0);
-
-    if (hasVisibleItems && !hasStaleItemsAfterCheckout) {
+    if ((cached?.itemsCount ?? 0) === 0 && cart !== null) {
       return;
     }
 
-    if (!cartHasVisibleItems(cart) && cachedCount === 0 && cart !== null) {
-      return;
-    }
-
-    requestedOpenReloadRef.current = true;
-    void reloadCart({ silent: false });
-  }, [isVisible, cart, cartLoading, reloadCart]);
+    void reloadCart({ silent: true });
+  }, [cart, reloadCart]);
 
   useEffect(() => {
     const onCurrency = () => setCurrency(getStoredCurrency());
@@ -135,9 +105,6 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
   }, [reloadCart]);
 
   useEffect(() => {
-    if (!isVisible) {
-      return;
-    }
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
@@ -145,10 +112,10 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [isVisible, onClose]);
+  }, [onClose]);
 
-  useEffect(() => {
-    if (!isVisible) {
+  useLayoutEffect(() => {
+    if (!isMobileViewport) {
       return;
     }
 
@@ -162,7 +129,7 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
       document.body.style.overflow = previousBodyOverflow;
       document.documentElement.style.overflow = previousHtmlOverflow;
     };
-  }, [isVisible]);
+  }, [isMobileViewport]);
 
   const loadCartWithLoading = useCallback(async () => {
     await reloadCart({ silent: true });
@@ -195,14 +162,6 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
   const cachedItemsCount = readCartSummaryCache()?.itemsCount ?? 0;
   const showLoading =
     cartLoading && cachedItemsCount > 0 && !cartHasVisibleItems(cart);
-  const isStaleState = cartState.status === 'stale';
-  const isFailedState = cartState.status === 'failed';
-
-  if (!isVisible) {
-    return (
-      <div className="pointer-events-none invisible fixed inset-0 isolate z-[190]" aria-hidden />
-    );
-  }
 
   return (
     <motion.div
@@ -210,9 +169,7 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
       role="dialog"
       aria-modal="true"
       aria-labelledby="cart-drawer-title"
-      initial="hidden"
-      animate="visible"
-      exit="exit"
+      initial={false}
     >
       <CartDrawerBackdrop onClose={onClose} label={t('common.ariaLabels.closeMenu')} reduceMotion={reduceMotion} />
       <motion.div
@@ -258,26 +215,6 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
           initial="hidden"
           animate="visible"
         >
-          {isStaleState ? (
-            <motion.div
-              variants={fadeItem}
-              className="mb-3 rounded-lg border border-amber-300/45 bg-amber-100/90 px-3 py-2 text-xs text-amber-900 lg:bg-amber-100/70"
-              role="status"
-              aria-live="polite"
-            >
-              {t('common.messages.cartSyncStale')}
-            </motion.div>
-          ) : null}
-          {isFailedState ? (
-            <motion.div
-              variants={fadeItem}
-              className="mb-3 rounded-lg border border-rose-300/45 bg-rose-100/90 px-3 py-2 text-xs text-rose-900 lg:bg-rose-100/70"
-              role="alert"
-              aria-live="polite"
-            >
-              {cartState.error || t('common.messages.cartSyncFailed')}
-            </motion.div>
-          ) : null}
           {showLoading ? (
             <motion.div
               key="loading"
@@ -331,5 +268,11 @@ function CartDrawerMounted({ onClose, isVisible }: { onClose: () => void; isVisi
 export function CartDrawer() {
   const { isCartDrawerOpen, closeCartDrawer } = useCartDrawer();
 
-  return <CartDrawerMounted onClose={closeCartDrawer} isVisible={isCartDrawerOpen} />;
+  return (
+    <AnimatePresence>
+      {isCartDrawerOpen ? (
+        <CartDrawerMounted key="cart-drawer" onClose={closeCartDrawer} />
+      ) : null}
+    </AnimatePresence>
+  );
 }

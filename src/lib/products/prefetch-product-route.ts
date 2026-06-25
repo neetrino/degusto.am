@@ -13,6 +13,11 @@ type RouterWithPrefetch = {
   prefetch: (href: string) => void;
 };
 
+export type PrefetchProductRouteOptions = {
+  /** Warm `/api/v1/products/.../pdp` JSON + Redis. Default false for passive hover/viewport prefetch. */
+  warmPdpBundle?: boolean;
+};
+
 function trimSlug(slug: string): string {
   return slug.trim();
 }
@@ -81,7 +86,8 @@ export function prefetchProductVisual(slug: string, lang?: string): void {
 export function prefetchProductRoute(
   router: RouterWithPrefetch,
   slug: string,
-  lang?: string
+  lang?: string,
+  options?: PrefetchProductRouteOptions
 ): void {
   const normalized = trimSlug(slug);
   if (!normalized) {
@@ -99,7 +105,9 @@ export function prefetchProductRoute(
     router.prefetch(buildProductPageHref(normalized));
   }
 
-  prefetchProductPdpBundle(normalized, lang);
+  if (options?.warmPdpBundle) {
+    prefetchProductPdpBundle(normalized, lang);
+  }
 }
 
 type RouterWithPush = RouterWithPrefetch & {
@@ -108,6 +116,6 @@ type RouterWithPush = RouterWithPrefetch & {
 
 /** Keyboard/submit paths: warm caches then client-navigate via Next.js router. */
 export function navigateToProductPage(router: RouterWithPush, slug: string): void {
-  prefetchProductRoute(router, slug);
+  prefetchProductRoute(router, slug, undefined, { warmPdpBundle: true });
   router.push(buildProductPageHref(slug));
 }

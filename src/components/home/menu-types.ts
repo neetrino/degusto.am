@@ -6,7 +6,6 @@ export type MenuCard = {
   title?: string;
   subtitle?: string;
   category?: string;
-  categorySlug?: string;
   categoryKey?: string;
   image?: string | null;
   price: number;

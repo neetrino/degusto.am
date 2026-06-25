@@ -13,30 +13,17 @@ const getProductListInclude = () => ({
   translations: {
     where: { locale: "en" },
     take: 1,
-    select: {
-      title: true,
-      slug: true,
-    },
   },
   variants: {
     where: { published: true },
     take: 1,
     orderBy: { price: "asc" as const },
-    select: {
-      price: true,
-      stock: true,
-      compareAtPrice: true,
-    },
   },
   categories: {
-    select: {
-      id: true,
+    include: {
       translations: {
         where: { locale: "en" },
         take: 1,
-        select: {
-          title: true,
-        },
       },
     },
   },
@@ -113,7 +100,6 @@ export async function executeProductListQuery(
   take: number
 ) {
   const queryStartTime = Date.now();
-  const COUNT_TIMEOUT_MS = 3_000;
   
   try {
     const listQuery = db.product.findMany({
@@ -124,6 +110,7 @@ export async function executeProductListQuery(
       include: getProductListInclude(),
     });
 
+    const COUNT_TIMEOUT_MS = 10_000;
     const countWithTimeout = Promise.race([
       db.product.count({ where }),
       new Promise<number>((_, reject) => {
@@ -139,9 +126,7 @@ export async function executeProductListQuery(
     logger.debug("Fetching products and total count in parallel...");
     const [products, countResult] = await Promise.all([listQuery, countWithTimeout]);
 
-    const estimatedTotalOnTimeout =
-      products.length < take ? skip + products.length : skip + products.length + 1;
-    const total = countResult === -1 ? estimatedTotalOnTimeout : countResult;
+    const total = countResult === -1 ? products.length || take : countResult;
 
     const queryTime = Date.now() - queryStartTime;
     logger.debug(`All database queries completed in ${queryTime}ms`, {
@@ -165,6 +150,7 @@ export async function executeProductListQuery(
           include: getProductListInclude(),
         });
 
+        const COUNT_TIMEOUT_MS = 10_000;
         const countWithTimeout = Promise.race([
           db.product.count({ where }),
           new Promise<number>((_, reject) => {
@@ -178,9 +164,7 @@ export async function executeProductListQuery(
         });
 
         const [products, countResult] = await Promise.all([listQuery, countWithTimeout]);
-        const estimatedTotalOnTimeout =
-          products.length < take ? skip + products.length : skip + products.length + 1;
-        const total = countResult === -1 ? estimatedTotalOnTimeout : countResult;
+        const total = countResult === -1 ? products.length || take : countResult;
 
         const queryTime = Date.now() - queryStartTime;
         logger.debug(`All database queries completed in ${queryTime}ms (after attributes column retry)`);

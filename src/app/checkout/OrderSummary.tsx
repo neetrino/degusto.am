@@ -193,14 +193,12 @@ export function OrderSummary({
                     : t('checkout.shipping.enterCity')}
           </span>
         </div>
-        {orderSummary.bagFeeDisplay > 0 ? (
-          <div className="flex justify-between gap-2">
-            <span className={CHECKOUT_TEXT_LABEL}>{t('checkout.summary.bagFee')}</span>
-            <span className={CHECKOUT_TEXT_VALUE}>
-              {formatPriceInCurrency(orderSummary.bagFeeDisplay, currency)}
-            </span>
-          </div>
-        ) : null}
+        <div className="flex justify-between gap-2">
+          <span className={CHECKOUT_TEXT_LABEL}>{t('checkout.summary.bagFee')}</span>
+          <span className={CHECKOUT_TEXT_VALUE}>
+            {formatPriceInCurrency(orderSummary.bagFeeDisplay, currency)}
+          </span>
+        </div>
         <div className="border-t border-gray-200 pt-2.5">
           <div className="flex justify-between text-base font-semibold text-gray-900">
             <span>{t('checkout.summary.total')}</span>

@@ -1,7 +1,6 @@
 'use client';
 
 import Image from 'next/image';
-import { memo } from 'react';
 import { Card } from '@shop/ui';
 import { useTranslation } from '@/lib/i18n-client';
 import { resolveStorefrontProductImage } from '@/constants/storefront-product-image';
@@ -14,7 +13,7 @@ interface CheckoutOrderItemsProps {
   onRemoveItem: (itemId: string) => void;
 }
 
-function CheckoutOrderItemsComponent({
+export function CheckoutOrderItems({
   cart,
   isSubmitting,
   onRemoveItem,
@@ -60,6 +59,7 @@ function CheckoutOrderItemsComponent({
                   fill
                   sizes="(max-width: 768px) 50px, 84px"
                   className="object-cover md:transition-transform md:duration-300 md:group-hover:scale-[1.03]"
+                  unoptimized
                 />
               </div>
               <p className="line-clamp-2 text-[11px] font-medium leading-[1.15] text-[#1F2E1F] md:text-[15px] md:font-semibold md:leading-5">
@@ -72,5 +72,3 @@ function CheckoutOrderItemsComponent({
     </Card>
   );
 }
-
-export const CheckoutOrderItems = memo(CheckoutOrderItemsComponent);

@@ -1,5 +1,4 @@
 import type { CartVariantDisplayLine } from '../../lib/cart/cart-variant-display-lines';
-import type { CartAvailabilityStatus } from '../../lib/cart/cart-contract';
 
 /**
  * Cart item interface
@@ -20,19 +19,12 @@ export interface CartItem {  id: string;
       title: string;
       slug: string;
       image?: string | null;
-      categoryId?: string | null;
-      category?: {
-        id?: string | null;
-        slug?: string | null;
-        name?: string | null;
-      };
     };
   };
   quantity: number;
   price: number;
   originalPrice?: number | null;
   total: number;
-  availabilityStatus?: CartAvailabilityStatus;
 }
 
 /**
@@ -41,7 +33,6 @@ export interface CartItem {  id: string;
 export interface Cart {
   id: string;
   items: CartItem[];
-  subtotal?: number;
   totals: {
     subtotal: number;
     discount: number;
@@ -51,7 +42,6 @@ export interface Cart {
     currency: string;
   };
   itemsCount: number;
-  updatedAt?: string;
 }
 
 /**
