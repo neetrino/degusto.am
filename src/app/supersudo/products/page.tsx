@@ -5,7 +5,11 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@shop/ui';
 import { useAuth } from '../../../lib/auth/AuthContext';
 import { apiClient } from '../../../lib/api-client';
-import { adminGet, buildAdminReadCacheKey } from '@/lib/admin/admin-read-cache';
+import {
+  adminGet,
+  buildAdminReadCacheKey,
+  invalidateAdminReadCache,
+} from '@/lib/admin/admin-read-cache';
 import { useTranslation } from '../../../lib/i18n-client';
 import { getStoredCurrency, initializeCurrencyRates, type CurrencyCode } from '../../../lib/currency';
 import { ProductBulkSelectionBar } from './components/ProductBulkSelectionBar';
@@ -105,9 +109,11 @@ export default function ProductsPage() {
   /** Only `createdAt-*` is applied on the server; other sorts are client-only (avoids refetch on every header click). */
   const categoryFilterKey = [...selectedCategories].sort().join(',');
 
-  const fetchProducts = useCallback(async () => {
+  const fetchProducts = useCallback(async (options?: { force?: boolean; silent?: boolean }) => {
     try {
-      setLoading(true);
+      if (!options?.silent) {
+        setLoading(true);
+      }
       const params: Record<string, string> = {
         page: page.toString(),
         limit: '20',
@@ -141,6 +147,7 @@ export default function ProductsPage() {
       const response = await adminGet<ProductsResponse>('/api/v1/admin/products', {
         params,
         cacheKey: requestKey,
+        force: options?.force,
       });
 
       let filteredProducts = response.data || [];
@@ -171,7 +178,9 @@ export default function ProductsPage() {
       console.error('❌ [ADMIN] Error fetching products:', err);
       alert(t('admin.products.errorLoading').replace('{message}', message));
     } finally {
-      setLoading(false);
+      if (!options?.silent) {
+        setLoading(false);
+      }
     }
   }, [
     page,
@@ -333,6 +342,7 @@ export default function ProductsPage() {
     setBulkDeleting,
     setTogglingAllFeatured,
     setDailyOfferSelection,
+    setMeta,
   });
 
   const handleClearFilters = () => {

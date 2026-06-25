@@ -1,5 +1,6 @@
 import { db } from "@white-shop/db";
 import { problemTypes } from "@/lib/http/problem-details";
+import { invalidateProductAfterDelete } from "@/lib/services/admin/admin-products-update/cache-revalidator";
 import { logger } from "@/lib/utils/logger";
 
 class AdminProductsDeleteService {
@@ -9,6 +10,12 @@ class AdminProductsDeleteService {
   async deleteProduct(productId: string) {
     const product = await db.product.findUnique({
       where: { id: productId },
+      select: {
+        id: true,
+        translations: {
+          select: { slug: true },
+        },
+      },
     });
 
     if (!product) {
@@ -20,6 +27,10 @@ class AdminProductsDeleteService {
       };
     }
 
+    const translationSlugs = product.translations
+      .map((translation) => translation.slug)
+      .filter((slug): slug is string => Boolean(slug));
+
     await db.product.update({
       where: { id: productId },
       data: {
@@ -27,6 +38,8 @@ class AdminProductsDeleteService {
         published: false,
       },
     });
+
+    await invalidateProductAfterDelete(productId, translationSlugs);
 
     return { success: true };
   }

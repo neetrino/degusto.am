@@ -6,11 +6,13 @@ import type { Product, ProductsResponse } from '../types';
 import type { DailyOfferSelection } from '@/lib/services/daily-offer/daily-offer.types';
 import { logger } from "@/lib/utils/logger";
 import { useAdminDialogs } from '../../context/AdminDialogsContext';
+import { invalidateAdminReadCache } from '@/lib/admin/admin-read-cache';
+import { notifyStorefrontCatalogUpdated } from '@/lib/storefront/storefront-catalog-events';
 
 interface UseProductHandlersProps {
   products: Product[];
-  setProducts: (products: Product[]) => void;
-  fetchProducts: () => Promise<void>;
+  setProducts: (products: Product[] | ((prev: Product[]) => Product[])) => void;
+  fetchProducts: (options?: { force?: boolean; silent?: boolean }) => Promise<void>;
   selectedIds: Set<string>;
   setSelectedIds: (ids: Set<string> | ((prev: Set<string>) => Set<string>)) => void;
   setPage: (page: number | ((prev: number) => number)) => void;
@@ -18,6 +20,9 @@ interface UseProductHandlersProps {
   setTogglingAllFeatured: (toggling: boolean) => void;
   setDailyOfferSelection: (
     selection: DailyOfferSelection | ((prev: DailyOfferSelection) => DailyOfferSelection)
+  ) => void;
+  setMeta: (
+    meta: ProductsResponse['meta'] | null | ((prev: ProductsResponse['meta'] | null) => ProductsResponse['meta'] | null)
   ) => void;
 }
 
@@ -31,6 +36,7 @@ export function useProductHandlers({
   setBulkDeleting,
   setTogglingAllFeatured,
   setDailyOfferSelection,
+  setMeta,
 }: UseProductHandlersProps) {
   const { t } = useTranslation();
   const { confirm: confirmDialog } = useAdminDialogs();
@@ -60,6 +66,25 @@ export function useProductHandlers({
     });
   };
 
+  const removeProductsFromList = (productIds: readonly string[]) => {
+    const idsToRemove = new Set(productIds);
+    setProducts((prev) => prev.filter((product) => !idsToRemove.has(product.id)));
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      productIds.forEach((id) => next.delete(id));
+      return next;
+    });
+    setMeta((prev) => {
+      if (!prev) {
+        return prev;
+      }
+      return {
+        ...prev,
+        total: Math.max(0, prev.total - productIds.length),
+      };
+    });
+  };
+
   const handleBulkDelete = async () => {
     if (selectedIds.size === 0) return;
     const isConfirmed = await confirmDialog({
@@ -69,18 +94,31 @@ export function useProductHandlers({
       destructive: true,
     });
     if (!isConfirmed) return;
+
+    const ids = Array.from(selectedIds);
     setBulkDeleting(true);
+    removeProductsFromList(ids);
+
     try {
-      const ids = Array.from(selectedIds);
       const results = await Promise.allSettled(
         ids.map(id => apiClient.delete(`/api/v1/admin/products/${id}`))
       );
       const failed = results.filter(r => r.status === 'rejected');
-      setSelectedIds(new Set());
-      await fetchProducts();
-      alert(t('admin.products.bulkDeleteFinished').replace('{success}', (ids.length - failed.length).toString()).replace('{total}', ids.length.toString()));
+      if (failed.length > 0) {
+        invalidateAdminReadCache('/api/v1/admin/products');
+        await fetchProducts({ force: true });
+        alert(t('admin.products.bulkDeleteFinished').replace('{success}', (ids.length - failed.length).toString()).replace('{total}', ids.length.toString()));
+        return;
+      }
+
+      invalidateAdminReadCache('/api/v1/admin/products');
+      notifyStorefrontCatalogUpdated();
+      await fetchProducts({ force: true, silent: true });
+      alert(t('admin.products.bulkDeleteFinished').replace('{success}', ids.length.toString()).replace('{total}', ids.length.toString()));
     } catch (err) {
       console.error('❌ [ADMIN] Bulk delete products error:', err);
+      invalidateAdminReadCache('/api/v1/admin/products');
+      await fetchProducts({ force: true });
       alert(t('admin.products.failedToDelete'));
     } finally {
       setBulkDeleting(false);
@@ -120,17 +158,24 @@ export function useProductHandlers({
       return;
     }
 
+    removeProductsFromList([productId]);
+
     try {
       await apiClient.delete(`/api/v1/admin/products/${productId}`);
       logger.debug('✅ [ADMIN] Product deleted successfully');
-      
-      // Refresh products list
-      fetchProducts();
-      
+
+      invalidateAdminReadCache('/api/v1/admin/products');
+      notifyStorefrontCatalogUpdated();
+      await fetchProducts({ force: true, silent: true });
+
       alert(t('admin.products.deletedSuccess'));
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('❌ [ADMIN] Error deleting product:', err);
-      alert(t('admin.products.errorDeleting').replace('{message}', err.message || t('admin.common.unknownErrorFallback')));
+      invalidateAdminReadCache('/api/v1/admin/products');
+      await fetchProducts({ force: true });
+      const message =
+        err instanceof Error ? err.message : t('admin.common.unknownErrorFallback');
+      alert(t('admin.products.errorDeleting').replace('{message}', message));
     }
   };
 

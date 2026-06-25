@@ -40,6 +40,7 @@ import {
 import { shouldShowMenuCardStrikethroughPrice } from '@/lib/storefront/menu-card-pricing';
 import { useRoutePrefetch } from './useRoutePrefetch';
 import { useShopCategorySoftNav } from './useShopCategorySoftNav';
+import { useStorefrontCatalogSync } from './useStorefrontCatalogSync';
 import { ShopDesktopProductsSkeleton } from './ShopDesktopProductsSkeleton';
 import { HomeOptimizedImage } from './HomeOptimizedImage';
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
@@ -592,6 +593,8 @@ export function FigmaDesktopMenuPage({
   const [foodFilter, setFoodFilter] = useState<'leaf' | 'neutral' | 'pepper'>(initialFoodFilter);
   const routeBasePath = pathname?.startsWith('/combo') ? '/combo' : '/shop';
   const enableSoftCategoryNav = routeBasePath === '/shop' || routeBasePath === '/combo';
+
+  useStorefrontCatalogSync();
 
   useEffect(() => {
     setSearchTerm(initialSearch);
