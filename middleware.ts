@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { extractAuthTokenFromRequest } from "@/lib/auth/auth-cookies";
-import { getCachedUserRoles } from "@/lib/auth/auth-session-store";
+import { getCachedUserRolesOnEdge } from "@/lib/auth/auth-session-edge";
 import { userHasAdminRole } from "@/lib/auth/user-roles.constants";
 import { verifyJwtEdge } from "@/lib/auth/verify-jwt-edge";
 import { problemTypes } from "@/lib/http/problem-details";
@@ -52,7 +52,7 @@ async function requireAdminApiAuth(request: NextRequest): Promise<NextResponse |
     return null;
   }
 
-  const cachedRoles = await getCachedUserRoles(claims.userId);
+  const cachedRoles = await getCachedUserRolesOnEdge(claims.userId);
   if (!userHasAdminRole(cachedRoles)) {
     return forbiddenAdminApiResponse();
   }
