@@ -47,7 +47,7 @@ export async function PUT(
     }
 
     const data = parsed.data;
-    const result = await adminService.updateUser(id, data);
+    const result = await adminService.updateUser(id, data, user.id);
     return NextResponse.json(result);
   } catch (error: unknown) {
     logger.error("Admin user update failed", { error });
@@ -76,7 +76,7 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    await adminService.deleteUser(id);
+    await adminService.deleteUser(id, user.id);
 
     return NextResponse.json({ success: true });
   } catch (error: unknown) {

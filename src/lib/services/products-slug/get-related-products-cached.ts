@@ -7,15 +7,14 @@ import {
   writeJsonCache,
 } from "@/lib/cache/storefront-cache";
 import type { StorefrontLocale } from "@/lib/i18n/locale";
-import { getShopMenuProductsPage } from "@/lib/services/shop-page/shop-page-data.service";
 import { withPrismaResilience } from "@/lib/db/with-prisma-resilience";
 import {
+  findRelatedByCategoryId,
   findRelatedByProductSlug,
   resolveProductRelatedContextBySlug,
 } from "./product-related.service";
 import type { RelatedCardPayload } from "./product-related-transform";
 import { pdpPageCacheTag } from "./get-product-page-data";
-import type { MenuCard } from "@/components/home/menu-types";
 
 const PDP_RELATED_BATCH_SIZE = 5;
 const PDP_RELATED_MAX = 10;
@@ -39,53 +38,23 @@ async function loadRelatedProductsUncached(
     return [];
   }
 
-  if (context.primaryCategorySlug) {
+  if (context.primaryCategorySlug && context.primaryCategoryId) {
     const categoryCacheKey = STOREFRONT_CACHE_KEYS.productRelatedCategory(
       locale,
       context.primaryCategorySlug
     );
     const cachedCategory = await readJsonCache<{ data: RelatedCardPayload[] }>(categoryCacheKey);
-    if (cachedCategory?.data) {
-      const data = cachedCategory.data
-        .filter((item) => item.id !== context.productId && item.slug.length > 0)
-        .slice(0, PDP_RELATED_MAX);
-      await writeJsonCache(cacheKey, STOREFRONT_CACHE_TTL.productRelated, { data });
-      return data;
-    }
+    const categoryPool =
+      cachedCategory?.data ??
+      (await findRelatedByCategoryId(context.primaryCategoryId, locale, PDP_RELATED_MAX));
 
-    const firstPage = await getShopMenuProductsPage({
-      locale,
-      selectedCategorySlug: context.primaryCategorySlug,
-      selectedSearchQuery: "",
-      tasteFilter: null,
-      minPriceAmd: null,
-      maxPriceAmd: null,
-      requestedPage: 1,
-    });
-    const aggregatedCards = [...firstPage.cards];
-    let page = 2;
-    while (aggregatedCards.length < PDP_RELATED_MAX && page <= firstPage.totalPages) {
-      const nextPage = await getShopMenuProductsPage({
-        locale,
-        selectedCategorySlug: context.primaryCategorySlug,
-        selectedSearchQuery: "",
-        tasteFilter: null,
-        minPriceAmd: null,
-        maxPriceAmd: null,
-        requestedPage: page,
+    if (!cachedCategory?.data) {
+      await writeJsonCache(categoryCacheKey, STOREFRONT_CACHE_TTL.productRelated, {
+        data: categoryPool,
       });
-      aggregatedCards.push(...nextPage.cards);
-      page += 1;
     }
 
-    const categoryData = mapShopCardsToRelatedPayload(aggregatedCards)
-      .filter((item) => item.slug.length > 0)
-      .slice(0, PDP_RELATED_MAX);
-    await writeJsonCache(categoryCacheKey, STOREFRONT_CACHE_TTL.productRelated, {
-      data: categoryData,
-    });
-
-    const data = categoryData
+    const data = categoryPool
       .filter((item) => item.id !== context.productId && item.slug.length > 0)
       .slice(0, PDP_RELATED_MAX);
     await writeJsonCache(cacheKey, STOREFRONT_CACHE_TTL.productRelated, { data });
@@ -96,23 +65,6 @@ async function loadRelatedProductsUncached(
   const limited = body.data.slice(0, PDP_RELATED_MAX);
   await writeJsonCache(cacheKey, STOREFRONT_CACHE_TTL.productRelated, { data: limited });
   return limited;
-}
-
-function mapShopCardsToRelatedPayload(cards: MenuCard[]): RelatedCardPayload[] {
-  return cards.map((card) => ({
-    id: card.id,
-    slug: card.slug,
-    title: card.title ?? "",
-    price: card.price,
-    originalPrice: card.oldPrice > card.price ? card.oldPrice : null,
-    compareAtPrice: card.oldPrice > card.price ? card.oldPrice : null,
-    discountPercent: card.discountPercent ?? null,
-    defaultVariantId: card.defaultVariantId ?? null,
-    image: card.image ?? null,
-    inStock: card.inStock ?? true,
-    rating: card.rating ?? 5,
-    categories: [],
-  }));
 }
 
 /**

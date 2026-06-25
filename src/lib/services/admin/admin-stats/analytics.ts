@@ -278,7 +278,7 @@ export async function getAnalytics(period: string = 'week', startDate?: string, 
   // Calculate orders by day
   const ordersByDay = calculateOrdersByDay(orders);
 
-  const [totalProducts, totalVariants, lowStockVariants, outOfStockVariants] = await Promise.all([
+  const [totalProducts, totalVariants, lowStockVariants, outOfStockVariants, totalUsers] = await Promise.all([
     db.product.count({ where: { deletedAt: null } }),
     db.productVariant.count({ where: { published: true } }),
     db.productVariant.count({
@@ -293,6 +293,7 @@ export async function getAnalytics(period: string = 'week', startDate?: string, 
         stock: { lte: 0 },
       },
     }),
+    db.user.count({ where: { deletedAt: null } }),
   ]);
 
   return {
@@ -316,6 +317,9 @@ export async function getAnalytics(period: string = 'week', startDate?: string, 
       totalVariants,
       lowStockVariants,
       outOfStockVariants,
+    },
+    users: {
+      total: totalUsers,
     },
   };
 }

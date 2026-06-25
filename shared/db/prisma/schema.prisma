@@ -29,6 +29,9 @@ model User {
   locale               String    @default("en")
   blocked              Boolean   @default(false)
   roles                String[]  @default(["customer"])
+  mfaEnabled           Boolean   @default(false)
+  mfaTotpSecret        String?
+  sessionEpoch         Int       @default(0)
   addresses            Address[]
   deletedAt            DateTime?
   createdAt            DateTime  @default(now())
@@ -552,4 +555,30 @@ model OrderNumberCounter {
   value Int
 
   @@map("order_number_counter")
+}
+
+// ============================================
+// ADMIN AUDIT LOG
+// ============================================
+model AdminAuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  action     String
+  targetType String?
+  targetId   String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([actorId])
+  @@index([createdAt(sort: Desc)])
+  @@map("admin_audit_logs")
+}
+
+model RevokedAuthToken {
+  jti       String   @id
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+  @@map("revoked_auth_tokens")
 }

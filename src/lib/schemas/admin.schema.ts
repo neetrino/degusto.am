@@ -1,8 +1,10 @@
 import { z } from "zod";
+import { ALLOWED_USER_ROLES } from "@/lib/auth/user-roles.constants";
 
 const orderStatusSchema = z.enum(["pending", "processing", "completed", "cancelled"]);
 const paymentStatusSchema = z.enum(["pending", "paid", "failed", "refunded"]);
 const fulfillmentStatusSchema = z.enum(["unfulfilled", "fulfilled", "shipped", "delivered"]);
+const allowedRoleSchema = z.enum(ALLOWED_USER_ROLES);
 
 export const adminOrderUpdateSchema = z
   .object({
@@ -25,7 +27,7 @@ export const adminOrderUpdateSchema = z
 export const adminUserUpdateSchema = z
   .object({
     blocked: z.boolean().optional(),
-    roles: z.array(z.string().min(1)).min(1).max(10).optional(),
+    roles: z.array(allowedRoleSchema).min(1).max(10).optional(),
   })
   .strict()
   .refine((data) => data.blocked !== undefined || data.roles !== undefined, {

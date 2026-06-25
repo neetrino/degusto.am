@@ -1,4 +1,4 @@
-/** Poll interval for detecting new storefront orders in admin (ms). */
+/** Poll interval for detecting new storefront orders in admin (ms). Paused while tab is hidden. */
 export const ADMIN_NEW_ORDER_POLL_INTERVAL_MS = 12_000;
 
 /** Dispatched on `window` when a new order is detected (detail: order payload). */

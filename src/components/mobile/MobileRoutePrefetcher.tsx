@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   ADMIN_MOBILE_ANALYTICS_PATH,
   ADMIN_MOBILE_HUB_PATH,
   ADMIN_MOBILE_ORDERS_PATH,
 } from '@/constants/admin-mobile-profile';
 import { STOREFRONT_PREFETCH_ROUTES } from '@/constants/mobile-page-cache';
+import { isAdminAppPath } from '@/lib/routing/is-admin-app-path';
 import { prefetchStorefrontRoute } from '@/lib/routing/prefetch-storefront-route';
 
 const MOBILE_ADMIN_PREFETCH_ROUTES = [
@@ -22,8 +23,13 @@ const MOBILE_ADMIN_PREFETCH_ROUTES = [
  */
 export function MobileRoutePrefetcher(): null {
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
+    if (isAdminAppPath(pathname)) {
+      return;
+    }
+
     const runPrefetch = () => {
       for (const route of STOREFRONT_PREFETCH_ROUTES) {
         prefetchStorefrontRoute(router, route);
@@ -44,7 +50,7 @@ export function MobileRoutePrefetcher(): null {
     return () => {
       window.clearTimeout(timerId);
     };
-  }, [router]);
+  }, [pathname, router]);
 
   return null;
 }

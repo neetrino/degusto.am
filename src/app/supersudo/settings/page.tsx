@@ -7,6 +7,7 @@ import { Card, Button } from '@shop/ui';
 import { apiClient } from '../../../lib/api-client';
 import { useTranslation } from '../../../lib/i18n-client';
 import { clearCurrencyRatesCache } from '../../../lib/currency';
+import { AdminMfaSecurityCard } from './components/AdminMfaSecurityCard';
 import { logger } from "@/lib/utils/logger";
 
 interface Settings {
@@ -22,6 +23,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [mfaEnabled, setMfaEnabled] = useState(false);
   const [settings, setSettings] = useState<Settings>({
     defaultCurrency: 'AMD',
     currencyRates: {
@@ -45,8 +47,18 @@ export default function SettingsPage() {
   useEffect(() => {
     if (isLoggedIn && isAdmin) {
       fetchSettings();
+      void fetchMfaStatus();
     }
   }, [isLoggedIn, isAdmin]);
+
+  const fetchMfaStatus = async () => {
+    try {
+      const profile = await apiClient.get<{ mfaEnabled?: boolean }>('/api/v1/users/profile');
+      setMfaEnabled(Boolean(profile.mfaEnabled));
+    } catch {
+      setMfaEnabled(false);
+    }
+  };
 
   const fetchSettings = async () => {
     try {
@@ -143,6 +155,7 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto w-full max-w-4xl">
+      <AdminMfaSecurityCard mfaEnabled={mfaEnabled} onStatusChange={fetchMfaStatus} />
         <Card className="mb-6 rounded-xl border border-[#f2d8c6] bg-gradient-to-br from-[#fff8f2] via-white to-[#eef8f1] p-6 shadow-[0_8px_24px_rgba(245,104,20,0.08)]">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('admin.settings.generalSettings')}</h2>
           <div className="space-y-4">

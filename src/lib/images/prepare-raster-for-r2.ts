@@ -38,11 +38,7 @@ export async function prepareImageBufferForR2Upload(
   const normalizedMime = mime.toLowerCase();
 
   if (isSvgImageMime(normalizedMime)) {
-    return {
-      buffer,
-      mime: SVG_MIME,
-      extension: 'svg',
-    };
+    throw new Error('SVG uploads are not allowed');
   }
 
   if (!isRasterImageMime(normalizedMime)) {

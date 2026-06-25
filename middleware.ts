@@ -1,59 +1,72 @@
 import { NextRequest, NextResponse } from "next/server";
 import { extractAuthTokenFromRequest } from "@/lib/auth/auth-cookies";
+import { getCachedUserRoles } from "@/lib/auth/auth-session-store";
+import { userHasAdminRole } from "@/lib/auth/user-roles.constants";
+import { verifyJwtEdge } from "@/lib/auth/verify-jwt-edge";
 import { problemTypes } from "@/lib/http/problem-details";
+import { rateLimitBackendUnavailableResponse } from "@/lib/http/rate-limit-backend";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
-import * as jose from "jose";
 import { resolveUpstashRestCredentials } from "@/lib/redis/upstash-config";
 
-/** Protect /api/v1/admin/* — require valid JWT (signature + expiry). DB check (blocked/deleted) remains in route. */
-async function requireAdminAuth(request: NextRequest): Promise<NextResponse | null> {
+function unauthorizedAdminApiResponse(): NextResponse {
+  return NextResponse.json(
+    {
+      type: problemTypes.unauthorized,
+      title: "Unauthorized",
+      status: 401,
+      detail: "Missing or invalid Authorization header",
+    },
+    { status: 401 }
+  );
+}
+
+function forbiddenAdminApiResponse(): NextResponse {
+  return NextResponse.json(
+    {
+      type: problemTypes.forbidden,
+      title: "Forbidden",
+      status: 403,
+      detail: "Admin access required",
+    },
+    { status: 403 }
+  );
+}
+
+/** Protect /api/v1/admin/* — JWT, session claims, and signed admin role. */
+async function requireAdminApiAuth(request: NextRequest): Promise<NextResponse | null> {
   const token = extractAuthTokenFromRequest(request);
-
   if (!token) {
-    return NextResponse.json(
-      {
-        type: problemTypes.unauthorized,
-        title: "Unauthorized",
-        status: 401,
-        detail: "Missing or invalid Authorization header",
-      },
-      { status: 401 }
-    );
+    return unauthorizedAdminApiResponse();
   }
 
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    return NextResponse.json(
-      {
-        type: problemTypes.internalError,
-        title: "Internal Server Error",
-        status: 500,
-        detail: "Server configuration error",
-      },
-      { status: 500 }
-    );
+  const claims = await verifyJwtEdge(token);
+  if (!claims) {
+    return unauthorizedAdminApiResponse();
   }
 
-  try {
-    const key = new TextEncoder().encode(secret);
-    await jose.jwtVerify(token, key);
+  if (Array.isArray(claims.roles)) {
+    if (!userHasAdminRole(claims.roles)) {
+      return forbiddenAdminApiResponse();
+    }
     return null;
-  } catch {
-    return NextResponse.json(
-      {
-        type: problemTypes.unauthorized,
-        title: "Unauthorized",
-        status: 401,
-        detail: "Invalid or expired token",
-      },
-      { status: 401 }
-    );
   }
+
+  const cachedRoles = await getCachedUserRoles(claims.userId);
+  if (!userHasAdminRole(cachedRoles)) {
+    return forbiddenAdminApiResponse();
+  }
+
+  return null;
 }
 
 /** Rate limit for auth endpoints (login/register) by IP */
 async function checkAuthRateLimit(request: NextRequest): Promise<NextResponse | null> {
+  const backendUnavailable = rateLimitBackendUnavailableResponse();
+  if (backendUnavailable) {
+    return backendUnavailable;
+  }
+
   const credentials = resolveUpstashRestCredentials();
   if (!credentials) {
     return null;
@@ -86,6 +99,11 @@ async function checkAuthRateLimit(request: NextRequest): Promise<NextResponse | 
 }
 
 async function checkPublicApiRateLimit(request: NextRequest): Promise<NextResponse | null> {
+  const backendUnavailable = rateLimitBackendUnavailableResponse();
+  if (backendUnavailable) {
+    return backendUnavailable;
+  }
+
   const credentials = resolveUpstashRestCredentials();
   if (!credentials) {
     return null;
@@ -152,6 +170,14 @@ function resolveAllowedOrigin(request: NextRequest): string | null {
   return allowedOrigins.includes(requestOrigin) ? requestOrigin : null;
 }
 
+function applyCorsHeaders(response: NextResponse, allowedOrigin: string | null): void {
+  if (!allowedOrigin) {
+    return;
+  }
+  const corsHeaders = getCorsHeaders(allowedOrigin);
+  Object.entries(corsHeaders).forEach(([key, value]) => response.headers.set(key, value));
+}
+
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
@@ -172,18 +198,12 @@ export async function middleware(request: NextRequest) {
       return new NextResponse(null, { status: 204, headers: getCorsHeaders(allowedOrigin) });
     }
     const response = NextResponse.next();
-    if (allowedOrigin) {
-      const corsHeaders = getCorsHeaders(allowedOrigin);
-      Object.entries(corsHeaders).forEach(([key, value]) => response.headers.set(key, value));
-    }
-    // Run auth/rate-limit for protected paths, then return response with CORS
+    applyCorsHeaders(response, allowedOrigin);
+
     if (pathname.startsWith("/api/v1/admin/")) {
-      const authRes = await requireAdminAuth(request);
+      const authRes = await requireAdminApiAuth(request);
       if (authRes) {
-        if (allowedOrigin) {
-          const corsHeaders = getCorsHeaders(allowedOrigin);
-          Object.entries(corsHeaders).forEach(([k, v]) => authRes.headers.set(k, v));
-        }
+        applyCorsHeaders(authRes, allowedOrigin);
         return authRes;
       }
     } else if (
@@ -192,10 +212,7 @@ export async function middleware(request: NextRequest) {
     ) {
       const rateLimitResponse = await checkAuthRateLimit(request);
       if (rateLimitResponse) {
-        if (allowedOrigin) {
-          const corsHeaders = getCorsHeaders(allowedOrigin);
-          Object.entries(corsHeaders).forEach(([k, v]) => rateLimitResponse.headers.set(k, v));
-        }
+        applyCorsHeaders(rateLimitResponse, allowedOrigin);
         return rateLimitResponse;
       }
     }
@@ -207,10 +224,7 @@ export async function middleware(request: NextRequest) {
     ) {
       const endpointLimitResponse = await checkPublicApiRateLimit(request);
       if (endpointLimitResponse) {
-        if (allowedOrigin) {
-          const corsHeaders = getCorsHeaders(allowedOrigin);
-          Object.entries(corsHeaders).forEach(([k, v]) => endpointLimitResponse.headers.set(k, v));
-        }
+        applyCorsHeaders(endpointLimitResponse, allowedOrigin);
         return endpointLimitResponse;
       }
     }

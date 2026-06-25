@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { problemTypes } from "@/lib/http/problem-details";
+import { MIN_PASSWORD_LENGTH } from "@/lib/auth/password.constants";
 import { authenticateToken } from "@/lib/middleware/auth";
 import { usersService } from "@/lib/services/users.service";
 import { toApiError } from "@/lib/types/errors";
@@ -54,13 +55,13 @@ export async function PUT(req: NextRequest) {
     }
 
     // Validate password length
-    if (newPassword.length < 6) {
+    if (newPassword.length < MIN_PASSWORD_LENGTH) {
       return NextResponse.json(
         {
           type: problemTypes.validationError,
           title: "Validation Error",
           status: 400,
-          detail: "New password must be at least 6 characters long",
+          detail: `New password must be at least ${MIN_PASSWORD_LENGTH} characters long`,
           instance: req.url,
         },
         { status: 400 }

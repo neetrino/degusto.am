@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MIN_PASSWORD_LENGTH } from '@/lib/auth/password.constants';
 
 const loginSchema = z
   .object({
@@ -19,7 +20,7 @@ const registerSchema = z
   .object({
     email: z.string().optional(),
     phone: z.string().optional(),
-    password: z.string().min(6, "Password must be at least 6 characters"),
+    password: z.string().min(MIN_PASSWORD_LENGTH, `Password must be at least ${MIN_PASSWORD_LENGTH} characters`),
     firstName: z.string().optional(),
     lastName: z.string().optional(),
   })

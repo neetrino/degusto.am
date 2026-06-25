@@ -2,17 +2,14 @@
 
 import type { ReactNode } from 'react';
 import { AuthProvider } from '../lib/auth/AuthContext';
-import { WishlistIdsProvider } from '../lib/wishlist/WishlistIdsProvider';
-import { CompareIdsProvider } from '../lib/compare/CompareIdsProvider';
 import { ToastContainer } from './Toast';
 import { LanguageHtmlUpdater } from './LanguageHtmlUpdater';
-import { CartDrawerProvider } from './cart-drawer/cart-drawer-context';
-import { CartDrawer } from './cart-drawer/CartDrawer';
 import { DisableMobileZoomGuard } from './mobile/DisableMobileZoomGuard';
 import { MobilePageScrollCache } from './mobile/MobilePageScrollCache';
 import { MobileRoutePrefetcher } from './mobile/MobileRoutePrefetcher';
 import { PdpChromeProvider } from '../app/products/[slug]/pdp-chrome-context';
 import { NotFoundPageProvider } from './errors/not-found-page.context';
+import { PathAwareCommerceProviders } from './PathAwareCommerceProviders';
 
 /**
  * ClientProviders component
@@ -21,23 +18,18 @@ import { NotFoundPageProvider } from './errors/not-found-page.context';
 export function ClientProviders({ children }: { children: ReactNode }) {
   return (
     <AuthProvider>
-      <WishlistIdsProvider>
-      <CompareIdsProvider>
-      <PdpChromeProvider>
-      <NotFoundPageProvider>
-      <CartDrawerProvider>
-        <DisableMobileZoomGuard />
-        <MobileRoutePrefetcher />
-        <MobilePageScrollCache />
-        <LanguageHtmlUpdater />
-        {children}
-        <CartDrawer />
-        <ToastContainer />
-      </CartDrawerProvider>
-      </NotFoundPageProvider>
-      </PdpChromeProvider>
-      </CompareIdsProvider>
-      </WishlistIdsProvider>
+      <PathAwareCommerceProviders>
+        <PdpChromeProvider>
+          <NotFoundPageProvider>
+            <DisableMobileZoomGuard />
+            <MobileRoutePrefetcher />
+            <MobilePageScrollCache />
+            <LanguageHtmlUpdater />
+            {children}
+            <ToastContainer />
+          </NotFoundPageProvider>
+        </PdpChromeProvider>
+      </PathAwareCommerceProviders>
     </AuthProvider>
   );
 }

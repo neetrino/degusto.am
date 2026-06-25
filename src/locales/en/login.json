@@ -21,11 +21,40 @@
     "invalidCredentials": "Invalid email/phone or password.",
     "accountBlocked": "Your account has been blocked.",
     "loginFailed": "Login failed. Please try again."
+  },
+  "passwordReset": {
+    "forgotTitle": "Reset password",
+    "forgotSubtitle": "Enter your email and we will send reset instructions.",
+    "requestSubmit": "Send reset link",
+    "requestSubmitting": "Sending...",
+    "requestSuccess": "If an account exists for this email, password reset instructions were sent.",
+    "requestFailed": "Could not process request. Please try again.",
+    "backToLogin": "Remembered your password?",
+    "resetTitle": "Choose a new password",
+    "resetSubtitle": "Enter a new password for your account.",
+    "confirmPassword": "Confirm password",
+    "resetSubmit": "Update password",
+    "resetSubmitting": "Updating...",
+    "resetFailed": "Could not reset password. The link may have expired.",
+    "invalidToken": "Reset link is invalid or missing.",
+    "passwordMinLength": "Password must be at least 8 characters.",
+    "passwordsMismatch": "Passwords do not match."
+  },
+  "mfa": {
+    "title": "Two-factor authentication",
+    "subtitle": "Enter the 6-digit code from your authenticator app.",
+    "codeLabel": "Authentication code",
+    "submit": "Verify",
+    "submitting": "Verifying...",
+    "invalidCode": "Invalid authentication code.",
+    "adminTitle": "Admin two-factor authentication",
+    "adminDescription": "Protect admin access with a TOTP authenticator app (Google Authenticator, 1Password, etc.).",
+    "enable": "Enable 2FA",
+    "enabled": "Two-factor authentication is enabled.",
+    "disable": "Disable 2FA",
+    "scanHint": "Add this account in your authenticator app, then enter the 6-digit code.",
+    "confirmSetup": "Confirm and enable",
+    "cancel": "Cancel",
+    "setupFailed": "Could not start 2FA setup."
   }
 }
-
-
-
-
-
-

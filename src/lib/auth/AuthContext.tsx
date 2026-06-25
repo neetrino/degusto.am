@@ -10,6 +10,7 @@ import {
   setAuthUserClientCookie,
   type AuthCookieUser,
 } from '@/lib/auth/auth-cookies';
+import { userHasAdminRole } from '@/lib/auth/user-roles.constants';
 import { logger } from "@/lib/utils/logger";
 
 /**
@@ -24,6 +25,10 @@ interface User {
   roles?: string[];
 }
 
+export type LoginResult =
+  | { kind: 'authenticated'; user: User }
+  | { kind: 'mfa_required' };
+
 /**
  * Auth Context interface
  */
@@ -35,7 +40,9 @@ interface AuthContextType {
   isLoading: boolean;
   isAdmin: boolean;
   roles: string[];
-  login: (_identifier: string, _password: string) => Promise<User>;
+  login: (_identifier: string, _password: string) => Promise<LoginResult>;
+  verifyMfaLogin: (_mfaToken: string, _code: string) => Promise<User>;
+  completePasswordReset: (_password: string) => Promise<LoginResult>;
   register: (_data: RegisterData) => Promise<void>;
   logout: () => void;
 }
@@ -58,6 +65,11 @@ interface AuthResponse {
   user: User;
 }
 
+interface MfaRequiredResponse {
+  requiresMfa: true;
+  mfaToken: string;
+}
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 /**
@@ -68,26 +80,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  const hydrateRolesIfMissing = async (candidate: User): Promise<User> => {
-    const hasRoles = Array.isArray(candidate.roles) && candidate.roles.length > 0;
-    if (hasRoles) {
-      return candidate;
-    }
-
-    logger.debug('⚠️ [AUTH] User missing roles, fetching from API...');
+  const verifyUserFromApi = async (candidate: User): Promise<User | null> => {
     try {
-      const profileData = await apiClient.get<{ roles: string[] }>('/api/v1/users/profile');
-      if (Array.isArray(profileData.roles)) {
-        const updatedUser: User = { ...candidate, roles: profileData.roles };
-        setAuthUserClientCookie(updatedUser as AuthCookieUser);
-        logger.debug('✅ [AUTH] Roles updated from API:', profileData.roles);
-        return updatedUser;
-      }
-    } catch (fetchError) {
-      console.error('❌ [AUTH] Failed to fetch user roles:', fetchError);
-    }
+      const profileData = await apiClient.get<{
+        id: string;
+        email?: string | null;
+        phone?: string | null;
+        firstName?: string | null;
+        lastName?: string | null;
+        roles?: string[];
+      }>('/api/v1/users/profile');
 
-    return candidate;
+      if (!profileData?.id || profileData.id !== candidate.id) {
+        return null;
+      }
+
+      const verifiedUser: User = {
+        id: profileData.id,
+        email: profileData.email ?? candidate.email,
+        phone: profileData.phone ?? candidate.phone,
+        firstName: profileData.firstName ?? candidate.firstName,
+        lastName: profileData.lastName ?? candidate.lastName,
+        roles: Array.isArray(profileData.roles) ? profileData.roles : [],
+      };
+      setAuthUserClientCookie(verifiedUser as AuthCookieUser);
+      logger.debug('✅ [AUTH] Session verified from API:', {
+        userId: verifiedUser.id,
+        roles: verifiedUser.roles,
+      });
+      return verifiedUser;
+    } catch (fetchError) {
+      logger.warn('⚠️ [AUTH] Failed to verify session from API', { fetchError });
+      return null;
+    }
   };
 
   useEffect(() => {
@@ -99,10 +124,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const storedUser = getAuthUserFromClientCookie();
 
         if (storedUser) {
-          logger.debug('✅ [AUTH] Found stored auth data');
+          logger.debug('✅ [AUTH] Found stored auth data — verifying with API...');
           const parsedUser = storedUser as User;
-          const hydratedUser = await hydrateRolesIfMissing(parsedUser);
-          setUser(hydratedUser);
+          const verifiedUser = await verifyUserFromApi(parsedUser);
+          if (verifiedUser) {
+            setUser(verifiedUser);
+          } else {
+            await clearAuthSession();
+          }
         } else {
           logger.debug('ℹ️ [AUTH] No stored auth data found');
         }
@@ -117,7 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loadAuthState();
   }, []);
 
-  const login = async (identifier: string, password: string): Promise<User> => {
+  const login = async (identifier: string, password: string): Promise<LoginResult> => {
     logger.debug('🔐 [AUTH] Login attempt:', { identifier: identifier ? 'provided' : 'not provided', password: password ? 'provided' : 'not provided' });
 
     try {
@@ -126,22 +155,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const requestData = { identifier, password };
 
       logger.debug('📤 [AUTH] Sending login request to API...');
-      const response = await apiClient.post<AuthResponse>('/api/v1/auth/login', requestData, {
-        skipAuth: true,
-      });
+      const response = await apiClient.post<AuthResponse | MfaRequiredResponse>(
+        '/api/v1/auth/login',
+        requestData,
+        { skipAuth: true },
+      );
+
+      if ('requiresMfa' in response && response.requiresMfa) {
+        sessionStorage.setItem('degusto_mfa_challenge_token', response.mfaToken);
+        return { kind: 'mfa_required' };
+      }
+
+      const authResponse = response as AuthResponse;
 
       logger.debug('✅ [AUTH] Login successful:', {
-        userId: response.user.id,
-        roles: response.user.roles,
-        isAdmin: response.user.roles?.includes('admin'),
+        userId: authResponse.user.id,
+        roles: authResponse.user.roles,
+        isAdmin: authResponse.user.roles?.includes('admin'),
       });
 
-      setAuthUserClientCookie(response.user as AuthCookieUser);
-      setUser(response.user);
+      setAuthUserClientCookie(authResponse.user as AuthCookieUser);
+      setUser(authResponse.user);
 
       window.dispatchEvent(new Event('auth-updated'));
 
-      return response.user;
+      return { kind: 'authenticated', user: authResponse.user };
     } catch (error: unknown) {
       console.error('❌ [AUTH] Login error:', error);
 
@@ -174,6 +212,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const verifyMfaLogin = async (mfaToken: string, code: string): Promise<User> => {
+    const response = await apiClient.post<AuthResponse>(
+      '/api/v1/auth/mfa/verify',
+      { mfaToken, code },
+      { skipAuth: true },
+    );
+    setAuthUserClientCookie(response.user as AuthCookieUser);
+    setUser(response.user);
+    window.dispatchEvent(new Event('auth-updated'));
+    return response.user;
+  };
+
+  const completePasswordReset = async (password: string): Promise<LoginResult> => {
+    const response = await apiClient.post<AuthResponse | MfaRequiredResponse>(
+      '/api/v1/auth/reset-password',
+      { password },
+      { skipAuth: true },
+    );
+
+    if ('requiresMfa' in response && response.requiresMfa) {
+      sessionStorage.setItem('degusto_mfa_challenge_token', response.mfaToken);
+      return { kind: 'mfa_required' };
+    }
+
+    const authResponse = response as AuthResponse;
+    setAuthUserClientCookie(authResponse.user as AuthCookieUser);
+    setUser(authResponse.user);
+    window.dispatchEvent(new Event('auth-updated'));
+    return { kind: 'authenticated', user: authResponse.user };
   };
 
   const register = async (data: RegisterData) => {
@@ -231,7 +300,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             errorMessage = 'User with this email or phone already exists';
           } else if (errorText.includes('400') || errorText.includes('Validation failed')) {
             if (errorText.includes('password') || errorText.includes('Password')) {
-              errorMessage = 'Password must be at least 6 characters';
+              errorMessage = `Password must be at least 8 characters`;
             } else if (errorText.includes('email') || errorText.includes('phone')) {
               errorMessage = 'Please provide email or phone and password';
             } else {
@@ -270,14 +339,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const roles = user && Array.isArray(user.roles) ? user.roles : [];
-  const isAdmin = roles.includes('admin');
+  const isAdmin = userHasAdminRole(roles);
 
   useEffect(() => {
     if (!user) {
       return;
     }
     const userRoles = Array.isArray(user.roles) ? user.roles : [];
-    const userIsAdmin = userRoles.includes('admin');
+    const userIsAdmin = userHasAdminRole(userRoles);
 
     logger.debug('🔍 [AUTH] User state updated:', {
       userId: user.id,
@@ -297,6 +366,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAdmin,
     roles,
     login,
+    verifyMfaLogin,
+    completePasswordReset,
     register,
     logout,
   };

@@ -65,7 +65,14 @@ function LoginPageContent() {
 
     try {
       logger.debug('📤 [LOGIN PAGE] Calling login function...');
-      const loggedInUser = await login(normalizedEmail, password);
+      const loginResult = await login(normalizedEmail, password);
+
+      if (loginResult.kind === 'mfa_required') {
+        router.push('/login/mfa');
+        return;
+      }
+
+      const loggedInUser = loginResult.user;
       const isUserAdmin =
         Array.isArray(loggedInUser.roles) && loggedInUser.roles.includes('admin');
       const destination = resolvePostLoginPath({

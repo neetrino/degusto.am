@@ -3,6 +3,7 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { createProblem, problemTypes } from "@/lib/http/problem-details";
 import { problemJson } from "@/lib/http/problem-response";
+import { rateLimitBackendUnavailableResponse } from "@/lib/http/rate-limit-backend";
 import { resolveUpstashRestCredentials } from "@/lib/redis/upstash-config";
 import { logger } from "@/lib/utils/logger";
 
@@ -44,6 +45,11 @@ export async function enforceRouteRateLimit(
   request: NextRequest,
   options: RateLimitOptions
 ): Promise<NextResponse | null> {
+  const backendUnavailable = rateLimitBackendUnavailableResponse();
+  if (backendUnavailable) {
+    return backendUnavailable;
+  }
+
   const credentials = resolveUpstashRestCredentials();
   if (!credentials) {
     warnUpstashMissingOnce();
