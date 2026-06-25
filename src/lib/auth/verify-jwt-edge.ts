@@ -1,6 +1,6 @@
 import * as jose from 'jose';
 import { parseAuthTokenClaims, type AuthTokenClaims } from '@/lib/auth/auth-token-claims';
-import { verifyAuthSessionClaimsOnEdge } from '@/lib/auth/auth-session-store';
+import { verifyAuthSessionClaimsOnEdge } from '@/lib/auth/auth-session-edge';
 
 /**
  * Verifies JWT signature/expiry and session claims in Edge middleware.
