@@ -4,7 +4,7 @@ const projectRoot = __dirname;
 
 // Vercel Toolbar / Live inject scripts and WebSockets from vercel.live (preview & prod tooling).
 const VERCEL_LIVE_SCRIPT = 'https://vercel.live';
-const VERCEL_LIVE_CONNECT = `${VERCEL_LIVE_SCRIPT} wss://*.vercel.live`;
+const VERCEL_LIVE_CONNECT = `${VERCEL_LIVE_SCRIPT} wss://*.vercel.live wss://*.pusher.com`;
 
 if (
   process.env.VERCEL === '1' &&
@@ -88,7 +88,7 @@ const nextConfig = {
               "default-src 'self'",
               `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${VERCEL_LIVE_SCRIPT}`,
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-              "font-src 'self' https://fonts.gstatic.com",
+              `font-src 'self' https://fonts.gstatic.com ${VERCEL_LIVE_SCRIPT}`,
               "img-src 'self' data: https: blob:",
               `connect-src 'self' https: ${VERCEL_LIVE_CONNECT}`,
               `frame-src 'self' ${VERCEL_LIVE_SCRIPT}`,
