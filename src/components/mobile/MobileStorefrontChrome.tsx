@@ -61,7 +61,13 @@ export function MobileStorefrontChrome({ children }: MobileStorefrontChromeProps
 
   return (
     <div className={`flex min-h-screen w-full flex-col ${outerSurfaceClass} ${pageBackgroundClass}`}>
-      <div className="relative flex min-h-0 flex-1 flex-col overflow-x-clip">
+      <div
+        className={
+          checkoutTabletDesktop
+            ? 'relative flex min-h-0 flex-1 flex-col overflow-x-clip md:overflow-visible'
+            : 'relative flex min-h-0 flex-1 flex-col overflow-x-clip'
+        }
+      >
         {showMobileHeader ? (
           <>
             <div className={`pointer-events-none absolute -left-[210px] -top-[123px] h-[434px] w-[418px] rounded-full border-[80px] border-[#3E573D] ${decorHiddenClass}`} />
