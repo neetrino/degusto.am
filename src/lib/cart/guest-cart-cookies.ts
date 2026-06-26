@@ -53,7 +53,6 @@ export function clearLegacyShopLocalStorage(): void {
   try {
     localStorage.removeItem("shop_cart_guest");
     localStorage.removeItem("shop_wishlist");
-    localStorage.removeItem("shop_compare");
   } catch {
     // Ignore storage errors
   }

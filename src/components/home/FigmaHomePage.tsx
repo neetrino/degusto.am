@@ -34,7 +34,6 @@ import type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
 import { STOREFRONT_DESKTOP_SECTION_CLASS } from '@/constants/storefront-desktop-layout';
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
 import { buildWishlistSnapshotFromHomeFeatured } from '@/lib/wishlist/wishlist-product-snapshot';
-import { ProductCardCompareButton } from '@/components/products/ProductCardCompareButton';
 import { RatingStars } from '@/components/RatingStars';
 
 export type { HomeCategoryItem, HomeFeaturedProduct } from './home-page-types';
@@ -149,11 +148,6 @@ function NewsCard({ item }: { item: HomeFeaturedProduct }) {
         supportsGreens={item.supportsGreens ?? false}
         hotIconSrc={assets.productCardHot}
         greensIconSrc={assets.productCardRibbon}
-      />
-      <ProductCardCompareButton
-        productId={item.id}
-        className="absolute left-3 top-3 z-20 flex h-9 w-9 sm:h-10 sm:w-10"
-        iconSize={18}
       />
       <button
         type="button"

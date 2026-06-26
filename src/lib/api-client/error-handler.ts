@@ -121,10 +121,7 @@ export function isQuietGuestSessionAuthError(status: number, url: string): boole
     return false;
   }
 
-  return (
-    /\/api\/v1\/users\/wishlist(?:\?|$)/.test(url) ||
-    /\/api\/v1\/compare(?:\?|$)/.test(url)
-  );
+  return /\/api\/v1\/users\/wishlist(?:\?|$)/.test(url);
 }
 
 /**

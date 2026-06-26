@@ -26,7 +26,6 @@
     "categories": "Categories",
     "cart": "Cart",
     "wishlist": "Wishlist",
-    "compare": "Compare",
     "checkout": "Checkout",
     "profile": "Profile",
     "orders": "Orders",
@@ -82,24 +81,6 @@
       "action": "Action"
     }
   },
-  "compare": {
-    "title": "Compare Products",
-    "empty": "No products to compare",
-    "emptyDescription": "Add up to 4 products to compare their features and prices.",
-    "products": "products",
-    "product": "product",
-    "isFull": "Comparison list is full",
-    "characteristic": "Characteristic",
-    "image": "Image",
-    "name": "Name",
-    "price": "Price",
-    "availability": "Availability",
-    "actions": "Actions",
-    "viewDetails": "View Details",
-    "browseProducts": "Browse Products",
-    "category": "Category",
-    "uncategorized": "Uncategorized"
-  },
   "reviews": {
     "title": "Reviews",
     "writeReview": "Write Review",
@@ -135,8 +116,6 @@
     "removedFromCart": "Removed from cart",
     "addedToWishlist": "Added to wishlist",
     "removedFromWishlist": "Removed from wishlist",
-    "addedToCompare": "Added to compare",
-    "removedFromCompare": "Removed from compare",
     "errorAddingToCart": "Error adding to cart",
     "loading": "Loading...",
     "loadingFilters": "Loading filters...",
@@ -148,7 +127,6 @@
     "selectOptions": "Select options",
     "adding": "Adding...",
     "pcs": "pcs",
-    "compareMaxReached": "You can compare a maximum of 4 products",
     "invalidProduct": "Invalid product. Please refresh the page and try again.",
     "noVariantsAvailable": "No variants available",
     "stockExceeded": "Available quantity is {stock} pcs. You cannot add more:",
@@ -163,7 +141,6 @@
     "sku": "SKU"
   },
   "alerts": {
-    "compareMaxReached": "You can compare a maximum of 4 products",
     "invalidProduct": "Invalid product. Please refresh the page and try again.",
     "noVariantsAvailable": "No variants available",
     "stockExceeded": "Available quantity is {stock} pcs. You cannot add more:",
@@ -177,8 +154,6 @@
     "removeFromCart": "Remove from cart",
     "addToWishlist": "Add to wishlist",
     "removeFromWishlist": "Remove from wishlist",
-    "addToCompare": "Add to compare",
-    "removeFromCompare": "Remove from compare",
     "outOfStock": "Out of stock",
     "search": "Search",
     "searchPlaceholder": "Search products",

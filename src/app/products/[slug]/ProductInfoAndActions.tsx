@@ -5,8 +5,6 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import type { MouseEvent } from 'react';
 import { useWishlist } from '../../../components/hooks/useWishlist';
-import { useCompare } from '../../../components/hooks/useCompare';
-import { CompareIcon } from '../../../components/icons/CompareIcon';
 import { useAuth } from '../../../lib/auth/AuthContext';
 import { montserratArmFont } from '../../../fonts/montserrat-arm-font';
 import { formatPriceInCurrency, type CurrencyCode } from '../../../lib/currency';
@@ -107,7 +105,6 @@ export function ProductInfoAndActions({
   const router = useRouter();
   const { isLoggedIn } = useAuth();
   const { isInWishlist, toggleWishlist } = useWishlist(product.id);
-  const { isInCompare, toggleCompare } = useCompare(product.id);
 
   const handleWishlistToggle = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -123,11 +120,6 @@ export function ProductInfoAndActions({
         inStock: !isOutOfStock,
       })
     );
-  };
-
-  const handleCompareToggle = (event: MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    void toggleCompare();
   };
 
   const comparePrice =
@@ -259,23 +251,6 @@ export function ProductInfoAndActions({
                     ? t(language, 'product.outOfStock')
                     : t(language, 'product.addToCart')}
               </button>
-              <PdpSecondaryIconButton
-                onClick={handleCompareToggle}
-                aria-label={
-                  isInCompare
-                    ? t(language, 'common.ariaLabels.removeFromCompare')
-                    : t(language, 'common.ariaLabels.addToCompare')
-                }
-                title={
-                  isInCompare
-                    ? t(language, 'common.messages.removedFromCompare')
-                    : t(language, 'common.messages.addedToCompare')
-                }
-              >
-                <span className={isInCompare ? 'text-[#ff7f20]' : 'text-[#494949]'}>
-                  <CompareIcon size={20} isActive={isInCompare} />
-                </span>
-              </PdpSecondaryIconButton>
               <PdpSecondaryIconButton
                 onClick={handleWishlistToggle}
                 aria-label={

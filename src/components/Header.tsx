@@ -18,7 +18,6 @@ import { useAuth } from '../lib/auth/AuthContext';
 import { apiClient } from '../lib/api-client';
 import { LanguageSwitcherHeader } from './LanguageSwitcherHeader';
 import { Instagram, Facebook, Linkedin, Globe } from 'lucide-react';
-import { CompareIcon } from './icons/CompareIcon';
 import { WishlistHeaderHeartIcon } from './icons/WishlistHeaderHeartIcon';
 import { BrandLogoLink } from './BrandLogoLink';
 import { CartIcon } from './icons/CartIcon';
@@ -28,7 +27,6 @@ import { SITE_CONTACT_PHONES } from '../lib/site-contact';
 import { navigateToProductPage, prefetchProductRoute } from '@/lib/products/prefetch-product-route';
 import { STOREFRONT_PAGE_CONTAINER_CLASS } from '@/constants/storefront-desktop-layout';
 import { useWishlistIdsContext } from '@/lib/wishlist/WishlistIdsProvider';
-import { useCompareIdsContext } from '@/lib/compare/CompareIdsProvider';
 import { prefetchStorefrontRoute } from '@/lib/routing/prefetch-storefront-route';
 import {
   scheduleIdlePrefetch,
@@ -60,7 +58,7 @@ function isHeaderNavActive(pathname: string | null, href: string): boolean {
 const HEADER_NAV_LINK_BASE =
   'px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium whitespace-nowrap';
 
-const HEADER_FAST_NAV_ROUTES = ['/', '/shop', '/combo', '/about', '/wishlist', '/compare'] as const;
+const HEADER_FAST_NAV_ROUTES = ['/', '/shop', '/combo', '/about', '/wishlist'] as const;
 
 function headerTextNavClassName(active: boolean): string {
   return active
@@ -234,7 +232,6 @@ export function Header() {
   const pathname = usePathname();
   const { isLoggedIn, isAdmin } = useAuth();
   const { wishlistCount } = useWishlistIdsContext();
-  const { compareCount } = useCompareIdsContext();
   const { t } = useTranslation();
   const { cartCount, cartTotal } = useCartBadgeDisplay();
   const [showCurrency, setShowCurrency] = useState(false);
@@ -852,16 +849,6 @@ export function Header() {
                 <BadgeIcon icon={<WishlistHeaderHeartIcon />} badge={wishlistCount} />
               </Link>
 
-              {/* Compare */}
-              <Link
-                href="/compare"
-                {...getFastNavHandlers('/compare')}
-                className={`${headerIconNavClassName(isHeaderNavActive(pathname, '/compare'))} relative group`}
-                aria-current={isHeaderNavActive(pathname, '/compare') ? 'page' : undefined}
-              >
-                <BadgeIcon icon={<CompareIcon size={18} />} badge={compareCount} />
-              </Link>
-
               {/* Profile / User Menu */}
               <div className="relative">
                 {isLoggedIn ? (
@@ -953,28 +940,6 @@ export function Header() {
                     {wishlistCount > 0 && (
                       <span className="rounded-full bg-gray-900 px-2 py-0.5 text-xs font-semibold text-white">
                         {wishlistCount > 99 ? '99+' : wishlistCount}
-                      </span>
-                    )}
-                  </Link>
-
-                  <Link
-                    href="/compare"
-                    {...getFastNavHandlers('/compare')}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={headerMobileRowClassName(isHeaderNavActive(pathname, '/compare'))}
-                    aria-current={isHeaderNavActive(pathname, '/compare') ? 'page' : undefined}
-                  >
-                    <span
-                      className={`flex items-center gap-2 normal-case font-medium ${
-                        isHeaderNavActive(pathname, '/compare') ? 'text-gray-900' : 'text-gray-700'
-                      }`}
-                    >
-                      <CompareIcon size={18} />
-                      Compare
-                    </span>
-                    {compareCount > 0 && (
-                      <span className="rounded-full bg-gray-900 px-2 py-0.5 text-xs font-semibold text-white">
-                        {compareCount > 99 ? '99+' : compareCount}
                       </span>
                     )}
                   </Link>
