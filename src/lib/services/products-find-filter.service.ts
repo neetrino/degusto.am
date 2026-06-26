@@ -1,140 +1,20 @@
 import { ProductFilters, ProductWithRelations } from "./products-find-query.service";
-
-/**
- * Normalize comma-separated filter values and drop placeholders like "undefined" or "null".
- */
-const normalizeFilterList = (
-  value?: string,
-  transform?: (v: string) => string
-): string[] => {
-  if (!value || typeof value !== "string") return [];
-
-  const invalidTokens = new Set(["undefined", "null", ""]);
-  const items = value
-    .split(",")
-    .map((v) => v.trim())
-    .filter((v) => !invalidTokens.has(v.toLowerCase()));
-
-  if (transform) {
-    return items.map(transform);
-  }
-
-  return items;
-};
+import { needsInMemoryProductSort } from "./products-find-query/list-query-helpers";
 
 class ProductsFindFilterService {
   /**
-   * Filter products by price, colors and sizes in memory.
+   * Apply sorts that cannot run in SQL yet (price min, bestseller rank).
+   * Color/size filtering runs in Prisma via buildColorSizeVariantWhere.
    */
   filterProducts(
     products: ProductWithRelations[],
     filters: ProductFilters,
     bestsellerProductIds: string[]
   ): ProductWithRelations[] {
-    const { minPrice, maxPrice, colors, sizes } = filters;
-
-    // Filter by price
-    if (minPrice || maxPrice) {
-      const min = minPrice || 0;
-      const max = maxPrice || Infinity;
-      products = products.filter((product: ProductWithRelations) => {
-        const variants = Array.isArray(product.variants) ? product.variants : [];
-        if (variants.length === 0) return false;
-        const prices = variants.map((v: { price: number }) => v.price).filter((p: number | undefined) => p !== undefined);
-        if (prices.length === 0) return false;
-        const minPrice = Math.min(...prices);
-        return minPrice >= min && minPrice <= max;
-      });
+    if (!needsInMemoryProductSort(filters)) {
+      return products;
     }
 
-    // Filter by colors and sizes together if both are provided.
-    // Skip filtering when only placeholder values (e.g., "undefined") are passed.
-    const colorList = normalizeFilterList(colors, (v) => v.toLowerCase());
-    const sizeList = normalizeFilterList(sizes, (v) => v.toUpperCase());
-
-    if (colorList.length > 0 || sizeList.length > 0) {
-      products = products.filter((product: ProductWithRelations) => {
-        const variants = Array.isArray(product.variants) ? product.variants : [];
-        
-        if (variants.length === 0) {
-          return false;
-        }
-        
-        // Find variants that match ALL specified filters
-        const matchingVariants = variants.filter((variant: any) => {
-          const options = Array.isArray(variant.options) ? variant.options : [];
-          
-          if (options.length === 0) {
-            return false;
-          }
-          
-          // Helper function to get color value from option (support all formats)
-          const getColorValue = (opt: any, lang: string = 'en'): string | null => {
-            // New format: Use AttributeValue if available
-            if (opt.attributeValue && opt.attributeValue.attribute?.key === "color") {
-              const translation = opt.attributeValue.translations?.find((t: { locale: string }) => t.locale === lang) || opt.attributeValue.translations?.[0];
-              return (translation?.label || opt.attributeValue.value || "").trim().toLowerCase();
-            }
-            // Old format: check attributeKey, key, or attribute
-            if (opt.attributeKey === "color" || opt.key === "color" || opt.attribute === "color") {
-              return (opt.value || opt.label || "").trim().toLowerCase();
-            }
-            return null;
-          };
-          
-          // Helper function to get size value from option (support all formats)
-          const getSizeValue = (opt: any, lang: string = 'en'): string | null => {
-            // New format: Use AttributeValue if available
-            if (opt.attributeValue && opt.attributeValue.attribute?.key === "size") {
-              const translation = opt.attributeValue.translations?.find((t: { locale: string }) => t.locale === lang) || opt.attributeValue.translations?.[0];
-              return (translation?.label || opt.attributeValue.value || "").trim().toUpperCase();
-            }
-            // Old format: check attributeKey, key, or attribute
-            if (opt.attributeKey === "size" || opt.key === "size" || opt.attribute === "size") {
-              return (opt.value || opt.label || "").trim().toUpperCase();
-            }
-            return null;
-          };
-          
-          // Check color match if colors filter is provided
-          if (colorList.length > 0) {
-            let colorMatched = false;
-            for (const opt of options) {
-              const variantColorValue = getColorValue(opt, filters.lang || 'en');
-              if (variantColorValue && colorList.includes(variantColorValue)) {
-                colorMatched = true;
-                break;
-              }
-            }
-            if (!colorMatched) {
-              return false;
-            }
-          }
-          
-          // Check size match if sizes filter is provided
-          if (sizeList.length > 0) {
-            let sizeMatched = false;
-            for (const opt of options) {
-              const variantSizeValue = getSizeValue(opt, filters.lang || 'en');
-              if (variantSizeValue && sizeList.includes(variantSizeValue)) {
-                sizeMatched = true;
-                break;
-              }
-            }
-            if (!sizeMatched) {
-              return false;
-            }
-          }
-          
-          return true;
-        });
-        
-        const hasMatch = matchingVariants.length > 0;
-        return hasMatch;
-      });
-    }
-
-    // Sort
     const { filter, sort = "newest" } = filters;
     if (filter === "bestseller" && bestsellerProductIds.length > 0) {
       const rank = new Map<string, number>();
@@ -167,12 +47,6 @@ class ProductsFindFilterService {
         const aRank = rank.get(a.id) ?? Number.MAX_SAFE_INTEGER;
         const bRank = rank.get(b.id) ?? Number.MAX_SAFE_INTEGER;
         return aRank - bRank;
-      });
-    } else {
-      products.sort((a: ProductWithRelations, b: ProductWithRelations) => {
-        const aValue = a.createdAt as Date;
-        const bValue = b.createdAt as Date;
-        return new Date(bValue).getTime() - new Date(aValue).getTime();
       });
     }
 

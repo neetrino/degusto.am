@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { STOREFRONT_REDIS_TTL_SECONDS } from "@/constants/storefront-isr";
 import { apiRouteErrorResponse } from "@/lib/http/api-route-errors";
 import { resolveStorefrontLocaleFromSearchParams } from "@/lib/i18n/locale";
 import { productsService } from "@/lib/services/products.service";
 import { cacheService } from "@/lib/services/cache.service";
 
-const PRODUCTS_CACHE_TTL = 120; // 2 minutes
-const FEATURED_CACHE_TTL = 600; // 10 minutes for home featured tabs (new/bestseller/featured)
+/** Long TTL — freshness from admin `invalidateLegacyProductsListCache` / product writes. */
+const PRODUCTS_LIST_CACHE_TTL = STOREFRONT_REDIS_TTL_SECONDS;
 
 function buildProductsCacheKey(searchParams: URLSearchParams): string {
   const sortedEntries = Array.from(searchParams.entries()).sort(([keyA], [keyB]) =>
@@ -29,11 +30,16 @@ export async function GET(req: NextRequest) {
           .map((id) => id.trim())
           .filter((id) => id.length > 0)
       : undefined;
+    const fieldsParam = searchParams.get("fields");
+    const viewParam = searchParams.get("view");
+    const view =
+      viewParam === "card" || fieldsParam === "card" ? "card" : viewParam || undefined;
 
     const filters = {
       category: searchParams.get("category") || undefined,
       search: searchParams.get("search") || undefined,
       ids,
+      view,
       filter: searchParams.get("filter") || searchParams.get("filters") || undefined,
       minPrice: searchParams.get("minPrice")
         ? parseFloat(searchParams.get("minPrice")!)
@@ -65,14 +71,7 @@ export async function GET(req: NextRequest) {
 
     const result = await productsService.findAll(filters);
 
-    const onlyFeatured =
-      filters.filter &&
-      ["new", "bestseller", "featured"].includes(filters.filter) &&
-      !filters.category &&
-      !filters.search &&
-      (filters.limit ?? 12) <= 24;
-    const ttl = onlyFeatured ? FEATURED_CACHE_TTL : PRODUCTS_CACHE_TTL;
-    await cacheService.setex(cacheKey, ttl, JSON.stringify(result));
+    await cacheService.setex(cacheKey, PRODUCTS_LIST_CACHE_TTL, JSON.stringify(result));
 
     return NextResponse.json(result, {
       headers: { "X-Cache": "MISS" },

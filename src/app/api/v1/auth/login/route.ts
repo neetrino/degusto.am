@@ -8,7 +8,6 @@ import { problemTypes } from "@/lib/http/problem-details";
 import { authService } from "@/lib/services/auth.service";
 import { mfaService } from "@/lib/services/mfa.service";
 import { cartService } from "@/lib/services/cart.service";
-import { compareService } from "@/lib/services/compare.service";
 import { toApiError } from "@/lib/types/errors";
 import { logger } from "@/lib/utils/logger";
 import { safeParseLogin } from "@/lib/schemas/auth.schema";
@@ -56,11 +55,6 @@ export async function POST(req: NextRequest) {
         );
       } catch (mergeError: unknown) {
         logger.warn("[CART] Guest cart merge on login failed", { error: mergeError });
-      }
-      try {
-        await compareService.mergeGuestCompareIntoUser(guestToken, result.user.id);
-      } catch (mergeError: unknown) {
-        logger.warn("[COMPARE] Guest compare merge on login failed", { error: mergeError });
       }
       clearGuestCartTokenOnResponse(response);
     }

@@ -25,6 +25,7 @@ export function useProfilePage() {
     loadProfile,
     isLoggedIn,
     authLoading,
+    authUser,
   } = useProfile();
 
   // Personal info hook
@@ -40,7 +41,7 @@ export function useProfilePage() {
   // Addresses hook
   const addresses = useAddresses({
     profile,
-    onProfileReload: loadProfile,
+    onProfileReload: () => void loadProfile({ force: true }),
     onError: setError,
     onSuccess: setSuccess,
   });
@@ -104,6 +105,7 @@ export function useProfilePage() {
     // Auth & loading
     isLoggedIn,
     authLoading,
+    authUser,
     loading,
     error,
     success,

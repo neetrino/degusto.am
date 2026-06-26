@@ -50,7 +50,7 @@ export function ProductCustomizationAttributeCard({
   const { t } = useTranslation();
   const priceOnly = isAdditionPriceOnlyAttributeKey(attribute.key);
   const selectionOnly = isExclusionSelectionOnlyAttributeKey(attribute.key);
-  const showExclusionActions = selectionOnly && exclusionValueActions;
+  const showValueActions = (priceOnly || selectionOnly) && exclusionValueActions;
 
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden h-full">
@@ -149,7 +149,7 @@ export function ProductCustomizationAttributeCard({
                   </label>
                 ) : null}
 
-                {showExclusionActions ? (
+                {showValueActions ? (
                   <ProductCustomizationExclusionDeleteButton
                     deletingValueId={exclusionValueActions.deletingValueId}
                     valueId={value.id}
@@ -165,7 +165,7 @@ export function ProductCustomizationAttributeCard({
         )}
       </div>
 
-      {showExclusionActions ? (
+      {showValueActions ? (
         <ProductCustomizationExclusionAddRow
           attributeId={attribute.id}
           draftLabel={exclusionValueActions.getDraftLabel(attribute.id)}
@@ -173,6 +173,11 @@ export function ProductCustomizationAttributeCard({
           isAdding={exclusionValueActions.addingToAttributeId === attribute.id}
           onDraftLabelChange={(label) => exclusionValueActions.setDraftLabel(attribute.id, label)}
           onAddValue={() => exclusionValueActions.handleAddValue(attribute.id)}
+          placeholderKey={
+            priceOnly
+              ? 'admin.products.add.pdpCustomizationAddAdditionPlaceholder'
+              : 'admin.products.add.pdpCustomizationAddValuePlaceholder'
+          }
         />
       ) : null}
     </div>

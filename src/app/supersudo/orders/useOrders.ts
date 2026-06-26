@@ -9,6 +9,7 @@ import { logger } from "@/lib/utils/logger";
 import { useAdminDialogs } from '../context/AdminDialogsContext';
 import { ADMIN_NEW_ORDER_EVENT } from '@/lib/admin/admin-order-alert.constants';
 import { adminGet } from '@/lib/admin/admin-read-cache';
+import { useAdminOrdersUrlState } from './hooks/useAdminOrdersUrlState';
 
 export interface Order {
   id: string;
@@ -107,17 +108,20 @@ export function useOrders() {
   const { confirm: confirmDialog } = useAdminDialogs();
   const router = useRouter();
   const searchParams = useSearchParams();
-  /** Single source of truth with the URL — avoids an extra fetch from state/URL mismatch on mount. */
-  const statusFilter = searchParams.get('status') ?? '';
-  const paymentStatusFilter = searchParams.get('paymentStatus') ?? '';
-  const searchQuery = searchParams.get('search') ?? '';
+  const {
+    page,
+    status: statusFilter,
+    paymentStatus: paymentStatusFilter,
+    search: searchQuery,
+    sortBy,
+    sortOrder,
+    setPage,
+    applySort,
+  } = useAdminOrdersUrlState();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [currency, setCurrency] = useState<CurrencyCode>(getStoredCurrency());
-  const [page, setPage] = useState(1);
   const [meta, setMeta] = useState<OrdersResponse['meta'] | null>(null);
-  const [sortBy, setSortBy] = useState<string>('createdAt');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [updatingStatuses, setUpdatingStatuses] = useState<Set<string>>(new Set());
   const [updatingPaymentStatuses, setUpdatingPaymentStatuses] = useState<Set<string>>(new Set());
   const [updateMessage, setUpdateMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -272,15 +276,7 @@ export function useOrders() {
   };
 
   const handleSort = (column: string) => {
-    if (sortBy === column) {
-      // Toggle sort order if same column
-      setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
-    } else {
-      // Set new column and default to descending
-      setSortBy(column);
-      setSortOrder('desc');
-    }
-    setPage(1); // Reset to first page when sorting changes
+    applySort(column);
   };
 
   const handleBulkDelete = async () => {

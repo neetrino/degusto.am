@@ -26,7 +26,6 @@
     "categories": "Категории",
     "cart": "Корзина",
     "wishlist": "Избранное",
-    "compare": "Сравнить",
     "checkout": "Оформление заказа",
     "profile": "Профиль",
     "orders": "Заказы",
@@ -82,24 +81,6 @@
       "action": "Действие"
     }
   },
-  "compare": {
-    "title": "Сравнить товары",
-    "empty": "Нет товаров для сравнения",
-    "emptyDescription": "Добавьте до 4 товаров для сравнения их характеристик и цен.",
-    "products": "товаров",
-    "product": "товар",
-    "isFull": "Список сравнения заполнен",
-    "characteristic": "Характеристика",
-    "image": "Изображение",
-    "name": "Название",
-    "price": "Цена",
-    "availability": "Наличие",
-    "actions": "Действия",
-    "viewDetails": "Посмотреть детали",
-    "browseProducts": "Просмотреть товары",
-    "category": "Категория",
-    "uncategorized": "Без категории"
-  },
   "reviews": {
     "title": "Отзывы",
     "writeReview": "Написать отзыв",
@@ -135,8 +116,6 @@
     "removedFromCart": "Удалено из корзины",
     "addedToWishlist": "Добавлено в избранное",
     "removedFromWishlist": "Удалено из избранного",
-    "addedToCompare": "Добавлено к сравнению",
-    "removedFromCompare": "Удалено из сравнения",
     "errorAddingToCart": "Ошибка при добавлении в корзину",
     "loading": "Загрузка...",
     "loadingFilters": "Загрузка фильтров...",
@@ -148,7 +127,6 @@
     "selectOptions": "Выберите опции",
     "adding": "Добавление...",
     "pcs": "шт",
-    "compareMaxReached": "Вы можете сравнить максимум 4 товара",
     "invalidProduct": "Недействительный товар. Пожалуйста, обновите страницу и попробуйте снова.",
     "noVariantsAvailable": "Нет доступных вариантов",
     "stockExceeded": "Доступное количество составляет {stock} шт. Вы не можете добавить больше:",
@@ -163,7 +141,6 @@
     "sku": "Артикул"
   },
   "alerts": {
-    "compareMaxReached": "Вы можете сравнить максимум 4 товара",
     "invalidProduct": "Недействительный товар. Пожалуйста, обновите страницу и попробуйте снова.",
     "noVariantsAvailable": "Нет доступных вариантов",
     "stockExceeded": "Доступное количество составляет {stock} шт. Вы не можете добавить больше:",
@@ -177,8 +154,6 @@
     "removeFromCart": "Удалить из корзины",
     "addToWishlist": "Добавить в избранное",
     "removeFromWishlist": "Удалить из избранного",
-    "addToCompare": "Добавить к сравнению",
-    "removeFromCompare": "Удалить из сравнения",
     "outOfStock": "Нет в наличии",
     "search": "Поиск",
     "searchPlaceholder": "Поиск товаров",

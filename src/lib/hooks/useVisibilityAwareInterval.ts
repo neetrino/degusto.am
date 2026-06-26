@@ -21,7 +21,10 @@ export function useVisibilityAwareInterval({
   runImmediately = true,
 }: UseVisibilityAwareIntervalOptions): void {
   const onTickRef = useRef(onTick);
-  onTickRef.current = onTick;
+
+  useEffect(() => {
+    onTickRef.current = onTick;
+  }, [onTick]);
 
   useEffect(() => {
     if (!enabled) {

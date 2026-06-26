@@ -1,8 +1,15 @@
 import { db } from "@white-shop/db";
 import { normalizePriceAdjustment } from "@/lib/attributes/price-adjustment";
 import type { ProductCustomizations } from "./customizations";
+import { parseAdditionLabels } from "./parse-addition-labels";
 
-const MAX_LABELS = 32;
+export { parseAdditionLabels } from "./parse-addition-labels";
+
+export type AdditionLabelResolveRequest = {
+  requestKey: string;
+  additions?: string;
+  productAttributeIds?: string[];
+};
 
 /**
  * Resolve attribute value ids from Add-pill labels (any locale translation match).
@@ -11,28 +18,87 @@ export async function resolveAdditionValueIdsByLabels(
   additions: string | undefined,
   productAttributeIds: string[] | undefined
 ): Promise<string[]> {
-  const labels = (additions ?? "")
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .slice(0, MAX_LABELS);
-  if (labels.length === 0 || !productAttributeIds?.length) {
-    return [];
+  const resolved = await resolveAdditionValueIdsByLabelsBatch([
+    { requestKey: "single", additions, productAttributeIds },
+  ]);
+  return resolved.get("single") ?? [];
+}
+
+/** One query for all cart lines that need Add-pill label → attribute value id resolution. */
+export async function resolveAdditionValueIdsByLabelsBatch(
+  requests: AdditionLabelResolveRequest[]
+): Promise<Map<string, string[]>> {
+  const result = new Map<string, string[]>();
+  const labelsByKey = new Map<string, string[]>();
+  const allLabels = new Set<string>();
+  const allAttributeIds = new Set<string>();
+
+  for (const request of requests) {
+    const labels = parseAdditionLabels(request.additions);
+    labelsByKey.set(request.requestKey, labels);
+    if (labels.length === 0 || !request.productAttributeIds?.length) {
+      result.set(request.requestKey, []);
+      continue;
+    }
+    for (const label of labels) {
+      allLabels.add(label);
+    }
+    for (const attributeId of request.productAttributeIds) {
+      allAttributeIds.add(attributeId);
+    }
+  }
+
+  if (allLabels.size === 0 || allAttributeIds.size === 0) {
+    for (const request of requests) {
+      if (!result.has(request.requestKey)) {
+        result.set(request.requestKey, []);
+      }
+    }
+    return result;
   }
 
   const rows = await db.attributeValue.findMany({
     where: {
-      attributeId: { in: productAttributeIds },
+      attributeId: { in: [...allAttributeIds] },
       translations: {
         some: {
-          label: { in: labels },
+          label: { in: [...allLabels] },
         },
       },
     },
-    select: { id: true },
+    select: {
+      id: true,
+      attributeId: true,
+      translations: { select: { label: true } },
+    },
   });
 
-  return rows.map((r) => r.id);
+  for (const request of requests) {
+    if (result.has(request.requestKey)) {
+      continue;
+    }
+
+    const labels = labelsByKey.get(request.requestKey) ?? [];
+    const labelSet = new Set(labels);
+    const attributeIds = new Set(request.productAttributeIds ?? []);
+    const matchedIds: string[] = [];
+
+    for (const row of rows) {
+      if (!attributeIds.has(row.attributeId)) {
+        continue;
+      }
+      const labelMatch = row.translations.some((translation) =>
+        labelSet.has(translation.label.trim())
+      );
+      if (labelMatch) {
+        matchedIds.push(row.id);
+      }
+    }
+
+    result.set(request.requestKey, matchedIds);
+  }
+
+  return result;
 }
 
 /** Merge PDP attribute ids with Add-pill labels for a single price-adjustment pass. */

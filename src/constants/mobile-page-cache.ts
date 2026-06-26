@@ -4,13 +4,18 @@ export const MOBILE_CLIENT_ROUTER_DYNAMIC_STALE_SECONDS = 300;
 /** Client router cache TTL (seconds) for static / prefetched pages */
 export const MOBILE_CLIENT_ROUTER_STATIC_STALE_SECONDS = 300;
 
-/** Core storefront routes warmed on first paint for instant tab / header navigation */
-export const STOREFRONT_PREFETCH_ROUTES = [
-  '/',
+/** High-frequency tab routes — one-time idle warmup (see MobileRoutePrefetcher). */
+export const STOREFRONT_IDLE_PREFETCH_ROUTES = [
   '/shop',
   '/combo',
   '/wishlist',
   '/profile',
+] as const;
+
+/** Core storefront routes (includes lower-frequency destinations warmed on pointer/hover). */
+export const STOREFRONT_PREFETCH_ROUTES = [
+  ...STOREFRONT_IDLE_PREFETCH_ROUTES,
+  '/',
   '/login',
 ] as const;
 

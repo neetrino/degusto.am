@@ -81,6 +81,11 @@ export async function getCachedJson<T>(
   return fresh;
 }
 
+/** Legacy GET `/api/v1/products` Redis entries (`products:*` query keys). */
+export async function invalidateLegacyProductsListCache(): Promise<void> {
+  await cacheService.deletePattern("products:*");
+}
+
 /** After category create/update/delete (admin). */
 export async function invalidateStorefrontCategoryCaches(): Promise<void> {
   await Promise.all([
@@ -121,7 +126,7 @@ export async function invalidateStorefrontAfterAdminSettingsUpdate(): Promise<vo
   await invalidateCurrencyRatesCache();
   // @ts-expect-error - revalidateTag type issue in Next.js
   revalidateTag(STOREFRONT_DISCOUNT_SETTINGS_CACHE_TAG);
-  await cacheService.deletePattern("products:*");
+  await invalidateLegacyProductsListCache();
   await Promise.all([
     cacheService.deletePattern("product:visual:*"),
     cacheService.deletePattern("product:details:*"),
@@ -148,7 +153,7 @@ export async function invalidateProductPageCaches(): Promise<void> {
 /** PLP + PDP + product-derived Redis caches after catalog writes. */
 export async function invalidateProductReadCaches(): Promise<void> {
   await Promise.all([
-    cacheService.deletePattern("products:*"),
+    invalidateLegacyProductsListCache(),
     invalidateProductPageCaches(),
     invalidateStorefrontProductRelatedCaches(),
   ]);

@@ -1,5 +1,5 @@
 import { db } from "@white-shop/db";
-import { ensureProductVariantAttributesColumn } from "../../utils/db-ensure";
+import { logHotPathSchemaDrift } from "../../utils/db-ensure";
 import { logger } from "../../utils/logger";
 import type { ProductWithFullRelations } from "./types";
 
@@ -225,17 +225,11 @@ async function fetchWithProductAttributes(
     }
 
     if (isVariantAttributesError(error)) {
-      logger.warn('product_variants.attributes column not found, attempting to create it');
-      try {
-        await ensureProductVariantAttributesColumn();
-        const product = await db.product.findFirst({
-          where: baseWhere,
-          include: baseInclude,
-        });
-        return product as unknown as ProductWithFullRelations | null;
-      } catch (attributesError: unknown) {
-        return handleAttributesError(attributesError, productId, lang);
-      }
+      logHotPathSchemaDrift(
+        'product_variants."attributes" column',
+        error instanceof Error ? error.message : String(error)
+      );
+      return handleAttributesError(error, productId, lang);
     }
 
     if (isAttributeValuesColorsError(error)) {
@@ -269,17 +263,11 @@ async function fetchWithoutProductAttributes(
     return product as unknown as ProductWithFullRelations | null;
   } catch (retryError: unknown) {
     if (isVariantAttributesError(retryError)) {
-      logger.warn('product_variants.attributes column not found, attempting to create it');
-      try {
-        await ensureProductVariantAttributesColumn();
-        const product = await db.product.findFirst({
-          where: baseWhere,
-          include: baseInclude,
-        });
-        return product as unknown as ProductWithFullRelations | null;
-      } catch (attributesError: unknown) {
-        return handleAttributesError(attributesError, productId, lang);
-      }
+      logHotPathSchemaDrift(
+        'product_variants."attributes" column',
+        retryError instanceof Error ? retryError.message : String(retryError)
+      );
+      return handleAttributesError(retryError, productId, lang);
     }
 
     if (isAttributeValuesColorsError(retryError)) {
@@ -432,17 +420,11 @@ async function fetchCoreProductById(
     return product as unknown as ProductWithFullRelations | null;
   } catch (error: unknown) {
     if (isVariantAttributesError(error)) {
-      logger.warn('product_variants.attributes column not found, attempting to create it');
-      try {
-        await ensureProductVariantAttributesColumn();
-        const product = await db.product.findFirst({
-          where: baseWhere,
-          include: getBaseInclude(lang),
-        });
-        return product as unknown as ProductWithFullRelations | null;
-      } catch (attributesError: unknown) {
-        return handleAttributesError(attributesError, productId, lang);
-      }
+      logHotPathSchemaDrift(
+        'product_variants."attributes" column',
+        error instanceof Error ? error.message : String(error)
+      );
+      return handleAttributesError(error, productId, lang);
     }
 
     if (isAttributeValuesColorsError(error)) {

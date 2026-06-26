@@ -7,6 +7,8 @@ export interface ProductFilters {
   category?: string;
   search?: string;
   ids?: string[];
+  /** When `card` with `ids`, uses lean card select instead of legacy deep include. */
+  view?: string;
   filter?: string;
   minPrice?: number;
   maxPrice?: number;

@@ -15,7 +15,7 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { useTranslation } from '@/lib/i18n-client';
 import { useCartLiveSync } from '@/lib/cart/use-cart-live-sync';
 import { readCartSummaryCache } from '@/lib/cartSummaryCache';
-import { cartHasVisibleItems } from '@/lib/cart/cart-summary-sync';
+import { cartHasVisibleItems, cartNeedsFullLineItems } from '@/lib/cart/cart-summary-sync';
 
 export type CartDrawerContextValue = {
   openCartDrawer: () => void;
@@ -63,8 +63,11 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
   const openCartDrawer = useCallback(() => {
     setIsCartDrawerOpen(true);
     const cached = readCartSummaryCache();
-    if ((cached?.itemsCount ?? 0) > 0 && !cartHasVisibleItems(cartRef.current)) {
-      void reloadCart({ silent: true });
+    const needsFull =
+      cartNeedsFullLineItems(cartRef.current) ||
+      ((cached?.itemsCount ?? 0) > 0 && !cartHasVisibleItems(cartRef.current));
+    if (needsFull) {
+      void reloadCart({ silent: true, forceDirect: true });
     }
   }, [cartRef, reloadCart]);
 

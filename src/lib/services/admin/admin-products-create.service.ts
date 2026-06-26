@@ -142,10 +142,10 @@ class AdminProductsCreateService {
       logger.debug('🆕 [ADMIN PRODUCTS CREATE SERVICE] Creating product:', data.title);
 
       if (data.attributeIds && data.attributeIds.length > 0) {
-        await ensureProductAttributesTable();
+        await ensureProductAttributesTable("admin-mutation");
       }
       if (data.pdpCustomization) {
-        await ensureProductPdpCustomizationColumn();
+        await ensureProductPdpCustomizationColumn("admin-mutation");
       }
 
       const result = await db.$transaction(async (tx: any) => {

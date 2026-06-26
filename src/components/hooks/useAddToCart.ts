@@ -8,7 +8,7 @@ import { DATABASE_UNAVAILABLE_PUBLIC_DETAIL } from '@/lib/http/problem-details';
 import { logger } from '../../lib/utils/logger';
 import { useTranslation } from '../../lib/i18n-client';
 import { playCartFlyAnimation } from '../../lib/cart-fly-animation';
-import { publishCartUpdated, publishCartForceReload, publishOptimisticCartAdd, publishCartLineConfirmed } from '../../lib/cart/cart-events';
+import { publishCartUpdated, publishCartForceReload, publishOptimisticCartAdd, publishCartLineConfirmed, invalidateCommerceBootstrapAfterCartMutation } from '../../lib/cart/cart-events';
 import {
   getCartLineId,
   rememberCartLineId,
@@ -17,21 +17,13 @@ import {
 } from '../../lib/cart/cart-line-id-cache';
 import { clearCartLineRemoved } from '@/lib/cart/pending-cart-removals';
 import { readCartSummaryCache } from '../../lib/cartSummaryCache';
+import {
+  fetchQuickAddProductBySlug,
+  resolveQuickAddVariantId,
+} from '@/lib/products/fetch-quick-add-product-client';
 
 const CART_ACTION_RETRY_AFTER_MS = 3000;
 const ADD_TO_CART_BLOCK_WINDOW_MS = 700;
-
-interface ProductDetails {
-  id: string;
-  slug: string;
-  variants?: Array<{
-    id: string;
-    sku: string;
-    price: number;
-    stock: number;
-    available: boolean;
-  }>;
-}
 
 interface ServerCartResponse {
   cart: {
@@ -111,13 +103,12 @@ export function useAddToCart({
       return defaultVariantId;
     }
 
-    const encodedSlug = encodeURIComponent(productSlug.trim());
-    const productDetails = await apiClient.get<ProductDetails>(`/api/v1/products/${encodedSlug}`);
-    if (!productDetails.variants || productDetails.variants.length === 0) {
-      alert(t('common.alerts.noVariantsAvailable'));
+    try {
+      return await resolveQuickAddVariantId(productSlug);
+    } catch {
+      alert(t('common.alerts.productNotFound'));
       return null;
     }
-    return productDetails.variants[0].id;
   };
 
   const persistAddToCart = async (
@@ -129,15 +120,14 @@ export function useAddToCart({
       let unitPrice = propPrice ?? 0;
 
       if (!variantId) {
-        const encodedSlug = encodeURIComponent(productSlug.trim());
-        const productDetails = await apiClient.get<ProductDetails>(`/api/v1/products/${encodedSlug}`);
-        if (!productDetails.variants || productDetails.variants.length === 0) {
+        const quickAdd = await fetchQuickAddProductBySlug(productSlug);
+        if (!quickAdd.variants || quickAdd.variants.length === 0) {
           alert(t('common.alerts.noVariantsAvailable'));
           setQuantity((prev) => Math.max(0, prev - addedQuantity));
           publishCartForceReload();
           return;
         }
-        const firstVariant = productDetails.variants[0];
+        const firstVariant = quickAdd.variants[0];
         variantId = firstVariant.id;
         unitPrice = propPrice ?? firstVariant.price;
       }
@@ -301,6 +291,7 @@ export function useAddToCart({
           await apiClient.patch(`/api/v1/cart/items/${cachedLine.cartItemId}`, { quantity: patchedQty });
           updateCachedLineQuantity(productId, variantId, patchedQty);
         }
+        invalidateCommerceBootstrapAfterCartMutation();
         return;
       }
 
@@ -322,6 +313,7 @@ export function useAddToCart({
         await apiClient.patch(`/api/v1/cart/items/${cartItem.id}`, { quantity: patchedQty });
         rememberCartLineId(productId, variantId, cartItem.id, patchedQty);
       }
+      invalidateCommerceBootstrapAfterCartMutation();
     } catch (error: unknown) {
       logger.error('[PRODUCT CARD] Error removing from cart', { error });
       setQuantity(previousQuantity);

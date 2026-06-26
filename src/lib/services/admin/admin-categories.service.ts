@@ -1,6 +1,9 @@
 import { db } from "@white-shop/db";
 import { revalidateStorefrontMenuCaches } from "@/lib/cache/revalidate-storefront-menu-caches";
-import { invalidateStorefrontCategoryCaches } from "@/lib/cache/storefront-cache";
+import {
+  invalidateLegacyProductsListCache,
+  invalidateStorefrontCategoryCaches,
+} from "@/lib/cache/storefront-cache";
 import { problemTypes } from "@/lib/http/problem-details";
 import { toSlug } from "@/lib/utils/slug";
 import { logger } from "@/lib/utils/logger";
@@ -11,6 +14,7 @@ class AdminCategoriesService {
     try {
       revalidateStorefrontMenuCaches();
       await invalidateStorefrontCategoryCaches();
+      await invalidateLegacyProductsListCache();
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logger.warn("Category cache revalidation failed (expected in some environments)", {

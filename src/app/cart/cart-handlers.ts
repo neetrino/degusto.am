@@ -6,6 +6,7 @@ import {
   publishCartUpdated,
   publishCartForceReload,
   resetCartBadgeState,
+  invalidateCommerceBootstrapAfterCartMutation,
 } from '../../lib/cart/cart-events';
 import { maxCartLineQuantity } from '@/lib/product-stock';
 import {
@@ -104,6 +105,7 @@ async function deleteMatchingLineOnServer(
   try {
     if (preferredServerItemId) {
       await apiClient.delete(`/api/v1/cart/items/${preferredServerItemId}`);
+      invalidateCommerceBootstrapAfterCartMutation();
       return;
     }
 
@@ -131,6 +133,7 @@ async function deleteMatchingLineOnServer(
         await apiClient.delete(`/api/v1/cart/items/${match.id}`);
       })
     );
+    invalidateCommerceBootstrapAfterCartMutation();
   } catch (error: unknown) {
     if (isCartItemNotFoundError(error)) {
       return;
@@ -191,6 +194,7 @@ export async function handleRemoveItem(
 
   try {
     await apiClient.delete(`/api/v1/cart/items/${itemId}`);
+    invalidateCommerceBootstrapAfterCartMutation();
   } catch (error: unknown) {
     if (isCartItemNotFoundError(error)) {
       logger.debug('Cart item already removed', { itemId });
@@ -269,6 +273,7 @@ export async function handleUpdateQuantity(
 
   try {
     await apiClient.patch(`/api/v1/cart/items/${itemId}`, { quantity });
+    invalidateCommerceBootstrapAfterCartMutation();
   } catch (error: unknown) {
     await fetchCart();
     publishCartForceReload();

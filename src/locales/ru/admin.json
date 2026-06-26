@@ -462,6 +462,7 @@
       "pdpCustomizationPickAttributeFirst": "Сначала выберите один или несколько атрибутов, затем настройте значения.",
       "pdpCustomizationNoValues": "Нет значений для этого атрибута — добавьте ниже.",
       "pdpCustomizationAddValuePlaceholder": "Новое исключение…",
+      "pdpCustomizationAddAdditionPlaceholder": "Новое добавление…",
       "priceRequired": "Укажите цену товара.",
       "variableVariantsRequired": "Для вариативного товара нужны варианты или выберите тип «Простой».",
       "duplicateSku": "Повторяющийся SKU — исправьте SKU вариантов.",

@@ -55,10 +55,13 @@ export function ProductCustomizationExclusionAddRow({
   isAdding,
   onDraftLabelChange,
   onAddValue,
+  placeholderKey = 'admin.products.add.pdpCustomizationAddValuePlaceholder',
 }: Pick<
   ProductCustomizationExclusionActionsProps,
   'attributeId' | 'draftLabel' | 'valueError' | 'isAdding' | 'onDraftLabelChange' | 'onAddValue'
->) {
+> & {
+  placeholderKey?: string;
+}) {
   const { t } = useTranslation();
 
   return (
@@ -75,7 +78,7 @@ export function ProductCustomizationExclusionAddRow({
                 onAddValue();
               }
             }}
-            placeholder={t('admin.products.add.pdpCustomizationAddValuePlaceholder')}
+            placeholder={t(placeholderKey)}
             className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:border-transparent transition-colors ${
               valueError
                 ? 'border-red-300 bg-red-50 focus:ring-red-500'

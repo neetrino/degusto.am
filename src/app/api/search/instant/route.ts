@@ -5,7 +5,7 @@ import { logger } from '@/lib/utils/logger';
 import { resolveStorefrontLocaleFromSearchParams } from '@/lib/i18n/locale';
 import { extractMediaUrl, extractVariantImageUrl } from '@/lib/utils/extractMediaUrl';
 import { processImageUrl } from '@/lib/utils/image-utils';
-import { buildProductSearchWhere } from '@/lib/services/products-find-query/search-filter';
+import { mergeProductSearchIntoWhere } from '@/lib/services/products-find-query/search-filter';
 import { publicErrorDetailFromUnknown } from '@/lib/http/error-detail';
 
 const DEFAULT_LIMIT = 8;
@@ -47,11 +47,13 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const where: Prisma.ProductWhereInput = {
-      published: true,
-      deletedAt: null,
-      ...buildProductSearchWhere(q),
-    };
+    const where: Prisma.ProductWhereInput = mergeProductSearchIntoWhere(
+      {
+        published: true,
+        deletedAt: null,
+      },
+      q
+    );
 
     const products = await db.product.findMany({
       where,

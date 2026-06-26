@@ -1,7 +1,6 @@
 import { db } from "@white-shop/db";
 import { problemTypes } from "@/lib/http/problem-details";
 import { Prisma } from "@prisma/client";
-import { ensureProductReviewsTable } from "../utils/db-ensure";
 import { logger } from "@/lib/utils/logger";
 import {
   formatProductReview,
@@ -33,8 +32,6 @@ class ReviewsService {
     productId: string,
     options?: { skip?: number; take?: number }
   ): Promise<{ status: "ok"; reviews: ProductReviewListItem[] } | { status: "not_found" }> {
-    await ensureProductReviewsTable();
-
     logger.debug("[REVIEWS SERVICE] Fast path slug+productId", { slug, productId });
 
     const product = await db.product.findFirst({
@@ -85,8 +82,6 @@ class ReviewsService {
     productId: string,
     options?: { publishedOnly?: boolean; skip?: number; take?: number }
   ): Promise<ProductReviewListItem[]> {
-    await ensureProductReviewsTable();
-
     logger.debug("📝 [REVIEWS SERVICE] Getting reviews for product:", productId);
 
     const where: Prisma.ProductReviewWhereInput = {
@@ -128,8 +123,6 @@ class ReviewsService {
    */
   async getUserReview(productId: string, userId: string, includeUnpublished: boolean = true) {
     // Ensure table exists before querying
-    await ensureProductReviewsTable();
-    
     logger.debug('📝 [REVIEWS SERVICE] Getting user review:', { productId, userId });
 
     const review = await db.productReview.findUnique({
@@ -184,8 +177,6 @@ class ReviewsService {
    */
   async getProductReviewStats(productId: string) {
     // Ensure table exists before querying
-    await ensureProductReviewsTable();
-    
     const reviews = await db.productReview.findMany({
       where: {
         productId,
@@ -224,8 +215,6 @@ class ReviewsService {
    */
   async createReview(productId: string, userId: string, data: { rating: number; comment?: string }) {
     // Ensure table exists before creating review
-    await ensureProductReviewsTable();
-    
     logger.debug('📝 [REVIEWS SERVICE] Creating review:', { productId, userId, rating: data.rating });
 
     // Validate rating
@@ -317,8 +306,6 @@ class ReviewsService {
    */
   async updateReview(reviewId: string, userId: string, data: { rating?: number; comment?: string }) {
     // Ensure table exists before updating
-    await ensureProductReviewsTable();
-    
     // Find review and verify ownership
     const review = await db.productReview.findUnique({
       where: { id: reviewId },
@@ -390,8 +377,6 @@ class ReviewsService {
    */
   async deleteReview(reviewId: string, userId: string) {
     // Ensure table exists before deleting
-    await ensureProductReviewsTable();
-    
     // Find review and verify ownership
     const review = await db.productReview.findUnique({
       where: { id: reviewId },

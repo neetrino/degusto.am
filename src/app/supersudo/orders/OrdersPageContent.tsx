@@ -89,7 +89,6 @@ export function OrdersPageContent() {
         paymentStatusFilter={paymentStatusFilter}
         searchQuery={searchQuery}
         updateMessage={updateMessage}
-        setPage={setPage}
         router={router}
         searchParams={searchParams}
       />

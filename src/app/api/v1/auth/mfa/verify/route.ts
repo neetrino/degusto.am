@@ -5,7 +5,6 @@ import { problemTypes } from '@/lib/http/problem-details';
 import { enforceRouteRateLimit } from '@/lib/http/route-rate-limit';
 import { safeParseMfaVerify } from '@/lib/schemas/mfa.schema';
 import { cartService } from '@/lib/services/cart.service';
-import { compareService } from '@/lib/services/compare.service';
 import { mfaService } from '@/lib/services/mfa.service';
 import { toApiError } from '@/lib/types/errors';
 import { logger } from '@/lib/utils/logger';
@@ -50,11 +49,6 @@ export async function POST(req: NextRequest) {
         await cartService.mergeGuestCartIntoUser(guestToken, result.user.id, 'en');
       } catch (mergeError: unknown) {
         logger.warn('[CART] Guest cart merge on MFA verify failed', { error: mergeError });
-      }
-      try {
-        await compareService.mergeGuestCompareIntoUser(guestToken, result.user.id);
-      } catch (mergeError: unknown) {
-        logger.warn('[COMPARE] Guest compare merge on MFA verify failed', { error: mergeError });
       }
       clearGuestCartTokenOnResponse(response);
     }

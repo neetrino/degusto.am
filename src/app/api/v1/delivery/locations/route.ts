@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { problemTypes } from "@/lib/http/problem-details";
 import { parseRouteCatchError } from "@/lib/http/api-route-errors";
-import { adminService } from "@/lib/services/admin.service";
+import { getPublicDeliveryLocationsCached } from "@/lib/services/storefront/get-public-delivery-locations";
 import { logger } from "@/lib/utils/logger";
 
 /**
@@ -11,7 +11,7 @@ import { logger } from "@/lib/utils/logger";
 export async function GET(req: NextRequest) {
   try {
     logger.debug("Delivery locations request");
-    const locations = await adminService.getPublicDeliveryLocations();
+    const locations = await getPublicDeliveryLocationsCached();
     return NextResponse.json(locations);
   } catch (error: unknown) {
     logger.error("Delivery locations error", error);

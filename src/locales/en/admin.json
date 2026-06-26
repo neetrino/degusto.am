@@ -462,6 +462,7 @@
       "pdpCustomizationPickAttributeFirst": "Select one or more attributes first, then configure their values.",
       "pdpCustomizationNoValues": "No values for this attribute — add one below.",
       "pdpCustomizationAddValuePlaceholder": "New exclusion…",
+      "pdpCustomizationAddAdditionPlaceholder": "New addition…",
       "priceRequired": "Enter a product price.",
       "variableVariantsRequired": "Variable products need variants, or switch to Simple type.",
       "duplicateSku": "Duplicate SKU — fix variant SKUs.",

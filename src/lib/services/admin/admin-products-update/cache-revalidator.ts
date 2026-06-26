@@ -11,6 +11,25 @@ function uniqueSlugs(slugs: readonly string[]): string[] {
   return Array.from(new Set(slugs.map((slug) => slug.trim()).filter((slug) => slug.length > 0)));
 }
 
+async function revalidateProductPathsAndTags(
+  productId: string,
+  slugs: readonly string[],
+): Promise<void> {
+  for (const slug of uniqueSlugs(slugs)) {
+    revalidatePath(`/products/${slug}`);
+    // @ts-expect-error - revalidateTag type issue in Next.js
+    revalidateTag(pdpPageCacheTag(slug));
+  }
+
+  revalidateStorefrontMenuCaches();
+  // @ts-expect-error - revalidateTag type issue in Next.js
+  revalidateTag("products");
+  // @ts-expect-error - revalidateTag type issue in Next.js
+  revalidateTag(`product-${productId}`);
+
+  await invalidateProductReadCaches();
+}
+
 /**
  * Revalidate cache for product and related pages, then pre-warm PDP caches.
  */
@@ -29,19 +48,7 @@ export async function revalidateProductCache(
           : []
     );
 
-    for (const slug of slugsToWarm) {
-      revalidatePath(`/products/${slug}`);
-      // @ts-expect-error - revalidateTag type issue in Next.js
-      revalidateTag(pdpPageCacheTag(slug));
-    }
-
-    revalidateStorefrontMenuCaches();
-    // @ts-expect-error - revalidateTag type issue in Next.js
-    revalidateTag("products");
-    // @ts-expect-error - revalidateTag type issue in Next.js
-    revalidateTag(`product-${productId}`);
-
-    await invalidateProductReadCaches();
+    await revalidateProductPathsAndTags(productId, slugsToWarm);
 
     if (slugsToWarm.length > 0) {
       await warmProductPageCaches(slugsToWarm);
@@ -49,6 +56,22 @@ export async function revalidateProductCache(
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logger.warn("Revalidation failed (expected in some environments)", {
+      error: errorMessage,
+    });
+  }
+}
+
+/** Drop storefront/PLP/PDP caches after soft delete (no pre-warm). */
+export async function invalidateProductAfterDelete(
+  productId: string,
+  translationSlugs: readonly string[] = [],
+): Promise<void> {
+  try {
+    logger.debug("Invalidating storefront caches after product delete", { productId });
+    await revalidateProductPathsAndTags(productId, translationSlugs);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.warn("Post-delete revalidation failed (expected in some environments)", {
       error: errorMessage,
     });
   }

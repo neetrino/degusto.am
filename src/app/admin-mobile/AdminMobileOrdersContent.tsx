@@ -43,7 +43,6 @@ export function AdminMobileOrdersContent() {
         searchQuery={searchQuery}
         totalCount={meta?.total ?? orders.length}
         updateMessage={updateMessage}
-        setPage={setPage}
         router={router}
         searchParams={searchParams}
       />

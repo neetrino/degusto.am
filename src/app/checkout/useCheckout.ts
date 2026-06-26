@@ -15,7 +15,10 @@ import { useOrderSubmission } from './hooks/useOrderSubmission';
 import { useOrderSummary } from './hooks/useOrderSummary';
 import type { CheckoutFormData } from './types';
 import { calculateBagAmountByUniqueCategories } from '@/lib/cart/bag-fee';
-import { apiClient } from '../../lib/api-client';
+import {
+  fetchDeliveryLocationsCached,
+  subscribeDeliveryLocationsUpdated,
+} from '@/lib/checkout/fetch-delivery-locations-client';
 import { useCartDrawer } from '@/components/cart-drawer/cart-drawer-context';
 import { handleRemoveItem } from '@/app/cart/cart-handlers';
 
@@ -70,7 +73,11 @@ export function useCheckout() {
     loadingDeliveryPrice,
   } = useDeliveryPrice(shippingMethod, shippingCity);
   const { cart, loading, fetchCart } = useCart(isLoggedIn);
-  const { setCart: setDrawerCart, reloadCart: reloadDrawerCart } = useCartDrawer();
+  const {
+    setCart: setDrawerCart,
+    reloadCart: reloadDrawerCart,
+    isCartResolved,
+  } = useCartDrawer();
   useUserProfile(isLoggedIn, isLoading, setValue);
   const bagFee = useMemo(() => {
     if (!cart) {
@@ -100,13 +107,14 @@ export function useCheckout() {
   });
 
   useEffect(() => {
-    if (loading || isLoading || isSubmitting || error) {
+    if (loading || isLoading || isSubmitting || error || !isCartResolved) {
       return;
     }
-    if (!cart || cart.items.length === 0) {
+    const itemsCount = cart?.itemsCount ?? 0;
+    if (!cart || itemsCount === 0) {
       router.replace('/shop');
     }
-  }, [loading, isLoading, isSubmitting, error, cart, router]);
+  }, [loading, isLoading, isSubmitting, error, cart, router, isCartResolved]);
 
   useEffect(() => {
     if (isLoading) {
@@ -137,16 +145,34 @@ export function useCheckout() {
   }, [isLoggedIn, isLoading]);
 
   useEffect(() => {
-    async function fetchDeliveryCities() {
-      try {
-        const response = await apiClient.get<{ cities: string[] }>('/api/v1/delivery/locations');
-        setDeliveryCities(response.cities ?? []);
-      } catch {
-        setDeliveryCities([]);
-      }
-    }
+    let cancelled = false;
 
-    fetchDeliveryCities();
+    const loadDeliveryCities = (forceDirect = false) => {
+      void fetchDeliveryLocationsCached(forceDirect ? { forceDirect: true } : undefined)
+        .then((response) => {
+          if (cancelled) {
+            return;
+          }
+          setDeliveryCities(response.cities ?? []);
+        })
+        .catch(() => {
+          if (cancelled) {
+            return;
+          }
+          setDeliveryCities([]);
+        });
+    };
+
+    loadDeliveryCities();
+
+    const unsubscribe = subscribeDeliveryLocationsUpdated(() => {
+      loadDeliveryCities(true);
+    });
+
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -195,7 +221,7 @@ export function useCheckout() {
         isLoggedIn,
         setDrawerCart,
         async () => {
-          await reloadDrawerCart({ silent: true });
+          await reloadDrawerCart({ silent: true, forceDirect: true });
           await fetchCart();
         }
       );

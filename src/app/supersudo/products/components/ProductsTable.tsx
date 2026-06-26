@@ -96,7 +96,7 @@ function handleProductRowClick(
   openProductEditor: (id: string) => void,
 ) {
   const clickedElement = event.target;
-  if (clickedElement instanceof HTMLElement && clickedElement.closest(INTERACTIVE_CELL_SELECTOR)) {
+  if (clickedElement instanceof Element && clickedElement.closest(INTERACTIVE_CELL_SELECTOR)) {
     return;
   }
   openProductEditor(productId);

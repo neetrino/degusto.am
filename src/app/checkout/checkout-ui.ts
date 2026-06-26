@@ -12,11 +12,15 @@ export const CHECKOUT_PAGE_GRID_CLASS =
 
 export const CHECKOUT_FORM_COLUMN_CLASS = 'order-1 min-w-0 md:order-none md:col-span-3 lg:col-span-2';
 
-export const CHECKOUT_SUMMARY_COLUMN_CLASS = 'order-2 min-w-0 md:order-none md:col-span-2 lg:col-span-1';
+/** Sticky sidebar — stays visible while the checkout form scrolls (tablet+). */
+export const CHECKOUT_SUMMARY_COLUMN_CLASS = [
+  'order-2 min-w-0 self-start md:order-none md:col-span-2 lg:col-span-1',
+  'md:sticky md:z-10',
+  // Offsets match UNIVERSAL_HEADER_STICKY_BELOW_BAR_CLASS / UNIVERSAL_HEADER_STICKY_WITH_GAP_CLASS
+  'md:top-[92px] lg:top-[104px]',
+].join(' ');
 
-/** Sticky order summary — below UniversalHeader spacer (92px / 104px). */
-export const CHECKOUT_SUMMARY_PANEL_CLASS =
-  'w-full self-start md:sticky md:top-[92px] lg:top-[104px]';
+export const CHECKOUT_SUMMARY_PANEL_CLASS = 'w-full';
 
 export const CHECKOUT_SECTION_TITLE_TEXT = 'text-2xl font-bold text-[#1F2E1F]';
 

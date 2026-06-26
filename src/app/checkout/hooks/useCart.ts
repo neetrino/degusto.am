@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Cart } from '../types';
 import { parseCartUpdatedDetail } from '@/lib/cart/cart-events';
+import { cartNeedsFullLineItems } from '@/lib/cart/cart-summary-sync';
 import { useCartDrawer } from '@/components/cart-drawer/cart-drawer-context';
 
 export function useCart(_isLoggedIn: boolean) {
@@ -10,7 +11,11 @@ export function useCart(_isLoggedIn: boolean) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isCartResolved) {
+    void reloadDrawerCart({ silent: true, forceDirect: true });
+  }, [reloadDrawerCart]);
+
+  useEffect(() => {
+    if (!isCartResolved || cartNeedsFullLineItems(drawerCart)) {
       setLoading(true);
       return;
     }
@@ -28,7 +33,7 @@ export function useCart(_isLoggedIn: boolean) {
       if (detail?.skipReconcile) {
         return;
       }
-      void reloadDrawerCart({ silent: true });
+      void reloadDrawerCart({ silent: true, forceDirect: true });
     };
     window.addEventListener('cart-updated', onCartUpdated);
     return () => window.removeEventListener('cart-updated', onCartUpdated);
@@ -37,11 +42,9 @@ export function useCart(_isLoggedIn: boolean) {
   const fetchSyncedCart = useCallback(async () => {
     try {
       setLoading(true);
-      await reloadDrawerCart({ silent: true });
+      await reloadDrawerCart({ silent: true, forceDirect: true });
     } catch {
       setError('Failed to load cart');
-    } finally {
-      setLoading(false);
     }
   }, [reloadDrawerCart]);
 

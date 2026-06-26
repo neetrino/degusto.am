@@ -79,8 +79,13 @@ function writeCartSnapshotCache(cart: Cart | null): void {
     return;
   }
 
-  if (!cart || cart.itemsCount <= 0 || cart.items.length === 0) {
+  if (!cart || cart.itemsCount <= 0) {
     window.localStorage.removeItem(CART_SNAPSHOT_CACHE_KEY);
+    return;
+  }
+
+  // Summary-only payloads have counts but no line items — keep existing full snapshot.
+  if (cart.items.length === 0) {
     return;
   }
 

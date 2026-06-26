@@ -7,8 +7,12 @@ import {
   ADMIN_MOBILE_HUB_PATH,
   ADMIN_MOBILE_ORDERS_PATH,
 } from '@/constants/admin-mobile-profile';
-import { STOREFRONT_PREFETCH_ROUTES } from '@/constants/mobile-page-cache';
+import { STOREFRONT_IDLE_PREFETCH_ROUTES } from '@/constants/mobile-page-cache';
 import { isAdminAppPath } from '@/lib/routing/is-admin-app-path';
+import {
+  scheduleIdlePrefetch,
+  shouldRunBackgroundRoutePrefetch,
+} from '@/lib/routing/prefetch-budget';
 import { prefetchStorefrontRoute } from '@/lib/routing/prefetch-storefront-route';
 
 const MOBILE_ADMIN_PREFETCH_ROUTES = [
@@ -17,39 +21,45 @@ const MOBILE_ADMIN_PREFETCH_ROUTES = [
   ADMIN_MOBILE_ORDERS_PATH,
 ] as const;
 
+let storefrontIdlePrefetchScheduled = false;
+
 /**
- * Warms the client router cache for common storefront destinations on first paint.
- * Runs on all viewports so desktop header / home links navigate instantly too.
+ * One-time idle warmup for high-frequency storefront tabs (shop, combo, wishlist, profile).
+ * Pointer/hover prefetch on links remains the primary path for other destinations.
  */
 export function MobileRoutePrefetcher(): null {
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    if (isAdminAppPath(pathname)) {
+    if (isAdminAppPath(pathname) || storefrontIdlePrefetchScheduled) {
+      return;
+    }
+    if (!shouldRunBackgroundRoutePrefetch()) {
       return;
     }
 
-    const runPrefetch = () => {
-      for (const route of STOREFRONT_PREFETCH_ROUTES) {
-        prefetchStorefrontRoute(router, route);
+    storefrontIdlePrefetchScheduled = true;
+
+    scheduleIdlePrefetch(() => {
+      for (const route of STOREFRONT_IDLE_PREFETCH_ROUTES) {
+        if (route === pathname) {
+          continue;
+        }
+        prefetchStorefrontRoute(router, route, {
+          prefetchMenuProducts: false,
+          prefetchProductBundle: false,
+        });
       }
 
-      for (const route of MOBILE_ADMIN_PREFETCH_ROUTES) {
-        void router.prefetch(route);
+      if (pathname.startsWith('/admin-mobile')) {
+        for (const route of MOBILE_ADMIN_PREFETCH_ROUTES) {
+          if (route !== pathname) {
+            void router.prefetch(route);
+          }
+        }
       }
-    };
-
-    if (typeof window.requestIdleCallback === 'function') {
-      const idleId = window.requestIdleCallback(runPrefetch, { timeout: 500 });
-      return () => {
-        window.cancelIdleCallback?.(idleId);
-      };
-    }
-    const timerId = window.setTimeout(runPrefetch, 200);
-    return () => {
-      window.clearTimeout(timerId);
-    };
+    });
   }, [pathname, router]);
 
   return null;

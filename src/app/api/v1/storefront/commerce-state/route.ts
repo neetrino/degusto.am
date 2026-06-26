@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/v1/storefront/commerce-state
- * Bootstrap cart + wishlist + compare for storefront chrome (header badges, drawer).
+ * Bootstrap cart + wishlist for storefront chrome (header badges, drawer).
  */
 export async function GET(req: NextRequest) {
   try {

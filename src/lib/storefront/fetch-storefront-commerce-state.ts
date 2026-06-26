@@ -5,7 +5,7 @@ import { apiClient } from '@/lib/api-client';
 import { createInflightGetCache } from '@/lib/admin/inflight-get-cache';
 import type { StorefrontCommerceState } from '@/lib/services/storefront/storefront-commerce-state.service';
 
-/** Short TTL covers React Strict Mode remount; invalidated after cart/wishlist/compare mutations. */
+/** Short TTL covers React Strict Mode remount; invalidated after cart/wishlist mutations. */
 const COMMERCE_STATE_CACHE_TTL_MS = 4_000;
 
 const commerceStateCache = createInflightGetCache<StorefrontCommerceState>(
@@ -30,9 +30,4 @@ export async function fetchCartViaCommerceBootstrap(): Promise<Cart | null> {
 export async function fetchWishlistIdsViaCommerceBootstrap(): Promise<string[]> {
   const state = await fetchStorefrontCommerceState();
   return state.wishlistIds;
-}
-
-export async function fetchCompareIdsViaCommerceBootstrap(): Promise<string[]> {
-  const state = await fetchStorefrontCommerceState();
-  return state.compareIds;
 }

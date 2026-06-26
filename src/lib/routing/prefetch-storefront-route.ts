@@ -10,6 +10,8 @@ type PrefetchStorefrontRouteOptions = {
   prefetchProductBundle?: boolean;
 };
 
+const prefetchedStorefrontHrefs = new Set<string>();
+
 function isShopOrComboHref(href: string): boolean {
   return href.startsWith('/shop') || href.startsWith('/combo');
 }
@@ -25,6 +27,7 @@ function extractProductSlug(href: string): string | null {
 
 /**
  * Warms Next.js RSC payload plus shop menu / PDP JSON caches for a storefront href.
+ * Dedupes by href per tab session to avoid fan-out from multiple prefetch helpers.
  */
 export function prefetchStorefrontRoute(
   router: RouterWithPrefetch,
@@ -32,9 +35,11 @@ export function prefetchStorefrontRoute(
   options?: PrefetchStorefrontRouteOptions
 ): void {
   const normalized = href.trim();
-  if (!normalized) {
+  if (!normalized || prefetchedStorefrontHrefs.has(normalized)) {
     return;
   }
+  prefetchedStorefrontHrefs.add(normalized);
+
   const prefetchMenuProducts = options?.prefetchMenuProducts ?? true;
   const prefetchProductBundle = options?.prefetchProductBundle ?? true;
 

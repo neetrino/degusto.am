@@ -30,3 +30,8 @@ export function dispatchCartSummarySync(cart: Cart | null): void {
 export function cartHasVisibleItems(cart: Cart | null): boolean {
   return (cart?.items.length ?? 0) > 0;
 }
+
+/** True when badge/count says items exist but line details were not loaded (summary bootstrap). */
+export function cartNeedsFullLineItems(cart: Cart | null): boolean {
+  return (cart?.itemsCount ?? 0) > 0 && !cartHasVisibleItems(cart);
+}

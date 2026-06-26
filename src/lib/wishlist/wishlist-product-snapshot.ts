@@ -13,6 +13,7 @@ export type WishlistProductSnapshot = {
   discountPercent: number | null;
   image: string | null;
   inStock: boolean;
+  defaultVariantId?: string | null;
 };
 
 function resolveMenuCardDiscountPercent(card: {
