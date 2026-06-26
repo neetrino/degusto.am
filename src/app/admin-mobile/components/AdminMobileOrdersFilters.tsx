@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from '../../../lib/i18n-client';
 import type { useOrders } from '../../supersudo/orders/useOrders';
+import { resetOrdersPageParam } from '../../supersudo/orders/hooks/useAdminOrdersUrlState';
 import { ADMIN_MOBILE_ORDERS_PATH } from '@/constants/admin-mobile-profile';
 import { ADMIN_MOBILE_CARD_CLASS, ADMIN_MOBILE_FIELD_CLASS } from './admin-mobile-ui';
 
@@ -14,7 +15,6 @@ type AdminMobileOrdersFiltersProps = {
   searchQuery: string;
   totalCount: number;
   updateMessage: { type: 'success' | 'error'; text: string } | null;
-  setPage: (value: number | ((prev: number) => number)) => void;
   router: ReturnType<typeof useOrders>['router'];
   searchParams: ReturnType<typeof useOrders>['searchParams'];
 };
@@ -25,7 +25,6 @@ export function AdminMobileOrdersFilters({
   searchQuery,
   totalCount,
   updateMessage,
-  setPage,
   router,
   searchParams,
 }: AdminMobileOrdersFiltersProps) {
@@ -38,15 +37,15 @@ export function AdminMobileOrdersFilters({
 
   const pushParams = useCallback(
     (mutate: (params: URLSearchParams) => void) => {
-      setPage(1);
       const params = new URLSearchParams(searchParams?.toString() || '');
       mutate(params);
+      resetOrdersPageParam(params);
       const url = params.toString()
         ? `${ADMIN_MOBILE_ORDERS_PATH}?${params.toString()}`
         : ADMIN_MOBILE_ORDERS_PATH;
       router.push(url, { scroll: false });
     },
-    [router, searchParams, setPage]
+    [router, searchParams]
   );
 
   useEffect(() => {

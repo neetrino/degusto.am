@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import { UseFormSetValue } from 'react-hook-form';
 import {
   fetchUserProfileCached,
+  getUserProfileInflight,
+  peekUserProfileCached,
   type UserProfileWithAddressesPayload,
 } from '../../../lib/users/user-profile-client';
 import { useAuth } from '../../../lib/auth/AuthContext';
@@ -52,6 +54,13 @@ function applyProfileToCheckoutForm(
   }
 }
 
+function isFullProfileForUser(
+  profile: UserProfileWithAddressesPayload | null | undefined,
+  userId: string | undefined
+): profile is UserProfileWithAddressesPayload {
+  return Boolean(userId) && profile?.id === userId && Array.isArray(profile?.addresses);
+}
+
 export function useUserProfile(
   isLoggedIn: boolean,
   isLoading: boolean,
@@ -81,6 +90,25 @@ export function useUserProfile(
           user.phone,
           setValue
         );
+      }
+
+      const cached = peekUserProfileCached<UserProfileWithAddressesPayload>();
+      if (isFullProfileForUser(cached, user?.id)) {
+        applyProfileToCheckoutForm(cached, user?.phone, setValue);
+        return;
+      }
+
+      const inflight = getUserProfileInflight<UserProfileWithAddressesPayload>();
+      if (inflight) {
+        try {
+          const profile = await inflight;
+          if (isFullProfileForUser(profile, user?.id)) {
+            applyProfileToCheckoutForm(profile, user?.phone, setValue);
+            return;
+          }
+        } catch {
+          // Fall through to cached fetch below.
+        }
       }
 
       try {

@@ -4,11 +4,60 @@ import { logger } from "./logger";
 const ENABLE_RUNTIME_SCHEMA_PATCH =
   process.env.ENABLE_RUNTIME_SCHEMA_PATCH === "1";
 
-function runtimePatchDisabled(entity: string): boolean {
-  if (!ENABLE_RUNTIME_SCHEMA_PATCH) {
-    return true;
+/** Only admin write paths may invoke runtime DDL when explicitly enabled. */
+export type RuntimeSchemaPatchContext = "admin-mutation";
+
+export function isRuntimeSchemaPatchEnabled(): boolean {
+  return ENABLE_RUNTIME_SCHEMA_PATCH;
+}
+
+const loggedHotPathBlocks = new Set<string>();
+const loggedPatchDisabled = new Set<string>();
+
+/**
+ * Logs migration drift on a hot read/request path. Runtime DDL is never attempted here.
+ */
+export function logHotPathSchemaDrift(entity: string, detail?: string): void {
+  const key = `${entity}:${detail ?? ""}`;
+  if (loggedHotPathBlocks.has(key)) {
+    return;
   }
-  return false;
+  loggedHotPathBlocks.add(key);
+  logger.error("[schema] Migration drift on hot path; runtime patch blocked", {
+    entity,
+    detail,
+    patchEnabled: ENABLE_RUNTIME_SCHEMA_PATCH,
+    hint: "Apply Prisma migrations. Runtime DDL runs only on admin-mutation paths when ENABLE_RUNTIME_SCHEMA_PATCH=1.",
+  });
+}
+
+function logPatchDisabled(entity: string): void {
+  if (loggedPatchDisabled.has(entity)) {
+    return;
+  }
+  loggedPatchDisabled.add(entity);
+  logger.warn("[schema] Runtime schema patch skipped (disabled)", {
+    entity,
+    hint: "Set ENABLE_RUNTIME_SCHEMA_PATCH=1 to allow DDL on admin-mutation paths only.",
+  });
+}
+
+function canRunRuntimeSchemaPatch(
+  context: RuntimeSchemaPatchContext,
+  entity: string
+): boolean {
+  if (context !== "admin-mutation") {
+    logHotPathSchemaDrift(entity, "invalid or missing admin-mutation context");
+    return false;
+  }
+  if (!ENABLE_RUNTIME_SCHEMA_PATCH) {
+    logPatchDisabled(entity);
+    return false;
+  }
+  logger.warn("[schema] Runtime schema patch executing on admin-mutation path", {
+    entity,
+  });
+  return true;
 }
 
 // Cache to track if table check has been performed
@@ -43,8 +92,10 @@ let pdpCustomizationColumnExists = false;
  * 
  * @returns Promise<boolean> - true if table exists or was created, false if creation failed
  */
-export async function ensureProductAttributesTable(): Promise<boolean> {
-  if (runtimePatchDisabled("product_attributes table")) {
+export async function ensureProductAttributesTable(
+  context: RuntimeSchemaPatchContext
+): Promise<boolean> {
+  if (!canRunRuntimeSchemaPatch(context, "product_attributes table")) {
     return false;
   }
   // If already checked and exists, return immediately
@@ -193,8 +244,10 @@ export async function ensureProductAttributesTable(): Promise<boolean> {
  * 
  * @returns Promise<boolean> - true if table exists or was created, false if creation failed
  */
-export async function ensureProductReviewsTable(): Promise<boolean> {
-  if (runtimePatchDisabled("product_reviews table")) {
+export async function ensureProductReviewsTable(
+  context: RuntimeSchemaPatchContext
+): Promise<boolean> {
+  if (!canRunRuntimeSchemaPatch(context, "product_reviews table")) {
     return false;
   }
   // If already checked and exists, return immediately
@@ -364,8 +417,10 @@ async function ensureProductReviewsTableInner(): Promise<boolean> {
  * 
  * @returns Promise<boolean> - true if column exists or was created, false if creation failed
  */
-export async function ensureProductVariantAttributesColumn(): Promise<boolean> {
-  if (runtimePatchDisabled('product_variants."attributes" column')) {
+export async function ensureProductVariantAttributesColumn(
+  context: RuntimeSchemaPatchContext
+): Promise<boolean> {
+  if (!canRunRuntimeSchemaPatch(context, 'product_variants."attributes" column')) {
     return false;
   }
   // If already checked and exists, return immediately
@@ -431,8 +486,10 @@ export async function ensureProductVariantAttributesColumn(): Promise<boolean> {
  *
  * @returns Promise<boolean> - true if column exists or was created, false if creation failed
  */
-export async function ensureCartItemCustomizationsColumn(): Promise<boolean> {
-  if (runtimePatchDisabled('cart_items."customizations" column')) {
+export async function ensureCartItemCustomizationsColumn(
+  context: RuntimeSchemaPatchContext
+): Promise<boolean> {
+  if (!canRunRuntimeSchemaPatch(context, 'cart_items."customizations" column')) {
     return false;
   }
   if (cartCustomizationsColumnChecked && cartCustomizationsColumnExists) {
@@ -490,8 +547,10 @@ export async function ensureCartItemCustomizationsColumn(): Promise<boolean> {
 /**
  * Ensures `priceAdjustment` exists on `attribute_values` (migration drift / partial deploys).
  */
-export async function ensureAttributeValuePriceAdjustmentColumn(): Promise<boolean> {
-  if (runtimePatchDisabled('attribute_values."priceAdjustment" column')) {
+export async function ensureAttributeValuePriceAdjustmentColumn(
+  context: RuntimeSchemaPatchContext
+): Promise<boolean> {
+  if (!canRunRuntimeSchemaPatch(context, 'attribute_values."priceAdjustment" column')) {
     return false;
   }
   if (attributeValuePriceAdjustmentChecked && attributeValuePriceAdjustmentExists) {
@@ -546,8 +605,10 @@ export async function ensureAttributeValuePriceAdjustmentColumn(): Promise<boole
 }
 
 /** Ensures `pdpCustomization` exists on `products` (migration drift / partial deploys). */
-export async function ensureProductPdpCustomizationColumn(): Promise<boolean> {
-  if (runtimePatchDisabled('products."pdpCustomization" column')) {
+export async function ensureProductPdpCustomizationColumn(
+  context: RuntimeSchemaPatchContext
+): Promise<boolean> {
+  if (!canRunRuntimeSchemaPatch(context, 'products."pdpCustomization" column')) {
     return false;
   }
   if (pdpCustomizationColumnChecked && pdpCustomizationColumnExists) {

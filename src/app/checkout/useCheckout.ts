@@ -15,7 +15,10 @@ import { useOrderSubmission } from './hooks/useOrderSubmission';
 import { useOrderSummary } from './hooks/useOrderSummary';
 import type { CheckoutFormData } from './types';
 import { calculateBagAmountByUniqueCategories } from '@/lib/cart/bag-fee';
-import { fetchDeliveryLocationsCached } from '@/lib/checkout/fetch-delivery-locations-client';
+import {
+  fetchDeliveryLocationsCached,
+  subscribeDeliveryLocationsUpdated,
+} from '@/lib/checkout/fetch-delivery-locations-client';
 import { useCartDrawer } from '@/components/cart-drawer/cart-drawer-context';
 import { handleRemoveItem } from '@/app/cart/cart-handlers';
 
@@ -142,13 +145,34 @@ export function useCheckout() {
   }, [isLoggedIn, isLoading]);
 
   useEffect(() => {
-    void fetchDeliveryLocationsCached()
-      .then((response) => {
-        setDeliveryCities(response.cities ?? []);
-      })
-      .catch(() => {
-        setDeliveryCities([]);
-      });
+    let cancelled = false;
+
+    const loadDeliveryCities = (forceDirect = false) => {
+      void fetchDeliveryLocationsCached(forceDirect ? { forceDirect: true } : undefined)
+        .then((response) => {
+          if (cancelled) {
+            return;
+          }
+          setDeliveryCities(response.cities ?? []);
+        })
+        .catch(() => {
+          if (cancelled) {
+            return;
+          }
+          setDeliveryCities([]);
+        });
+    };
+
+    loadDeliveryCities();
+
+    const unsubscribe = subscribeDeliveryLocationsUpdated(() => {
+      loadDeliveryCities(true);
+    });
+
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
   }, []);
 
   useEffect(() => {

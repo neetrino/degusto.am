@@ -22,6 +22,7 @@ import { usePrefetchProductWhenVisible } from '../hooks/usePrefetchProductWhenVi
 import { prefetchProductRoute } from '@/lib/products/prefetch-product-route';
 import { shouldShowMenuCardStrikethroughPrice } from '@/lib/storefront/menu-card-pricing';
 import { buildWishlistSnapshotFromMenuCard } from '@/lib/wishlist/wishlist-product-snapshot';
+import { ProductCardCompareButton } from '@/components/products/ProductCardCompareButton';
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
 import type { MenuCard } from './menu-types';
 import { RatingStars } from '@/components/RatingStars';
@@ -158,6 +159,11 @@ export function ShopMobileProductCard({
             className="rounded-[20px] object-cover"
             loading="lazy"
             sizes="50vw"
+          />
+          <ProductCardCompareButton
+            productId={card.id}
+            className={`absolute left-1.5 top-1.5 ${MOBILE_PRODUCT_CARD_ACTION_Z_CLASS}`}
+            iconSize={16}
           />
           <button
             type="button"

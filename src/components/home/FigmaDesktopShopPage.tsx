@@ -45,6 +45,7 @@ import { ShopDesktopProductsSkeleton } from './ShopDesktopProductsSkeleton';
 import { HomeOptimizedImage } from './HomeOptimizedImage';
 import { createProductPreviewSummary } from '@/lib/products/product-preview';
 import { buildWishlistSnapshotFromMenuCard } from '@/lib/wishlist/wishlist-product-snapshot';
+import { ProductCardCompareButton } from '@/components/products/ProductCardCompareButton';
 import {
   STOREFRONT_DESKTOP_MAIN_COLUMN_CLASS,
   STOREFRONT_DESKTOP_PRODUCT_GRID_CLASS,
@@ -399,6 +400,7 @@ function MenuCardItemBase({ card }: { card: MenuCard }) {
           hotIconSrc={assets.productCardHot}
           greensIconSrc={assets.productCardRibbon}
         />
+        <ProductCardCompareButton productId={card.id} className="absolute left-2 top-2 z-20 flex h-9 w-9 sm:h-10 sm:w-10" iconSize={18} />
         <button
           type="button"
           onClick={handleWishlistToggle}

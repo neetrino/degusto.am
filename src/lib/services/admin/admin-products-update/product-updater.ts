@@ -203,7 +203,7 @@ export async function updateProductAttributes(
   if (attributeIds !== undefined) {
     // Ensure table exists (for Vercel deployments where migrations might not run)
     const { ensureProductAttributesTable } = await import("../../../utils/db-ensure");
-    await ensureProductAttributesTable();
+    await ensureProductAttributesTable("admin-mutation");
     
     await tx.productAttribute.deleteMany({ where: { productId } });
     if (attributeIds.length > 0) {

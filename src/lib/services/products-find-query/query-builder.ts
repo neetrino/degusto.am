@@ -3,8 +3,9 @@ import { db } from "@white-shop/db";
 import { logger } from "../../utils/logger";
 import type { ProductFilters } from "./types";
 import { getAllChildCategoryIds, findCategoryBySlug } from "./category-utils";
-import { buildProductSearchWhere } from "./search-filter";
+import { mergeProductSearchIntoWhere } from "./search-filter";
 import { mergePriceRangeIntoWhere } from "./list-query-helpers";
+import { mergeColorSizeIntoWhere } from "./attribute-variant-filters";
 
 /**
  * Build category filter for where clause
@@ -199,9 +200,8 @@ export async function buildWhereClause(
   }
 
   // Add search filter
-  if (search && search.trim()) {
-    const searchFilter = buildProductSearchWhere(search);
-    where = { ...where, ...searchFilter };
+  if (search) {
+    where = mergeProductSearchIntoWhere(where, search);
   }
 
   // Add category filter
@@ -223,6 +223,7 @@ export async function buildWhereClause(
   bestsellerProductIds.push(...filterResult.bestsellerProductIds);
 
   where = mergePriceRangeIntoWhere(where, filters.minPrice, filters.maxPrice);
+  where = mergeColorSizeIntoWhere(where, filters);
 
   return {
     where,

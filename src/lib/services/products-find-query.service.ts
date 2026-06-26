@@ -7,7 +7,7 @@ import {
 import { db } from "@white-shop/db";
 import type { ProductFilters, ProductWithRelations } from "./products-find-query/types";
 
-/** Cap when attribute/price-sort filters must be applied in memory after a wide fetch. */
+/** Cap when price/bestseller sorts must be applied in memory after a wide fetch. */
 const LEGACY_LIST_OVERFETCH_MAX = 200;
 
 /**

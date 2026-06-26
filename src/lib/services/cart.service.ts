@@ -10,12 +10,12 @@ import {
 } from "../cart/customizations";
 import {
   sumLineCustomizationPriceAdjustment,
-  sumLineCustomizationPriceAdjustmentsByVariant,
+  sumLineCustomizationPriceAdjustmentsForLines,
 } from "../cart/attribute-price-adjustment";
 import { computeLineUnitPriceUsd } from "../cart/line-unit-price";
 import { cartVariantDisplayLinesFromPrismaOptions } from "../cart/cart-variant-display-lines";
 import { isStockSufficient, totalVariantQuantityInCart } from "../product-stock";
-import { ensureCartItemCustomizationsColumn } from "../utils/db-ensure";
+import { logHotPathSchemaDrift } from "../utils/db-ensure";
 
 class CartService {
   private toCartSummaryPayload(
@@ -71,8 +71,11 @@ class CartService {
     if (!this.isCartCustomizationsMissingError(error)) {
       return false;
     }
-    logger.warn("cart_items.customizations column missing; attempting runtime creation");
-    return ensureCartItemCustomizationsColumn();
+    logHotPathSchemaDrift(
+      'cart_items."customizations" column',
+      error instanceof Error ? error.message : String(error)
+    );
+    return false;
   }
 
   private cartOwnerWhere(userId: string | null, guestToken?: string | null) {
@@ -242,23 +245,12 @@ class CartService {
       }
     }
 
-    const variantIds = Array.from(new Set(cart.items.map((item) => item.variantId)));
-    const customByVariantId = new Map(
-      cart.items.map((item) => [
-        item.variantId,
-        normalizeProductCustomizations(item.customizations),
-      ] as const)
-    );
-    const adjustmentByVariantId = await sumLineCustomizationPriceAdjustmentsByVariant(
-      variantIds,
-      customByVariantId
-    );
-    const attributeAdjustments = cart.items.map((item) => ({
-      itemId: item.id,
-      adj: adjustmentByVariantId.get(item.variantId) ?? 0,
-    }));
-    const adjustmentByItemId = new Map(
-      attributeAdjustments.map(({ itemId, adj }) => [itemId, adj])
+    const adjustmentByItemId = await sumLineCustomizationPriceAdjustmentsForLines(
+      cart.items.map((item) => ({
+        lineKey: item.id,
+        variantId: item.variantId,
+        customizations: normalizeProductCustomizations(item.customizations),
+      }))
     );
 
     // Format items using already-loaded cart data

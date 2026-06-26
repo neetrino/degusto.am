@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { prefetchStorefrontRoute } from '@/lib/routing/prefetch-storefront-route';
+import { shouldRunBackgroundRoutePrefetch } from '@/lib/routing/prefetch-budget';
 
 const PREFETCH_HOVER_DELAY_MS = 120;
 const PREFETCH_IDLE_DELAY_MS = 180;
@@ -23,6 +24,10 @@ export function useRoutePrefetch(hrefs: readonly string[]) {
   );
 
   useEffect(() => {
+    if (!shouldRunBackgroundRoutePrefetch()) {
+      return;
+    }
+
     const runIdlePrefetch = () => {
       for (const href of hrefs) {
         if (href.startsWith('/shop') || href.startsWith('/combo')) {

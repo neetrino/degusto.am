@@ -30,6 +30,10 @@ import { STOREFRONT_PAGE_CONTAINER_CLASS } from '@/constants/storefront-desktop-
 import { useWishlistIdsContext } from '@/lib/wishlist/WishlistIdsProvider';
 import { useCompareIdsContext } from '@/lib/compare/CompareIdsProvider';
 import { prefetchStorefrontRoute } from '@/lib/routing/prefetch-storefront-route';
+import {
+  scheduleIdlePrefetch,
+  shouldRunBackgroundRoutePrefetch,
+} from '@/lib/routing/prefetch-budget';
 
 // Navigation links will be translated dynamically using useTranslation hook
 const primaryNavLinks = [
@@ -380,13 +384,19 @@ export function Header() {
   const userNavHref = isLoggedIn ? '/profile' : '/login';
 
   useEffect(() => {
-    HEADER_FAST_NAV_ROUTES.forEach((href) => {
-      prefetchStorefrontRoute(router, href);
-    });
-    prefetchStorefrontRoute(router, userNavHref);
-    if (isAdmin) {
-      void router.prefetch('/supersudo');
+    if (!shouldRunBackgroundRoutePrefetch()) {
+      return;
     }
+
+    scheduleIdlePrefetch(() => {
+      HEADER_FAST_NAV_ROUTES.forEach((href) => {
+        prefetchStorefrontRoute(router, href);
+      });
+      prefetchStorefrontRoute(router, userNavHref);
+      if (isAdmin) {
+        void router.prefetch('/supersudo');
+      }
+    });
   }, [isAdmin, router, userNavHref]);
 
   useEffect(() => {

@@ -66,6 +66,23 @@ export function seedUserProfileCache(profile: UserProfilePayload): void {
   getProfileCache().seed(profile);
 }
 
+export function peekUserProfileCached<T = UserProfilePayload>(): T | null {
+  const cached = getProfileCache().peek();
+  if (cached === null) {
+    return null;
+  }
+  return cached as T;
+}
+
+/** Reuse an in-flight profile GET (e.g. AuthContext verify) instead of starting a duplicate request. */
+export function getUserProfileInflight<T = UserProfilePayload>(): Promise<T> | null {
+  const inflight = getProfileCache().getInflight();
+  if (!inflight) {
+    return null;
+  }
+  return inflight as Promise<T>;
+}
+
 export async function fetchUserProfileCached<T = UserProfilePayload>(
   options?: { force?: boolean }
 ): Promise<T> {

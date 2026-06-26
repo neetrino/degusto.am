@@ -3,13 +3,13 @@
 import { useTranslation } from '../../../../lib/i18n-client';
 import { Card } from '@shop/ui';
 import type { useOrders } from '../useOrders';
+import { resetOrdersPageParam } from '../hooks/useAdminOrdersUrlState';
 
 interface OrdersFiltersProps {
   statusFilter: string;
   paymentStatusFilter: string;
   searchQuery: string;
   updateMessage: { type: 'success' | 'error'; text: string } | null;
-  setPage: (value: number | ((prev: number) => number)) => void;
   router: ReturnType<typeof useOrders>['router'];
   searchParams: ReturnType<typeof useOrders>['searchParams'];
   /** Defaults to `/supersudo/orders` (desktop admin). */
@@ -21,7 +21,6 @@ export function OrdersFilters({
   paymentStatusFilter,
   searchQuery,
   updateMessage,
-  setPage,
   router,
   searchParams,
   basePath = '/supersudo/orders',
@@ -39,35 +38,35 @@ export function OrdersFilters({
     : 'min-w-0 w-full flex-1 rounded-xl border border-[#dce3dd] bg-white px-3 py-3 text-sm text-[#314f3f] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1f6c4b]/20 basis-full sm:basis-0 sm:min-w-[12rem]';
 
   const handleStatusChange = (newStatus: string) => {
-    setPage(1);
     const params = new URLSearchParams(searchParams?.toString() || '');
     if (newStatus) {
       params.set('status', newStatus);
     } else {
       params.delete('status');
     }
+    resetOrdersPageParam(params);
     router.push(buildOrdersUrl(params), { scroll: false });
   };
 
   const handlePaymentStatusChange = (newPaymentStatus: string) => {
-    setPage(1);
     const params = new URLSearchParams(searchParams?.toString() || '');
     if (newPaymentStatus) {
       params.set('paymentStatus', newPaymentStatus);
     } else {
       params.delete('paymentStatus');
     }
+    resetOrdersPageParam(params);
     router.push(buildOrdersUrl(params), { scroll: false });
   };
 
   const handleSearchChange = (newSearch: string) => {
-    setPage(1);
     const params = new URLSearchParams(searchParams?.toString() || '');
     if (newSearch.trim()) {
       params.set('search', newSearch.trim());
     } else {
       params.delete('search');
     }
+    resetOrdersPageParam(params);
     router.push(buildOrdersUrl(params), { scroll: false });
   };
 

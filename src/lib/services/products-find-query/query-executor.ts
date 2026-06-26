@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { db } from "@white-shop/db";
-import { ensureProductVariantAttributesColumn } from "../../utils/db-ensure";
+import { logHotPathSchemaDrift } from "../../utils/db-ensure";
 import { logger } from "../../utils/logger";
 import type { ProductWithRelations } from "./types";
 
@@ -140,21 +140,11 @@ export async function executeProductQuery(
     }
 
     if (isVariantAttributesError(error)) {
-      logger.warn('product_variants.attributes column not found, attempting to create it');
-      try {
-        await ensureProductVariantAttributesColumn();
-        const products = await db.product.findMany({
-          where,
-          include: baseInclude,
-          orderBy,
-          skip,
-          take: limit,
-        });
-        logger.debug(`Found ${products.length} products from database (after creating attributes column)`);
-        return products as unknown as ProductWithRelations[];
-      } catch (attributesError: unknown) {
-        return handleAttributesError(attributesError, where, limit, skip, orderBy);
-      }
+      logHotPathSchemaDrift(
+        'product_variants."attributes" column',
+        error instanceof Error ? error.message : String(error)
+      );
+      return handleAttributesError(error, where, limit, skip, orderBy);
     }
 
     if (isAttributeValuesColorsError(error)) {
@@ -191,21 +181,11 @@ async function executeWithoutProductAttributes(
     return products as unknown as ProductWithRelations[];
   } catch (retryError: unknown) {
     if (isVariantAttributesError(retryError)) {
-      logger.warn('product_variants.attributes column not found, attempting to create it');
-      try {
-        await ensureProductVariantAttributesColumn();
-        const products = await db.product.findMany({
-          where,
-          include: baseInclude,
-          orderBy,
-          skip,
-          take: limit,
-        });
-        logger.debug(`Found ${products.length} products from database (after creating attributes column)`);
-        return products as unknown as ProductWithRelations[];
-      } catch (attributesError: unknown) {
-        return handleAttributesError(attributesError, where, limit, skip, orderBy);
-      }
+      logHotPathSchemaDrift(
+        'product_variants."attributes" column',
+        retryError instanceof Error ? retryError.message : String(retryError)
+      );
+      return handleAttributesError(retryError, where, limit, skip, orderBy);
     }
 
     if (isAttributeValuesColorsError(retryError)) {

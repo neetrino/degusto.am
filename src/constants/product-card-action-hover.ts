@@ -30,3 +30,17 @@ export function getProductCardWishlistHoverClasses(isInWishlist: boolean): strin
     ? PRODUCT_CARD_WISHLIST_BTN_FILLED_HOVER_CLASS
     : PRODUCT_CARD_WISHLIST_BTN_IDLE_HOVER_CLASS;
 }
+
+/** Compare button — idle state hover glow. */
+export const PRODUCT_CARD_COMPARE_BTN_IDLE_HOVER_CLASS =
+  'hover:scale-110 hover:border-[#ff7f20]/40 hover:bg-orange-50 hover:text-[#ff7f20] hover:shadow-[0_4px_14px_rgba(255,127,32,0.3)] active:scale-95';
+
+/** Compare button — active state hover glow. */
+export const PRODUCT_CARD_COMPARE_BTN_FILLED_HOVER_CLASS =
+  'hover:scale-110 hover:bg-[#e56f10] hover:shadow-[0_4px_14px_rgba(255,127,32,0.45)] active:scale-95';
+
+export function getProductCardCompareHoverClasses(isInCompare: boolean): string {
+  return isInCompare
+    ? PRODUCT_CARD_COMPARE_BTN_FILLED_HOVER_CLASS
+    : PRODUCT_CARD_COMPARE_BTN_IDLE_HOVER_CLASS;
+}

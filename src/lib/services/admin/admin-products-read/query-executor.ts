@@ -1,9 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { db } from "@white-shop/db";
-import {
-  ensureAttributeValuePriceAdjustmentColumn,
-  ensureProductVariantAttributesColumn,
-} from "../../../utils/db-ensure";
+import { logHotPathSchemaDrift } from "../../../utils/db-ensure";
 import { logger } from "../../../utils/logger";
 
 /**
@@ -136,46 +133,12 @@ export async function executeProductListQuery(
 
     return { products, total };
   } catch (error: unknown) {
-    // If product_variants.attributes column doesn't exist, try to create it and retry
     if (isVariantAttributesError(error)) {
-      logger.warn('product_variants.attributes column not found, attempting to create it...');
-      try {
-        await ensureProductVariantAttributesColumn();
-        // Retry the query after creating the column
-        const listQuery = db.product.findMany({
-          where,
-          skip,
-          take,
-          orderBy,
-          include: getProductListInclude(),
-        });
-
-        const COUNT_TIMEOUT_MS = 10_000;
-        const countWithTimeout = Promise.race([
-          db.product.count({ where }),
-          new Promise<number>((_, reject) => {
-            setTimeout(() => reject(new Error("Count query timeout")), COUNT_TIMEOUT_MS);
-          }),
-        ]).catch((countError: unknown) => {
-          logger.warn("Count query failed or timed out, using estimated total", {
-            error: countError instanceof Error ? countError.message : String(countError),
-          });
-          return -1;
-        });
-
-        const [products, countResult] = await Promise.all([listQuery, countWithTimeout]);
-        const total = countResult === -1 ? products.length || take : countResult;
-
-        const queryTime = Date.now() - queryStartTime;
-        logger.debug(`All database queries completed in ${queryTime}ms (after attributes column retry)`);
-
-        return { products, total };
-      } catch (retryError: unknown) {
-        const queryTime = Date.now() - queryStartTime;
-        const errorMessage = retryError instanceof Error ? retryError.message : String(retryError);
-        logger.error(`Database query error after ${queryTime}ms (after retry)`, { error: errorMessage });
-        throw retryError;
-      }
+      logHotPathSchemaDrift(
+        'product_variants."attributes" column',
+        error instanceof Error ? error.message : String(error)
+      );
+      throw error;
     }
 
     const queryTime = Date.now() - queryStartTime;
@@ -198,7 +161,6 @@ export async function executeProductListQuery(
  * Execute product detail query with error handling
  */
 export async function executeProductDetailQuery(productId: string) {
-  await ensureAttributeValuePriceAdjustmentColumn();
   try {
     const product = await db.product.findUnique({
       where: { id: productId },

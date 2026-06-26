@@ -2,6 +2,7 @@ import { db } from "@white-shop/db";
 import { Prisma } from "@prisma/client";
 import { adminService } from "./admin.service";
 import { ProductWithRelations } from "./products-find-query.service";
+import { mergeProductSearchIntoWhere } from "./products-find-query/search-filter";
 
 class ProductsFiltersService {
   /**
@@ -39,46 +40,12 @@ class ProductsFiltersService {
     lang?: string;
   }) {
     try {
-      const where: Prisma.ProductWhereInput = {
+      let where: Prisma.ProductWhereInput = {
         published: true,
         deletedAt: null,
       };
 
-      // Add search filter
-      if (filters.search && filters.search.trim()) {
-        where.OR = [
-          {
-            translations: {
-              some: {
-                title: {
-                  contains: filters.search.trim(),
-                  mode: "insensitive",
-                },
-              },
-            },
-          },
-          {
-            translations: {
-              some: {
-                subtitle: {
-                  contains: filters.search.trim(),
-                  mode: "insensitive",
-                },
-              },
-            },
-          },
-          {
-            variants: {
-              some: {
-                sku: {
-                  contains: filters.search.trim(),
-                  mode: "insensitive",
-                },
-              },
-            },
-          },
-        ];
-      }
+      where = mergeProductSearchIntoWhere(where, filters.search);
 
       // Add category filter
       if (filters.category) {

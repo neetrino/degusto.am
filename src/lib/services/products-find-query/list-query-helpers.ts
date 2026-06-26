@@ -23,12 +23,6 @@ export function normalizeFilterList(
   return items;
 }
 
-export function hasActiveColorOrSizeFilter(filters: ProductFilters): boolean {
-  const colorList = normalizeFilterList(filters.colors, (v) => v.toLowerCase());
-  const sizeList = normalizeFilterList(filters.sizes, (v) => v.toUpperCase());
-  return colorList.length > 0 || sizeList.length > 0;
-}
-
 /** Sorts that still require in-memory ordering (variant min price, bestseller rank). */
 export function needsInMemoryProductSort(filters: ProductFilters): boolean {
   const { filter, sort = "createdAt" } = filters;
@@ -110,5 +104,5 @@ export function resolveDbProductListOrderBy(
 }
 
 export function needsLegacyListOverFetch(filters: ProductFilters): boolean {
-  return hasActiveColorOrSizeFilter(filters) || needsInMemoryProductSort(filters);
+  return needsInMemoryProductSort(filters);
 }
