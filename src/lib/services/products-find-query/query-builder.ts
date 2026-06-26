@@ -4,6 +4,7 @@ import { logger } from "../../utils/logger";
 import type { ProductFilters } from "./types";
 import { getAllChildCategoryIds, findCategoryBySlug } from "./category-utils";
 import { buildProductSearchWhere } from "./search-filter";
+import { mergePriceRangeIntoWhere } from "./list-query-helpers";
 
 /**
  * Build category filter for where clause
@@ -220,6 +221,8 @@ export async function buildWhereClause(
   const filterResult = await buildFilterFilter(filter || "", sort, where);
   where = filterResult.where;
   bestsellerProductIds.push(...filterResult.bestsellerProductIds);
+
+  where = mergePriceRangeIntoWhere(where, filters.minPrice, filters.maxPrice);
 
   return {
     where,

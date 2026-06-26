@@ -59,22 +59,7 @@ export async function ShopPageContent({ params }: ShopPageContentProps) {
     openFilters: params?.openFilters === '1',
   });
 
-  const menuData = showMobileCategoryGrid
-    ? await (async () => {
-        const [mobileGrid, full] = await Promise.all([
-          getShopMenuData({ ...query, loadProfile: 'mobile-grid' }),
-          getShopMenuData({ ...query, loadProfile: 'full' }),
-        ]);
-        return {
-          cards: full.cards,
-          categories: full.categories,
-          mobileShopCategories: mobileGrid.mobileShopCategories,
-          showCategoryPicker: full.showCategoryPicker,
-          effectivePage: full.effectivePage,
-          totalPages: full.totalPages,
-        };
-      })()
-    : await getShopMenuData({ ...query, loadProfile: 'full' });
+  const menuData = await getShopMenuData({ ...query, loadProfile: 'full' });
 
   const {
     cards,

@@ -13,6 +13,10 @@ type FetchCartOptions = {
   forceDirect?: boolean;
 };
 
+/**
+ * Full cart read — used for drawer, checkout, and post-mutation reconcile.
+ * Bootstrap/summary reads go through commerce-state (`fetchCartViaCommerceBootstrap`).
+ */
 async function fetchCartDirectFromApi(): Promise<Cart | null> {
   return fetchWithInflightKey(CART_DIRECT_INFLIGHT_KEY, async () => {
     const response = await apiClient.get<{ cart: Cart | null }>('/api/v1/cart');

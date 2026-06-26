@@ -19,7 +19,7 @@ import {
   cartDrawerPanelVariants,
 } from './cart-drawer-motion-variants';
 import { readCartSummaryCache } from '@/lib/cartSummaryCache';
-import { cartHasVisibleItems } from '@/lib/cart/cart-summary-sync';
+import { cartHasVisibleItems, cartNeedsFullLineItems } from '@/lib/cart/cart-summary-sync';
 import { clearLegacyGuestCartLocalStorage } from '@/lib/cart/guest-cart-cookies';
 import { useCartDrawer } from './cart-drawer-context';
 import { useState } from 'react';
@@ -88,7 +88,9 @@ function CartDrawerMounted({ onClose }: { onClose: () => void }) {
       return;
     }
 
-    void reloadCart({ silent: true });
+    if (cartNeedsFullLineItems(cart) || (cached?.itemsCount ?? 0) > 0) {
+      void reloadCart({ silent: true, forceDirect: true });
+    }
   }, [cart, reloadCart]);
 
   useEffect(() => {

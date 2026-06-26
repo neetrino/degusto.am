@@ -3,6 +3,7 @@
 import type { FormEvent } from 'react';
 import { useTranslation } from '../../../../lib/i18n-client';
 import type { Category } from '../types';
+import type { AdminProductsStockFilter } from '../hooks/useAdminProductsUrlState';
 
 interface ProductFiltersProps {
   search: string;
@@ -15,14 +16,9 @@ interface ProductFiltersProps {
   categoriesLoading: boolean;
   categoriesExpanded: boolean;
   setCategoriesExpanded: (expanded: boolean) => void;
-  stockFilter: 'all' | 'inStock' | 'outOfStock';
-  setStockFilter: (filter: 'all' | 'inStock' | 'outOfStock') => void;
-  minPrice: string;
-  setMinPrice: (price: string) => void;
-  maxPrice: string;
-  setMaxPrice: (price: string) => void;
-  handleSearch: (e: FormEvent) => void;
-  setPage: (page: number | ((prev: number) => number)) => void;
+  stockFilter: AdminProductsStockFilter;
+  setStockFilter: (filter: AdminProductsStockFilter) => void;
+  onSearchSubmit: (e: FormEvent) => void;
 }
 
 export function ProductFilters({
@@ -38,12 +34,7 @@ export function ProductFilters({
   setCategoriesExpanded,
   stockFilter,
   setStockFilter,
-  minPrice,
-  setMinPrice,
-  maxPrice,
-  setMaxPrice,
-  handleSearch,
-  setPage,
+  onSearchSubmit,
 }: ProductFiltersProps) {
   const { t } = useTranslation();
 
@@ -62,7 +53,7 @@ export function ProductFilters({
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
-                handleSearch(e as any);
+                onSearchSubmit(e);
               }
             }}
             placeholder={t('admin.products.searchPlaceholder')}
@@ -79,7 +70,6 @@ export function ProductFilters({
             value={skuSearch}
             onChange={(e) => {
               setSkuSearch(e.target.value);
-              setPage(1);
             }}
             placeholder={t('admin.products.skuPlaceholder')}
             className="w-full rounded-xl border border-[#dce3dd] bg-[#fcfdfc] px-4 py-2.5 text-sm text-[#314f3f] shadow-sm focus:border-[#1f6c4b] focus:outline-none focus:ring-2 focus:ring-[#1f6c4b]/20"
@@ -143,7 +133,6 @@ export function ProductFilters({
                                 newSelected.delete(category.id);
                               }
                               setSelectedCategories(newSelected);
-                              setPage(1);
                             }}
                             className="h-4 w-4 rounded border-[#b9c8bd] text-[#1f6c4b] focus:ring-[#1f6c4b]/20"
                           />
@@ -166,8 +155,7 @@ export function ProductFilters({
           <select
             value={stockFilter}
             onChange={(e) => {
-              setStockFilter(e.target.value as 'all' | 'inStock' | 'outOfStock');
-              setPage(1);
+              setStockFilter(e.target.value as AdminProductsStockFilter);
             }}
             className="w-full rounded-xl border border-[#dce3dd] bg-[#fcfdfc] px-4 py-2.5 text-sm text-[#314f3f] shadow-sm focus:border-[#1f6c4b] focus:outline-none focus:ring-2 focus:ring-[#1f6c4b]/20"
           >

@@ -2,12 +2,12 @@ import { resolveStorefrontDiscountPercent } from "../../storefront/discount-perc
 import { processImageUrl } from "../../utils/image-utils";
 import { getStorefrontDiscountSettings } from "../storefront/get-storefront-discount-settings";
 
-/** Prisma `select` shape for related carousel (minimal joins). */
+/** Prisma `select` shape for related carousel and list card mode (minimal joins). */
 export interface RelatedProductRow {
   id: string;
-  discountPercent: number;
+  discountPercent: number | null;
   primaryCategoryId: string | null;
-  media: unknown[];
+  media: unknown;
   translations: Array<{ slug: string; title: string; locale: string }>;
   variants: Array<{
     id: string;
@@ -72,6 +72,91 @@ function resolveRelatedProductRating(
   return averageRating;
 }
 
+/** Legacy list card / wishlist / compare payload (no rating, colors, or labels). */
+export type StorefrontProductCardPayload = Omit<RelatedCardPayload, "rating">;
+
+type DiscountMaps = {
+  globalDiscount: number;
+  categoryDiscounts: Record<string, number>;
+};
+
+function mapStorefrontProductCardRow(
+  product: RelatedProductRow,
+  lang: string,
+  discountMaps: DiscountMaps
+): StorefrontProductCardPayload {
+  const tr = pickTranslation(product.translations, lang);
+  const variant = product.variants[0];
+  const productDiscount = product.discountPercent || 0;
+  const appliedDiscount = pickAppliedDiscount(
+    productDiscount,
+    product.primaryCategoryId,
+    discountMaps.categoryDiscounts,
+    discountMaps.globalDiscount
+  );
+
+  const originalPrice = variant?.price ?? 0;
+  let finalPrice = originalPrice;
+  if (appliedDiscount > 0 && originalPrice > 0) {
+    finalPrice = originalPrice * (1 - appliedDiscount / 100);
+  }
+
+  const categories = product.categories.map((cat) => {
+    const ct = pickTranslation(cat.translations, lang);
+    return {
+      id: cat.id,
+      slug: ct?.slug ?? "",
+      title: ct?.title ?? "",
+    };
+  });
+
+  let image: string | null = null;
+  if (Array.isArray(product.media) && product.media.length > 0) {
+    image =
+      processImageUrl(
+        product.media[0] as string | { url?: string; src?: string; value?: string }
+      ) || null;
+  }
+
+  const compareAtPrice = variant?.compareAtPrice ?? null;
+  const displayOriginalPrice = appliedDiscount > 0 ? originalPrice : compareAtPrice;
+  const discountPercent = resolveStorefrontDiscountPercent({
+    price: finalPrice,
+    originalPrice: displayOriginalPrice,
+    compareAtPrice,
+    productDiscount: appliedDiscount > 0 ? appliedDiscount : null,
+  });
+
+  return {
+    id: product.id,
+    slug: tr?.slug ?? "",
+    title: tr?.title ?? "",
+    price: finalPrice,
+    originalPrice: displayOriginalPrice,
+    compareAtPrice,
+    discountPercent,
+    defaultVariantId: variant?.id ?? null,
+    image,
+    inStock: (variant?.stock ?? 0) > 0,
+    categories,
+  };
+}
+
+/**
+ * Map lightweight product rows to legacy list card JSON (single settings read).
+ */
+export async function transformStorefrontProductCardRows(
+  rows: RelatedProductRow[],
+  lang: string
+): Promise<StorefrontProductCardPayload[]> {
+  if (rows.length === 0) {
+    return [];
+  }
+
+  const discountMaps = await getStorefrontDiscountSettings();
+  return rows.map((product) => mapStorefrontProductCardRow(product, lang, discountMaps));
+}
+
 /**
  * Map lightweight product rows to public related-card JSON (single settings read).
  */
@@ -82,63 +167,10 @@ export async function transformRelatedProductRows(
 ): Promise<RelatedCardPayload[]> {
   if (rows.length === 0) return [];
 
-  const { globalDiscount, categoryDiscounts } =
-    await getStorefrontDiscountSettings();
+  const discountMaps = await getStorefrontDiscountSettings();
 
-  return rows.map((product) => {
-    const tr = pickTranslation(product.translations, lang);
-    const variant = product.variants[0];
-    const productDiscount = product.discountPercent || 0;
-    const appliedDiscount = pickAppliedDiscount(
-      productDiscount,
-      product.primaryCategoryId,
-      categoryDiscounts,
-      globalDiscount
-    );
-
-    const originalPrice = variant?.price ?? 0;
-    let finalPrice = originalPrice;
-    if (appliedDiscount > 0 && originalPrice > 0) {
-      finalPrice = originalPrice * (1 - appliedDiscount / 100);
-    }
-
-    const categories = product.categories.map((cat) => {
-      const ct = pickTranslation(cat.translations, lang);
-      return {
-        id: cat.id,
-        slug: ct?.slug ?? "",
-        title: ct?.title ?? "",
-      };
-    });
-
-    let image: string | null = null;
-    if (Array.isArray(product.media) && product.media.length > 0) {
-      image = processImageUrl(product.media[0] as string | { url?: string; src?: string; value?: string }) || null;
-    }
-
-    const compareAtPrice = variant?.compareAtPrice ?? null;
-    const displayOriginalPrice =
-      appliedDiscount > 0 ? originalPrice : compareAtPrice;
-    const discountPercent = resolveStorefrontDiscountPercent({
-      price: finalPrice,
-      originalPrice: displayOriginalPrice,
-      compareAtPrice,
-      productDiscount: appliedDiscount > 0 ? appliedDiscount : null,
-    });
-
-    return {
-      id: product.id,
-      slug: tr?.slug ?? "",
-      title: tr?.title ?? "",
-      price: finalPrice,
-      originalPrice: displayOriginalPrice,
-      compareAtPrice,
-      discountPercent,
-      defaultVariantId: variant?.id ?? null,
-      image,
-      inStock: (variant?.stock ?? 0) > 0,
-      rating: resolveRelatedProductRating(product, averageRatings),
-      categories,
-    };
-  });
+  return rows.map((product) => ({
+    ...mapStorefrontProductCardRow(product, lang, discountMaps),
+    rating: resolveRelatedProductRating(product, averageRatings),
+  }));
 }

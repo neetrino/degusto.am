@@ -15,6 +15,8 @@ import { logger } from '../../lib/utils/logger';
 import { CompareProductsTable, type CompareProduct } from './CompareProductsTable';
 import { STOREFRONT_PAGE_CONTAINER_CLASS } from '@/constants/storefront-desktop-layout';
 import { useCompareIdsContext } from '@/lib/compare/CompareIdsProvider';
+import { resolveQuickAddVariantId } from '@/lib/products/fetch-quick-add-product-client';
+import { publishCartForceReload } from '@/lib/cart/cart-events';
 
 interface CompareSection {
   sectionKey: string;
@@ -93,6 +95,7 @@ export default function ComparePage() {
           ids: idsToLoad.join(','),
           limit: String(idsToLoad.length),
           lang: languagePreference,
+          view: 'card',
         },
       });
 
@@ -178,26 +181,12 @@ export default function ComparePage() {
     setAddingToCart(prev => new Set(prev).add(product.id));
 
     try {
-      // Get product details to get variant ID
-      interface ProductDetails {
-        id: string;
-        variants?: Array<{
-          id: string;
-          sku: string;
-          price: number;
-          stock: number;
-          available: boolean;
-        }>;
-      }
+      const variantId = await resolveQuickAddVariantId(product.slug, product.defaultVariantId);
 
-      const productDetails = await apiClient.get<ProductDetails>(`/api/v1/products/${product.slug}`);
-
-      if (!productDetails.variants || productDetails.variants.length === 0) {
+      if (!variantId) {
         alert(t('common.alerts.noVariantsAvailable'));
         return;
       }
-
-      const variantId = productDetails.variants[0].id;
       
       await apiClient.post(
         '/api/v1/cart/items',
@@ -208,8 +197,7 @@ export default function ComparePage() {
         }
       );
 
-      // Trigger cart update event
-      window.dispatchEvent(new Event('cart-updated'));
+      publishCartForceReload();
     } catch (error: unknown) {
       logger.error('Error adding to cart from compare', { error });
       const message = error instanceof Error ? error.message : '';

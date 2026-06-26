@@ -11,6 +11,7 @@ import { loadActiveDailyOffersForHome } from '@/lib/services/daily-offer/daily-o
 import { resolveStorefrontProductImageFromMedia } from '@/constants/storefront-product-image';
 import { isPublishedVariantInStock } from '@/lib/storefront/variant-in-stock';
 import { r2Asset } from '@/lib/r2-public-url';
+import { fetchAverageRatingsByProductId } from '@/lib/services/reviews/fetch-average-ratings-by-product-id';
 
 /** Shared cache tag for `revalidateTag` on product/category admin writes. */
 export const HOME_PAGE_CACHE_TAG = 'home';
@@ -86,15 +87,23 @@ function getHomeProductSelect(homeLang: StorefrontLocale) {
         },
       },
     },
-    reviews: {
-      where: {
-        published: true,
-      },
-      select: {
-        rating: true,
-      },
-    },
   };
+}
+
+/** Home cards default to 5 stars when there are no published reviews. */
+function resolveHomeProductRating(
+  reviewCount: number,
+  averageRatings: Map<string, number>,
+  productId: string
+): number {
+  if (reviewCount <= 0) {
+    return 5;
+  }
+  const avg = averageRatings.get(productId);
+  if (typeof avg === 'number' && Number.isFinite(avg)) {
+    return avg;
+  }
+  return 5;
 }
 
 function toPositiveNumber(value: number | null | undefined): number | null {
@@ -147,9 +156,6 @@ type HomeProductDbRow = {
     price: number;
     compareAtPrice: number | null;
     stock: number;
-  }>;
-  reviews: Array<{
-    rating: number;
   }>;
   _count?: {
     reviews?: number;
@@ -218,6 +224,13 @@ export async function loadHomePageData(homeLang: StorefrontLocale): Promise<Home
 
   const homeRows = mergeHomeFeaturedAndPromoRows(homeProductRows);
 
+  const averageRatings = await withPrismaResilience(
+    () => fetchAverageRatingsByProductId(homeRows.map((product) => product.id)),
+    new Map<string, number>(),
+    'HOME',
+    'home product review averages'
+  );
+
   const featuredProducts: HomeFeaturedProduct[] = homeRows.map((product) => {
     const preferredTranslation =
       product.translations.find((translation) => translation.locale === homeLang) ??
@@ -228,11 +241,8 @@ export async function loadHomePageData(homeLang: StorefrontLocale): Promise<Home
       firstCategory?.translations[0];
     const mainVariant = product.variants[0];
     const foodAttrs = resolveFoodTasteFlagsFromProduct(product);
-    const reviewCount = product._count?.reviews ?? product.reviews.length;
-    const rating =
-      reviewCount > 0
-        ? product.reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount
-        : 5;
+    const reviewCount = product._count?.reviews ?? 0;
+    const rating = resolveHomeProductRating(reviewCount, averageRatings, product.id);
 
     return {
       id: product.id,

@@ -17,6 +17,7 @@ export interface CompareProduct {
   image: string | null;
   inStock: boolean;
   description?: string;
+  defaultVariantId?: string | null;
   categories?: Array<{ id: string; slug: string; title: string }>;
 }
 

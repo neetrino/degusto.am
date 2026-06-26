@@ -1,7 +1,14 @@
 import { buildWhereClause } from "./products-find-query/query-builder";
 import { executeProductQuery } from "./products-find-query/query-executor";
+import {
+  needsLegacyListOverFetch,
+  resolveDbProductListOrderBy,
+} from "./products-find-query/list-query-helpers";
 import { db } from "@white-shop/db";
 import type { ProductFilters, ProductWithRelations } from "./products-find-query/types";
+
+/** Cap when attribute/price-sort filters must be applied in memory after a wide fetch. */
+const LEGACY_LIST_OVERFETCH_MAX = 200;
 
 /**
  * Service for building and executing product find queries
@@ -27,16 +34,13 @@ class ProductsFindQueryService {
       };
     }
 
-    const needOverFetch =
-      Boolean(filters.category || filters.search) ||
-      filters.minPrice != null ||
-      filters.maxPrice != null ||
-      Boolean(filters.colors || filters.sizes);
+    const needOverFetch = needsLegacyListOverFetch(filters);
+    const orderBy = resolveDbProductListOrderBy(filters);
 
     if (!needOverFetch) {
       const [total, products] = await Promise.all([
         db.product.count({ where }),
-        executeProductQuery(where, limit, (page - 1) * limit),
+        executeProductQuery(where, limit, (page - 1) * limit, orderBy),
       ]);
       return {
         products,
@@ -45,8 +49,8 @@ class ProductsFindQueryService {
       };
     }
 
-    const fetchLimit = Math.min(limit * 10, 200);
-    const products = await executeProductQuery(where, fetchLimit, 0);
+    const fetchLimit = Math.min(limit * 10, LEGACY_LIST_OVERFETCH_MAX);
+    const products = await executeProductQuery(where, fetchLimit, 0, orderBy);
 
     return {
       products,

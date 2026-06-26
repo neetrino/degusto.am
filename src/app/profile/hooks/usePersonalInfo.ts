@@ -1,6 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { apiClient } from '../../../lib/api-client';
 import { useAuth } from '../../../lib/auth/AuthContext';
+import { seedUserProfileCache } from '@/lib/users/user-profile-client';
 import { useTranslation } from '../../../lib/i18n-client';
 import type { UserProfile } from '../types';
 
@@ -55,6 +56,7 @@ export function usePersonalInfo({
 
     try {
       const updated = await apiClient.put<UserProfile>('/api/v1/users/profile', personalInfo);
+      seedUserProfileCache(updated);
       onProfileUpdate(updated);
       onSuccess(t('profile.personal.updatedSuccess'));
       

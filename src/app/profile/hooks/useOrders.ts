@@ -4,6 +4,7 @@ import { apiClient } from '../../../lib/api-client';
 import { useTranslation } from '../../../lib/i18n-client';
 import type { OrderDetails, OrderListItem, ProfileTab } from '../types';
 import { logger } from "@/lib/utils/logger";
+import { publishCartForceReload } from '@/lib/cart/cart-events';
 
 interface OrdersMeta {
   total: number;
@@ -123,7 +124,7 @@ export function useOrders({
         totalItems: number;
       }>(`/api/v1/orders/${selectedOrder.number}/reorder`, {});
 
-      window.dispatchEvent(new Event('cart-updated'));
+      publishCartForceReload();
 
       if (result.addedCount > 0) {
         const skippedText =

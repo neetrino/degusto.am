@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../lib/auth/AuthContext';
-import { apiClient } from '../../../lib/api-client';
+import { fetchUserProfileCached } from '@/lib/users/user-profile-client';
 import { useTranslation } from '../../../lib/i18n-client';
 import type { UserProfile } from '../types';
 
@@ -14,6 +14,13 @@ export function useProfile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const hasLoadedProfileRef = useRef(false);
+
+  useEffect(() => {
+    if (profile) {
+      hasLoadedProfileRef.current = true;
+    }
+  }, [profile]);
 
   // Redirect if not logged in
   useEffect(() => {
@@ -23,21 +30,13 @@ export function useProfile() {
     }
   }, [isLoggedIn, authLoading, router]);
 
-  // Load profile data
-  useEffect(() => {
-    if (!authLoading && !isLoggedIn) {
-      return;
-    }
-    if (isLoggedIn && !authLoading) {
-      loadProfile();
-    }
-  }, [isLoggedIn, authLoading]);
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async (options?: { force?: boolean }) => {
     try {
-      setLoading(true);
+      if (!hasLoadedProfileRef.current) {
+        setLoading(true);
+      }
       setError(null);
-      const data = await apiClient.get<UserProfile>('/api/v1/users/profile');
+      const data = await fetchUserProfileCached<UserProfile>(options);
       setProfile(data);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : String(err);
@@ -46,7 +45,17 @@ export function useProfile() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
+
+  // Load profile data
+  useEffect(() => {
+    if (!authLoading && !isLoggedIn) {
+      return;
+    }
+    if (isLoggedIn && !authLoading) {
+      void loadProfile();
+    }
+  }, [isLoggedIn, authLoading, loadProfile]);
 
   return {
     profile,

@@ -3,6 +3,7 @@ import {
   readCartSummaryCache,
   writeCartSummaryCache,
 } from '../cartSummaryCache';
+import { invalidateStorefrontCommerceStateCache } from '@/lib/storefront/fetch-storefront-commerce-state';
 import type { CartAddSnapshot, CartLineConfirmation } from './optimistic-cart-add';
 
 const FORCE_RELOAD_MIN_GAP_MS = 2000;
@@ -25,6 +26,11 @@ export interface CartUpdatedDetail {
 }
 
 export type { CartAddSnapshot };
+
+/** Clears commerce bootstrap inflight cache so passive readers get fresh cart summary. */
+export function invalidateCommerceBootstrapAfterCartMutation(): void {
+  invalidateStorefrontCommerceStateCache();
+}
 
 export function parseCartUpdatedDetail(event: Event): CartUpdatedDetail | undefined {
   return (event as CustomEvent<CartUpdatedDetail>).detail;
@@ -90,6 +96,7 @@ export function resetCartBadgeState(): void {
     return;
   }
   clearCartSummaryCache();
+  invalidateCommerceBootstrapAfterCartMutation();
   publishCartUpdated(0, 0, { skipReconcile: true });
 }
 
@@ -98,6 +105,7 @@ export function publishCartLineConfirmed(
   confirmation: CartLineConfirmation,
   summary: { itemsCount: number; total: number }
 ): void {
+  invalidateCommerceBootstrapAfterCartMutation();
   writeCartSummaryCache(summary.itemsCount, summary.total);
   window.dispatchEvent(
     new CustomEvent<CartUpdatedDetail>('cart-updated', {
@@ -118,6 +126,8 @@ export function publishCartForceReload(): void {
     return;
   }
   lastCartForceReloadAt = now;
+
+  invalidateCommerceBootstrapAfterCartMutation();
 
   window.dispatchEvent(
     new CustomEvent<CartUpdatedDetail>('cart-updated', {

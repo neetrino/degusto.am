@@ -20,6 +20,18 @@ import { ProfilePassword } from './ProfilePassword';
 import { ProfileDeleteAccount } from './ProfileDeleteAccount';
 import { OrderDetailsModal } from './OrderDetailsModal';
 import type { ProfileTab, ProfileTabConfig } from './types';
+import { resolveProfileDisplayUser } from './profile-display-user';
+
+function ProfileDetailsLoading() {
+  return (
+    <div className="animate-pulse space-y-4 py-6" aria-busy="true" aria-label="Loading profile details">
+      <div className="h-5 w-40 rounded bg-gray-200" />
+      <div className="h-10 w-full rounded bg-gray-100" />
+      <div className="h-10 w-full rounded bg-gray-100" />
+      <div className="h-10 w-3/4 rounded bg-gray-100" />
+    </div>
+  );
+}
 
 function ProfilePageContent() {
   const router = useRouter();
@@ -36,12 +48,13 @@ function ProfilePageContent() {
   }, [authLoading, isAdmin, isLoggedIn, router]);
   
   const {
-    loading,
+    loading: profileLoading,
     error,
     success,
     setError,
     setSuccess,
     profile,
+    authUser,
     activeTab,
     handleTabChange,
     personalInfo,
@@ -91,8 +104,10 @@ function ProfilePageContent() {
     handleDeleteAccount,
   } = useProfilePage();
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
+  const displayProfile = resolveProfileDisplayUser(profile, authUser);
+  const profileDetailsPending = profileLoading && !profile;
 
-  if (authLoading || loading || !isLoggedIn) {
+  if (authLoading || !isLoggedIn) {
     return <ProfilePageLoadingSkeleton />;
   }
 
@@ -183,33 +198,39 @@ function ProfilePageContent() {
           t={t}
         />
       )}
-      {activeTab === 'personal' && (
-        <ProfilePersonalInfo
-          personalInfo={personalInfo}
-          setPersonalInfo={setPersonalInfo}
-          savingPersonal={savingPersonal}
-          onSave={handleSavePersonalInfo}
-          profile={profile}
-          t={t}
-        />
-      )}
-      {activeTab === 'addresses' && (
-        <ProfileAddresses
-          profile={profile}
-          showAddressForm={showAddressForm}
-          setShowAddressForm={setShowAddressForm}
-          editingAddress={editingAddress}
-          addressForm={addressForm}
-          setAddressForm={setAddressForm}
-          savingAddress={savingAddress}
-          onSave={handleSaveAddress}
-          onDelete={handleDeleteAddress}
-          onSetDefault={handleSetDefaultAddress}
-          onEdit={handleEditAddress}
-          onResetForm={resetAddressForm}
-          t={t}
-        />
-      )}
+      {activeTab === 'personal' &&
+        (profileDetailsPending ? (
+          <ProfileDetailsLoading />
+        ) : (
+          <ProfilePersonalInfo
+            personalInfo={personalInfo}
+            setPersonalInfo={setPersonalInfo}
+            savingPersonal={savingPersonal}
+            onSave={handleSavePersonalInfo}
+            profile={profile}
+            t={t}
+          />
+        ))}
+      {activeTab === 'addresses' &&
+        (profileDetailsPending ? (
+          <ProfileDetailsLoading />
+        ) : (
+          <ProfileAddresses
+            profile={profile}
+            showAddressForm={showAddressForm}
+            setShowAddressForm={setShowAddressForm}
+            editingAddress={editingAddress}
+            addressForm={addressForm}
+            setAddressForm={setAddressForm}
+            savingAddress={savingAddress}
+            onSave={handleSaveAddress}
+            onDelete={handleDeleteAddress}
+            onSetDefault={handleSetDefaultAddress}
+            onEdit={handleEditAddress}
+            onResetForm={resetAddressForm}
+            t={t}
+          />
+        ))}
       {activeTab === 'orders' && (
         <ProfileOrders
           orders={orders}
@@ -239,27 +260,30 @@ function ProfilePageContent() {
           t={t}
         />
       )}
-      {activeTab === 'deleteAccount' && (
-        <ProfileDeleteAccount
-          profile={profile}
-          password={deleteAccountPassword}
-          setPassword={setDeleteAccountPassword}
-          confirmation={deleteAccountConfirmation}
-          setConfirmation={setDeleteAccountConfirmation}
-          acknowledged={deleteAccountAcknowledged}
-          setAcknowledged={setDeleteAccountAcknowledged}
-          deleting={deletingAccount}
-          onSubmit={handleDeleteAccount}
-          t={t}
-        />
-      )}
+      {activeTab === 'deleteAccount' &&
+        (profileDetailsPending ? (
+          <ProfileDetailsLoading />
+        ) : (
+          <ProfileDeleteAccount
+            profile={profile}
+            password={deleteAccountPassword}
+            setPassword={setDeleteAccountPassword}
+            confirmation={deleteAccountConfirmation}
+            setConfirmation={setDeleteAccountConfirmation}
+            acknowledged={deleteAccountAcknowledged}
+            setAcknowledged={setDeleteAccountAcknowledged}
+            deleting={deletingAccount}
+            onSubmit={handleDeleteAccount}
+            t={t}
+          />
+        ))}
     </>
   );
 
   return (
     <div className="min-h-full bg-white">
       <ProfileMobilePage
-        profile={profile}
+        profile={displayProfile}
         tabs={tabs}
         activeTab={activeTab}
         onTabSelect={(tab) => {
@@ -276,7 +300,7 @@ function ProfilePageContent() {
       <div className={`${STOREFRONT_PAGE_CONTAINER_CLASS} hidden py-10 lg:block`}>
         <div className="grid grid-cols-12 items-start gap-6 lg:gap-8">
           <aside className="col-span-12 self-start lg:col-span-4 lg:sticky lg:top-28 xl:col-span-3">
-            <ProfileHeader profile={profile} tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} onLogout={logout} t={t} />
+            <ProfileHeader profile={displayProfile} tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} onLogout={logout} t={t} />
           </aside>
           <main className="col-span-12 min-w-0 lg:col-span-8 xl:col-span-9">
             <div className="space-y-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm md:space-y-8 md:p-6 lg:p-8">

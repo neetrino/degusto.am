@@ -4,6 +4,12 @@ import { ensureProductVariantAttributesColumn } from "../../utils/db-ensure";
 import { logger } from "../../utils/logger";
 import type { ProductWithRelations } from "./types";
 
+type ProductListOrderBy =
+  | Prisma.ProductOrderByWithRelationInput
+  | Prisma.ProductOrderByWithRelationInput[];
+
+const DEFAULT_PRODUCT_LIST_ORDER_BY: ProductListOrderBy = { createdAt: "desc" };
+
 /**
  * Base include configuration for product queries
  */
@@ -106,7 +112,8 @@ function isAttributeValuesColorsError(error: unknown): boolean {
 export async function executeProductQuery(
   where: Prisma.ProductWhereInput,
   limit: number,
-  skip: number = 0
+  skip: number = 0,
+  orderBy: ProductListOrderBy = DEFAULT_PRODUCT_LIST_ORDER_BY
 ): Promise<ProductWithRelations[]> {
   const baseInclude = getBaseInclude();
 
@@ -117,6 +124,7 @@ export async function executeProductQuery(
         ...baseInclude,
         ...getProductAttributesInclude(),
       },
+      orderBy,
       skip,
       take: limit,
     });
@@ -128,7 +136,7 @@ export async function executeProductQuery(
       logger.warn('product_attributes table not found, fetching without it', { 
         error: error instanceof Error ? error.message : String(error) 
       });
-      return executeWithoutProductAttributes(where, limit, skip);
+      return executeWithoutProductAttributes(where, limit, skip, orderBy);
     }
 
     if (isVariantAttributesError(error)) {
@@ -138,13 +146,14 @@ export async function executeProductQuery(
         const products = await db.product.findMany({
           where,
           include: baseInclude,
+          orderBy,
           skip,
           take: limit,
         });
         logger.debug(`Found ${products.length} products from database (after creating attributes column)`);
         return products as unknown as ProductWithRelations[];
       } catch (attributesError: unknown) {
-        return handleAttributesError(attributesError, where, limit, skip);
+        return handleAttributesError(attributesError, where, limit, skip, orderBy);
       }
     }
 
@@ -152,7 +161,7 @@ export async function executeProductQuery(
       logger.warn('attribute_values.colors column not found, fetching without attributeValue', { 
         error: error instanceof Error ? error.message : String(error) 
       });
-      return executeWithoutAttributeValue(where, limit, skip);
+      return executeWithoutAttributeValue(where, limit, skip, orderBy);
     }
 
     throw error;
@@ -165,7 +174,8 @@ export async function executeProductQuery(
 async function executeWithoutProductAttributes(
   where: Prisma.ProductWhereInput,
   limit: number,
-  skip: number = 0
+  skip: number = 0,
+  orderBy: ProductListOrderBy = DEFAULT_PRODUCT_LIST_ORDER_BY
 ): Promise<ProductWithRelations[]> {
   const baseInclude = getBaseInclude();
 
@@ -173,6 +183,7 @@ async function executeWithoutProductAttributes(
     const products = await db.product.findMany({
       where,
       include: baseInclude,
+      orderBy,
       skip,
       take: limit,
     });
@@ -186,13 +197,14 @@ async function executeWithoutProductAttributes(
         const products = await db.product.findMany({
           where,
           include: baseInclude,
+          orderBy,
           skip,
           take: limit,
         });
         logger.debug(`Found ${products.length} products from database (after creating attributes column)`);
         return products as unknown as ProductWithRelations[];
       } catch (attributesError: unknown) {
-        return handleAttributesError(attributesError, where, limit, skip);
+        return handleAttributesError(attributesError, where, limit, skip, orderBy);
       }
     }
 
@@ -200,7 +212,7 @@ async function executeWithoutProductAttributes(
       logger.warn('attribute_values.colors column not found, fetching without attributeValue', { 
         error: retryError instanceof Error ? retryError.message : String(retryError) 
       });
-      return executeWithoutAttributeValue(where, limit, skip);
+      return executeWithoutAttributeValue(where, limit, skip, orderBy);
     }
 
     throw retryError;
@@ -214,13 +226,14 @@ async function handleAttributesError(
   error: unknown,
   where: Prisma.ProductWhereInput,
   limit: number,
-  skip: number = 0
+  skip: number = 0,
+  orderBy: ProductListOrderBy = DEFAULT_PRODUCT_LIST_ORDER_BY
 ): Promise<ProductWithRelations[]> {
   if (isAttributeValuesColorsError(error)) {
     logger.warn('attribute_values.colors column not found, fetching without attributeValue', { 
       error: error instanceof Error ? error.message : String(error) 
     });
-    return executeWithoutAttributeValue(where, limit, skip);
+    return executeWithoutAttributeValue(where, limit, skip, orderBy);
   }
   throw error;
 }
@@ -231,7 +244,8 @@ async function handleAttributesError(
 async function executeWithoutAttributeValue(
   where: Prisma.ProductWhereInput,
   limit: number,
-  skip: number = 0
+  skip: number = 0,
+  orderBy: ProductListOrderBy = DEFAULT_PRODUCT_LIST_ORDER_BY
 ): Promise<ProductWithRelations[]> {
   const baseIncludeWithoutAttributeValue = getBaseIncludeWithoutAttributeValue();
 
@@ -243,6 +257,7 @@ async function executeWithoutAttributeValue(
         ...baseIncludeWithoutAttributeValue,
         ...getProductAttributesInclude(),
       },
+      orderBy,
       skip,
       take: limit,
     });
@@ -254,6 +269,7 @@ async function executeWithoutAttributeValue(
       const products = await db.product.findMany({
         where,
         include: baseIncludeWithoutAttributeValue,
+        orderBy,
         skip,
         take: limit,
       });

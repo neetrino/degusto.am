@@ -10,8 +10,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { useAuth } from '../auth/AuthContext';
-import { fetchCompareIds } from '../compare-api';
+import { fetchCompareIds, invalidateCompareIdsCache } from '../compare-api';
 
 type CompareIdsContextValue = {
   isInCompare: (productId: string) => boolean;
@@ -24,32 +23,28 @@ type CompareIdsContextValue = {
 const CompareIdsContext = createContext<CompareIdsContextValue | null>(null);
 
 export function CompareIdsProvider({ children }: { children: ReactNode }) {
-  const { isLoggedIn } = useAuth();
   const [compareIdSet, setCompareIdSet] = useState<Set<string>>(() => new Set());
   const fetchGenerationRef = useRef(0);
 
   const refreshCompareIds = useCallback(async (options?: { forceDirect?: boolean }) => {
-    if (!isLoggedIn) {
-      setCompareIdSet(new Set());
-      return;
-    }
-
     const generation = ++fetchGenerationRef.current;
     const ids = await fetchCompareIds(options);
     if (generation !== fetchGenerationRef.current) {
       return;
     }
     setCompareIdSet(new Set(ids));
-  }, [isLoggedIn]);
+  }, []);
 
   useEffect(() => {
     void refreshCompareIds();
 
     const handleCompareUpdated = () => {
+      invalidateCompareIdsCache();
       void refreshCompareIds({ forceDirect: true });
     };
     const handleAuthUpdated = () => {
-      void refreshCompareIds();
+      invalidateCompareIdsCache();
+      void refreshCompareIds({ forceDirect: true });
     };
 
     window.addEventListener('compare-updated', handleCompareUpdated);

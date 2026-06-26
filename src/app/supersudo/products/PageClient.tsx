@@ -1,14 +1,12 @@
 'use client';
 
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { Suspense, useEffect, useMemo, useCallback, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@shop/ui';
 import { useAuth } from '../../../lib/auth/AuthContext';
-import { apiClient } from '../../../lib/api-client';
 import {
   adminGet,
   buildAdminReadCacheKey,
-  invalidateAdminReadCache,
 } from '@/lib/admin/admin-read-cache';
 import { useTranslation } from '../../../lib/i18n-client';
 import { getStoredCurrency, initializeCurrencyRates, type CurrencyCode } from '../../../lib/currency';
@@ -16,30 +14,45 @@ import { ProductBulkSelectionBar } from './components/ProductBulkSelectionBar';
 import { ProductFilters } from './components/ProductFilters';
 import { ProductsTable } from './components/ProductsTable';
 import { useProductHandlers } from './hooks/useProductHandlers';
+import { useAdminProductsUrlState } from './hooks/useAdminProductsUrlState';
 import type { Product, ProductsResponse, Category } from './types';
 import { aggregateStockValues, hasSellableStock } from '@/lib/product-stock';
 import { EMPTY_DAILY_OFFER_SELECTION, type DailyOfferSelection } from '@/lib/services/daily-offer/daily-offer.types';
 import type { AdminProductsPageData } from '@/lib/services/admin/admin-products-page-data.service';
 import { logger } from "@/lib/utils/logger";
+import { AdminPageLoading } from '@/components/routing/page-loaders';
 
-export default function ProductsPage() {
+function ProductsPageContent() {
   const { t } = useTranslation();
   const { isLoggedIn, isAdmin, isLoading } = useAuth();
   const router = useRouter();
+  const {
+    page,
+    search,
+    sku,
+    selectedCategories,
+    stockFilter,
+    minPrice,
+    maxPrice,
+    sortBy,
+    searchDraft,
+    setSearchDraft,
+    skuDraft,
+    setSkuDraft,
+    commitSearchToUrl,
+    setPage,
+    setSortBy,
+    setSelectedCategories,
+    setStockFilter,
+    clearFilters,
+  } = useAdminProductsUrlState();
+
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [categoriesExpanded, setCategoriesExpanded] = useState(false);
-  const [skuSearch, setSkuSearch] = useState('');
-  const [stockFilter, setStockFilter] = useState<'all' | 'inStock' | 'outOfStock'>('all');
-  const [page, setPage] = useState(1);
   const [meta, setMeta] = useState<ProductsResponse['meta'] | null>(null);
-  const [minPrice, setMinPrice] = useState<string>('');
-  const [maxPrice, setMaxPrice] = useState<string>('');
-  const [sortBy, setSortBy] = useState<string>('createdAt-desc');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [togglingAllFeatured, setTogglingAllFeatured] = useState(false);
@@ -57,21 +70,16 @@ export default function ProductsPage() {
     }
   }, [isLoggedIn, isAdmin, isLoading, router]);
 
-  // Initialize currency rates and listen for currency changes
   useEffect(() => {
     const updateCurrency = () => {
       const newCurrency = getStoredCurrency();
       logger.debug('💱 [ADMIN PRODUCTS] Currency updated to:', newCurrency);
       setCurrency(newCurrency);
     };
-    
-    // Initialize currency rates
+
     initializeCurrencyRates().catch(console.error);
-    
-    // Load currency on mount
     updateCurrency();
-    
-    // Listen for currency changes
+
     if (typeof window !== 'undefined') {
       window.addEventListener('currency-updated', updateCurrency);
       const handleCurrencyRatesUpdate = () => {
@@ -79,7 +87,7 @@ export default function ProductsPage() {
         updateCurrency();
       };
       window.addEventListener('currency-rates-updated', handleCurrencyRatesUpdate);
-      
+
       return () => {
         window.removeEventListener('currency-updated', updateCurrency);
         window.removeEventListener('currency-rates-updated', handleCurrencyRatesUpdate);
@@ -106,7 +114,6 @@ export default function ProductsPage() {
     }
   }, []);
 
-  /** Only `createdAt-*` is applied on the server; other sorts are client-only (avoids refetch on every header click). */
   const categoryFilterKey = [...selectedCategories].sort().join(',');
 
   const fetchProducts = useCallback(async (options?: { force?: boolean; silent?: boolean }) => {
@@ -127,8 +134,8 @@ export default function ProductsPage() {
         params.category = Array.from(selectedCategories).join(',');
       }
 
-      if (skuSearch.trim()) {
-        params.sku = skuSearch.trim();
+      if (sku.trim()) {
+        params.sku = sku.trim();
       }
 
       if (minPrice.trim()) {
@@ -152,9 +159,8 @@ export default function ProductsPage() {
 
       let filteredProducts = response.data || [];
 
-      // Stock filter (client-side)
       if (stockFilter !== 'all') {
-        filteredProducts = filteredProducts.filter(product => {
+        filteredProducts = filteredProducts.filter((product) => {
           const getTotalStock = (p: Product) => {
             if (p.colorStocks && p.colorStocks.length > 0) {
               return aggregateStockValues(p.colorStocks.map((cs) => cs.stock || 0));
@@ -164,7 +170,8 @@ export default function ProductsPage() {
           const totalStock = getTotalStock(product);
           if (stockFilter === 'inStock') {
             return hasSellableStock(totalStock);
-          } else if (stockFilter === 'outOfStock') {
+          }
+          if (stockFilter === 'outOfStock') {
             return !hasSellableStock(totalStock);
           }
           return true;
@@ -186,7 +193,7 @@ export default function ProductsPage() {
     page,
     search,
     categoryFilterKey,
-    skuSearch,
+    sku,
     stockFilter,
     sortBy,
     minPrice,
@@ -200,7 +207,6 @@ export default function ProductsPage() {
     }
   }, [isLoggedIn, isAdmin, loadPageData]);
 
-  // Close category dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -223,7 +229,6 @@ export default function ProductsPage() {
     }
   }, [isLoggedIn, isAdmin, fetchProducts]);
 
-  // Client-side sorting for Product / Price / Stock columns
   const sortedProducts = useMemo(() => {
     if (!Array.isArray(products)) return [];
 
@@ -290,46 +295,20 @@ export default function ProductsPage() {
   }, [meta?.total, sortedProducts]);
 
   const handleHeaderSort = (field: 'price' | 'createdAt' | 'title' | 'stock') => {
-    setPage(1);
+    let next = sortBy;
 
-    setSortBy((current) => {
-      let next = current;
+    if (field === 'price') {
+      next = sortBy === 'price-asc' ? 'price-desc' : 'price-asc';
+    } else if (field === 'createdAt') {
+      next = sortBy === 'createdAt-asc' ? 'createdAt-desc' : 'createdAt-asc';
+    } else if (field === 'title') {
+      next = sortBy === 'title-asc' ? 'title-desc' : 'title-asc';
+    } else if (field === 'stock') {
+      next = sortBy === 'stock-asc' ? 'stock-desc' : 'stock-asc';
+    }
 
-      if (field === 'price') {
-        if (current === 'price-asc') {
-          next = 'price-desc';
-        } else {
-          next = 'price-asc';
-        }
-      }
-
-      if (field === 'createdAt') {
-        if (current === 'createdAt-asc') {
-          next = 'createdAt-desc';
-        } else {
-          next = 'createdAt-asc';
-        }
-      }
-
-      if (field === 'title') {
-        if (current === 'title-asc') {
-          next = 'title-desc';
-        } else {
-          next = 'title-asc';
-        }
-      }
-
-      if (field === 'stock') {
-        if (current === 'stock-asc') {
-          next = 'stock-desc';
-        } else {
-          next = 'stock-asc';
-        }
-      }
-
-      logger.debug('📊 [ADMIN] Sort changed from', current, 'to', next, 'by header click');
-      return next;
-    });
+    logger.debug('📊 [ADMIN] Sort changed from', sortBy, 'to', next, 'by header click');
+    setSortBy(next);
   };
 
   const handlers = useProductHandlers({
@@ -345,13 +324,19 @@ export default function ProductsPage() {
     setMeta,
   });
 
-  const handleClearFilters = () => {
-    setSearch('');
-    setSelectedCategories(new Set());
-    setSkuSearch('');
-    setStockFilter('all');
-    setPage(1);
+  const handleSearchSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    commitSearchToUrl();
+    void fetchProducts({ force: true });
   };
+
+  const hasActiveFilters =
+    Boolean(search) ||
+    selectedCategories.size > 0 ||
+    Boolean(sku) ||
+    stockFilter !== 'all' ||
+    Boolean(minPrice) ||
+    Boolean(maxPrice);
 
   if (isLoading) {
     return (
@@ -368,8 +353,6 @@ export default function ProductsPage() {
     return null;
   }
 
-  const totalProductsCount = meta?.total ?? products.length;
-
   return (
     <div className="relative overflow-hidden rounded-[26px] border border-[#dde4de] bg-[#f7faf7] p-5 shadow-[0_12px_34px_rgba(31,54,41,0.08)] sm:p-6">
       <div className="pointer-events-none absolute -top-16 -right-12 z-0 h-52 w-52 rounded-full bg-[radial-gradient(circle,rgba(41,123,85,0.14)_0%,rgba(41,123,85,0)_70%)]" />
@@ -380,11 +363,11 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      {(search || selectedCategories.size > 0 || skuSearch || stockFilter !== 'all') && (
+      {hasActiveFilters && (
         <div className="mb-6 flex justify-end">
           <button
             type="button"
-            onClick={handleClearFilters}
+            onClick={clearFilters}
             className="text-sm text-[#1f5f44] underline hover:text-[#d7590e]"
           >
             {t('admin.products.clearAll')}
@@ -392,10 +375,10 @@ export default function ProductsPage() {
         </div>
       )}
       <ProductFilters
-        search={search}
-        setSearch={setSearch}
-        skuSearch={skuSearch}
-        setSkuSearch={setSkuSearch}
+        search={searchDraft}
+        setSearch={setSearchDraft}
+        skuSearch={skuDraft}
+        setSkuSearch={setSkuDraft}
         selectedCategories={selectedCategories}
         setSelectedCategories={setSelectedCategories}
         categories={categories}
@@ -404,12 +387,7 @@ export default function ProductsPage() {
         setCategoriesExpanded={setCategoriesExpanded}
         stockFilter={stockFilter}
         setStockFilter={setStockFilter}
-        minPrice={minPrice}
-        setMinPrice={setMinPrice}
-        maxPrice={maxPrice}
-        setMaxPrice={setMaxPrice}
-        handleSearch={handlers.handleSearch}
-        setPage={setPage}
+        onSearchSubmit={handleSearchSubmit}
       />
 
       <div className="relative z-10 mb-6">
@@ -460,5 +438,13 @@ export default function ProductsPage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={<AdminPageLoading />}>
+      <ProductsPageContent />
+    </Suspense>
   );
 }

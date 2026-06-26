@@ -31,6 +31,7 @@ import {
   publishOptimisticCartAdd,
 } from '@/lib/cart/cart-events';
 import { readCartSummaryCache } from '@/lib/cartSummaryCache';
+import { resolveQuickAddVariantId } from '@/lib/products/fetch-quick-add-product-client';
 
 type Product = WishlistProductCardProduct;
 const WISHLIST_CART_COMMIT_DELAY_MS = 1000;
@@ -99,6 +100,7 @@ export default function WishlistPage() {
           ids: idsToLoad.join(','),
           limit: String(idsToLoad.length),
           lang: languagePreference,
+          view: 'card',
         },
       });
 
@@ -290,26 +292,12 @@ export default function WishlistPage() {
     await new Promise((resolve) => window.setTimeout(resolve, WISHLIST_CART_COMMIT_DELAY_MS));
 
     try {
-      // Get product details to get variant ID
-      interface ProductDetails {
-        id: string;
-        variants?: Array<{
-          id: string;
-          sku: string;
-          price: number;
-          stock: number;
-          available: boolean;
-        }>;
-      }
+      const variantId = await resolveQuickAddVariantId(product.slug, product.defaultVariantId);
 
-      const productDetails = await apiClient.get<ProductDetails>(`/api/v1/products/${product.slug}`);
-
-      if (!productDetails.variants || productDetails.variants.length === 0) {
+      if (!variantId) {
         alert(t('common.alerts.noVariantsAvailable'));
         return;
       }
-
-      const variantId = productDetails.variants[0].id;
       
       const addToCartResponse = await apiClient.post<{
         item: { id: string; quantity: number; price: number };

@@ -13,6 +13,7 @@ import {
 import { useTranslation } from '../../../lib/i18n-client';
 import { logger } from "@/lib/utils/logger";
 import { useAdminDialogs } from '../context/AdminDialogsContext';
+import { invalidateDeliveryLocationsClientCache } from '@/lib/checkout/fetch-delivery-locations-client';
 
 interface DeliveryLocation {
   id?: string;
@@ -80,6 +81,7 @@ export default function DeliveryPage() {
       logger.debug('✅ [ADMIN] Delivery settings saved');
       setEditingId(null);
       invalidateAdminReadCacheKey(buildAdminReadCacheKey('/api/v1/admin/delivery'));
+      invalidateDeliveryLocationsClientCache();
       await fetchDeliverySettings({ force: true });
     } catch (err: any) {
       console.error('❌ [ADMIN] Error saving delivery settings:', err);

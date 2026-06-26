@@ -12,6 +12,7 @@ const COMPARE_DIRECT_INFLIGHT_KEY = 'storefront-compare-direct';
 
 /** Dispatched when compare list contents change (after DB sync). */
 export function emitCompareUpdated(): void {
+  invalidateCompareIdsCache();
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new Event('compare-updated'));
   }

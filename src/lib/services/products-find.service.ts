@@ -2,12 +2,20 @@ import { ProductFilters } from "./products-find-query.service";
 import { productsFindQueryService } from "./products-find-query.service";
 import { productsFindFilterService } from "./products-find-filter.service";
 import { productsFindTransformService } from "./products-find-transform.service";
+import {
+  isProductsCardView,
+  productsFindCardService,
+} from "./products-find-card.service";
 
 class ProductsFindService {
   /**
    * Get all products with filters
    */
   async findAll(filters: ProductFilters) {
+    if (isProductsCardView(filters.view) && filters.ids && filters.ids.length > 0) {
+      return productsFindCardService.findByIds(filters);
+    }
+
     const {
       page = 1,
       limit = 12,

@@ -1,5 +1,7 @@
 import { db } from "@white-shop/db";
+import { revalidateTag } from "next/cache";
 import { problemTypes } from "@/lib/http/problem-details";
+import { STOREFRONT_DELIVERY_LOCATIONS_CACHE_TAG } from "@/lib/services/storefront/get-public-delivery-locations";
 
 const DEFAULT_DELIVERY_COUNTRY = "Հայաստան";
 
@@ -145,7 +147,7 @@ class AdminDeliveryService {
       id: location.id || `location-${Date.now()}-${index}`,
     }));
 
-    const setting = await db.settings.upsert({
+    await db.settings.upsert({
       where: { key: 'delivery-locations' },
       update: {
         value: { locations: locationsWithIds },
@@ -157,6 +159,9 @@ class AdminDeliveryService {
         description: 'Delivery prices by country and city',
       },
     });
+
+    // @ts-expect-error - revalidateTag type issue in Next.js
+    revalidateTag(STOREFRONT_DELIVERY_LOCATIONS_CACHE_TAG);
 
     return {
       locations: locationsWithIds,

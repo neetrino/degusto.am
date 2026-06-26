@@ -46,7 +46,7 @@ export function useProductHandlers({
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
     setPage(1);
-    fetchProducts();
+    void fetchProducts({ force: true });
   };
 
   const toggleSelect = (id: string) => {
