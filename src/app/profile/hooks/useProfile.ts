@@ -18,12 +18,16 @@ export function useProfile() {
   // Redirect if not logged in
   useEffect(() => {
     if (!authLoading && !isLoggedIn) {
+      setLoading(false);
       router.push('/login?redirect=/profile');
     }
   }, [isLoggedIn, authLoading, router]);
 
   // Load profile data
   useEffect(() => {
+    if (!authLoading && !isLoggedIn) {
+      return;
+    }
     if (isLoggedIn && !authLoading) {
       loadProfile();
     }

@@ -12,6 +12,7 @@ import {
 import { useNotFoundPage } from '../errors/not-found-page.context';
 import { NOT_FOUND_SURFACE_CLASS } from '../errors/not-found-page.constants';
 import { MobileStorefrontHeader } from './MobileStorefrontHeader';
+import { MobileStorefrontHeaderSkeleton } from './MobileStorefrontHeaderSkeleton';
 
 type MobileStorefrontChromeProps = {
   children: ReactNode;
@@ -73,7 +74,13 @@ export function MobileStorefrontChrome({ children }: MobileStorefrontChromeProps
             <div className={`pointer-events-none absolute -left-[210px] -top-[123px] h-[434px] w-[418px] rounded-full border-[80px] border-[#3E573D] ${decorHiddenClass}`} />
             <div className={`pointer-events-none absolute -right-[160px] -top-[184px] h-[320px] w-[360px] rounded-full border-[70px] border-[#3E573D] ${decorHiddenClass}`} />
 
-            <Suspense fallback={null}>
+            <Suspense
+              fallback={
+                <div className={decorHiddenClass}>
+                  <MobileStorefrontHeaderSkeleton />
+                </div>
+              }
+            >
               <div className={decorHiddenClass}>
                 <MobileStorefrontHeader />
               </div>
