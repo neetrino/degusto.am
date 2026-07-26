@@ -100,17 +100,29 @@ export function MobileNavDrawer({
   }, []);
 
   useEffect(() => {
-    setMounted(true);
-    return () => clearExitTimer();
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setMounted(true);
+    });
+    return () => {
+      cancelled = true;
+      clearExitTimer();
+    };
   }, [clearExitTimer]);
 
   useEffect(() => {
-    if (open) {
-      openMenu();
-      return;
-    }
-    if (!renderedRef.current) return;
-    closeMenu();
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      if (open) {
+        openMenu();
+        return;
+      }
+      if (renderedRef.current) closeMenu();
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [open, openMenu, closeMenu]);
 
   useEffect(() => {
@@ -124,14 +136,17 @@ export function MobileNavDrawer({
   }, []);
 
   useEffect(() => {
-    setOpen(false);
+    queueMicrotask(() => setOpen(false));
   }, [pathname]);
 
   useLayoutEffect(() => {
     if (!rendered) return;
-    measureHeader();
+    const frame = requestAnimationFrame(measureHeader);
     window.addEventListener("resize", measureHeader);
-    return () => window.removeEventListener("resize", measureHeader);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", measureHeader);
+    };
   }, [rendered, measureHeader]);
 
   useEffect(() => {
@@ -169,7 +184,7 @@ export function MobileNavDrawer({
       <button
         type="button"
         onClick={toggleMenu}
-        className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-900 text-white transition-opacity hover:opacity-80 touch-manipulation sm:h-10 sm:w-10"
+        className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white text-brand transition-opacity hover:opacity-90 touch-manipulation sm:h-12 sm:w-12"
         aria-label={open ? dictionary.nav.closeMenu : dictionary.nav.openMenu}
         aria-expanded={open}
         aria-controls={menuId}
@@ -240,7 +255,7 @@ export function MobileNavDrawer({
                       );
                       return (
                         <AppLink
-                          key={item.href}
+                          key={`${item.href}-${item.label}`}
                           href={item.href}
                           prefetchPolicy="intent"
                           aria-current={active ? "page" : undefined}

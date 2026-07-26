@@ -41,7 +41,13 @@ export function CheckoutProductsInOrder({
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
-    setProducts(initialProducts);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setProducts(initialProducts);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [initialProducts]);
 
   const itemCount = products.reduce((sum, product) => sum + product.quantity, 0);

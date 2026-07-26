@@ -84,23 +84,26 @@ export function ProductDrawer({
 
   useEffect(() => {
     if (!open) return;
-
-    setCategories(initialCategories);
-    if (product) {
-      setTitle(product.title);
-      setSlug(product.slug);
-      setDescription(product.description);
-      setImages(imagesFromProduct(product));
-      setRemovedImageIds([]);
-      setCategoryIds(product.categoryIds);
-      setPriceAmount(String(product.priceAmount));
-      setCompareAtAmount(
-        product.compareAtAmount != null ? String(product.compareAtAmount) : "",
-      );
-      setSku(product.sku);
-      setStockOnHand(String(product.stockOnHand));
-      setError(null);
-    } else {
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setCategories(initialCategories);
+      if (product) {
+        setTitle(product.title);
+        setSlug(product.slug);
+        setDescription(product.description);
+        setImages(imagesFromProduct(product));
+        setRemovedImageIds([]);
+        setCategoryIds(product.categoryIds);
+        setPriceAmount(String(product.priceAmount));
+        setCompareAtAmount(
+          product.compareAtAmount != null ? String(product.compareAtAmount) : "",
+        );
+        setSku(product.sku);
+        setStockOnHand(String(product.stockOnHand));
+        setError(null);
+        return;
+      }
       setTitle("");
       setSlug("");
       setDescription("");
@@ -112,7 +115,10 @@ export function ProductDrawer({
       setSku("");
       setStockOnHand("");
       setError(null);
-    }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [open, product, initialCategories]);
 
   function handleImagesChange(next: ProductDraftImage[]): void {

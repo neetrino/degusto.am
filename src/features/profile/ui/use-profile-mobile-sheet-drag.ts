@@ -59,9 +59,12 @@ export function useProfileMobileSheetDrag({
   const onDismissRef = useRef(onDismiss);
   const onSnapBackRef = useRef(onSnapBack);
   const onOffsetChangeRef = useRef(onOffsetChange);
-  onDismissRef.current = onDismiss;
-  onSnapBackRef.current = onSnapBack;
-  onOffsetChangeRef.current = onOffsetChange;
+
+  useEffect(() => {
+    onDismissRef.current = onDismiss;
+    onSnapBackRef.current = onSnapBack;
+    onOffsetChangeRef.current = onOffsetChange;
+  }, [onDismiss, onSnapBack, onOffsetChange]);
 
   const clearSessions = useCallback(() => {
     activeDragRef.current = null;

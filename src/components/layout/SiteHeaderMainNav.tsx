@@ -1,12 +1,12 @@
+import Image from "next/image";
+import { UserRound } from "lucide-react";
+
 import { AccountControls } from "@/components/layout/AccountControls";
+import { HeaderCartButton } from "@/components/layout/HeaderCartButton";
+import { HeaderSearch } from "@/components/layout/HeaderSearch";
 import { LocaleCurrencySwitcher } from "@/components/layout/LocaleCurrencySwitcher";
 import { MobileNavDrawer } from "@/components/layout/MobileNavDrawer";
-import {
-  SITE_HEADER_ACTIONS_RAIL,
-  SITE_HEADER_INNER,
-} from "@/components/layout/site-header-classes";
 import { AppLink } from "@/components/ui/AppLink";
-import { CartDrawer } from "@/features/cart/ui/CartDrawer";
 import { WishlistHeaderLink } from "@/features/wishlist/ui/WishlistHeaderLink";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
@@ -25,12 +25,11 @@ type SiteHeaderMainNavProps = {
   user: SessionUser | null;
   navItems: readonly NavItem[];
   cartItemCount: number;
+  cartTotalFormatted: string;
   wishlistCount: number;
 };
 
-function navLinkClassName(): string {
-  return "rounded-lg px-4 py-2 text-sm font-medium whitespace-nowrap text-gray-700 transition-all duration-200 hover:bg-gray-50 hover:text-gray-900";
-}
+const LOGO_SRC = "/assets/brand/logo.webp";
 
 export function SiteHeaderMainNav({
   locale,
@@ -39,55 +38,76 @@ export function SiteHeaderMainNav({
   user,
   navItems,
   cartItemCount,
+  cartTotalFormatted,
   wishlistCount,
 }: SiteHeaderMainNavProps) {
   return (
-    <header className="relative z-40 border-b border-gray-200/80 bg-gradient-to-b from-gray-50 to-white shadow-sm backdrop-blur-sm">
-      <div className={SITE_HEADER_INNER}>
-        <div className="flex flex-wrap items-center gap-2 py-4 sm:gap-4 md:py-3">
-          <div className="flex w-full items-center justify-between md:w-auto md:justify-start md:gap-0">
-            <AppLink
-              href={`/${locale}`}
-              prefetchPolicy="intent"
-              className="text-lg font-semibold tracking-tight text-gray-900"
-            >
-              {dictionary.brand}
-            </AppLink>
+    <header className="pointer-events-auto relative z-40 px-3 pt-4 sm:px-6 md:px-8 md:pt-6">
+      <div className="mx-auto flex h-16 max-w-[1374px] items-center gap-3 rounded-full bg-black px-3 sm:h-20 sm:gap-4 sm:px-5 md:px-8">
+        <AppLink
+          href={`/${locale}`}
+          prefetchPolicy="intent"
+          className="relative h-10 w-[110px] shrink-0 overflow-hidden sm:h-12 sm:w-[134px]"
+          aria-label={dictionary.brand}
+        >
+          <Image
+            src={LOGO_SRC}
+            alt={dictionary.brand}
+            fill
+            sizes="134px"
+            className="object-contain object-left"
+            priority
+          />
+        </AppLink>
 
-          <div className="flex items-center gap-2 md:hidden">
+        <nav
+          aria-label={dictionary.nav.navigation}
+          className="ml-2 hidden items-center gap-6 xl:ml-6 xl:flex xl:gap-[30px]"
+        >
+          {navItems.map((item) => (
+            <AppLink
+              key={`${item.href}-${item.label}`}
+              href={item.href}
+              prefetchPolicy="intent"
+              className="text-base font-semibold whitespace-nowrap text-white/90 transition hover:text-white"
+            >
+              {item.label}
+            </AppLink>
+          ))}
+        </nav>
+
+        <div className="ml-auto flex items-center gap-2 sm:gap-3">
+          <HeaderSearch
+            locale={locale}
+            searchLabel={dictionary.header.search}
+            placeholder={dictionary.header.searchPlaceholder}
+          />
+
+          <div className="hidden items-center gap-2 md:flex md:gap-[7px]">
+            <HeaderCartButton
+              locale={locale}
+              currency={currency}
+              dictionary={dictionary}
+              itemCount={cartItemCount}
+              totalFormatted={cartTotalFormatted}
+            />
+
+            <WishlistHeaderLink
+              locale={locale}
+              label={dictionary.nav.wishlist}
+              count={wishlistCount}
+              className="inline-flex size-12 items-center justify-center rounded-full bg-white text-brand shadow-sm transition hover:bg-white/90"
+              iconClassName="size-7 fill-brand"
+            />
+
             <LocaleCurrencySwitcher
               locale={locale}
               currency={currency}
               currencyLabel={dictionary.header.currency}
               languageLabel={dictionary.header.language}
+              variant="degusto"
             />
-            <MobileNavDrawer
-              locale={locale}
-              dictionary={dictionary}
-              navItems={navItems}
-            />
-          </div>
-          </div>
 
-          <nav
-            aria-label="Primary"
-            className="order-3 hidden w-full items-center justify-center gap-1 md:order-none md:flex md:flex-1"
-          >
-            {navItems.map((item) => (
-              <AppLink
-                key={item.href}
-                href={item.href}
-                prefetchPolicy="intent"
-                className={navLinkClassName()}
-              >
-                {item.label}
-              </AppLink>
-            ))}
-          </nav>
-
-          <div
-            className={`${SITE_HEADER_ACTIONS_RAIL} ml-auto hidden justify-center gap-2 md:flex`}
-          >
             <AccountControls
               locale={locale}
               loginLabel={dictionary.header.login}
@@ -95,17 +115,23 @@ export function SiteHeaderMainNav({
               profileLabel={dictionary.header.profile}
               adminLabel={dictionary.header.admin}
               user={user}
+              triggerClassName="inline-flex size-12 items-center justify-center rounded-full bg-white text-brand shadow-sm transition hover:bg-white/90"
+              icon={<UserRound className="size-7" aria-hidden />}
             />
-            <WishlistHeaderLink
-              locale={locale}
-              label={dictionary.nav.wishlist}
-              count={wishlistCount}
-            />
-            <CartDrawer
+          </div>
+
+          <div className="flex items-center gap-2 md:hidden">
+            <LocaleCurrencySwitcher
               locale={locale}
               currency={currency}
+              currencyLabel={dictionary.header.currency}
+              languageLabel={dictionary.header.language}
+              variant="degusto"
+            />
+            <MobileNavDrawer
+              locale={locale}
               dictionary={dictionary}
-              itemCount={cartItemCount}
+              navItems={navItems}
             />
           </div>
         </div>

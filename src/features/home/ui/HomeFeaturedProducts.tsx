@@ -1,6 +1,10 @@
+import Image from "next/image";
+
 import { AppLink } from "@/components/ui/AppLink";
 import { ProductCard } from "@/features/products/ui/ProductCard";
 import type { Locale } from "@/lib/i18n/config";
+
+const VIEW_ALL_ARROW = "/assets/home/view-all-arrow.svg";
 
 type FeaturedItem = {
   id: string;
@@ -12,69 +16,93 @@ type FeaturedItem = {
   imageUrl: string | null;
   inStock: boolean;
   inWishlist?: boolean;
+  categoryLabel?: string | null;
+  rating?: number | null;
+  isSpicy?: boolean;
+  isVegetarian?: boolean;
 };
 
 type HomeFeaturedProductsProps = {
   locale: Locale;
-  title: string;
+  titleLead: string;
+  titleAccent: string;
   viewAllLabel: string;
   viewAllHref: string;
   emptyLabel: string;
   wishlistLabel: string;
   addToCartLabel: string;
+  outOfStockLabel: string;
   isSignedIn: boolean;
   products: readonly FeaturedItem[];
 };
 
 export function HomeFeaturedProducts({
   locale,
-  title,
+  titleLead,
+  titleAccent,
   viewAllLabel,
   viewAllHref,
   emptyLabel,
   wishlistLabel,
   addToCartLabel,
+  outOfStockLabel,
   isSignedIn,
   products,
 }: HomeFeaturedProductsProps) {
   return (
-    <section className="bg-gray-50 py-14">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 flex items-end justify-between gap-4">
-          <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">
-            {title}
+    <section className="relative left-1/2 right-1/2 z-10 -mt-2 -ml-[50vw] -mr-[50vw] w-screen rounded-t-[40px] bg-surface-dark pt-[77px] pb-20 md:-mt-4">
+      <div className="mx-auto max-w-[1260px] px-4 sm:px-6 lg:px-8">
+        <div className="mb-[55px] flex flex-wrap items-center justify-between gap-4">
+          <h2 className="font-display text-3xl font-bold tracking-tight text-brand sm:text-4xl md:text-5xl lg:text-[60px] lg:leading-none">
+            {titleLead}{" "}
+            <span className="text-white">{titleAccent}</span>
           </h2>
           <AppLink
             href={viewAllHref}
             prefetchPolicy="intent"
-            className="text-sm font-semibold text-gray-700 underline-offset-2 hover:underline"
+            className="inline-flex h-14 w-[140px] shrink-0 items-center justify-center gap-2 rounded-[40px] bg-brand px-6 text-base font-bold text-white transition hover:bg-brand-strong"
           >
             {viewAllLabel}
+            <Image
+              src={VIEW_ALL_ARROW}
+              alt=""
+              width={20}
+              height={20}
+              className="size-5"
+              aria-hidden
+            />
           </AppLink>
         </div>
 
         {products.length === 0 ? (
-          <p className="text-gray-600">{emptyLabel}</p>
+          <p className="text-white/70">{emptyLabel}</p>
         ) : (
-          <div className="grid grid-cols-2 gap-6 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="-mx-4 flex gap-5 overflow-x-auto px-4 pb-2 sm:mx-0 sm:justify-center sm:overflow-visible sm:px-0">
             {products.map((product, index) => (
-              <ProductCard
-                key={product.id}
-                href={product.href}
-                title={product.title}
-                priceFormatted={product.priceFormatted}
-                compareAtFormatted={product.compareAtFormatted}
-                discountPercent={product.discountPercent}
-                imageUrl={product.imageUrl}
-                inStock={product.inStock}
-                priority={index < 4}
-                locale={locale}
-                productId={product.id}
-                inWishlist={product.inWishlist ?? false}
-                isSignedIn={isSignedIn}
-                wishlistLabel={wishlistLabel}
-                addToCartLabel={addToCartLabel}
-              />
+              <div key={product.id} className="w-[236px] shrink-0">
+                <ProductCard
+                  href={product.href}
+                  title={product.title}
+                  priceFormatted={product.priceFormatted}
+                  compareAtFormatted={product.compareAtFormatted}
+                  discountPercent={product.discountPercent}
+                  imageUrl={product.imageUrl}
+                  inStock={product.inStock}
+                  priority={index < 4}
+                  locale={locale}
+                  productId={product.id}
+                  inWishlist={product.inWishlist ?? false}
+                  isSignedIn={isSignedIn}
+                  wishlistLabel={wishlistLabel}
+                  addToCartLabel={addToCartLabel}
+                  outOfStockLabel={outOfStockLabel}
+                  categoryLabel={product.categoryLabel}
+                  rating={product.rating}
+                  isSpicy={product.isSpicy}
+                  isVegetarian={product.isVegetarian}
+                  showWishlist={false}
+                />
+              </div>
             ))}
           </div>
         )}

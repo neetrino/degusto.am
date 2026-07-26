@@ -5,6 +5,10 @@ import { AddToCartButton } from "@/features/cart/ui/AddToCartButton";
 import { WishlistButton } from "@/features/wishlist/ui/WishlistButton";
 import type { Locale } from "@/lib/i18n/config";
 
+const STAR_ICON = "/assets/product-card/star.svg";
+const SPICY_ICON = "/assets/product-card/spicy.svg";
+const VEGGIE_ICON = "/assets/product-card/veggie.svg";
+
 type ProductCardProps = {
   href: string;
   title: string;
@@ -20,6 +24,12 @@ type ProductCardProps = {
   isSignedIn?: boolean;
   wishlistLabel?: string;
   addToCartLabel?: string;
+  outOfStockLabel?: string;
+  categoryLabel?: string | null;
+  rating?: number | null;
+  isSpicy?: boolean;
+  isVegetarian?: boolean;
+  showWishlist?: boolean;
 };
 
 export function ProductCard({
@@ -37,37 +47,70 @@ export function ProductCard({
   isSignedIn = false,
   wishlistLabel,
   addToCartLabel,
+  outOfStockLabel = "Out of stock",
+  categoryLabel = null,
+  rating = null,
+  isSpicy = false,
+  isVegetarian = false,
+  showWishlist = true,
 }: ProductCardProps) {
   const onSale = Boolean(compareAtFormatted);
-  const showWishlist =
+  const canShowWishlist =
+    showWishlist &&
     locale != null && productId != null && wishlistLabel != null;
   const showAddToCart = productId != null && addToCartLabel != null;
 
   return (
-    <div className="group relative overflow-hidden rounded-lg border border-gray-200 bg-white transition-shadow hover:shadow-md">
-      <div className="relative aspect-square overflow-hidden bg-gray-100">
+    <article className="group relative isolate mx-auto w-[236px] py-[7px] text-left text-base text-product-ink/60">
+      <div className="relative z-0 h-[284px] w-[236px] shrink-0 rounded-[20px] border-[1.5px] border-[#dedede] bg-white">
         <AppLink
           href={href}
           prefetchPolicy={priority ? "intent" : "auto"}
-          className="absolute inset-0 block"
+          className="absolute top-[5px] left-1/2 z-[2] block h-[147px] w-[227px] -translate-x-1/2 overflow-hidden rounded-[18px] bg-gray-100"
         >
           {imageUrl ? (
             <Image
               src={imageUrl}
               alt={title}
               fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+              sizes="227px"
               className="object-cover transition-transform duration-300 group-hover:scale-105"
               priority={priority}
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-sm text-gray-400">
+            <span className="flex h-full w-full items-center justify-center text-sm text-gray-400">
               No image
-            </div>
+            </span>
           )}
         </AppLink>
 
-        {showWishlist ? (
+        {isSpicy ? (
+          <span className="absolute top-5 left-4 z-[3] flex size-8 items-center justify-center rounded-full bg-[#ff2b2e] p-1">
+            <Image
+              src={SPICY_ICON}
+              alt=""
+              width={19}
+              height={19}
+              className="size-[19px] -rotate-[13deg] object-contain"
+              aria-hidden
+            />
+          </span>
+        ) : null}
+
+        {isVegetarian ? (
+          <span className="absolute top-[58px] left-4 z-[4] size-8">
+            <Image
+              src={VEGGIE_ICON}
+              alt=""
+              width={32}
+              height={32}
+              className="size-8"
+              aria-hidden
+            />
+          </span>
+        ) : null}
+
+        {canShowWishlist ? (
           <WishlistButton
             locale={locale}
             productId={productId}
@@ -75,52 +118,75 @@ export function ProductCard({
             isSignedIn={isSignedIn}
             label={wishlistLabel}
             size="sm"
-            className="absolute top-3 left-3 z-10 h-9 w-9 bg-white/90 text-gray-800 shadow-sm hover:bg-white"
+            className="absolute top-5 right-4 z-[3] h-8 w-8 bg-white/90 text-gray-800 shadow-sm hover:bg-white"
           />
         ) : null}
 
-        {discountPercent != null ? (
-          <span className="absolute top-3 right-3 z-10 rounded bg-red-600 px-2 py-1 text-xs font-semibold text-white">
-            -{discountPercent}%
-          </span>
-        ) : null}
+        <div className="absolute top-[170px] left-[14px] z-[5] h-[90px] w-[209px]">
+          <div className="absolute top-0 left-0 flex w-[120px] flex-col items-start gap-[5px]">
+            {rating != null ? (
+              <div className="flex h-[21px] items-center gap-1.5">
+                <Image
+                  src={STAR_ICON}
+                  alt=""
+                  width={20}
+                  height={20}
+                  className="size-5"
+                  aria-hidden
+                />
+                <span className="text-base leading-[1.35] font-medium text-product-ink/60">
+                  {rating.toFixed(1)}
+                </span>
+              </div>
+            ) : null}
+            <h3 className="line-clamp-2 h-[39px] text-base font-bold leading-normal text-product-ink">
+              <AppLink
+                href={href}
+                prefetchPolicy={priority ? "intent" : "auto"}
+                className="hover:underline"
+              >
+                {title}
+              </AppLink>
+            </h3>
+            {categoryLabel ? (
+              <p className="w-full truncate text-base font-medium text-[#a1a1a1]">
+                {categoryLabel}
+              </p>
+            ) : null}
+          </div>
 
-        {showAddToCart ? (
-          <AddToCartButton
-            productId={productId}
-            label={addToCartLabel}
-            disabled={!inStock}
-            size="sm"
-            className="absolute right-3 bottom-3 z-10 h-9 w-9 bg-white/90 text-gray-800 shadow-sm hover:bg-white"
-          />
-        ) : null}
+          <div className="absolute top-0 left-[136px] h-[90px] w-[73px] text-sm text-product-ink">
+            {discountPercent != null ? (
+              <span className="absolute top-0 left-px inline-flex h-[30px] w-[72px] items-center justify-center rounded-full bg-brand text-sm font-bold leading-[30px] text-black">
+                -{discountPercent}%
+              </span>
+            ) : null}
+            <p className="absolute top-[50px] right-0 whitespace-nowrap text-right text-xl font-black text-product-ink">
+              {priceFormatted}
+            </p>
+            {onSale ? (
+              <p className="absolute top-[74px] right-0 whitespace-nowrap text-right text-sm font-light text-product-ink line-through">
+                {compareAtFormatted}
+              </p>
+            ) : null}
+          </div>
+        </div>
 
         {!inStock ? (
-          <span className="absolute bottom-3 left-3 z-10 rounded bg-gray-900/90 px-2 py-1 text-xs font-semibold text-white">
-            Out of stock
+          <span className="absolute bottom-14 left-3 z-10 rounded bg-gray-900/90 px-2 py-1 text-xs font-semibold text-white">
+            {outOfStockLabel}
           </span>
         ) : null}
       </div>
 
-      <div className="p-4">
-        <h3 className="mb-1 line-clamp-2 text-base font-medium text-gray-900">
-          <AppLink
-            href={href}
-            prefetchPolicy={priority ? "intent" : "auto"}
-            className="hover:underline"
-          >
-            {title}
-          </AppLink>
-        </h3>
-        <div className="flex flex-wrap items-baseline gap-2">
-          <p className="text-lg font-semibold text-gray-900">{priceFormatted}</p>
-          {onSale ? (
-            <p className="text-sm text-gray-500 line-through">
-              {compareAtFormatted}
-            </p>
-          ) : null}
-        </div>
-      </div>
-    </div>
+      {showAddToCart ? (
+        <AddToCartButton
+          productId={productId}
+          label={addToCartLabel}
+          disabled={!inStock}
+          className="absolute top-[259px] left-[93px] z-[1] h-[52px] w-[51px] hover:brightness-95"
+        />
+      ) : null}
+    </article>
   );
 }

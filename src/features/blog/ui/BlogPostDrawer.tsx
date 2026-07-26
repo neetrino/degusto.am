@@ -115,34 +115,36 @@ export function BlogPostDrawer({
 
   useEffect(() => {
     if (!open) return;
-
-    if (post) {
-      setActiveLocale(
-        (locales.find((loc) => post.translations[loc]?.title) as
-          | Locale
-          | undefined) ?? "en",
-      );
-      setDrafts(draftsFromTranslations(post.translations));
-      setStatus(post.status);
-      setPublishedAt(post.publishedAt ?? "");
-      setImageFile(null);
-      setImagePreview(post.coverUrl ?? null);
-      setRemoveExistingImage(false);
-      setError(null);
-    } else {
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      if (post) {
+        setActiveLocale(
+          (locales.find((loc) => post.translations[loc]?.title) as
+            | Locale
+            | undefined) ?? "en",
+        );
+        setDrafts(draftsFromTranslations(post.translations));
+        setStatus(post.status);
+        setPublishedAt(post.publishedAt ?? "");
+        setImageFile(null);
+        setImagePreview(post.coverUrl ?? null);
+        setRemoveExistingImage(false);
+        setError(null);
+        return;
+      }
       setActiveLocale("en");
-      setDrafts({
-        hy: emptyDraft(),
-        en: emptyDraft(),
-        ru: emptyDraft(),
-      });
+      setDrafts({ hy: emptyDraft(), en: emptyDraft(), ru: emptyDraft() });
       setStatus("DRAFT");
       setPublishedAt("");
       setImageFile(null);
       setImagePreview(null);
       setRemoveExistingImage(false);
       setError(null);
-    }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [open, post]);
 
   const draft = drafts[activeLocale];

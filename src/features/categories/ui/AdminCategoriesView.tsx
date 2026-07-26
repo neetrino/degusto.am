@@ -86,8 +86,15 @@ export function AdminCategoriesView({
   const persistedRef = useRef(false);
 
   useEffect(() => {
-    setOrdered(categories);
-    orderedRef.current = categories;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setOrdered(categories);
+      orderedRef.current = categories;
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [categories]);
 
   useEffect(() => {
@@ -268,6 +275,8 @@ export function AdminCategoriesView({
                       <td className={ADMIN_TABLE_TD}>
                         <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded border border-dashed border-gray-300 bg-gray-50">
                           {category.imageUrl ? (
+                            // Admin media may use storage hosts outside next/image config.
+                            // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src={category.imageUrl}
                               alt=""

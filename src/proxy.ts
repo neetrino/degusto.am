@@ -11,7 +11,7 @@ function nextWithPathname(request: NextRequest, pathname: string): NextResponse 
   });
 }
 
-export function middleware(request: NextRequest): NextResponse {
+export function proxy(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
 
   if (

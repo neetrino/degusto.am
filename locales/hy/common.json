@@ -1,8 +1,10 @@
 {
-  "brand": "White-Shop",
+  "brand": "Degusto",
   "nav": {
     "home": "Գլխավոր",
     "products": "Ապրանքներ",
+    "kitchen": "Խոհանոց",
+    "combos": "Կոմբոներ",
     "shop": "Խանութ",
     "blog": "Բլոգ",
     "cart": "Զամբյուղ",
@@ -21,7 +23,9 @@
     "logout": "Ելք",
     "profile": "Պրոֆիլ",
     "admin": "Ադմին",
-    "createAccount": "Գրանցվել"
+    "createAccount": "Գրանցվել",
+    "search": "Որոնել",
+    "searchPlaceholder": "..."
   },
   "footer": {
     "shop": "Խանութ",

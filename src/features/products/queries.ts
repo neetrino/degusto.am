@@ -333,6 +333,58 @@ async function loadProductCategories(
     .filter((row): row is ProductCategoryRef => row !== null);
 }
 
+/** Primary category title per product id for storefront cards. */
+export async function getPrimaryCategoryLabels(
+  productIds: readonly string[],
+  locale: Locale,
+): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  if (productIds.length === 0) {
+    return map;
+  }
+
+  const rows = await getDb()
+    .select({
+      productId: productCategories.productId,
+      translations: categories.translations,
+      isPrimary: productCategories.isPrimary,
+      sortOrder: productCategories.sortOrder,
+    })
+    .from(productCategories)
+    .innerJoin(categories, eq(productCategories.categoryId, categories.id))
+    .where(
+      and(
+        inArray(productCategories.productId, [...productIds]),
+        eq(categories.status, "ACTIVE"),
+        isNull(categories.deletedAt),
+      ),
+    )
+    .orderBy(
+      asc(productCategories.isPrimary),
+      asc(productCategories.sortOrder),
+    );
+
+  // Prefer primary categories; first row wins if already set.
+  const sorted = [...rows].sort((a, b) => {
+    if (a.isPrimary !== b.isPrimary) {
+      return a.isPrimary ? -1 : 1;
+    }
+    return a.sortOrder - b.sortOrder;
+  });
+
+  for (const row of sorted) {
+    if (map.has(row.productId)) {
+      continue;
+    }
+    const translation = row.translations[locale] ?? row.translations.hy;
+    if (translation?.title) {
+      map.set(row.productId, translation.title);
+    }
+  }
+
+  return map;
+}
+
 async function loadProductDetailBySlug(
   locale: Locale,
   slug: string,

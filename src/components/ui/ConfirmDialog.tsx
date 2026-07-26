@@ -53,33 +53,57 @@ export function ConfirmDialog({
   const [displayCancelLabel, setDisplayCancelLabel] = useState(cancelLabel);
 
   useEffect(() => {
-    setMounted(true);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setMounted(true);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
     if (!open) return;
-    setDisplayTitle(title);
-    setDisplayDescription(description);
-    setDisplayConfirmLabel(confirmLabel);
-    setDisplayCancelLabel(cancelLabel);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setDisplayTitle(title);
+      setDisplayDescription(description);
+      setDisplayConfirmLabel(confirmLabel);
+      setDisplayCancelLabel(cancelLabel);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [open, title, description, confirmLabel, cancelLabel]);
 
   useEffect(() => {
+    let cancelled = false;
     if (open) {
-      setExiting(false);
-      setRendered(true);
-      return;
+      queueMicrotask(() => {
+        if (cancelled) return;
+        setExiting(false);
+        setRendered(true);
+      });
+      return () => {
+        cancelled = true;
+      };
     }
 
     if (!rendered) return;
 
-    setExiting(true);
+    queueMicrotask(() => {
+      if (!cancelled) setExiting(true);
+    });
     const timer = window.setTimeout(() => {
       setRendered(false);
       setExiting(false);
     }, CONFIRM_DIALOG_EXIT_MS);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, [open, rendered]);
 
   useEffect(() => {

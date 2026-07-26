@@ -63,20 +63,23 @@ export function CouponDrawer({
 
   useEffect(() => {
     if (!open) return;
-
-    if (coupon) {
-      setName(coupon.code ?? "");
-      setCode(coupon.code ?? "");
-      setDiscountType(
-        coupon.discountType === "FIXED" ? "FIXED" : "PERCENTAGE",
-      );
-      setValue(String(coupon.discountValue));
-      setQuantity(
-        coupon.totalUsageLimit != null ? String(coupon.totalUsageLimit) : "",
-      );
-      setExpiresAt(toDateTimeLocal(coupon.endsAt));
-      setError(null);
-    } else {
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      if (coupon) {
+        setName(coupon.code ?? "");
+        setCode(coupon.code ?? "");
+        setDiscountType(
+          coupon.discountType === "FIXED" ? "FIXED" : "PERCENTAGE",
+        );
+        setValue(String(coupon.discountValue));
+        setQuantity(
+          coupon.totalUsageLimit != null ? String(coupon.totalUsageLimit) : "",
+        );
+        setExpiresAt(toDateTimeLocal(coupon.endsAt));
+        setError(null);
+        return;
+      }
       setName("");
       setCode("");
       setDiscountType("PERCENTAGE");
@@ -84,7 +87,10 @@ export function CouponDrawer({
       setQuantity("1");
       setExpiresAt("");
       setError(null);
-    }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [open, coupon]);
 
   return (

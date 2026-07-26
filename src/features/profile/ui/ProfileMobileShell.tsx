@@ -55,10 +55,16 @@ export function ProfileMobileShell({
   }, []);
 
   useEffect(() => {
-    if (isHub) {
+    if (!isHub) return;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
       setHubSheetOpen(false);
       setClosingToHub(false);
-    }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [isHub, pathname]);
 
   const sheetOpen = (!isHub || hubSheetOpen) && !closingToHub;

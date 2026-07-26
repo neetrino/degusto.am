@@ -49,7 +49,13 @@ export function PersonalInformationForm({
   });
 
   useEffect(() => {
-    setValues({ firstName, lastName, email });
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setValues({ firstName, lastName, email });
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [firstName, lastName, email]);
 
   function resetToSaved(): void {

@@ -33,8 +33,13 @@ export async function registerAction(
     return { error: "Unable to create account with those details." };
   }
 
-  const { password, confirmPassword: _confirmPassword, ...registration } =
-    parsed.data;
+  const { password } = parsed.data;
+  const registration = {
+    firstName: parsed.data.firstName,
+    lastName: parsed.data.lastName,
+    email: parsed.data.email,
+    phone: parsed.data.phone,
+  };
   const [user] = await getDb()
     .insert(users)
     .values({

@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { User } from "lucide-react";
 
 import { AppLink } from "@/components/ui/AppLink";
@@ -15,12 +16,14 @@ type AccountControlsProps = {
   profileLabel: string;
   adminLabel: string;
   user: SessionUser | null;
+  triggerClassName?: string;
+  icon?: ReactNode;
 };
 
 const menuItemClassName =
   "block w-full whitespace-nowrap px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900";
 
-function iconButtonClassName(active = false): string {
+function defaultTriggerClassName(active = false): string {
   const base =
     "inline-flex h-11 w-11 items-center justify-center rounded-lg transition-colors duration-150";
   return active
@@ -35,18 +38,22 @@ export function AccountControls({
   profileLabel,
   adminLabel,
   user,
+  triggerClassName,
+  icon,
 }: AccountControlsProps) {
   const logoutWithLocale = logoutAction.bind(null, locale);
+  const buttonClass = triggerClassName ?? defaultTriggerClassName();
+  const triggerIcon = icon ?? <User className="h-5 w-5" aria-hidden="true" />;
 
   if (!user) {
     return (
       <AppLink
         href={`/${locale}/login`}
         prefetchPolicy="intent"
-        className={iconButtonClassName()}
+        className={buttonClass}
         aria-label={loginLabel}
       >
-        <User className="h-5 w-5" aria-hidden="true" />
+        {triggerIcon}
       </AppLink>
     );
   }
@@ -54,8 +61,10 @@ export function AccountControls({
   return (
     <IconDropdown
       label={profileLabel}
-      triggerClassName={iconButtonClassName()}
-      trigger={<User className="h-5 w-5" aria-hidden="true" />}
+      triggerClassName={
+        triggerClassName ?? defaultTriggerClassName()
+      }
+      trigger={triggerIcon}
       openOnHover
     >
       {user.role === "ADMIN" ? (

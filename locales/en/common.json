@@ -1,8 +1,10 @@
 {
-  "brand": "White-Shop",
+  "brand": "Degusto",
   "nav": {
     "home": "Home",
     "products": "Products",
+    "kitchen": "Kitchen",
+    "combos": "Combos",
     "shop": "Shop",
     "blog": "Blog",
     "cart": "Cart",
@@ -21,7 +23,9 @@
     "logout": "Logout",
     "profile": "Profile",
     "admin": "Admin",
-    "createAccount": "Create account"
+    "createAccount": "Create account",
+    "search": "Search",
+    "searchPlaceholder": "..."
   },
   "footer": {
     "shop": "Shop",

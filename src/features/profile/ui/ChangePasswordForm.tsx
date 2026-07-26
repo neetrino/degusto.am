@@ -41,9 +41,14 @@ export function ChangePasswordForm({ locale, labels }: ChangePasswordFormProps) 
   const [values, setValues] = useState(emptyForm);
 
   useEffect(() => {
-    if (state.success) {
-      setValues(emptyForm);
-    }
+    if (!state.success) return;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setValues(emptyForm);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [state.success]);
 
   return (

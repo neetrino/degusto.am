@@ -35,13 +35,13 @@ export default async function StorefrontLayout({
   );
 
   return (
-    <div className="storefront-shell flex min-h-dvh flex-1 flex-col bg-gray-50">
+    <div className="storefront-shell relative flex min-h-dvh flex-1 flex-col bg-gray-50">
       <SiteHeader
         locale={locale}
         currency={currency}
         dictionary={dictionary}
       />
-      <main className="storefront-main mx-auto w-full max-w-7xl flex-1 px-4 py-10 pb-24 sm:px-6 md:pb-10 lg:px-8">
+      <main className="storefront-main mx-auto w-full max-w-7xl flex-1 px-4 pt-[7.5rem] pb-24 sm:px-6 md:pb-10 lg:px-8">
         <MaintenanceGate>{children}</MaintenanceGate>
       </main>
       <SiteFooter dictionary={dictionary} locale={locale} />
