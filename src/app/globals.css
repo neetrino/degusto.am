@@ -289,6 +289,19 @@ body {
  * MaMarie-style profile desktop shell:
  * lock viewport height, hide footer, scroll only the content column.
  */
+/* About page: cream canvas edge-to-edge so no gray/white strip under header or above footer. */
+.storefront-shell:has([data-about-page]) {
+  background-color: #fbf6ea;
+}
+
+.storefront-shell:has([data-about-page]) .storefront-main {
+  padding-bottom: 0;
+}
+
+.storefront-shell:has([data-about-page]) .storefront-footer {
+  background-color: #fbf6ea;
+}
+
 @media (min-width: 1024px) {
   .storefront-shell:has([data-home-page]) .storefront-main {
     padding-bottom: 0;
