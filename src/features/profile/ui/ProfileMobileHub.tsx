@@ -23,7 +23,6 @@ type ProfileMobileHubProps = {
   locale: Locale;
   user: SessionUser;
   dictionary: Dictionary["profile"];
-  /** Opens the dashboard sheet while already on the profile hub route. */
   onOpenDashboard: () => void;
 };
 
@@ -37,14 +36,12 @@ type MenuItem = {
 };
 
 const ICON_THEMES = {
-  neutral: { bg: "bg-gray-100", fg: "text-gray-800" },
-  amber: { bg: "bg-amber-50", fg: "text-amber-600" },
-  sky: { bg: "bg-sky-50", fg: "text-sky-600" },
+  neutral: { bg: "bg-[#f3f3f3]", fg: "text-product-ink" },
+  amber: { bg: "bg-brand/15", fg: "text-brand" },
+  sky: { bg: "bg-[#fff7f0]", fg: "text-brand-strong" },
 } as const;
 
-/**
- * MaMarie-style mobile profile hub: header card + chevron menu + logout CTA.
- */
+/** Mobile profile hub — Degusto branded cards. */
 export function ProfileMobileHub({
   locale,
   user,
@@ -54,6 +51,7 @@ export function ProfileMobileHub({
   const pathname = usePathname() ?? "";
   const logoutWithLocale = logoutAction.bind(null, locale);
   const displayName = `${user.firstName} ${user.lastName}`.trim();
+  const initials = `${user.firstName.slice(0, 1)}${user.lastName.slice(0, 1)}`.toUpperCase();
   const hubHref = `/${locale}/profile`;
 
   const items: MenuItem[] = [
@@ -114,15 +112,19 @@ export function ProfileMobileHub({
       <>
         <span className="flex min-w-0 items-center gap-3">
           <span
-            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-              item.danger ? "bg-red-50 text-red-500" : `${theme.bg} ${theme.fg}`
+            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${
+              item.danger
+                ? "bg-red-50 text-red-500"
+                : active
+                  ? "bg-brand text-white shadow-[0_10px_20px_-12px_rgba(246,104,18,0.95)]"
+                  : `${theme.bg} ${theme.fg}`
             }`}
           >
             {item.icon}
           </span>
           <span
-            className={`truncate text-base font-medium ${
-              item.danger ? "text-red-500" : "text-gray-800"
+            className={`truncate text-base font-semibold ${
+              item.danger ? "text-red-500" : "text-product-ink"
             }`}
           >
             {item.label}
@@ -130,7 +132,7 @@ export function ProfileMobileHub({
         </span>
         <ChevronRight
           className={`h-[18px] w-[18px] shrink-0 ${
-            item.danger ? "text-red-400" : "text-gray-400 opacity-80"
+            item.danger ? "text-red-400" : "text-product-ink/30"
           }`}
           aria-hidden
         />
@@ -144,7 +146,7 @@ export function ProfileMobileHub({
           type="button"
           onClick={onOpenDashboard}
           aria-current={active ? "page" : undefined}
-          className="flex w-full items-center justify-between px-4 py-3.5 text-left transition-colors hover:bg-gray-50/80"
+          className="flex w-full items-center justify-between px-4 py-3.5 text-left transition-colors hover:bg-[#fff7f0]/80"
         >
           {content}
         </button>
@@ -157,7 +159,7 @@ export function ProfileMobileHub({
           <AppLink
             href={item.href}
             prefetchPolicy="intent"
-            className="flex w-full items-center justify-between rounded-xl border border-red-200 bg-white px-3 py-3 text-left transition-colors hover:bg-red-50/60"
+            className="flex w-full items-center justify-between rounded-2xl border border-red-200 bg-white px-3 py-3 text-left transition-colors hover:bg-red-50/60"
           >
             {content}
           </AppLink>
@@ -171,7 +173,7 @@ export function ProfileMobileHub({
         href={item.href}
         prefetchPolicy="intent"
         aria-current={active ? "page" : undefined}
-        className="flex w-full items-center justify-between px-4 py-3.5 text-left transition-colors hover:bg-gray-50/80"
+        className="flex w-full items-center justify-between px-4 py-3.5 text-left transition-colors hover:bg-[#fff7f0]/80"
       >
         {content}
       </AppLink>
@@ -181,19 +183,18 @@ export function ProfileMobileHub({
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-4">
       <section
-        className="rounded-[var(--radius)] bg-white px-4 py-5 shadow-sm ring-1 ring-gray-200/70"
+        className="relative overflow-hidden rounded-[2rem] border border-brand/20 bg-white px-5 py-6 shadow-[0_18px_40px_-28px_rgba(246,104,18,0.55)]"
         aria-label={dictionary.title}
       >
-        <div className="flex items-center gap-3">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gray-900 text-base font-semibold text-white shadow-[0_0_0_3px_white]">
-            {user.firstName.slice(0, 1).toUpperCase()}
-            {user.lastName.slice(0, 1).toUpperCase()}
+        <div className="relative flex items-center gap-3.5">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-brand text-lg font-black text-white ring-4 ring-white">
+            {initials}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-xl font-bold leading-tight text-gray-900">
+            <p className="truncate font-display text-xl font-black leading-tight text-product-ink">
               {displayName}
             </p>
-            <p className="truncate text-sm leading-snug text-gray-500">
+            <p className="mt-0.5 truncate text-sm leading-snug text-product-ink/55">
               {user.email}
             </p>
           </div>
@@ -201,10 +202,10 @@ export function ProfileMobileHub({
       </section>
 
       <nav
-        className="overflow-hidden rounded-[var(--radius)] bg-white py-1 shadow-sm ring-1 ring-gray-200/70"
+        className="overflow-hidden rounded-[2rem] border border-brand/15 bg-white py-1 shadow-[0_14px_36px_-28px_rgba(28,25,23,0.45)]"
         aria-label={dictionary.title}
       >
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-[#f3f3f3]">
           {mainItems.map((item) => renderRow(item))}
         </div>
         {dangerItem ? renderRow(dangerItem) : null}
@@ -213,7 +214,7 @@ export function ProfileMobileHub({
       <form action={logoutWithLocale}>
         <button
           type="submit"
-          className="flex w-full items-center justify-center gap-2.5 rounded-[var(--radius)] bg-gray-900 py-3.5 text-base font-semibold text-white transition-opacity hover:opacity-90"
+          className="flex w-full items-center justify-center gap-2.5 rounded-[2rem] bg-brand py-3.5 text-base font-bold text-white shadow-[0_14px_28px_-14px_rgba(246,104,18,0.9)] transition hover:brightness-95"
         >
           <LogOut className="h-5 w-5 shrink-0" aria-hidden />
           {dictionary.logout}

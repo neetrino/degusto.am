@@ -115,9 +115,14 @@
 }
 
 .icon {
+  display: block;
   width: 22px;
   height: 22px;
+  background-color: currentColor;
   transition: color 280ms ease;
+  mask: url("/assets/shop/switcher-none.webp") center / contain no-repeat;
+  -webkit-mask: url("/assets/shop/switcher-none.webp") center / contain
+    no-repeat;
 }
 
 .iconOnNeutral {

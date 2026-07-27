@@ -84,30 +84,33 @@ export function ProductCard({
           )}
         </AppLink>
 
-        {isSpicy ? (
-          <span className="absolute top-[13px] left-4 z-[3] flex size-8 items-center justify-center rounded-full bg-[#ff2b2e] p-1">
-            <Image
-              src={SPICY_ICON}
-              alt=""
-              width={19}
-              height={19}
-              className="size-[19px] -rotate-[13deg] object-contain"
-              aria-hidden
-            />
-          </span>
-        ) : null}
-
-        {isVegetarian ? (
-          <span className="absolute top-[51px] left-4 z-[4] size-8">
-            <Image
-              src={VEGGIE_ICON}
-              alt=""
-              width={32}
-              height={32}
-              className="size-8"
-              aria-hidden
-            />
-          </span>
+        {isVegetarian || isSpicy ? (
+          <div className="absolute top-2 left-4 z-[3] flex flex-col gap-2">
+            {isVegetarian ? (
+              <span className="size-8 shrink-0 overflow-hidden rounded-full">
+                <Image
+                  src={VEGGIE_ICON}
+                  alt=""
+                  width={32}
+                  height={32}
+                  className="size-8"
+                  aria-hidden
+                />
+              </span>
+            ) : null}
+            {isSpicy ? (
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#ff2b2e] p-1">
+                <Image
+                  src={SPICY_ICON}
+                  alt=""
+                  width={19}
+                  height={19}
+                  className="size-[19px] -rotate-[13deg] object-contain"
+                  aria-hidden
+                />
+              </span>
+            ) : null}
+          </div>
         ) : null}
 
         {canShowWishlist ? (

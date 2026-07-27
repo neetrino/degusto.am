@@ -32,6 +32,18 @@ type ProductRelatedCarouselProps = {
   cards: RelatedCard[];
 };
 
+function splitAccentTitle(title: string): { lead: string; rest: string } {
+  const trimmed = title.trim();
+  const spaceIndex = trimmed.indexOf(" ");
+  if (spaceIndex === -1) {
+    return { lead: trimmed, rest: "" };
+  }
+  return {
+    lead: trimmed.slice(0, spaceIndex),
+    rest: trimmed.slice(spaceIndex + 1),
+  };
+}
+
 /** Dark “try also” related products band with horizontal scroll. */
 export function ProductRelatedCarousel({
   locale,
@@ -49,16 +61,22 @@ export function ProductRelatedCarousel({
   function scrollByCard(direction: -1 | 1): void {
     const node = scrollerRef.current;
     if (!node) return;
-    const amount = Math.min(320, node.clientWidth * 0.8) * direction;
+    const item = node.querySelector<HTMLElement>("[data-carousel-item]");
+    const styles = window.getComputedStyle(node);
+    const gap = Number.parseFloat(styles.columnGap || styles.gap) || 16;
+    const amount = ((item?.offsetWidth ?? 280) + gap) * direction;
     node.scrollBy({ left: amount, behavior: "smooth" });
   }
+
+  const { lead, rest } = splitAccentTitle(title);
 
   return (
     <section className="relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2 rounded-none bg-surface-dark px-4 pt-10 pb-12 text-white sm:px-8 sm:pt-12 sm:pb-14 lg:rounded-[40px] lg:px-12 lg:pt-[4.8rem] lg:pb-16">
       <div className="mx-auto flex w-full max-w-[91.875rem] flex-col gap-8">
         <div className="mb-0 flex flex-wrap items-end justify-between gap-4 lg:mb-2">
           <h2 className="max-w-[min(100%,42rem)] font-display text-4xl leading-none font-black tracking-tight text-white uppercase md:text-5xl lg:text-[3.75rem]">
-            {title}
+            <span className="text-brand-headline">{lead}</span>
+            {rest ? ` ${rest}` : null}
           </h2>
           <AppLink
             href={viewMoreHref}
@@ -87,38 +105,41 @@ export function ProductRelatedCarousel({
             <ChevronRight className="size-5" aria-hidden />
           </button>
 
-          <div
-            ref={scrollerRef}
-            className="flex gap-4 overflow-x-auto pt-1 pb-12 [scrollbar-width:none] lg:gap-[30px] lg:px-12 lg:pb-14 [&::-webkit-scrollbar]:hidden"
-          >
-            {cards.map((card, index) => (
-              <div
-                key={card.id}
-                className="mb-2 w-[min(100%,260px)] shrink-0 sm:w-[240px]"
-              >
-                <CatalogProductCard
-                  href={card.href}
-                  title={card.title}
-                  priceFormatted={card.priceFormatted}
-                  compareAtFormatted={card.compareAtFormatted}
-                  discountPercent={card.discountPercent}
-                  imageUrl={card.imageUrl}
-                  inStock={card.inStock}
-                  priority={index < 3}
-                  locale={locale}
-                  productId={card.id}
-                  inWishlist={card.inWishlist}
-                  isSignedIn={isSignedIn}
-                  wishlistLabel={wishlistLabel}
-                  addToCartLabel={addToCartLabel}
-                  outOfStockLabel={outOfStockLabel}
-                  categoryLabel={card.categoryLabel}
-                  rating={5}
-                  isSpicy
-                  isVegetarian
-                />
-              </div>
-            ))}
+          <div className="overflow-hidden lg:mx-14">
+            <div
+              ref={scrollerRef}
+              className="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pt-1 pb-12 [scrollbar-width:none] lg:gap-[30px] lg:pb-14 [&::-webkit-scrollbar]:hidden"
+            >
+              {cards.map((card, index) => (
+                <div
+                  key={card.id}
+                  data-carousel-item
+                  className="mb-2 w-[calc((100%-1rem)/2)] shrink-0 snap-start sm:w-[calc((100%-2rem)/3)] md:w-[calc((100%-3rem)/4)] xl:w-[calc((100%-120px)/5)]"
+                >
+                  <CatalogProductCard
+                    href={card.href}
+                    title={card.title}
+                    priceFormatted={card.priceFormatted}
+                    compareAtFormatted={card.compareAtFormatted}
+                    discountPercent={card.discountPercent}
+                    imageUrl={card.imageUrl}
+                    inStock={card.inStock}
+                    priority={index < 3}
+                    locale={locale}
+                    productId={card.id}
+                    inWishlist={card.inWishlist}
+                    isSignedIn={isSignedIn}
+                    wishlistLabel={wishlistLabel}
+                    addToCartLabel={addToCartLabel}
+                    outOfStockLabel={outOfStockLabel}
+                    categoryLabel={card.categoryLabel}
+                    rating={5}
+                    isSpicy
+                    isVegetarian
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

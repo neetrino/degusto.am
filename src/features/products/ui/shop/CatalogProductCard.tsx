@@ -82,32 +82,33 @@ export function CatalogProductCard({
           )}
         </div>
 
-        {isVegetarian ? (
-          <span className="absolute top-5 left-4 z-[3] flex size-8 items-center justify-center overflow-hidden rounded-full">
-            <Image
-              src={VEGGIE_ICON}
-              alt=""
-              width={32}
-              height={32}
-              className="size-8 scale-110 object-cover"
-              aria-hidden
-            />
-          </span>
-        ) : null}
-
-        {isSpicy ? (
-          <span
-            className={`absolute left-4 z-[3] flex size-8 items-center justify-center rounded-full bg-[#ff2b2e] p-1 ${isVegetarian ? "top-[52px]" : "top-5"}`}
-          >
-            <Image
-              src={SPICY_ICON}
-              alt=""
-              width={19}
-              height={19}
-              className="size-[19px] -rotate-[13deg] object-contain"
-              aria-hidden
-            />
-          </span>
+        {isVegetarian || isSpicy ? (
+          <div className="absolute top-2 left-4 z-[3] flex flex-col gap-2">
+            {isVegetarian ? (
+              <span className="flex size-8 items-center justify-center overflow-hidden rounded-full">
+                <Image
+                  src={VEGGIE_ICON}
+                  alt=""
+                  width={32}
+                  height={32}
+                  className="size-8 scale-110 object-cover"
+                  aria-hidden
+                />
+              </span>
+            ) : null}
+            {isSpicy ? (
+              <span className="flex size-8 items-center justify-center rounded-full bg-[#ff2b2e] p-1">
+                <Image
+                  src={SPICY_ICON}
+                  alt=""
+                  width={19}
+                  height={19}
+                  className="size-[19px] -rotate-[13deg] object-contain"
+                  aria-hidden
+                />
+              </span>
+            ) : null}
+          </div>
         ) : null}
 
         <WishlistButton

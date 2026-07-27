@@ -1,12 +1,26 @@
 import { neon } from "@neondatabase/serverless";
-import { eq } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-http";
 
 import { hashPassword } from "@/lib/auth/password";
 import * as schema from "@/db/schema";
 import { getSeedEnv } from "@/db/seed/env";
+import { seedFigmaCatalog } from "@/db/seed/figma-catalog";
 import { seedIds } from "@/db/seed/ids";
 import { seedMenuCategories } from "@/db/seed/menu-categories";
+
+const SEED_INSERT_CHUNK_SIZE = 40;
+
+async function insertInChunks<T>(
+  items: ReadonlyArray<T>,
+  writeChunk: (chunk: T[]) => Promise<void>,
+): Promise<void> {
+  for (let index = 0; index < items.length; index += SEED_INSERT_CHUNK_SIZE) {
+    await writeChunk(
+      items.slice(index, index + SEED_INSERT_CHUNK_SIZE) as T[],
+    );
+  }
+}
 
 async function seed(): Promise<void> {
   const env = getSeedEnv();
@@ -17,6 +31,7 @@ async function seed(): Promise<void> {
   const customerEmail = env.SEED_CUSTOMER_EMAIL ?? "customer@white-shop.local";
   const customerPassword = env.SEED_CUSTOMER_PASSWORD ?? env.SEED_ADMIN_PASSWORD;
   const customerPasswordHash = await hashPassword(customerPassword);
+  const catalogProducts = seedFigmaCatalog.products;
 
   await db
     .insert(schema.users)
@@ -72,59 +87,6 @@ async function seed(): Promise<void> {
       },
     });
 
-  const burgerProducts = [
-    {
-      id: seedIds.productBurger1,
-      sku: "DG-BURGER-001",
-      title: "Double Cheeseburger",
-      slug: "double-cheeseburger",
-      mediaId: seedIds.mediaBurger1,
-      productCategoryId: seedIds.productCategoryBurger1,
-      objectKey: "assets/products/burger-1.webp",
-      sortOrder: 1,
-    },
-    {
-      id: seedIds.productBurger2,
-      sku: "DG-BURGER-002",
-      title: "Classic Burger",
-      slug: "classic-burger",
-      mediaId: seedIds.mediaBurger2,
-      productCategoryId: seedIds.productCategoryBurger2,
-      objectKey: "assets/products/burger-2.webp",
-      sortOrder: 2,
-    },
-    {
-      id: seedIds.productBurger3,
-      sku: "DG-BURGER-003",
-      title: "Spicy Burger",
-      slug: "spicy-burger",
-      mediaId: seedIds.mediaBurger3,
-      productCategoryId: seedIds.productCategoryBurger3,
-      objectKey: "assets/products/burger-3.webp",
-      sortOrder: 3,
-    },
-    {
-      id: seedIds.productBurger4,
-      sku: "DG-BURGER-004",
-      title: "Cheese Burger",
-      slug: "cheese-burger",
-      mediaId: seedIds.mediaBurger4,
-      productCategoryId: seedIds.productCategoryBurger4,
-      objectKey: "assets/products/burger-4.webp",
-      sortOrder: 4,
-    },
-    {
-      id: seedIds.productBurger5,
-      sku: "DG-BURGER-005",
-      title: "Deluxe Burger",
-      slug: "deluxe-burger",
-      mediaId: seedIds.mediaBurger5,
-      productCategoryId: seedIds.productCategoryBurger5,
-      objectKey: "assets/products/burger-5.webp",
-      sortOrder: 5,
-    },
-  ] as const;
-
   for (const category of seedMenuCategories) {
     await db
       .insert(schema.categories)
@@ -145,122 +107,88 @@ async function seed(): Promise<void> {
       });
   }
 
-  await db
-    .insert(schema.products)
-    .values(
-      burgerProducts.map((product) => ({
-        id: product.id,
-        sku: product.sku,
-        translations: {
-          hy: {
-            title: product.title,
-            slug: product.slug,
-            description: product.title,
-          },
-          en: {
-            title: product.title,
-            slug: product.slug,
-            description: product.title,
-          },
-          ru: {
-            title: product.title,
-            slug: product.slug,
-            description: product.title,
-          },
-        },
-        priceAmount: 1200,
-        compareAtAmount: 1714,
-        stockOnHand: 50,
-        lowStockThreshold: 5,
-        status: "ACTIVE" as const,
-        isFeatured: true,
-      })),
-    )
-    .onConflictDoUpdate({
-      target: schema.products.id,
-      set: {
-        priceAmount: 1200,
-        compareAtAmount: 1714,
-        stockOnHand: 50,
-        status: "ACTIVE",
-        isFeatured: true,
-        updatedAt: now,
-      },
-    });
-
-  for (const product of burgerProducts) {
+  await insertInChunks(catalogProducts, async (chunk) => {
     await db
-      .update(schema.products)
-      .set({
-        sku: product.sku,
-        translations: {
-          hy: {
-            title: product.title,
-            slug: product.slug,
-            description: product.title,
-          },
-          en: {
-            title: product.title,
-            slug: product.slug,
-            description: product.title,
-          },
-          ru: {
-            title: product.title,
-            slug: product.slug,
-            description: product.title,
-          },
-        },
-        updatedAt: now,
-      })
-      .where(eq(schema.products.id, product.id));
-  }
-
-  await db
-    .insert(schema.productCategories)
-    .values(
-      burgerProducts.map((product) => ({
-        id: product.productCategoryId,
-        productId: product.id,
-        categoryId: seedIds.categoryBurgers,
-        isPrimary: true,
-        sortOrder: product.sortOrder,
-      })),
-    )
-    .onConflictDoNothing({ target: schema.productCategories.id });
-
-  for (const product of burgerProducts) {
-    await db
-      .insert(schema.mediaAssets)
-      .values({
-        id: product.mediaId,
-        objectKey: product.objectKey,
-        mimeType: "image/webp",
-        byteSize: 80_000,
-        width: 454,
-        height: 294,
-        uploadStatus: "READY",
-        role: "PRIMARY",
-        sortOrder: 0,
-        isPrimary: true,
-        productId: product.id,
-        altTranslations: {
-          hy: product.title,
-          en: product.title,
-          ru: product.title,
-        },
-      })
+      .insert(schema.products)
+      .values(
+        chunk.map((product) => ({
+          id: product.id,
+          sku: product.sku,
+          translations: product.translations,
+          priceAmount: product.priceAmount,
+          compareAtAmount: product.compareAtAmount,
+          stockOnHand: 50,
+          lowStockThreshold: 5,
+          status: "ACTIVE" as const,
+          isFeatured: product.sortOrder <= 3,
+        })),
+      )
       .onConflictDoUpdate({
-        target: schema.mediaAssets.id,
+        target: schema.products.id,
         set: {
-          objectKey: product.objectKey,
-          uploadStatus: "READY",
-          role: "PRIMARY",
-          isPrimary: true,
-          productId: product.id,
+          sku: sql`excluded.sku`,
+          translations: sql`excluded.translations`,
+          priceAmount: sql`excluded.price_amount`,
+          compareAtAmount: sql`excluded.compare_at_amount`,
+          stockOnHand: sql`excluded.stock_on_hand`,
+          status: sql`excluded.status`,
+          isFeatured: sql`excluded.is_featured`,
           updatedAt: now,
         },
       });
-  }
+  });
+
+  await insertInChunks(catalogProducts, async (chunk) => {
+    await db
+      .insert(schema.productCategories)
+      .values(
+        chunk.map((product) => ({
+          id: product.productCategoryId,
+          productId: product.id,
+          categoryId: product.categoryId,
+          isPrimary: true,
+          sortOrder: product.sortOrder,
+        })),
+      )
+      .onConflictDoNothing({ target: schema.productCategories.id });
+  });
+
+  await insertInChunks(catalogProducts, async (chunk) => {
+    await db
+      .insert(schema.mediaAssets)
+      .values(
+        chunk.map((product) => ({
+          id: product.mediaId,
+          objectKey: product.objectKey,
+          mimeType: "image/webp",
+          byteSize: 80_000,
+          width: 454,
+          height: 294,
+          uploadStatus: "READY" as const,
+          role: "PRIMARY" as const,
+          sortOrder: 0,
+          isPrimary: true,
+          productId: product.id,
+          altTranslations: {
+            hy: product.translations.hy?.title ?? product.sku,
+            en: product.translations.en?.title ?? product.sku,
+            ru: product.translations.ru?.title ?? product.sku,
+          },
+        })),
+      )
+      .onConflictDoUpdate({
+        target: schema.mediaAssets.id,
+        set: {
+          objectKey: sql`excluded.object_key`,
+          uploadStatus: sql`excluded.upload_status`,
+          role: sql`excluded.role`,
+          isPrimary: sql`excluded.is_primary`,
+          productId: sql`excluded.product_id`,
+          altTranslations: sql`excluded.alt_translations`,
+          updatedAt: now,
+        },
+      });
+  });
 
   for (const category of seedMenuCategories) {
     await db
@@ -445,12 +373,12 @@ async function seed(): Promise<void> {
     .insert(schema.appMeta)
     .values({
       key: "seed.version",
-      value: "2",
+      value: "3",
     })
     .onConflictDoUpdate({
       target: schema.appMeta.key,
       set: {
-        value: "2",
+        value: "3",
         updatedAt: now,
       },
     });
@@ -461,14 +389,18 @@ async function seed(): Promise<void> {
       message: "seed.complete",
       adminEmail: env.SEED_ADMIN_EMAIL.toLowerCase(),
       customerEmail: customerEmail.toLowerCase(),
-      products: burgerProducts.map((product) => product.sku),
+      categories: seedMenuCategories.length,
+      products: catalogProducts.length,
       coupon: "WELCOME10",
     }),
   );
 }
 
 seed().catch((error: unknown) => {
-  const message = error instanceof Error ? error.message : String(error);
+  const message =
+    error instanceof Error
+      ? `${error.message}${error.cause ? ` | cause: ${String(error.cause)}` : ""}`
+      : String(error);
   console.error(
     JSON.stringify({ level: "error", message: "seed.failed", error: message }),
   );

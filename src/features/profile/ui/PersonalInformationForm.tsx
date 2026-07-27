@@ -10,7 +10,7 @@ import {
 } from "@/features/auth/update-profile-action";
 
 const FIELD_CLASS =
-  "h-11 w-full rounded-lg border border-gray-200 px-3 text-gray-900 outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-200";
+  "h-11 w-full rounded-xl border border-brand/20 bg-white px-3 text-product-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20";
 
 type PersonalInformationFormProps = {
   locale: string;
@@ -63,9 +63,9 @@ export function PersonalInformationForm({
   }
 
   return (
-    <Card className="rounded-2xl border border-gray-200/80 p-5 shadow-none sm:p-7 lg:p-8">
-      <div className="mb-8 border-b border-gray-100 pb-5 sm:mb-10 sm:pb-6">
-        <h1 className="text-lg font-bold tracking-tight text-gray-900 sm:text-xl">
+    <Card className="rounded-[24px] border border-brand/15 p-5 shadow-[0_14px_40px_-28px_rgba(28,25,23,0.35)] sm:p-7 lg:p-8">
+      <div className="mb-8 border-b border-brand/10 pb-5 sm:mb-10 sm:pb-6">
+        <h1 className="font-display text-lg font-black tracking-tight text-product-ink sm:text-xl">
           {labels.title}
         </h1>
       </div>

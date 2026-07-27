@@ -105,29 +105,7 @@ export function DietSwitcher({
         className={`${styles.iconButton} ${value === "none" ? styles.iconOnNeutral : styles.iconOnAccent}`}
         onClick={() => onChange("none")}
       >
-        <svg
-          className={styles.icon}
-          width={22}
-          height={22}
-          viewBox="0 0 33 33"
-          fill="none"
-          aria-hidden
-        >
-          <path
-            d="M26 6L7 26"
-            stroke="currentColor"
-            strokeWidth="4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M7 6L26 26"
-            stroke="currentColor"
-            strokeWidth="4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        <span className={styles.icon} aria-hidden />
       </button>
 
       <button

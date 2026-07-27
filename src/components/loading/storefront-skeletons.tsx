@@ -104,6 +104,33 @@ export function ProfileContentSkeleton() {
   );
 }
 
+/** Full profile route skeleton matching degusto-am /profile loading chrome. */
+export function ProfilePageSkeleton() {
+  return (
+    <div
+      className="min-h-full bg-white"
+      aria-busy="true"
+      aria-label="Loading profile"
+    >
+      <div className="mx-auto hidden w-full max-w-[min(1450px,calc(100%-2rem))] px-4 py-10 md:max-w-[min(1450px,calc(100%-2.5rem))] md:px-6 lg:block lg:max-w-[min(1450px,calc(100%-3rem))]">
+        <div className={`${pulse} grid grid-cols-12 items-start gap-6 lg:gap-8`}>
+          <aside className="col-span-12 lg:col-span-4 xl:col-span-3">
+            <div className="h-[560px] rounded-2xl border border-brand/20 bg-[#f3f3f3]" />
+          </aside>
+          <main className="col-span-12 lg:col-span-8 xl:col-span-9">
+            <div className="h-[560px] rounded-2xl border border-brand/20 bg-[#f3f3f3]" />
+          </main>
+        </div>
+      </div>
+      <div className="mx-auto w-full max-w-md px-4 pt-6 pb-8 lg:hidden">
+        <div
+          className={`${pulse} h-[420px] rounded-[2rem] bg-[#f3f3f3] ring-1 ring-brand/20`}
+        />
+      </div>
+    </div>
+  );
+}
+
 export function GenericPageSkeleton() {
   return (
     <div className={`${pulse} space-y-6`} aria-busy="true" aria-live="polite">

@@ -365,24 +365,20 @@ body {
   }
 
   .storefront-shell:has(.profile-desktop-page) {
-    height: 100dvh;
-    max-height: 100dvh;
-    min-height: 0;
-    overflow: hidden;
+    min-height: 100dvh;
   }
 
   .storefront-shell:has(.profile-desktop-page) .storefront-main {
     display: flex;
-    flex: 1 1 0%;
+    flex: 1 1 auto;
     flex-direction: column;
+    max-width: none;
     min-height: 0;
-    overflow: hidden;
-    padding-top: 24px;
-    padding-bottom: 20px;
-  }
-
-  .storefront-shell:has(.profile-desktop-page) .storefront-footer {
-    display: none;
+    /* Clear fixed header (~92px) + breathing room below it */
+    padding-top: 8.5rem;
+    padding-right: 0;
+    padding-bottom: 1.25rem;
+    padding-left: 0;
   }
 }
 
