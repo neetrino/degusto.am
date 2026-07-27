@@ -22,6 +22,7 @@ npm-debug.log*
 tmp/
 temp/
 .cache/
+.tmp-screenshots/
 
 # Local stub product uploads (until R2)
 public/uploads/

@@ -7,12 +7,17 @@
   --border: #e5e7eb;
   --accent: #111827;
   --accent-foreground: #f9fafb;
-  --brand: #ff7f20;
+  --brand: #f66812;
   --brand-strong: #f55c0a;
   --brand-foreground: #ffffff;
+  --brand-headline: #f66913;
   --surface-dark: #121212;
+  --surface-ink: #0c0d12;
+  --surface-muted: #e6e6e8;
+  --brand-forest: #3e573d;
   --product-ink: #3c2f2f;
   --radius: 15px;
+  --project-color: #f66812;
 }
 
 @theme inline {
@@ -25,13 +30,18 @@
   --color-brand: var(--brand);
   --color-brand-strong: var(--brand-strong);
   --color-brand-foreground: var(--brand-foreground);
+  --color-brand-headline: var(--brand-headline);
   --color-surface-dark: var(--surface-dark);
+  --color-surface-ink: var(--surface-ink);
+  --color-surface-muted: var(--surface-muted);
+  --color-brand-forest: var(--brand-forest);
   --color-product-ink: var(--product-ink);
   --font-sans: var(--font-montserrat), var(--font-noto-arm), var(--font-geist-sans),
     ui-sans-serif, sans-serif;
-  --font-display: var(--font-noto-arm), var(--font-montserrat), var(--font-geist-sans),
-    ui-sans-serif, sans-serif;
+  --font-display: var(--font-mirage), var(--font-noto-arm), var(--font-montserrat),
+    var(--font-geist-sans), ui-sans-serif, sans-serif;
   --font-mono: var(--font-geist-mono);
+  --animate-product-card-heart-beat: product-card-heart-beat 0.55s ease-in-out;
   --radius-sm: 15px;
   --radius-md: 15px;
   --radius-lg: 15px;
@@ -68,6 +78,20 @@ body {
   input:disabled,
   [aria-disabled="true"] {
     cursor: not-allowed;
+  }
+}
+
+/* Product card wishlist heart — matches degusto-am.vercel.app */
+@keyframes product-card-heart-beat {
+  0%,
+  to {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.22);
+  }
+  60% {
+    transform: scale(1.08);
   }
 }
 
@@ -266,6 +290,10 @@ body {
  * lock viewport height, hide footer, scroll only the content column.
  */
 @media (min-width: 1024px) {
+  .storefront-shell:has([data-home-page]) .storefront-main {
+    padding-bottom: 0;
+  }
+
   .storefront-shell:has(.profile-desktop-page) {
     height: 100dvh;
     max-height: 100dvh;

@@ -85,7 +85,7 @@ export function ProductCard({
         </AppLink>
 
         {isSpicy ? (
-          <span className="absolute top-5 left-4 z-[3] flex size-8 items-center justify-center rounded-full bg-[#ff2b2e] p-1">
+          <span className="absolute top-[13px] left-4 z-[3] flex size-8 items-center justify-center rounded-full bg-[#ff2b2e] p-1">
             <Image
               src={SPICY_ICON}
               alt=""
@@ -98,7 +98,7 @@ export function ProductCard({
         ) : null}
 
         {isVegetarian ? (
-          <span className="absolute top-[58px] left-4 z-[4] size-8">
+          <span className="absolute top-[51px] left-4 z-[4] size-8">
             <Image
               src={VEGGIE_ICON}
               alt=""
@@ -118,11 +118,11 @@ export function ProductCard({
             isSignedIn={isSignedIn}
             label={wishlistLabel}
             size="sm"
-            className="absolute top-5 right-4 z-[3] h-8 w-8 bg-white/90 text-gray-800 shadow-sm hover:bg-white"
+            className="absolute top-[13px] right-4 z-[3] h-8 w-8 border border-[#dedede]/90 bg-white/95 text-gray-700 shadow-md hover:border-red-300 hover:bg-red-50 hover:text-red-500 hover:shadow-[0_4px_14px_rgba(239,68,68,0.35)]"
           />
         ) : null}
 
-        <div className="absolute top-[170px] left-[14px] z-[5] h-[90px] w-[209px]">
+        <div className="absolute top-[170px] left-[14px] z-[5] min-h-[90px] w-[209px]">
           <div className="absolute top-0 left-0 flex w-[120px] flex-col items-start gap-[5px]">
             {rating != null ? (
               <div className="flex h-[21px] items-center gap-1.5">
@@ -139,7 +139,7 @@ export function ProductCard({
                 </span>
               </div>
             ) : null}
-            <h3 className="line-clamp-2 h-[39px] text-base font-bold leading-normal text-product-ink">
+            <h3 className="line-clamp-2 text-base font-bold leading-snug text-product-ink">
               <AppLink
                 href={href}
                 prefetchPolicy={priority ? "intent" : "auto"}
@@ -184,7 +184,7 @@ export function ProductCard({
           productId={productId}
           label={addToCartLabel}
           disabled={!inStock}
-          className="absolute top-[259px] left-[93px] z-[1] h-[52px] w-[51px] hover:brightness-95"
+          className="absolute top-[259px] left-[93px] z-[1] h-[52px] w-[51px]"
         />
       ) : null}
     </article>

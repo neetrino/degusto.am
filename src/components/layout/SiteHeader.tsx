@@ -1,15 +1,14 @@
 import { Suspense } from "react";
 
 import { SiteHeaderMainNav } from "@/components/layout/SiteHeaderMainNav";
+import { SiteHeaderShell } from "@/components/layout/SiteHeaderShell";
 import { getCartDrawerView } from "@/features/cart/get-cart-drawer-view";
 import { getWishlistCount } from "@/features/wishlist/queries";
 import { getCurrentUser } from "@/lib/auth/session";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
 import type { Currency } from "@/lib/money/currency";
-import {
-  createDisplayPriceFormatter,
-} from "@/lib/money/display-price";
+import { createDisplayPriceFormatter } from "@/lib/money/display-price";
 
 type SiteHeaderProps = {
   locale: Locale;
@@ -40,7 +39,7 @@ async function SiteHeaderMainNavAsync({
 }: SiteHeaderProps) {
   const navItems = [
     { href: `/${locale}`, label: dictionary.nav.home },
-    { href: `/${locale}/products`, label: dictionary.nav.kitchen },
+    { href: `/${locale}/products`, label: dictionary.nav.shop },
     {
       href: `/${locale}/products?collection=combos`,
       label: dictionary.nav.combos,
@@ -76,13 +75,11 @@ async function SiteHeaderMainNavAsync({
 /**
  * Storefront chrome: Degusto pill header streams account/cart/wishlist
  * in a Suspense island so page content is not blocked.
+ * Hidden on home mobile where HomeMobile renders its own chrome.
  */
 export function SiteHeader({ locale, currency, dictionary }: SiteHeaderProps) {
   return (
-    <div
-      className="site-header pointer-events-none absolute inset-x-0 top-0 z-[80]"
-      data-site-header
-    >
+    <SiteHeaderShell locale={locale}>
       <Suspense
         fallback={<HeaderControlsFallback brand={dictionary.brand} />}
       >
@@ -92,6 +89,6 @@ export function SiteHeader({ locale, currency, dictionary }: SiteHeaderProps) {
           dictionary={dictionary}
         />
       </Suspense>
-    </div>
+    </SiteHeaderShell>
   );
 }

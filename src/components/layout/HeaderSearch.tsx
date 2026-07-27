@@ -51,7 +51,7 @@ export function HeaderSearch({
       />
       <button
         type="submit"
-        className="absolute top-1 right-1 inline-flex h-10 items-center gap-1.5 rounded-[20px] bg-[#f66812] py-2 pr-4 pl-3 text-[15px] font-semibold text-white transition hover:bg-brand-strong"
+        className="absolute top-1 right-1 inline-flex h-10 items-center gap-1.5 rounded-[20px] bg-brand py-2 pr-4 pl-3 text-[15px] font-semibold text-white transition hover:bg-brand-strong"
       >
         <Search className="size-5 shrink-0" aria-hidden />
         <span>{searchLabel}</span>

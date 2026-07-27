@@ -28,13 +28,31 @@
     "searchPlaceholder": "..."
   },
   "footer": {
-    "shop": "Shop",
-    "description": "Professional e-commerce storefront for everyday shopping.",
-    "quickLinks": "Quick Links",
-    "legal": "Legal",
+    "addressesTitle": "Addresses",
+    "contactsTitle": "Contacts",
+    "termsTitle": "Terms",
+    "linksTitle": "Links",
+    "addresses": [
+      "Paruyr Sevak 92",
+      "Bagratunyats 11A",
+      "Azatutyan 24/19, Coffee Studio by Degusto"
+    ],
+    "email": "info@degusto.am",
+    "phones": "Tel. (060) 38-80-80 / (033)-80-80-80 / (010)-38-80-80",
     "privacyPolicy": "Privacy Policy",
-    "terms": "Terms",
-    "contactInfo": "Contact Information",
-    "copyright": "Copyright © {year} Neetrino IT Company. All Rights Reserved."
+    "shippingPolicy": "Shipping Policy",
+    "returnPolicy": "Return Policy",
+    "terms": "Terms and Conditions",
+    "copyrightLead": "Copyright © {year} | All rights reserved | Created by",
+    "copyrightBrand": "Neetrino IT Company",
+    "copyrightTrail": "",
+    "neetrinoHref": "https://neetrino.com",
+    "social": {
+      "instagram": "https://instagram.com",
+      "facebook": "https://facebook.com",
+      "telegram": "https://t.me",
+      "whatsapp": "https://wa.me",
+      "viber": "https://viber.com"
+    }
   }
 }

@@ -5,6 +5,7 @@ import { listActiveHeroSlides } from "@/features/hero/application/queries";
 import { HomeCategories } from "@/features/home/ui/HomeCategories";
 import { HomeFeaturedProducts } from "@/features/home/ui/HomeFeaturedProducts";
 import { HomeHero } from "@/features/home/ui/HomeHero";
+import { HomeMobile } from "@/features/home/ui/HomeMobile";
 import {
   getFeaturedProducts,
   getPrimaryCategoryLabels,
@@ -24,7 +25,8 @@ type HomePageProps = {
 };
 
 const HOME_FEATURED_LIMIT = 5;
-const FEATURED_CARD_RATING = 4.7;
+const HOME_DAILY_OFFERS_LIMIT = 12;
+const FEATURED_CARD_RATING = 5;
 
 function formatProductCount(template: string, count: number): string {
   return template.replace("{count}", String(count));
@@ -49,6 +51,16 @@ function formatCardPrice(price: DisplayPrice): string {
   return price.formatted;
 }
 
+function firstPhoneHref(phones: string): string {
+  const match = phones.match(/\d[\d\s()-]{5,}/);
+  if (!match) {
+    return "tel:+37460388080";
+  }
+
+  const digits = match[0].replace(/\D/g, "");
+  return `tel:+${digits.startsWith("0") ? `374${digits.slice(1)}` : digits}`;
+}
+
 export default async function HomePage({ params }: HomePageProps) {
   const { locale: rawLocale } = await params;
 
@@ -68,16 +80,22 @@ export default async function HomePage({ params }: HomePageProps) {
     ]);
 
   const homeProducts = featuredProducts.slice(0, HOME_FEATURED_LIMIT);
+  const dailyOfferProducts = featuredProducts.slice(0, HOME_DAILY_OFFERS_LIMIT);
+  const cardSource = featuredProducts.slice(
+    0,
+    Math.max(HOME_FEATURED_LIMIT, HOME_DAILY_OFFERS_LIMIT),
+  );
+
   const [wishlistIds, formatPrice, categoryLabels] = await Promise.all([
-    getWishlistProductIds(homeProducts.map((product) => product.id)),
+    getWishlistProductIds(cardSource.map((product) => product.id)),
     createDisplayPriceFormatter(locale, currency),
     getPrimaryCategoryLabels(
-      homeProducts.map((product) => product.id),
+      cardSource.map((product) => product.id),
       locale,
     ),
   ]);
 
-  const featuredCards = homeProducts.map((product) => {
+  function toCard(product: (typeof featuredProducts)[number]) {
     const price = formatPrice(product.priceAmount);
     const compareAt =
       product.compareAtAmount != null
@@ -104,8 +122,10 @@ export default async function HomePage({ params }: HomePageProps) {
       isSpicy: true,
       isVegetarian: true,
     };
-  });
+  }
 
+  const featuredCards = homeProducts.map(toCard);
+  const dailyOfferCards = dailyOfferProducts.map(toCard);
   const dailyOffer = featuredCards[0] ?? null;
 
   const categoryCards = categories.map((category) => ({
@@ -120,38 +140,68 @@ export default async function HomePage({ params }: HomePageProps) {
   }));
 
   return (
-    <div className="-mx-4 -mt-[7.5rem] -mb-10 sm:-mx-6 lg:-mx-8">
-      <HomeHero
-        slides={heroSlides}
-        fallbackTitle={dictionary.home.title}
+    <div className="-mx-4 -mt-[7.5rem] -mb-10 sm:-mx-6 lg:-mx-8" data-home-page>
+      <HomeMobile
         locale={locale}
-        wishlistLabel={dictionary.nav.wishlist}
-        addToCartLabel={dictionary.product.addToCart}
-        outOfStockLabel={dictionary.product.outOfStock}
-        dailyOfferLabel={dictionary.home.dailyOffer}
-        isSignedIn={Boolean(user)}
-        dailyOffer={dailyOffer}
-      />
-
-      <HomeFeaturedProducts
-        locale={locale}
-        titleLead={dictionary.home.featuredTitleLead}
-        titleAccent={dictionary.home.featuredTitleAccent}
+        currency={currency}
+        brand={dictionary.brand}
+        callLabel={dictionary.home.call}
+        phoneHref={firstPhoneHref(dictionary.footer.phones)}
+        currencyLabel={dictionary.header.currency}
+        languageLabel={dictionary.header.language}
+        categoriesTitle={dictionary.home.categoriesTitle}
+        viewAllCategoriesLabel={dictionary.home.viewAllCategories}
+        viewAllCategoriesHref={`/${locale}/products`}
+        newProductsTitle={dictionary.home.newProductsTitle}
         viewAllLabel={dictionary.home.viewAll}
         viewAllHref={`/${locale}/products`}
-        emptyLabel={dictionary.home.emptyFeatured}
+        dailyOfferLabel={dictionary.home.dailyOffer}
         wishlistLabel={dictionary.nav.wishlist}
         addToCartLabel={dictionary.product.addToCart}
         outOfStockLabel={dictionary.product.outOfStock}
         isSignedIn={Boolean(user)}
+        categories={categoryCards}
+        dailyOffers={dailyOfferCards}
         products={featuredCards}
       />
 
-      <HomeCategories
-        title={dictionary.home.categoriesTitle}
-        emptyLabel={dictionary.home.emptyCategories}
-        categories={categoryCards}
-      />
+      <div className="hidden lg:block">
+        <div className="relative left-1/2 right-1/2 hidden w-screen -ml-[50vw] -mr-[50vw] bg-[var(--project-color)] lg:block">
+          {/* Fills the header band with the same orange as the hero (no z-index change). */}
+          <div
+            className="pointer-events-none absolute inset-x-0 top-0 h-[7.5rem] bg-[var(--project-color)]"
+            aria-hidden
+          />
+          <HomeHero
+            slides={heroSlides}
+            fallbackTitle={dictionary.home.title}
+            locale={locale}
+            addToCartLabel={dictionary.product.addToCart}
+            dailyOfferLabel={dictionary.home.dailyOffer}
+            dailyOffer={dailyOffer}
+          />
+
+          <HomeFeaturedProducts
+            locale={locale}
+            titleLead={dictionary.home.featuredTitleLead}
+            titleAccent={dictionary.home.featuredTitleAccent}
+            viewAllLabel={dictionary.home.viewAll}
+            viewAllHref={`/${locale}/products`}
+            emptyLabel={dictionary.home.emptyFeatured}
+            wishlistLabel={dictionary.nav.wishlist}
+            addToCartLabel={dictionary.product.addToCart}
+            outOfStockLabel={dictionary.product.outOfStock}
+            isSignedIn={Boolean(user)}
+            products={featuredCards}
+          />
+        </div>
+
+        <HomeCategories
+          title={dictionary.home.categoriesTitle}
+          emptyLabel={dictionary.home.emptyCategories}
+          categories={categoryCards}
+        />
+      </div>
     </div>
   );
 }

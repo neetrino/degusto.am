@@ -3,9 +3,9 @@
 import {
   Heart,
   Home,
-  ShoppingBag,
   ShoppingCart,
   User,
+  UtensilsCrossed,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
@@ -42,23 +42,20 @@ function startsWithPath(pathname: string, base: string): boolean {
   return pathname === base || pathname.startsWith(`${base}/`);
 }
 
-function tabClassName(active: boolean): string {
-  return [
-    "relative flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 py-2 text-[10px] font-medium transition-colors",
-    active ? "text-gray-900" : "text-gray-500 hover:text-gray-800",
-  ].join(" ");
-}
-
 function NavBadge({ count }: { count: number }) {
   if (count <= 0) {
     return null;
   }
 
   return (
-    <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gray-900 px-1 text-[9px] font-semibold text-white">
+    <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[9px] font-semibold text-white">
       {count > 99 ? "99+" : count}
     </span>
   );
+}
+
+function iconClass(active: boolean): string {
+  return active ? "text-brand" : "text-white";
 }
 
 function LinkTab({
@@ -75,21 +72,22 @@ function LinkTab({
       href={tab.href}
       prefetchPolicy="intent"
       aria-current={active ? "page" : undefined}
-      className={tabClassName(active)}
+      aria-label={tab.label}
+      className="relative flex min-w-0 flex-1 flex-col items-center justify-center px-1 py-2"
     >
       <span className="relative inline-flex">
         <Icon
-          className="h-5 w-5"
+          className={`h-5 w-5 ${iconClass(active)}`}
           strokeWidth={active ? 2.25 : 1.75}
           aria-hidden="true"
         />
         {tab.badge != null ? <NavBadge count={tab.badge} /> : null}
       </span>
-      <span className="truncate">{tab.label}</span>
     </AppLink>
   );
 }
 
+/** Floating dark mobile dock — live degusto-am style. */
 export function MobileBottomNav({
   locale,
   currency,
@@ -109,14 +107,6 @@ export function MobileBottomNav({
     label: dictionary.nav.home,
     icon: Home,
     match: (path) => isHomePath(path, locale),
-  };
-
-  const shopTab: NavTab = {
-    id: "shop",
-    href: `/${locale}/products`,
-    label: dictionary.nav.shop,
-    icon: ShoppingBag,
-    match: (path) => startsWithPath(path, `/${locale}/products`),
   };
 
   const wishlistTab: NavTab = {
@@ -141,11 +131,10 @@ export function MobileBottomNav({
   return (
     <nav
       aria-label={dictionary.nav.navigation}
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-sm md:hidden"
+      className="pointer-events-none fixed bottom-0 left-1/2 z-40 h-[159px] w-[375px] max-w-full -translate-x-1/2 md:hidden"
     >
-      <div className="mx-auto flex h-14 max-w-7xl items-stretch">
+      <div className="pointer-events-auto absolute bottom-[25px] left-1/2 flex h-[70px] w-[min(343px,calc(100%-2rem))] -translate-x-1/2 items-center rounded-[28px] bg-[#121212] px-2 shadow-lg">
         <LinkTab tab={homeTab} active={homeTab.match(pathname)} />
-        <LinkTab tab={shopTab} active={shopTab.match(pathname)} />
 
         <CartDrawer
           locale={locale}
@@ -166,20 +155,28 @@ export function MobileBottomNav({
               onFocus={prefetchDrawerView}
               aria-label={label}
               aria-expanded={open}
-              className={tabClassName(open)}
+              className="relative flex min-w-0 flex-1 flex-col items-center justify-center px-1 py-2"
             >
               <span className="relative inline-flex">
                 <ShoppingCart
-                  className="h-5 w-5"
+                  className={`h-5 w-5 ${iconClass(open)}`}
                   strokeWidth={open ? 2.25 : 1.75}
                   aria-hidden="true"
                 />
                 <NavBadge count={badgeCount} />
               </span>
-              <span className="truncate">{label}</span>
             </button>
           )}
         />
+
+        <AppLink
+          href={`/${locale}/products`}
+          prefetchPolicy="intent"
+          aria-label={dictionary.nav.shop}
+          className="relative -mt-8 inline-flex size-[70px] shrink-0 items-center justify-center rounded-full bg-brand text-white shadow-md transition hover:brightness-110"
+        >
+          <UtensilsCrossed className="size-7" aria-hidden />
+        </AppLink>
 
         <LinkTab tab={wishlistTab} active={wishlistTab.match(pathname)} />
         <LinkTab tab={profileTab} active={profileTab.match(pathname)} />

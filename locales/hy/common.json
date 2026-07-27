@@ -4,7 +4,7 @@
     "home": "Գլխավոր",
     "products": "Ապրանքներ",
     "kitchen": "Խոհանոց",
-    "combos": "Կոմբոներ",
+    "combos": "Կոմբո",
     "shop": "Խանութ",
     "blog": "Բլոգ",
     "cart": "Զամբյուղ",
@@ -28,13 +28,31 @@
     "searchPlaceholder": "..."
   },
   "footer": {
-    "shop": "Խանութ",
-    "description": "Պրոֆեսիոնալ առցանց խանութ ամենօրյա գնումների համար։",
-    "quickLinks": "Արագ հղումներ",
-    "legal": "Իրավական",
+    "addressesTitle": "Հասցեներ",
+    "contactsTitle": "Կոնտակտներ",
+    "termsTitle": "Պայմաններ",
+    "linksTitle": "Հղումներ",
+    "addresses": [
+      "Պարույր Սևակի 92",
+      "Բագրատունյաց 11Ա",
+      "Ազատության 24/19, Coffee Studio by Degusto"
+    ],
+    "email": "info@degusto.am",
+    "phones": "Հեռ. (060) 38-80-80 / (033)-80-80-80 / (010)-38-80-80",
     "privacyPolicy": "Գաղտնիության քաղաքականություն",
-    "terms": "Պայմաններ",
-    "contactInfo": "Կապի տվյալներ",
-    "copyright": "Copyright © {year} Neetrino IT Company. All Rights Reserved."
+    "shippingPolicy": "Առաքման քաղաքականություն",
+    "returnPolicy": "Վերադարձի քաղաքականություն",
+    "terms": "Պայմաններ և դրույթներ",
+    "copyrightLead": "Copyright © {year} | Բոլոր իրավունքները պաշտպանված են | Ստեղծվել է",
+    "copyrightBrand": "Neetrino IT Company",
+    "copyrightTrail": "կողմից",
+    "neetrinoHref": "https://neetrino.com",
+    "social": {
+      "instagram": "https://instagram.com",
+      "facebook": "https://facebook.com",
+      "telegram": "https://t.me",
+      "whatsapp": "https://wa.me",
+      "viber": "https://viber.com"
+    }
   }
 }

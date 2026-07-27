@@ -1,5 +1,7 @@
+"use client";
+
 import Image from "next/image";
-import { UserRound } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 import { AccountControls } from "@/components/layout/AccountControls";
 import { HeaderCartButton } from "@/components/layout/HeaderCartButton";
@@ -29,7 +31,15 @@ type SiteHeaderMainNavProps = {
   wishlistCount: number;
 };
 
-const LOGO_SRC = "/assets/brand/logo.webp";
+const LOGO_SRC = "/assets/brand/degusto-logo.webp";
+
+function isNavActive(pathname: string, href: string, locale: Locale): boolean {
+  const pathOnly = href.split("?")[0] ?? href;
+  if (pathOnly === `/${locale}` || pathOnly === `/${locale}/`) {
+    return pathname === `/${locale}` || pathname === `/${locale}/`;
+  }
+  return pathname === pathOnly || pathname.startsWith(`${pathOnly}/`);
+}
 
 export function SiteHeaderMainNav({
   locale,
@@ -41,9 +51,11 @@ export function SiteHeaderMainNav({
   cartTotalFormatted,
   wishlistCount,
 }: SiteHeaderMainNavProps) {
+  const pathname = usePathname() ?? `/${locale}`;
+
   return (
-    <header className="pointer-events-auto relative z-40 px-3 pt-4 sm:px-6 md:px-8 md:pt-6">
-      <div className="mx-auto flex h-16 max-w-[1374px] items-center gap-3 rounded-full bg-black px-3 sm:h-20 sm:gap-4 sm:px-5 md:px-8">
+    <header className="pointer-events-auto relative z-40 px-3 pt-3 sm:px-6 md:px-8">
+      <div className="mx-auto flex h-20 max-w-[min(1450px,calc(100%-2rem))] items-center gap-2 overflow-visible rounded-[120px] border border-white/10 bg-gradient-to-r from-[#0f1017] to-[#13151d] px-6 shadow-2xl md:max-w-[min(1450px,calc(100%-2.5rem))] md:px-8 lg:max-w-[min(1450px,calc(100%-3rem))] lg:px-10 xl:px-11">
         <AppLink
           href={`/${locale}`}
           prefetchPolicy="intent"
@@ -64,16 +76,24 @@ export function SiteHeaderMainNav({
           aria-label={dictionary.nav.navigation}
           className="ml-2 hidden items-center gap-6 xl:ml-6 xl:flex xl:gap-[30px]"
         >
-          {navItems.map((item) => (
-            <AppLink
-              key={`${item.href}-${item.label}`}
-              href={item.href}
-              prefetchPolicy="intent"
-              className="text-base font-semibold whitespace-nowrap text-white/90 transition hover:text-white"
-            >
-              {item.label}
-            </AppLink>
-          ))}
+          {navItems.map((item) => {
+            const active = isNavActive(pathname, item.href, locale);
+            return (
+              <AppLink
+                key={`${item.href}-${item.label}`}
+                href={item.href}
+                prefetchPolicy="intent"
+                aria-current={active ? "page" : undefined}
+                className={
+                  active
+                    ? "text-base font-semibold whitespace-nowrap text-brand transition hover:text-brand"
+                    : "text-base font-semibold whitespace-nowrap text-white/90 transition hover:text-white"
+                }
+              >
+                {item.label}
+              </AppLink>
+            );
+          })}
         </nav>
 
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
@@ -115,8 +135,17 @@ export function SiteHeaderMainNav({
               profileLabel={dictionary.header.profile}
               adminLabel={dictionary.header.admin}
               user={user}
-              triggerClassName="inline-flex size-12 items-center justify-center rounded-full bg-white text-brand shadow-sm transition hover:bg-white/90"
-              icon={<UserRound className="size-7" aria-hidden />}
+              triggerClassName="inline-flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white shadow-sm ring-1 ring-black/10 transition-colors hover:ring-brand/40"
+              icon={
+                <Image
+                  src="/assets/brand/account-arrow-up.webp"
+                  alt=""
+                  width={36}
+                  height={36}
+                  className="h-9 w-9 translate-x-0.5 -translate-y-0.5 object-contain"
+                  aria-hidden
+                />
+              }
             />
           </div>
 

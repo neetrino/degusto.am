@@ -9,13 +9,15 @@
   "submit": "Send message",
   "success": "Thank you — your message was sent.",
   "error": "Unable to send your message.",
-  "storePhone": "+374 XX XXX XXX",
-  "storeEmail": "info@shop.am",
-  "storeAddress": "Yerevan, Abovyan 10",
+  "storePhone": "(060) 38-80-80",
+  "storeEmail": "info@degusto.am",
+  "storeAddress": "Paruyr Sevak 92",
   "social": {
     "instagram": "https://instagram.com",
     "facebook": "https://facebook.com",
-    "linkedin": "https://linkedin.com"
+    "telegram": "https://t.me",
+    "whatsapp": "https://wa.me",
+    "viber": "https://viber.com"
   },
   "callTitle": "Call Us:",
   "callDescription": "We are available 24/7, 7 days a week.",

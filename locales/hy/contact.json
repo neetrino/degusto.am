@@ -9,13 +9,15 @@
   "submit": "Ուղարկել",
   "success": "Շնորհակալություն — հաղորդագրությունն ուղարկված է։",
   "error": "Չհաջողվեց ուղարկել հաղորդագրությունը։",
-  "storePhone": "+374 XX XXX XXX",
-  "storeEmail": "info@shop.am",
-  "storeAddress": "Երևան, Աբովյան 10",
+  "storePhone": "(060) 38-80-80",
+  "storeEmail": "info@degusto.am",
+  "storeAddress": "Պարույր Սևակի 92",
   "social": {
     "instagram": "https://instagram.com",
     "facebook": "https://facebook.com",
-    "linkedin": "https://linkedin.com"
+    "telegram": "https://t.me",
+    "whatsapp": "https://wa.me",
+    "viber": "https://viber.com"
   },
   "callTitle": "Զանգահարեք մեզ՝",
   "callDescription": "Մենք հասանելի ենք 24/7, շաբաթը 7 օր։",
