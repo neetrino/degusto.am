@@ -32,7 +32,7 @@ export type {
   ProductGalleryImage,
 } from "@/features/products/types";
 
-const RELATED_PRODUCTS_LIMIT = 4;
+const RELATED_PRODUCTS_LIMIT = 8;
 /** Matches live degusto-am shop grid (3×4). */
 export const CATALOG_PAGE_SIZE = 12;
 /** PostgreSQL `integer` max — price filters must stay within this range. */

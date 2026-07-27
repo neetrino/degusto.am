@@ -52,13 +52,14 @@ export function CartDrawer({
   const [loadingView, setLoadingView] = useState(false);
   const [pending, startTransition] = useTransition();
   const labels = dictionary.cartDrawer;
-  const badgeCount = view?.itemCount ?? itemCount;
-  const hasItems = Boolean(view && view.items.length > 0);
+  // Ignore cached drawer payload when it disagrees with the server badge
+  // (stale empty prefetch after addToCart would otherwise hide line items).
+  const syncedView =
+    view && view.itemCount === itemCount ? view : null;
+  const badgeCount = syncedView?.itemCount ?? itemCount;
+  const hasItems = Boolean(syncedView && syncedView.items.length > 0);
 
-  function prefetchDrawerView(): void {
-    if (view || loadingView || open) {
-      return;
-    }
+  function fetchDrawerView(): void {
     setLoadingView(true);
     startTransition(async () => {
       const next = await loadCartDrawerViewAction(locale, currency);
@@ -67,16 +68,17 @@ export function CartDrawer({
     });
   }
 
+  function prefetchDrawerView(): void {
+    if (syncedView || loadingView || open) {
+      return;
+    }
+    fetchDrawerView();
+  }
+
   function openDrawer(): void {
     setOpen(true);
-    if (!view) {
-      setLoadingView(true);
-      startTransition(async () => {
-        const next = await loadCartDrawerViewAction(locale, currency);
-        setView(next);
-        setLoadingView(false);
-      });
-    }
+    // Always reload on open so adds from product cards/PDP are visible.
+    fetchDrawerView();
   }
 
   function closeDrawer(): void {
@@ -125,12 +127,12 @@ export function CartDrawer({
             pending || loadingView ? "opacity-70" : ""
           }`}
         >
-          {loadingView && !view ? (
+          {loadingView && !hasItems ? (
             <div className="space-y-3">
               <div className="h-24 animate-pulse rounded-[20px] bg-gray-100" />
               <div className="h-24 animate-pulse rounded-[20px] bg-gray-100" />
             </div>
-          ) : !view || view.items.length === 0 ? (
+          ) : !syncedView || syncedView.items.length === 0 ? (
             <div className="flex h-full min-h-[280px] flex-col items-center justify-center px-2 text-center">
               <div className="flex h-28 w-28 items-center justify-center rounded-full bg-gray-100 text-gray-400">
                 <ShoppingCart className="h-12 w-12" aria-hidden />
@@ -157,7 +159,7 @@ export function CartDrawer({
             </div>
           ) : (
             <ul className="space-y-3">
-              {view.items.map((item) => (
+              {syncedView.items.map((item) => (
                 <li
                   key={item.id}
                   className="rounded-[20px] border border-gray-200 bg-white p-3 shadow-sm"
@@ -245,18 +247,20 @@ export function CartDrawer({
             <div className="flex items-center justify-between text-gray-600">
               <dt>{labels.subtotal}</dt>
               <dd className="tabular-nums text-gray-900">
-                {view?.subtotalFormatted ?? "—"}
+                {syncedView?.subtotalFormatted ?? "—"}
               </dd>
             </div>
             <div className="flex items-center justify-between text-gray-600">
               <dt>{labels.shipping}</dt>
               <dd className="tabular-nums text-gray-900">
-                {view?.shippingFormatted ?? "—"}
+                {syncedView?.shippingFormatted ?? "—"}
               </dd>
             </div>
             <div className="flex items-center justify-between pt-1 text-base font-bold text-gray-900">
               <dt>{labels.total}</dt>
-              <dd className="tabular-nums">{view?.totalFormatted ?? "—"}</dd>
+              <dd className="tabular-nums">
+                {syncedView?.totalFormatted ?? "—"}
+              </dd>
             </div>
           </dl>
 

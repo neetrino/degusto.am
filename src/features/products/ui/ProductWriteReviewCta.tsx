@@ -40,10 +40,10 @@ type ProductWriteReviewCtaProps = {
 };
 
 const ctaClassName =
-  "inline-flex items-center justify-center rounded-full bg-gray-900 px-10 py-3 text-base font-semibold text-white transition hover:bg-gray-800";
+  "flex h-12 w-[18.4375rem] max-w-full items-center justify-center rounded-[70px] bg-[#ff7f20] text-base font-medium text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50";
 
 const secondaryCtaClassName =
-  "inline-flex items-center justify-center rounded-full border border-gray-300 bg-white px-8 py-2.5 text-sm font-semibold text-gray-900 transition hover:bg-gray-50";
+  "inline-flex h-11 items-center justify-center rounded-[70px] border border-[#dedede] bg-white px-8 text-sm font-semibold text-product-ink transition hover:bg-gray-50";
 
 export function ProductWriteReviewCta({
   locale,

@@ -302,6 +302,47 @@ body {
   background-color: #fbf6ea;
 }
 
+/* Auth (login/register): cream canvas on mobile; desktop orange via page shell. */
+.storefront-shell:has([data-auth-page]) {
+  background-color: #fbf6ea;
+}
+
+.storefront-shell:has([data-auth-page]) .storefront-main {
+  padding-bottom: 0;
+}
+
+.storefront-shell:has([data-auth-page]) .storefront-footer {
+  background-color: #fbf6ea;
+}
+
+@media (min-width: 1024px) {
+  .storefront-shell:has([data-auth-page]) {
+    background-color: #f66812;
+  }
+
+  .storefront-shell:has([data-auth-page]) .storefront-footer {
+    background-color: #ffffff;
+  }
+}
+
+/* Shop / combo / PDP: white canvas meets the rounded footer (no gray strip). */
+.storefront-shell:has([data-shop-page]),
+.storefront-shell:has([data-pdp-page]) {
+  background-color: #ffffff;
+}
+
+.storefront-shell:has([data-shop-page]) .storefront-footer,
+.storefront-shell:has([data-pdp-page]) .storefront-footer {
+  background-color: #ffffff;
+}
+
+@media (min-width: 768px) {
+  .storefront-shell:has([data-shop-page]) .storefront-main,
+  .storefront-shell:has([data-pdp-page]) .storefront-main {
+    padding-bottom: 0;
+  }
+}
+
 @media (min-width: 1024px) {
   .storefront-shell:has([data-home-page]) .storefront-main {
     padding-bottom: 0;

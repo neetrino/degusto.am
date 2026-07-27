@@ -1,6 +1,7 @@
 "use client";
 
 import { Minus, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { addToCart } from "@/features/cart/cart";
@@ -26,6 +27,7 @@ type ProductPurchaseControlsProps = {
   };
 };
 
+/** PDP qty + cart + wishlist — Degusto orange pill controls. */
 export function ProductPurchaseControls({
   locale,
   productId,
@@ -35,6 +37,7 @@ export function ProductPurchaseControls({
   wishlistLabel,
   labels,
 }: ProductPurchaseControlsProps) {
+  const router = useRouter();
   const maxQty = Math.max(stockOnHand, 0);
   const [quantity, setQuantity] = useState(maxQty > 0 ? 1 : 0);
   const [message, setMessage] = useState<string | null>(null);
@@ -57,6 +60,7 @@ export function ProductPurchaseControls({
       try {
         await addToCart(productId, quantity);
         setMessage(labels.added);
+        router.refresh();
       } catch {
         setError(labels.error);
       }
@@ -64,22 +68,23 @@ export function ProductPurchaseControls({
   }
 
   return (
-    <div className="mt-auto flex flex-col gap-3 pt-2">
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="inline-flex items-center rounded-lg border border-gray-200 bg-white">
+    <div className="mb-4 flex w-full min-w-0 flex-col gap-2.5 lg:flex-row lg:items-center lg:gap-2.5">
+      <div className="flex w-full min-w-0 items-center gap-2.5 lg:contents">
+        <div
+          className="inline-flex h-12 max-lg:w-[7.25rem] max-lg:px-2.5 lg:w-[10.0625rem] lg:px-3.5 shrink-0 items-center justify-between rounded-[70px] border-2 border-[#ff7f20] bg-white"
+          role="group"
+          aria-label={labels.quantity}
+        >
           <button
             type="button"
             aria-label={labels.decreaseQuantity}
             disabled={disabled || quantity <= 1 || pending}
             onClick={() => changeQuantity(quantity - 1)}
-            className="flex h-11 w-11 items-center justify-center text-gray-700 transition hover:bg-gray-50 disabled:opacity-40"
+            className="flex size-8 shrink-0 items-center justify-center text-[#ff7f20] disabled:pointer-events-none disabled:opacity-35"
           >
-            <Minus className="h-4 w-4" aria-hidden />
+            <Minus className="size-5" strokeWidth={2.5} aria-hidden />
           </button>
-          <span
-            className="min-w-10 text-center text-base font-semibold text-gray-900"
-            aria-label={labels.quantity}
-          >
+          <span className="min-w-[1.75rem] select-none text-center text-lg font-medium tabular-nums text-[#ff7f20]">
             {quantity}
           </span>
           <button
@@ -87,9 +92,9 @@ export function ProductPurchaseControls({
             aria-label={labels.increaseQuantity}
             disabled={disabled || quantity >= maxQty || pending}
             onClick={() => changeQuantity(quantity + 1)}
-            className="flex h-11 w-11 items-center justify-center text-gray-700 transition hover:bg-gray-50 disabled:opacity-40"
+            className="flex size-8 shrink-0 items-center justify-center text-[#ff7f20] disabled:pointer-events-none disabled:opacity-35"
           >
-            <Plus className="h-4 w-4" aria-hidden />
+            <Plus className="size-5" strokeWidth={2.5} aria-hidden />
           </button>
         </div>
 
@@ -97,7 +102,7 @@ export function ProductPurchaseControls({
           type="button"
           disabled={disabled || pending}
           onClick={handleAdd}
-          className="inline-flex h-11 flex-1 items-center justify-center rounded-lg bg-gray-900 px-6 text-base font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none sm:min-w-[12rem]"
+          className="flex h-12 min-w-0 max-lg:flex-1 items-center justify-center rounded-[70px] bg-[#ff7f20] text-base font-medium whitespace-nowrap text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-500 lg:w-[16.25rem] lg:shrink-0"
         >
           {disabled
             ? labels.outOfStock
@@ -112,7 +117,7 @@ export function ProductPurchaseControls({
           initialInWishlist={inWishlist}
           isSignedIn={isSignedIn}
           label={wishlistLabel}
-          className="h-11 w-11 border border-gray-200 bg-white hover:bg-gray-50"
+          className="size-12 shrink-0 overflow-hidden rounded-[70px] border-0 bg-[#e4e4e4] text-[#494949] transition-opacity hover:opacity-80"
         />
       </div>
 

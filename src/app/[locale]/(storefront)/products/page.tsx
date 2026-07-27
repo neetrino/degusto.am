@@ -216,7 +216,10 @@ export default async function ProductsPage({
   );
 
   return (
-    <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen bg-white">
+    <div
+      data-shop-page
+      className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen bg-white"
+    >
       <div className="mx-auto flex min-w-0 w-full max-w-[min(1450px,calc(100%-2rem))] gap-4 px-4 pt-2 pb-10 md:max-w-[min(1450px,calc(100%-2.5rem))] md:px-6 lg:max-w-[min(1450px,calc(100%-3rem))] lg:gap-8 lg:pt-5 xl:pl-4 2xl:px-6">
         <ShopCategorySidebar
           title={catalogCopy.categoriesSidebarTitle}

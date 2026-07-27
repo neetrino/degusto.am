@@ -1,5 +1,8 @@
-import { ProductCard } from "@/features/products/ui/ProductCard";
-import { getRelatedProducts } from "@/features/products/queries";
+import { ProductRelatedCarousel } from "@/features/products/ui/ProductRelatedCarousel";
+import {
+  getPrimaryCategoryLabels,
+  getRelatedProducts,
+} from "@/features/products/queries";
 import { getWishlistProductIds } from "@/features/wishlist/queries";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
@@ -27,45 +30,49 @@ export async function ProductRelatedSection({
     return null;
   }
 
-  const [wishlistIds, formatPrice] = await Promise.all([
+  const [wishlistIds, formatPrice, categoryLabels] = await Promise.all([
     getWishlistProductIds(related.map((item) => item.id)),
     createDisplayPriceFormatter(locale, currency),
+    getPrimaryCategoryLabels(
+      related.map((item) => item.id),
+      locale,
+    ),
   ]);
 
   const labels = dictionary.product;
 
-  return (
-    <section className="flex flex-col gap-6">
-      <h2 className="text-2xl font-semibold text-gray-900">{labels.related}</h2>
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {related.map((item) => {
-          const price = formatPrice(item.priceAmount);
-          const compareAt =
-            item.compareAtAmount != null
-              ? formatPrice(item.compareAtAmount)
-              : null;
+  const cards = related.map((item) => {
+    const price = formatPrice(item.priceAmount);
+    const compareAt =
+      item.compareAtAmount != null
+        ? formatPrice(item.compareAtAmount)
+        : null;
 
-          return (
-            <ProductCard
-              key={item.id}
-              href={`/${locale}/products/${item.translation.slug}`}
-              title={item.translation.title}
-              priceFormatted={price.formatted}
-              compareAtFormatted={compareAt?.formatted ?? null}
-              discountPercent={item.discountPercent}
-              imageUrl={item.imageUrl}
-              inStock={item.stockOnHand > 0}
-              locale={locale}
-              productId={item.id}
-              inWishlist={wishlistIds.has(item.id)}
-              isSignedIn={isSignedIn}
-              wishlistLabel={dictionary.nav.wishlist}
-              addToCartLabel={labels.addToCart}
-              outOfStockLabel={labels.outOfStock}
-            />
-          );
-        })}
-      </div>
-    </section>
+    return {
+      id: item.id,
+      href: `/${locale}/products/${item.translation.slug}`,
+      title: item.translation.title,
+      priceFormatted: price.formatted,
+      compareAtFormatted: compareAt?.formatted ?? null,
+      discountPercent: item.discountPercent,
+      imageUrl: item.imageUrl,
+      inStock: item.stockOnHand > 0,
+      inWishlist: wishlistIds.has(item.id),
+      categoryLabel: categoryLabels.get(item.id) ?? null,
+    };
+  });
+
+  return (
+    <ProductRelatedCarousel
+      locale={locale}
+      title={labels.tryAlso}
+      viewMoreLabel={labels.viewMore}
+      viewMoreHref={`/${locale}/products`}
+      isSignedIn={isSignedIn}
+      wishlistLabel={dictionary.nav.wishlist}
+      addToCartLabel={labels.addToCart}
+      outOfStockLabel={labels.outOfStock}
+      cards={cards}
+    />
   );
 }
