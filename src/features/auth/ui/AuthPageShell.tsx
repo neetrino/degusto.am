@@ -1,32 +1,21 @@
 import { ChefHat } from "lucide-react";
-import Image from "next/image";
 import type { ReactNode } from "react";
-
-const AUTH_BG = "/assets/auth/auth-bg-desktop.webp";
 
 type AuthPageShellProps = {
   children: ReactNode;
 };
 
 /**
- * Full-bleed Degusto auth canvas — orange food hero on desktop,
- * cream surface on smaller viewports.
+ * Full-bleed Degusto auth canvas — cream on mobile; desktop hero is painted
+ * on the storefront shell (see globals) so it reaches the footer radius.
  */
 export function AuthPageShell({ children }: AuthPageShellProps) {
   return (
     <div
       data-auth-page
-      className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] -mt-[7.5rem] w-screen"
+      className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] -mt-[7.5rem] flex w-screen flex-1 flex-col"
     >
-      <div className="relative flex min-h-[calc(100dvh-7.5rem)] flex-col overflow-hidden bg-[#FBF6EA] pt-[7.5rem] lg:min-h-dvh lg:bg-[#F66812]">
-        <Image
-          src={AUTH_BG}
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="pointer-events-none absolute inset-0 z-0 hidden object-cover object-center lg:block"
-        />
+      <div className="relative z-10 flex min-h-[calc(100dvh-7.5rem)] flex-1 flex-col overflow-hidden bg-[#FBF6EA] pt-[7.5rem] lg:min-h-0 lg:bg-transparent">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 z-0 h-48 overflow-hidden lg:hidden"

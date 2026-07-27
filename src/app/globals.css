@@ -302,12 +302,14 @@ body {
   background-color: #fbf6ea;
 }
 
-/* Auth (login/register): cream canvas on mobile; desktop orange via page shell. */
+/* Auth (login/register): cream canvas on mobile; desktop image fills to footer. */
 .storefront-shell:has([data-auth-page]) {
   background-color: #fbf6ea;
 }
 
 .storefront-shell:has([data-auth-page]) .storefront-main {
+  display: flex;
+  flex-direction: column;
   padding-bottom: 0;
 }
 
@@ -316,12 +318,26 @@ body {
 }
 
 @media (min-width: 1024px) {
+  /*
+   * Paint the auth hero on the shell so it spans header → footer.
+   * Footer rounded corners then reveal the image (not a solid fill).
+   */
   .storefront-shell:has([data-auth-page]) {
-    background-color: #f66812;
+    background-color: transparent;
+    background-image: url("/assets/auth/auth-bg-desktop.webp");
+    background-repeat: no-repeat;
+    background-position: center top;
+    background-size: cover;
+    background-attachment: fixed;
   }
 
   .storefront-shell:has([data-auth-page]) .storefront-footer {
-    background-color: #ffffff;
+    background-color: transparent;
+  }
+
+  .storefront-shell:has([data-auth-page]) .storefront-footer > footer {
+    position: relative;
+    z-index: 10;
   }
 }
 
