@@ -1,10 +1,26 @@
 import { neon } from "@neondatabase/serverless";
+import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-http";
 
 import { hashPassword } from "@/lib/auth/password";
 import * as schema from "@/db/schema";
 import { getSeedEnv } from "@/db/seed/env";
+import { seedFigmaCatalog } from "@/db/seed/figma-catalog";
 import { seedIds } from "@/db/seed/ids";
+import { seedMenuCategories } from "@/db/seed/menu-categories";
+
+const SEED_INSERT_CHUNK_SIZE = 40;
+
+async function insertInChunks<T>(
+  items: ReadonlyArray<T>,
+  writeChunk: (chunk: T[]) => Promise<void>,
+): Promise<void> {
+  for (let index = 0; index < items.length; index += SEED_INSERT_CHUNK_SIZE) {
+    await writeChunk(
+      items.slice(index, index + SEED_INSERT_CHUNK_SIZE) as T[],
+    );
+  }
+}
 
 async function seed(): Promise<void> {
   const env = getSeedEnv();
@@ -15,6 +31,7 @@ async function seed(): Promise<void> {
   const customerEmail = env.SEED_CUSTOMER_EMAIL ?? "customer@white-shop.local";
   const customerPassword = env.SEED_CUSTOMER_PASSWORD ?? env.SEED_ADMIN_PASSWORD;
   const customerPasswordHash = await hashPassword(customerPassword);
+  const catalogProducts = seedFigmaCatalog.products;
 
   await db
     .insert(schema.users)
@@ -70,122 +87,140 @@ async function seed(): Promise<void> {
       },
     });
 
-  await db
-    .insert(schema.categories)
-    .values({
-      id: seedIds.categoryApparel,
-      translations: {
-        hy: {
-          title: "Apparel",
-          slug: "hagust",
-          description: "Core apparel category",
+  for (const category of seedMenuCategories) {
+    await db
+      .insert(schema.categories)
+      .values({
+        id: category.id,
+        translations: category.translations,
+        sortOrder: category.sortOrder,
+        status: category.status,
+      })
+      .onConflictDoUpdate({
+        target: schema.categories.id,
+        set: {
+          translations: category.translations,
+          sortOrder: category.sortOrder,
+          status: category.status,
+          updatedAt: now,
         },
-        en: {
-          title: "Apparel",
-          slug: "apparel",
-          description: "Core apparel category",
-        },
-        ru: {
-          title: "Odezhda",
-          slug: "odezhda",
-          description: "Core apparel category",
-        },
-      },
-      sortOrder: 1,
-      status: "ACTIVE",
-    })
-    .onConflictDoUpdate({
-      target: schema.categories.id,
-      set: {
-        status: "ACTIVE",
-        updatedAt: now,
-      },
-    });
+      });
+  }
 
-  await db
-    .insert(schema.products)
-    .values([
-      {
-        id: seedIds.productTee,
-        sku: "WS-TEE-001",
-        translations: {
-          hy: {
-            title: "White Tee",
-            slug: "white-tee",
-            description: "Classic white t-shirt",
-          },
-          en: {
-            title: "White Tee",
-            slug: "white-tee",
-            description: "Classic white t-shirt",
-          },
-          ru: {
-            title: "White Tee",
-            slug: "white-tee",
-            description: "Classic white t-shirt",
-          },
+  await insertInChunks(catalogProducts, async (chunk) => {
+    await db
+      .insert(schema.products)
+      .values(
+        chunk.map((product) => ({
+          id: product.id,
+          sku: product.sku,
+          translations: product.translations,
+          priceAmount: product.priceAmount,
+          compareAtAmount: product.compareAtAmount,
+          stockOnHand: 50,
+          lowStockThreshold: 5,
+          status: "ACTIVE" as const,
+          isFeatured: product.sortOrder <= 3,
+        })),
+      )
+      .onConflictDoUpdate({
+        target: schema.products.id,
+        set: {
+          sku: sql`excluded.sku`,
+          translations: sql`excluded.translations`,
+          priceAmount: sql`excluded.price_amount`,
+          compareAtAmount: sql`excluded.compare_at_amount`,
+          stockOnHand: sql`excluded.stock_on_hand`,
+          status: sql`excluded.status`,
+          isFeatured: sql`excluded.is_featured`,
+          updatedAt: now,
         },
-        priceAmount: 12000,
-        compareAtAmount: 15000,
-        stockOnHand: 50,
-        lowStockThreshold: 5,
-        status: "ACTIVE",
-        isFeatured: true,
-      },
-      {
-        id: seedIds.productHoodie,
-        sku: "WS-HOODIE-001",
-        translations: {
-          hy: {
-            title: "Studio Hoodie",
-            slug: "studio-hoodie",
-            description: "Soft studio hoodie",
-          },
-          en: {
-            title: "Studio Hoodie",
-            slug: "studio-hoodie",
-            description: "Soft studio hoodie",
-          },
-          ru: {
-            title: "Studio Hoodie",
-            slug: "studio-hoodie",
-            description: "Soft studio hoodie",
-          },
-        },
-        priceAmount: 28000,
-        stockOnHand: 25,
-        lowStockThreshold: 3,
-        status: "ACTIVE",
-        isFeatured: true,
-      },
-    ])
-    .onConflictDoUpdate({
-      target: schema.products.id,
-      set: {
-        status: "ACTIVE",
-        updatedAt: now,
-      },
-    });
+      });
+  });
 
-  await db
-    .insert(schema.productCategories)
-    .values([
-      {
-        id: seedIds.productCategoryTee,
-        productId: seedIds.productTee,
-        categoryId: seedIds.categoryApparel,
+  await insertInChunks(catalogProducts, async (chunk) => {
+    await db
+      .insert(schema.productCategories)
+      .values(
+        chunk.map((product) => ({
+          id: product.productCategoryId,
+          productId: product.id,
+          categoryId: product.categoryId,
+          isPrimary: true,
+          sortOrder: product.sortOrder,
+        })),
+      )
+      .onConflictDoNothing({ target: schema.productCategories.id });
+  });
+
+  await insertInChunks(catalogProducts, async (chunk) => {
+    await db
+      .insert(schema.mediaAssets)
+      .values(
+        chunk.map((product) => ({
+          id: product.mediaId,
+          objectKey: product.objectKey,
+          mimeType: "image/webp",
+          byteSize: 80_000,
+          width: 454,
+          height: 294,
+          uploadStatus: "READY" as const,
+          role: "PRIMARY" as const,
+          sortOrder: 0,
+          isPrimary: true,
+          productId: product.id,
+          altTranslations: {
+            hy: product.translations.hy?.title ?? product.sku,
+            en: product.translations.en?.title ?? product.sku,
+            ru: product.translations.ru?.title ?? product.sku,
+          },
+        })),
+      )
+      .onConflictDoUpdate({
+        target: schema.mediaAssets.id,
+        set: {
+          objectKey: sql`excluded.object_key`,
+          uploadStatus: sql`excluded.upload_status`,
+          role: sql`excluded.role`,
+          isPrimary: sql`excluded.is_primary`,
+          productId: sql`excluded.product_id`,
+          altTranslations: sql`excluded.alt_translations`,
+          updatedAt: now,
+        },
+      });
+  });
+
+  for (const category of seedMenuCategories) {
+    await db
+      .insert(schema.mediaAssets)
+      .values({
+        id: category.mediaId,
+        objectKey: category.objectKey,
+        mimeType: "image/webp",
+        byteSize: 50_000,
+        uploadStatus: "READY",
+        role: "PRIMARY",
+        sortOrder: 0,
         isPrimary: true,
-        sortOrder: 1,
-      },
-      {
-        id: seedIds.productCategoryHoodie,
-        productId: seedIds.productHoodie,
-        categoryId: seedIds.categoryApparel,
-        isPrimary: true,
-        sortOrder: 2,
-      },
-    ])
-    .onConflictDoNothing({ target: schema.productCategories.id });
+        categoryId: category.id,
+        altTranslations: {
+          hy: category.translations.hy?.title ?? "Category",
+          en: category.translations.en?.title ?? "Category",
+          ru: category.translations.ru?.title ?? "Category",
+        },
+      })
+      .onConflictDoUpdate({
+        target: schema.mediaAssets.id,
+        set: {
+          objectKey: category.objectKey,
+          uploadStatus: "READY",
+          role: "PRIMARY",
+          isPrimary: true,
+          categoryId: category.id,
+          updatedAt: now,
+        },
+      });
+  }
 
   await db
     .insert(schema.deliveryRules)
@@ -317,7 +352,7 @@ async function seed(): Promise<void> {
         key: "store.identity",
         value: {
           version: 1,
-          name: "White Shop",
+          name: "Degusto",
           defaultLocale: "hy",
           defaultCurrency: "AMD",
         },
@@ -338,12 +373,12 @@ async function seed(): Promise<void> {
     .insert(schema.appMeta)
     .values({
       key: "seed.version",
-      value: "1",
+      value: "3",
     })
     .onConflictDoUpdate({
       target: schema.appMeta.key,
       set: {
-        value: "1",
+        value: "3",
         updatedAt: now,
       },
     });
@@ -354,14 +389,18 @@ async function seed(): Promise<void> {
       message: "seed.complete",
       adminEmail: env.SEED_ADMIN_EMAIL.toLowerCase(),
       customerEmail: customerEmail.toLowerCase(),
-      products: ["WS-TEE-001", "WS-HOODIE-001"],
+      categories: seedMenuCategories.length,
+      products: catalogProducts.length,
       coupon: "WELCOME10",
     }),
   );
 }
 
 seed().catch((error: unknown) => {
-  const message = error instanceof Error ? error.message : String(error);
+  const message =
+    error instanceof Error
+      ? `${error.message}${error.cause ? ` | cause: ${String(error.cause)}` : ""}`
+      : String(error);
   console.error(
     JSON.stringify({ level: "error", message: "seed.failed", error: message }),
   );

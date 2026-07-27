@@ -49,7 +49,13 @@ export function ProductDiscountsSection({
   );
 
   useEffect(() => {
-    setDrafts(draftsFromProducts(products));
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setDrafts(draftsFromProducts(products));
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [products]);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);

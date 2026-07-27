@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Montserrat, Noto_Sans_Armenian } from "next/font/google";
+import localFont from "next/font/local";
 
 import "./globals.css";
 
@@ -11,6 +12,27 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "900"],
+});
+
+const notoArmenian = Noto_Sans_Armenian({
+  variable: "--font-noto-arm",
+  subsets: ["armenian"],
+  weight: ["400", "500", "600", "700"],
+});
+
+/** Figma display face — Mirage Expanded by Vahe Tamrazyan (see LICENSE). */
+const mirageExpanded = localFont({
+  src: "../assets/fonts/Mirage-Expanded.otf",
+  variable: "--font-mirage",
+  display: "swap",
+  weight: "400",
+  style: "normal",
 });
 
 export const metadata: Metadata = {
@@ -29,7 +51,7 @@ export default function RootLayout({
   return (
     <html lang="hy" className="h-full" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} flex min-h-dvh flex-col overflow-x-hidden antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} ${notoArmenian.variable} ${mirageExpanded.variable} flex min-h-dvh flex-col overflow-x-hidden antialiased`}
       >
         {children}
       </body>

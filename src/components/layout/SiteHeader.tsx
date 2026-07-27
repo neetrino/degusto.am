@@ -1,13 +1,14 @@
 import { Suspense } from "react";
 
 import { SiteHeaderMainNav } from "@/components/layout/SiteHeaderMainNav";
-import { SiteHeaderTopBar } from "@/components/layout/SiteHeaderTopBar";
-import { getCartItemCount } from "@/features/cart/cart";
+import { SiteHeaderShell } from "@/components/layout/SiteHeaderShell";
+import { getCartDrawerView } from "@/features/cart/get-cart-drawer-view";
 import { getWishlistCount } from "@/features/wishlist/queries";
 import { getCurrentUser } from "@/lib/auth/session";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
 import type { Currency } from "@/lib/money/currency";
+import { createDisplayPriceFormatter } from "@/lib/money/display-price";
 
 type SiteHeaderProps = {
   locale: Locale;
@@ -15,12 +16,19 @@ type SiteHeaderProps = {
   dictionary: Dictionary;
 };
 
-function HeaderControlsFallback() {
+function HeaderControlsFallback({ brand }: { brand: string }) {
   return (
-    <div
-      className="h-11 w-28 animate-pulse rounded-lg bg-gray-100"
-      aria-hidden="true"
-    />
+    <header className="pointer-events-auto relative z-40 px-3 pt-4 sm:px-6 md:px-8 md:pt-6">
+      <div className="mx-auto flex h-16 max-w-[1374px] items-center justify-between rounded-full bg-black px-5 sm:h-20">
+        <span className="text-lg font-semibold tracking-tight text-brand">
+          {brand}
+        </span>
+        <div
+          className="h-10 w-28 animate-pulse rounded-full bg-white/10"
+          aria-hidden="true"
+        />
+      </div>
+    </header>
   );
 }
 
@@ -31,17 +39,21 @@ async function SiteHeaderMainNavAsync({
 }: SiteHeaderProps) {
   const navItems = [
     { href: `/${locale}`, label: dictionary.nav.home },
-    { href: `/${locale}/products`, label: dictionary.nav.products },
-    { href: `/${locale}/blog`, label: dictionary.nav.blog },
+    { href: `/${locale}/products`, label: dictionary.nav.shop },
+    { href: `/${locale}/combo`, label: dictionary.nav.combos },
     { href: `/${locale}/about`, label: dictionary.nav.about },
-    { href: `/${locale}/contact`, label: dictionary.nav.contact },
   ] as const;
 
-  const [user, cartItemCount, wishlistCount] = await Promise.all([
+  const [user, cartView, wishlistCount, formatPrice] = await Promise.all([
     getCurrentUser(),
-    getCartItemCount(),
+    getCartDrawerView(locale, currency),
     getWishlistCount(),
+    createDisplayPriceFormatter(locale, currency),
   ]);
+
+  const emptyTotal = formatPrice(0).formatted;
+  const cartTotalFormatted =
+    cartView.itemCount > 0 ? cartView.totalFormatted : emptyTotal;
 
   return (
     <SiteHeaderMainNav
@@ -50,38 +62,23 @@ async function SiteHeaderMainNavAsync({
       dictionary={dictionary}
       user={user}
       navItems={navItems}
-      cartItemCount={cartItemCount}
+      cartItemCount={cartView.itemCount}
+      cartTotalFormatted={cartTotalFormatted}
       wishlistCount={wishlistCount}
     />
   );
 }
 
 /**
- * Storefront chrome: top bar streams immediately; account/cart/wishlist
- * load in a Suspense island so page content is not blocked.
+ * Storefront chrome: Degusto pill header streams account/cart/wishlist
+ * in a Suspense island so page content is not blocked.
+ * Hidden on home mobile where HomeMobile renders its own chrome.
  */
 export function SiteHeader({ locale, currency, dictionary }: SiteHeaderProps) {
   return (
-    <div
-      className="site-header sticky top-0 z-[80] shrink-0 md:relative"
-      data-site-header
-    >
-      <SiteHeaderTopBar
-        locale={locale}
-        currency={currency}
-        dictionary={dictionary}
-      />
+    <SiteHeaderShell locale={locale}>
       <Suspense
-        fallback={
-          <header className="relative z-10 border-b border-gray-200/80 bg-gradient-to-b from-gray-50 to-white shadow-sm">
-            <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-              <span className="text-lg font-semibold tracking-tight text-gray-900">
-                {dictionary.brand}
-              </span>
-              <HeaderControlsFallback />
-            </div>
-          </header>
-        }
+        fallback={<HeaderControlsFallback brand={dictionary.brand} />}
       >
         <SiteHeaderMainNavAsync
           locale={locale}
@@ -89,6 +86,6 @@ export function SiteHeader({ locale, currency, dictionary }: SiteHeaderProps) {
           dictionary={dictionary}
         />
       </Suspense>
-    </div>
+    </SiteHeaderShell>
   );
 }

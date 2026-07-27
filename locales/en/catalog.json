@@ -2,5 +2,22 @@
   "paginationLabel": "Catalog pages",
   "previousPage": "Previous",
   "nextPage": "Next",
-  "pageStatus": "Page {page} of {total}"
+  "pageStatus": "Page {page} of {total}",
+  "menuTitle": "Menu",
+  "menuSubtitle": "Choose your favorite dishes from our wide selection",
+  "categoriesTitle": "Categories",
+  "categoriesSidebarTitle": "Categories",
+  "allCategories": "All",
+  "selectCategories": "Select categories",
+  "priceLabel": "Price ({currency})",
+  "priceFrom": "From",
+  "priceTo": "To",
+  "dietFilterLabel": "Dietary attribute toggle",
+  "dietNone": "No filter",
+  "dietVegetarian": "Vegetarian",
+  "dietSpicy": "Spicy",
+  "sidebarSearchPlaceholder": "Search",
+  "emptyProducts": "No products found",
+  "emptyProductsDescription": "Try adjusting the price, category, or dietary filter to see more options.",
+  "emptyProductsCta": "View full menu"
 }

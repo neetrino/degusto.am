@@ -41,16 +41,23 @@ export function CategoryDiscountsSection({
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
-    setDrafts(
-      Object.fromEntries(
-        categories.map((category) => [
-          category.id,
-          category.discountPercent != null
-            ? String(category.discountPercent)
-            : "",
-        ]),
-      ),
-    );
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setDrafts(
+        Object.fromEntries(
+          categories.map((category) => [
+            category.id,
+            category.discountPercent != null
+              ? String(category.discountPercent)
+              : "",
+          ]),
+        ),
+      );
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [categories]);
 
   const isDirty = useMemo(() => {

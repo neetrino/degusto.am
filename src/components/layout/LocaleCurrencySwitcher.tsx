@@ -1,8 +1,15 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useId, useRef, useState, useTransition } from "react";
-import { ChevronDown } from "lucide-react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
+import { ChevronDown, Globe } from "lucide-react";
 
 import { DROPDOWN_ANIMATION_MS } from "@/components/ui/SelectDropdown";
 import { setCurrencyAction } from "@/features/preferences/set-currency-action";
@@ -25,6 +32,7 @@ type LocaleCurrencySwitcherProps = {
   currency: Currency;
   currencyLabel: string;
   languageLabel: string;
+  variant?: "default" | "degusto";
 };
 
 function replaceLocaleInPath(pathname: string, nextLocale: Locale): string {
@@ -51,6 +59,7 @@ export function LocaleCurrencySwitcher({
   currency,
   currencyLabel,
   languageLabel,
+  variant = "default",
 }: LocaleCurrencySwitcherProps) {
   const router = useRouter();
   const pathname = usePathname() ?? `/${locale}`;
@@ -62,22 +71,22 @@ export function LocaleCurrencySwitcher({
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const menuId = useId();
 
-  function clearCloseTimer(): void {
+  const clearCloseTimer = useCallback((): void => {
     if (closeTimerRef.current !== null) {
       clearTimeout(closeTimerRef.current);
       closeTimerRef.current = null;
     }
-  }
+  }, []);
 
   function openMenu(): void {
     clearCloseTimer();
     setOpen(true);
   }
 
-  function closeMenu(): void {
+  const closeMenu = useCallback((): void => {
     clearCloseTimer();
     setOpen(false);
-  }
+  }, [clearCloseTimer]);
 
   function scheduleClose(): void {
     clearCloseTimer();
@@ -89,25 +98,37 @@ export function LocaleCurrencySwitcher({
 
   useEffect(() => {
     return () => clearCloseTimer();
-  }, []);
+  }, [clearCloseTimer]);
 
   useEffect(() => {
+    let cancelled = false;
     if (open) {
-      setRendered(true);
-      setEntered(false);
       let frame2 = 0;
+      queueMicrotask(() => {
+        if (cancelled) return;
+        setRendered(true);
+        setEntered(false);
+      });
       const frame1 = requestAnimationFrame(() => {
-        frame2 = requestAnimationFrame(() => setEntered(true));
+        frame2 = requestAnimationFrame(() => {
+          if (!cancelled) setEntered(true);
+        });
       });
       return () => {
+        cancelled = true;
         cancelAnimationFrame(frame1);
         cancelAnimationFrame(frame2);
       };
     }
 
-    setEntered(false);
+    queueMicrotask(() => {
+      if (!cancelled) setEntered(false);
+    });
     const timer = setTimeout(() => setRendered(false), DROPDOWN_ANIMATION_MS);
-    return () => clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [open]);
 
   useEffect(() => {
@@ -129,7 +150,7 @@ export function LocaleCurrencySwitcher({
       document.removeEventListener("mousedown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [open]);
+  }, [open, closeMenu]);
 
   function selectCurrency(next: Currency): void {
     if (next === currency) {
@@ -161,22 +182,49 @@ export function LocaleCurrencySwitcher({
     >
       <button
         type="button"
-        className="flex h-9 w-[calc(2.75rem*3+0.5rem*2-0.75rem)] shrink-0 items-center rounded-full border border-gray-200 bg-white py-0 pr-3 pl-3 text-gray-700 transition-colors hover:bg-gray-50"
+        className={
+          variant === "degusto"
+            ? "flex h-12 w-[159px] shrink-0 items-center gap-2 rounded-full bg-brand-strong px-4 text-white transition hover:bg-brand"
+            : "flex h-9 w-[calc(2.75rem*3+0.5rem*2-0.75rem)] shrink-0 items-center rounded-full border border-gray-200 bg-white py-0 pr-3 pl-3 text-gray-700 transition-colors hover:bg-gray-50"
+        }
         aria-expanded={open}
         aria-haspopup="dialog"
         aria-controls={menuId}
-        aria-label={`${currency} / ${localeShortLabels[locale]}`}
+        aria-label={`${localeShortLabels[locale]} / ${currency}`}
         onClick={() => (open ? closeMenu() : openMenu())}
       >
-        <span className="flex min-w-0 flex-1 items-center justify-center whitespace-nowrap text-[15px] font-bold leading-none tabular-nums">
-          <span>{currency}</span>
-          <span className="inline-block w-[2px]" aria-hidden />
-          <span>/</span>
-          <span className="inline-block w-[2px]" aria-hidden />
-          <span>{localeShortLabels[locale]}</span>
+        {variant === "degusto" ? (
+          <Globe className="size-[19px] shrink-0" aria-hidden />
+        ) : null}
+        <span
+          className={
+            variant === "degusto"
+              ? "flex min-w-0 flex-1 items-center justify-center gap-1 whitespace-nowrap text-base font-bold leading-[18px] capitalize"
+              : "flex min-w-0 flex-1 items-center justify-center whitespace-nowrap text-[15px] font-bold leading-none tabular-nums"
+          }
+        >
+          {variant === "degusto" ? (
+            <>
+              <span>{localeShortLabels[locale]}</span>
+              <span>/</span>
+              <span>{currency}</span>
+            </>
+          ) : (
+            <>
+              <span>{currency}</span>
+              <span className="inline-block w-[2px]" aria-hidden />
+              <span>/</span>
+              <span className="inline-block w-[2px]" aria-hidden />
+              <span>{localeShortLabels[locale]}</span>
+            </>
+          )}
         </span>
         <ChevronDown
-          className={`h-4 w-4 shrink-0 text-gray-500 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? "rotate-180" : ""}`}
+          className={
+            variant === "degusto"
+              ? `h-4 w-4 shrink-0 text-white transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? "rotate-180" : ""}`
+              : `h-4 w-4 shrink-0 text-gray-500 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? "rotate-180" : ""}`
+          }
           aria-hidden
         />
       </button>

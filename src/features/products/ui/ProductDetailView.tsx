@@ -1,10 +1,14 @@
-import Link from "next/link";
+import Image from "next/image";
+import type { ReactNode } from "react";
 
 import { ProductGallery } from "@/features/products/ui/ProductGallery";
+import { ProductModifierPills } from "@/features/products/ui/ProductModifierPills";
 import { ProductPurchaseControls } from "@/features/products/ui/ProductPurchaseControls";
 import type { ProductDetail } from "@/features/products/types";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
+
+const STAR_ICON = "/assets/product-card/star.webp";
 
 type ProductDetailViewProps = {
   locale: Locale;
@@ -15,10 +19,12 @@ type ProductDetailViewProps = {
   inWishlist: boolean;
   dictionary: Dictionary;
   jsonLd: Record<string, unknown>;
-  relatedSlot: React.ReactNode;
-  reviewsSlot: React.ReactNode;
+  relatedSlot: ReactNode;
+  reviewsSlot: ReactNode;
+  ratingAverage?: number;
 };
 
+/** Storefront PDP — Degusto product detail visual system. */
 export function ProductDetailView({
   locale,
   product,
@@ -30,96 +36,116 @@ export function ProductDetailView({
   jsonLd,
   relatedSlot,
   reviewsSlot,
+  ratingAverage = 5,
 }: ProductDetailViewProps) {
   const labels = dictionary.product;
   const inStock = product.stockOnHand > 0;
+  const categoryTitle = product.categories[0]?.title ?? null;
+  const description = product.translation.description?.trim() ?? "";
+  const showDescription =
+    description.length > 0 &&
+    description !== product.translation.title.trim();
 
   return (
-    <article className="flex flex-col gap-16 md:gap-20">
-      <p className="text-sm text-gray-600">
-        <Link
-          href={`/${locale}/products`}
-          className="font-medium text-gray-900 underline-offset-2 hover:underline"
-        >
-          {labels.backToProducts}
-        </Link>
-      </p>
+    <article
+      data-pdp-page
+      className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] -mt-[7.5rem] w-screen bg-white pt-[7.5rem]"
+    >
+      <div className="mx-auto w-full max-w-[min(1450px,calc(100%-2rem))] px-4 pb-10 md:max-w-[min(1450px,calc(100%-2.5rem))] md:px-6 lg:max-w-[min(1450px,calc(100%-3rem))] lg:pb-14">
+        <section className="w-full overflow-hidden bg-white lg:rounded-[40px]">
+          <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-stretch lg:gap-[47px] xl:grid-cols-[minmax(0,47.5625rem)_minmax(0,1fr)]">
+            <ProductGallery
+              images={product.images}
+              title={product.translation.title}
+              discountPercent={product.discountPercent}
+              inStock={inStock}
+              outOfStockLabel={labels.outOfStock}
+              expandLabel={labels.expandImage}
+              closeLabel={labels.closeImage}
+            />
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
-        <ProductGallery
-          images={product.images}
-          title={product.translation.title}
-          discountPercent={product.discountPercent}
-          inStock={inStock}
-          outOfStockLabel={labels.outOfStock}
-        />
+            <div className="flex min-w-0 flex-col lg:min-h-full lg:py-2">
+              <h1 className="mb-2 break-words text-[2rem] leading-normal font-bold text-product-ink md:text-[2.25rem]">
+                {product.translation.title}
+              </h1>
 
-        <div className="flex flex-col gap-6 lg:min-h-full">
-          {product.categories.length > 0 ? (
-            <p className="text-sm font-medium text-gray-500">
-              {product.categories.map((category) => category.title).join(" · ")}
-            </p>
-          ) : null}
+              <div
+                className="mb-5 flex items-center gap-[3px] lg:gap-[5px]"
+                aria-label={`Rating ${ratingAverage.toFixed(1)}`}
+              >
+                {Array.from({ length: 5 }, (_, index) => (
+                  <Image
+                    key={index}
+                    src={STAR_ICON}
+                    alt=""
+                    width={28}
+                    height={28}
+                    className={`size-5 object-contain lg:size-7 ${
+                      index < Math.round(ratingAverage)
+                        ? "opacity-100"
+                        : "opacity-35 grayscale"
+                    }`}
+                    aria-hidden
+                  />
+                ))}
+              </div>
 
-          <h1 className="text-3xl font-semibold tracking-tight text-gray-900">
-            {product.translation.title}
-          </h1>
+              <div className="mb-4 flex flex-wrap items-baseline gap-x-3">
+                <p className="text-[1.75rem] leading-none font-bold text-product-ink md:text-[2rem]">
+                  {priceFormatted}
+                </p>
+                {compareAtFormatted ? (
+                  <p className="text-base text-[#9a9a9a] line-through md:text-lg">
+                    {compareAtFormatted}
+                  </p>
+                ) : null}
+              </div>
 
-          <div className="flex flex-wrap items-baseline gap-3">
-            <p className="text-2xl font-semibold text-gray-900">
-              {priceFormatted}
-            </p>
-            {compareAtFormatted ? (
-              <p className="text-base text-gray-500 line-through">
-                {compareAtFormatted}
-              </p>
-            ) : null}
-            {product.discountPercent != null ? (
-              <span className="rounded bg-red-600 px-2 py-0.5 text-xs font-semibold text-white">
-                -{product.discountPercent}%
-              </span>
-            ) : null}
+              {categoryTitle ? (
+                <p className="mb-5 max-w-[31.125rem] text-base leading-6 font-normal text-product-ink">
+                  {categoryTitle} — {product.translation.title}
+                </p>
+              ) : null}
+
+              {showDescription ? (
+                <p className="mb-5 max-w-[31.125rem] whitespace-pre-wrap text-base leading-6 text-product-ink">
+                  {description}
+                </p>
+              ) : null}
+
+              <ProductModifierPills
+                addLabel={labels.addModifier}
+                excludeLabel={labels.excludeModifier}
+                emptyLabel={labels.noModifierOptions}
+              />
+
+              <ProductPurchaseControls
+                locale={locale}
+                productId={product.id}
+                stockOnHand={product.stockOnHand}
+                inWishlist={inWishlist}
+                isSignedIn={isSignedIn}
+                wishlistLabel={dictionary.nav.wishlist}
+                labels={{
+                  quantity: labels.quantity,
+                  decreaseQuantity: dictionary.cartDrawer.decreaseQuantity,
+                  increaseQuantity: dictionary.cartDrawer.increaseQuantity,
+                  addToCart: labels.addToCart,
+                  adding: labels.adding,
+                  outOfStock: labels.outOfStock,
+                  added: labels.added,
+                  error: labels.addError,
+                }}
+              />
+            </div>
           </div>
-
-          <div className="flex flex-wrap gap-3 text-sm text-gray-600">
-            <span>
-              {labels.sku}: {product.sku}
-            </span>
-            <span aria-hidden>·</span>
-            <span className={inStock ? "text-green-700" : "text-red-700"}>
-              {inStock ? labels.inStock : labels.outOfStock}
-            </span>
-          </div>
-
-          {product.translation.description ? (
-            <p className="whitespace-pre-wrap text-base leading-relaxed text-gray-600">
-              {product.translation.description}
-            </p>
-          ) : null}
-
-          <ProductPurchaseControls
-            locale={locale}
-            productId={product.id}
-            stockOnHand={product.stockOnHand}
-            inWishlist={inWishlist}
-            isSignedIn={isSignedIn}
-            wishlistLabel={dictionary.nav.wishlist}
-            labels={{
-              quantity: labels.quantity,
-              decreaseQuantity: dictionary.cartDrawer.decreaseQuantity,
-              increaseQuantity: dictionary.cartDrawer.increaseQuantity,
-              addToCart: labels.addToCart,
-              adding: labels.adding,
-              outOfStock: labels.outOfStock,
-              added: labels.added,
-              error: labels.addError,
-            }}
-          />
-        </div>
+        </section>
       </div>
 
       {relatedSlot}
-      {reviewsSlot}
+      <div className="mx-auto w-full max-w-[min(1450px,calc(100%-2rem))] px-4 py-12 md:max-w-[min(1450px,calc(100%-2.5rem))] md:px-6 md:py-16 lg:max-w-[min(1450px,calc(100%-3rem))]">
+        {reviewsSlot}
+      </div>
 
       <script
         type="application/ld+json"

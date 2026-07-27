@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -50,33 +51,64 @@ export function SideSheet({
   const [displayAriaLabel, setDisplayAriaLabel] = useState(ariaLabel);
   const exitDoneRef = useRef(false);
 
+  const finishExit = useCallback((): void => {
+    if (exitDoneRef.current) return;
+    exitDoneRef.current = true;
+    setRendered(false);
+    setExiting(false);
+  }, []);
+
   useEffect(() => {
-    setMounted(true);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setMounted(true);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
     if (!open) return;
-    setDisplayChildren(children);
-    setDisplayAriaLabel(ariaLabel);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setDisplayChildren(children);
+      setDisplayAriaLabel(ariaLabel);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [open, children, ariaLabel]);
 
   useEffect(() => {
+    let cancelled = false;
     if (open) {
       exitDoneRef.current = false;
-      setExiting(false);
-      setRendered(true);
-      return;
+      queueMicrotask(() => {
+        if (cancelled) return;
+        setExiting(false);
+        setRendered(true);
+      });
+      return () => {
+        cancelled = true;
+      };
     }
 
     if (!rendered) return;
 
-    setExiting(true);
+    queueMicrotask(() => {
+      if (!cancelled) setExiting(true);
+    });
     const timer = window.setTimeout(() => {
       finishExit();
     }, SIDE_SHEET_ANIMATION_MS);
 
-    return () => window.clearTimeout(timer);
-  }, [open, rendered]);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [open, rendered, finishExit]);
 
   useEffect(() => {
     if (!rendered) return;
@@ -94,13 +126,6 @@ export function SideSheet({
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [rendered, onClose]);
-
-  function finishExit(): void {
-    if (exitDoneRef.current) return;
-    exitDoneRef.current = true;
-    setRendered(false);
-    setExiting(false);
-  }
 
   function handlePanelAnimationEnd(
     event: AnimationEvent<HTMLDivElement>,

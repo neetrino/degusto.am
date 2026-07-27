@@ -73,6 +73,8 @@ export function CheckoutPaymentMethods({
                       />
                     </svg>
                   ) : (
+                    // Provider logos may come from hosts outside next/image config.
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={option.logoSrc ?? ""}
                       alt={option.name}

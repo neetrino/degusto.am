@@ -67,7 +67,13 @@ export function AdminInlineStatusSelect({
   const menuId = useId();
 
   useEffect(() => {
-    setDisplayValue(value);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setDisplayValue(value);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [value]);
 
   useEffect(() => {
@@ -79,12 +85,20 @@ export function AdminInlineStatusSelect({
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
     if (open) {
-      setMounted(true);
-      return;
+      queueMicrotask(() => {
+        if (!cancelled) setMounted(true);
+      });
+      return () => {
+        cancelled = true;
+      };
     }
     const timer = setTimeout(() => setMounted(false), DROPDOWN_ANIMATION_MS);
-    return () => clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [open]);
 
   const options =
@@ -115,10 +129,11 @@ export function AdminInlineStatusSelect({
 
   useLayoutEffect(() => {
     if (!open && !mounted) {
-      setMenuPosition(null);
-      return;
+      queueMicrotask(() => setMenuPosition(null));
+      return undefined;
     }
-    updateMenuPosition();
+    const frame = requestAnimationFrame(updateMenuPosition);
+    return () => cancelAnimationFrame(frame);
   }, [open, mounted]);
 
   useEffect(() => {

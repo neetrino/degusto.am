@@ -9,13 +9,15 @@
   "submit": "Отправить",
   "success": "Спасибо — сообщение отправлено.",
   "error": "Не удалось отправить сообщение.",
-  "storePhone": "+374 XX XXX XXX",
-  "storeEmail": "info@shop.am",
-  "storeAddress": "Ереван, Абовян 10",
+  "storePhone": "(060) 38-80-80",
+  "storeEmail": "info@degusto.am",
+  "storeAddress": "Паруйра Севака 92",
   "social": {
     "instagram": "https://instagram.com",
     "facebook": "https://facebook.com",
-    "linkedin": "https://linkedin.com"
+    "telegram": "https://t.me",
+    "whatsapp": "https://wa.me",
+    "viber": "https://viber.com"
   },
   "callTitle": "Позвоните нам:",
   "callDescription": "Мы на связи 24/7, 7 дней в неделю.",

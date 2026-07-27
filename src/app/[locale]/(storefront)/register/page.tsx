@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { AuthCard, AuthPageShell } from "@/features/auth/ui/AuthPageShell";
 import { RegisterForm } from "@/features/auth/ui/RegisterForm";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
@@ -18,14 +19,13 @@ export default async function RegisterPage({ params }: RegisterPageProps) {
   const dictionary = getDictionary(rawLocale);
 
   return (
-    <section className="mx-auto max-w-lg px-0 py-2 sm:py-4">
-      <div className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
-        <h1 className="mb-2 text-3xl font-bold tracking-tight text-gray-900">
-          {dictionary.auth.registerTitle}
-        </h1>
-        <p className="mb-8 text-gray-600">{dictionary.auth.registerSubtitle}</p>
+    <AuthPageShell>
+      <AuthCard
+        title={dictionary.auth.registerTitle}
+        subtitle={dictionary.auth.registerSubtitle}
+      >
         <RegisterForm locale={rawLocale} dictionary={dictionary.auth} />
-      </div>
-    </section>
+      </AuthCard>
+    </AuthPageShell>
   );
 }

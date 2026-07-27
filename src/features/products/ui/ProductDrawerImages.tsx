@@ -106,6 +106,8 @@ export function ProductDrawerImages({
               key={image.key}
               className="relative overflow-hidden rounded-xl border border-gray-200 bg-gray-50"
             >
+              {/* Previews can be local blob URLs or dynamic storage hosts. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={image.previewUrl}
                 alt=""

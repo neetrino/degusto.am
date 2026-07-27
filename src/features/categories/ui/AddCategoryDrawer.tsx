@@ -47,18 +47,21 @@ export function AddCategoryDrawer({
 
   useEffect(() => {
     if (!open) return;
-
-    if (category) {
-      setTitle(category.title);
-      setSlug(category.slug);
-      setSlugTouched(true);
-      setParentId(category.parentId ?? "");
-      setStatus(category.status === "ARCHIVED" ? "ARCHIVED" : "ACTIVE");
-      setImageFile(null);
-      setImagePreview(category.imageUrl);
-      setRemoveExistingImage(false);
-      setError(null);
-    } else {
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      if (category) {
+        setTitle(category.title);
+        setSlug(category.slug);
+        setSlugTouched(true);
+        setParentId(category.parentId ?? "");
+        setStatus(category.status === "ARCHIVED" ? "ARCHIVED" : "ACTIVE");
+        setImageFile(null);
+        setImagePreview(category.imageUrl);
+        setRemoveExistingImage(false);
+        setError(null);
+        return;
+      }
       setTitle("");
       setSlug("");
       setSlugTouched(false);
@@ -68,7 +71,10 @@ export function AddCategoryDrawer({
       setImagePreview(null);
       setRemoveExistingImage(false);
       setError(null);
-    }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [open, category]);
 
   const displaySlug = slugTouched ? slug : slugifyCategoryTitle(title) || "---";
@@ -249,6 +255,8 @@ export function AddCategoryDrawer({
                 ) : null}
               </div>
               {imagePreview ? (
+                // Admin previews can be blob URLs or dynamic storage hosts.
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={imagePreview}
                   alt=""

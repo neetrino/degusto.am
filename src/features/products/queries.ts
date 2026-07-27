@@ -32,8 +32,33 @@ export type {
   ProductGalleryImage,
 } from "@/features/products/types";
 
-const RELATED_PRODUCTS_LIMIT = 4;
-export const CATALOG_PAGE_SIZE = 24;
+const RELATED_PRODUCTS_LIMIT = 8;
+/** Matches live degusto-am shop grid (3×4). */
+export const CATALOG_PAGE_SIZE = 12;
+/** PostgreSQL `integer` max — price filters must stay within this range. */
+const PRICE_FILTER_MAX = 2_147_483_647;
+
+export type CatalogListFilters = {
+  categorySlug?: string | null;
+  minPrice?: number | null;
+  maxPrice?: number | null;
+  query?: string | null;
+};
+
+function toPriceFilterInt(value: number | null | undefined): number | null {
+  if (value == null || !Number.isFinite(value)) {
+    return null;
+  }
+  const normalized = Math.floor(value);
+  if (
+    !Number.isSafeInteger(normalized) ||
+    normalized < 0 ||
+    normalized > PRICE_FILTER_MAX
+  ) {
+    return null;
+  }
+  return normalized;
+}
 
 function toCatalogProduct(
   product: typeof products.$inferSelect,
@@ -152,21 +177,79 @@ export async function getActiveProductsByIds(
   return withProductImages(rows, locale);
 }
 
+function buildCatalogWhere(
+  locale: Locale,
+  filters: CatalogListFilters,
+): ReturnType<typeof and> {
+  const clauses = [activeCatalogWhere];
+
+  const categorySlug = filters.categorySlug?.trim();
+  if (categorySlug && categorySlug !== "all") {
+    clauses.push(
+      sql`exists (
+        select 1
+        from ${productCategories}
+        inner join ${categories}
+          on ${categories.id} = ${productCategories.categoryId}
+        where ${productCategories.productId} = ${products.id}
+          and ${categories.status} = 'ACTIVE'
+          and ${categories.deletedAt} is null
+          and (
+            ${categories.translations}->${locale}->>'slug' = ${categorySlug}
+            or ${categories.translations}->'hy'->>'slug' = ${categorySlug}
+            or ${categories.translations}->'en'->>'slug' = ${categorySlug}
+            or ${categories.translations}->'ru'->>'slug' = ${categorySlug}
+          )
+      )`,
+    );
+  }
+
+  if (filters.minPrice != null && Number.isFinite(filters.minPrice)) {
+    const minPrice = toPriceFilterInt(filters.minPrice);
+    if (minPrice != null) {
+      clauses.push(sql`${products.priceAmount} >= ${minPrice}`);
+    }
+  }
+  if (filters.maxPrice != null && Number.isFinite(filters.maxPrice)) {
+    const maxPrice = toPriceFilterInt(filters.maxPrice);
+    if (maxPrice != null) {
+      clauses.push(sql`${products.priceAmount} <= ${maxPrice}`);
+    }
+  }
+
+  const q = filters.query?.trim();
+  if (q) {
+    const pattern = `%${q}%`;
+    clauses.push(
+      sql`(
+        ${products.translations}->${locale}->>'title' ilike ${pattern}
+        or ${products.translations}->'hy'->>'title' ilike ${pattern}
+        or ${products.translations}->'en'->>'title' ilike ${pattern}
+        or ${products.translations}->'ru'->>'title' ilike ${pattern}
+      )`,
+    );
+  }
+
+  return and(...clauses);
+}
+
 async function loadActiveProductsPage(
   locale: Locale,
   page: number,
+  filters: CatalogListFilters,
 ): Promise<{ products: CatalogProduct[]; total: number; pageSize: number }> {
   const offset = (page - 1) * CATALOG_PAGE_SIZE;
+  const where = buildCatalogWhere(locale, filters);
 
   const [[countRow], rows] = await Promise.all([
     getDb()
       .select({ count: sql<number>`count(*)::int` })
       .from(products)
-      .where(activeCatalogWhere),
+      .where(where),
     getDb()
       .select()
       .from(products)
-      .where(activeCatalogWhere)
+      .where(where)
       .orderBy(desc(products.createdAt))
       .limit(CATALOG_PAGE_SIZE)
       .offset(offset),
@@ -185,12 +268,33 @@ async function loadActiveProductsPage(
 export async function getActiveProductsPage(
   locale: Locale,
   page: number,
+  filters: CatalogListFilters = {},
 ): Promise<{ products: CatalogProduct[]; total: number; pageSize: number }> {
   const safePage = Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
+  const categorySlug = filters.categorySlug?.trim() || "all";
+  const minPriceValue = toPriceFilterInt(filters.minPrice);
+  const maxPriceValue = toPriceFilterInt(filters.maxPrice);
+  const minPrice = minPriceValue != null ? String(minPriceValue) : "";
+  const maxPrice = maxPriceValue != null ? String(maxPriceValue) : "";
+  const query = filters.query?.trim() || "";
 
   return unstable_cache(
-    async () => loadActiveProductsPage(locale, safePage),
-    ["active-products-page", locale, String(safePage)],
+    async () =>
+      loadActiveProductsPage(locale, safePage, {
+        categorySlug,
+        minPrice: minPriceValue,
+        maxPrice: maxPriceValue,
+        query: query || null,
+      }),
+    [
+      "active-products-page",
+      locale,
+      String(safePage),
+      categorySlug,
+      minPrice,
+      maxPrice,
+      query,
+    ],
     {
       tags: [CACHE_TAGS.products],
       revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,
@@ -331,6 +435,58 @@ async function loadProductCategories(
       } satisfies ProductCategoryRef;
     })
     .filter((row): row is ProductCategoryRef => row !== null);
+}
+
+/** Primary category title per product id for storefront cards. */
+export async function getPrimaryCategoryLabels(
+  productIds: readonly string[],
+  locale: Locale,
+): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  if (productIds.length === 0) {
+    return map;
+  }
+
+  const rows = await getDb()
+    .select({
+      productId: productCategories.productId,
+      translations: categories.translations,
+      isPrimary: productCategories.isPrimary,
+      sortOrder: productCategories.sortOrder,
+    })
+    .from(productCategories)
+    .innerJoin(categories, eq(productCategories.categoryId, categories.id))
+    .where(
+      and(
+        inArray(productCategories.productId, [...productIds]),
+        eq(categories.status, "ACTIVE"),
+        isNull(categories.deletedAt),
+      ),
+    )
+    .orderBy(
+      asc(productCategories.isPrimary),
+      asc(productCategories.sortOrder),
+    );
+
+  // Prefer primary categories; first row wins if already set.
+  const sorted = [...rows].sort((a, b) => {
+    if (a.isPrimary !== b.isPrimary) {
+      return a.isPrimary ? -1 : 1;
+    }
+    return a.sortOrder - b.sortOrder;
+  });
+
+  for (const row of sorted) {
+    if (map.has(row.productId)) {
+      continue;
+    }
+    const translation = row.translations[locale] ?? row.translations.hy;
+    if (translation?.title) {
+      map.set(row.productId, translation.title);
+    }
+  }
+
+  return map;
 }
 
 async function loadProductDetailBySlug(

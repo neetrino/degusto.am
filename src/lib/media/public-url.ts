@@ -2,7 +2,83 @@ import "server-only";
 
 import { getProviders } from "@/config/providers";
 
-/** Resolves a stored object key to a public CDN/base URL. */
+/** Local product images used when seed placeholders are not uploaded to R2. */
+const SEED_PRODUCT_FALLBACKS = [
+  "assets/products/burger-1.webp",
+  "assets/products/burger-2.webp",
+  "assets/products/burger-3.webp",
+  "assets/products/burger-4.webp",
+  "assets/products/burger-5.webp",
+  "assets/products/double-cheeseburger.webp",
+] as const;
+
+/** Maps Figma seed category keys to committed `public/assets/categories/` files. */
+const SEED_CATEGORY_FALLBACKS: Readonly<Record<string, string>> = {
+  soups: "assets/categories/soup.webp",
+  salads: "assets/categories/salad.webp",
+  shawarma: "assets/categories/shawarma.webp",
+  pizza: "assets/categories/pizza.webp",
+  lahmajoun: "assets/categories/lahmajoun.webp",
+  khachapuri: "assets/categories/khachapuri.webp",
+  khorovats: "assets/categories/khorovats.webp",
+  khinkali: "assets/categories/icons/khinkali.webp",
+  "stuffed-potato": "assets/categories/icons/stuffed-potato.webp",
+  burgers: "assets/categories/icons/burgers-sandwiches.webp",
+  "pies-crepes": "assets/categories/icons/cakes-pancakes.webp",
+  combo: "assets/categories/combo.webp",
+  "lunch-boxes": "assets/categories/icons/lunch-boxes.webp",
+  "grill-smoked": "assets/categories/icons/grill-smoked.webp",
+  bread: "assets/categories/icons/bread.webp",
+  pastry: "assets/categories/icons/pastry.webp",
+  omelette: "assets/categories/icons/fried-eggs.webp",
+  lenten: "assets/categories/icons/lenten-dishes.webp",
+  sushi: "assets/categories/icons/asian-sushi.webp",
+  pasta: "assets/categories/icons/pasta.webp",
+  sauces: "assets/categories/icons/sauces.webp",
+  restaurant: "assets/categories/icons/restaurant.webp",
+  bar: "assets/categories/icons/bar-alcohol.webp",
+  drinks: "assets/categories/icons/juices-drinks.webp",
+  "semi-finished": "assets/categories/icons/semi-finished.webp",
+  mexican: "assets/categories/icons/mexican.webp",
+};
+
+function hashKey(value: string): number {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
+  }
+  return hash;
+}
+
+function resolveLocalAssetKey(objectKey: string): string {
+  const categorySeed = /^assets\/categories\/seed\/([^.]+)\.webp$/.exec(
+    objectKey,
+  );
+  if (categorySeed) {
+    return (
+      SEED_CATEGORY_FALLBACKS[categorySeed[1] ?? ""] ??
+      "assets/categories/pizza.webp"
+    );
+  }
+
+  if (objectKey.startsWith("assets/products/seed/")) {
+    const index = hashKey(objectKey) % SEED_PRODUCT_FALLBACKS.length;
+    return SEED_PRODUCT_FALLBACKS[index] ?? SEED_PRODUCT_FALLBACKS[0];
+  }
+
+  return objectKey;
+}
+
+/**
+ * Resolves a stored object key to a public URL.
+ * Repo-committed files under `public/assets/` stay as local paths so seed
+ * and brand assets work without uploading to object storage.
+ */
 export function mediaPublicUrl(objectKey: string): string {
+  const key = resolveLocalAssetKey(objectKey.replace(/^\//, ""));
+  if (key.startsWith("assets/")) {
+    return `/${key}`;
+  }
+
   return getProviders().storage.buildPublicUrl(objectKey);
 }

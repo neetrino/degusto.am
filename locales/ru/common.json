@@ -1,8 +1,10 @@
 {
-  "brand": "White-Shop",
+  "brand": "Degusto",
   "nav": {
     "home": "Главная",
     "products": "Товары",
+    "kitchen": "Кухня",
+    "combos": "Комбо",
     "shop": "Магазин",
     "blog": "Блог",
     "cart": "Корзина",
@@ -21,16 +23,36 @@
     "logout": "Выход",
     "profile": "Профиль",
     "admin": "Админ",
-    "createAccount": "Создать аккаунт"
+    "createAccount": "Создать аккаунт",
+    "search": "Поиск",
+    "searchPlaceholder": "..."
   },
   "footer": {
-    "shop": "Магазин",
-    "description": "Профессиональный интернет-магазин для повседневных покупок.",
-    "quickLinks": "Быстрые ссылки",
-    "legal": "Правовая информация",
+    "addressesTitle": "Адреса",
+    "contactsTitle": "Контакты",
+    "termsTitle": "Условия",
+    "linksTitle": "Ссылки",
+    "addresses": [
+      "Паруйра Севака 92",
+      "Багратунянц 11А",
+      "Азатутян 24/19, Coffee Studio by Degusto"
+    ],
+    "email": "info@degusto.am",
+    "phones": "Тел. (060) 38-80-80 / (033)-80-80-80 / (010)-38-80-80",
     "privacyPolicy": "Политика конфиденциальности",
-    "terms": "Условия",
-    "contactInfo": "Контактная информация",
-    "copyright": "Copyright © {year} Neetrino IT Company. All Rights Reserved."
+    "shippingPolicy": "Политика доставки",
+    "returnPolicy": "Политика возврата",
+    "terms": "Условия и положения",
+    "copyrightLead": "Copyright © {year} | Все права защищены | Создано",
+    "copyrightBrand": "Neetrino IT Company",
+    "copyrightTrail": "",
+    "neetrinoHref": "https://neetrino.com",
+    "social": {
+      "instagram": "https://instagram.com",
+      "facebook": "https://facebook.com",
+      "telegram": "https://t.me",
+      "whatsapp": "https://wa.me",
+      "viber": "https://viber.com"
+    }
   }
 }

@@ -55,8 +55,11 @@ export function ProfileMobileTabSheet({
   const exitNotifiedRef = useRef(false);
   const onExitedRef = useRef(onExited);
   const onCloseRef = useRef(onClose);
-  onExitedRef.current = onExited;
-  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    onExitedRef.current = onExited;
+    onCloseRef.current = onClose;
+  }, [onExited, onClose]);
 
   const finishExit = useCallback(() => {
     if (exitNotifiedRef.current) return;
@@ -119,32 +122,54 @@ export function ProfileMobileTabSheet({
 
   const renderedRef = useRef(false);
   const phaseRef = useRef<MotionPhase>("enter");
-  renderedRef.current = rendered;
-  phaseRef.current = phase;
 
   useEffect(() => {
-    setMounted(true);
+    renderedRef.current = rendered;
+    phaseRef.current = phase;
+  }, [rendered, phase]);
+
+  useEffect(() => {
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setMounted(true);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
     if (!open) return;
-    setDisplayChildren(children);
-    setDisplayAriaLabel(ariaLabel);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setDisplayChildren(children);
+      setDisplayAriaLabel(ariaLabel);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [open, children, ariaLabel]);
 
   useEffect(() => {
+    let cancelled = false;
     if (open) {
       exitNotifiedRef.current = false;
-      setIsDragging(false);
-      setDragBackdropOpacity(null);
-      setPhase("enter");
-      setRendered(true);
+      queueMicrotask(() => {
+        if (cancelled) return;
+        setIsDragging(false);
+        setDragBackdropOpacity(null);
+        setPhase("enter");
+        setRendered(true);
+      });
       const panel = panelRef.current;
       if (panel) {
         panel.style.transition = "";
         panel.style.transform = "";
       }
-      return;
+      return () => {
+        cancelled = true;
+      };
     }
 
     if (!renderedRef.current) return;
@@ -157,12 +182,17 @@ export function ProfileMobileTabSheet({
       return () => window.clearTimeout(timer);
     }
 
-    setPhase("exit");
+    queueMicrotask(() => {
+      if (!cancelled) setPhase("exit");
+    });
     const timer = window.setTimeout(() => {
       finishExit();
     }, PROFILE_MOBILE_TAB_SHEET_MS);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, [open, finishExit]);
 
   useEffect(() => {

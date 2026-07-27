@@ -7,7 +7,17 @@
   --border: #e5e7eb;
   --accent: #111827;
   --accent-foreground: #f9fafb;
+  --brand: #f66812;
+  --brand-strong: #f55c0a;
+  --brand-foreground: #ffffff;
+  --brand-headline: #f66913;
+  --surface-dark: #121212;
+  --surface-ink: #0c0d12;
+  --surface-muted: #e6e6e8;
+  --brand-forest: #3e573d;
+  --product-ink: #3c2f2f;
   --radius: 15px;
+  --project-color: #f66812;
 }
 
 @theme inline {
@@ -17,8 +27,21 @@
   --color-border: var(--border);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-headline: var(--brand-headline);
+  --color-surface-dark: var(--surface-dark);
+  --color-surface-ink: var(--surface-ink);
+  --color-surface-muted: var(--surface-muted);
+  --color-brand-forest: var(--brand-forest);
+  --color-product-ink: var(--product-ink);
+  --font-sans: var(--font-montserrat), var(--font-noto-arm), var(--font-geist-sans),
+    ui-sans-serif, sans-serif;
+  --font-display: var(--font-mirage), var(--font-noto-arm), var(--font-montserrat),
+    var(--font-geist-sans), ui-sans-serif, sans-serif;
   --font-mono: var(--font-geist-mono);
+  --animate-product-card-heart-beat: product-card-heart-beat 0.55s ease-in-out;
   --radius-sm: 15px;
   --radius-md: 15px;
   --radius-lg: 15px;
@@ -31,7 +54,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), ui-sans-serif, sans-serif;
+  font-family: var(--font-sans);
 }
 
 @layer base {
@@ -55,6 +78,20 @@ body {
   input:disabled,
   [aria-disabled="true"] {
     cursor: not-allowed;
+  }
+}
+
+/* Product card wishlist heart — matches degusto-am.vercel.app */
+@keyframes product-card-heart-beat {
+  0%,
+  to {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.22);
+  }
+  60% {
+    transform: scale(1.08);
   }
 }
 
@@ -252,26 +289,96 @@ body {
  * MaMarie-style profile desktop shell:
  * lock viewport height, hide footer, scroll only the content column.
  */
+/* About page: cream canvas edge-to-edge so no gray/white strip under header or above footer. */
+.storefront-shell:has([data-about-page]) {
+  background-color: #fbf6ea;
+}
+
+.storefront-shell:has([data-about-page]) .storefront-main {
+  padding-bottom: 0;
+}
+
+.storefront-shell:has([data-about-page]) .storefront-footer {
+  background-color: #fbf6ea;
+}
+
+/* Auth (login/register): cream canvas on mobile; desktop image fills to footer. */
+.storefront-shell:has([data-auth-page]) {
+  background-color: #fbf6ea;
+}
+
+.storefront-shell:has([data-auth-page]) .storefront-main {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+}
+
+.storefront-shell:has([data-auth-page]) .storefront-footer {
+  background-color: #fbf6ea;
+}
+
 @media (min-width: 1024px) {
+  /*
+   * Paint the auth hero on the shell so it spans header → footer.
+   * Footer rounded corners then reveal the image (not a solid fill).
+   */
+  .storefront-shell:has([data-auth-page]) {
+    background-color: transparent;
+    background-image: url("/assets/auth/auth-bg-desktop.webp");
+    background-repeat: no-repeat;
+    background-position: center top;
+    background-size: cover;
+    background-attachment: fixed;
+  }
+
+  .storefront-shell:has([data-auth-page]) .storefront-footer {
+    background-color: transparent;
+  }
+
+  .storefront-shell:has([data-auth-page]) .storefront-footer > footer {
+    position: relative;
+    z-index: 10;
+  }
+}
+
+/* Shop / combo / PDP: white canvas meets the rounded footer (no gray strip). */
+.storefront-shell:has([data-shop-page]),
+.storefront-shell:has([data-pdp-page]) {
+  background-color: #ffffff;
+}
+
+.storefront-shell:has([data-shop-page]) .storefront-footer,
+.storefront-shell:has([data-pdp-page]) .storefront-footer {
+  background-color: #ffffff;
+}
+
+@media (min-width: 768px) {
+  .storefront-shell:has([data-shop-page]) .storefront-main,
+  .storefront-shell:has([data-pdp-page]) .storefront-main {
+    padding-bottom: 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .storefront-shell:has([data-home-page]) .storefront-main {
+    padding-bottom: 0;
+  }
+
   .storefront-shell:has(.profile-desktop-page) {
-    height: 100dvh;
-    max-height: 100dvh;
-    min-height: 0;
-    overflow: hidden;
+    min-height: 100dvh;
   }
 
   .storefront-shell:has(.profile-desktop-page) .storefront-main {
     display: flex;
-    flex: 1 1 0%;
+    flex: 1 1 auto;
     flex-direction: column;
+    max-width: none;
     min-height: 0;
-    overflow: hidden;
-    padding-top: 24px;
-    padding-bottom: 20px;
-  }
-
-  .storefront-shell:has(.profile-desktop-page) .storefront-footer {
-    display: none;
+    /* Clear fixed header (~92px) + breathing room below it */
+    padding-top: 8.5rem;
+    padding-right: 0;
+    padding-bottom: 1.25rem;
+    padding-left: 0;
   }
 }
 

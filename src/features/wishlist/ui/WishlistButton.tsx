@@ -67,16 +67,22 @@ export function WishlistButton({
       disabled={pending}
       aria-label={label}
       aria-pressed={inWishlist}
-      className={`inline-flex items-center justify-center rounded-full transition disabled:opacity-60 ${className}`}
+      className={`group inline-flex cursor-pointer items-center justify-center rounded-full transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-110 active:scale-95 disabled:opacity-60 disabled:hover:scale-100 motion-reduce:transition-none motion-reduce:hover:scale-100 ${className}`}
     >
-      <Heart
-        className={`${iconClass} ${
-          inWishlist
-            ? "fill-red-500 text-red-500"
-            : "fill-transparent text-gray-700"
-        }`}
+      <span
+        className="transition-transform duration-300 group-hover:animate-product-card-heart-beat motion-reduce:group-hover:animate-none"
         aria-hidden
-      />
+      >
+        <Heart
+          className={`shrink-0 ${iconClass} ${
+            inWishlist
+              ? "fill-red-500 text-red-500"
+              : "fill-transparent text-current"
+          }`}
+          strokeWidth={1.65}
+          aria-hidden
+        />
+      </span>
     </button>
   );
 }

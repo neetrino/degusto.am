@@ -1,0 +1,771 @@
+{
+  "exportedAt": "2026-07-27T10:58:30.616Z",
+  "sourceHost": "ep-shiny-lab-ay63p9jl-pooler.c-5.us-east-2.aws.neon.tech",
+  "counts": {
+    "products": 5,
+    "categories": 9,
+    "productCategories": 5,
+    "media": 13,
+    "heroSlides": 1,
+    "blogPosts": 1,
+    "storeSettings": 2,
+    "promotions": 1,
+    "deliveryRules": 1
+  },
+  "products": [
+    {
+      "id": "01900000-0000-7000-8000-000000000020",
+      "sku": "DG-BURGER-001",
+      "translations": {
+        "en": {
+          "slug": "double-cheeseburger",
+          "title": "Double Cheeseburger",
+          "description": "Double Cheeseburger"
+        },
+        "hy": {
+          "slug": "double-cheeseburger",
+          "title": "Double Cheeseburger",
+          "description": "Double Cheeseburger"
+        },
+        "ru": {
+          "slug": "double-cheeseburger",
+          "title": "Double Cheeseburger",
+          "description": "Double Cheeseburger"
+        }
+      },
+      "price_amount": 1200,
+      "compare_at_amount": 1714,
+      "stock_on_hand": 50,
+      "low_stock_threshold": 5,
+      "version": 0,
+      "status": "ACTIVE",
+      "is_featured": true,
+      "is_upcoming": false,
+      "badge_translations": null,
+      "badge_style": null,
+      "badge_position": null,
+      "created_at": "2026-07-24T13:24:30.394Z",
+      "updated_at": "2026-07-26T11:41:17.317Z",
+      "deleted_at": null
+    },
+    {
+      "id": "01900000-0000-7000-8000-000000000021",
+      "sku": "DG-BURGER-002",
+      "translations": {
+        "en": {
+          "slug": "classic-burger",
+          "title": "Classic Burger",
+          "description": "Classic Burger"
+        },
+        "hy": {
+          "slug": "classic-burger",
+          "title": "Classic Burger",
+          "description": "Classic Burger"
+        },
+        "ru": {
+          "slug": "classic-burger",
+          "title": "Classic Burger",
+          "description": "Classic Burger"
+        }
+      },
+      "price_amount": 1200,
+      "compare_at_amount": 1714,
+      "stock_on_hand": 50,
+      "low_stock_threshold": 3,
+      "version": 0,
+      "status": "ACTIVE",
+      "is_featured": true,
+      "is_upcoming": false,
+      "badge_translations": null,
+      "badge_style": null,
+      "badge_position": null,
+      "created_at": "2026-07-24T13:24:30.394Z",
+      "updated_at": "2026-07-26T11:41:17.317Z",
+      "deleted_at": null
+    },
+    {
+      "id": "01900000-0000-7000-8000-000000000022",
+      "sku": "DG-BURGER-003",
+      "translations": {
+        "en": {
+          "slug": "spicy-burger",
+          "title": "Spicy Burger",
+          "description": "Spicy Burger"
+        },
+        "hy": {
+          "slug": "spicy-burger",
+          "title": "Spicy Burger",
+          "description": "Spicy Burger"
+        },
+        "ru": {
+          "slug": "spicy-burger",
+          "title": "Spicy Burger",
+          "description": "Spicy Burger"
+        }
+      },
+      "price_amount": 1200,
+      "compare_at_amount": 1714,
+      "stock_on_hand": 50,
+      "low_stock_threshold": 5,
+      "version": 0,
+      "status": "ACTIVE",
+      "is_featured": true,
+      "is_upcoming": false,
+      "badge_translations": null,
+      "badge_style": null,
+      "badge_position": null,
+      "created_at": "2026-07-25T13:00:38.763Z",
+      "updated_at": "2026-07-26T11:41:17.317Z",
+      "deleted_at": null
+    },
+    {
+      "id": "01900000-0000-7000-8000-000000000023",
+      "sku": "DG-BURGER-004",
+      "translations": {
+        "en": {
+          "slug": "cheese-burger",
+          "title": "Cheese Burger",
+          "description": "Cheese Burger"
+        },
+        "hy": {
+          "slug": "cheese-burger",
+          "title": "Cheese Burger",
+          "description": "Cheese Burger"
+        },
+        "ru": {
+          "slug": "cheese-burger",
+          "title": "Cheese Burger",
+          "description": "Cheese Burger"
+        }
+      },
+      "price_amount": 1200,
+      "compare_at_amount": 1714,
+      "stock_on_hand": 50,
+      "low_stock_threshold": 5,
+      "version": 0,
+      "status": "ACTIVE",
+      "is_featured": true,
+      "is_upcoming": false,
+      "badge_translations": null,
+      "badge_style": null,
+      "badge_position": null,
+      "created_at": "2026-07-25T13:00:38.763Z",
+      "updated_at": "2026-07-26T11:41:17.317Z",
+      "deleted_at": null
+    },
+    {
+      "id": "01900000-0000-7000-8000-000000000024",
+      "sku": "DG-BURGER-005",
+      "translations": {
+        "en": {
+          "slug": "deluxe-burger",
+          "title": "Deluxe Burger",
+          "description": "Deluxe Burger"
+        },
+        "hy": {
+          "slug": "deluxe-burger",
+          "title": "Deluxe Burger",
+          "description": "Deluxe Burger"
+        },
+        "ru": {
+          "slug": "deluxe-burger",
+          "title": "Deluxe Burger",
+          "description": "Deluxe Burger"
+        }
+      },
+      "price_amount": 1200,
+      "compare_at_amount": 1714,
+      "stock_on_hand": 50,
+      "low_stock_threshold": 5,
+      "version": 0,
+      "status": "ACTIVE",
+      "is_featured": true,
+      "is_upcoming": false,
+      "badge_translations": null,
+      "badge_style": null,
+      "badge_position": null,
+      "created_at": "2026-07-25T13:00:38.763Z",
+      "updated_at": "2026-07-26T11:41:17.317Z",
+      "deleted_at": null
+    }
+  ],
+  "categories": [
+    {
+      "id": "01900000-0000-7000-8000-000000000011",
+      "parent_id": null,
+      "translations": {
+        "en": {
+          "slug": "soups",
+          "title": "Soups & hot dishes",
+          "description": "Soups and hot dishes"
+        },
+        "hy": {
+          "slug": "apurner",
+          "title": "Ապուրներ եւ տաք ուտեստներ",
+          "description": "Ապուրներ և տաք ուտեստներ"
+        },
+        "ru": {
+          "slug": "supy",
+          "title": "Супы и горячие блюда",
+          "description": "Супы и горячие блюда"
+        }
+      },
+      "sort_order": 1,
+      "status": "ACTIVE",
+      "created_at": "2026-07-26T11:40:45.003Z",
+      "updated_at": "2026-07-26T11:41:17.317Z",
+      "deleted_at": null
+    },
+    {
+      "id": "01900000-0000-7000-8000-000000000012",
+      "parent_id": null,
+      "translations": {
+        "en": {
+          "slug": "salads",
+          "title": "Salads",
+          "description": "Fresh salads"
+        },
+        "hy": {
+          "slug": "aghaner",
+          "title": "Աղցաններ",
+          "description": "Թարմ աղցաններ"
+        },
+        "ru": {
+          "slug": "salaty",
+          "title": "Салаты",
+          "description": "Свежие салаты"
+        }
+      },
+      "sort_order": 2,
+      "status": "ACTIVE",
+      "created_at": "2026-07-26T11:40:45.166Z",
+      "updated_at": "2026-07-26T11:41:17.317Z",
+      "deleted_at": null
+    },
+    {
+      "id": "01900000-0000-7000-8000-000000000013",
+      "parent_id": null,
+      "translations": {
+        "en": {
+          "slug": "shawarma",
+          "title": "Shawarma",
+          "description": "Shawarma"
+        },
+        "hy": {
+          "slug": "shawarma",
+          "title": "Շաուրմա",
+          "description": "Շաուրմա"
+        },
+        "ru": {
+          "slug": "shaurma",
+          "title": "Шаурма",
+          "description": "Шаурма"
+        }
+      },
+      "sort_order": 3,
+      "status": "ACTIVE",
+      "created_at": "2026-07-26T11:40:45.332Z",
+      "updated_at": "2026-07-26T11:41:17.317Z",
+      "deleted_at": null
+    },
+    {
+      "id": "01900000-0000-7000-8000-000000000014",
+      "parent_id": null,
+      "translations": {
+        "en": {
+          "slug": "pizza",
+          "title": "Pizza",
+          "description": "Pizza"
+        },
+        "hy": {
+          "slug": "pizza",
+          "title": "Պիցցա",
+          "description": "Պիցցա"
+        },
+        "ru": {
+          "slug": "pitstsa",
+          "title": "Пицца",
+          "description": "Пицца"
+        }
+      },
+      "sort_order": 4,
+      "status": "ACTIVE",
+      "created_at": "2026-07-26T11:40:45.494Z",
+      "updated_at": "2026-07-26T11:41:17.317Z",
+      "deleted_at": null
+    },
+    {
+      "id": "01900000-0000-7000-8000-000000000015",
+      "parent_id": null,
+      "translations": {
+        "en": {
+          "slug": "lahmajoun",
+          "title": "Lahmajoun",
+          "description": "Lahmajoun"
+        },
+        "hy": {
+          "slug": "lahmajoun",
+          "title": "Լահմաջո",
+          "description": "Լահմաջո"
+        },
+        "ru": {
+          "slug": "lakhmadzhun",
+          "title": "Лахмаджун",
+          "description": "Лахмаджун"
+        }
+      },
+      "sort_order": 5,
+      "status": "ACTIVE",
+      "created_at": "2026-07-26T11:40:45.661Z",
+      "updated_at": "2026-07-26T11:41:17.317Z",
+      "deleted_at": null
+    },
+    {
+      "id": "01900000-0000-7000-8000-000000000016",
+      "parent_id": null,
+      "translations": {
+        "en": {
+          "slug": "khachapuri",
+          "title": "Georgian Khachapuri",
+          "description": "Georgian khachapuri"
+        },
+        "hy": {
+          "slug": "khachapuri",
+          "title": "Վրացական Խաչապուրի",
+          "description": "Վրացական խաչապուրի"
+        },
+        "ru": {
+          "slug": "khachapuri",
+          "title": "Грузинский хачапури",
+          "description": "Грузинский хачапури"
+        }
+      },
+      "sort_order": 6,
+      "status": "ACTIVE",
+      "created_at": "2026-07-26T11:40:45.824Z",
+      "updated_at": "2026-07-26T11:41:17.317Z",
+      "deleted_at": null
+    },
+    {
+      "id": "01900000-0000-7000-8000-000000000017",
+      "parent_id": null,
+      "translations": {
+        "en": {
+          "slug": "khorovats",
+          "title": "Barbecue",
+          "description": "Barbecue"
+        },
+        "hy": {
+          "slug": "khorovats",
+          "title": "Խորոված",
+          "description": "Խորոված"
+        },
+        "ru": {
+          "slug": "khorovats",
+          "title": "Шашлык",
+          "description": "Шашлык"
+        }
+      },
+      "sort_order": 7,
+      "status": "ACTIVE",
+      "created_at": "2026-07-26T11:40:45.991Z",
+      "updated_at": "2026-07-26T11:41:17.317Z",
+      "deleted_at": null
+    },
+    {
+      "id": "01900000-0000-7000-8000-000000000018",
+      "parent_id": null,
+      "translations": {
+        "en": {
+          "slug": "combos",
+          "title": "Combos",
+          "description": "Combo deals"
+        },
+        "hy": {
+          "slug": "combo",
+          "title": "Կոմբոներ",
+          "description": "Կոմբո առաջարկներ"
+        },
+        "ru": {
+          "slug": "kombo",
+          "title": "Комбо",
+          "description": "Комбо-наборы"
+        }
+      },
+      "sort_order": 8,
+      "status": "ACTIVE",
+      "created_at": "2026-07-26T11:40:46.152Z",
+      "updated_at": "2026-07-26T11:41:17.317Z",
+      "deleted_at": null
+    },
+    {
+      "id": "01900000-0000-7000-8000-000000000010",
+      "parent_id": null,
+      "translations": {
+        "en": {
+          "slug": "burgers",
+          "title": "Burgers",
+          "description": "Signature Degusto burgers"
+        },
+        "hy": {
+          "slug": "burger",
+          "title": "Բուրգեր",
+          "description": "Համեղ բուրգերներ"
+        },
+        "ru": {
+          "slug": "burgery",
+          "title": "Бургеры",
+          "description": "Фирменные бургеры Degusto"
+        }
+      },
+      "sort_order": 99,
+      "status": "ARCHIVED",
+      "created_at": "2026-07-24T13:24:30.217Z",
+      "updated_at": "2026-07-26T11:41:17.317Z",
+      "deleted_at": null
+    }
+  ],
+  "productCategories": [
+    {
+      "id": "01900000-0000-7000-8000-000000000030",
+      "product_id": "01900000-0000-7000-8000-000000000020",
+      "category_id": "01900000-0000-7000-8000-000000000010",
+      "is_primary": true,
+      "sort_order": 1,
+      "created_at": "2026-07-24T13:24:30.579Z"
+    },
+    {
+      "id": "01900000-0000-7000-8000-000000000031",
+      "product_id": "01900000-0000-7000-8000-000000000021",
+      "category_id": "01900000-0000-7000-8000-000000000010",
+      "is_primary": true,
+      "sort_order": 2,
+      "created_at": "2026-07-24T13:24:30.579Z"
+    },
+    {
+      "id": "01900000-0000-7000-8000-000000000032",
+      "product_id": "01900000-0000-7000-8000-000000000022",
+      "category_id": "01900000-0000-7000-8000-000000000010",
+      "is_primary": true,
+      "sort_order": 3,
+      "created_at": "2026-07-25T13:00:39.764Z"
+    },
+    {
+      "id": "01900000-0000-7000-8000-000000000033",
+      "product_id": "01900000-0000-7000-8000-000000000023",
+      "category_id": "01900000-0000-7000-8000-000000000010",
+      "is_primary": true,
+      "sort_order": 4,
+      "created_at": "2026-07-25T13:00:39.764Z"
+    },
+    {
+      "id": "01900000-0000-7000-8000-000000000034",
+      "product_id": "01900000-0000-7000-8000-000000000024",
+      "category_id": "01900000-0000-7000-8000-000000000010",
+      "is_primary": true,
+      "sort_order": 5,
+      "created_at": "2026-07-25T13:00:39.764Z"
+    }
+  ],
+  "media": [
+    {
+      "id": "01900000-0000-7000-8000-000000000080",
+      "product_id": "01900000-0000-7000-8000-000000000020",
+      "category_id": null,
+      "role": "PRIMARY",
+      "upload_status": "READY",
+      "is_primary": true,
+      "object_key": "assets/products/burger-1.webp",
+      "mime_type": "image/webp",
+      "byte_size": 80000,
+      "width": 454,
+      "height": 294,
+      "sort_order": 0,
+      "created_at": "2026-07-25T13:00:39.935Z"
+    },
+    {
+      "id": "01900000-0000-7000-8000-000000000081",
+      "product_id": "01900000-0000-7000-8000-000000000021",
+      "category_id": null,
+      "role": "PRIMARY",
+      "upload_status": "READY",
+      "is_primary": true,
+      "object_key": "assets/products/burger-2.webp",
+      "mime_type": "image/webp",
+      "byte_size": 80000,
+      "width": 454,
+      "height": 294,
+      "sort_order": 0,
+      "created_at": "2026-07-25T13:00:59.238Z"
+    },
+    {
+      "id": "01900000-0000-7000-8000-000000000082",
+      "product_id": "01900000-0000-7000-8000-000000000022",
+      "category_id": null,
+      "role": "PRIMARY",
+      "upload_status": "READY",
+      "is_primary": true,
+      "object_key": "assets/products/burger-3.webp",
+      "mime_type": "image/webp",
+      "byte_size": 80000,
+      "width": 454,
+      "height": 294,
+      "sort_order": 0,
+      "created_at": "2026-07-25T13:00:59.409Z"
+    },
+    {
+      "id": "01900000-0000-7000-8000-000000000083",
+      "product_id": "01900000-0000-7000-8000-000000000023",
+      "category_id": null,
+      "role": "PRIMARY",
+      "upload_status": "READY",
+      "is_primary": true,
+      "object_key": "assets/products/burger-4.webp",
+      "mime_type": "image/webp",
+      "byte_size": 80000,
+      "width": 454,
+      "height": 294,
+      "sort_order": 0,
+      "created_at": "2026-07-25T13:00:59.575Z"
+    },
+    {
+      "id": "01900000-0000-7000-8000-000000000084",
+      "product_id": "01900000-0000-7000-8000-000000000024",
+      "category_id": null,
+      "role": "PRIMARY",
+      "upload_status": "READY",
+      "is_primary": true,
+      "object_key": "assets/products/burger-5.webp",
+      "mime_type": "image/webp",
+      "byte_size": 80000,
+      "width": 454,
+      "height": 294,
+      "sort_order": 0,
+      "created_at": "2026-07-25T13:00:59.743Z"
+    },
+    {
+      "id": "01900000-0000-7000-8000-000000000086",
+      "product_id": null,
+      "category_id": "01900000-0000-7000-8000-000000000011",
+      "role": "PRIMARY",
+      "upload_status": "READY",
+      "is_primary": true,
+      "object_key": "assets/categories/soup.webp",
+      "mime_type": "image/webp",
+      "byte_size": 80000,
+      "width": null,
+      "height": null,
+      "sort_order": 0,
+      "created_at": "2026-07-26T11:41:03.680Z"
+    },
+    {
+      "id": "01900000-0000-7000-8000-000000000087",
+      "product_id": null,
+      "category_id": "01900000-0000-7000-8000-000000000012",
+      "role": "PRIMARY",
+      "upload_status": "READY",
+      "is_primary": true,
+      "object_key": "assets/categories/salad.webp",
+      "mime_type": "image/webp",
+      "byte_size": 80000,
+      "width": null,
+      "height": null,
+      "sort_order": 0,
+      "created_at": "2026-07-26T11:41:03.842Z"
+    },
+    {
+      "id": "01900000-0000-7000-8000-000000000088",
+      "product_id": null,
+      "category_id": "01900000-0000-7000-8000-000000000013",
+      "role": "PRIMARY",
+      "upload_status": "READY",
+      "is_primary": true,
+      "object_key": "assets/categories/shawarma.webp",
+      "mime_type": "image/webp",
+      "byte_size": 80000,
+      "width": null,
+      "height": null,
+      "sort_order": 0,
+      "created_at": "2026-07-26T11:41:04.007Z"
+    },
+    {
+      "id": "01900000-0000-7000-8000-000000000089",
+      "product_id": null,
+      "category_id": "01900000-0000-7000-8000-000000000014",
+      "role": "PRIMARY",
+      "upload_status": "READY",
+      "is_primary": true,
+      "object_key": "assets/categories/pizza.webp",
+      "mime_type": "image/webp",
+      "byte_size": 80000,
+      "width": null,
+      "height": null,
+      "sort_order": 0,
+      "created_at": "2026-07-26T11:41:22.965Z"
+    },
+    {
+      "id": "01900000-0000-7000-8000-00000000008a",
+      "product_id": null,
+      "category_id": "01900000-0000-7000-8000-000000000015",
+      "role": "PRIMARY",
+      "upload_status": "READY",
+      "is_primary": true,
+      "object_key": "assets/categories/lahmajoun.webp",
+      "mime_type": "image/webp",
+      "byte_size": 80000,
+      "width": null,
+      "height": null,
+      "sort_order": 0,
+      "created_at": "2026-07-26T11:41:23.126Z"
+    },
+    {
+      "id": "01900000-0000-7000-8000-00000000008b",
+      "product_id": null,
+      "category_id": "01900000-0000-7000-8000-000000000016",
+      "role": "PRIMARY",
+      "upload_status": "READY",
+      "is_primary": true,
+      "object_key": "assets/categories/khachapuri.webp",
+      "mime_type": "image/webp",
+      "byte_size": 80000,
+      "width": null,
+      "height": null,
+      "sort_order": 0,
+      "created_at": "2026-07-26T11:41:23.294Z"
+    },
+    {
+      "id": "01900000-0000-7000-8000-00000000008c",
+      "product_id": null,
+      "category_id": "01900000-0000-7000-8000-000000000017",
+      "role": "PRIMARY",
+      "upload_status": "READY",
+      "is_primary": true,
+      "object_key": "assets/categories/khorovats.webp",
+      "mime_type": "image/webp",
+      "byte_size": 80000,
+      "width": null,
+      "height": null,
+      "sort_order": 0,
+      "created_at": "2026-07-26T11:41:23.455Z"
+    },
+    {
+      "id": "01900000-0000-7000-8000-00000000008d",
+      "product_id": null,
+      "category_id": "01900000-0000-7000-8000-000000000018",
+      "role": "PRIMARY",
+      "upload_status": "READY",
+      "is_primary": true,
+      "object_key": "assets/categories/combo.webp",
+      "mime_type": "image/webp",
+      "byte_size": 80000,
+      "width": null,
+      "height": null,
+      "sort_order": 0,
+      "created_at": "2026-07-26T11:41:23.625Z"
+    }
+  ],
+  "heroSlides": [
+    {
+      "id": "01900000-0000-7000-8000-000000000050",
+      "translations": {
+        "en": {
+          "title": "White Shop",
+          "subtitle": "New collection",
+          "buttonUrl": "/en/products",
+          "buttonLabel": "Shop now"
+        },
+        "hy": {
+          "title": "White Shop",
+          "subtitle": "New collection",
+          "buttonUrl": "/hy/products",
+          "buttonLabel": "Browse"
+        },
+        "ru": {
+          "title": "White Shop",
+          "subtitle": "New collection",
+          "buttonUrl": "/ru/products",
+          "buttonLabel": "Browse"
+        }
+      },
+      "sort_order": 1,
+      "is_active": true,
+      "created_at": "2026-07-24T13:24:30.926Z",
+      "updated_at": "2026-07-26T11:41:17.317Z"
+    }
+  ],
+  "blogPosts": [
+    {
+      "id": "01900000-0000-7000-8000-000000000070",
+      "status": "PUBLISHED",
+      "translations": {
+        "en": {
+          "slug": "welcome",
+          "title": "Welcome to White Shop",
+          "content": "<p>White Shop is ready.</p>",
+          "excerpt": "Store launch note"
+        },
+        "hy": {
+          "slug": "bari-galust",
+          "title": "Welcome to White Shop",
+          "content": "<p>White Shop is ready.</p>",
+          "excerpt": "Store launch"
+        },
+        "ru": {
+          "slug": "dobro-pozhalovat",
+          "title": "Welcome to White Shop",
+          "content": "<p>White Shop is ready.</p>",
+          "excerpt": "Store launch"
+        }
+      },
+      "published_at": "2026-07-24T13:24:28.722Z",
+      "created_at": "2026-07-24T13:24:31.280Z"
+    }
+  ],
+  "storeSettings": [
+    {
+      "key": "store.identity",
+      "value": {
+        "name": "White Shop",
+        "version": 1,
+        "defaultLocale": "hy",
+        "defaultCurrency": "AMD"
+      }
+    },
+    {
+      "key": "store.maintenance",
+      "value": {
+        "enabled": false,
+        "version": 1
+      }
+    }
+  ],
+  "promotions": [
+    {
+      "id": "01900000-0000-7000-8000-000000000060",
+      "kind": "COUPON",
+      "code": "WELCOME10",
+      "product_id": null,
+      "category_id": null,
+      "discount_type": "PERCENTAGE",
+      "discount_value": 10,
+      "is_active": true,
+      "priority": 10
+    }
+  ],
+  "deliveryRules": [
+    {
+      "id": "01900000-0000-7000-8000-000000000040",
+      "country_code": "Armenia",
+      "region": null,
+      "city": "Yerevan",
+      "price_amount": 1500,
+      "free_threshold_amount": 50000,
+      "estimated_days_min": 1,
+      "estimated_days_max": 3,
+      "is_active": true,
+      "priority": 100,
+      "created_at": "2026-07-24T13:24:30.756Z",
+      "updated_at": "2026-07-26T11:41:17.317Z"
+    }
+  ]
+}

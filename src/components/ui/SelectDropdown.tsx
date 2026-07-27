@@ -55,12 +55,20 @@ export function SelectDropdown({
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
     if (open) {
-      setElevated(true);
-      return;
+      queueMicrotask(() => {
+        if (!cancelled) setElevated(true);
+      });
+      return () => {
+        cancelled = true;
+      };
     }
     const timer = setTimeout(() => setElevated(false), DROPDOWN_ANIMATION_MS);
-    return () => clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [open]);
 
   useEffect(() => {

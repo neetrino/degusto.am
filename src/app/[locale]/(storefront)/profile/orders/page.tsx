@@ -79,7 +79,7 @@ export default async function OrdersPage({
 
   return (
     <section className="profile-sheet-keep-frame space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+      <h1 className="font-display text-2xl font-black tracking-tight text-product-ink sm:text-3xl">
         {dictionary.profile.orders}
       </h1>
 

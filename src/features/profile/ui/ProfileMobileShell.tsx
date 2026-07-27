@@ -27,8 +27,8 @@ function isProfileHubPath(pathname: string, locale: Locale): boolean {
 }
 
 /**
- * Mobile profile shell (MaMarie): hub always visible; section content in a bottom sheet.
- * Desktop content column is unchanged (`lg+`). Renders `children` once (matchMedia).
+ * Mobile profile shell: hub always visible; section content in a bottom sheet.
+ * Desktop content column uses Degusto reference card frame (`lg+`).
  */
 export function ProfileMobileShell({
   locale,
@@ -55,10 +55,16 @@ export function ProfileMobileShell({
   }, []);
 
   useEffect(() => {
-    if (isHub) {
+    if (!isHub) return;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
       setHubSheetOpen(false);
       setClosingToHub(false);
-    }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [isHub, pathname]);
 
   const sheetOpen = (!isHub || hubSheetOpen) && !closingToHub;
@@ -92,8 +98,10 @@ export function ProfileMobileShell({
   );
 
   const desktopColumn = (
-    <div className="min-w-0 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain">
-      {children}
+    <div className="min-w-0 lg:col-span-8 xl:col-span-9">
+      <div className="h-full min-h-[560px] rounded-[28px] border border-brand/20 bg-white p-5 shadow-[0_18px_50px_-28px_rgba(28,25,23,0.35)] sm:p-7">
+        {children}
+      </div>
     </div>
   );
 
@@ -101,9 +109,13 @@ export function ProfileMobileShell({
   if (isDesktop === null) {
     return (
       <>
-        <div className="profile-mobile-page w-full lg:hidden">{hub}</div>
-        <div className="hidden lg:block lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain">
-          {children}
+        <div className="profile-mobile-page mx-auto w-full max-w-md px-4 pt-6 pb-8 lg:hidden">
+          {hub}
+        </div>
+        <div className="hidden min-w-0 lg:col-span-8 lg:block xl:col-span-9">
+          <div className="h-full min-h-[560px] rounded-[28px] border border-brand/20 bg-white p-5 shadow-[0_18px_50px_-28px_rgba(28,25,23,0.35)] sm:p-7">
+            {children}
+          </div>
         </div>
       </>
     );
@@ -114,7 +126,7 @@ export function ProfileMobileShell({
   }
 
   return (
-    <div className="profile-mobile-page w-full">
+    <div className="profile-mobile-page mx-auto w-full max-w-md px-4 pt-6 pb-8">
       {hub}
       <ProfileMobileTabSheet
         open={sheetOpen}

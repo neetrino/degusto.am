@@ -1,5 +1,5 @@
-import { ProfileContentSkeleton } from "@/components/loading/storefront-skeletons";
+import { ProfilePageSkeleton } from "@/components/loading/storefront-skeletons";
 
 export default function ProfileLoading() {
-  return <ProfileContentSkeleton />;
+  return <ProfilePageSkeleton />;
 }

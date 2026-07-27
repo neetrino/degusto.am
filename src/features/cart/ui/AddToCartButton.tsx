@@ -1,18 +1,19 @@
 "use client";
 
 import type { MouseEvent } from "react";
-import { ShoppingCart } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { addToCart } from "@/features/cart/cart";
+
+const ADD_TO_CART_ICON = "/assets/product-card/add-to-cart.webp";
 
 type AddToCartButtonProps = {
   productId: string;
   label: string;
   disabled?: boolean;
   className?: string;
-  size?: "sm" | "md";
 };
 
 export function AddToCartButton({
@@ -20,12 +21,10 @@ export function AddToCartButton({
   label,
   disabled = false,
   className = "",
-  size = "md",
 }: AddToCartButtonProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [justAdded, setJustAdded] = useState(false);
-  const iconClass = size === "sm" ? "h-4 w-4" : "h-5 w-5";
 
   function handleClick(event: MouseEvent<HTMLButtonElement>): void {
     event.preventDefault();
@@ -50,12 +49,14 @@ export function AddToCartButton({
       onClick={handleClick}
       disabled={disabled || pending}
       aria-label={label}
-      className={`inline-flex items-center justify-center rounded-full transition disabled:cursor-not-allowed disabled:opacity-40 ${className}`}
+      className={`inline-flex cursor-pointer items-center justify-center rounded-full transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-110 hover:-translate-y-1.5 active:scale-95 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100 disabled:hover:translate-y-0 motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${justAdded ? "scale-95" : ""} ${className}`}
     >
-      <ShoppingCart
-        className={`${iconClass} ${
-          justAdded ? "fill-gray-900 text-gray-900" : "text-gray-700"
-        }`}
+      <Image
+        src={ADD_TO_CART_ICON}
+        alt=""
+        width={51}
+        height={52}
+        className="pointer-events-none size-full object-contain"
         aria-hidden
       />
     </button>

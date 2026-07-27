@@ -29,8 +29,15 @@ export function GlobalDiscountCard({
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
-    setValue(initialPercent != null ? String(initialPercent) : "");
-    setSaved(initialPercent);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setValue(initialPercent != null ? String(initialPercent) : "");
+      setSaved(initialPercent);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [initialPercent]);
 
   function parseInput(): number | null | "invalid" {

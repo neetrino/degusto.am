@@ -1,13 +1,26 @@
 {
-  "eyebrow": "Elegant design",
-  "title": "About our online store",
+  "eyebrow": "DEGUSTO FOOD STUDIO",
+  "title": "About us",
   "paragraphs": [
-    "We are delighted to welcome you to our online store. Our company strives to provide you with the best shopping experience with a wide range of quality products and excellent service.",
-    "Our mission is to make online shopping simple, convenient and enjoyable. We carefully select each product to ensure high quality and customer satisfaction.",
-    "We are proud to offer not only excellent products but also excellent customer service. Our team is always ready to help you find exactly what you are looking for."
+    "Degusto is a public catering organization.",
+    "Degusto Food Studio provides catering services. Its founder is Sargis Gasparyan. Organizing public catering is one of the most demanding service fields and requires consistent work.",
+    "The company has been operating for about four years. It offers customers a wide range of dishes and also provides delivery."
   ],
-  "teamEyebrow": "About us",
-  "teamTitle": "Our team",
-  "teamDescription": "Our team consists of experienced professionals who are dedicated to their work and strive to provide the best service for our customers.",
-  "heroImageAlt": "Our team working together"
+  "heroImageAlt": "Degusto Restaurant neon sign on a green living wall",
+  "statsEyebrow": "IN NUMBERS",
+  "statsTitle": "Our figures",
+  "stats": [
+    { "value": "1000+", "label": "happy customers", "icon": "users" },
+    { "value": "1000+", "label": "delicious dishes", "icon": "cloche" },
+    { "value": "20+", "label": "reliable couriers", "icon": "star" },
+    { "value": "4", "label": "years of work", "icon": "location" }
+  ],
+  "missionTitle": "Our mission",
+  "missionBody": "Our mission is to ease everyday kitchen burdens, create a warm atmosphere, and serve quality food. Care for every customer. The company is built on three principles: cleanliness, freshness, and affordability.",
+  "goalTitle": "Our goal",
+  "goalParagraphs": [
+    "One of our goals is to build a brand known across Armenia and accessible to every community, age, and gender — with a strong, organized, united team.",
+    "Ensure and continually improve high service quality with a personal approach to every customer."
+  ],
+  "missionImageAlt": "Degusto Food Studio interior with a warm atmosphere"
 }

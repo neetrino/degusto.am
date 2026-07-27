@@ -31,10 +31,10 @@ type NavItem = {
 
 function navClassName(active: boolean): string {
   const base =
-    "flex w-full items-center gap-3 rounded-md border-l-[3px] px-3 py-2 text-left text-sm font-medium transition-colors";
+    "group flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-semibold transition-all duration-200";
   return active
-    ? `${base} border-gray-900 bg-white/85 text-gray-900 shadow-sm`
-    : `${base} border-transparent text-gray-600 hover:bg-white/50 hover:text-gray-900`;
+    ? `${base} bg-[#fff0e4] text-product-ink shadow-[inset_0_0_0_1px_rgba(246,104,18,0.18)]`
+    : `${base} text-product-ink/60 hover:bg-[#fff7f0] hover:text-product-ink`;
 }
 
 export function ProfileSidebarNav({
@@ -79,8 +79,8 @@ export function ProfileSidebarNav({
   ];
 
   return (
-    <div className="p-2 sm:p-3">
-      <nav className="flex flex-col gap-0.5" aria-label={dictionary.title}>
+    <div className="flex h-full flex-col p-3 sm:p-4">
+      <nav className="flex flex-col gap-1.5" aria-label={dictionary.title}>
         {items.map((item) => {
           const active = item.exact
             ? pathname === item.href
@@ -97,25 +97,31 @@ export function ProfileSidebarNav({
               <span
                 className={
                   active
-                    ? "flex h-8 w-8 items-center justify-center rounded-md bg-gray-100 text-gray-900 shadow-sm"
-                    : "flex h-8 w-8 items-center justify-center rounded-md bg-gray-100/80 text-gray-500"
+                    ? "flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-white shadow-[0_8px_16px_-8px_rgba(246,104,18,0.9)]"
+                    : "flex h-9 w-9 items-center justify-center rounded-xl bg-[#f3f3f3] text-product-ink/45 transition-colors group-hover:bg-brand/15 group-hover:text-brand"
                 }
               >
                 {item.icon}
               </span>
-              <span>{item.label}</span>
+              <span className="min-w-0 flex-1 truncate">{item.label}</span>
+              {active ? (
+                <span
+                  aria-hidden
+                  className="size-1.5 shrink-0 rounded-full bg-brand"
+                />
+              ) : null}
             </AppLink>
           );
         })}
       </nav>
 
-      <div className="mt-2 border-t border-gray-200/70 pt-2">
+      <div className="mt-auto border-t border-brand/10 pt-3">
         <form action={logoutAction}>
           <button
             type="submit"
-            className="flex w-full items-center gap-3 rounded-md border-l-[3px] border-transparent px-3 py-2 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
+            className="group flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-semibold text-red-600 transition-colors hover:bg-red-50"
           >
-            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-red-50 text-red-500">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-red-500 transition-colors group-hover:bg-red-100">
               <LogOut className="h-4 w-4" />
             </span>
             {dictionary.logout}
