@@ -6,16 +6,16 @@ import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
 
 const FOOTER_LOGO = "/assets/footer/logo.webp";
-const ICON_PIN = "/assets/footer/icon-pin.svg";
-const ICON_MAIL = "/assets/footer/icon-mail.svg";
-const ICON_PHONE = "/assets/footer/icon-phone.svg";
+const ICON_PIN = "/assets/footer/icon-pin.webp";
+const ICON_MAIL = "/assets/footer/icon-mail.webp";
+const ICON_PHONE = "/assets/footer/icon-phone.webp";
 
 const SOCIAL_ICONS = [
-  { key: "instagram", src: "/assets/footer/social-instagram.svg" },
-  { key: "facebook", src: "/assets/footer/social-facebook.svg" },
-  { key: "telegram", src: "/assets/footer/social-telegram.svg" },
-  { key: "whatsapp", src: "/assets/footer/social-whatsapp.svg" },
-  { key: "viber", src: "/assets/footer/social-viber.svg" },
+  { key: "instagram", src: "/assets/footer/social-instagram.webp" },
+  { key: "facebook", src: "/assets/footer/social-facebook.webp" },
+  { key: "telegram", src: "/assets/footer/social-telegram.webp" },
+  { key: "whatsapp", src: "/assets/footer/social-whatsapp.webp" },
+  { key: "viber", src: "/assets/footer/social-viber.webp" },
 ] as const;
 
 const PAYMENT_LOGOS = [
@@ -49,10 +49,7 @@ export function SiteFooter({ dictionary, locale }: SiteFooterProps) {
   const navLinks = [
     { href: `/${locale}`, label: dictionary.nav.home },
     { href: `/${locale}/products`, label: dictionary.nav.shop },
-    {
-      href: `/${locale}/products?collection=combos`,
-      label: dictionary.nav.combos,
-    },
+    { href: `/${locale}/combo`, label: dictionary.nav.combos },
     { href: `/${locale}/about`, label: dictionary.nav.about },
   ] as const;
 

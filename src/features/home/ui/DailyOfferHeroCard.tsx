@@ -5,9 +5,9 @@ import Image from "next/image";
 import { AppLink } from "@/components/ui/AppLink";
 import { AddToCartButton } from "@/features/cart/ui/AddToCartButton";
 
-const STAR_ICON = "/assets/product-card/star.svg";
-const VEGGIE_ICON = "/assets/product-card/veggie.svg";
-const DAILY_OFFER_STAR = "/assets/home/daily-offer-star.svg";
+const STAR_ICON = "/assets/product-card/star.webp";
+const VEGGIE_ICON = "/assets/product-card/veggie.webp";
+const DAILY_OFFER_STAR = "/assets/home/daily-offer-star.webp";
 
 type DailyOfferHeroCardProps = {
   href: string;

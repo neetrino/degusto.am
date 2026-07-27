@@ -5,9 +5,9 @@ import { AddToCartButton } from "@/features/cart/ui/AddToCartButton";
 import { WishlistButton } from "@/features/wishlist/ui/WishlistButton";
 import type { Locale } from "@/lib/i18n/config";
 
-const STAR_ICON = "/assets/product-card/star.svg";
-const SPICY_ICON = "/assets/product-card/spicy.svg";
-const VEGGIE_ICON = "/assets/product-card/veggie.svg";
+const STAR_ICON = "/assets/product-card/star.webp";
+const SPICY_ICON = "/assets/product-card/spicy.webp";
+const VEGGIE_ICON = "/assets/product-card/veggie.webp";
 
 type ProductCardProps = {
   href: string;

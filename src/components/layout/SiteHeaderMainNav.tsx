@@ -38,6 +38,7 @@ function isNavActive(pathname: string, href: string, locale: Locale): boolean {
   if (pathOnly === `/${locale}` || pathOnly === `/${locale}/`) {
     return pathname === `/${locale}` || pathname === `/${locale}/`;
   }
+  // Exact segment match — /products must not activate /combo and vice versa.
   return pathname === pathOnly || pathname.startsWith(`${pathOnly}/`);
 }
 

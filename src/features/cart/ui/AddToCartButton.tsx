@@ -7,7 +7,7 @@ import { useState, useTransition } from "react";
 
 import { addToCart } from "@/features/cart/cart";
 
-const ADD_TO_CART_ICON = "/assets/product-card/add-to-cart.svg";
+const ADD_TO_CART_ICON = "/assets/product-card/add-to-cart.webp";
 
 type AddToCartButtonProps = {
   productId: string;

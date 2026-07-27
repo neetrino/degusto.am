@@ -40,10 +40,7 @@ async function SiteHeaderMainNavAsync({
   const navItems = [
     { href: `/${locale}`, label: dictionary.nav.home },
     { href: `/${locale}/products`, label: dictionary.nav.shop },
-    {
-      href: `/${locale}/products?collection=combos`,
-      label: dictionary.nav.combos,
-    },
+    { href: `/${locale}/combo`, label: dictionary.nav.combos },
     { href: `/${locale}/about`, label: dictionary.nav.about },
   ] as const;
 

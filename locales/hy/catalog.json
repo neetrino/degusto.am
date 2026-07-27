@@ -2,5 +2,22 @@
   "paginationLabel": "Կատալոգի էջեր",
   "previousPage": "Նախորդ",
   "nextPage": "Հաջորդ",
-  "pageStatus": "Էջ {page} / {total}"
+  "pageStatus": "Էջ {page} / {total}",
+  "menuTitle": "Մենյու",
+  "menuSubtitle": "Ընտրեք ձեր նախընտրած ուտեստները մեր լայն տեսականուց",
+  "categoriesTitle": "Կատեգորիաներ",
+  "categoriesSidebarTitle": "Կատեգորիաներ",
+  "allCategories": "Բոլորը",
+  "selectCategories": "Ընտրել կատեգորիաները",
+  "priceLabel": "Գին ({currency})",
+  "priceFrom": "Սկսած",
+  "priceTo": "Մինչև",
+  "dietFilterLabel": "Սննդային հատկանիշների փոխարկիչ",
+  "dietNone": "Առանց ֆիլտրի",
+  "dietVegetarian": "Բուսական",
+  "dietSpicy": "Կծու",
+  "sidebarSearchPlaceholder": "Որոնել",
+  "emptyProducts": "Ապրանքներ չեն գտնվել",
+  "emptyProductsDescription": "Փորձեք փոխել գինը, կատեգորիան կամ սննդային ֆիլտրը՝ այլ տարբերակներ տեսնելու համար։",
+  "emptyProductsCta": "Տեսնել ամբողջ մենյուն"
 }

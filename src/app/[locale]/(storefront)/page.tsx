@@ -130,7 +130,9 @@ export default async function HomePage({ params }: HomePageProps) {
 
   const categoryCards = categories.map((category) => ({
     id: category.id,
-    href: `/${locale}/products`,
+    href: category.slug
+      ? `/${locale}/products?category=${encodeURIComponent(category.slug)}`
+      : `/${locale}/products`,
     title: category.title,
     productCountLabel: formatProductCount(
       dictionary.home.productCount,

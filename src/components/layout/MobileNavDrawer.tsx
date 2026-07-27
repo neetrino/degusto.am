@@ -32,10 +32,11 @@ type MobileNavDrawerProps = {
 };
 
 function isNavItemActive(pathname: string, href: string, locale: Locale): boolean {
-  if (href === `/${locale}` || href === `/${locale}/`) {
+  const pathOnly = href.split("?")[0] ?? href;
+  if (pathOnly === `/${locale}` || pathOnly === `/${locale}/`) {
     return pathname === `/${locale}` || pathname === `/${locale}/`;
   }
-  return pathname === href || pathname.startsWith(`${href}/`);
+  return pathname === pathOnly || pathname.startsWith(`${pathOnly}/`);
 }
 
 /**

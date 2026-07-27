@@ -6,6 +6,7 @@ import { hashPassword } from "@/lib/auth/password";
 import * as schema from "@/db/schema";
 import { getSeedEnv } from "@/db/seed/env";
 import { seedIds } from "@/db/seed/ids";
+import { seedMenuCategories } from "@/db/seed/menu-categories";
 
 async function seed(): Promise<void> {
   const env = getSeedEnv();
@@ -124,54 +125,25 @@ async function seed(): Promise<void> {
     },
   ] as const;
 
-  await db
-    .insert(schema.categories)
-    .values({
-      id: seedIds.categoryBurgers,
-      translations: {
-        hy: {
-          title: "Բուրգեր",
-          slug: "burger",
-          description: "Համեղ բուրգերներ",
+  for (const category of seedMenuCategories) {
+    await db
+      .insert(schema.categories)
+      .values({
+        id: category.id,
+        translations: category.translations,
+        sortOrder: category.sortOrder,
+        status: category.status,
+      })
+      .onConflictDoUpdate({
+        target: schema.categories.id,
+        set: {
+          translations: category.translations,
+          sortOrder: category.sortOrder,
+          status: category.status,
+          updatedAt: now,
         },
-        en: {
-          title: "Burgers",
-          slug: "burgers",
-          description: "Signature Degusto burgers",
-        },
-        ru: {
-          title: "Бургеры",
-          slug: "burgery",
-          description: "Фирменные бургеры Degusto",
-        },
-      },
-      sortOrder: 1,
-      status: "ACTIVE",
-    })
-    .onConflictDoUpdate({
-      target: schema.categories.id,
-      set: {
-        translations: {
-          hy: {
-            title: "Բուրգեր",
-            slug: "burger",
-            description: "Համեղ բուրգերներ",
-          },
-          en: {
-            title: "Burgers",
-            slug: "burgers",
-            description: "Signature Degusto burgers",
-          },
-          ru: {
-            title: "Бургеры",
-            slug: "burgery",
-            description: "Фирменные бургеры Degusto",
-          },
-        },
-        status: "ACTIVE",
-        updatedAt: now,
-      },
-    });
+      });
+  }
 
   await db
     .insert(schema.products)
@@ -290,33 +262,37 @@ async function seed(): Promise<void> {
       });
   }
 
-  await db
-    .insert(schema.mediaAssets)
-    .values({
-      id: seedIds.mediaCategoryBurgers,
-      objectKey: "assets/categories/pizza.webp",
-      mimeType: "image/webp",
-      byteSize: 50_000,
-      uploadStatus: "READY",
-      role: "PRIMARY",
-      sortOrder: 0,
-      isPrimary: true,
-      categoryId: seedIds.categoryBurgers,
-      altTranslations: {
-        hy: "Բուրգեր",
-        en: "Burgers",
-        ru: "Бургеры",
-      },
-    })
-    .onConflictDoUpdate({
-      target: schema.mediaAssets.id,
-      set: {
-        objectKey: "assets/categories/pizza.webp",
+  for (const category of seedMenuCategories) {
+    await db
+      .insert(schema.mediaAssets)
+      .values({
+        id: category.mediaId,
+        objectKey: category.objectKey,
+        mimeType: "image/webp",
+        byteSize: 50_000,
         uploadStatus: "READY",
-        categoryId: seedIds.categoryBurgers,
-        updatedAt: now,
-      },
-    });
+        role: "PRIMARY",
+        sortOrder: 0,
+        isPrimary: true,
+        categoryId: category.id,
+        altTranslations: {
+          hy: category.translations.hy?.title ?? "Category",
+          en: category.translations.en?.title ?? "Category",
+          ru: category.translations.ru?.title ?? "Category",
+        },
+      })
+      .onConflictDoUpdate({
+        target: schema.mediaAssets.id,
+        set: {
+          objectKey: category.objectKey,
+          uploadStatus: "READY",
+          role: "PRIMARY",
+          isPrimary: true,
+          categoryId: category.id,
+          updatedAt: now,
+        },
+      });
+  }
 
   await db
     .insert(schema.deliveryRules)

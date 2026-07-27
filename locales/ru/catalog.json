@@ -2,5 +2,22 @@
   "paginationLabel": "Страницы каталога",
   "previousPage": "Назад",
   "nextPage": "Далее",
-  "pageStatus": "Страница {page} из {total}"
+  "pageStatus": "Страница {page} из {total}",
+  "menuTitle": "Меню",
+  "menuSubtitle": "Выберите любимые блюда из нашего ассортимента",
+  "categoriesTitle": "Категории",
+  "categoriesSidebarTitle": "Категории",
+  "allCategories": "Все",
+  "selectCategories": "Выбрать категории",
+  "priceLabel": "Цена ({currency})",
+  "priceFrom": "От",
+  "priceTo": "До",
+  "dietFilterLabel": "Переключатель пищевых свойств",
+  "dietNone": "Без фильтра",
+  "dietVegetarian": "Вегетарианское",
+  "dietSpicy": "Острое",
+  "sidebarSearchPlaceholder": "Поиск",
+  "emptyProducts": "Товары не найдены",
+  "emptyProductsDescription": "Попробуйте изменить цену, категорию или пищевой фильтр, чтобы увидеть другие варианты.",
+  "emptyProductsCta": "Смотреть всё меню"
 }
