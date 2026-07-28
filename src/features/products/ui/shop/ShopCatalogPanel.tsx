@@ -211,9 +211,9 @@ export function ShopCatalogPanel({
 
       {products.length === 0 ? (
         <motion.div
+          key={`empty-${filterKey}-${currentPage}`}
           initial={reduceMotion ? false : { opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.65, ease: SHOP_EASE }}
         >
           <ShopEmptyState
@@ -225,6 +225,7 @@ export function ShopCatalogPanel({
         </motion.div>
       ) : (
         <ShopCatalogProductGrids
+          key={`${filterKey}-${currentPage}-${paginationCategory ?? "all"}-${products[0]?.id ?? "none"}`}
           locale={locale}
           products={products}
           wishlistLabel={wishlistLabel}
@@ -237,8 +238,7 @@ export function ShopCatalogPanel({
 
       <motion.div
         initial={reduceMotion ? false : { opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: SHOP_EASE, delay: 0.1 }}
       >
         <ShopPagination

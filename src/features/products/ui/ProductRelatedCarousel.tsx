@@ -1,9 +1,21 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  motion,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+  useTransform,
+} from "motion/react";
 import { useRef } from "react";
 
 import { AppLink } from "@/components/ui/AppLink";
+import {
+  PRODUCT_EASE,
+  productCardItem,
+  productCardStagger,
+} from "@/features/products/ui/ProductDetailMotion";
 import { CatalogProductCard } from "@/features/products/ui/shop/CatalogProductCard";
 import type { Locale } from "@/lib/i18n/config";
 
@@ -44,7 +56,7 @@ function splitAccentTitle(title: string): { lead: string; rest: string } {
   };
 }
 
-/** Dark “try also” related products band with horizontal scroll. */
+/** Dark “try also” related products band with Motion + horizontal scroll. */
 export function ProductRelatedCarousel({
   locale,
   title,
@@ -56,7 +68,28 @@ export function ProductRelatedCarousel({
   outOfStockLabel,
   cards,
 }: ProductRelatedCarouselProps) {
+  const sectionRef = useRef<HTMLElement>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"],
+  });
+  const progress = useSpring(scrollYProgress, {
+    stiffness: 85,
+    damping: 28,
+    mass: 0.45,
+  });
+  const bandY = useTransform(
+    progress,
+    [0, 0.5, 1],
+    reduceMotion ? [0, 0, 0] : [40, 0, -24],
+  );
+  const glowX = useTransform(
+    progress,
+    [0, 1],
+    reduceMotion ? ["0%", "0%"] : ["-12%", "12%"],
+  );
 
   function scrollByCard(direction: -1 | 1): void {
     const node = scrollerRef.current;
@@ -71,20 +104,51 @@ export function ProductRelatedCarousel({
   const { lead, rest } = splitAccentTitle(title);
 
   return (
-    <section className="relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2 rounded-none bg-surface-dark px-4 pt-10 pb-12 text-white sm:px-8 sm:pt-12 sm:pb-14 lg:rounded-[40px] lg:px-12 lg:pt-[4.8rem] lg:pb-16">
-      <div className="mx-auto flex w-full max-w-[91.875rem] flex-col gap-8">
+    <motion.section
+      ref={sectionRef}
+      style={{ y: bandY }}
+      className="relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2 overflow-hidden rounded-none bg-surface-dark px-4 pt-10 pb-12 text-white will-change-transform sm:px-8 sm:pt-12 sm:pb-14 lg:rounded-[40px] lg:px-12 lg:pt-[4.8rem] lg:pb-16"
+    >
+      <motion.div
+        aria-hidden
+        style={{ x: glowX }}
+        className="pointer-events-none absolute -top-24 left-1/4 h-64 w-64 rounded-full bg-brand/25 blur-3xl"
+      />
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute right-0 bottom-0 h-48 w-48 translate-x-1/3 translate-y-1/3 rounded-full bg-[#3E573D]/40 blur-3xl"
+      />
+
+      <div className="relative mx-auto flex w-full max-w-[91.875rem] flex-col gap-8">
         <div className="mb-0 flex flex-wrap items-end justify-between gap-4 lg:mb-2">
-          <h2 className="max-w-[min(100%,42rem)] font-display text-4xl leading-none font-black tracking-tight text-white uppercase md:text-5xl lg:text-[3.75rem]">
+          <motion.h2
+            initial={
+              reduceMotion
+                ? false
+                : { opacity: 0, y: 28, filter: "blur(10px)" }
+            }
+            whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            viewport={{ once: true, amount: 0.4 }}
+            transition={{ duration: 0.85, ease: PRODUCT_EASE }}
+            className="max-w-[min(100%,42rem)] font-display text-4xl leading-none font-black tracking-tight text-white uppercase md:text-5xl lg:text-[3.75rem]"
+          >
             <span className="text-brand-headline">{lead}</span>
             {rest ? ` ${rest}` : null}
-          </h2>
-          <AppLink
-            href={viewMoreHref}
-            prefetchPolicy="intent"
-            className="inline-flex h-14 items-center justify-center rounded-full bg-[#ff7f20] px-6 text-base font-bold text-white transition hover:brightness-95"
+          </motion.h2>
+          <motion.div
+            initial={reduceMotion ? false : { opacity: 0, x: 24 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, amount: 0.4 }}
+            transition={{ duration: 0.7, ease: PRODUCT_EASE, delay: 0.12 }}
           >
-            {viewMoreLabel} →
-          </AppLink>
+            <AppLink
+              href={viewMoreHref}
+              prefetchPolicy="intent"
+              className="inline-flex h-14 items-center justify-center rounded-full bg-[#ff7f20] px-6 text-base font-bold text-white transition hover:brightness-95"
+            >
+              {viewMoreLabel} →
+            </AppLink>
+          </motion.div>
         </div>
 
         <div className="relative">
@@ -106,14 +170,19 @@ export function ProductRelatedCarousel({
           </button>
 
           <div className="overflow-hidden lg:mx-14">
-            <div
+            <motion.div
               ref={scrollerRef}
+              initial={reduceMotion ? false : "hidden"}
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.15 }}
+              variants={reduceMotion ? undefined : productCardStagger}
               className="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pt-1 pb-12 [scrollbar-width:none] lg:gap-[30px] lg:pb-14 [&::-webkit-scrollbar]:hidden"
             >
               {cards.map((card, index) => (
-                <div
+                <motion.div
                   key={card.id}
                   data-carousel-item
+                  variants={reduceMotion ? undefined : productCardItem}
                   className="mb-2 w-[calc((100%-1rem)/2)] shrink-0 snap-start sm:w-[calc((100%-2rem)/3)] md:w-[calc((100%-3rem)/4)] xl:w-[calc((100%-120px)/5)]"
                 >
                   <CatalogProductCard
@@ -137,12 +206,12 @@ export function ProductRelatedCarousel({
                     isSpicy
                     isVegetarian
                   />
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 }

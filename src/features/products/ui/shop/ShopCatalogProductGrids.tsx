@@ -55,9 +55,8 @@ export function ShopCatalogProductGrids({
     <>
       <motion.div
         ref={mobileSectionRef}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.1 }}
+        initial={mobileReduceMotion ? false : "hidden"}
+        animate="visible"
         variants={mobileReduceMotion ? undefined : shopGridVariants}
         className="mt-8 grid min-w-0 grid-cols-2 gap-x-[14px] gap-y-[52px] lg:hidden"
       >
@@ -95,9 +94,8 @@ export function ShopCatalogProductGrids({
 
       <motion.div
         ref={desktopSectionRef}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.1 }}
+        initial={desktopReduceMotion ? false : "hidden"}
+        animate="visible"
         variants={desktopReduceMotion ? undefined : shopGridVariants}
         className="hidden min-w-0 grid-cols-2 gap-x-4 gap-y-12 lg:grid xl:grid-cols-3 xl:gap-x-[30px] xl:gap-y-14"
       >
