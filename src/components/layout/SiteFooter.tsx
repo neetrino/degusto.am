@@ -1,36 +1,57 @@
+"use client";
+
 import Image from "next/image";
+import {
+  motion,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+  useTransform,
+  type Variants,
+} from "motion/react";
+import { useRef } from "react";
 
 import { AppLink } from "@/components/ui/AppLink";
-import { FooterDishBackdrop, FooterDishVisual } from "@/components/layout/FooterDishVisual";
+import {
+  FooterAddressesBlock,
+  FooterBottomBar,
+  FooterContactsBlock,
+} from "@/components/layout/SiteFooterBlocks";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
 
-const FOOTER_LOGO = "/assets/footer/logo.webp";
-const ICON_PIN = "/assets/footer/icon-pin.webp";
-const ICON_MAIL = "/assets/footer/icon-mail.webp";
-const ICON_PHONE = "/assets/footer/icon-phone.webp";
+const FOOTER_DISH = "/assets/footer/dish.webp";
 
-const SOCIAL_ICONS = [
-  { key: "instagram", src: "/assets/footer/social-instagram.webp" },
-  { key: "facebook", src: "/assets/footer/social-facebook.webp" },
-  { key: "telegram", src: "/assets/footer/social-telegram.webp" },
-  { key: "whatsapp", src: "/assets/footer/social-whatsapp.webp" },
-  { key: "viber", src: "/assets/footer/social-viber.webp" },
-] as const;
+const EASE = [0.22, 1, 0.36, 1] as const;
 
-const PAYMENT_LOGOS = [
-  { src: "/assets/footer/pay-idram.webp", alt: "idram" },
-  { src: "/assets/footer/pay-fastshift.webp", alt: "fastshift" },
-  { src: "/assets/footer/pay-arca.webp", alt: "arca" },
-  { src: "/assets/footer/pay-visa.webp", alt: "visa" },
-] as const;
+const columnVariants: Variants = {
+  hidden: { opacity: 0, y: 40, filter: "blur(10px)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { duration: 0.75, ease: EASE },
+  },
+};
+
+const listVariants: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.07, delayChildren: 0.08 } },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.45, ease: EASE },
+  },
+};
 
 type SiteFooterProps = {
   dictionary: Dictionary;
   locale: Locale;
 };
-
-type FooterCopy = Dictionary["footer"];
 
 function headingClassName(): string {
   return "font-display text-[20px] leading-6 font-black tracking-wide text-brand";
@@ -40,11 +61,33 @@ function linkClassName(): string {
   return "text-sm leading-[27px] text-white transition hover:text-brand";
 }
 
-/** Degusto storefront footer — Figma FOOTER node 1:989. */
+/** Degusto storefront footer — Motion entrance + continuous dish parallax. */
 export function SiteFooter({ dictionary, locale }: SiteFooterProps) {
+  const footerRef = useRef<HTMLElement>(null);
+  const reduceMotion = useReducedMotion();
   const year = new Date().getFullYear();
   const footer = dictionary.footer;
-  const social = footer.social;
+
+  const { scrollYProgress } = useScroll({
+    target: footerRef,
+    offset: ["start end", "end end"],
+  });
+  const progress = useSpring(scrollYProgress, {
+    stiffness: 80,
+    damping: 28,
+    mass: 0.45,
+  });
+
+  const dishY = useTransform(
+    progress,
+    [0, 1],
+    reduceMotion ? ["0%", "0%"] : ["18%", "-6%"],
+  );
+  const glowOpacity = useTransform(
+    progress,
+    [0, 0.45, 1],
+    reduceMotion ? [0.35, 0.35, 0.35] : [0.12, 0.5, 0.28],
+  );
 
   const navLinks = [
     { href: `/${locale}`, label: dictionary.nav.home },
@@ -62,198 +105,143 @@ export function SiteFooter({ dictionary, locale }: SiteFooterProps) {
 
   return (
     <div className="storefront-footer relative left-1/2 right-1/2 z-10 mt-auto -ml-[50vw] -mr-[50vw] hidden w-screen bg-surface-muted md:block">
-      <footer className="relative overflow-hidden rounded-t-[40px] bg-surface-dark text-white">
-        <FooterDishBackdrop />
-        <div className="relative z-10 mx-auto max-w-[1280px] px-4 pt-[73px] pb-10 sm:px-6 lg:px-8 xl:px-0">
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-8">
-          <div className="flex flex-col gap-10 lg:col-span-4">
-            <AddressesBlock footer={footer} />
-            <ContactsBlock footer={footer} social={social} />
-          </div>
+      <motion.footer
+        ref={footerRef}
+        initial={reduceMotion ? false : { y: 48, opacity: 0.85 }}
+        whileInView={{ y: 0, opacity: 1 }}
+        viewport={{ once: true, amount: 0.15 }}
+        transition={{ duration: 0.85, ease: EASE }}
+        className="relative overflow-hidden rounded-t-[40px] bg-surface-dark text-white"
+      >
+        <motion.div
+          aria-hidden
+          style={{ opacity: glowOpacity }}
+          className="pointer-events-none absolute -left-20 top-10 h-72 w-72 rounded-full bg-[radial-gradient(circle,_rgba(246,104,18,0.28)_0%,_transparent_68%)] blur-3xl"
+        />
 
-          <div className="lg:col-span-3 lg:-translate-x-8 xl:-translate-x-12">
-            <h2 className={`${headingClassName()} uppercase`}>{footer.termsTitle}</h2>
-            <ul className="mt-4 flex flex-col gap-2">
-              {legalLinks.map((item) => (
-                <li key={item.label}>
-                  <AppLink
-                    href={item.href}
-                    prefetchPolicy="intent"
-                    className={linkClassName()}
-                  >
-                    {item.label}
-                  </AppLink>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="lg:col-span-2 lg:-translate-x-8 xl:-translate-x-12">
-            <h2 className={headingClassName()}>{footer.linksTitle}</h2>
-            <ul className="mt-2 flex flex-col">
-              {navLinks.map((item) => (
-                <li key={item.href}>
-                  <AppLink
-                    href={item.href}
-                    prefetchPolicy="intent"
-                    className={`${linkClassName()} leading-[30px]`}
-                  >
-                    {item.label}
-                  </AppLink>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <FooterDishVisual />
-        </div>
-
-        <div className="mt-12 border-t border-white/20 pt-5">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <AppLink
-              href={`/${locale}`}
-              prefetchPolicy="intent"
-              className="relative h-[42px] w-[117px] shrink-0"
-              aria-label={dictionary.brand}
-            >
-              <Image
-                src={FOOTER_LOGO}
-                alt={dictionary.brand}
-                fill
-                sizes="117px"
-                className="object-contain object-left"
-              />
-            </AppLink>
-
-            <p className="max-w-xl text-sm leading-[23px] text-white lg:flex-1 lg:px-6">
-              {footer.copyrightLead.replace("{year}", String(year))}{" "}
-              <a
-                href={footer.neetrinoHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-black text-brand hover:underline"
-              >
-                {footer.copyrightBrand}
-              </a>
-              {footer.copyrightTrail ? ` ${footer.copyrightTrail}` : null}
-            </p>
-
-            <ul className="flex flex-wrap items-center gap-[11px]">
-              {PAYMENT_LOGOS.map((payment) => (
-                <li
-                  key={payment.alt}
-                  className="flex h-[30px] w-[73px] items-center justify-center overflow-hidden rounded-lg bg-white px-1"
-                >
-                  <Image
-                    src={payment.src}
-                    alt={payment.alt}
-                    width={66}
-                    height={22}
-                    className="h-auto max-h-[22px] w-auto object-contain"
-                  />
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </div>
-      </footer>
-    </div>
-  );
-}
-
-function AddressesBlock({ footer }: { footer: FooterCopy }) {
-  return (
-    <div className="flex w-full max-w-[280px] flex-col gap-[17px]">
-      <div className="flex items-center gap-1.5">
-        <Image
-          src={ICON_PIN}
+        <motion.img
+          src={FOOTER_DISH}
           alt=""
-          width={18}
-          height={24}
-          className="h-6 w-[18px] object-contain"
+          width={512}
+          height={800}
+          style={{ y: dishY }}
+          initial={reduceMotion ? false : { opacity: 0, scale: 0.92 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 1.1, ease: EASE, delay: 0.15 }}
+          className="pointer-events-none absolute -right-[10px] top-[-115px] z-0 hidden h-[min(800px,90vh)] w-[min(512px,42vw)] max-w-none -rotate-90 -scale-x-100 object-contain will-change-transform [aspect-ratio:90/173] lg:block xl:h-[800px] xl:w-[512px]"
           aria-hidden
         />
-        <h2 className={headingClassName()}>{footer.addressesTitle}</h2>
-      </div>
-      <ul className="flex flex-col gap-[5px]">
-        {footer.addresses.map((address) => (
-          <li key={address} className="text-sm leading-[27px] text-white">
-            {address}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
 
-function ContactsBlock({
-  footer,
-  social,
-}: {
-  footer: FooterCopy;
-  social: FooterCopy["social"];
-}) {
-  return (
-    <div className="flex w-full max-w-[472px] flex-col gap-[18px]">
-      <h2 className={headingClassName()}>{footer.contactsTitle}</h2>
-      <div className="flex flex-col gap-[9px]">
-        <a
-          href={`mailto:${footer.email}`}
-          className="flex items-center gap-3 text-sm leading-[27px] text-white transition hover:text-brand"
-        >
-          <Image
-            src={ICON_MAIL}
-            alt=""
-            width={24}
-            height={25}
-            className="h-6 w-6 object-contain"
-            aria-hidden
-          />
-          {footer.email}
-        </a>
-        <p className="flex items-start gap-[11px] text-sm leading-[27px] text-white">
-          <Image
-            src={ICON_PHONE}
-            alt=""
-            width={24}
-            height={25}
-            className="mt-0.5 h-6 w-6 shrink-0 object-contain"
-            aria-hidden
-          />
-          <span>{footer.phones}</span>
-        </p>
-        <ul className="mt-1 flex flex-wrap items-center gap-4">
-          {SOCIAL_ICONS.map((item) => {
-            const href = social[item.key];
-            const isViber = item.key === "viber";
-            return (
-              <li key={item.key}>
-                <a
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={item.key}
-                  className={
-                    isViber
-                      ? "flex size-10 items-center justify-center rounded-full bg-brand transition hover:brightness-110"
-                      : "block size-10 overflow-hidden rounded-full transition hover:brightness-110"
+        <div className="relative z-10 mx-auto max-w-[1280px] px-4 pt-[73px] pb-10 sm:px-6 lg:px-8 xl:px-0">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+            variants={
+              reduceMotion
+                ? undefined
+                : {
+                    hidden: {},
+                    visible: {
+                      transition: { staggerChildren: 0.12, delayChildren: 0.1 },
+                    },
                   }
-                >
-                  <Image
-                    src={item.src}
-                    alt=""
-                    width={isViber ? 20 : 40}
-                    height={isViber ? 22 : 40}
-                    className={isViber ? "h-[22px] w-5" : "size-10"}
-                    aria-hidden
-                  />
-                </a>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+            }
+            className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-8"
+          >
+            <motion.div
+              variants={reduceMotion ? undefined : columnVariants}
+              className="flex flex-col gap-10 lg:col-span-4"
+            >
+              <FooterAddressesBlock
+                footer={footer}
+                reduceMotion={reduceMotion}
+              />
+              <FooterContactsBlock
+                footer={footer}
+                social={footer.social}
+                reduceMotion={reduceMotion}
+              />
+            </motion.div>
+
+            <motion.div
+              variants={reduceMotion ? undefined : columnVariants}
+              className="lg:col-span-3 lg:-translate-x-8 xl:-translate-x-12"
+            >
+              <h2 className={`${headingClassName()} uppercase`}>
+                {footer.termsTitle}
+              </h2>
+              <motion.ul
+                variants={reduceMotion ? undefined : listVariants}
+                className="mt-4 flex flex-col gap-2"
+              >
+                {legalLinks.map((item) => (
+                  <motion.li
+                    key={item.label}
+                    variants={reduceMotion ? undefined : itemVariants}
+                  >
+                    <AppLink
+                      href={item.href}
+                      prefetchPolicy="intent"
+                      className={linkClassName()}
+                    >
+                      {item.label}
+                    </AppLink>
+                  </motion.li>
+                ))}
+              </motion.ul>
+            </motion.div>
+
+            <motion.div
+              variants={reduceMotion ? undefined : columnVariants}
+              className="lg:col-span-2 lg:-translate-x-8 xl:-translate-x-12"
+            >
+              <h2 className={headingClassName()}>{footer.linksTitle}</h2>
+              <motion.ul
+                variants={reduceMotion ? undefined : listVariants}
+                className="mt-2 flex flex-col"
+              >
+                {navLinks.map((item) => (
+                  <motion.li
+                    key={item.href}
+                    variants={reduceMotion ? undefined : itemVariants}
+                  >
+                    <AppLink
+                      href={item.href}
+                      prefetchPolicy="intent"
+                      className={`${linkClassName()} leading-[30px]`}
+                    >
+                      {item.label}
+                    </AppLink>
+                  </motion.li>
+                ))}
+              </motion.ul>
+            </motion.div>
+
+            <motion.div
+              variants={reduceMotion ? undefined : columnVariants}
+              className="relative mx-auto mb-4 h-[200px] w-full max-w-[360px] lg:hidden"
+            >
+              <Image
+                src={FOOTER_DISH}
+                alt=""
+                width={360}
+                height={200}
+                className="mx-auto h-[200px] w-auto max-w-full object-contain"
+              />
+            </motion.div>
+          </motion.div>
+
+          <FooterBottomBar
+            brand={dictionary.brand}
+            locale={locale}
+            year={year}
+            footer={footer}
+            reduceMotion={reduceMotion}
+          />
+        </div>
+      </motion.footer>
     </div>
   );
 }

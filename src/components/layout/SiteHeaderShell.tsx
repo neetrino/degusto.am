@@ -1,12 +1,13 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import type { ReactNode } from "react";
 
 import type { Locale } from "@/lib/i18n/config";
 
 type SiteHeaderShellProps = {
   locale: Locale;
-  children: React.ReactNode;
+  children: ReactNode;
 };
 
 function isHomePath(pathname: string, locale: Locale): boolean {
@@ -61,8 +62,8 @@ export function SiteHeaderShell({ locale, children }: SiteHeaderShellProps) {
     <div
       className={
         hideOnMobileChrome
-          ? "site-header pointer-events-none fixed inset-x-0 top-0 z-[80] hidden lg:block"
-          : "site-header pointer-events-none fixed inset-x-0 top-0 z-[80]"
+          ? "site-header pointer-events-none fixed inset-x-0 top-0 z-[1100] hidden lg:block"
+          : "site-header pointer-events-none fixed inset-x-0 top-0 z-[1100]"
       }
       data-site-header
     >

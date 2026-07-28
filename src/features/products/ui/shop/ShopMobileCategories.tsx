@@ -1,7 +1,9 @@
+"use client";
+
 import Image from "next/image";
+import { motion, useReducedMotion, type Variants } from "motion/react";
 
 import { AppLink } from "@/components/ui/AppLink";
-
 import type { ShopCategoryItem } from "@/features/products/ui/shop/ShopCategorySidebar";
 
 type ShopMobileCategoriesProps = {
@@ -12,7 +14,32 @@ type ShopMobileCategoriesProps = {
   categories: readonly ShopCategoryItem[];
 };
 
-/** Mobile-only category card grid before entering the product list. */
+const EASE = [0.22, 1, 0.36, 1] as const;
+
+const gridVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.07, delayChildren: 0.08 },
+  },
+};
+
+const cardVariants: Variants = {
+  hidden: {
+    opacity: 0,
+    y: 36,
+    scale: 0.92,
+    filter: "blur(8px)",
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    filter: "blur(0px)",
+    transition: { type: "spring", stiffness: 110, damping: 16 },
+  },
+};
+
+/** Mobile-only category card grid — staggered Motion entrance. */
 export function ShopMobileCategories({
   title,
   allLabel,
@@ -20,20 +47,40 @@ export function ShopMobileCategories({
   allImageUrl,
   categories,
 }: ShopMobileCategoriesProps) {
+  const reduceMotion = useReducedMotion();
+
   return (
     <section>
-      <h1 className="text-base leading-5 font-semibold text-black">{title}</h1>
-      <div className="mt-4 grid grid-cols-2 gap-x-3 gap-y-[14px]">
-        <CategoryCard href={allHref} title={allLabel} imageUrl={allImageUrl} />
+      <motion.h1
+        initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55, ease: EASE }}
+        className="text-base leading-5 font-semibold text-black"
+      >
+        {title}
+      </motion.h1>
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={reduceMotion ? undefined : gridVariants}
+        className="mt-4 grid grid-cols-2 gap-x-3 gap-y-[14px]"
+      >
+        <motion.div variants={reduceMotion ? undefined : cardVariants}>
+          <CategoryCard href={allHref} title={allLabel} imageUrl={allImageUrl} />
+        </motion.div>
         {categories.map((category) => (
-          <CategoryCard
+          <motion.div
             key={category.id}
-            href={category.href}
-            title={category.title}
-            imageUrl={category.imageUrl}
-          />
+            variants={reduceMotion ? undefined : cardVariants}
+          >
+            <CategoryCard
+              href={category.href}
+              title={category.title}
+              imageUrl={category.imageUrl}
+            />
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </section>
   );
 }

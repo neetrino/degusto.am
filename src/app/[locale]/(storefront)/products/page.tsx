@@ -7,10 +7,11 @@ import {
   getPrimaryCategoryLabels,
 } from "@/features/products/queries";
 import { resolveCategoryIconSrc } from "@/features/products/ui/shop/resolve-category-icon";
+import { buildCatalogHref } from "@/features/products/ui/shop/build-catalog-href";
 import { ShopCatalogPanel } from "@/features/products/ui/shop/ShopCatalogPanel";
 import { ShopCategorySidebar } from "@/features/products/ui/shop/ShopCategorySidebar";
-import { isComboSlug } from "@/features/products/ui/shop/combo-slug";
 import { ShopMobileCategories } from "@/features/products/ui/shop/ShopMobileCategories";
+import { ShopSmoothScroll } from "@/features/products/ui/shop/ShopSmoothScroll";
 import { getWishlistProductIds } from "@/features/wishlist/queries";
 import { getCurrentUser } from "@/lib/auth/session";
 import { isLocale } from "@/lib/i18n/config";
@@ -66,43 +67,6 @@ function firstPhoneHref(phones: string): string {
   }
   const digits = match[0].replace(/\D/g, "");
   return `tel:+${digits.startsWith("0") ? `374${digits.slice(1)}` : digits}`;
-}
-
-function buildCatalogHref(
-  locale: string,
-  input: {
-    category?: string;
-    page?: number;
-    min?: string;
-    max?: string;
-    q?: string;
-    diet?: string;
-  },
-): string {
-  if (input.category && isComboSlug(input.category)) {
-    const params = new URLSearchParams();
-    if (input.page && input.page > 1) params.set("page", String(input.page));
-    if (input.min) params.set("min", input.min);
-    if (input.max) params.set("max", input.max);
-    if (input.q) params.set("q", input.q);
-    if (input.diet && input.diet !== "none") params.set("diet", input.diet);
-    const query = params.toString();
-    return query ? `/${locale}/combo?${query}` : `/${locale}/combo`;
-  }
-
-  const params = new URLSearchParams();
-  if (input.category && input.category !== "all") {
-    params.set("category", input.category);
-  } else if (input.category === "all") {
-    params.set("category", "all");
-  }
-  if (input.page && input.page > 1) params.set("page", String(input.page));
-  if (input.min) params.set("min", input.min);
-  if (input.max) params.set("max", input.max);
-  if (input.q) params.set("q", input.q);
-  if (input.diet && input.diet !== "none") params.set("diet", input.diet);
-  const query = params.toString();
-  return query ? `/${locale}/products?${query}` : `/${locale}/products`;
 }
 
 export default async function ProductsPage({
@@ -254,64 +218,63 @@ export default async function ProductsPage({
     nextLabel: catalogCopy.nextPage,
     currentPage: page,
     totalPages,
-    buildPageHref: (nextPage: number) =>
-      buildCatalogHref(rawLocale, {
-        category: categoryParam ?? undefined,
-        page: nextPage,
-        min: sp.min,
-        max: sp.max,
-        q: searchQuery || undefined,
-        diet: diet === "none" ? undefined : diet,
-      }),
+    paginationLocale: rawLocale,
+    paginationCategory: categoryParam ?? undefined,
+    paginationMin: sp.min,
+    paginationMax: sp.max,
+    paginationQuery: searchQuery || undefined,
+    paginationDiet: diet === "none" ? undefined : diet,
   };
 
   return (
-    <div
-      data-shop-page
-      className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen bg-white"
-    >
-      <StorefrontMobileChrome
-        locale={rawLocale}
-        currency={currency}
-        brand={dictionary.brand}
-        callLabel={dictionary.home.call}
-        phoneHref={firstPhoneHref(dictionary.footer.phones)}
-        currencyLabel={dictionary.header.currency}
-        languageLabel={dictionary.header.language}
-        searchLabel={dictionary.header.search}
-        searchPlaceholder={dictionary.header.search}
-        searchQuery={searchQuery}
+    <ShopSmoothScroll>
+      <div
+        data-shop-page
+        className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen bg-white"
       >
-        {showMobileCategoryPicker ? (
-          <ShopMobileCategories
-            title={catalogCopy.categoriesTitle}
-            allLabel={catalogCopy.allCategories}
-            allHref={allHref}
-            allImageUrl={allImageUrl}
-            categories={categoryItems}
-          />
-        ) : (
-          <ShopCatalogPanel {...catalogPanelProps} />
-        )}
-      </StorefrontMobileChrome>
-
-      <div className="mx-auto hidden min-w-0 w-full max-w-[min(1450px,calc(100%-2rem))] gap-4 px-4 pt-2 pb-10 md:max-w-[min(1450px,calc(100%-2.5rem))] md:px-6 lg:flex lg:max-w-[min(1450px,calc(100%-3rem))] lg:gap-8 lg:pt-5 xl:pl-4 2xl:px-6">
-        <ShopCategorySidebar
-          title={catalogCopy.categoriesSidebarTitle}
-          allLabel={catalogCopy.allCategories}
-          searchPlaceholder={catalogCopy.sidebarSearchPlaceholder}
-          categories={categoryItems}
-          selectedSlug={selectedCategory}
-          allHref={allHref}
-          searchAction={searchAction}
+        <StorefrontMobileChrome
+          locale={rawLocale}
+          currency={currency}
+          brand={dictionary.brand}
+          callLabel={dictionary.home.call}
+          phoneHref={firstPhoneHref(dictionary.footer.phones)}
+          currencyLabel={dictionary.header.currency}
+          languageLabel={dictionary.header.language}
+          searchLabel={dictionary.header.search}
+          searchPlaceholder={dictionary.header.search}
           searchQuery={searchQuery}
-        />
+        >
+          {showMobileCategoryPicker ? (
+            <ShopMobileCategories
+              title={catalogCopy.categoriesTitle}
+              allLabel={catalogCopy.allCategories}
+              allHref={allHref}
+              allImageUrl={allImageUrl}
+              categories={categoryItems}
+            />
+          ) : (
+            <ShopCatalogPanel {...catalogPanelProps} />
+          )}
+        </StorefrontMobileChrome>
 
-        <ShopCatalogPanel
-          {...catalogPanelProps}
-          showSelectCategories={false}
-        />
+        <div className="mx-auto hidden min-w-0 w-full max-w-[min(1450px,calc(100%-2rem))] gap-4 px-4 pt-2 pb-10 md:max-w-[min(1450px,calc(100%-2.5rem))] md:px-6 lg:flex lg:max-w-[min(1450px,calc(100%-3rem))] lg:gap-8 lg:pt-5 xl:pl-4 2xl:px-6">
+          <ShopCategorySidebar
+            title={catalogCopy.categoriesSidebarTitle}
+            allLabel={catalogCopy.allCategories}
+            searchPlaceholder={catalogCopy.sidebarSearchPlaceholder}
+            categories={categoryItems}
+            selectedSlug={selectedCategory}
+            allHref={allHref}
+            searchAction={searchAction}
+            searchQuery={searchQuery}
+          />
+
+          <ShopCatalogPanel
+            {...catalogPanelProps}
+            showSelectCategories={false}
+          />
+        </div>
       </div>
-    </div>
+    </ShopSmoothScroll>
   );
 }

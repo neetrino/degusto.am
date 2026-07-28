@@ -51,7 +51,7 @@ export function StorefrontMobileChrome({
         aria-hidden
       />
 
-      <header className="relative z-[100] overflow-visible px-4 pt-[max(58px,calc(env(safe-area-inset-top,0px)+12px))]">
+      <header className="relative z-[1100] overflow-visible px-4 pt-[max(58px,calc(env(safe-area-inset-top,0px)+12px))]">
         <div className="relative z-20 flex translate-y-5 items-start justify-between overflow-visible">
           <AppLink
             href={`/${locale}`}

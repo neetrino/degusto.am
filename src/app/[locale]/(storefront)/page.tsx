@@ -6,6 +6,7 @@ import { HomeCategories } from "@/features/home/ui/HomeCategories";
 import { HomeFeaturedProducts } from "@/features/home/ui/HomeFeaturedProducts";
 import { HomeHero } from "@/features/home/ui/HomeHero";
 import { HomeMobile } from "@/features/home/ui/HomeMobile";
+import { HomeSmoothScroll } from "@/features/home/ui/HomeSmoothScroll";
 import {
   getFeaturedProducts,
   getPrimaryCategoryLabels,
@@ -142,69 +143,71 @@ export default async function HomePage({ params }: HomePageProps) {
   }));
 
   return (
-    <div className="-mx-4 -mt-[7.5rem] -mb-10 sm:-mx-6 lg:-mx-8" data-home-page>
-      <HomeMobile
-        locale={locale}
-        currency={currency}
-        brand={dictionary.brand}
-        callLabel={dictionary.home.call}
-        phoneHref={firstPhoneHref(dictionary.footer.phones)}
-        currencyLabel={dictionary.header.currency}
-        languageLabel={dictionary.header.language}
-        searchLabel={dictionary.header.search}
-        searchPlaceholder={dictionary.header.search}
-        categoriesTitle={dictionary.home.categoriesTitle}
-        viewAllCategoriesLabel={dictionary.home.viewAllCategories}
-        viewAllCategoriesHref={`/${locale}/products`}
-        newProductsTitle={dictionary.home.newProductsTitle}
-        viewAllHref={`/${locale}/products`}
-        dailyOfferLabel={dictionary.home.dailyOffer}
-        wishlistLabel={dictionary.nav.wishlist}
-        addToCartLabel={dictionary.product.addToCart}
-        outOfStockLabel={dictionary.product.outOfStock}
-        isSignedIn={Boolean(user)}
-        categories={categoryCards}
-        dailyOffers={dailyOfferCards}
-        products={featuredCards}
-      />
+    <HomeSmoothScroll>
+      <div className="-mx-4 -mt-[7.5rem] -mb-10 sm:-mx-6 lg:-mx-8" data-home-page>
+        <HomeMobile
+          locale={locale}
+          currency={currency}
+          brand={dictionary.brand}
+          callLabel={dictionary.home.call}
+          phoneHref={firstPhoneHref(dictionary.footer.phones)}
+          currencyLabel={dictionary.header.currency}
+          languageLabel={dictionary.header.language}
+          searchLabel={dictionary.header.search}
+          searchPlaceholder={dictionary.header.search}
+          categoriesTitle={dictionary.home.categoriesTitle}
+          viewAllCategoriesLabel={dictionary.home.viewAllCategories}
+          viewAllCategoriesHref={`/${locale}/products`}
+          newProductsTitle={dictionary.home.newProductsTitle}
+          viewAllHref={`/${locale}/products`}
+          dailyOfferLabel={dictionary.home.dailyOffer}
+          wishlistLabel={dictionary.nav.wishlist}
+          addToCartLabel={dictionary.product.addToCart}
+          outOfStockLabel={dictionary.product.outOfStock}
+          isSignedIn={Boolean(user)}
+          categories={categoryCards}
+          dailyOffers={dailyOfferCards}
+          products={featuredCards}
+        />
 
-      <div className="hidden lg:block">
-        <div className="relative left-1/2 right-1/2 hidden w-screen -ml-[50vw] -mr-[50vw] bg-[var(--project-color)] lg:block">
-          {/* Fills the header band with the same orange as the hero (no z-index change). */}
-          <div
-            className="pointer-events-none absolute inset-x-0 top-0 h-[7.5rem] bg-[var(--project-color)]"
-            aria-hidden
-          />
-          <HomeHero
-            slides={heroSlides}
-            fallbackTitle={dictionary.home.title}
-            locale={locale}
-            addToCartLabel={dictionary.product.addToCart}
-            dailyOfferLabel={dictionary.home.dailyOffer}
-            dailyOffer={dailyOffer}
-          />
+        <div className="hidden lg:block">
+          <div className="relative left-1/2 right-1/2 hidden w-screen -ml-[50vw] -mr-[50vw] bg-[var(--project-color)] lg:block">
+            {/* Fills the header band with the same orange as the hero (no z-index change). */}
+            <div
+              className="pointer-events-none absolute inset-x-0 top-0 h-[7.5rem] bg-[var(--project-color)]"
+              aria-hidden
+            />
+            <HomeHero
+              slides={heroSlides}
+              fallbackTitle={dictionary.home.title}
+              locale={locale}
+              addToCartLabel={dictionary.product.addToCart}
+              dailyOfferLabel={dictionary.home.dailyOffer}
+              dailyOffer={dailyOffer}
+            />
 
-          <HomeFeaturedProducts
-            locale={locale}
-            titleLead={dictionary.home.featuredTitleLead}
-            titleAccent={dictionary.home.featuredTitleAccent}
-            viewAllLabel={dictionary.home.viewAll}
-            viewAllHref={`/${locale}/products`}
-            emptyLabel={dictionary.home.emptyFeatured}
-            wishlistLabel={dictionary.nav.wishlist}
-            addToCartLabel={dictionary.product.addToCart}
-            outOfStockLabel={dictionary.product.outOfStock}
-            isSignedIn={Boolean(user)}
-            products={featuredCards}
+            <HomeFeaturedProducts
+              locale={locale}
+              titleLead={dictionary.home.featuredTitleLead}
+              titleAccent={dictionary.home.featuredTitleAccent}
+              viewAllLabel={dictionary.home.viewAll}
+              viewAllHref={`/${locale}/products`}
+              emptyLabel={dictionary.home.emptyFeatured}
+              wishlistLabel={dictionary.nav.wishlist}
+              addToCartLabel={dictionary.product.addToCart}
+              outOfStockLabel={dictionary.product.outOfStock}
+              isSignedIn={Boolean(user)}
+              products={featuredCards}
+            />
+          </div>
+
+          <HomeCategories
+            title={dictionary.home.categoriesTitle}
+            emptyLabel={dictionary.home.emptyCategories}
+            categories={categoryCards}
           />
         </div>
-
-        <HomeCategories
-          title={dictionary.home.categoriesTitle}
-          emptyLabel={dictionary.home.emptyCategories}
-          categories={categoryCards}
-        />
       </div>
-    </div>
+    </HomeSmoothScroll>
   );
 }

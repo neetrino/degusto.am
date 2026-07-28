@@ -218,7 +218,7 @@ export function MobileNavDrawer({
               <button
                 type="button"
                 aria-label={dictionary.nav.closeMenu}
-                className={`fixed inset-0 z-[60] cursor-pointer border-0 bg-black/25 backdrop-blur-[8px] transition-[opacity,visibility] duration-[260ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                className={`fixed inset-0 z-[1200] cursor-pointer border-0 bg-black/25 backdrop-blur-[8px] transition-[opacity,visibility] duration-[260ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${
                   expanded
                     ? "pointer-events-auto visible opacity-100"
                     : "pointer-events-none invisible opacity-0"
@@ -231,7 +231,7 @@ export function MobileNavDrawer({
                 role="dialog"
                 aria-modal="true"
                 aria-label={dictionary.nav.navigation}
-                className={`fixed z-[75] overflow-hidden rounded-3xl bg-white px-5 shadow-[0_12px_40px_rgba(0,0,0,0.12)] transition-[opacity,transform] duration-[260ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                className={`fixed z-[1210] overflow-hidden rounded-3xl bg-white px-5 shadow-[0_12px_40px_rgba(0,0,0,0.12)] transition-[opacity,transform] duration-[260ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${
                   expanded
                     ? "translate-y-0 scale-100 opacity-100"
                     : "-translate-y-2.5 scale-[0.98] opacity-0"
