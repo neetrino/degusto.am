@@ -11,13 +11,13 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const VARIANT_STYLES: Record<ButtonVariant, string> = {
   primary:
-    "bg-gray-900 text-white hover:bg-gray-800 focus:ring-gray-900",
+    "bg-[#1f3a22] text-[#fffdf8] hover:bg-[#19311c] focus:ring-[#1f3a22]",
   secondary:
-    "border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 focus:ring-gray-500",
+    "border border-[#ead7bf] bg-white text-[#1f1a17] hover:bg-[#fff4eb] focus:ring-[#ff7f20]",
   outline:
-    "border border-gray-300 bg-transparent text-gray-900 hover:bg-gray-50 focus:ring-gray-500",
+    "border border-[#ead7bf] bg-transparent text-[#1f1a17] hover:bg-[#fff4eb] focus:ring-[#ff7f20]",
   ghost:
-    "bg-transparent text-gray-900 hover:bg-gray-100 focus:ring-gray-500",
+    "bg-transparent text-[#1f1a17] hover:bg-[#fff4eb] focus:ring-[#ff7f20]",
   danger:
     "bg-red-600 text-white hover:bg-red-700 focus:ring-red-600",
 };

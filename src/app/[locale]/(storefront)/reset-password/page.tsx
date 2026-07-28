@@ -1,17 +1,21 @@
 import { notFound } from "next/navigation";
 
+import {
+  AuthCard,
+  AuthPageShell,
+  firstAuthPhoneHref,
+} from "@/features/auth/ui/AuthPageShell";
 import { ResetPasswordForm } from "@/features/auth/ui/ResetPasswordForm";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
+import { getSelectedCurrency } from "@/lib/money/display-price";
 
 type ResetPasswordPageProps = {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ token?: string | string[] }>;
 };
 
-function resolveToken(
-  raw: string | string[] | undefined,
-): string {
+function resolveToken(raw: string | string[] | undefined): string {
   if (typeof raw === "string") {
     return raw;
   }
@@ -33,23 +37,33 @@ export default async function ResetPasswordPage({
   }
 
   const dictionary = getDictionary(rawLocale);
+  const currency = await getSelectedCurrency();
   const token = resolveToken(query.token);
 
   return (
-    <section className="mx-auto max-w-lg px-0 py-2 sm:py-4">
-      <div className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
-        <h1 className="mb-2 text-3xl font-bold tracking-tight text-gray-900">
-          {dictionary.auth.resetPasswordTitle}
-        </h1>
-        <p className="mb-8 text-gray-600">
-          {dictionary.auth.resetPasswordSubtitle}
-        </p>
+    <AuthPageShell
+      mobileChrome={{
+        locale: rawLocale,
+        currency,
+        brand: dictionary.brand,
+        callLabel: dictionary.home.call,
+        phoneHref: firstAuthPhoneHref(dictionary.footer.phones),
+        currencyLabel: dictionary.header.currency,
+        languageLabel: dictionary.header.language,
+        searchLabel: dictionary.header.search,
+        searchPlaceholder: dictionary.header.search,
+      }}
+    >
+      <AuthCard
+        title={dictionary.auth.resetPasswordTitle}
+        subtitle={dictionary.auth.resetPasswordSubtitle}
+      >
         <ResetPasswordForm
           locale={rawLocale}
           token={token}
           dictionary={dictionary.auth}
         />
-      </div>
-    </section>
+      </AuthCard>
+    </AuthPageShell>
   );
 }

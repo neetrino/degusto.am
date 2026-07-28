@@ -1,5 +1,4 @@
 export const ABOUT_HERO_IMAGE = "/assets/about/about-hero.webp";
-export const ABOUT_BOTANICAL_BG = "/assets/about/about-botanical-bg.webp";
 export const ABOUT_MISSION_IMAGE = "/assets/about/about-mission-interior.webp";
 
 export const ABOUT_STAT_ICONS = {

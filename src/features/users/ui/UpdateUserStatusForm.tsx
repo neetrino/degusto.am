@@ -33,7 +33,7 @@ export function UpdateUserStatusForm({
 
   if (eligibleStatuses.length === 0) {
     return (
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-[#5c564e]">
         Terminal status — no further transitions.
       </p>
     );
@@ -61,8 +61,8 @@ export function UpdateUserStatusForm({
         }}
       >
         <h3 className={ADMIN_SECTION_TITLE}>Status</h3>
-        <p className="text-sm text-gray-700">
-          Current: <strong className="text-gray-900">{currentStatus}</strong>
+        <p className="text-sm text-[#5c564e]">
+          Current: <strong className="text-[#1f1a17]">{currentStatus}</strong>
         </p>
         <div>
           <span className={ADMIN_LABEL}>New status</span>

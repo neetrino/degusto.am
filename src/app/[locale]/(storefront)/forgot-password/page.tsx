@@ -1,8 +1,14 @@
 import { notFound } from "next/navigation";
 
+import {
+  AuthCard,
+  AuthPageShell,
+  firstAuthPhoneHref,
+} from "@/features/auth/ui/AuthPageShell";
 import { ForgotPasswordForm } from "@/features/auth/ui/ForgotPasswordForm";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
+import { getSelectedCurrency } from "@/lib/money/display-price";
 
 type ForgotPasswordPageProps = {
   params: Promise<{ locale: string }>;
@@ -18,18 +24,28 @@ export default async function ForgotPasswordPage({
   }
 
   const dictionary = getDictionary(rawLocale);
+  const currency = await getSelectedCurrency();
 
   return (
-    <section className="mx-auto max-w-lg px-0 py-2 sm:py-4">
-      <div className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
-        <h1 className="mb-2 text-3xl font-bold tracking-tight text-gray-900">
-          {dictionary.auth.forgotPasswordTitle}
-        </h1>
-        <p className="mb-8 text-gray-600">
-          {dictionary.auth.forgotPasswordSubtitle}
-        </p>
+    <AuthPageShell
+      mobileChrome={{
+        locale: rawLocale,
+        currency,
+        brand: dictionary.brand,
+        callLabel: dictionary.home.call,
+        phoneHref: firstAuthPhoneHref(dictionary.footer.phones),
+        currencyLabel: dictionary.header.currency,
+        languageLabel: dictionary.header.language,
+        searchLabel: dictionary.header.search,
+        searchPlaceholder: dictionary.header.search,
+      }}
+    >
+      <AuthCard
+        title={dictionary.auth.forgotPasswordTitle}
+        subtitle={dictionary.auth.forgotPasswordSubtitle}
+      >
         <ForgotPasswordForm locale={rawLocale} dictionary={dictionary.auth} />
-      </div>
-    </section>
+      </AuthCard>
+    </AuthPageShell>
   );
 }

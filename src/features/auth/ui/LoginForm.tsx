@@ -30,7 +30,7 @@ export function LoginForm({ locale, dictionary }: LoginFormProps) {
   const [passwordVisible, setPasswordVisible] = useState(false);
 
   return (
-    <form action={formAction} className="space-y-4 sm:space-y-[18px]">
+    <form action={formAction} className="space-y-4 sm:space-y-5">
       {nextPath ? <input type="hidden" name="next" value={nextPath} /> : null}
 
       {resetSucceeded ? (
@@ -57,6 +57,7 @@ export function LoginForm({ locale, dictionary }: LoginFormProps) {
             name="email"
             type="email"
             autoComplete="email"
+            inputMode="email"
             placeholder={dictionary.emailPlaceholder}
             className={authInputClassName}
           />
@@ -103,8 +104,8 @@ export function LoginForm({ locale, dictionary }: LoginFormProps) {
         </div>
       </div>
 
-      <div className="flex min-h-11 items-center justify-between gap-3 pt-1">
-        <label className="flex shrink-0 items-center">
+      <div className="flex min-h-11 items-center justify-between gap-3 pt-0.5">
+        <label className="flex shrink-0 cursor-pointer items-center">
           <input
             type="checkbox"
             name="remember"
@@ -141,9 +142,11 @@ export function LoginForm({ locale, dictionary }: LoginFormProps) {
         {isPending ? dictionary.submittingLogin : dictionary.submitLogin}
       </button>
 
-      <p className="py-0.5 text-center text-sm text-[#3d5848]/80">
-        {dictionary.orDivider}
-      </p>
+      <div className="flex items-center gap-3 py-0.5" aria-hidden>
+        <span className="h-px flex-1 bg-[#e8dcc8]" />
+        <span className="text-sm text-[#3d5848]/80">{dictionary.orDivider}</span>
+        <span className="h-px flex-1 bg-[#e8dcc8]" />
+      </div>
 
       <p className="text-center text-sm text-[#274531]">
         {dictionary.noAccount}{" "}

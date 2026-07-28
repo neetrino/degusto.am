@@ -442,9 +442,9 @@ body:has([data-cart-page]) {
  * MaMarie-style profile desktop shell:
  * lock viewport height, hide footer, scroll only the content column.
  */
-/* About page: cream canvas edge-to-edge so no gray/white strip under header or above footer. */
+/* About page: hero image fills under the floating header; footer matches mission band. */
 .storefront-shell:has([data-about-page]) {
-  background-color: #fbf6ea;
+  background-color: #0c120e;
 }
 
 .storefront-shell:has([data-about-page]) .storefront-main {
@@ -452,7 +452,13 @@ body:has([data-cart-page]) {
 }
 
 .storefront-shell:has([data-about-page]) .storefront-footer {
-  background-color: #fbf6ea;
+  background-color: #f7f6f3;
+}
+
+.about-hero-grain {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 180px 180px;
 }
 
 /* Auth (login/register): cream canvas on mobile; desktop image fills to footer. */
@@ -470,6 +476,17 @@ body:has([data-cart-page]) {
   background-color: #fbf6ea;
 }
 
+@media (max-width: 1023px) {
+  .storefront-shell:has([data-auth-page]) .storefront-main {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .storefront-shell:has([data-auth-page]) .storefront-footer {
+    display: none;
+  }
+}
+
 @media (min-width: 1024px) {
   /*
    * Paint the auth hero on the shell so it spans header → footer.
@@ -482,6 +499,10 @@ body:has([data-cart-page]) {
     background-position: center top;
     background-size: cover;
     background-attachment: fixed;
+  }
+
+  .storefront-shell:has([data-auth-page]) .storefront-main {
+    background-color: transparent;
   }
 
   .storefront-shell:has([data-auth-page]) .storefront-footer {
@@ -725,4 +746,110 @@ body:has([data-cart-page]) {
 .mobile-bottom-nav-fill-home-active,
 .mobile-bottom-nav-fill-profile-active {
   background-color: var(--project-color);
+}
+
+/* Admin sidebar — Degusto supersudo visual system */
+.admin-sidebar-home-bg {
+  isolation: isolate;
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-sidebar-home-bg::before {
+  content: "";
+  z-index: -2;
+  opacity: 1;
+  filter: saturate(1.1) brightness(0.9);
+  pointer-events: none;
+  background-image:
+    linear-gradient(170deg, #03151075 0%, #041d156b 45%, #08302266 100%),
+    url("/images/admin/sidebar-bg.webp");
+  background-position: 60%;
+  background-repeat: no-repeat;
+  background-size: cover;
+  position: absolute;
+  inset: 0;
+}
+
+.admin-sidebar-home-bg::after {
+  content: "";
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 16% 12%, #ffffff1a 0%, #fff0 42%),
+    linear-gradient(#0000000a 0%, #0000001f 100%);
+  position: absolute;
+  inset: 0;
+}
+
+.admin-sidebar-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #9eff8e52 transparent;
+}
+
+.admin-sidebar-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.admin-sidebar-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-sidebar-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #ffffff24;
+  border-radius: 9999px;
+}
+
+.admin-sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #9eff8e73;
+}
+
+.admin-food-icon-wrap {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+}
+
+.admin-food-icon {
+  user-select: none;
+  text-shadow: 0 1px 2px #0000001f;
+  font-size: 0.85rem;
+  line-height: 1;
+  position: absolute;
+}
+
+@keyframes admin-food-float-a {
+  0%,
+  to {
+    opacity: 0.5;
+    transform: translateY(0) rotate(-3deg);
+  }
+  50% {
+    opacity: 0.88;
+    transform: translateY(-4px) rotate(3deg);
+  }
+}
+
+@keyframes admin-food-float-b {
+  0%,
+  to {
+    opacity: 0.45;
+    transform: translateY(0) rotate(4deg);
+  }
+  50% {
+    opacity: 0.82;
+    transform: translateY(4px) rotate(-4deg);
+  }
+}
+
+@keyframes admin-food-float-c {
+  0%,
+  to {
+    opacity: 0.42;
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    opacity: 0.75;
+    transform: translateY(-3px) rotate(2deg);
+  }
 }

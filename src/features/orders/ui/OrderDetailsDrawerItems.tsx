@@ -18,9 +18,9 @@ export function OrderDetailsDrawerItems({
   detail,
 }: OrderDetailsDrawerItemsProps) {
   return (
-    <div className="rounded-2xl border border-gray-200 px-5 py-4">
-      <h3 className="mb-4 text-base font-semibold text-gray-900">Items</h3>
-      <div className={`${ADMIN_TABLE_OUTER_SCROLL} rounded-xl border border-gray-100`}>
+    <div className="rounded-2xl border border-[#ead7bf] px-5 py-4">
+      <h3 className="mb-4 text-base font-semibold text-[#1f1a17]">Items</h3>
+      <div className={`${ADMIN_TABLE_OUTER_SCROLL} rounded-xl border border-[#ead7bf]/80`}>
         <table className={ADMIN_TABLE}>
           <thead className={ADMIN_TABLE_THEAD}>
             <tr>
@@ -40,7 +40,7 @@ export function OrderDetailsDrawerItems({
                       title={item.title}
                       imageUrl={item.imageUrl}
                     />
-                    <span className="font-medium text-gray-900">
+                    <span className="font-medium text-[#1f1a17]">
                       {item.title}
                     </span>
                   </div>
@@ -72,7 +72,7 @@ function ProductThumb({
   if (!imageUrl) {
     return (
       <span
-        className="h-10 w-10 shrink-0 rounded-md bg-gray-100"
+        className="h-10 w-10 shrink-0 rounded-md bg-[#e8e2d9]"
         aria-hidden
       />
     );

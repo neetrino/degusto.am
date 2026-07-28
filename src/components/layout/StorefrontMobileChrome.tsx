@@ -17,6 +17,8 @@ type StorefrontMobileChromeProps = {
   searchLabel: string;
   searchPlaceholder: string;
   searchQuery?: string;
+  /** Optional sheet surface (e.g. auth cream). Defaults to white. */
+  sheetClassName?: string;
   children: React.ReactNode;
 };
 
@@ -35,6 +37,7 @@ export function StorefrontMobileChrome({
   searchLabel,
   searchPlaceholder,
   searchQuery = "",
+  sheetClassName = "bg-white",
   children,
 }: StorefrontMobileChromeProps) {
   return (
@@ -108,7 +111,9 @@ export function StorefrontMobileChrome({
         </div>
       </header>
 
-      <div className="relative z-10 mt-[87px] min-h-[calc(100dvh-10rem)] rounded-t-[30px] bg-white px-4 pt-8 pb-[110px]">
+      <div
+        className={`relative z-10 mt-[87px] min-h-[calc(100dvh-10rem)] rounded-t-[30px] px-4 pt-8 pb-[110px] ${sheetClassName}`}
+      >
         {children}
       </div>
     </div>

@@ -148,7 +148,7 @@ export function AdminUsersView({
       </form>
 
       <div className="mb-4">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#8a837a]">
           Admin / Customer
         </p>
         <div className="flex flex-wrap gap-2">
@@ -160,8 +160,8 @@ export function AdminUsersView({
                 href={roleFilterHref(locale, pill.value, q)}
                 className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
                   active
-                    ? "bg-gray-200 text-gray-900"
-                    : "bg-white text-gray-600 ring-1 ring-gray-300 hover:bg-gray-50"
+                    ? "bg-[#ead7bf] text-[#1f1a17]"
+                    : "bg-white text-[#5c564e] ring-1 ring-gray-300 hover:bg-[#fff4eb]"
                 }`}
               >
                 {pill.label}
@@ -171,12 +171,12 @@ export function AdminUsersView({
         </div>
       </div>
 
-      <p className="mb-3 text-sm text-gray-600">Total users: {total}</p>
+      <p className="mb-3 text-sm text-[#5c564e]">Total users: {total}</p>
 
       {error ? <p className="mb-3 text-sm text-red-700">{error}</p> : null}
 
       <Card className="mb-4 flex flex-wrap items-center justify-between gap-3 p-4">
-        <p className="text-sm text-gray-700">
+        <p className="text-sm text-[#5c564e]">
           Selected {selected.size} user{selected.size === 1 ? "" : "s"}
         </p>
         <Button
@@ -195,7 +195,7 @@ export function AdminUsersView({
 
       <Card className={ADMIN_TABLE_CARD}>
         {users.length === 0 ? (
-          <p className={`${ADMIN_TABLE_STATE_INSET} text-sm text-gray-600`}>
+          <p className={`${ADMIN_TABLE_STATE_INSET} text-sm text-[#5c564e]`}>
             No users match these filters.
           </p>
         ) : (
@@ -244,22 +244,22 @@ export function AdminUsersView({
                           href={`/${locale}/admin/users/${user.id}`}
                           className="block min-w-[160px]"
                         >
-                          <p className="font-medium text-gray-900 hover:underline">
+                          <p className="font-medium text-[#1f1a17] hover:underline">
                             {displayName(user)}
                           </p>
-                          <p className="truncate text-xs text-gray-400">
+                          <p className="truncate text-xs text-[#8a837a]">
                             {user.id}
                           </p>
                         </Link>
                       </td>
                       <td className={ADMIN_TABLE_TD}>
-                        <p className="text-sm text-gray-600">{user.email}</p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-[#5c564e]">{user.email}</p>
+                        <p className="text-sm text-[#8a837a]">
                           {user.phone ?? "—"}
                         </p>
                       </td>
                       <td className={ADMIN_TABLE_TD_CENTER}>
-                        <span className="font-medium text-gray-900">
+                        <span className="font-medium text-[#1f1a17]">
                           {user.orderCount}
                         </span>
                       </td>
@@ -267,7 +267,7 @@ export function AdminUsersView({
                         <span
                           className={`${ADMIN_BADGE} ${
                             user.role === "ADMIN"
-                              ? "bg-blue-100 text-blue-800"
+                              ? "bg-[#ff7f20]/15 text-[#c45a0a]"
                               : "bg-sky-100 text-sky-800"
                           }`}
                         >
@@ -295,7 +295,7 @@ export function AdminUsersView({
                             })
                           }
                           className={`relative mx-auto block h-5 w-9 rounded-full transition-colors disabled:opacity-40 ${
-                            isActive ? "bg-green-500" : "bg-gray-300"
+                            isActive ? "bg-[#3e573d]" : "bg-[#d4ccc0]"
                           }`}
                           aria-label={
                             isActive
@@ -311,7 +311,7 @@ export function AdminUsersView({
                         </button>
                       </td>
                       <td className={ADMIN_TABLE_TD_CENTER}>
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-[#5c564e]">
                           {formatCreated(user.createdAt)}
                         </span>
                       </td>

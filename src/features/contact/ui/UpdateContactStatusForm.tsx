@@ -30,7 +30,7 @@ export function UpdateContactStatusForm({
 
   if (eligibleStatuses.length === 0) {
     return (
-      <p className="text-sm text-gray-600">No further status changes.</p>
+      <p className="text-sm text-[#5c564e]">No further status changes.</p>
     );
   }
 
@@ -55,8 +55,8 @@ export function UpdateContactStatusForm({
           });
         }}
       >
-        <p className="text-sm text-gray-700">
-          Current: <strong className="text-gray-900">{currentStatus}</strong>
+        <p className="text-sm text-[#5c564e]">
+          Current: <strong className="text-[#1f1a17]">{currentStatus}</strong>
         </p>
         <div>
           <span className={ADMIN_LABEL}>New status</span>

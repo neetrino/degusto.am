@@ -29,6 +29,8 @@ type SideSheetProps = {
   backdropBlur?: boolean;
   /** Close tab color — brand orange for storefront cart. */
   closeTone?: "dark" | "brand";
+  /** Inner panel surface (default white; admin sheets use cream). */
+  surfaceClassName?: string;
 };
 
 /**
@@ -46,6 +48,7 @@ export function SideSheet({
   closeVariant = "circle",
   backdropBlur = false,
   closeTone = "dark",
+  surfaceClassName = "bg-white",
 }: SideSheetProps) {
   const [mounted, setMounted] = useState(false);
   const [rendered, setRendered] = useState(false);
@@ -211,7 +214,7 @@ export function SideSheet({
           </button>
         )}
         <div
-          className={`flex h-full min-h-0 w-full flex-col overflow-hidden bg-white shadow-2xl ${panelRadius}`}
+          className={`flex h-full min-h-0 w-full flex-col overflow-hidden shadow-2xl ${surfaceClassName} ${panelRadius}`}
           onClick={(event) => event.stopPropagation()}
         >
           {displayChildren}

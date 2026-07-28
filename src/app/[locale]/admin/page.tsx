@@ -3,7 +3,12 @@ import { notFound } from "next/navigation";
 
 import { Card } from "@/components/ui/Card";
 import { DashboardStatsGrid } from "@/features/admin/ui/DashboardStatsGrid";
-import { ADMIN_PAGE_SUBTITLE } from "@/features/admin/ui/admin-form-classes";
+import {
+  ADMIN_DASHBOARD_CARD,
+  ADMIN_PAGE_SUBTITLE,
+  ADMIN_QUICK_ACTION,
+  ADMIN_VIEW_ALL_LINK,
+} from "@/features/admin/ui/admin-form-classes";
 import {
   ADMIN_BADGE,
   paymentStatusBadgeClass,
@@ -31,16 +36,16 @@ const QUICK_ACTIONS = [
     href: "products/new",
     title: "Add product",
     subtitle: "Create a new product",
-    iconBg: "bg-green-100",
-    iconColor: "text-green-600",
+    iconBg: "bg-[#3e573d]/15",
+    iconColor: "text-[#3e573d]",
     iconPath: "M12 4v16m8-8H4",
   },
   {
     href: "orders",
     title: "Manage orders",
     subtitle: "View all orders",
-    iconBg: "bg-blue-100",
-    iconColor: "text-blue-600",
+    iconBg: "bg-[#ff7f20]/15",
+    iconColor: "text-[#ff7f20]",
     iconPath:
       "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2",
   },
@@ -48,8 +53,8 @@ const QUICK_ACTIONS = [
     href: "users",
     title: "Manage users",
     subtitle: "View all users",
-    iconBg: "bg-purple-100",
-    iconColor: "text-purple-600",
+    iconBg: "bg-[#9eff8e]/25",
+    iconColor: "text-[#3e573d]",
     iconPath:
       "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z",
   },
@@ -57,8 +62,8 @@ const QUICK_ACTIONS = [
     href: "settings",
     title: "Settings",
     subtitle: "Configure store",
-    iconBg: "bg-yellow-100",
-    iconColor: "text-yellow-600",
+    iconBg: "bg-[#f7d18f]/35",
+    iconColor: "text-[#b7791f]",
     iconPath:
       "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z",
   },
@@ -79,7 +84,12 @@ export default async function AdminPage({ params }: AdminPageProps) {
   return (
     <section>
       <div className="mb-8">
-        <p className={ADMIN_PAGE_SUBTITLE}>Welcome to the admin dashboard</p>
+        <h1 className="font-display text-3xl font-semibold tracking-tight text-[#1f1a17]">
+          Admin
+        </h1>
+        <p className={`mt-1 ${ADMIN_PAGE_SUBTITLE}`}>
+          Welcome to the admin dashboard
+        </p>
       </div>
 
       <DashboardStatsGrid
@@ -92,14 +102,14 @@ export default async function AdminPage({ params }: AdminPageProps) {
       />
 
       <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card className="p-6">
+        <Card className={ADMIN_DASHBOARD_CARD}>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-[#1f1a17]">
               Recent orders
             </h2>
             <Link
               href={`/${locale}/admin/orders`}
-              className="rounded-xl px-3 py-1.5 text-sm font-medium text-gray-900 hover:bg-gray-100"
+              className={ADMIN_VIEW_ALL_LINK}
             >
               View all
             </Link>
@@ -109,12 +119,12 @@ export default async function AdminPage({ params }: AdminPageProps) {
               <Link
                 key={order.id}
                 href={`/${locale}/admin/orders/${order.orderNumber}`}
-                className="block rounded-lg border border-gray-200 p-4 transition-colors hover:bg-gray-50"
+                className="block rounded-lg border border-[#e8e2d9] p-4 transition-colors hover:border-[#ff7f20]/30 hover:bg-[#fff8f2]"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="mb-1 flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-medium text-[#1f1a17]">
                         #{order.orderNumber}
                       </p>
                       <span
@@ -123,32 +133,32 @@ export default async function AdminPage({ params }: AdminPageProps) {
                         {order.status}
                       </span>
                     </div>
-                    <p className="truncate text-xs text-gray-600">
+                    <p className="truncate text-xs text-[#5c564e]">
                       {order.contactEmail}
                     </p>
                   </div>
-                  <p className="shrink-0 text-sm font-semibold text-gray-900">
+                  <p className="shrink-0 text-sm font-semibold text-[#1f1a17]">
                     {formatMoney(order.totalAmount)} {order.baseCurrency}
                   </p>
                 </div>
               </Link>
             ))}
             {metrics.recentOrders.length === 0 ? (
-              <p className="py-8 text-center text-sm text-gray-600">
+              <p className="py-8 text-center text-sm text-[#8a837a]">
                 No recent orders.
               </p>
             ) : null}
           </div>
         </Card>
 
-        <Card className="p-6">
+        <Card className={ADMIN_DASHBOARD_CARD}>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-[#1f1a17]">
               Top products
             </h2>
             <Link
               href={`/${locale}/admin/products`}
-              className="rounded-xl px-3 py-1.5 text-sm font-medium text-gray-900 hover:bg-gray-100"
+              className={ADMIN_VIEW_ALL_LINK}
             >
               View all
             </Link>
@@ -157,23 +167,23 @@ export default async function AdminPage({ params }: AdminPageProps) {
             {metrics.topProducts.map((product, index) => (
               <div
                 key={product.productId}
-                className="flex items-center gap-4 rounded-lg border border-gray-200 p-3"
+                className="flex items-center gap-4 rounded-lg border border-[#e8e2d9] p-3"
               >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-gray-200 text-xs font-bold text-gray-500">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-[#3e573d]/10 text-xs font-bold text-[#3e573d]">
                   {index + 1}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-gray-900">
+                  <p className="truncate text-sm font-medium text-[#1f1a17]">
                     {product.title}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-[#8a837a]">
                     {product.quantity} sold
                   </p>
                 </div>
               </div>
             ))}
             {metrics.topProducts.length === 0 ? (
-              <p className="py-8 text-center text-sm text-gray-600">
+              <p className="py-8 text-center text-sm text-[#8a837a]">
                 No product sales in this range.
               </p>
             ) : null}
@@ -181,8 +191,8 @@ export default async function AdminPage({ params }: AdminPageProps) {
         </Card>
       </div>
 
-      <Card className="mb-8 p-6">
-        <h2 className="mb-4 text-xl font-semibold text-gray-900">
+      <Card className={`mb-8 ${ADMIN_DASHBOARD_CARD}`}>
+        <h2 className="mb-4 text-xl font-semibold text-[#1f1a17]">
           Quick actions
         </h2>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -190,7 +200,7 @@ export default async function AdminPage({ params }: AdminPageProps) {
             <Link
               key={action.href}
               href={`/${locale}/admin/${action.href}`}
-              className="flex items-center gap-3 rounded-xl border border-gray-300 px-4 py-4 transition-colors hover:bg-gray-50"
+              className={ADMIN_QUICK_ACTION}
             >
               <div
                 className={`flex h-10 w-10 items-center justify-center rounded-full ${action.iconBg}`}
@@ -210,8 +220,8 @@ export default async function AdminPage({ params }: AdminPageProps) {
                 </svg>
               </div>
               <div className="text-left">
-                <p className="font-medium text-gray-900">{action.title}</p>
-                <p className="text-xs text-gray-500">{action.subtitle}</p>
+                <p className="font-medium text-[#1f1a17]">{action.title}</p>
+                <p className="text-xs text-[#8a837a]">{action.subtitle}</p>
               </div>
             </Link>
           ))}

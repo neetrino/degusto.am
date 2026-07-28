@@ -78,7 +78,7 @@ export function ProductDrawerImages({
           type="button"
           disabled={disabled}
           onClick={() => inputRef.current?.click()}
-          className="inline-flex items-center rounded-xl border border-dashed border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50"
+          className="inline-flex items-center rounded-xl border border-dashed border-[#ead7bf] px-4 py-2 text-sm font-medium text-[#5c564e] hover:border-[#ff7f20]/50 hover:bg-[#fff4eb] disabled:opacity-50"
         >
           + Upload Image
         </button>
@@ -95,7 +95,7 @@ export function ProductDrawerImages({
           }}
         />
       </div>
-      <p className="mt-1 text-xs text-gray-500">
+      <p className="mt-1 text-xs text-[#8a837a]">
         Upload one or more images, then mark the main image with the checkbox.
       </p>
 
@@ -104,7 +104,7 @@ export function ProductDrawerImages({
           {images.map((image) => (
             <li
               key={image.key}
-              className="relative overflow-hidden rounded-xl border border-gray-200 bg-gray-50"
+              className="relative overflow-hidden rounded-xl border border-[#ead7bf] bg-[#fff8f0]"
             >
               {/* Previews can be local blob URLs or dynamic storage hosts. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -114,13 +114,13 @@ export function ProductDrawerImages({
                 className="aspect-square w-full object-cover"
               />
               <div className="flex items-center justify-between gap-2 px-2 py-2">
-                <label className="flex items-center gap-1.5 text-xs text-gray-700">
+                <label className="flex items-center gap-1.5 text-xs text-[#5c564e]">
                   <input
                     type="checkbox"
                     checked={image.isPrimary}
                     disabled={disabled}
                     onChange={() => setPrimary(image.key)}
-                    className="h-3.5 w-3.5 rounded border-gray-300"
+                    className="h-3.5 w-3.5 rounded border-[#ead7bf]"
                   />
                   Main
                 </label>
@@ -128,7 +128,7 @@ export function ProductDrawerImages({
                   type="button"
                   disabled={disabled}
                   onClick={() => removeImage(image.key)}
-                  className="rounded p-1 text-gray-500 hover:bg-white hover:text-red-600"
+                  className="rounded p-1 text-[#8a837a] hover:bg-white hover:text-red-600"
                   aria-label="Remove image"
                 >
                   <X className="h-3.5 w-3.5" />

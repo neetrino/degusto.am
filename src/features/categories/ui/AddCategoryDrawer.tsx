@@ -8,7 +8,12 @@ import { SideSheet } from "@/components/ui/SideSheet";
 import {
   ADMIN_INPUT,
   ADMIN_LABEL,
+  ADMIN_SHEET_CANCEL,
+  ADMIN_SHEET_FOOTER,
+  ADMIN_SHEET_PRIMARY_BUTTON,
+  ADMIN_SHEET_SURFACE,
 } from "@/features/admin/ui/admin-form-classes";
+import { AdminSheetHeader } from "@/features/admin/ui/AdminSheetHeader";
 import {
   createCategoryFromDrawerAction,
   updateCategoryFromDrawerAction,
@@ -86,12 +91,11 @@ export function AddCategoryDrawer({
       onClose={onClose}
       ariaLabel={isEdit ? "Edit Category" : "Add Category"}
       panelClassName="w-full max-w-lg"
+      surfaceClassName={ADMIN_SHEET_SURFACE}
+      closeTone="brand"
+      backdropBlur
     >
-      <div className="border-b border-gray-200 px-5 py-4">
-        <h2 className="text-lg font-semibold text-gray-900">
-          {isEdit ? "Edit Category" : "Add Category"}
-        </h2>
-      </div>
+      <AdminSheetHeader title={isEdit ? "Edit Category" : "Add Category"} />
 
         <form
           className="flex min-h-0 flex-1 flex-col"
@@ -162,7 +166,7 @@ export function AddCategoryDrawer({
                 className={ADMIN_INPUT}
                 disabled={isPending}
               />
-              <span className="mt-1 block text-xs text-gray-500">
+              <span className="mt-1 block text-xs text-[#8a837a]">
                 Generated automatically from the title and used on /products.
               </span>
             </label>
@@ -209,7 +213,7 @@ export function AddCategoryDrawer({
                   type="button"
                   disabled={isPending}
                   onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center rounded-xl border border-dashed border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50"
+                  className="inline-flex items-center rounded-xl border border-dashed border-[#ead7bf] px-4 py-2 text-sm font-medium text-[#5c564e] hover:border-[#ff7f20]/50 hover:bg-[#fff4eb] disabled:opacity-50"
                 >
                   {imagePreview ? "Change Image" : "+ Upload Image"}
                 </button>
@@ -248,7 +252,7 @@ export function AddCategoryDrawer({
                         setRemoveExistingImage(true);
                       }
                     }}
-                    className="text-sm font-medium text-gray-600 hover:text-red-600"
+                    className="text-sm font-medium text-[#5c564e] hover:text-red-600"
                   >
                     Remove
                   </button>
@@ -260,7 +264,7 @@ export function AddCategoryDrawer({
                 <img
                   src={imagePreview}
                   alt=""
-                  className="mt-3 h-28 w-28 rounded-xl border border-gray-200 object-cover"
+                  className="mt-3 h-28 w-28 rounded-xl border border-[#ead7bf] object-cover"
                 />
               ) : null}
             </div>
@@ -268,8 +272,12 @@ export function AddCategoryDrawer({
             {error ? <p className="text-sm text-red-700">{error}</p> : null}
           </div>
 
-          <div className="flex items-center gap-4 border-t border-gray-200 px-5 py-4">
-            <Button type="submit" disabled={isPending || !title.trim()}>
+          <div className={ADMIN_SHEET_FOOTER}>
+            <Button
+              type="submit"
+              disabled={isPending || !title.trim()}
+              className={ADMIN_SHEET_PRIMARY_BUTTON}
+            >
               {isPending
                 ? isEdit
                   ? "Saving…"
@@ -281,7 +289,7 @@ export function AddCategoryDrawer({
             <button
               type="button"
               onClick={onClose}
-              className="whitespace-nowrap text-sm font-medium text-gray-600 hover:text-gray-900"
+              className={`whitespace-nowrap ${ADMIN_SHEET_CANCEL}`}
             >
               Cancel
             </button>

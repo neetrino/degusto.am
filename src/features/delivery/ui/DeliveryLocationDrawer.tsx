@@ -7,7 +7,12 @@ import { SideSheet } from "@/components/ui/SideSheet";
 import {
   ADMIN_INPUT,
   ADMIN_LABEL,
+  ADMIN_SHEET_CANCEL,
+  ADMIN_SHEET_FOOTER,
+  ADMIN_SHEET_PRIMARY_BUTTON,
+  ADMIN_SHEET_SURFACE,
 } from "@/features/admin/ui/admin-form-classes";
+import { AdminSheetHeader } from "@/features/admin/ui/AdminSheetHeader";
 import {
   createDeliveryLocationAction,
   updateDeliveryLocationAction,
@@ -145,14 +150,18 @@ function DeliveryLocationForm({
         {error ? <p className="text-sm text-red-700">{error}</p> : null}
       </div>
 
-      <div className="flex items-center gap-4 border-t border-gray-200 px-5 py-4">
-        <Button type="submit" disabled={isPending}>
+      <div className={ADMIN_SHEET_FOOTER}>
+        <Button
+          type="submit"
+          disabled={isPending}
+          className={ADMIN_SHEET_PRIMARY_BUTTON}
+        >
           {isPending ? "Saving…" : "Save"}
         </Button>
         <button
           type="button"
           onClick={onClose}
-          className="text-sm font-medium text-gray-600 hover:text-gray-900"
+          className={ADMIN_SHEET_CANCEL}
         >
           Cancel
         </button>
@@ -174,12 +183,13 @@ export function DeliveryLocationDrawer({
       open={open}
       onClose={onClose}
       ariaLabel={location ? "Edit location" : "Add location"}
+      surfaceClassName={ADMIN_SHEET_SURFACE}
+      closeTone="brand"
+      backdropBlur
     >
-      <div className="border-b border-gray-200 px-5 py-4">
-        <h2 className="text-lg font-semibold text-gray-900">
-          {location ? "Edit location" : "Add location"}
-        </h2>
-      </div>
+      <AdminSheetHeader
+        title={location ? "Edit location" : "Add location"}
+      />
 
       <DeliveryLocationForm
         key={formKey}

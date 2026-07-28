@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import {
   ADMIN_PAGE_SUBTITLE,
   ADMIN_PAGE_TITLE,
+  ADMIN_LINK_BACK,
 } from "@/features/admin/ui/admin-form-classes";
 import {
   getAdminPromotionById,
@@ -39,7 +40,7 @@ export default async function AdminCouponDetailPage({
         <p className={`mb-1 ${ADMIN_PAGE_SUBTITLE}`}>
           <Link
             href={`/${locale}/admin/coupons`}
-            className="font-medium text-gray-700 hover:underline"
+            className={ADMIN_LINK_BACK}
           >
             Coupons
           </Link>

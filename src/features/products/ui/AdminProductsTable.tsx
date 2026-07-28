@@ -126,7 +126,7 @@ export function AdminProductsTable({
   return (
     <div className="flex flex-col gap-4">
       <Card className="flex flex-wrap items-center justify-between gap-3 p-4">
-        <p className="text-sm text-gray-700">
+        <p className="text-sm text-[#5c564e]">
           Selected {selected.size} product{selected.size === 1 ? "" : "s"}
         </p>
         <Button
@@ -144,7 +144,7 @@ export function AdminProductsTable({
 
       <Card className={ADMIN_TABLE_CARD}>
         {products.length === 0 ? (
-          <p className={`${ADMIN_TABLE_STATE_INSET} text-sm text-gray-600`}>
+          <p className={`${ADMIN_TABLE_STATE_INSET} text-sm text-[#5c564e]`}>
             No products match these filters.
           </p>
         ) : (
@@ -163,17 +163,17 @@ export function AdminProductsTable({
                     />
                   </th>
                   <th className={ADMIN_TABLE_TH}>
-                    <Link href={sortLinks.title} className="hover:text-gray-900">
+                    <Link href={sortLinks.title} className="hover:text-[#ff7f20]">
                       Product
                     </Link>
                   </th>
                   <th className={ADMIN_TABLE_TH}>
-                    <Link href={sortLinks.stock} className="hover:text-gray-900">
+                    <Link href={sortLinks.stock} className="hover:text-[#ff7f20]">
                       Stock
                     </Link>
                   </th>
                   <th className={ADMIN_TABLE_TH}>
-                    <Link href={sortLinks.price} className="hover:text-gray-900">
+                    <Link href={sortLinks.price} className="hover:text-[#ff7f20]">
                       Price
                     </Link>
                   </th>
@@ -183,7 +183,7 @@ export function AdminProductsTable({
                   <th className={ADMIN_TABLE_TH}>
                     <Link
                       href={sortLinks.created}
-                      className="hover:text-gray-900"
+                      className="hover:text-[#ff7f20]"
                     >
                       Created
                     </Link>

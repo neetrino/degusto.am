@@ -6,6 +6,7 @@ import {
   ADMIN_PAGE_SUBTITLE,
   ADMIN_PAGE_TITLE,
   ADMIN_SECTION_TITLE,
+  ADMIN_LINK_BACK,
 } from "@/features/admin/ui/admin-form-classes";
 import {
   ADMIN_BADGE,
@@ -28,9 +29,9 @@ type AdminUserDetailPageProps = {
 
 function userStatusBadgeClass(status: string): string {
   const normalized = status.toUpperCase();
-  if (normalized === "ACTIVE") return "bg-green-100 text-green-800";
+  if (normalized === "ACTIVE") return "bg-[#3e573d]/15 text-[#3e573d]";
   if (normalized === "PENDING" || normalized === "INVITED") {
-    return "bg-yellow-100 text-yellow-800";
+    return "bg-[#f7d18f]/45 text-[#8a5a12]";
   }
   if (
     normalized === "SUSPENDED" ||
@@ -39,13 +40,13 @@ function userStatusBadgeClass(status: string): string {
   ) {
     return "bg-red-100 text-red-800";
   }
-  return "bg-gray-100 text-gray-800";
+  return "bg-[#e8e2d9] text-[#5c564e]";
 }
 
 function userRoleBadgeClass(role: string): string {
   return role.toUpperCase() === "ADMIN"
-    ? "bg-blue-100 text-blue-800"
-    : "bg-gray-100 text-gray-800";
+    ? "bg-[#ff7f20]/15 text-[#c45a0a]"
+    : "bg-[#e8e2d9] text-[#5c564e]";
 }
 
 export default async function AdminUserDetailPage({
@@ -73,7 +74,7 @@ export default async function AdminUserDetailPage({
         <p className={`mb-1 ${ADMIN_PAGE_SUBTITLE}`}>
           <Link
             href={`/${locale}/admin/users`}
-            className="font-medium text-gray-700 hover:underline"
+            className={ADMIN_LINK_BACK}
           >
             Users
           </Link>
@@ -86,7 +87,7 @@ export default async function AdminUserDetailPage({
 
       <Card className="mb-6 p-6">
         <div className="grid gap-3 text-sm md:grid-cols-2">
-          <p className="text-gray-700">
+          <p className="text-[#5c564e]">
             Role:{" "}
             <span
               className={`${ADMIN_BADGE} ${userRoleBadgeClass(user.role)}`}
@@ -94,7 +95,7 @@ export default async function AdminUserDetailPage({
               {user.role}
             </span>
           </p>
-          <p className="text-gray-700">
+          <p className="text-[#5c564e]">
             Status:{" "}
             <span
               className={`${ADMIN_BADGE} ${userStatusBadgeClass(user.status)}`}
@@ -102,21 +103,21 @@ export default async function AdminUserDetailPage({
               {user.status}
             </span>
           </p>
-          <p className="text-gray-700">Phone: {user.phone ?? "—"}</p>
-          <p className="text-gray-700">
+          <p className="text-[#5c564e]">Phone: {user.phone ?? "—"}</p>
+          <p className="text-[#5c564e]">
             Email verified:{" "}
             {user.emailVerifiedAt
               ? user.emailVerifiedAt.toISOString().slice(0, 10)
               : "no"}
           </p>
-          <p className="text-gray-700">
+          <p className="text-[#5c564e]">
             Last login:{" "}
             {user.lastLoginAt
               ? user.lastLoginAt.toISOString().slice(0, 16).replace("T", " ")
               : "never"}{" "}
             UTC
           </p>
-          <p className="text-gray-700">
+          <p className="text-[#5c564e]">
             Created: {user.createdAt.toISOString().slice(0, 10)}
           </p>
         </div>
@@ -152,10 +153,10 @@ export default async function AdminUserDetailPage({
             <Link
               key={order.id}
               href={`/${locale}/admin/orders/${order.orderNumber}`}
-              className="block rounded-lg border border-gray-200 p-3 transition-colors hover:bg-gray-50"
+              className="block rounded-lg border border-[#ead7bf] p-3 transition-colors hover:bg-[#fff4eb]"
             >
               <div className="flex flex-wrap items-center gap-2">
-                <strong className="text-sm text-gray-900">
+                <strong className="text-sm text-[#1f1a17]">
                   {order.orderNumber}
                 </strong>
                 <span
@@ -169,13 +170,13 @@ export default async function AdminUserDetailPage({
                   {order.paymentStatus}
                 </span>
               </div>
-              <p className="mt-1 text-sm text-gray-600">
+              <p className="mt-1 text-sm text-[#5c564e]">
                 {order.totalAmount.toLocaleString("en-US")} {order.baseCurrency}
               </p>
             </Link>
           ))}
           {recentOrders.length === 0 ? (
-            <p className="text-sm text-gray-600">No orders.</p>
+            <p className="text-sm text-[#5c564e]">No orders.</p>
           ) : null}
         </div>
       </Card>

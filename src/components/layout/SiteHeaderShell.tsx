@@ -32,9 +32,21 @@ function isProductDetailPath(pathname: string, locale: Locale): boolean {
   return rest.length > 0 && !rest.includes("/");
 }
 
+function isAuthPath(pathname: string, locale: Locale): boolean {
+  const prefixes = [
+    `/${locale}/login`,
+    `/${locale}/register`,
+    `/${locale}/forgot-password`,
+    `/${locale}/reset-password`,
+  ];
+  return prefixes.some(
+    (base) => pathname === base || pathname.startsWith(`${base}/`),
+  );
+}
+
 /**
  * Fixed storefront pill header — stays visible while the page scrolls.
- * Hidden below `lg` on home, shop catalog, wishlist, and PDP so mobile chrome owns the header.
+ * Hidden below `lg` on home, shop, wishlist, PDP, and auth so mobile chrome owns the header.
  */
 export function SiteHeaderShell({ locale, children }: SiteHeaderShellProps) {
   const pathname = usePathname() ?? `/${locale}`;
@@ -42,7 +54,8 @@ export function SiteHeaderShell({ locale, children }: SiteHeaderShellProps) {
     isHomePath(pathname, locale) ||
     isShopCatalogPath(pathname, locale) ||
     isWishlistPath(pathname, locale) ||
-    isProductDetailPath(pathname, locale);
+    isProductDetailPath(pathname, locale) ||
+    isAuthPath(pathname, locale);
 
   return (
     <div

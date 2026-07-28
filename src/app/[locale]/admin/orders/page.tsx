@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { ADMIN_PAGE_TITLE } from "@/features/admin/ui/admin-form-classes";
+import {
+  ADMIN_PAGE_TITLE,
+  ADMIN_LINK,
+} from "@/features/admin/ui/admin-form-classes";
 import { listAdminOrders } from "@/features/orders/application/queries";
 import type { OrderStatus } from "@/features/orders/domain/order-status";
 import { adminOrdersFilterSchema } from "@/features/orders/schemas/change-status";
@@ -89,11 +92,11 @@ export default async function AdminOrdersPage({
       <AdminOrdersView locale={locale} orders={rows} />
 
       {totalPages > 1 ? (
-        <nav className="mt-4 flex items-center gap-3 text-sm text-gray-700">
+        <nav className="mt-4 flex items-center gap-3 text-sm text-[#5c564e]">
           {filters.page > 1 ? (
             <Link
               href={`/${locale}/admin/orders?${buildOrdersQuery(filters, filters.page - 1)}`}
-              className="font-medium hover:underline"
+              className={ADMIN_LINK}
             >
               Previous
             </Link>
@@ -104,7 +107,7 @@ export default async function AdminOrdersPage({
           {filters.page < totalPages ? (
             <Link
               href={`/${locale}/admin/orders?${buildOrdersQuery(filters, filters.page + 1)}`}
-              className="font-medium hover:underline"
+              className={ADMIN_LINK}
             >
               Next
             </Link>
