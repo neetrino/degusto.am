@@ -57,6 +57,17 @@ body {
   font-family: var(--font-sans);
 }
 
+.storefront-shell {
+  background-color: var(--background);
+}
+
+body:has([data-wishlist-page]),
+body:has([data-shop-page]),
+body:has([data-pdp-page]),
+body:has([data-home-page]) {
+  background: #ffffff;
+}
+
 @layer base {
   a[href],
   button:not(:disabled),
@@ -343,17 +354,27 @@ body {
 
 /* Shop / combo / PDP: white canvas meets the rounded footer (no gray strip). */
 .storefront-shell:has([data-shop-page]),
-.storefront-shell:has([data-pdp-page]) {
+.storefront-shell:has([data-pdp-page]),
+.storefront-shell:has([data-wishlist-page]) {
+  background-color: #ffffff;
+}
+
+.storefront-shell:has([data-shop-page]) .storefront-main,
+.storefront-shell:has([data-pdp-page]) .storefront-main,
+.storefront-shell:has([data-wishlist-page]) .storefront-main {
   background-color: #ffffff;
 }
 
 .storefront-shell:has([data-shop-page]) .storefront-footer,
-.storefront-shell:has([data-pdp-page]) .storefront-footer {
+.storefront-shell:has([data-pdp-page]) .storefront-footer,
+.storefront-shell:has([data-wishlist-page]) .storefront-footer {
   background-color: #ffffff;
 }
 
 @media (max-width: 1023px) {
-  .storefront-shell:has([data-shop-page]) .storefront-main {
+  .storefront-shell:has([data-shop-page]) .storefront-main,
+  .storefront-shell:has([data-wishlist-page]) .storefront-main,
+  .storefront-shell:has([data-pdp-page]) .storefront-main {
     padding-top: 0;
     padding-bottom: 0;
   }

@@ -47,9 +47,8 @@ export function ProductReviewsSection({
       </h2>
 
       <div className="grid w-full grid-cols-1 items-center gap-8 md:grid-cols-[1fr_minmax(10rem,16rem)] md:gap-12">
-        <RatingDistribution aggregate={aggregate} />
-
-        <div className="flex flex-col items-start gap-2 md:items-end md:text-right">
+        {/* Mobile: summary first (reference). Desktop: bars left, summary right. */}
+        <div className="flex flex-col items-center gap-2 text-center md:order-2 md:items-end md:text-right">
           <p className="text-5xl font-bold tracking-tight text-black md:text-6xl">
             {formatAverage(displayAverage)}
           </p>
@@ -57,6 +56,10 @@ export function ProductReviewsSection({
           <p className="text-sm text-[#717182]">
             {labels.reviewCount.replace("{count}", String(aggregate.count))}
           </p>
+        </div>
+
+        <div className="md:order-1">
+          <RatingDistribution aggregate={aggregate} />
         </div>
       </div>
 

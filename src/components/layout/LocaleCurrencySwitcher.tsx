@@ -202,7 +202,7 @@ export function LocaleCurrencySwitcher({
         {isMobileHome ? (
           <span className="inline-flex items-center justify-center">
             <Image
-              src="/assets/mobile/globe-icon.png"
+              src="/assets/mobile/globe-icon.webp"
               alt=""
               width={19}
               height={19}
@@ -242,25 +242,7 @@ export function LocaleCurrencySwitcher({
             )}
           </span>
         ) : null}
-        {isMobileHome ? (
-          <svg
-            width="8"
-            height="5"
-            viewBox="0 0 8 5"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className={`absolute right-5 h-[5px] w-2 text-[#ff7f20] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? "rotate-180" : ""}`}
-            aria-hidden
-          >
-            <path
-              d="M1 1L4 4L7 1"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        ) : (
+        {isMobileHome ? null : (
           <ChevronDown
             className={
               isDegusto

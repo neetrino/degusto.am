@@ -1,19 +1,41 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { ProductCard } from "@/features/products/ui/ProductCard";
+import { StorefrontMobileChrome } from "@/components/layout/StorefrontMobileChrome";
+import {
+  getPrimaryCategoryLabels,
+} from "@/features/products/queries";
 import { listWishlistProducts } from "@/features/wishlist/queries";
+import { WishlistPanel } from "@/features/wishlist/ui/WishlistPanel";
 import { getCurrentUser } from "@/lib/auth/session";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import {
   createDisplayPriceFormatter,
+  type DisplayPrice,
   getSelectedCurrency,
 } from "@/lib/money/display-price";
 
 type WishlistPageProps = {
   params: Promise<{ locale: string }>;
 };
+
+const WISHLIST_CARD_RATING = 5;
+
+function formatCardPrice(price: DisplayPrice): string {
+  if (price.displayCurrency === "AMD") {
+    return `${price.displayAmount.toString()} Դ`;
+  }
+  return price.formatted;
+}
+
+function firstPhoneHref(phones: string): string {
+  const match = phones.match(/\d[\d\s()-]{5,}/);
+  if (!match) {
+    return "tel:+37460388080";
+  }
+  const digits = match[0].replace(/\D/g, "");
+  return `tel:+${digits.startsWith("0") ? `374${digits.slice(1)}` : digits}`;
+}
 
 export default async function WishlistPage({ params }: WishlistPageProps) {
   const { locale: rawLocale } = await params;
@@ -23,80 +45,85 @@ export default async function WishlistPage({ params }: WishlistPageProps) {
   }
 
   const dictionary = getDictionary(rawLocale);
+  const wishlistCopy = dictionary.wishlist;
   const [user, currency, products] = await Promise.all([
     getCurrentUser(),
     getSelectedCurrency(),
     listWishlistProducts(rawLocale),
   ]);
 
-  if (!user) {
-    return (
-      <section className="flex flex-col gap-4">
-        <h1 className="text-3xl font-semibold tracking-tight text-gray-900">
-          {dictionary.nav.wishlist}
-        </h1>
-        <p className="text-gray-600">
-          <Link
-            href={`/${rawLocale}/login?next=${encodeURIComponent(`/${rawLocale}/wishlist`)}`}
-            className="font-medium text-gray-900 underline underline-offset-2"
-          >
-            {dictionary.header.login}
-          </Link>{" "}
-          — {dictionary.wishlist.signInPrompt}
-        </p>
-      </section>
-    );
-  }
-
+  const isSignedIn = Boolean(user);
   const formatPrice = await createDisplayPriceFormatter(rawLocale, currency);
-  const priced = products.map((product) => {
-    const price = formatPrice(product.priceAmount);
-    const compareAt =
-      product.compareAtAmount != null
-        ? formatPrice(product.compareAtAmount)
-        : null;
+  const categoryLabels = isSignedIn
+    ? await getPrimaryCategoryLabels(
+        products.map((product) => product.id),
+        rawLocale,
+      )
+    : new Map<string, string>();
 
-    return {
-      product,
-      priceFormatted: price.formatted,
-      compareAtFormatted: compareAt?.formatted ?? null,
-    };
-  });
+  const cards = isSignedIn
+    ? products.map((product) => {
+        const price = formatPrice(product.priceAmount);
+        const compareAt =
+          product.compareAtAmount != null
+            ? formatPrice(product.compareAtAmount)
+            : null;
+
+        return {
+          id: product.id,
+          href: `/${rawLocale}/products/${product.translation.slug}`,
+          title: product.translation.title,
+          priceFormatted: formatCardPrice(price),
+          compareAtFormatted: compareAt ? formatCardPrice(compareAt) : null,
+          discountPercent: product.discountPercent,
+          imageUrl: product.imageUrl,
+          inStock: product.stockOnHand > 0,
+          categoryLabel: categoryLabels.get(product.id) ?? null,
+        };
+      })
+    : [];
+
+  const panelProps = {
+    locale: rawLocale,
+    title: wishlistCopy.title,
+    emptyTitle: wishlistCopy.emptyTitle,
+    emptyDescription: wishlistCopy.emptyDescription,
+    loginLabel: isSignedIn ? undefined : dictionary.header.login,
+    loginHref: isSignedIn
+      ? undefined
+      : `/${rawLocale}/login?next=${encodeURIComponent(`/${rawLocale}/wishlist`)}`,
+    viewProductsLabel: wishlistCopy.viewProducts,
+    viewProductsHref: `/${rawLocale}/products?category=all`,
+    products: cards,
+    wishlistLabel: dictionary.nav.wishlist,
+    addToCartLabel: dictionary.product.addToCart,
+    outOfStockLabel: dictionary.product.outOfStock,
+    isSignedIn,
+    rating: WISHLIST_CARD_RATING,
+  };
 
   return (
-    <section className="flex flex-col gap-8">
-      <h1 className="text-3xl font-semibold tracking-tight text-gray-900">
-        {dictionary.nav.wishlist}
-      </h1>
+    <div
+      data-wishlist-page
+      className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen bg-white"
+    >
+      <StorefrontMobileChrome
+        locale={rawLocale}
+        currency={currency}
+        brand={dictionary.brand}
+        callLabel={dictionary.home.call}
+        phoneHref={firstPhoneHref(dictionary.footer.phones)}
+        currencyLabel={dictionary.header.currency}
+        languageLabel={dictionary.header.language}
+        searchLabel={dictionary.header.search}
+        searchPlaceholder={dictionary.header.search}
+      >
+        <WishlistPanel {...panelProps} />
+      </StorefrontMobileChrome>
 
-      {priced.length === 0 ? (
-        <p className="text-gray-600">{dictionary.wishlist.empty}</p>
-      ) : (
-        <div className="grid grid-cols-2 gap-6 lg:grid-cols-3 xl:grid-cols-4">
-          {priced.map(
-            ({ product, priceFormatted, compareAtFormatted }, index) => (
-              <ProductCard
-                key={product.id}
-                href={`/${rawLocale}/products/${product.translation.slug}`}
-                title={product.translation.title}
-                priceFormatted={priceFormatted}
-                compareAtFormatted={compareAtFormatted}
-                discountPercent={product.discountPercent}
-                imageUrl={product.imageUrl}
-                inStock={product.stockOnHand > 0}
-                priority={index < 4}
-                locale={rawLocale}
-                productId={product.id}
-                inWishlist
-                isSignedIn
-                wishlistLabel={dictionary.nav.wishlist}
-                addToCartLabel={dictionary.product.addToCart}
-                outOfStockLabel={dictionary.product.outOfStock}
-              />
-            ),
-          )}
-        </div>
-      )}
-    </section>
+      <div className="mx-auto hidden w-full max-w-[min(1450px,calc(100%-2rem))] px-4 py-6 md:max-w-[min(1450px,calc(100%-2.5rem))] md:px-6 lg:block lg:max-w-[min(1450px,calc(100%-3rem))]">
+        <WishlistPanel {...panelProps} />
+      </div>
+    </div>
   );
 }

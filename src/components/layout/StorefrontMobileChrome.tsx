@@ -57,7 +57,7 @@ export function StorefrontMobileChrome({
             aria-label={brand}
           >
             <Image
-              src="/assets/mobile/degusto-logo-mobile.png"
+              src="/assets/mobile/degusto-logo-mobile.webp"
               alt={brand}
               width={129}
               height={46}

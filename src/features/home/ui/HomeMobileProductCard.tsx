@@ -129,12 +129,12 @@ export function HomeMobileProductCard({
         </div>
       ) : null}
 
-      <div className="absolute top-[172px] left-[9px] z-[2] w-[calc(100%-90px)] pr-1">
+      <div className="absolute top-[172px] left-[9px] z-[2] w-[calc(100%-84px)] pr-1">
         <h3 className="text-sm leading-[1.15] font-bold text-[#3c2f2f]">
-          <span className="line-clamp-2">{title}</span>
+          <span className="line-clamp-2 break-words">{title}</span>
         </h3>
         {categoryLabel ? (
-          <p className="mt-0.5 truncate text-sm leading-[1.2] font-medium text-[#a1a1a1]">
+          <p className="mt-0.5 line-clamp-2 text-sm leading-[1.2] font-medium break-words text-[#a1a1a1]">
             {categoryLabel}
           </p>
         ) : null}
@@ -146,7 +146,7 @@ export function HomeMobileProductCard({
         </span>
       ) : null}
 
-      <div className="absolute top-[182px] right-2 z-[2] flex max-w-[76px] flex-col items-end gap-0.5 text-right leading-tight">
+      <div className="absolute top-[182px] right-2 z-[2] flex max-w-[80px] flex-col items-end gap-0.5 text-right leading-tight">
         <p className="w-full break-words text-sm font-black tabular-nums text-[#3c2f2f]">
           {priceFormatted}
         </p>

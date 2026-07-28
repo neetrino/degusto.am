@@ -13,6 +13,7 @@ import { isLocale, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import {
   createDisplayPriceFormatter,
+  type DisplayPrice,
   getSelectedCurrency,
 } from "@/lib/money/display-price";
 
@@ -51,6 +52,22 @@ function buildProductJsonLd(input: {
         : "https://schema.org/OutOfStock",
     },
   };
+}
+
+function formatCardPrice(price: DisplayPrice): string {
+  if (price.displayCurrency === "AMD") {
+    return `${price.displayAmount.toString()} Դ`;
+  }
+  return price.formatted;
+}
+
+function firstPhoneHref(phones: string): string {
+  const match = phones.match(/\d[\d\s()-]{5,}/);
+  if (!match) {
+    return "tel:+37460388080";
+  }
+  const digits = match[0].replace(/\D/g, "");
+  return `tel:+${digits.startsWith("0") ? `374${digits.slice(1)}` : digits}`;
 }
 
 function SectionFallback() {
@@ -132,37 +149,64 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const isSignedIn = Boolean(user);
 
+  const relatedProps = {
+    locale,
+    productId: product.id,
+    currency,
+    isSignedIn,
+    dictionary,
+  };
+
+  const reviewsProps = {
+    locale,
+    productId: product.id,
+    productSlug: product.translation.slug,
+    userId: user?.id,
+    isSignedIn,
+    dictionary,
+  };
+
   return (
     <ProductDetailView
       locale={locale}
       product={product}
-      priceFormatted={price.formatted}
-      compareAtFormatted={compareAt?.formatted ?? null}
+      priceFormatted={formatCardPrice(price)}
+      compareAtFormatted={
+        compareAt ? formatCardPrice(compareAt) : null
+      }
       isSignedIn={isSignedIn}
       inWishlist={inWishlist}
       dictionary={dictionary}
       jsonLd={jsonLd}
+      mobileChrome={{
+        locale,
+        currency,
+        brand: dictionary.brand,
+        callLabel: dictionary.home.call,
+        phoneHref: firstPhoneHref(dictionary.footer.phones),
+        currencyLabel: dictionary.header.currency,
+        languageLabel: dictionary.header.language,
+        searchLabel: dictionary.header.search,
+        searchPlaceholder: dictionary.header.search,
+      }}
       relatedSlot={
         <Suspense fallback={<SectionFallback />}>
-          <ProductRelatedSection
-            locale={locale}
-            productId={product.id}
-            currency={currency}
-            isSignedIn={isSignedIn}
-            dictionary={dictionary}
-          />
+          <ProductRelatedSection {...relatedProps} />
         </Suspense>
       }
       reviewsSlot={
         <Suspense fallback={<SectionFallback />}>
-          <ProductReviewsIsland
-            locale={locale}
-            productId={product.id}
-            productSlug={product.translation.slug}
-            userId={user?.id}
-            isSignedIn={isSignedIn}
-            dictionary={dictionary}
-          />
+          <ProductReviewsIsland {...reviewsProps} />
+        </Suspense>
+      }
+      relatedSlotDesktop={
+        <Suspense fallback={<SectionFallback />}>
+          <ProductRelatedSection {...relatedProps} />
+        </Suspense>
+      }
+      reviewsSlotDesktop={
+        <Suspense fallback={<SectionFallback />}>
+          <ProductReviewsIsland {...reviewsProps} />
         </Suspense>
       }
     />

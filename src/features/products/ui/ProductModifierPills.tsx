@@ -65,7 +65,7 @@ export function ProductModifierPills({
         onToggle={(id) => {
           setSelectedAdd((prev) => toggleId(prev, id));
         }}
-        widthClassName="w-[12.1875rem] max-lg:w-full max-lg:max-w-[12.1875rem]"
+        widthClassName="w-full sm:w-[12.1875rem]"
         icon={<Plus className="size-5" strokeWidth={2.5} aria-hidden />}
       />
       <ModifierPill
@@ -78,7 +78,7 @@ export function ProductModifierPills({
         onToggle={(id) => {
           setSelectedExclude((prev) => toggleId(prev, id));
         }}
-        widthClassName="w-[10.9375rem] max-lg:w-full max-lg:max-w-[10.9375rem]"
+        widthClassName="w-full sm:w-[10.9375rem]"
         icon={<Minus className="size-5" strokeWidth={2.5} aria-hidden />}
       />
     </div>

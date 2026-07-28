@@ -46,7 +46,7 @@ export function HomeMobileSearch({
         {searchLabel}
       </label>
       <Image
-        src="/assets/mobile/search-icon.png"
+        src="/assets/mobile/search-icon.webp"
         alt=""
         width={17}
         height={17}
