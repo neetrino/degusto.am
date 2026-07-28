@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { ADMIN_LINK } from "@/features/admin/ui/admin-form-classes";
 import {
   listAdminCategoryOptions,
   listAdminProducts,
@@ -127,11 +128,11 @@ export default async function AdminProductsPage({
       />
 
       {totalPages > 1 ? (
-        <nav className="mt-4 flex items-center gap-3 text-sm text-gray-700">
+        <nav className="mt-4 flex items-center gap-3 text-sm text-[#5c564e]">
           {filters.page > 1 ? (
             <Link
               href={`/${locale}/admin/products?${buildQuery(filters, { page: filters.page - 1 })}`}
-              className="font-medium hover:underline"
+              className={ADMIN_LINK}
             >
               Previous
             </Link>
@@ -142,7 +143,7 @@ export default async function AdminProductsPage({
           {filters.page < totalPages ? (
             <Link
               href={`/${locale}/admin/products?${buildQuery(filters, { page: filters.page + 1 })}`}
-              className="font-medium hover:underline"
+              className={ADMIN_LINK}
             >
               Next
             </Link>

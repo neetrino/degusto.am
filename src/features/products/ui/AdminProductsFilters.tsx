@@ -8,7 +8,7 @@ import { ADMIN_LABEL } from "@/features/admin/ui/admin-form-classes";
 import type { AdminCategoryOption } from "@/features/products/application/list-admin-products";
 
 const FILTER_INPUT =
-  "h-11 w-full rounded-2xl border border-gray-200 bg-white px-4 text-sm text-gray-900 shadow-sm outline-none transition-colors placeholder:text-gray-400 hover:border-gray-300 focus:border-gray-300";
+  "h-11 w-full rounded-2xl border border-[#ead7bf] bg-white px-4 text-sm text-[#1f1a17] shadow-sm outline-none transition-colors placeholder:text-[#8a837a] hover:border-[#ead7bf] focus:border-[#ead7bf]";
 
 type AdminProductsFiltersProps = {
   total: number;
@@ -61,7 +61,7 @@ export function AdminProductsFilters({
 
   return (
     <div className="mb-4">
-      <p className="mb-3 text-sm text-gray-600">Total products: {total}</p>
+      <p className="mb-3 text-sm text-[#5c564e]">Total products: {total}</p>
       <form
         ref={formRef}
         method="get"

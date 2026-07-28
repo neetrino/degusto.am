@@ -57,8 +57,8 @@ export function UpdateUserRoleForm({
         }}
       >
         <h3 className={ADMIN_SECTION_TITLE}>Role</h3>
-        <p className="text-sm text-gray-700">
-          Current: <strong className="text-gray-900">{currentRole}</strong>
+        <p className="text-sm text-[#5c564e]">
+          Current: <strong className="text-[#1f1a17]">{currentRole}</strong>
         </p>
         <div>
           <span className={ADMIN_LABEL}>New role</span>

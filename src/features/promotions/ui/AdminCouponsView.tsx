@@ -138,7 +138,7 @@ export function AdminCouponsView({ locale, coupons }: AdminCouponsViewProps) {
 
       <Card className={ADMIN_TABLE_CARD}>
         {coupons.length === 0 ? (
-          <p className={`${ADMIN_TABLE_STATE_INSET} text-sm text-gray-600`}>
+          <p className={`${ADMIN_TABLE_STATE_INSET} text-sm text-[#5c564e]`}>
             No promo codes yet.
           </p>
         ) : (
@@ -160,7 +160,7 @@ export function AdminCouponsView({ locale, coupons }: AdminCouponsViewProps) {
                 {coupons.map((promo) => (
                   <tr key={promo.id} className={ADMIN_TABLE_ROW}>
                     <td className={ADMIN_TABLE_TD}>
-                      <span className="font-medium text-gray-900">
+                      <span className="font-medium text-[#1f1a17]">
                         {promo.code}
                       </span>
                     </td>
@@ -177,15 +177,15 @@ export function AdminCouponsView({ locale, coupons }: AdminCouponsViewProps) {
                     <td className={ADMIN_TABLE_TD_CENTER}>
                       {promo.isActive ? (
                         <Check
-                          className="mx-auto h-4 w-4 text-gray-900"
+                          className="mx-auto h-4 w-4 text-[#1f1a17]"
                           aria-label="Active"
                         />
                       ) : (
-                        <span className="text-gray-400">—</span>
+                        <span className="text-[#8a837a]">—</span>
                       )}
                     </td>
                     <td className={ADMIN_TABLE_TD_CENTER}>
-                      <span className="text-sm text-gray-700">
+                      <span className="text-sm text-[#5c564e]">
                         {formatValidUntil(promo.endsAt, locale)}
                       </span>
                     </td>
@@ -193,7 +193,7 @@ export function AdminCouponsView({ locale, coupons }: AdminCouponsViewProps) {
                       <div className="inline-flex items-center justify-center gap-1">
                         <button
                           type="button"
-                          className="rounded p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                          className="rounded p-1.5 text-[#8a837a] hover:bg-[#fff4eb] hover:text-[#ff7f20]"
                           aria-label={`Edit ${promo.code}`}
                           onClick={() => openEdit(promo)}
                         >
@@ -202,7 +202,7 @@ export function AdminCouponsView({ locale, coupons }: AdminCouponsViewProps) {
                         <button
                           type="button"
                           disabled={isPending}
-                          className="rounded p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                          className="rounded p-1.5 text-[#8a837a] hover:bg-[#fff4eb] hover:text-[#ff7f20]"
                           aria-label={`Duplicate ${promo.code}`}
                           onClick={() =>
                             runAction(async () => {

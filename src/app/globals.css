@@ -741,3 +741,109 @@ body:has([data-cart-page]) {
 .mobile-bottom-nav-fill-profile-active {
   background-color: var(--project-color);
 }
+
+/* Admin sidebar — Degusto supersudo visual system */
+.admin-sidebar-home-bg {
+  isolation: isolate;
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-sidebar-home-bg::before {
+  content: "";
+  z-index: -2;
+  opacity: 1;
+  filter: saturate(1.1) brightness(0.9);
+  pointer-events: none;
+  background-image:
+    linear-gradient(170deg, #03151075 0%, #041d156b 45%, #08302266 100%),
+    url("/images/admin/sidebar-bg.webp");
+  background-position: 60%;
+  background-repeat: no-repeat;
+  background-size: cover;
+  position: absolute;
+  inset: 0;
+}
+
+.admin-sidebar-home-bg::after {
+  content: "";
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 16% 12%, #ffffff1a 0%, #fff0 42%),
+    linear-gradient(#0000000a 0%, #0000001f 100%);
+  position: absolute;
+  inset: 0;
+}
+
+.admin-sidebar-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #9eff8e52 transparent;
+}
+
+.admin-sidebar-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.admin-sidebar-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-sidebar-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #ffffff24;
+  border-radius: 9999px;
+}
+
+.admin-sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #9eff8e73;
+}
+
+.admin-food-icon-wrap {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+}
+
+.admin-food-icon {
+  user-select: none;
+  text-shadow: 0 1px 2px #0000001f;
+  font-size: 0.85rem;
+  line-height: 1;
+  position: absolute;
+}
+
+@keyframes admin-food-float-a {
+  0%,
+  to {
+    opacity: 0.5;
+    transform: translateY(0) rotate(-3deg);
+  }
+  50% {
+    opacity: 0.88;
+    transform: translateY(-4px) rotate(3deg);
+  }
+}
+
+@keyframes admin-food-float-b {
+  0%,
+  to {
+    opacity: 0.45;
+    transform: translateY(0) rotate(4deg);
+  }
+  50% {
+    opacity: 0.82;
+    transform: translateY(4px) rotate(-4deg);
+  }
+}
+
+@keyframes admin-food-float-c {
+  0%,
+  to {
+    opacity: 0.42;
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    opacity: 0.75;
+    transform: translateY(-3px) rotate(2deg);
+  }
+}

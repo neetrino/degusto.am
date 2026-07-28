@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import {
+  ADMIN_CARD_PADDED,
   ADMIN_INPUT,
   ADMIN_LABEL,
   ADMIN_SECTION_TITLE,
@@ -35,10 +36,10 @@ export function StoreSettingsForms({
   return (
     <div className="flex w-full flex-col gap-6">
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
-      {message ? <p className="text-sm text-green-700">{message}</p> : null}
+      {message ? <p className="text-sm text-[#3e573d]">{message}</p> : null}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start">
-      <Card className="p-6">
+      <Card className={ADMIN_CARD_PADDED}>
         <form
           className="flex flex-col gap-4"
           onSubmit={(event) => {
@@ -99,7 +100,7 @@ export function StoreSettingsForms({
         </form>
       </Card>
 
-      <Card className="p-6">
+      <Card className={ADMIN_CARD_PADDED}>
         <form
           className="flex flex-col gap-4"
           onSubmit={(event) => {

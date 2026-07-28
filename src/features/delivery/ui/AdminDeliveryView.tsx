@@ -109,7 +109,7 @@ export function AdminDeliveryView({
 
       <Card className={ADMIN_TABLE_CARD}>
         {locations.length === 0 ? (
-          <p className={`${ADMIN_TABLE_STATE_INSET} text-sm text-gray-600`}>
+          <p className={`${ADMIN_TABLE_STATE_INSET} text-sm text-[#5c564e]`}>
             No delivery locations yet. Add a location to offer delivery at
             checkout.
           </p>
@@ -130,7 +130,7 @@ export function AdminDeliveryView({
                   <tr key={location.id} className={ADMIN_TABLE_ROW}>
                     <td className={ADMIN_TABLE_TD}>{location.country}</td>
                     <td className={ADMIN_TABLE_TD_CENTER}>
-                      <span className="font-medium text-gray-900">
+                      <span className="font-medium text-[#1f1a17]">
                         {location.city}
                       </span>
                     </td>
@@ -152,7 +152,7 @@ export function AdminDeliveryView({
                           type="button"
                           onClick={() => openEdit(location)}
                           disabled={isPending}
-                          className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                          className="rounded-lg p-2 text-[#8a837a] hover:bg-[#fff4eb] hover:text-[#ff7f20]"
                           aria-label={`Edit ${location.city}`}
                         >
                           <Pencil className="h-4 w-4" />

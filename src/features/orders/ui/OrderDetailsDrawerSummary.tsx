@@ -19,10 +19,10 @@ export function OrderDetailsDrawerSummary({
   detail,
 }: OrderDetailsDrawerSummaryProps) {
   return (
-    <div className="rounded-2xl border border-gray-200 px-5 py-4">
+    <div className="rounded-2xl border border-[#ead7bf] px-5 py-4">
       <div className="grid gap-8 md:grid-cols-2">
         <section>
-          <h3 className="mb-4 text-base font-semibold text-gray-900">Summary</h3>
+          <h3 className="mb-4 text-base font-semibold text-[#1f1a17]">Summary</h3>
           <dl className="space-y-3 text-sm">
             <DetailRow label="Order #:" value={detail.orderNumber} />
             <DetailRow
@@ -56,7 +56,7 @@ export function OrderDetailsDrawerSummary({
         </section>
 
         <section>
-          <h3 className="mb-4 text-base font-semibold text-gray-900">
+          <h3 className="mb-4 text-base font-semibold text-[#1f1a17]">
             Customer
           </h3>
           <dl className="space-y-3 text-sm">
@@ -79,8 +79,8 @@ function DetailRow({
 }) {
   return (
     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-      <dt className="text-gray-500">{label}</dt>
-      <dd className="font-medium text-gray-900">{value}</dd>
+      <dt className="text-[#8a837a]">{label}</dt>
+      <dd className="font-medium text-[#1f1a17]">{value}</dd>
     </div>
   );
 }

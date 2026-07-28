@@ -60,7 +60,7 @@ export function HeroSlideControls({
           type="button"
           disabled={isPending}
           onClick={onEdit}
-          className="rounded p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50"
+          className="rounded p-1.5 text-[#8a837a] hover:bg-[#fff4eb] hover:text-[#ff7f20] disabled:opacity-50"
           aria-label={`Edit ${slideTitle}`}
         >
           <Pencil className="h-4 w-4" />

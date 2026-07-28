@@ -6,6 +6,7 @@ import {
   ADMIN_PAGE_SUBTITLE,
   ADMIN_PAGE_TITLE,
   ADMIN_SECTION_TITLE,
+  ADMIN_LINK_BACK,
 } from "@/features/admin/ui/admin-form-classes";
 import { ADMIN_BADGE } from "@/features/admin/ui/status-badge";
 import { getAdminContactMessageById } from "@/features/contact/application/queries";
@@ -22,11 +23,11 @@ type AdminMessageDetailPageProps = {
 
 function contactStatusBadgeClass(status: string): string {
   const normalized = status.toUpperCase();
-  if (normalized === "UNREAD") return "bg-blue-100 text-blue-800";
-  if (normalized === "READ") return "bg-yellow-100 text-yellow-800";
-  if (normalized === "REPLIED") return "bg-green-100 text-green-800";
-  if (normalized === "ARCHIVED") return "bg-gray-100 text-gray-800";
-  return "bg-gray-100 text-gray-800";
+  if (normalized === "UNREAD") return "bg-[#ff7f20]/15 text-[#c45a0a]";
+  if (normalized === "READ") return "bg-[#f7d18f]/45 text-[#8a5a12]";
+  if (normalized === "REPLIED") return "bg-[#3e573d]/15 text-[#3e573d]";
+  if (normalized === "ARCHIVED") return "bg-[#e8e2d9] text-[#5c564e]";
+  return "bg-[#e8e2d9] text-[#5c564e]";
 }
 
 export default async function AdminMessageDetailPage({
@@ -51,7 +52,7 @@ export default async function AdminMessageDetailPage({
         <p className={`mb-1 ${ADMIN_PAGE_SUBTITLE}`}>
           <Link
             href={`/${locale}/admin/messages`}
-            className="font-medium text-gray-700 hover:underline"
+            className={ADMIN_LINK_BACK}
           >
             Messages
           </Link>
@@ -61,12 +62,12 @@ export default async function AdminMessageDetailPage({
 
       <Card className="mb-6 p-6">
         <div className="grid gap-3 text-sm md:grid-cols-2">
-          <p className="text-gray-700">
-            From: <strong className="text-gray-900">{message.name}</strong>
+          <p className="text-[#5c564e]">
+            From: <strong className="text-[#1f1a17]">{message.name}</strong>
           </p>
-          <p className="text-gray-700">Email: {message.email}</p>
-          <p className="text-gray-700">Phone: {message.phone ?? "—"}</p>
-          <p className="text-gray-700">
+          <p className="text-[#5c564e]">Email: {message.email}</p>
+          <p className="text-[#5c564e]">Phone: {message.phone ?? "—"}</p>
+          <p className="text-[#5c564e]">
             Status:{" "}
             <span
               className={`${ADMIN_BADGE} ${contactStatusBadgeClass(message.status)}`}
@@ -74,11 +75,11 @@ export default async function AdminMessageDetailPage({
               {message.status}
             </span>
           </p>
-          <p className="text-gray-700">
+          <p className="text-[#5c564e]">
             Spam score:{" "}
             {message.spamScore === null ? "—" : message.spamScore}
           </p>
-          <p className="text-gray-700">
+          <p className="text-[#5c564e]">
             Received:{" "}
             {message.createdAt.toISOString().slice(0, 19).replace("T", " ")}{" "}
             UTC
@@ -88,7 +89,7 @@ export default async function AdminMessageDetailPage({
 
       <Card className="mb-6 p-6">
         <h2 className={`mb-3 ${ADMIN_SECTION_TITLE}`}>Message</h2>
-        <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-[#5c564e]">
           {message.message}
         </p>
       </Card>

@@ -54,7 +54,7 @@ export function AdminProductRow({
       </td>
       <td className={ADMIN_TABLE_TD}>
         <div className="flex min-w-[200px] items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded bg-gray-100">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded bg-[#e8e2d9]">
             {product.imageUrl ? (
               // Admin media may use storage hosts outside next/image config.
               // eslint-disable-next-line @next/next/no-img-element
@@ -64,33 +64,33 @@ export function AdminProductRow({
                 className="h-full w-full object-cover"
               />
             ) : (
-              <span className="text-[10px] text-gray-400">N/A</span>
+              <span className="text-[10px] text-[#8a837a]">N/A</span>
             )}
           </div>
           <div className="min-w-0">
-            <p className="truncate font-medium text-gray-900">{product.title}</p>
-            <p className="truncate text-xs text-gray-500">{product.slug}</p>
+            <p className="truncate font-medium text-[#1f1a17]">{product.title}</p>
+            <p className="truncate text-xs text-[#8a837a]">{product.slug}</p>
           </div>
         </div>
       </td>
       <td className={ADMIN_TABLE_TD}>
-        <span className="text-gray-900">{product.stockOnHand} pcs</span>
+        <span className="text-[#1f1a17]">{product.stockOnHand} pcs</span>
       </td>
       <td className={ADMIN_TABLE_TD}>
         <div className="flex flex-col">
-          <span className="font-medium text-gray-900">
+          <span className="font-medium text-[#1f1a17]">
             {formatMoneyAmount(product.priceAmount, "AMD", locale)}
           </span>
           {product.compareAtAmount != null &&
           product.compareAtAmount > product.priceAmount ? (
-            <span className="text-xs text-gray-400 line-through">
+            <span className="text-xs text-[#8a837a] line-through">
               {formatMoneyAmount(product.compareAtAmount, "AMD", locale)}
             </span>
           ) : null}
         </div>
       </td>
       <td className={ADMIN_TABLE_TD}>
-        <span className="line-clamp-2 max-w-[160px] text-gray-700">
+        <span className="line-clamp-2 max-w-[160px] text-[#5c564e]">
           {product.categoryLabels.length > 0
             ? product.categoryLabels.join(", ")
             : "—"}
@@ -101,7 +101,7 @@ export function AdminProductRow({
           type="button"
           disabled={disabled}
           onClick={onFeatured}
-          className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-amber-500"
+          className="rounded p-1 text-[#8a837a] hover:bg-[#fff4eb] hover:text-amber-500"
           aria-label={
             product.isFeatured ? "Unfeature product" : "Feature product"
           }
@@ -116,7 +116,7 @@ export function AdminProductRow({
           <button
             type="button"
             onClick={onEdit}
-            className="rounded p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+            className="rounded p-1.5 text-[#8a837a] hover:bg-[#fff4eb] hover:text-[#ff7f20]"
             aria-label={`Edit ${product.title}`}
           >
             <Pencil className="h-4 w-4" />
@@ -125,7 +125,7 @@ export function AdminProductRow({
             type="button"
             disabled={disabled}
             onClick={onDuplicate}
-            className="rounded p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+            className="rounded p-1.5 text-[#8a837a] hover:bg-[#fff4eb] hover:text-[#ff7f20]"
             aria-label={`Duplicate ${product.title}`}
           >
             <Copy className="h-4 w-4" />
@@ -146,7 +146,7 @@ export function AdminProductRow({
             disabled={disabled}
             onClick={onVisibility}
             className={`relative ml-1 h-5 w-9 rounded-full transition-colors ${
-              isActive ? "bg-green-500" : "bg-gray-300"
+              isActive ? "bg-[#3e573d]" : "bg-[#d4ccc0]"
             }`}
             aria-label={isActive ? "Deactivate product" : "Activate product"}
           >
@@ -159,7 +159,7 @@ export function AdminProductRow({
         </div>
       </td>
       <td className={ADMIN_TABLE_TD}>
-        <span className="text-xs text-gray-500">{createdLabel}</span>
+        <span className="text-xs text-[#8a837a]">{createdLabel}</span>
       </td>
     </tr>
   );

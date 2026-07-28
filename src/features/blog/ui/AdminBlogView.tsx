@@ -26,10 +26,10 @@ type AdminBlogViewProps = {
 
 function statusBadgeClass(status: string): string {
   const normalized = status.toUpperCase();
-  if (normalized === "PUBLISHED") return "bg-green-100 text-green-800";
-  if (normalized === "DRAFT") return "bg-yellow-100 text-yellow-800";
-  if (normalized === "ARCHIVED") return "bg-gray-100 text-gray-800";
-  return "bg-gray-100 text-gray-800";
+  if (normalized === "PUBLISHED") return "bg-[#3e573d]/15 text-[#3e573d]";
+  if (normalized === "DRAFT") return "bg-[#f7d18f]/45 text-[#8a5a12]";
+  if (normalized === "ARCHIVED") return "bg-[#e8e2d9] text-[#5c564e]";
+  return "bg-[#e8e2d9] text-[#5c564e]";
 }
 
 function statusLabel(status: string): string {
@@ -126,7 +126,7 @@ export function AdminBlogView({ locale, posts }: AdminBlogViewProps) {
       <div className="space-y-3">
         {filtered.length === 0 ? (
           <Card className="rounded-xl p-8">
-            <p className="text-center text-sm text-gray-600">
+            <p className="text-center text-sm text-[#5c564e]">
               {posts.length === 0
                 ? "No blog posts yet."
                 : "No posts match this search."}
@@ -136,11 +136,11 @@ export function AdminBlogView({ locale, posts }: AdminBlogViewProps) {
           filtered.map((post) => (
             <Card
               key={post.id}
-              className="rounded-xl border border-gray-200 p-4 shadow-sm"
+              className="rounded-xl border border-[#ead7bf] p-4 shadow-sm"
             >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex min-w-0 items-start gap-3">
-                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-[#e8e2d9]">
                     {post.coverUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -155,15 +155,15 @@ export function AdminBlogView({ locale, posts }: AdminBlogViewProps) {
                     )}
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-gray-900">
+                    <p className="truncate text-sm font-semibold text-[#1f1a17]">
                       {post.title}
                     </p>
                     {post.excerpt ? (
-                      <p className="mt-0.5 line-clamp-1 text-sm text-gray-600">
+                      <p className="mt-0.5 line-clamp-1 text-sm text-[#5c564e]">
                         {post.excerpt}
                       </p>
                     ) : null}
-                    <p className="mt-1 text-xs text-gray-500">
+                    <p className="mt-1 text-xs text-[#8a837a]">
                       {post.path}
                       {post.publishedAt ? ` · ${post.publishedAt}` : ""}
                     </p>
@@ -180,7 +180,7 @@ export function AdminBlogView({ locale, posts }: AdminBlogViewProps) {
                     type="button"
                     disabled={isPending}
                     onClick={() => openEdit(post)}
-                    className="rounded p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50"
+                    className="rounded p-1.5 text-[#8a837a] hover:bg-[#fff4eb] hover:text-[#ff7f20] disabled:opacity-50"
                     aria-label={`Edit ${post.title}`}
                   >
                     <Pencil className="h-4 w-4" />

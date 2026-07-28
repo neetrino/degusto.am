@@ -73,8 +73,8 @@ export function AnalyticsPeriodCard({
   return (
     <Card className="mb-6 rounded-2xl p-5 sm:p-6">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <h2 className="text-lg font-semibold text-gray-900">Time Period</h2>
-        <p className="text-sm font-medium text-gray-500">
+        <h2 className="text-lg font-semibold text-[#1f1a17]">Time Period</h2>
+        <p className="text-sm font-medium text-[#8a837a]">
           {formatAnalyticsDisplayDate(from)} – {formatAnalyticsDisplayDate(to)}
         </p>
       </div>
@@ -121,7 +121,7 @@ export function AnalyticsPeriodCard({
           <button
             type="submit"
             disabled={pending}
-            className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-60"
+            className="rounded-md bg-[#1f3a22] px-4 py-2 text-sm font-medium text-white hover:bg-[#19311c] disabled:opacity-60"
           >
             Apply
           </button>
@@ -131,7 +131,7 @@ export function AnalyticsPeriodCard({
       <div className="mt-4 flex flex-wrap items-center gap-4">
         <a
           href={`/api/exports/admin/analytics?${exportQuery}`}
-          className="text-sm font-medium text-gray-700 underline-offset-2 hover:underline"
+          className="text-sm font-medium text-[#5c564e] underline-offset-2 hover:underline"
         >
           Download CSV export
         </a>

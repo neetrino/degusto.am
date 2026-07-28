@@ -9,6 +9,7 @@ import {
   ADMIN_PAGE_SUBTITLE,
   ADMIN_PAGE_TITLE,
   ADMIN_SELECT,
+  ADMIN_LINK,
 } from "@/features/admin/ui/admin-form-classes";
 import {
   ADMIN_TABLE,
@@ -45,11 +46,11 @@ function firstParam(
 
 function contactStatusBadgeClass(status: string): string {
   const normalized = status.toUpperCase();
-  if (normalized === "UNREAD") return "bg-blue-100 text-blue-800";
-  if (normalized === "READ") return "bg-yellow-100 text-yellow-800";
-  if (normalized === "REPLIED") return "bg-green-100 text-green-800";
-  if (normalized === "ARCHIVED") return "bg-gray-100 text-gray-800";
-  return "bg-gray-100 text-gray-800";
+  if (normalized === "UNREAD") return "bg-[#ff7f20]/15 text-[#c45a0a]";
+  if (normalized === "READ") return "bg-[#f7d18f]/45 text-[#8a5a12]";
+  if (normalized === "REPLIED") return "bg-[#3e573d]/15 text-[#3e573d]";
+  if (normalized === "ARCHIVED") return "bg-[#e8e2d9] text-[#5c564e]";
+  return "bg-[#e8e2d9] text-[#5c564e]";
 }
 
 export default async function AdminMessagesPage({
@@ -119,7 +120,7 @@ export default async function AdminMessagesPage({
 
       <Card className={ADMIN_TABLE_CARD}>
         {rows.length === 0 ? (
-          <p className={`${ADMIN_TABLE_STATE_INSET} text-sm text-gray-600`}>
+          <p className={`${ADMIN_TABLE_STATE_INSET} text-sm text-[#5c564e]`}>
             No messages match these filters.
           </p>
         ) : (
@@ -139,14 +140,14 @@ export default async function AdminMessagesPage({
                     <td className={ADMIN_TABLE_TD}>
                       <Link
                         href={`/${locale}/admin/messages/${message.id}`}
-                        className="font-medium text-gray-900 hover:underline"
+                        className={ADMIN_LINK}
                       >
                         {message.subject}
                       </Link>
                     </td>
                     <td className={ADMIN_TABLE_TD}>
-                      <p className="text-sm text-gray-900">{message.name}</p>
-                      <p className="text-xs text-gray-500">{message.email}</p>
+                      <p className="text-sm text-[#1f1a17]">{message.name}</p>
+                      <p className="text-xs text-[#8a837a]">{message.email}</p>
                     </td>
                     <td className={ADMIN_TABLE_TD_CENTER}>
                       <span
@@ -155,13 +156,13 @@ export default async function AdminMessagesPage({
                         {message.status}
                       </span>
                       {message.spamScore !== null ? (
-                        <p className="mt-1 text-xs text-gray-500">
+                        <p className="mt-1 text-xs text-[#8a837a]">
                           spam {message.spamScore}
                         </p>
                       ) : null}
                     </td>
                     <td className={ADMIN_TABLE_TD}>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-[#8a837a]">
                         {message.createdAt
                           .toISOString()
                           .slice(0, 16)
@@ -178,7 +179,7 @@ export default async function AdminMessagesPage({
       </Card>
 
       {totalPages > 1 ? (
-        <nav className="mt-4 flex items-center gap-3 text-sm text-gray-700">
+        <nav className="mt-4 flex items-center gap-3 text-sm text-[#5c564e]">
           <span>
             Page {filters.page} / {totalPages}
           </span>

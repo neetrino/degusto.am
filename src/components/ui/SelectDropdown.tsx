@@ -116,7 +116,7 @@ export function SelectDropdown({
       <button
         type="button"
         disabled={disabled}
-        className="flex h-11 w-full items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-white px-4 pr-3 text-left text-sm text-gray-900 shadow-sm outline-none transition-colors hover:border-gray-300 disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex h-11 w-full items-center justify-between gap-3 rounded-2xl border border-[#ead7bf] bg-[#fffaf2] px-4 pr-3 text-left text-sm text-[#183322] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.05)] outline-none transition-colors hover:border-[#f66812]/45 focus:border-[#f66812] focus:bg-white focus:ring-4 focus:ring-[#f66812]/15 disabled:cursor-not-allowed disabled:opacity-50"
         aria-label={ariaLabel}
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -125,7 +125,7 @@ export function SelectDropdown({
       >
         <span className="min-w-0 truncate">{selectedLabel}</span>
         <ChevronDown
-          className={`h-4 w-4 shrink-0 text-gray-400 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? "rotate-180" : ""}`}
+          className={`h-4 w-4 shrink-0 text-[#8a837a] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? "rotate-180" : ""}`}
           aria-hidden
         />
       </button>
@@ -144,7 +144,7 @@ export function SelectDropdown({
             id={listId}
             role="listbox"
             aria-label={ariaLabel}
-            className="max-h-72 overflow-y-auto rounded-2xl border border-gray-100 bg-white py-2"
+            className="max-h-72 overflow-y-auto rounded-2xl border border-[#ead7bf]/80 bg-white py-2 shadow-[0_12px_28px_rgba(31,26,23,0.08)]"
           >
             {allLabel !== undefined ? (
               <SelectDropdownOptionRow
@@ -184,14 +184,14 @@ export function SelectDropdownOptionRow({
       type="button"
       role="option"
       aria-selected={selected}
-      className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-800 hover:bg-gray-50"
+      className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-[#1f1a17] hover:bg-[#fff4eb]"
       onClick={onSelect}
     >
       <span
         className={
           selected
-            ? "flex h-4 w-4 shrink-0 items-center justify-center rounded border border-gray-900 bg-gray-900 text-white"
-            : "flex h-4 w-4 shrink-0 rounded border border-gray-300 bg-white"
+            ? "flex h-4 w-4 shrink-0 items-center justify-center rounded border border-[#ff7f20] bg-[#ff7f20] text-white"
+            : "flex h-4 w-4 shrink-0 rounded border border-[#ead7bf] bg-white"
         }
         aria-hidden
       >

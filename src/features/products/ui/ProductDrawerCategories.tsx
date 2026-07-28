@@ -95,13 +95,13 @@ export function ProductDrawerCategories({
         >
           <span
             className={`min-w-0 flex-1 truncate ${
-              selectedTitles.length === 0 ? "text-gray-400" : "text-gray-900"
+              selectedTitles.length === 0 ? "text-[#8a837a]" : "text-[#1f1a17]"
             }`}
           >
             {triggerLabel}
           </span>
           <ChevronDown
-            className={`h-4 w-4 shrink-0 text-gray-400 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+            className={`h-4 w-4 shrink-0 text-[#8a837a] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
               open ? "rotate-180" : ""
             }`}
             aria-hidden
@@ -119,10 +119,10 @@ export function ProductDrawerCategories({
           <div className="min-h-0 overflow-hidden">
             <div
               id={listId}
-              className="max-h-56 overflow-y-auto rounded-2xl border border-gray-100 bg-white py-2"
+              className="max-h-56 overflow-y-auto rounded-2xl border border-[#ead7bf]/80 bg-white py-2"
             >
               {categories.length === 0 ? (
-                <p className="px-4 py-2.5 text-sm text-gray-500">
+                <p className="px-4 py-2.5 text-sm text-[#8a837a]">
                   No categories yet.
                 </p>
               ) : (
@@ -133,14 +133,14 @@ export function ProductDrawerCategories({
                       key={category.id}
                       type="button"
                       disabled={disabled || isPending}
-                      className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-800 hover:bg-gray-50 disabled:opacity-50"
+                      className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-[#1f1a17] hover:bg-[#fff4eb] disabled:opacity-50"
                       onClick={() => toggleCategory(category.id)}
                     >
                       <span
                         className={
                           selected
-                            ? "flex h-4 w-4 shrink-0 items-center justify-center rounded border border-gray-900 bg-gray-900 text-white"
-                            : "flex h-4 w-4 shrink-0 rounded border border-gray-300 bg-white"
+                            ? "flex h-4 w-4 shrink-0 items-center justify-center rounded border border-gray-900 bg-[#1f3a22] text-white"
+                            : "flex h-4 w-4 shrink-0 rounded border border-[#ead7bf] bg-white"
                         }
                         aria-hidden
                       >
@@ -175,14 +175,14 @@ export function ProductDrawerCategories({
           type="button"
           disabled={disabled || isPending}
           onClick={() => setShowAdd((value) => !value)}
-          className="inline-flex items-center rounded-xl border border-dashed border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50"
+          className="inline-flex items-center rounded-xl border border-dashed border-[#ead7bf] px-4 py-2 text-sm font-medium text-[#5c564e] hover:border-[#ff7f20]/50 hover:bg-[#fff4eb] disabled:opacity-50"
         >
           + Add category
         </button>
       </div>
 
       {showAdd ? (
-        <div className="mt-3 space-y-2 rounded-xl border border-gray-200 bg-gray-50 p-3">
+        <div className="mt-3 space-y-2 rounded-xl border border-[#ead7bf] bg-[#fff8f0] p-3">
           <label className="block">
             <span className={ADMIN_LABEL}>
               Category title <span className="text-red-600">*</span>
@@ -200,7 +200,7 @@ export function ProductDrawerCategories({
               type="button"
               disabled={disabled || isPending || !newTitle.trim()}
               onClick={createCategory}
-              className="rounded-lg bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+              className="rounded-lg bg-[#1f3a22] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#19311c] disabled:opacity-50"
             >
               {isPending ? "Adding…" : "Add"}
             </button>
@@ -212,7 +212,7 @@ export function ProductDrawerCategories({
                 setNewTitle("");
                 setError(null);
               }}
-              className="text-sm font-medium text-gray-600 hover:text-gray-900"
+              className="text-sm font-medium text-[#5c564e] hover:text-[#ff7f20]"
             >
               Cancel
             </button>

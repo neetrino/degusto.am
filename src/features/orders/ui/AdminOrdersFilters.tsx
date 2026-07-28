@@ -9,7 +9,7 @@ import type { OrderStatus } from "@/features/orders/domain/order-status";
 import type { PaymentStatus } from "@/features/orders/domain/payment-status";
 
 const FILTER_SEARCH =
-  "h-11 min-w-0 flex-1 rounded-2xl border border-gray-200 bg-white px-4 text-sm text-gray-900 shadow-sm outline-none transition-colors placeholder:text-gray-400 hover:border-gray-300 focus:border-gray-300";
+  "h-11 min-w-0 flex-1 rounded-2xl border border-[#ead7bf] bg-white px-4 text-sm text-[#1f1a17] shadow-sm outline-none transition-colors placeholder:text-[#8a837a] hover:border-[#ead7bf] focus:border-[#ead7bf]";
 
 const ORDER_STATUS_FILTERS = [
   { label: "Pending", value: "PENDING" },
@@ -84,8 +84,8 @@ export function AdminOrdersFilters({
           aria-label="Search orders"
         />
       </form>
-      <div className="border-t border-gray-200 px-4 py-3">
-        <p className="text-sm text-gray-600">Total orders: {total}</p>
+      <div className="border-t border-[#ead7bf] px-4 py-3">
+        <p className="text-sm text-[#5c564e]">Total orders: {total}</p>
       </div>
     </Card>
   );

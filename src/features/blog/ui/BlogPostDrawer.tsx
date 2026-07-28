@@ -8,8 +8,14 @@ import { SideSheet } from "@/components/ui/SideSheet";
 import {
   ADMIN_INPUT,
   ADMIN_LABEL,
+  ADMIN_SHEET_CHIP_ACTIVE,
+  ADMIN_SHEET_CHIP_IDLE,
+  ADMIN_SHEET_FOOTER,
+  ADMIN_SHEET_PRIMARY_BUTTON,
+  ADMIN_SHEET_SURFACE,
   ADMIN_TEXTAREA,
 } from "@/features/admin/ui/admin-form-classes";
+import { AdminSheetHeader } from "@/features/admin/ui/AdminSheetHeader";
 import {
   createBlogPostAction,
   updateBlogPostAction,
@@ -162,12 +168,13 @@ export function BlogPostDrawer({
       onClose={onClose}
       ariaLabel={isEdit ? "Edit blog post" : "Add blog post"}
       panelClassName="w-full max-w-lg"
+      surfaceClassName={ADMIN_SHEET_SURFACE}
+      closeTone="brand"
+      backdropBlur
     >
-        <div className="border-b border-gray-200 px-5 py-4">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {isEdit ? "Edit blog post" : "Add blog post"}
-          </h2>
-        </div>
+        <AdminSheetHeader
+          title={isEdit ? "Edit blog post" : "Add blog post"}
+        />
 
         <form
           className="flex min-h-0 flex-1 flex-col"
@@ -222,7 +229,7 @@ export function BlogPostDrawer({
         >
           <div className="flex-1 space-y-6 overflow-y-auto px-5 py-5">
             <div>
-              <p className="mb-2 text-xs font-semibold tracking-wide text-gray-500 uppercase">
+              <p className="mb-2 text-xs font-semibold tracking-wide text-[#8a837a] uppercase">
                 Translations
               </p>
               <div className="flex flex-wrap gap-2">
@@ -233,10 +240,10 @@ export function BlogPostDrawer({
                       key={loc}
                       type="button"
                       onClick={() => setActiveLocale(loc)}
-                      className={`rounded-xl px-3 py-1.5 text-sm font-medium transition-colors ${
+                      className={`transition-colors ${
                         selected
-                          ? "bg-gray-900 text-white"
-                          : "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                          ? ADMIN_SHEET_CHIP_ACTIVE
+                          : ADMIN_SHEET_CHIP_IDLE
                       }`}
                     >
                       {localeLabels[loc]}
@@ -287,13 +294,13 @@ export function BlogPostDrawer({
                 className={ADMIN_TEXTAREA}
                 disabled={isPending}
               />
-              <span className="mt-1 block text-xs text-gray-500">
+              <span className="mt-1 block text-xs text-[#8a837a]">
                 Plain text or HTML. Double line breaks create new paragraphs.
               </span>
             </label>
 
             <div>
-              <p className="mb-2 text-xs font-semibold tracking-wide text-gray-500 uppercase">
+              <p className="mb-2 text-xs font-semibold tracking-wide text-[#8a837a] uppercase">
                 Common
               </p>
               <div className="space-y-4">
@@ -306,7 +313,7 @@ export function BlogPostDrawer({
                     className={ADMIN_INPUT}
                     disabled={isPending}
                   />
-                  <span className="mt-1 block text-xs text-gray-500">
+                  <span className="mt-1 block text-xs text-[#8a837a]">
                     Shown on the post. Leave empty to use today when publishing.
                   </span>
                 </label>
@@ -338,7 +345,7 @@ export function BlogPostDrawer({
                   type="button"
                   disabled={isPending}
                   onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center rounded-xl border border-dashed border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50"
+                  className="inline-flex items-center rounded-xl border border-dashed border-[#ead7bf] px-4 py-2 text-sm font-medium text-[#5c564e] hover:border-[#ff7f20]/50 hover:bg-[#fff4eb] disabled:opacity-50"
                 >
                   {imagePreview ? "Change image" : "+ Upload image"}
                 </button>
@@ -377,7 +384,7 @@ export function BlogPostDrawer({
                         setRemoveExistingImage(true);
                       }
                     }}
-                    className="text-sm font-medium text-gray-600 hover:text-red-600"
+                    className="text-sm font-medium text-[#5c564e] hover:text-red-600"
                   >
                     Remove
                   </button>
@@ -388,10 +395,10 @@ export function BlogPostDrawer({
                 <img
                   src={imagePreview}
                   alt=""
-                  className="mt-3 h-28 w-28 rounded-xl border border-gray-200 object-cover"
+                  className="mt-3 h-28 w-28 rounded-xl border border-[#ead7bf] object-cover"
                 />
               ) : null}
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-[#8a837a]">
                 JPEG, PNG, WebP, or GIF. Max 5MB.
               </p>
             </div>
@@ -399,8 +406,12 @@ export function BlogPostDrawer({
             {error ? <p className="text-sm text-red-700">{error}</p> : null}
           </div>
 
-          <div className="border-t border-gray-200 px-5 py-4">
-            <Button type="submit" className="w-full" disabled={isPending}>
+          <div className={ADMIN_SHEET_FOOTER}>
+            <Button
+              type="submit"
+              className={`w-full ${ADMIN_SHEET_PRIMARY_BUTTON}`}
+              disabled={isPending}
+            >
               {isPending ? "Saving…" : "Save"}
             </Button>
           </div>

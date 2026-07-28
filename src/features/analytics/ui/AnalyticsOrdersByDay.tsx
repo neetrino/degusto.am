@@ -119,8 +119,8 @@ export function AnalyticsOrdersByDay({
     <Card className="rounded-2xl p-5 sm:p-6">
       <div className="mb-2 flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Orders by Day</h2>
-          <p className="mt-1 text-sm text-gray-500">
+          <h2 className="text-lg font-semibold text-[#1f1a17]">Orders by Day</h2>
+          <p className="mt-1 text-sm text-[#8a837a]">
             Daily Order Trends and Revenue
           </p>
         </div>
@@ -130,12 +130,12 @@ export function AnalyticsOrdersByDay({
       </div>
 
       {rows.length === 0 ? (
-        <p className="py-12 text-center text-sm text-gray-500">
+        <p className="py-12 text-center text-sm text-[#8a837a]">
           No orders in this range.
         </p>
       ) : (
         <>
-          <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50/60 p-3">
+          <div className="mt-4 rounded-xl border border-[#ead7bf]/80 bg-[#fff8f0]/60 p-3">
             <OrdersTrendChart rows={rows} />
           </div>
 
@@ -150,10 +150,10 @@ export function AnalyticsOrdersByDay({
                   key={row.date}
                   className="grid grid-cols-[5.5rem_1fr_auto] items-center gap-3"
                 >
-                  <p className="text-sm font-medium text-gray-700">
+                  <p className="text-sm font-medium text-[#5c564e]">
                     {formatAnalyticsShortDate(row.date)}
                   </p>
-                  <div className="relative h-9 overflow-hidden rounded-full bg-gray-100">
+                  <div className="relative h-9 overflow-hidden rounded-full bg-[#e8e2d9]">
                     <div
                       className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-blue-500 to-violet-500"
                       style={{ width: `${widthPct}%` }}
@@ -162,8 +162,8 @@ export function AnalyticsOrdersByDay({
                       {row.orderCount} orders
                     </span>
                   </div>
-                  <p className="text-right text-sm text-gray-600">
-                    <span className="font-medium text-gray-900">
+                  <p className="text-right text-sm text-[#5c564e]">
+                    <span className="font-medium text-[#1f1a17]">
                       {formatMoney(row.revenueAmount)}
                     </span>{" "}
                     revenue

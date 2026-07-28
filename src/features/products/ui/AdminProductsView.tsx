@@ -54,7 +54,7 @@ export function AdminProductsView({
       <button
         type="button"
         onClick={openCreate}
-        className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-800"
+        className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#1f3a22] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#19311c]"
       >
         <Plus className="h-4 w-4" aria-hidden />
         Add New Product

@@ -117,7 +117,7 @@ export function BulkChangeOrderStatusForm({
   return (
     <div className="flex flex-col gap-4">
       <Card className="flex flex-wrap items-center justify-between gap-3 p-4">
-        <p className="text-sm text-gray-700">
+        <p className="text-sm text-[#5c564e]">
           Selected {selected.size} order{selected.size === 1 ? "" : "s"}
         </p>
         <Button
@@ -177,19 +177,19 @@ export function BulkChangeOrderStatusForm({
                     <button
                       type="button"
                       onClick={() => onOpenOrder(order.orderNumber)}
-                      className="font-medium text-gray-900 hover:underline"
+                      className="font-medium text-[#1f1a17] hover:underline"
                     >
                       {order.orderNumber}
                     </button>
                     {order.isArchived ? (
-                      <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium uppercase text-gray-600">
+                      <span className="ml-2 rounded-full bg-[#e8e2d9] px-2 py-0.5 text-[10px] font-medium uppercase text-[#5c564e]">
                         Archived
                       </span>
                     ) : null}
                   </td>
                   <td className={ADMIN_TABLE_TD}>
-                    <p className="text-sm text-gray-900">{order.contactName}</p>
-                    <p className="text-xs text-gray-500">{order.contactEmail}</p>
+                    <p className="text-sm text-[#1f1a17]">{order.contactName}</p>
+                    <p className="text-xs text-[#8a837a]">{order.contactEmail}</p>
                   </td>
                   <td className={ADMIN_TABLE_TD_METRIC}>
                     <AdminInlineStatusSelect
@@ -210,12 +210,12 @@ export function BulkChangeOrderStatusForm({
                     />
                   </td>
                   <td className={ADMIN_TABLE_TD_METRIC}>
-                    <span className="font-medium text-gray-900">
+                    <span className="font-medium text-[#1f1a17]">
                       {formatMoney(order.totalAmount, order.baseCurrency)}
                     </span>
                   </td>
                   <td className={ADMIN_TABLE_TD}>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-[#8a837a]">
                       {new Date(order.placedAt)
                         .toISOString()
                         .slice(0, 16)
@@ -229,12 +229,12 @@ export function BulkChangeOrderStatusForm({
           </table>
         </div>
         {orders.length === 0 ? (
-          <p className={`${ADMIN_TABLE_STATE_INSET} text-sm text-gray-600`}>
+          <p className={`${ADMIN_TABLE_STATE_INSET} text-sm text-[#5c564e]`}>
             No orders match these filters.
           </p>
         ) : (
           <div className={ADMIN_TABLE_FOOTER_ROUNDED_B}>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-[#5c564e]">
               {selected.size} selected on this page
             </p>
           </div>

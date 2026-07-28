@@ -76,10 +76,10 @@ export function AdminHeroView({
                   <img
                     src={slide.imageUrl}
                     alt=""
-                    className="h-16 w-24 shrink-0 rounded-lg border border-gray-200 object-cover"
+                    className="h-16 w-24 shrink-0 rounded-lg border border-[#ead7bf] object-cover"
                   />
                 ) : (
-                  <div className="flex h-16 w-24 shrink-0 items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50 text-xs text-gray-400">
+                  <div className="flex h-16 w-24 shrink-0 items-center justify-center rounded-lg border border-dashed border-[#ead7bf] bg-[#fff8f0] text-xs text-[#8a837a]">
                     No image
                   </div>
                 )}
@@ -88,27 +88,27 @@ export function AdminHeroView({
                     <button
                       type="button"
                       onClick={() => openEdit(slide)}
-                      className="text-left font-medium text-gray-900 hover:underline"
+                      className="text-left font-medium text-[#1f1a17] hover:underline"
                     >
                       {slide.title}
                     </button>
                   </p>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-[#8a837a]">
                       sort {slide.sortOrder}
                     </span>
                     <span
                       className={`${ADMIN_BADGE} ${
                         slide.isActive
-                          ? "bg-green-100 text-green-800"
-                          : "bg-gray-100 text-gray-800"
+                          ? "bg-[#3e573d]/15 text-[#3e573d]"
+                          : "bg-[#e8e2d9] text-[#5c564e]"
                       }`}
                     >
                       {slide.isActive ? "PUBLISHED" : "DRAFT"}
                     </span>
                   </div>
                   {slide.subtitle ? (
-                    <p className="mt-1 text-sm text-gray-600">{slide.subtitle}</p>
+                    <p className="mt-1 text-sm text-[#5c564e]">{slide.subtitle}</p>
                   ) : null}
                 </div>
               </div>
@@ -124,7 +124,7 @@ export function AdminHeroView({
         ))}
         {slides.length === 0 ? (
           <Card className="p-6">
-            <p className="text-center text-sm text-gray-600">
+            <p className="text-center text-sm text-[#5c564e]">
               No hero slides yet.
             </p>
           </Card>

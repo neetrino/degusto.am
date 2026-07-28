@@ -10,7 +10,12 @@ import { SideSheet } from "@/components/ui/SideSheet";
 import {
   ADMIN_INPUT,
   ADMIN_LABEL,
+  ADMIN_SHEET_CANCEL,
+  ADMIN_SHEET_FOOTER,
+  ADMIN_SHEET_PRIMARY_BUTTON,
+  ADMIN_SHEET_SURFACE,
 } from "@/features/admin/ui/admin-form-classes";
+import { AdminSheetHeader } from "@/features/admin/ui/AdminSheetHeader";
 import {
   createPromotionAction,
   updatePromotionAction,
@@ -99,12 +104,11 @@ export function CouponDrawer({
       onClose={onClose}
       ariaLabel={isEdit ? "Edit coupon" : "New coupon"}
       panelClassName="w-full max-w-md"
+      surfaceClassName={ADMIN_SHEET_SURFACE}
+      closeTone="brand"
+      backdropBlur
     >
-        <div className="border-b border-gray-200 px-5 py-4">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {isEdit ? "Edit coupon" : "New coupon"}
-          </h2>
-        </div>
+        <AdminSheetHeader title={isEdit ? "Edit coupon" : "New coupon"} />
 
         <form
           className="flex min-h-0 flex-1 flex-col"
@@ -233,13 +237,13 @@ export function CouponDrawer({
               </label>
             </div>
 
-            <div className="rounded-2xl border border-gray-200 px-4 py-3">
+            <div className="rounded-2xl border border-[#ead7bf] px-4 py-3">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-medium text-[#1f1a17]">
                     Select users
                   </p>
-                  <p className="mt-0.5 text-sm text-gray-500">
+                  <p className="mt-0.5 text-sm text-[#8a837a]">
                     All users can use this coupon
                   </p>
                 </div>
@@ -250,8 +254,12 @@ export function CouponDrawer({
             {error ? <p className="text-sm text-red-700">{error}</p> : null}
           </div>
 
-          <div className="flex items-center gap-4 border-t border-gray-200 px-5 py-4">
-            <Button type="submit" disabled={isPending}>
+          <div className={ADMIN_SHEET_FOOTER}>
+            <Button
+              type="submit"
+              disabled={isPending}
+              className={ADMIN_SHEET_PRIMARY_BUTTON}
+            >
               {isPending
                 ? isEdit
                   ? "Saving…"
@@ -263,7 +271,7 @@ export function CouponDrawer({
             <button
               type="button"
               onClick={onClose}
-              className="text-sm font-medium text-gray-600 hover:text-gray-900"
+              className={ADMIN_SHEET_CANCEL}
             >
               Cancel
             </button>

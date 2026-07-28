@@ -195,7 +195,7 @@ export function AdminCategoriesView({
       />
 
       {isFiltering ? (
-        <p className="mb-3 text-xs text-gray-500">
+        <p className="mb-3 text-xs text-[#8a837a]">
           Clear search to reorder categories.
         </p>
       ) : null}
@@ -204,7 +204,7 @@ export function AdminCategoriesView({
 
       <Card className={ADMIN_TABLE_CARD}>
         {visible.length === 0 ? (
-          <p className={`${ADMIN_TABLE_STATE_INSET} text-sm text-gray-600`}>
+          <p className={`${ADMIN_TABLE_STATE_INSET} text-sm text-[#5c564e]`}>
             {categories.length === 0
               ? "No categories yet."
               : "No categories match this search."}
@@ -229,7 +229,7 @@ export function AdminCategoriesView({
                     <tr
                       key={category.id}
                       className={`${ADMIN_TABLE_ROW} ${
-                        isDragging ? "bg-gray-50 opacity-50 shadow-sm" : ""
+                        isDragging ? "bg-[#fff8f0] opacity-50 shadow-sm" : ""
                       }`}
                       onDragOver={(event) => {
                         if (isFiltering || !draggingId) return;
@@ -266,14 +266,14 @@ export function AdminCategoriesView({
                             persistCurrentOrder();
                             setDraggingId(null);
                           }}
-                          className="inline-flex cursor-grab touch-none text-gray-400 active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-40"
+                          className="inline-flex cursor-grab touch-none text-[#8a837a] active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-40"
                           aria-label={`Reorder ${category.title}`}
                         >
                           <GripVertical className="h-4 w-4" />
                         </button>
                       </td>
                       <td className={ADMIN_TABLE_TD}>
-                        <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded border border-dashed border-gray-300 bg-gray-50">
+                        <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded border border-dashed border-[#ead7bf] bg-[#fff8f0]">
                           {category.imageUrl ? (
                             // Admin media may use storage hosts outside next/image config.
                             // eslint-disable-next-line @next/next/no-img-element
@@ -283,17 +283,17 @@ export function AdminCategoriesView({
                               className="h-full w-full object-cover"
                             />
                           ) : (
-                            <span className="text-gray-400">—</span>
+                            <span className="text-[#8a837a]">—</span>
                           )}
                         </div>
                       </td>
                       <td className={ADMIN_TABLE_TD}>
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-[#1f1a17]">
                           {category.title}
                         </p>
                       </td>
                       <td className={ADMIN_TABLE_TD}>
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-[#8a837a]">
                           {category.parentTitle ?? "None (Root Category)"}
                         </span>
                       </td>
@@ -301,7 +301,7 @@ export function AdminCategoriesView({
                         <div className="inline-flex items-center justify-center gap-1">
                           <button
                             type="button"
-                            className="rounded p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                            className="rounded p-1.5 text-[#8a837a] hover:bg-[#fff4eb] hover:text-[#ff7f20]"
                             aria-label={`Edit ${category.title}`}
                             onClick={() => {
                               setEditingCategory(category);
@@ -323,7 +323,7 @@ export function AdminCategoriesView({
                           </button>
                           {category.childCount > 0 ? (
                             <span
-                              className="ml-1 text-gray-400"
+                              className="ml-1 text-[#8a837a]"
                               aria-label={`${category.childCount} subcategories`}
                             >
                               <ChevronRight className="h-4 w-4" />

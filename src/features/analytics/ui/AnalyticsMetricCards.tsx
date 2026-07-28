@@ -87,7 +87,7 @@ export function AnalyticsMetricCards({
             >
               <Icon className={`h-5 w-5 ${tone.icon}`} aria-hidden />
             </div>
-            <p className="text-sm font-medium text-gray-600">{metric.label}</p>
+            <p className="text-sm font-medium text-[#5c564e]">{metric.label}</p>
             <p className={`mt-1 text-3xl font-bold tracking-tight ${tone.value}`}>
               {metric.value}
             </p>

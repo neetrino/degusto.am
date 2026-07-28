@@ -234,7 +234,7 @@ export function AdminInlineStatusSelect({
               id={menuId}
               role="listbox"
               aria-label={`Change ${kind} status`}
-              className="overflow-hidden rounded-2xl border border-gray-100 bg-white py-2"
+              className="overflow-hidden rounded-2xl border border-[#ead7bf]/80 bg-white py-2"
             >
               {options.map((option) => {
                 const selected =
