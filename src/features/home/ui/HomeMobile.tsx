@@ -4,8 +4,13 @@ import { LocaleCurrencySwitcher } from "@/components/layout/LocaleCurrencySwitch
 import { AppLink } from "@/components/ui/AppLink";
 import { DailyOfferMobileCarousel } from "@/features/home/ui/DailyOfferMobileCarousel";
 import { HomeMobileCategories } from "@/features/home/ui/HomeMobileCategories";
+import {
+  HomeMobileMotionShell,
+  HomeMobileSheet,
+} from "@/features/home/ui/HomeMobileMotionShell";
 import { HomeMobileProductCard } from "@/features/home/ui/HomeMobileProductCard";
 import { HomeMobileSearch } from "@/features/home/ui/HomeMobileSearch";
+import { HomeReveal } from "@/features/home/ui/HomeReveal";
 import type { Locale } from "@/lib/i18n/config";
 import type { Currency } from "@/lib/money/currency";
 
@@ -86,131 +91,138 @@ export function HomeMobile({
   products,
 }: HomeMobileProps) {
   return (
-    <div className="relative min-h-screen w-full overflow-x-clip overflow-y-visible bg-[var(--project-color)] lg:hidden">
-      <div
-        className="pointer-events-none absolute -top-[123px] -left-[210px] h-[434px] w-[418px] rounded-full border-[80px] border-[#3E573D]"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute -top-[184px] -right-[160px] h-[320px] w-[360px] rounded-full border-[70px] border-[#3E573D]"
-        aria-hidden
-      />
-
+    <HomeMobileMotionShell>
       <header className="relative z-[100] overflow-visible px-4 pt-[58px]">
-        <div className="relative z-20 flex translate-y-5 items-start justify-between overflow-visible">
-          <AppLink
-            href={`/${locale}`}
-            prefetchPolicy="intent"
-            className="inline-flex shrink-0"
-            aria-label={brand}
-          >
-            <Image
-              src="/assets/mobile/degusto-logo-mobile.webp"
-              alt={brand}
-              width={129}
-              height={46}
-              className="h-[46px] w-[129px] object-contain"
-              priority
-            />
-          </AppLink>
-          <div className="flex items-center gap-1">
-            <a
-              href={phoneHref}
-              aria-label={callLabel}
-              className="relative inline-flex size-12 items-center justify-center"
+        <HomeReveal variant="up" durationMs={700} amount={0.1}>
+          <div className="relative z-20 flex translate-y-5 items-start justify-between overflow-visible">
+            <AppLink
+              href={`/${locale}`}
+              prefetchPolicy="intent"
+              className="inline-flex shrink-0"
+              aria-label={brand}
             >
               <Image
-                src="/assets/mobile/call-btn-bg.webp"
-                alt=""
-                width={48}
-                height={48}
-                className="absolute inset-0 size-12 object-contain"
-                aria-hidden
+                src="/assets/mobile/degusto-logo-mobile.webp"
+                alt={brand}
+                width={129}
+                height={46}
+                className="h-[46px] w-[129px] object-contain"
+                priority
               />
-              <Image
-                src="/assets/mobile/call-icon.webp"
-                alt=""
-                width={23}
-                height={23}
-                className="relative h-[23px] w-[23px] object-contain"
-                aria-hidden
+            </AppLink>
+            <div className="flex items-center gap-1">
+              <a
+                href={phoneHref}
+                aria-label={callLabel}
+                className="relative inline-flex size-12 items-center justify-center"
+              >
+                <Image
+                  src="/assets/mobile/call-btn-bg.webp"
+                  alt=""
+                  width={48}
+                  height={48}
+                  className="absolute inset-0 size-12 object-contain"
+                  aria-hidden
+                />
+                <Image
+                  src="/assets/mobile/call-icon.webp"
+                  alt=""
+                  width={23}
+                  height={23}
+                  className="relative h-[23px] w-[23px] object-contain"
+                  aria-hidden
+                />
+              </a>
+              <LocaleCurrencySwitcher
+                locale={locale}
+                currency={currency}
+                currencyLabel={currencyLabel}
+                languageLabel={languageLabel}
+                variant="mobileHome"
               />
-            </a>
-            <LocaleCurrencySwitcher
+            </div>
+          </div>
+        </HomeReveal>
+
+        <HomeReveal variant="up" delayMs={80} durationMs={700} amount={0.1}>
+          <div className="relative z-0">
+            <HomeMobileSearch
               locale={locale}
-              currency={currency}
-              currencyLabel={currencyLabel}
-              languageLabel={languageLabel}
-              variant="mobileHome"
+              searchLabel={searchLabel}
+              placeholder={searchPlaceholder}
             />
           </div>
-        </div>
-
-        <div className="relative z-0">
-          <HomeMobileSearch
-            locale={locale}
-            searchLabel={searchLabel}
-            placeholder={searchPlaceholder}
-          />
-        </div>
+        </HomeReveal>
       </header>
 
-      <div className="relative z-10 mt-[87px] min-h-[calc(100dvh-10rem)] rounded-t-[30px] bg-white px-0 pt-8 pb-[110px]">
-        <HomeMobileCategories
-          title={categoriesTitle}
-          viewAllLabel={viewAllCategoriesLabel}
-          viewAllHref={viewAllCategoriesHref}
-          categories={categories}
-        />
+      <HomeMobileSheet>
+        <HomeReveal variant="up" durationMs={750}>
+          <HomeMobileCategories
+            title={categoriesTitle}
+            viewAllLabel={viewAllCategoriesLabel}
+            viewAllHref={viewAllCategoriesHref}
+            categories={categories}
+          />
+        </HomeReveal>
 
-        <DailyOfferMobileCarousel
-          offers={dailyOffers}
-          dailyOfferLabel={dailyOfferLabel}
-          addToCartLabel={addToCartLabel}
-        />
+        <HomeReveal variant="up" delayMs={60} durationMs={750}>
+          <DailyOfferMobileCarousel
+            offers={dailyOffers}
+            dailyOfferLabel={dailyOfferLabel}
+            addToCartLabel={addToCartLabel}
+          />
+        </HomeReveal>
 
-        <div className="mt-[30px] space-y-[22px] px-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base leading-5 font-semibold text-black">
-              {newProductsTitle}
-            </h2>
-            <AppLink
-              href={viewAllHref}
-              prefetchPolicy="intent"
-              className="rounded-full px-2 py-1 text-base leading-6 font-bold text-[#f66a13]"
-            >
-              {viewAllCategoriesLabel}
-            </AppLink>
+        <HomeReveal variant="up" delayMs={100} durationMs={800}>
+          <div className="mt-[30px] space-y-[22px] px-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base leading-5 font-semibold text-black">
+                {newProductsTitle}
+              </h2>
+              <AppLink
+                href={viewAllHref}
+                prefetchPolicy="intent"
+                className="rounded-full px-2 py-1 text-base leading-6 font-bold text-[#f66a13]"
+              >
+                {viewAllCategoriesLabel}
+              </AppLink>
+            </div>
+
+            <div className="grid grid-cols-2 gap-x-[14px] gap-y-[30px]">
+              {products.slice(0, 4).map((product, index) => (
+                <HomeReveal
+                  key={product.id}
+                  variant="scale"
+                  delayMs={index * 70}
+                  durationMs={650}
+                >
+                  <HomeMobileProductCard
+                    href={product.href}
+                    title={product.title}
+                    priceFormatted={product.priceFormatted}
+                    compareAtFormatted={product.compareAtFormatted}
+                    discountPercent={product.discountPercent}
+                    imageUrl={product.imageUrl}
+                    inStock={product.inStock}
+                    priority={index < 2}
+                    locale={locale}
+                    productId={product.id}
+                    inWishlist={product.inWishlist ?? false}
+                    isSignedIn={isSignedIn}
+                    wishlistLabel={wishlistLabel}
+                    addToCartLabel={addToCartLabel}
+                    outOfStockLabel={outOfStockLabel}
+                    categoryLabel={product.categoryLabel}
+                    rating={product.rating}
+                    isSpicy={product.isSpicy}
+                    isVegetarian={product.isVegetarian}
+                  />
+                </HomeReveal>
+              ))}
+            </div>
           </div>
-
-          <div className="grid grid-cols-2 gap-x-[14px] gap-y-[30px]">
-            {products.slice(0, 4).map((product, index) => (
-              <HomeMobileProductCard
-                key={product.id}
-                href={product.href}
-                title={product.title}
-                priceFormatted={product.priceFormatted}
-                compareAtFormatted={product.compareAtFormatted}
-                discountPercent={product.discountPercent}
-                imageUrl={product.imageUrl}
-                inStock={product.inStock}
-                priority={index < 2}
-                locale={locale}
-                productId={product.id}
-                inWishlist={product.inWishlist ?? false}
-                isSignedIn={isSignedIn}
-                wishlistLabel={wishlistLabel}
-                addToCartLabel={addToCartLabel}
-                outOfStockLabel={outOfStockLabel}
-                categoryLabel={product.categoryLabel}
-                rating={product.rating}
-                isSpicy={product.isSpicy}
-                isVegetarian={product.isVegetarian}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
+        </HomeReveal>
+      </HomeMobileSheet>
+    </HomeMobileMotionShell>
   );
 }
