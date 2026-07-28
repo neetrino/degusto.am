@@ -19,6 +19,8 @@ type CatalogCard = {
   inStock: boolean;
   inWishlist: boolean;
   categoryLabel: string | null;
+  isSpicy?: boolean;
+  isVegetarian?: boolean;
 };
 
 type ShopCatalogPanelProps = {
@@ -168,6 +170,8 @@ export function ShopCatalogPanel({
                 outOfStockLabel={outOfStockLabel}
                 categoryLabel={product.categoryLabel}
                 rating={rating}
+                isSpicy={product.isSpicy ?? true}
+                isVegetarian={product.isVegetarian ?? true}
               />
             ))}
           </div>
@@ -193,6 +197,8 @@ export function ShopCatalogPanel({
                 outOfStockLabel={outOfStockLabel}
                 categoryLabel={product.categoryLabel}
                 rating={rating}
+                isSpicy={product.isSpicy ?? true}
+                isVegetarian={product.isVegetarian ?? true}
               />
             ))}
           </div>
