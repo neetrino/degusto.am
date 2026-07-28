@@ -22,5 +22,9 @@
     "One of our goals is to build a brand known across Armenia and accessible to every community, age, and gender — with a strong, organized, united team.",
     "Ensure and continually improve high service quality with a personal approach to every customer."
   ],
-  "missionImageAlt": "Degusto Food Studio interior with a warm atmosphere"
+  "missionImageAlt": "Degusto Food Studio interior with a warm atmosphere",
+  "principles": ["Cleanliness", "Freshness", "Affordability", "Warmth"],
+  "storyEyebrow": "OUR STORY",
+  "storyTitle": "How Degusto began",
+  "storyYearsLabel": "years"
 }
