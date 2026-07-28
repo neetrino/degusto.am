@@ -516,7 +516,8 @@ body:has([data-cart-page]) {
 @media (max-width: 1023px) {
   .storefront-shell:has([data-shop-page]) .storefront-main,
   .storefront-shell:has([data-wishlist-page]) .storefront-main,
-  .storefront-shell:has([data-pdp-page]) .storefront-main {
+  .storefront-shell:has([data-pdp-page]) .storefront-main,
+  .storefront-shell:has([data-auth-page]) .storefront-main {
     padding-top: 0;
     padding-bottom: 0;
   }
