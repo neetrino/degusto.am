@@ -13,18 +13,24 @@ function isHomePath(pathname: string, locale: Locale): boolean {
   return pathname === `/${locale}` || pathname === `/${locale}/`;
 }
 
+function isShopCatalogPath(pathname: string, locale: Locale): boolean {
+  const base = `/${locale}/products`;
+  return pathname === base || pathname === `${base}/`;
+}
+
 /**
  * Fixed storefront pill header — stays visible while the page scrolls.
- * Hidden on the home route below `lg` so HomeMobile owns orange mobile chrome.
+ * Hidden below `lg` on home and shop catalog so mobile chrome owns the header.
  */
 export function SiteHeaderShell({ locale, children }: SiteHeaderShellProps) {
   const pathname = usePathname() ?? `/${locale}`;
-  const hideOnMobileHome = isHomePath(pathname, locale);
+  const hideOnMobileChrome =
+    isHomePath(pathname, locale) || isShopCatalogPath(pathname, locale);
 
   return (
     <div
       className={
-        hideOnMobileHome
+        hideOnMobileChrome
           ? "site-header pointer-events-none fixed inset-x-0 top-0 z-[80] hidden lg:block"
           : "site-header pointer-events-none fixed inset-x-0 top-0 z-[80]"
       }

@@ -14,6 +14,10 @@ type AddToCartButtonProps = {
   label: string;
   disabled?: boolean;
   className?: string;
+  /** Optional icon override (defaults to product-card cart asset). */
+  iconSrc?: string;
+  iconWidth?: number;
+  iconHeight?: number;
 };
 
 export function AddToCartButton({
@@ -21,6 +25,9 @@ export function AddToCartButton({
   label,
   disabled = false,
   className = "",
+  iconSrc = ADD_TO_CART_ICON,
+  iconWidth = 51,
+  iconHeight = 52,
 }: AddToCartButtonProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -52,10 +59,10 @@ export function AddToCartButton({
       className={`inline-flex cursor-pointer items-center justify-center rounded-full transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-110 hover:-translate-y-1.5 active:scale-95 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100 disabled:hover:translate-y-0 motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${justAdded ? "scale-95" : ""} ${className}`}
     >
       <Image
-        src={ADD_TO_CART_ICON}
+        src={iconSrc}
         alt=""
-        width={51}
-        height={52}
+        width={iconWidth}
+        height={iconHeight}
         className="pointer-events-none size-full object-contain"
         aria-hidden
       />

@@ -61,7 +61,7 @@ export function SiteFooter({ dictionary, locale }: SiteFooterProps) {
   ] as const;
 
   return (
-    <div className="storefront-footer relative left-1/2 right-1/2 z-10 mt-auto -ml-[50vw] -mr-[50vw] w-screen bg-surface-muted">
+    <div className="storefront-footer relative left-1/2 right-1/2 z-10 mt-auto -ml-[50vw] -mr-[50vw] hidden w-screen bg-surface-muted md:block">
       <footer className="relative overflow-hidden rounded-t-[40px] bg-surface-dark text-white">
         <FooterDishBackdrop />
         <div className="relative z-10 mx-auto max-w-[1280px] px-4 pt-[73px] pb-10 sm:px-6 lg:px-8 xl:px-0">
