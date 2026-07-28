@@ -81,46 +81,48 @@ export function ShopCatalogFilters({
 
   return (
     <div
-      className={`flex flex-wrap items-center gap-2 text-sm text-[#717182] xl:pt-[37px] ${pending ? "opacity-80" : ""}`}
+      className={`flex flex-col gap-2 text-sm text-[#717182] xl:flex-row xl:flex-wrap xl:items-center xl:pt-[37px] ${pending ? "opacity-80" : ""}`}
     >
       <span className="w-full shrink-0 px-1 text-base xl:w-auto">{priceLabel}</span>
-      <input
-        type="number"
-        min={0}
-        inputMode="numeric"
-        placeholder={priceFromLabel}
-        value={fromValue}
-        onChange={(event) => setFromValue(event.target.value)}
-        onBlur={commitPrice}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") commitPrice();
-        }}
-        className="h-[46px] w-[109px] rounded-[40px] bg-[#f3f3f5] px-4 text-left text-base text-[#7f7f80]"
-        max={2_147_483_647}
-      />
-      <input
-        type="number"
-        min={0}
-        max={2_147_483_647}
-        inputMode="numeric"
-        placeholder={priceToLabel}
-        value={toValue}
-        onChange={(event) => setToValue(event.target.value)}
-        onBlur={commitPrice}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") commitPrice();
-        }}
-        className="h-[46px] w-[109px] rounded-[40px] bg-[#f3f3f5] px-4 text-left text-base text-[#7f7f80]"
-      />
+      <div className="flex w-full min-w-0 flex-nowrap items-center gap-2 xl:w-auto">
+        <input
+          type="number"
+          min={0}
+          inputMode="numeric"
+          placeholder={priceFromLabel}
+          value={fromValue}
+          onChange={(event) => setFromValue(event.target.value)}
+          onBlur={commitPrice}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") commitPrice();
+          }}
+          className="h-[46px] w-[98px] shrink-0 rounded-[40px] bg-[#f3f3f5] px-3 text-left text-base text-[#7f7f80] xl:w-[109px] xl:px-4"
+          max={2_147_483_647}
+        />
+        <input
+          type="number"
+          min={0}
+          max={2_147_483_647}
+          inputMode="numeric"
+          placeholder={priceToLabel}
+          value={toValue}
+          onChange={(event) => setToValue(event.target.value)}
+          onBlur={commitPrice}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") commitPrice();
+          }}
+          className="h-[46px] w-[98px] shrink-0 rounded-[40px] bg-[#f3f3f5] px-3 text-left text-base text-[#7f7f80] xl:w-[109px] xl:px-4"
+        />
 
-      <DietSwitcher
-        value={dietValue}
-        onChange={setDiet}
-        ariaLabel={dietFilterLabel}
-        spicyLabel={dietSpicyLabel}
-        noneLabel={dietNoneLabel}
-        vegetarianLabel={dietVegetarianLabel}
-      />
+        <DietSwitcher
+          value={dietValue}
+          onChange={setDiet}
+          ariaLabel={dietFilterLabel}
+          spicyLabel={dietSpicyLabel}
+          noneLabel={dietNoneLabel}
+          vegetarianLabel={dietVegetarianLabel}
+        />
+      </div>
     </div>
   );
 }

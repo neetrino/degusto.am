@@ -21,7 +21,7 @@ export function ShopMobileCategories({
   categories,
 }: ShopMobileCategoriesProps) {
   return (
-    <section className="lg:hidden">
+    <section>
       <h1 className="text-base leading-5 font-semibold text-black">{title}</h1>
       <div className="mt-4 grid grid-cols-2 gap-x-3 gap-y-[14px]">
         <CategoryCard href={allHref} title={allLabel} imageUrl={allImageUrl} />

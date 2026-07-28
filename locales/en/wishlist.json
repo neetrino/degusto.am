@@ -1,4 +1,8 @@
 {
+  "title": "My wishlist",
+  "emptyTitle": "Your wishlist is empty",
+  "emptyDescription": "Start adding products to your wishlist for later.",
   "empty": "Your wishlist is empty.",
-  "signInPrompt": "Sign in to save products to your wishlist."
+  "signInPrompt": "Sign in to save products to your wishlist.",
+  "viewProducts": "View products"
 }

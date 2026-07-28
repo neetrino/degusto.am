@@ -15,11 +15,11 @@ type DietSwitcherProps = {
   vegetarianLabel: string;
 };
 
-/** Horizontal offset (px) of the floating ball for each mode. */
+/** Ball translate from `left: 4px` — centers over equal flex thirds. */
 const BALL_X: Record<DietSwitcherMode, number> = {
-  spicy: 4,
-  none: 53,
-  veg: 101,
+  veg: 4,
+  none: 49,
+  spicy: 94,
 };
 
 const LABEL_CLASS: Record<DietSwitcherMode, string> = {
@@ -29,7 +29,7 @@ const LABEL_CLASS: Record<DietSwitcherMode, string> = {
 };
 
 /**
- * Figma Switcher (64:1692).
+ * Figma Switcher (64:1692) — leaf | none | spicy.
  * White ball floats to the selected option via CSS transform.
  */
 export function DietSwitcher({
@@ -59,42 +59,14 @@ export function DietSwitcher({
       <button
         type="button"
         role="radio"
-        aria-checked={value === "spicy"}
-        aria-label={spicyLabel}
-        className={`${styles.hotButton} ${value === "spicy" ? styles.optionHidden : ""}`}
-        onClick={() => onChange("spicy")}
-        tabIndex={value === "spicy" ? -1 : undefined}
-        aria-hidden={value === "spicy"}
+        aria-checked={value === "veg"}
+        aria-label={vegetarianLabel}
+        className={`${styles.vectorButton} ${value === "veg" ? styles.optionHidden : ""}`}
+        onClick={() => onChange("veg")}
+        tabIndex={value === "veg" ? -1 : undefined}
+        aria-hidden={value === "veg"}
       >
-        <span className={styles.hotIcon}>
-          <span className={styles.hotPart1}>
-            <Image
-              src="/assets/shop/switcher-hot-1.webp"
-              alt=""
-              fill
-              className="object-contain"
-              aria-hidden
-            />
-          </span>
-          <span className={styles.hotPart2}>
-            <Image
-              src="/assets/shop/switcher-hot-2.webp"
-              alt=""
-              fill
-              className="object-contain"
-              aria-hidden
-            />
-          </span>
-          <span className={styles.hotPart3}>
-            <Image
-              src="/assets/shop/switcher-hot-3.webp"
-              alt=""
-              fill
-              className="object-contain"
-              aria-hidden
-            />
-          </span>
-        </span>
+        <span className={styles.leafIcon} aria-hidden />
       </button>
 
       <button
@@ -111,19 +83,19 @@ export function DietSwitcher({
       <button
         type="button"
         role="radio"
-        aria-checked={value === "veg"}
-        aria-label={vegetarianLabel}
-        className={`${styles.vectorButton} ${value === "veg" ? styles.optionHidden : ""}`}
-        onClick={() => onChange("veg")}
-        tabIndex={value === "veg" ? -1 : undefined}
-        aria-hidden={value === "veg"}
+        aria-checked={value === "spicy"}
+        aria-label={spicyLabel}
+        className={`${styles.hotButton} ${value === "spicy" ? styles.optionHidden : ""}`}
+        onClick={() => onChange("spicy")}
+        tabIndex={value === "spicy" ? -1 : undefined}
+        aria-hidden={value === "spicy"}
       >
         <Image
-          src="/assets/shop/switcher-leaf.webp"
+          src="/assets/shop/switcher-chili.webp"
           alt=""
-          width={26}
-          height={29}
-          className={styles.vectorIcon}
+          width={24}
+          height={24}
+          className={styles.chiliIcon}
           aria-hidden
         />
       </button>

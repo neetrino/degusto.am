@@ -69,7 +69,7 @@ export function ProductGallery({
           )}
 
           {discountPercent != null ? (
-            <span className="absolute top-4 right-4 z-10 flex size-12 items-center justify-center rounded-full bg-[#ff7f20] text-sm font-semibold text-white shadow-md">
+            <span className="absolute top-4 right-4 z-10 flex size-12 items-center justify-center rounded-full bg-[#ff7f20] text-sm font-semibold text-black shadow-md">
               -{discountPercent}%
             </span>
           ) : null}

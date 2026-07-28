@@ -110,72 +110,86 @@ export function CartDrawer({
         panelClassName="w-[87%] max-w-[420px]"
         zIndexClassName="z-[200]"
         backdropBlur
+        closeTone="brand"
       >
-        <div className="border-b border-gray-100 px-6 py-5">
-          <h2 className="text-xl font-bold tracking-tight text-gray-900">
+        <div className="relative overflow-hidden border-b border-[#ff7f20]/15 px-6 py-5">
+          <div
+            className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#ff7f20] via-[#ffb067] to-transparent"
+            aria-hidden
+          />
+          <h2 className="text-xl font-bold tracking-tight text-[#3c2f2f]">
             {labels.title}
           </h2>
           {hasItems ? (
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1.5 inline-flex items-center gap-2 text-sm text-[#717182]">
+              <span className="cart-badge-pop inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#ff7f20] px-1.5 text-[11px] font-bold text-white">
+                {badgeCount}
+              </span>
               {formatItemCount(badgeCount, labels)}
             </p>
           ) : null}
         </div>
 
         <div
-          className={`min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4 ${
-            pending || loadingView ? "opacity-70" : ""
+          className={`min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4 transition-opacity duration-300 ${
+            pending || loadingView ? "opacity-60" : "opacity-100"
           }`}
         >
           {loadingView && !hasItems ? (
             <div className="space-y-3">
-              <div className="h-24 animate-pulse rounded-[20px] bg-gray-100" />
-              <div className="h-24 animate-pulse rounded-[20px] bg-gray-100" />
+              <div className="h-24 animate-pulse rounded-[20px] bg-[#fff4eb]" />
+              <div className="h-24 animate-pulse rounded-[20px] bg-[#fff4eb]" />
             </div>
           ) : !syncedView || syncedView.items.length === 0 ? (
-            <div className="flex h-full min-h-[280px] flex-col items-center justify-center px-2 text-center">
-              <div className="flex h-28 w-28 items-center justify-center rounded-full bg-gray-100 text-gray-400">
-                <ShoppingCart className="h-12 w-12" aria-hidden />
+            <div className="cart-enter flex h-full min-h-[280px] flex-col items-center justify-center px-2 text-center">
+              <div className="relative flex size-28 items-center justify-center">
+                <span
+                  className="cart-soft-pulse absolute inset-0 rounded-full bg-[#ff7f20]/15"
+                  aria-hidden
+                />
+                <span className="cart-float relative flex size-[5.25rem] items-center justify-center rounded-full bg-[#fff4eb] text-[#ff7f20] shadow-[0_10px_24px_rgba(255,127,32,0.2)]">
+                  <ShoppingCart className="h-11 w-11" aria-hidden />
+                </span>
               </div>
-              <p className="mt-5 text-xl font-bold text-gray-900">
+              <p className="cart-enter cart-enter-delay-1 mt-5 text-xl font-bold text-[#3c2f2f]">
                 {labels.empty}
               </p>
-              <p className="mt-2 max-w-[20rem] text-sm leading-relaxed text-gray-500">
+              <p className="cart-enter cart-enter-delay-2 mt-2 max-w-[20rem] text-sm leading-relaxed text-[#717182]">
                 {labels.emptyDescription}
               </p>
               <AppLink
                 href={`/${locale}/products`}
                 prefetchPolicy="intent"
                 onClick={closeDrawer}
-                className="relative mt-6 inline-flex min-h-[50px] w-full max-w-sm items-center rounded-full bg-gray-900 py-1.5 pr-1.5 pl-5 text-sm font-semibold text-white transition-colors hover:bg-black"
+                className="cart-enter cart-enter-delay-3 cart-cta-shine group relative mt-6 inline-flex min-h-[50px] w-full max-w-sm items-center overflow-hidden rounded-full bg-[#ff7f20] py-1.5 pr-1.5 pl-5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(255,127,32,0.32)] transition-[transform,filter] duration-300 hover:-translate-y-0.5 hover:brightness-[1.03] motion-reduce:hover:translate-y-0"
               >
                 <span className="pointer-events-none absolute inset-0 flex items-center justify-center px-12">
                   {labels.emptyCta}
                 </span>
-                <span className="relative ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/15">
+                <span className="relative ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/20 transition-transform duration-300 group-hover:translate-x-0.5">
                   <ArrowRight className="h-4 w-4" aria-hidden />
                 </span>
               </AppLink>
             </div>
           ) : (
-            <ul className="space-y-3">
+            <ul className="cart-line-stagger space-y-3">
               {syncedView.items.map((item) => (
                 <li
                   key={item.id}
-                  className="rounded-[20px] border border-gray-200 bg-white p-3 shadow-sm"
+                  className="group rounded-[20px] border border-[#dedede] bg-white p-3 shadow-sm transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-0.5 hover:border-[#ff7f20]/40 hover:shadow-[0_12px_28px_rgba(255,127,32,0.12)] motion-reduce:hover:translate-y-0"
                 >
                   <div className="flex gap-3">
-                    <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-gray-100 bg-gray-50">
+                    <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-[#f7f7f7]">
                       {item.imageUrl ? (
                         <Image
                           src={item.imageUrl}
                           alt={item.title}
                           fill
                           sizes="96px"
-                          className="object-contain p-1"
+                          className="object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:group-hover:scale-100"
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center text-xs text-gray-400">
+                        <div className="flex h-full w-full items-center justify-center text-xs text-[#a1a1a1]">
                           —
                         </div>
                       )}
@@ -184,20 +198,20 @@ export function CartDrawer({
                     <div className="flex min-w-0 flex-1 flex-col">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <p className="line-clamp-2 text-sm font-medium text-gray-900">
+                          <p className="line-clamp-2 text-sm font-bold text-[#3c2f2f]">
                             {item.title}
                           </p>
-                          <p className="mt-1 text-sm font-semibold text-gray-900">
+                          <p className="mt-1 text-sm font-black text-[#3c2f2f]">
                             {item.lineTotalFormatted}
                           </p>
-                          <p className="mt-0.5 text-xs text-gray-500">
+                          <p className="mt-0.5 text-xs text-[#717182]">
                             {item.unitPriceFormatted} × {item.quantity}
                           </p>
                         </div>
                         <button
                           type="button"
                           onClick={() => removeCartItem(item.id)}
-                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f3f3f3] text-[#717182] transition-[transform,background-color,color] duration-300 hover:scale-105 hover:bg-[#ffe8d9] hover:text-[#ff7f20] active:scale-95"
                           aria-label={labels.removeItem}
                           disabled={pending}
                         >
@@ -206,19 +220,19 @@ export function CartDrawer({
                       </div>
 
                       <div className="mt-auto flex justify-end pt-3">
-                        <div className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-sky-50/70 px-1 py-0.5">
+                        <div className="inline-flex items-center gap-1 rounded-full border-2 border-[#ff7f20] bg-white px-1 py-0.5">
                           <button
                             type="button"
                             onClick={() =>
                               changeQuantity(item.id, item.quantity - 1)
                             }
-                            className="flex h-7 w-7 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-white"
+                            className="flex h-7 w-7 items-center justify-center rounded-full text-[#ff7f20] transition-[transform,background-color] hover:bg-[#fff4eb] active:scale-90"
                             aria-label={labels.decreaseQuantity}
                             disabled={pending}
                           >
                             <Minus className="h-3.5 w-3.5" aria-hidden />
                           </button>
-                          <span className="min-w-5 text-center text-sm font-medium tabular-nums text-gray-900">
+                          <span className="min-w-5 text-center text-sm font-semibold tabular-nums text-[#ff7f20]">
                             {item.quantity}
                           </span>
                           <button
@@ -226,7 +240,7 @@ export function CartDrawer({
                             onClick={() =>
                               changeQuantity(item.id, item.quantity + 1)
                             }
-                            className="flex h-7 w-7 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-white"
+                            className="flex h-7 w-7 items-center justify-center rounded-full text-[#ff7f20] transition-[transform,background-color] hover:bg-[#fff4eb] active:scale-90"
                             aria-label={labels.increaseQuantity}
                             disabled={pending}
                           >
@@ -242,23 +256,23 @@ export function CartDrawer({
           )}
         </div>
 
-        <div className="border-t border-gray-200 px-6 pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        <div className="border-t border-[#ff7f20]/12 bg-gradient-to-t from-[#fff8f1] to-white px-6 pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
           <dl className="space-y-2 text-sm">
-            <div className="flex items-center justify-between text-gray-600">
+            <div className="flex items-center justify-between text-[#717182]">
               <dt>{labels.subtotal}</dt>
-              <dd className="tabular-nums text-gray-900">
+              <dd className="tabular-nums font-medium text-[#3c2f2f]">
                 {syncedView?.subtotalFormatted ?? "—"}
               </dd>
             </div>
-            <div className="flex items-center justify-between text-gray-600">
+            <div className="flex items-center justify-between text-[#717182]">
               <dt>{labels.shipping}</dt>
-              <dd className="tabular-nums text-gray-900">
+              <dd className="tabular-nums font-medium text-[#3c2f2f]">
                 {syncedView?.shippingFormatted ?? "—"}
               </dd>
             </div>
-            <div className="flex items-center justify-between pt-1 text-base font-bold text-gray-900">
+            <div className="flex items-center justify-between pt-1 text-base font-bold text-[#3c2f2f]">
               <dt>{labels.total}</dt>
-              <dd className="tabular-nums">
+              <dd className="tabular-nums text-[#ff7f20]">
                 {syncedView?.totalFormatted ?? "—"}
               </dd>
             </div>
@@ -268,10 +282,15 @@ export function CartDrawer({
             <AppLink
               href={`/${locale}/checkout`}
               prefetchPolicy="intent"
-              className="mt-5 flex min-h-[50px] w-full items-center justify-center rounded-full bg-gray-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-black"
+              className="cart-cta-shine group relative mt-5 flex min-h-[50px] w-full items-center overflow-hidden rounded-full bg-[#ff7f20] py-1.5 pr-1.5 pl-5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(255,127,32,0.35)] transition-[transform,filter] duration-300 hover:-translate-y-0.5 hover:brightness-[1.03] motion-reduce:hover:translate-y-0"
               onClick={closeDrawer}
             >
-              {labels.checkout}
+              <span className="pointer-events-none absolute inset-0 flex items-center justify-center pr-12 pl-4">
+                {labels.checkout}
+              </span>
+              <span className="relative ml-auto flex size-8 shrink-0 items-center justify-center rounded-full bg-white/20 transition-transform duration-300 group-hover:translate-x-0.5">
+                <ArrowRight className="size-4" aria-hidden />
+              </span>
             </AppLink>
           ) : null}
         </div>

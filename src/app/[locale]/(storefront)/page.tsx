@@ -151,11 +151,12 @@ export default async function HomePage({ params }: HomePageProps) {
         phoneHref={firstPhoneHref(dictionary.footer.phones)}
         currencyLabel={dictionary.header.currency}
         languageLabel={dictionary.header.language}
+        searchLabel={dictionary.header.search}
+        searchPlaceholder={dictionary.header.search}
         categoriesTitle={dictionary.home.categoriesTitle}
         viewAllCategoriesLabel={dictionary.home.viewAllCategories}
         viewAllCategoriesHref={`/${locale}/products`}
         newProductsTitle={dictionary.home.newProductsTitle}
-        viewAllLabel={dictionary.home.viewAll}
         viewAllHref={`/${locale}/products`}
         dailyOfferLabel={dictionary.home.dailyOffer}
         wishlistLabel={dictionary.nav.wishlist}

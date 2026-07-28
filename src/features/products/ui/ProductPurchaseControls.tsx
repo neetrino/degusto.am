@@ -68,7 +68,7 @@ export function ProductPurchaseControls({
   }
 
   return (
-    <div className="mt-32 mb-4 flex w-full min-w-0 flex-col gap-2.5 lg:flex-row lg:items-center lg:gap-2.5">
+    <div className="mt-8 mb-4 flex w-full min-w-0 flex-col gap-2.5 lg:mt-32 lg:flex-row lg:items-center lg:gap-2.5">
       <div className="flex w-full min-w-0 items-center gap-2.5 lg:contents">
         <div
           className="inline-flex h-12 max-lg:w-[7.25rem] max-lg:px-2.5 lg:w-[10.0625rem] lg:px-3.5 shrink-0 items-center justify-between rounded-[70px] border-2 border-[#ff7f20] bg-white"

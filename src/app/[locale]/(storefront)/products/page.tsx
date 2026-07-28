@@ -1,20 +1,16 @@
-import { Suspense } from "react";
 import { notFound } from "next/navigation";
 
-import { AppLink } from "@/components/ui/AppLink";
+import { StorefrontMobileChrome } from "@/components/layout/StorefrontMobileChrome";
 import { listStorefrontCategories } from "@/features/categories/application/list-storefront-categories";
 import {
   getActiveProductsPage,
   getPrimaryCategoryLabels,
 } from "@/features/products/queries";
-import { CatalogProductCard } from "@/features/products/ui/shop/CatalogProductCard";
 import { resolveCategoryIconSrc } from "@/features/products/ui/shop/resolve-category-icon";
-import { ShopCatalogFilters } from "@/features/products/ui/shop/ShopCatalogFilters";
+import { ShopCatalogPanel } from "@/features/products/ui/shop/ShopCatalogPanel";
 import { ShopCategorySidebar } from "@/features/products/ui/shop/ShopCategorySidebar";
 import { isComboSlug } from "@/features/products/ui/shop/combo-slug";
 import { ShopMobileCategories } from "@/features/products/ui/shop/ShopMobileCategories";
-import { ShopEmptyState } from "@/features/products/ui/shop/ShopEmptyState";
-import { ShopPagination } from "@/features/products/ui/shop/ShopPagination";
 import { getWishlistProductIds } from "@/features/wishlist/queries";
 import { getCurrentUser } from "@/lib/auth/session";
 import { isLocale } from "@/lib/i18n/config";
@@ -51,7 +47,6 @@ function formatCardPrice(price: DisplayPrice): string {
 function parseOptionalInt(value: string | undefined): number | null {
   if (!value?.trim()) return null;
   const trimmed = value.trim();
-  // Reject scientific notation / oversized digit strings before JS loses precision.
   if (!/^\d{1,10}$/.test(trimmed)) return null;
   const parsed = Number.parseInt(trimmed, 10);
   if (
@@ -62,6 +57,15 @@ function parseOptionalInt(value: string | undefined): number | null {
     return null;
   }
   return parsed;
+}
+
+function firstPhoneHref(phones: string): string {
+  const match = phones.match(/\d[\d\s()-]{5,}/);
+  if (!match) {
+    return "tel:+37460388080";
+  }
+  const digits = match[0].replace(/\D/g, "");
+  return `tel:+${digits.startsWith("0") ? `374${digits.slice(1)}` : digits}`;
 }
 
 function buildCatalogHref(
@@ -121,8 +125,8 @@ export default async function ProductsPage({
   const minPrice = parseOptionalInt(sp.min);
   const maxPrice = parseOptionalInt(sp.max);
   const searchQuery = sp.q?.trim() || "";
-  const diet =
-    sp.diet === "veg" || sp.diet === "spicy" ? sp.diet : ("none" as const);
+  const diet: "none" | "veg" | "spicy" =
+    sp.diet === "veg" || sp.diet === "spicy" ? sp.diet : "none";
 
   const dictionary = getDictionary(rawLocale);
   const catalogCopy = dictionary.catalog;
@@ -166,7 +170,7 @@ export default async function ProductsPage({
     ),
   ]);
 
-  const priced = products.map((product) => {
+  const catalogCards = products.map((product) => {
     const price = formatPrice(product.priceAmount);
     const compareAt =
       product.compareAtAmount != null
@@ -174,9 +178,15 @@ export default async function ProductsPage({
         : null;
 
     return {
-      product,
+      id: product.id,
+      href: `/${rawLocale}/products/${product.translation.slug}`,
+      title: product.translation.title,
       priceFormatted: formatCardPrice(price),
       compareAtFormatted: compareAt ? formatCardPrice(compareAt) : null,
+      discountPercent: product.discountPercent,
+      imageUrl: product.imageUrl,
+      inStock: product.stockOnHand > 0,
+      inWishlist: wishlistIds.has(product.id),
       categoryLabel: categoryLabels.get(product.id) ?? null,
     };
   });
@@ -211,16 +221,81 @@ export default async function ProductsPage({
     categoryItems[0]?.imageUrl ?? "/assets/categories/pizza.webp";
   const priceLabel = catalogCopy.priceLabel.replace("{currency}", currency);
 
-  const filtersFallback = (
-    <div className="flex h-[83px] flex-wrap items-center gap-2 xl:pt-[37px]" />
-  );
+  const catalogPanelProps = {
+    locale: rawLocale,
+    menuTitle: catalogCopy.menuTitle,
+    menuSubtitle: catalogCopy.menuSubtitle,
+    selectCategoriesLabel: catalogCopy.selectCategories,
+    categoriesPickerHref,
+    showSelectCategories: true as const,
+    priceLabel,
+    priceFromLabel: catalogCopy.priceFrom,
+    priceToLabel: catalogCopy.priceTo,
+    dietFilterLabel: catalogCopy.dietFilterLabel,
+    dietNoneLabel: catalogCopy.dietNone,
+    dietVegetarianLabel: catalogCopy.dietVegetarian,
+    dietSpicyLabel: catalogCopy.dietSpicy,
+    minPrice: sp.min ?? "",
+    maxPrice: sp.max ?? "",
+    diet,
+    filterKey: `filters-${sp.min ?? ""}-${sp.max ?? ""}`,
+    emptyTitle: catalogCopy.emptyProducts,
+    emptyDescription: catalogCopy.emptyProductsDescription,
+    emptyCtaLabel: catalogCopy.emptyProductsCta,
+    emptyCtaHref: `/${rawLocale}/products?category=all`,
+    products: catalogCards,
+    wishlistLabel: dictionary.nav.wishlist,
+    addToCartLabel: dictionary.product.addToCart,
+    outOfStockLabel: dictionary.product.outOfStock,
+    rating: CATALOG_CARD_RATING,
+    isSignedIn: Boolean(user),
+    paginationLabel: catalogCopy.paginationLabel,
+    previousLabel: catalogCopy.previousPage,
+    nextLabel: catalogCopy.nextPage,
+    currentPage: page,
+    totalPages,
+    buildPageHref: (nextPage: number) =>
+      buildCatalogHref(rawLocale, {
+        category: categoryParam ?? undefined,
+        page: nextPage,
+        min: sp.min,
+        max: sp.max,
+        q: searchQuery || undefined,
+        diet: diet === "none" ? undefined : diet,
+      }),
+  };
 
   return (
     <div
       data-shop-page
       className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen bg-white"
     >
-      <div className="mx-auto flex min-w-0 w-full max-w-[min(1450px,calc(100%-2rem))] gap-4 px-4 pt-2 pb-10 md:max-w-[min(1450px,calc(100%-2.5rem))] md:px-6 lg:max-w-[min(1450px,calc(100%-3rem))] lg:gap-8 lg:pt-5 xl:pl-4 2xl:px-6">
+      <StorefrontMobileChrome
+        locale={rawLocale}
+        currency={currency}
+        brand={dictionary.brand}
+        callLabel={dictionary.home.call}
+        phoneHref={firstPhoneHref(dictionary.footer.phones)}
+        currencyLabel={dictionary.header.currency}
+        languageLabel={dictionary.header.language}
+        searchLabel={dictionary.header.search}
+        searchPlaceholder={dictionary.header.search}
+        searchQuery={searchQuery}
+      >
+        {showMobileCategoryPicker ? (
+          <ShopMobileCategories
+            title={catalogCopy.categoriesTitle}
+            allLabel={catalogCopy.allCategories}
+            allHref={allHref}
+            allImageUrl={allImageUrl}
+            categories={categoryItems}
+          />
+        ) : (
+          <ShopCatalogPanel {...catalogPanelProps} />
+        )}
+      </StorefrontMobileChrome>
+
+      <div className="mx-auto hidden min-w-0 w-full max-w-[min(1450px,calc(100%-2rem))] gap-4 px-4 pt-2 pb-10 md:max-w-[min(1450px,calc(100%-2.5rem))] md:px-6 lg:flex lg:max-w-[min(1450px,calc(100%-3rem))] lg:gap-8 lg:pt-5 xl:pl-4 2xl:px-6">
         <ShopCategorySidebar
           title={catalogCopy.categoriesSidebarTitle}
           allLabel={catalogCopy.allCategories}
@@ -232,114 +307,10 @@ export default async function ProductsPage({
           searchQuery={searchQuery}
         />
 
-        <div className="min-w-0 flex-1">
-          {showMobileCategoryPicker ? (
-            <ShopMobileCategories
-              title={catalogCopy.categoriesTitle}
-              allLabel={catalogCopy.allCategories}
-              allHref={allHref}
-              allImageUrl={allImageUrl}
-              categories={categoryItems}
-            />
-          ) : null}
-
-          <section
-            className={`min-w-0 flex-1 ${showMobileCategoryPicker ? "hidden lg:block" : "block"}`}
-          >
-            <div className="mb-[42px] mt-2 flex flex-col gap-6 xl:mt-0 xl:flex-row xl:items-start xl:justify-between lg:mt-0">
-              <div className="min-w-0 max-w-xl">
-                <h1 className="text-4xl leading-tight font-bold text-brand-headline xl:text-[60px] xl:leading-[51px]">
-                  {catalogCopy.menuTitle}
-                </h1>
-                <p className="mt-3 text-base text-[#717182]">
-                  {catalogCopy.menuSubtitle}
-                </p>
-                <AppLink
-                  href={categoriesPickerHref}
-                  prefetchPolicy="intent"
-                  className="mt-5 inline-flex h-12 w-full items-center justify-center rounded-full bg-[#ff7f20] px-6 text-base font-semibold text-white lg:hidden"
-                >
-                  {catalogCopy.selectCategories}
-                </AppLink>
-              </div>
-
-              <Suspense fallback={filtersFallback}>
-                <ShopCatalogFilters
-                  key={`filters-${sp.min ?? ""}-${sp.max ?? ""}`}
-                  priceLabel={priceLabel}
-                  priceFromLabel={catalogCopy.priceFrom}
-                  priceToLabel={catalogCopy.priceTo}
-                  dietFilterLabel={catalogCopy.dietFilterLabel}
-                  dietNoneLabel={catalogCopy.dietNone}
-                  dietVegetarianLabel={catalogCopy.dietVegetarian}
-                  dietSpicyLabel={catalogCopy.dietSpicy}
-                  minPrice={sp.min ?? ""}
-                  maxPrice={sp.max ?? ""}
-                  diet={diet}
-                />
-              </Suspense>
-            </div>
-
-            {priced.length === 0 ? (
-              <ShopEmptyState
-                title={catalogCopy.emptyProducts}
-                description={catalogCopy.emptyProductsDescription}
-                ctaLabel={catalogCopy.emptyProductsCta}
-                ctaHref={`/${rawLocale}/products?category=all`}
-              />
-            ) : (
-              <div className="grid min-w-0 grid-cols-2 gap-4 xl:grid-cols-3 xl:gap-[30px]">
-                {priced.map(
-                  (
-                    { product, priceFormatted, compareAtFormatted, categoryLabel },
-                    index,
-                  ) => (
-                    <CatalogProductCard
-                      key={product.id}
-                      href={`/${rawLocale}/products/${product.translation.slug}`}
-                      title={product.translation.title}
-                      priceFormatted={priceFormatted}
-                      compareAtFormatted={compareAtFormatted}
-                      discountPercent={product.discountPercent}
-                      imageUrl={product.imageUrl}
-                      inStock={product.stockOnHand > 0}
-                      priority={index < 6}
-                      locale={rawLocale}
-                      productId={product.id}
-                      inWishlist={wishlistIds.has(product.id)}
-                      isSignedIn={Boolean(user)}
-                      wishlistLabel={dictionary.nav.wishlist}
-                      addToCartLabel={dictionary.product.addToCart}
-                      outOfStockLabel={dictionary.product.outOfStock}
-                      categoryLabel={categoryLabel}
-                      rating={CATALOG_CARD_RATING}
-                      isSpicy
-                      isVegetarian
-                    />
-                  ),
-                )}
-              </div>
-            )}
-
-            <ShopPagination
-              ariaLabel={catalogCopy.paginationLabel}
-              previousLabel={catalogCopy.previousPage}
-              nextLabel={catalogCopy.nextPage}
-              currentPage={page}
-              totalPages={totalPages}
-              buildHref={(nextPage) =>
-                buildCatalogHref(rawLocale, {
-                  category: categoryParam ?? undefined,
-                  page: nextPage,
-                  min: sp.min,
-                  max: sp.max,
-                  q: searchQuery || undefined,
-                  diet: diet === "none" ? undefined : diet,
-                })
-              }
-            />
-          </section>
-        </div>
+        <ShopCatalogPanel
+          {...catalogPanelProps}
+          showSelectCategories={false}
+        />
       </div>
     </div>
   );

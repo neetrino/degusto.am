@@ -1,14 +1,7 @@
 "use client";
 
-import {
-  Heart,
-  Home,
-  ShoppingCart,
-  User,
-  UtensilsCrossed,
-} from "lucide-react";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import type { LucideIcon } from "lucide-react";
 
 import { AppLink } from "@/components/ui/AppLink";
 import { CartDrawer } from "@/features/cart/ui/CartDrawer";
@@ -25,15 +18,6 @@ type MobileBottomNavProps = {
   isSignedIn: boolean;
 };
 
-type NavTab = {
-  id: string;
-  href: string;
-  label: string;
-  icon: LucideIcon;
-  match: (pathname: string) => boolean;
-  badge?: number;
-};
-
 function isHomePath(pathname: string, locale: Locale): boolean {
   return pathname === `/${locale}` || pathname === `/${locale}/`;
 }
@@ -42,52 +26,25 @@ function startsWithPath(pathname: string, base: string): boolean {
   return pathname === base || pathname.startsWith(`${base}/`);
 }
 
+function isShopPath(pathname: string, locale: Locale): boolean {
+  return startsWithPath(pathname, `/${locale}/products`);
+}
+
 function NavBadge({ count }: { count: number }) {
   if (count <= 0) {
     return null;
   }
 
   return (
-    <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[9px] font-semibold text-white">
+    <span className="absolute -top-1.5 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[9px] font-semibold text-white">
       {count > 99 ? "99+" : count}
     </span>
   );
 }
 
-function iconClass(active: boolean): string {
-  return active ? "text-brand" : "text-white";
-}
-
-function LinkTab({
-  tab,
-  active,
-}: {
-  tab: NavTab;
-  active: boolean;
-}) {
-  const Icon = tab.icon;
-
-  return (
-    <AppLink
-      href={tab.href}
-      prefetchPolicy="intent"
-      aria-current={active ? "page" : undefined}
-      aria-label={tab.label}
-      className="relative flex min-w-0 flex-1 flex-col items-center justify-center px-1 py-2"
-    >
-      <span className="relative inline-flex">
-        <Icon
-          className={`h-5 w-5 ${iconClass(active)}`}
-          strokeWidth={active ? 2.25 : 1.75}
-          aria-hidden="true"
-        />
-        {tab.badge != null ? <NavBadge count={tab.badge} /> : null}
-      </span>
-    </AppLink>
-  );
-}
-
-/** Floating dark mobile dock — live degusto-am style. */
+/**
+ * Curved dock mobile bottom nav matching live degusto-am.
+ */
 export function MobileBottomNav({
   locale,
   currency,
@@ -97,44 +54,84 @@ export function MobileBottomNav({
   isSignedIn,
 }: MobileBottomNavProps) {
   const pathname = usePathname() ?? `/${locale}`;
+  const onHome = isHomePath(pathname, locale);
+  const onShop = isShopPath(pathname, locale);
+  const onWishlist = startsWithPath(pathname, `/${locale}/wishlist`);
+  const onProfile =
+    startsWithPath(pathname, `/${locale}/profile`) ||
+    startsWithPath(pathname, `/${locale}/login`);
   const profileHref = isSignedIn
     ? `/${locale}/profile`
     : `/${locale}/login`;
 
-  const homeTab: NavTab = {
-    id: "home",
-    href: `/${locale}`,
-    label: dictionary.nav.home,
-    icon: Home,
-    match: (path) => isHomePath(path, locale),
-  };
-
-  const wishlistTab: NavTab = {
-    id: "wishlist",
-    href: `/${locale}/wishlist`,
-    label: dictionary.nav.wishlist,
-    icon: Heart,
-    match: (path) => startsWithPath(path, `/${locale}/wishlist`),
-    badge: wishlistCount,
-  };
-
-  const profileTab: NavTab = {
-    id: "profile",
-    href: profileHref,
-    label: dictionary.header.profile,
-    icon: User,
-    match: (path) =>
-      startsWithPath(path, `/${locale}/profile`) ||
-      startsWithPath(path, `/${locale}/login`),
-  };
+  const cartInactiveClass = onShop
+    ? "mobile-bottom-nav-fill-cart-shop-inactive"
+    : "mobile-bottom-nav-fill-cart-home-inactive";
+  const favInactiveClass = onShop
+    ? "mobile-bottom-nav-fill-fav-shop-inactive"
+    : "mobile-bottom-nav-fill-fav-home-inactive";
+  const favActiveClass = onShop
+    ? "mobile-bottom-nav-fill-fav-shop"
+    : "mobile-bottom-nav-fill-fav-home";
 
   return (
-    <nav
-      aria-label={dictionary.nav.navigation}
-      className="pointer-events-none fixed bottom-0 left-1/2 z-40 h-[159px] w-[375px] max-w-full -translate-x-1/2 md:hidden"
+    <div
+      className="mobile-bottom-nav pointer-events-none fixed bottom-0 left-1/2 z-40 h-[calc(159px+env(safe-area-inset-bottom))] w-[375px] max-w-full -translate-x-1/2 pb-[env(safe-area-inset-bottom)] md:hidden"
+      aria-hidden={false}
     >
-      <div className="pointer-events-auto absolute bottom-[25px] left-1/2 flex h-[70px] w-[min(343px,calc(100%-2rem))] -translate-x-1/2 items-center rounded-[28px] bg-[#121212] px-2 shadow-lg">
-        <LinkTab tab={homeTab} active={homeTab.match(pathname)} />
+      <Image
+        src="/assets/mobile/nav/dock.webp"
+        alt=""
+        width={375}
+        height={80}
+        className="absolute bottom-0 left-0 h-20 w-[375px] max-w-none object-cover"
+        aria-hidden
+        priority
+      />
+
+      <AppLink
+        href={`/${locale}/products`}
+        prefetchPolicy="intent"
+        aria-label={dictionary.nav.shop}
+        className="pointer-events-auto absolute top-10 left-1/2 inline-flex size-[70px] -translate-x-1/2 items-center justify-center"
+      >
+        <Image
+          src="/assets/mobile/nav/shop-disc.webp"
+          alt=""
+          width={70}
+          height={70}
+          className="mobile-bottom-nav-shop-disc size-[70px] object-contain"
+          aria-hidden
+        />
+      </AppLink>
+
+      <nav
+        aria-label={dictionary.nav.navigation}
+        className="pointer-events-auto absolute bottom-[25px] left-1/2 flex -translate-x-1/2 items-start"
+      >
+        <AppLink
+          href={`/${locale}`}
+          prefetchPolicy="intent"
+          aria-current={onHome ? "page" : undefined}
+          aria-label={dictionary.nav.home}
+          className={
+            onHome
+              ? "mobile-bottom-nav-item-active inline-flex h-[30px] w-[71px] items-center justify-center"
+              : "inline-flex h-[30px] w-[71px] items-center justify-center"
+          }
+        >
+          <span className="relative inline-flex size-[30px] items-center justify-center">
+            <span
+              className={
+                onHome
+                  ? "mobile-bottom-nav-fill-home-active"
+                  : "mobile-bottom-nav-fill-home-inactive"
+              }
+              role="img"
+              aria-hidden
+            />
+          </span>
+        </AppLink>
 
         <CartDrawer
           locale={locale}
@@ -155,13 +152,20 @@ export function MobileBottomNav({
               onFocus={prefetchDrawerView}
               aria-label={label}
               aria-expanded={open}
-              className="relative flex min-w-0 flex-1 flex-col items-center justify-center px-1 py-2"
+              className="inline-flex h-[30px] w-[71px] items-start"
             >
-              <span className="relative inline-flex">
-                <ShoppingCart
-                  className={`h-5 w-5 ${iconClass(open)}`}
-                  strokeWidth={open ? 2.25 : 1.75}
-                  aria-hidden="true"
+              <span className="relative inline-flex h-[30px] w-[71px] items-start">
+                <span
+                  data-cart-fly-target="true"
+                  className={
+                    open
+                      ? onShop
+                        ? "mobile-bottom-nav-fill-cart-shop"
+                        : "mobile-bottom-nav-fill-cart-home"
+                      : cartInactiveClass
+                  }
+                  role="img"
+                  aria-hidden
                 />
                 <NavBadge count={badgeCount} />
               </span>
@@ -169,18 +173,47 @@ export function MobileBottomNav({
           )}
         />
 
+        <span className="inline-flex h-6 w-[71px]" aria-hidden />
+
         <AppLink
-          href={`/${locale}/products`}
+          href={`/${locale}/wishlist`}
           prefetchPolicy="intent"
-          aria-label={dictionary.nav.shop}
-          className="relative -mt-8 inline-flex size-[70px] shrink-0 items-center justify-center rounded-full bg-brand text-white shadow-md transition hover:brightness-110"
+          aria-current={onWishlist ? "page" : undefined}
+          aria-label={dictionary.nav.wishlist}
+          className="inline-flex h-[30px] w-[71px] items-start"
         >
-          <UtensilsCrossed className="size-7" aria-hidden />
+          <span className="relative inline-flex h-[30px] w-[71px] items-start">
+            <span
+              className={onWishlist ? favActiveClass : favInactiveClass}
+              role="img"
+              aria-hidden
+            />
+            <NavBadge count={wishlistCount} />
+          </span>
         </AppLink>
 
-        <LinkTab tab={wishlistTab} active={wishlistTab.match(pathname)} />
-        <LinkTab tab={profileTab} active={profileTab.match(pathname)} />
-      </div>
-    </nav>
+        <AppLink
+          href={profileHref}
+          prefetchPolicy="intent"
+          aria-current={onProfile ? "page" : undefined}
+          aria-label={
+            isSignedIn
+              ? dictionary.header.profile
+              : dictionary.header.login
+          }
+          className="inline-flex h-[30px] w-[71px] items-center justify-center"
+        >
+          <span
+            className={
+              onProfile
+                ? "mobile-bottom-nav-fill-profile-active"
+                : "mobile-bottom-nav-fill-profile-inactive"
+            }
+            role="img"
+            aria-hidden
+          />
+        </AppLink>
+      </nav>
+    </div>
   );
 }

@@ -1,10 +1,11 @@
 import Image from "next/image";
-import { Phone } from "lucide-react";
 
 import { LocaleCurrencySwitcher } from "@/components/layout/LocaleCurrencySwitcher";
 import { AppLink } from "@/components/ui/AppLink";
 import { DailyOfferMobileCarousel } from "@/features/home/ui/DailyOfferMobileCarousel";
-import { ProductCard } from "@/features/products/ui/ProductCard";
+import { HomeMobileCategories } from "@/features/home/ui/HomeMobileCategories";
+import { HomeMobileProductCard } from "@/features/home/ui/HomeMobileProductCard";
+import { HomeMobileSearch } from "@/features/home/ui/HomeMobileSearch";
 import type { Locale } from "@/lib/i18n/config";
 import type { Currency } from "@/lib/money/currency";
 
@@ -39,11 +40,12 @@ type HomeMobileProps = {
   phoneHref: string;
   currencyLabel: string;
   languageLabel: string;
+  searchLabel: string;
+  searchPlaceholder: string;
   categoriesTitle: string;
   viewAllCategoriesLabel: string;
   viewAllCategoriesHref: string;
   newProductsTitle: string;
-  viewAllLabel: string;
   viewAllHref: string;
   dailyOfferLabel: string;
   wishlistLabel: string;
@@ -57,7 +59,7 @@ type HomeMobileProps = {
 
 /**
  * Mobile-only home composition matching live degusto-am
- * (orange chrome + white sheet + chips + daily offers + new products).
+ * (orange chrome + search + white sheet + chips + daily offers + new products).
  */
 export function HomeMobile({
   locale,
@@ -67,11 +69,12 @@ export function HomeMobile({
   phoneHref,
   currencyLabel,
   languageLabel,
+  searchLabel,
+  searchPlaceholder,
   categoriesTitle,
   viewAllCategoriesLabel,
   viewAllCategoriesHref,
   newProductsTitle,
-  viewAllLabel,
   viewAllHref,
   dailyOfferLabel,
   wishlistLabel,
@@ -83,18 +86,18 @@ export function HomeMobile({
   products,
 }: HomeMobileProps) {
   return (
-    <div className="relative min-h-screen w-full overflow-x-clip bg-[var(--project-color)] lg:hidden">
+    <div className="relative min-h-screen w-full overflow-x-clip overflow-y-visible bg-[var(--project-color)] lg:hidden">
       <div
-        className="pointer-events-none absolute -top-[123px] -left-[210px] h-[434px] w-[418px] rounded-full border-[80px] border-brand-forest"
+        className="pointer-events-none absolute -top-[123px] -left-[210px] h-[434px] w-[418px] rounded-full border-[80px] border-[#3E573D]"
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute -top-[184px] -right-[160px] h-[320px] w-[360px] rounded-full border-[70px] border-brand-forest"
+        className="pointer-events-none absolute -top-[184px] -right-[160px] h-[320px] w-[360px] rounded-full border-[70px] border-[#3E573D]"
         aria-hidden
       />
 
-      <header className="relative z-[100] px-4 pt-[58px]">
-        <div className="relative z-20 flex translate-y-5 items-start justify-between">
+      <header className="relative z-[100] overflow-visible px-4 pt-[58px]">
+        <div className="relative z-20 flex translate-y-5 items-start justify-between overflow-visible">
           <AppLink
             href={`/${locale}`}
             prefetchPolicy="intent"
@@ -102,7 +105,7 @@ export function HomeMobile({
             aria-label={brand}
           >
             <Image
-              src="/assets/footer/logo.webp"
+              src="/assets/mobile/degusto-logo-mobile.webp"
               alt={brand}
               width={129}
               height={46}
@@ -114,62 +117,51 @@ export function HomeMobile({
             <a
               href={phoneHref}
               aria-label={callLabel}
-              className="inline-flex size-12 items-center justify-center rounded-full bg-white text-brand shadow-sm"
+              className="relative inline-flex size-12 items-center justify-center"
             >
-              <Phone className="size-5" aria-hidden />
+              <Image
+                src="/assets/mobile/call-btn-bg.webp"
+                alt=""
+                width={48}
+                height={48}
+                className="absolute inset-0 size-12 object-contain"
+                aria-hidden
+              />
+              <Image
+                src="/assets/mobile/call-icon.webp"
+                alt=""
+                width={23}
+                height={23}
+                className="relative h-[23px] w-[23px] object-contain"
+                aria-hidden
+              />
             </a>
             <LocaleCurrencySwitcher
               locale={locale}
               currency={currency}
               currencyLabel={currencyLabel}
               languageLabel={languageLabel}
+              variant="mobileHome"
             />
           </div>
         </div>
+
+        <div className="relative z-0">
+          <HomeMobileSearch
+            locale={locale}
+            searchLabel={searchLabel}
+            placeholder={searchPlaceholder}
+          />
+        </div>
       </header>
 
-      <div className="relative z-10 mt-[87px] rounded-t-[28px] bg-white px-4 pt-8 pb-[110px]">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="font-display text-base leading-5 font-semibold text-black">
-            {categoriesTitle}
-          </h2>
-          <AppLink
-            href={viewAllCategoriesHref}
-            prefetchPolicy="intent"
-            className="inline-flex items-center justify-center rounded-full px-2 py-1 text-base leading-6 font-bold text-brand-headline"
-          >
-            {viewAllCategoriesLabel}
-          </AppLink>
-        </div>
-
-        {categories.length > 0 ? (
-          <div className="-mx-3 mt-4 overflow-x-auto px-3 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <div className="flex w-max items-start gap-2">
-              {categories.map((category) => (
-                <AppLink
-                  key={category.id}
-                  href={category.href}
-                  prefetchPolicy="intent"
-                  aria-label={category.title}
-                  className="w-14 shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-headline"
-                >
-                  <div className="relative mx-auto flex h-[72px] w-12 items-center justify-center rounded-[24px] bg-[#090909]">
-                    <Image
-                      src={category.imageUrl}
-                      alt={category.title}
-                      width={40}
-                      height={42}
-                      className="relative h-[42px] w-10 rounded-[10px] object-cover"
-                    />
-                  </div>
-                  <p className="mt-1 line-clamp-2 text-center text-[11px] leading-tight text-black">
-                    {category.title}
-                  </p>
-                </AppLink>
-              ))}
-            </div>
-          </div>
-        ) : null}
+      <div className="relative z-10 mt-[87px] min-h-[calc(100dvh-10rem)] rounded-t-[30px] bg-white px-0 pt-8 pb-[110px]">
+        <HomeMobileCategories
+          title={categoriesTitle}
+          viewAllLabel={viewAllCategoriesLabel}
+          viewAllHref={viewAllCategoriesHref}
+          categories={categories}
+        />
 
         <DailyOfferMobileCarousel
           offers={dailyOffers}
@@ -177,7 +169,7 @@ export function HomeMobile({
           addToCartLabel={addToCartLabel}
         />
 
-        <div className="mt-[30px] space-y-[22px]">
+        <div className="mt-[30px] space-y-[22px] px-3">
           <div className="flex items-center justify-between">
             <h2 className="text-base leading-5 font-semibold text-black">
               {newProductsTitle}
@@ -185,40 +177,36 @@ export function HomeMobile({
             <AppLink
               href={viewAllHref}
               prefetchPolicy="intent"
-              className="px-2 py-1 text-base leading-6 font-bold text-brand-headline"
+              className="rounded-full px-2 py-1 text-base leading-6 font-bold text-[#f66a13]"
             >
-              {viewAllLabel} →
+              {viewAllCategoriesLabel}
             </AppLink>
           </div>
 
-          <div className="-mx-2 flex gap-2 overflow-x-auto px-2 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="grid grid-cols-2 gap-x-[14px] gap-y-[30px]">
             {products.slice(0, 4).map((product, index) => (
-              <div key={product.id} className="w-[170px] shrink-0">
-                <div className="origin-top-left scale-[0.72]">
-                  <ProductCard
-                    href={product.href}
-                    title={product.title}
-                    priceFormatted={product.priceFormatted}
-                    compareAtFormatted={product.compareAtFormatted}
-                    discountPercent={product.discountPercent}
-                    imageUrl={product.imageUrl}
-                    inStock={product.inStock}
-                    priority={index < 2}
-                    locale={locale}
-                    productId={product.id}
-                    inWishlist={product.inWishlist ?? false}
-                    isSignedIn={isSignedIn}
-                    wishlistLabel={wishlistLabel}
-                    addToCartLabel={addToCartLabel}
-                    outOfStockLabel={outOfStockLabel}
-                    categoryLabel={product.categoryLabel}
-                    rating={product.rating}
-                    isSpicy={product.isSpicy}
-                    isVegetarian={product.isVegetarian}
-                    showWishlist
-                  />
-                </div>
-              </div>
+              <HomeMobileProductCard
+                key={product.id}
+                href={product.href}
+                title={product.title}
+                priceFormatted={product.priceFormatted}
+                compareAtFormatted={product.compareAtFormatted}
+                discountPercent={product.discountPercent}
+                imageUrl={product.imageUrl}
+                inStock={product.inStock}
+                priority={index < 2}
+                locale={locale}
+                productId={product.id}
+                inWishlist={product.inWishlist ?? false}
+                isSignedIn={isSignedIn}
+                wishlistLabel={wishlistLabel}
+                addToCartLabel={addToCartLabel}
+                outOfStockLabel={outOfStockLabel}
+                categoryLabel={product.categoryLabel}
+                rating={product.rating}
+                isSpicy={product.isSpicy}
+                isVegetarian={product.isVegetarian}
+              />
             ))}
           </div>
         </div>

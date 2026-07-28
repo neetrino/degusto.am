@@ -145,33 +145,36 @@ export function CatalogProductCard({
         </div>
       ) : null}
 
-      <div className="absolute top-[239px] right-[100px] left-[14px] z-[2] min-w-0">
-        <h3 className="text-base leading-[1.05] font-bold text-product-ink">
-          <span className="block max-h-[34px] overflow-hidden break-words">
-            {title}
-          </span>
-        </h3>
-        {categoryLabel ? (
-          <p className="mt-1 truncate text-base leading-[1.2] font-medium text-[#a1a1a1]">
-            {categoryLabel}
-          </p>
-        ) : null}
-      </div>
-
       {discountPercent != null ? (
         <span className="absolute top-[215px] right-px z-[2] inline-flex h-[30px] items-center rounded-[60px] bg-[#ff7f20] px-[17px] text-sm leading-none font-bold text-black">
           -{discountPercent}%
         </span>
       ) : null}
 
-      <p className="absolute top-[282px] right-[14px] z-[2] text-[20px] leading-none font-black text-product-ink">
-        {priceFormatted}
-      </p>
-      {onSale ? (
-        <p className="absolute top-[308px] right-[14px] z-[2] text-sm leading-none font-light text-product-ink line-through">
-          {compareAtFormatted}
-        </p>
-      ) : null}
+      <div className="absolute top-[239px] right-[14px] left-[14px] z-[2] min-w-0 pb-8">
+        <h3 className="text-base leading-[1.15] font-bold text-product-ink">
+          <span className="line-clamp-2 break-words">{title}</span>
+        </h3>
+        <div className="mt-1 flex items-start justify-between gap-2">
+          {categoryLabel ? (
+            <p className="min-w-0 flex-1 text-sm leading-[1.25] font-medium break-words text-[#a1a1a1] line-clamp-2 sm:text-base">
+              {categoryLabel}
+            </p>
+          ) : (
+            <span className="min-w-0 flex-1" aria-hidden />
+          )}
+          <div className="shrink-0 text-right leading-tight">
+            <p className="text-[18px] leading-none font-black whitespace-nowrap text-product-ink sm:text-[20px]">
+              {priceFormatted}
+            </p>
+            {onSale ? (
+              <p className="mt-1 text-sm leading-none font-light whitespace-nowrap text-product-ink line-through">
+                {compareAtFormatted}
+              </p>
+            ) : null}
+          </div>
+        </div>
+      </div>
 
       {!inStock ? (
         <span className="absolute bottom-16 left-3 z-10 rounded bg-gray-900/90 px-2 py-1 text-xs font-semibold text-white">

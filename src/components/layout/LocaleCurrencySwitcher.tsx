@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   useCallback,
@@ -32,7 +33,7 @@ type LocaleCurrencySwitcherProps = {
   currency: Currency;
   currencyLabel: string;
   languageLabel: string;
-  variant?: "default" | "degusto";
+  variant?: "default" | "degusto" | "mobileHome";
 };
 
 function replaceLocaleInPath(pathname: string, nextLocale: Locale): string {
@@ -173,6 +174,9 @@ export function LocaleCurrencySwitcher({
     router.push(replaceLocaleInPath(pathname, next));
   }
 
+  const isMobileHome = variant === "mobileHome";
+  const isDegusto = variant === "degusto";
+
   return (
     <div
       ref={rootRef}
@@ -183,9 +187,11 @@ export function LocaleCurrencySwitcher({
       <button
         type="button"
         className={
-          variant === "degusto"
-            ? "flex h-12 w-[159px] shrink-0 items-center gap-2 rounded-full bg-brand-strong px-4 text-white transition hover:bg-brand"
-            : "flex h-9 w-[calc(2.75rem*3+0.5rem*2-0.75rem)] shrink-0 items-center rounded-full border border-gray-200 bg-white py-0 pr-3 pl-3 text-gray-700 transition-colors hover:bg-gray-50"
+          isMobileHome
+            ? "relative inline-flex h-12 w-[159px] items-center rounded-[70px] bg-white px-[19px]"
+            : isDegusto
+              ? "flex h-12 w-[159px] shrink-0 items-center gap-2 rounded-full bg-brand-strong px-4 text-white transition hover:bg-brand"
+              : "flex h-9 w-[calc(2.75rem*3+0.5rem*2-0.75rem)] shrink-0 items-center rounded-full border border-gray-200 bg-white py-0 pr-3 pl-3 text-gray-700 transition-colors hover:bg-gray-50"
         }
         aria-expanded={open}
         aria-haspopup="dialog"
@@ -193,40 +199,59 @@ export function LocaleCurrencySwitcher({
         aria-label={`${localeShortLabels[locale]} / ${currency}`}
         onClick={() => (open ? closeMenu() : openMenu())}
       >
-        {variant === "degusto" ? (
+        {isMobileHome ? (
+          <span className="inline-flex items-center justify-center">
+            <Image
+              src="/assets/mobile/globe-icon.webp"
+              alt=""
+              width={19}
+              height={19}
+              className="h-[19px] w-[19px] shrink-0 object-contain brightness-0"
+              aria-hidden
+            />
+            <span className="ml-0.5 text-base leading-[18px] font-bold text-[#ff7f20]">
+              {localeShortLabels[locale]} / {currency}
+              {currency === "AMD" ? " Դ" : ""}
+            </span>
+          </span>
+        ) : isDegusto ? (
           <Globe className="size-[19px] shrink-0" aria-hidden />
         ) : null}
-        <span
-          className={
-            variant === "degusto"
-              ? "flex min-w-0 flex-1 items-center justify-center gap-1 whitespace-nowrap text-base font-bold leading-[18px] capitalize"
-              : "flex min-w-0 flex-1 items-center justify-center whitespace-nowrap text-[15px] font-bold leading-none tabular-nums"
-          }
-        >
-          {variant === "degusto" ? (
-            <>
-              <span>{localeShortLabels[locale]}</span>
-              <span>/</span>
-              <span>{currency}</span>
-            </>
-          ) : (
-            <>
-              <span>{currency}</span>
-              <span className="inline-block w-[2px]" aria-hidden />
-              <span>/</span>
-              <span className="inline-block w-[2px]" aria-hidden />
-              <span>{localeShortLabels[locale]}</span>
-            </>
-          )}
-        </span>
-        <ChevronDown
-          className={
-            variant === "degusto"
-              ? `h-4 w-4 shrink-0 text-white transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? "rotate-180" : ""}`
-              : `h-4 w-4 shrink-0 text-gray-500 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? "rotate-180" : ""}`
-          }
-          aria-hidden
-        />
+        {!isMobileHome ? (
+          <span
+            className={
+              isDegusto
+                ? "flex min-w-0 flex-1 items-center justify-center gap-1 whitespace-nowrap text-base font-bold leading-[18px] capitalize"
+                : "flex min-w-0 flex-1 items-center justify-center whitespace-nowrap text-[15px] font-bold leading-none tabular-nums"
+            }
+          >
+            {isDegusto ? (
+              <>
+                <span>{localeShortLabels[locale]}</span>
+                <span>/</span>
+                <span>{currency}</span>
+              </>
+            ) : (
+              <>
+                <span>{currency}</span>
+                <span className="inline-block w-[2px]" aria-hidden />
+                <span>/</span>
+                <span className="inline-block w-[2px]" aria-hidden />
+                <span>{localeShortLabels[locale]}</span>
+              </>
+            )}
+          </span>
+        ) : null}
+        {isMobileHome ? null : (
+          <ChevronDown
+            className={
+              isDegusto
+                ? `h-4 w-4 shrink-0 text-white transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? "rotate-180" : ""}`
+                : `h-4 w-4 shrink-0 text-gray-500 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? "rotate-180" : ""}`
+            }
+            aria-hidden
+          />
+        )}
       </button>
 
       {rendered ? (
