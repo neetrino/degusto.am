@@ -110,6 +110,7 @@ export function CartDrawer({
         panelClassName="w-[87%] max-w-[420px]"
         zIndexClassName="z-[200]"
         backdropBlur
+        closeTone="brand"
       >
         <div className="relative overflow-hidden border-b border-[#ff7f20]/15 px-6 py-5">
           <div

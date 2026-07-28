@@ -27,6 +27,8 @@ type SideSheetProps = {
   closeVariant?: "circle" | "edge-tab";
   /** Soften backdrop (cart-style). */
   backdropBlur?: boolean;
+  /** Close tab color — brand orange for storefront cart. */
+  closeTone?: "dark" | "brand";
 };
 
 /**
@@ -43,6 +45,7 @@ export function SideSheet({
   zIndexClassName = "z-50",
   closeVariant = "circle",
   backdropBlur = false,
+  closeTone = "dark",
 }: SideSheetProps) {
   const [mounted, setMounted] = useState(false);
   const [rendered, setRendered] = useState(false);
@@ -156,6 +159,11 @@ export function SideSheet({
       ? "animate-side-sheet-panel-in-right"
       : "animate-side-sheet-panel-in-left";
 
+  const closeToneClass =
+    closeTone === "brand"
+      ? "bg-[#ff7f20] text-white transition-[transform,filter] hover:brightness-95 hover:scale-105"
+      : "bg-gray-900 text-white transition-colors hover:bg-black";
+
   return createPortal(
     <div
       className={`fixed inset-0 ${zIndexClassName}`}
@@ -179,7 +187,7 @@ export function SideSheet({
           <button
             type="button"
             onClick={onClose}
-            className={`absolute top-1/2 ${closePosition} z-10 flex h-[38px] w-10 -translate-y-1/2 items-center justify-center bg-gray-900 text-white transition-transform hover:scale-105 ${
+            className={`absolute top-1/2 ${closePosition} z-10 flex h-[38px] w-10 -translate-y-1/2 items-center justify-center ${closeToneClass} ${
               isRight
                 ? "rounded-l-full rounded-r-none"
                 : "rounded-r-full rounded-l-none"
@@ -192,7 +200,7 @@ export function SideSheet({
           <button
             type="button"
             onClick={onClose}
-            className={`absolute top-5 ${closePosition} z-10 flex h-10 w-10 shrink-0 items-center justify-center bg-gray-900 text-white transition-colors hover:bg-black ${
+            className={`absolute top-5 ${closePosition} z-10 flex h-10 w-10 shrink-0 items-center justify-center ${closeToneClass} ${
               isRight
                 ? "rounded-l-full rounded-r-none"
                 : "rounded-r-full rounded-l-none"
