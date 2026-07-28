@@ -33,11 +33,11 @@ export function firstAuthPhoneHref(phones: string): string {
 }
 
 /**
- * Auth canvas — mobile orange chrome + cream sheet; desktop hero on shell.
+ * Auth canvas — mobile orange chrome + cream sheet; desktop transparent over shell hero.
  */
 export function AuthPageShell({ children, mobileChrome }: AuthPageShellProps) {
   return (
-    <div data-auth-page className="bg-[#FBF6EA]">
+    <div data-auth-page className="bg-[#FBF6EA] lg:bg-transparent">
       <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen lg:hidden">
         <StorefrontMobileChrome
           {...mobileChrome}
@@ -48,8 +48,8 @@ export function AuthPageShell({ children, mobileChrome }: AuthPageShellProps) {
       </div>
 
       <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] -mt-[7.5rem] hidden w-screen flex-1 flex-col lg:flex">
-        <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden bg-transparent pt-[7.5rem]">
-          <div className="relative z-10 mx-auto flex w-full max-w-[34rem] flex-1 flex-col justify-center px-8 py-12">
+        <div className="relative z-10 flex min-h-[calc(100dvh-7.5rem)] flex-1 flex-col justify-center overflow-visible bg-transparent pt-[7.5rem] pb-16">
+          <div className="relative z-10 mx-auto w-full max-w-[34rem] px-8">
             {children}
           </div>
         </div>
@@ -64,14 +64,14 @@ type AuthCardProps = {
   children: ReactNode;
 };
 
-/** Cream gradient auth card with chef-hat badge. */
+/** Cream gradient auth card with chef-hat badge — Degusto login/register. */
 export function AuthCard({ title, subtitle, children }: AuthCardProps) {
   return (
-    <div className="relative overflow-visible rounded-[30px] border border-[#FFE5CF] bg-[linear-gradient(168deg,#fffef9_0%,#fff7eb_44%,#ffeed9_100%)] p-5 shadow-[0_24px_60px_rgba(50,24,0,0.18)] sm:p-8 lg:rounded-[34px] lg:px-10 lg:pt-11 lg:pb-10 lg:shadow-[0_24px_60px_rgba(50,24,0,0.22)]">
+    <div className="relative overflow-visible rounded-[28px] border border-[#FFE5CF] bg-[linear-gradient(168deg,#fffef9_0%,#fff7eb_44%,#ffeed9_100%)] p-5 shadow-[0_24px_60px_rgba(50,24,0,0.16)] sm:rounded-[32px] sm:p-8 lg:rounded-[40px] lg:px-10 lg:pt-11 lg:pb-10 lg:shadow-[0_28px_70px_rgba(50,24,0,0.22)]">
       <header className="mb-6 text-center sm:mb-8">
-        <div className="mb-4 flex justify-center">
+        <div className="mb-4 flex justify-center sm:mb-5">
           <div className="rounded-full bg-[#f4dfbf] p-1 shadow-[0_10px_22px_rgba(49,27,0,0.2)]">
-            <div className="flex size-16 items-center justify-center rounded-full bg-[#1f3a22] text-[#fff2d8] shadow-[inset_0_0_0_1px_rgba(255,235,200,0.28)]">
+            <div className="flex size-[4.25rem] items-center justify-center rounded-full bg-[#1f3a22] text-[#fff2d8] shadow-[inset_0_0_0_1px_rgba(255,235,200,0.28)] sm:size-16">
               <ChefHat className="size-8" aria-hidden />
             </div>
           </div>

@@ -17,7 +17,7 @@ type StorefrontMobileChromeProps = {
   searchLabel: string;
   searchPlaceholder: string;
   searchQuery?: string;
-  /** Sheet surface behind page content (default white). */
+  /** Optional sheet surface (e.g. auth cream). Defaults to white. */
   sheetClassName?: string;
   children: React.ReactNode;
 };

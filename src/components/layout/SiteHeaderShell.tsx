@@ -33,14 +33,14 @@ function isProductDetailPath(pathname: string, locale: Locale): boolean {
 }
 
 function isAuthPath(pathname: string, locale: Locale): boolean {
-  const routes = [
+  const prefixes = [
     `/${locale}/login`,
     `/${locale}/register`,
     `/${locale}/forgot-password`,
     `/${locale}/reset-password`,
   ];
-  return routes.some(
-    (route) => pathname === route || pathname === `${route}/`,
+  return prefixes.some(
+    (base) => pathname === base || pathname.startsWith(`${base}/`),
   );
 }
 
