@@ -122,7 +122,7 @@ export function HomeHero({
         <motion.div
           initial={reduceMotion ? false : { opacity: 0, scale: 1.08 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.15, ease: EASE }}
+          transition={{ duration: 1.55, ease: EASE, delay: 0.08 }}
           className="relative h-full w-full"
         >
           <picture>
@@ -151,7 +151,7 @@ export function HomeHero({
         style={{ rotate: ribbonLeft }}
         initial={reduceMotion ? false : { opacity: 0, x: -80 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 1.1, ease: EASE, delay: 0.15 }}
+        transition={{ duration: 1.45, ease: EASE, delay: 0.28 }}
         className="pointer-events-none absolute top-[-200px] left-0 z-[1] h-[1512.29px] w-[678.855px] origin-top-left scale-[0.52] opacity-100 xl:top-[-340px] xl:left-[-72px] xl:scale-[0.68] 2xl:top-[-450px] 2xl:left-[-120px] 2xl:scale-100"
       >
         <motion.path
@@ -161,7 +161,7 @@ export function HomeHero({
           strokeLinecap="square"
           initial={reduceMotion ? false : { pathLength: 0 }}
           animate={{ pathLength: 1 }}
-          transition={{ duration: 1.6, ease: EASE, delay: 0.2 }}
+          transition={{ duration: 2.1, ease: EASE, delay: 0.35 }}
         />
       </motion.svg>
       <motion.svg
@@ -174,7 +174,7 @@ export function HomeHero({
         style={{ rotate: ribbonRight }}
         initial={reduceMotion ? false : { opacity: 0, x: 80 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 1.1, ease: EASE, delay: 0.25 }}
+        transition={{ duration: 1.45, ease: EASE, delay: 0.42 }}
         className="pointer-events-none absolute top-[-1px] right-[-96px] z-[1] h-[979.275px] w-[611.208px] origin-top-right scale-[0.52] opacity-100 xl:right-[-130px] xl:scale-[0.68] 2xl:right-[-170px] 2xl:scale-100"
       >
         <motion.path
@@ -184,7 +184,7 @@ export function HomeHero({
           strokeLinecap="square"
           initial={reduceMotion ? false : { pathLength: 0 }}
           animate={{ pathLength: 1 }}
-          transition={{ duration: 1.6, ease: EASE, delay: 0.35 }}
+          transition={{ duration: 2.1, ease: EASE, delay: 0.55 }}
         />
       </motion.svg>
 
@@ -195,9 +195,9 @@ export function HomeHero({
           animate={{ opacity: 1, x: 0, scale: 1 }}
           transition={{
             type: "spring",
-            stiffness: 120,
-            damping: 16,
-            delay: 0.45,
+            stiffness: 95,
+            damping: 18,
+            delay: 0.72,
           }}
           className="relative z-20 mx-auto mt-[126px] w-full max-w-[min(1450px,calc(100%-2rem))] px-4 will-change-transform md:mt-[134px] md:max-w-[min(1450px,calc(100%-2.5rem))] md:px-6 lg:max-w-[min(1450px,calc(100%-3rem))]"
         >
@@ -221,7 +221,7 @@ export function HomeHero({
         <motion.div
           initial={reduceMotion ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: EASE, delay: 0.7 }}
+          transition={{ duration: 0.85, ease: EASE, delay: 1.05 }}
           className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 gap-2"
         >
           {slides.map((slide, slideIndex) => (

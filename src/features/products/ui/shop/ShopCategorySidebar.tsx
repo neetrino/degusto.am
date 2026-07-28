@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { motion, useReducedMotion, type Variants } from "motion/react";
 
 import { AppLink } from "@/components/ui/AppLink";
 
@@ -23,6 +26,21 @@ type ShopCategorySidebarProps = {
 };
 
 const COMBO_SLUGS = new Set(["combo", "combos", "kombo"]);
+const EASE = [0.22, 1, 0.36, 1] as const;
+
+const listVariants: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.05, delayChildren: 0.12 } },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, x: -18 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.4, ease: EASE },
+  },
+};
 
 function isComboSlug(slug: string): boolean {
   return COMBO_SLUGS.has(slug.trim().toLowerCase());
@@ -35,7 +53,7 @@ function isCategoryActive(selectedSlug: string, categorySlug: string): boolean {
   return isComboSlug(selectedSlug) && isComboSlug(categorySlug);
 }
 
-/** Desktop sticky category sidebar for the shop catalog. */
+/** Desktop sticky category sidebar — Motion slide-in + staggered links. */
 export function ShopCategorySidebar({
   title,
   allLabel,
@@ -46,13 +64,24 @@ export function ShopCategorySidebar({
   searchAction,
   searchQuery,
 }: ShopCategorySidebarProps) {
+  const reduceMotion = useReducedMotion();
   const isAll = selectedSlug === "all" || selectedSlug === "";
 
   return (
-    <aside className="sticky top-[104px] hidden h-[calc(100vh-120px)] w-[min(100%,240px)] shrink-0 flex-col overflow-hidden rounded-[20px] bg-black pb-5 text-white lg:flex lg:w-[240px] xl:w-[280px] 2xl:w-[320px]">
-      <form
+    <motion.aside
+      initial={reduceMotion ? false : { opacity: 0, x: -36, filter: "blur(10px)" }}
+      whileInView={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+      viewport={{ once: true, amount: 0.25 }}
+      transition={{ duration: 0.8, ease: EASE }}
+      className="sticky top-[104px] hidden h-[calc(100vh-120px)] w-[min(100%,240px)] shrink-0 flex-col overflow-hidden rounded-[20px] bg-black pb-5 text-white lg:flex lg:w-[240px] xl:w-[280px] 2xl:w-[320px]"
+    >
+      <motion.form
         action={searchAction}
         method="get"
+        initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.55, ease: EASE, delay: 0.1 }}
         className="mx-4 mt-5 flex h-12 items-center rounded-[30px] bg-[#f3f3f5]"
       >
         {selectedSlug && selectedSlug !== "all" ? (
@@ -96,33 +125,43 @@ export function ShopCategorySidebar({
             />
           </svg>
         </button>
-      </form>
+      </motion.form>
 
       <p className="px-6 pt-5 pb-3 text-[14px] font-medium tracking-[0.2px] text-[#717182] uppercase">
         {title}
       </p>
 
-      <nav
+      <motion.nav
         aria-label={title}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={reduceMotion ? undefined : listVariants}
         className="min-h-0 flex-1 space-y-1 overflow-y-auto px-4 pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        <CategoryLink
-          href={allHref}
-          title={allLabel}
-          iconSrc="/assets/categories/icons/all.webp"
-          active={isAll}
-        />
-        {categories.map((category) => (
+        <motion.div variants={reduceMotion ? undefined : itemVariants}>
           <CategoryLink
-            key={category.id}
-            href={category.href}
-            title={category.title}
-            iconSrc={category.iconSrc}
-            active={isCategoryActive(selectedSlug, category.slug)}
+            href={allHref}
+            title={allLabel}
+            iconSrc="/assets/categories/icons/all.webp"
+            active={isAll}
           />
+        </motion.div>
+        {categories.map((category) => (
+          <motion.div
+            key={category.id}
+            variants={reduceMotion ? undefined : itemVariants}
+          >
+            <CategoryLink
+              href={category.href}
+              title={category.title}
+              iconSrc={category.iconSrc}
+              active={isCategoryActive(selectedSlug, category.slug)}
+            />
+          </motion.div>
         ))}
-      </nav>
-    </aside>
+      </motion.nav>
+    </motion.aside>
   );
 }
 

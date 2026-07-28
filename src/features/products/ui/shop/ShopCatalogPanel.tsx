@@ -1,11 +1,21 @@
-import { Suspense } from "react";
+"use client";
+
+import { Suspense, useRef } from "react";
+import {
+  motion,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+  useTransform,
+} from "motion/react";
 
 import { AppLink } from "@/components/ui/AppLink";
-import { HomeMobileProductCard } from "@/features/home/ui/HomeMobileProductCard";
-import { CatalogProductCard } from "@/features/products/ui/shop/CatalogProductCard";
 import { ShopCatalogFilters } from "@/features/products/ui/shop/ShopCatalogFilters";
+import { ShopCatalogProductGrids } from "@/features/products/ui/shop/ShopCatalogProductGrids";
 import { ShopEmptyState } from "@/features/products/ui/shop/ShopEmptyState";
 import { ShopPagination } from "@/features/products/ui/shop/ShopPagination";
+import { buildCatalogHref } from "@/features/products/ui/shop/build-catalog-href";
+import { SHOP_EASE } from "@/features/products/ui/shop/ShopProductGridMotion";
 import type { Locale } from "@/lib/i18n/config";
 
 type CatalogCard = {
@@ -56,11 +66,16 @@ type ShopCatalogPanelProps = {
   nextLabel: string;
   currentPage: number;
   totalPages: number;
-  buildPageHref: (page: number) => string;
+  paginationLocale: string;
+  paginationCategory?: string;
+  paginationMin?: string;
+  paginationMax?: string;
+  paginationQuery?: string;
+  paginationDiet?: string;
 };
 
 /**
- * Shared shop catalog body (title, filters, product grid, pagination).
+ * Shared shop catalog body — Motion title/filters/grid + scroll float.
  * Mobile uses compact home tiles to match live degusto-am category menu.
  */
 export function ShopCatalogPanel({
@@ -96,12 +111,59 @@ export function ShopCatalogPanel({
   nextLabel,
   currentPage,
   totalPages,
-  buildPageHref,
+  paginationLocale,
+  paginationCategory,
+  paginationMin,
+  paginationMax,
+  paginationQuery,
+  paginationDiet,
 }: ShopCatalogPanelProps) {
+  const panelRef = useRef<HTMLElement>(null);
+  const reduceMotion = useReducedMotion();
+
+  function buildPageHref(nextPage: number): string {
+    return buildCatalogHref(paginationLocale, {
+      category: paginationCategory,
+      page: nextPage,
+      min: paginationMin,
+      max: paginationMax,
+      q: paginationQuery,
+      diet: paginationDiet,
+    });
+  }
+
+  const { scrollYProgress } = useScroll({
+    target: panelRef,
+    offset: ["start end", "end start"],
+  });
+  const panelProgress = useSpring(scrollYProgress, {
+    stiffness: 85,
+    damping: 28,
+    mass: 0.45,
+  });
+  const headerY = useTransform(
+    panelProgress,
+    [0, 1],
+    reduceMotion ? ["0%", "0%"] : ["6%", "-4%"],
+  );
+
   return (
-    <section className="min-w-0 flex-1">
-      <div className="mb-[42px] mt-2 flex flex-col gap-6 xl:mt-0 xl:flex-row xl:items-start xl:justify-between lg:mt-0">
-        <div className="min-w-0 max-w-xl">
+    <section ref={panelRef} className="relative min-w-0 flex-1 overflow-hidden">
+      <motion.div
+        style={{ y: headerY }}
+        className="relative mb-[42px] mt-2 flex flex-col gap-6 xl:mt-0 xl:flex-row xl:items-start xl:justify-between lg:mt-0"
+      >
+        <motion.div
+          initial={
+            reduceMotion
+              ? false
+              : { opacity: 0, y: 36, filter: "blur(12px)" }
+          }
+          whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          viewport={{ once: true, amount: 0.45 }}
+          transition={{ duration: 0.85, ease: SHOP_EASE }}
+          className="min-w-0 max-w-xl"
+        >
           <h1 className="text-[32px] leading-tight font-bold text-brand-headline lg:text-4xl xl:text-[60px] xl:leading-[51px]">
             {menuTitle}
           </h1>
@@ -117,102 +179,77 @@ export function ShopCatalogPanel({
               {selectCategoriesLabel}
             </AppLink>
           ) : null}
-        </div>
+        </motion.div>
 
-        <Suspense
-          fallback={
-            <div className="flex h-[83px] flex-wrap items-center gap-2 xl:pt-[37px]" />
-          }
+        <motion.div
+          initial={reduceMotion ? false : { opacity: 0, x: 28, y: 12 }}
+          whileInView={{ opacity: 1, x: 0, y: 0 }}
+          viewport={{ once: true, amount: 0.35 }}
+          transition={{ duration: 0.7, ease: SHOP_EASE, delay: 0.12 }}
         >
-          <ShopCatalogFilters
-            key={filterKey}
-            priceLabel={priceLabel}
-            priceFromLabel={priceFromLabel}
-            priceToLabel={priceToLabel}
-            dietFilterLabel={dietFilterLabel}
-            dietNoneLabel={dietNoneLabel}
-            dietVegetarianLabel={dietVegetarianLabel}
-            dietSpicyLabel={dietSpicyLabel}
-            minPrice={minPrice}
-            maxPrice={maxPrice}
-            diet={diet}
-          />
-        </Suspense>
-      </div>
+          <Suspense
+            fallback={
+              <div className="flex h-[83px] flex-wrap items-center gap-2 xl:pt-[37px]" />
+            }
+          >
+            <ShopCatalogFilters
+              key={filterKey}
+              priceLabel={priceLabel}
+              priceFromLabel={priceFromLabel}
+              priceToLabel={priceToLabel}
+              dietFilterLabel={dietFilterLabel}
+              dietNoneLabel={dietNoneLabel}
+              dietVegetarianLabel={dietVegetarianLabel}
+              dietSpicyLabel={dietSpicyLabel}
+              minPrice={minPrice}
+              maxPrice={maxPrice}
+              diet={diet}
+            />
+          </Suspense>
+        </motion.div>
+      </motion.div>
 
       {products.length === 0 ? (
-        <ShopEmptyState
-          title={emptyTitle}
-          description={emptyDescription}
-          ctaLabel={emptyCtaLabel}
-          ctaHref={emptyCtaHref}
-        />
+        <motion.div
+          initial={reduceMotion ? false : { opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.65, ease: SHOP_EASE }}
+        >
+          <ShopEmptyState
+            title={emptyTitle}
+            description={emptyDescription}
+            ctaLabel={emptyCtaLabel}
+            ctaHref={emptyCtaHref}
+          />
+        </motion.div>
       ) : (
-        <>
-          <div className="mt-8 grid min-w-0 grid-cols-2 gap-x-[14px] gap-y-[30px] lg:hidden">
-            {products.map((product, index) => (
-              <HomeMobileProductCard
-                key={product.id}
-                href={product.href}
-                title={product.title}
-                priceFormatted={product.priceFormatted}
-                compareAtFormatted={product.compareAtFormatted}
-                discountPercent={product.discountPercent}
-                imageUrl={product.imageUrl}
-                inStock={product.inStock}
-                priority={index < 4}
-                locale={locale}
-                productId={product.id}
-                inWishlist={product.inWishlist}
-                isSignedIn={isSignedIn}
-                wishlistLabel={wishlistLabel}
-                addToCartLabel={addToCartLabel}
-                outOfStockLabel={outOfStockLabel}
-                categoryLabel={product.categoryLabel}
-                rating={rating}
-                isSpicy={product.isSpicy ?? true}
-                isVegetarian={product.isVegetarian ?? true}
-              />
-            ))}
-          </div>
-
-          <div className="hidden min-w-0 grid-cols-2 gap-4 lg:grid xl:grid-cols-3 xl:gap-[30px]">
-            {products.map((product, index) => (
-              <CatalogProductCard
-                key={product.id}
-                href={product.href}
-                title={product.title}
-                priceFormatted={product.priceFormatted}
-                compareAtFormatted={product.compareAtFormatted}
-                discountPercent={product.discountPercent}
-                imageUrl={product.imageUrl}
-                inStock={product.inStock}
-                priority={index < 6}
-                locale={locale}
-                productId={product.id}
-                inWishlist={product.inWishlist}
-                isSignedIn={isSignedIn}
-                wishlistLabel={wishlistLabel}
-                addToCartLabel={addToCartLabel}
-                outOfStockLabel={outOfStockLabel}
-                categoryLabel={product.categoryLabel}
-                rating={rating}
-                isSpicy={product.isSpicy ?? true}
-                isVegetarian={product.isVegetarian ?? true}
-              />
-            ))}
-          </div>
-        </>
+        <ShopCatalogProductGrids
+          locale={locale}
+          products={products}
+          wishlistLabel={wishlistLabel}
+          addToCartLabel={addToCartLabel}
+          outOfStockLabel={outOfStockLabel}
+          rating={rating}
+          isSignedIn={isSignedIn}
+        />
       )}
 
-      <ShopPagination
-        ariaLabel={paginationLabel}
-        previousLabel={previousLabel}
-        nextLabel={nextLabel}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        buildHref={buildPageHref}
-      />
+      <motion.div
+        initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, ease: SHOP_EASE, delay: 0.1 }}
+      >
+        <ShopPagination
+          ariaLabel={paginationLabel}
+          previousLabel={previousLabel}
+          nextLabel={nextLabel}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          buildHref={buildPageHref}
+        />
+      </motion.div>
     </section>
   );
 }

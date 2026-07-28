@@ -92,7 +92,7 @@ export function HomeMobile({
 }: HomeMobileProps) {
   return (
     <HomeMobileMotionShell>
-      <header className="relative z-[100] overflow-visible px-4 pt-[58px]">
+      <header className="relative z-[1100] overflow-visible px-4 pt-[58px]">
         <HomeReveal variant="up" durationMs={700} amount={0.1}>
           <div className="relative z-20 flex translate-y-5 items-start justify-between overflow-visible">
             <AppLink
@@ -188,36 +188,41 @@ export function HomeMobile({
               </AppLink>
             </div>
 
-            <div className="grid grid-cols-2 gap-x-[14px] gap-y-[30px]">
+            <div className="grid grid-cols-2 gap-x-[14px] gap-y-[52px]">
               {products.slice(0, 4).map((product, index) => (
-                <HomeReveal
+                <div
                   key={product.id}
-                  variant="scale"
-                  delayMs={index * 70}
-                  durationMs={650}
+                  className="relative"
+                  style={{ zIndex: Math.max(1, 10 - index) }}
                 >
-                  <HomeMobileProductCard
-                    href={product.href}
-                    title={product.title}
-                    priceFormatted={product.priceFormatted}
-                    compareAtFormatted={product.compareAtFormatted}
-                    discountPercent={product.discountPercent}
-                    imageUrl={product.imageUrl}
-                    inStock={product.inStock}
-                    priority={index < 2}
-                    locale={locale}
-                    productId={product.id}
-                    inWishlist={product.inWishlist ?? false}
-                    isSignedIn={isSignedIn}
-                    wishlistLabel={wishlistLabel}
-                    addToCartLabel={addToCartLabel}
-                    outOfStockLabel={outOfStockLabel}
-                    categoryLabel={product.categoryLabel}
-                    rating={product.rating}
-                    isSpicy={product.isSpicy}
-                    isVegetarian={product.isVegetarian}
-                  />
-                </HomeReveal>
+                  <HomeReveal
+                    variant="scale"
+                    delayMs={index * 70}
+                    durationMs={650}
+                  >
+                    <HomeMobileProductCard
+                      href={product.href}
+                      title={product.title}
+                      priceFormatted={product.priceFormatted}
+                      compareAtFormatted={product.compareAtFormatted}
+                      discountPercent={product.discountPercent}
+                      imageUrl={product.imageUrl}
+                      inStock={product.inStock}
+                      priority={index < 2}
+                      locale={locale}
+                      productId={product.id}
+                      inWishlist={product.inWishlist ?? false}
+                      isSignedIn={isSignedIn}
+                      wishlistLabel={wishlistLabel}
+                      addToCartLabel={addToCartLabel}
+                      outOfStockLabel={outOfStockLabel}
+                      categoryLabel={product.categoryLabel}
+                      rating={product.rating}
+                      isSpicy={product.isSpicy}
+                      isVegetarian={product.isVegetarian}
+                    />
+                  </HomeReveal>
+                </div>
               ))}
             </div>
           </div>
