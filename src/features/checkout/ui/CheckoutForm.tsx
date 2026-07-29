@@ -14,7 +14,6 @@ import { CheckoutDetailsSections } from "@/features/checkout/ui/CheckoutDetailsS
 import {
   CHECKOUT_EASE,
   checkoutBlock,
-  checkoutPageStagger,
 } from "@/features/checkout/ui/CheckoutMotion";
 import { CheckoutOrderSummary } from "@/features/checkout/ui/CheckoutOrderSummary";
 import { CheckoutProductsInOrder } from "@/features/checkout/ui/CheckoutProductsInOrder";
@@ -367,13 +366,10 @@ export function CheckoutForm({
           className="pointer-events-none absolute top-40 -left-24 h-64 w-64 rounded-full bg-[#3E573D]/10 blur-3xl"
         />
 
-        <motion.div
-          initial={reduceMotion ? false : "hidden"}
-          animate="visible"
-          variants={reduceMotion ? undefined : checkoutPageStagger}
-          className="relative mx-auto max-w-[min(1450px,calc(100%-2rem))] px-4 pt-10 pb-16 md:max-w-[min(1450px,calc(100%-2.5rem))] md:px-6 lg:max-w-[min(1450px,calc(100%-3rem))] lg:pt-14 lg:pb-20"
-        >
+        <div className="relative mx-auto max-w-[min(1450px,calc(100%-2rem))] px-4 pt-10 pb-16 md:max-w-[min(1450px,calc(100%-2.5rem))] md:px-6 lg:max-w-[min(1450px,calc(100%-3rem))] lg:pt-14 lg:pb-20">
           <motion.h1
+            initial={reduceMotion ? false : "hidden"}
+            animate="visible"
             variants={reduceMotion ? undefined : checkoutBlock}
             className="font-display text-4xl leading-none font-black tracking-tight text-brand-headline uppercase md:text-5xl lg:text-[3.75rem]"
           >
@@ -381,6 +377,8 @@ export function CheckoutForm({
           </motion.h1>
 
           <motion.div
+            initial={reduceMotion ? false : "hidden"}
+            animate="visible"
             variants={reduceMotion ? undefined : checkoutBlock}
             className="mt-8 lg:mt-10"
           >
@@ -395,8 +393,10 @@ export function CheckoutForm({
           </motion.div>
 
           <form onSubmit={onSubmit} className="mt-8 lg:mt-10">
-            <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-3 lg:gap-10">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 lg:gap-10">
               <motion.div
+                initial={reduceMotion ? false : "hidden"}
+                animate="visible"
                 variants={reduceMotion ? undefined : checkoutBlock}
                 className="min-w-0 lg:col-span-2"
               >
@@ -421,7 +421,8 @@ export function CheckoutForm({
                 />
               </motion.div>
 
-              <motion.div variants={reduceMotion ? undefined : checkoutBlock}>
+              {/* Tall grid column (default stretch) so sticky has room to travel */}
+              <div className="min-w-0">
                 <CheckoutOrderSummary
                   title={labels.orderSummary}
                   couponTitle={labels.couponTitle}
@@ -450,10 +451,10 @@ export function CheckoutForm({
                   placeOrderLabel={labels.placeOrder}
                   processingLabel={labels.processing}
                 />
-              </motion.div>
+              </div>
             </div>
           </form>
-        </motion.div>
+        </div>
       </div>
     </CheckoutSmoothScroll>
   );

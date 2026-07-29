@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  motion,
-  useReducedMotion,
-  useScroll,
-  useSpring,
-  useTransform,
-} from "motion/react";
-import { useRef } from "react";
+import { motion, useReducedMotion } from "motion/react";
 
 import { CHECKOUT_EASE } from "@/features/checkout/ui/CheckoutMotion";
 
@@ -38,6 +31,7 @@ type CheckoutOrderSummaryProps = {
   processingLabel: string;
 };
 
+/** Sticky order summary — plain sticky wrapper (no ancestor transform/filter). */
 export function CheckoutOrderSummary({
   title,
   couponTitle,
@@ -64,44 +58,13 @@ export function CheckoutOrderSummary({
   placeOrderLabel,
   processingLabel,
 }: CheckoutOrderSummaryProps) {
-  const panelRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
-  const { scrollYProgress } = useScroll({
-    target: panelRef,
-    offset: ["start end", "end start"],
-  });
-  const progress = useSpring(scrollYProgress, {
-    stiffness: 90,
-    damping: 28,
-    mass: 0.45,
-  });
-  const glowY = useTransform(
-    progress,
-    [0, 1],
-    reduceMotion ? ["0%", "0%"] : ["12%", "-18%"],
-  );
-  const panelY = useTransform(
-    progress,
-    [0, 0.5, 1],
-    reduceMotion ? [0, 0, 0] : [18, 0, -14],
-  );
 
   return (
-    <div ref={panelRef} className="lg:sticky lg:top-28">
-      <motion.aside
-        style={{ y: panelY }}
-        initial={
-          reduceMotion
-            ? false
-            : { opacity: 0, x: 36, scale: 0.96, filter: "blur(12px)" }
-        }
-        animate={{ opacity: 1, x: 0, scale: 1, filter: "blur(0px)" }}
-        transition={{ duration: 0.9, ease: CHECKOUT_EASE, delay: 0.2 }}
-        className="relative overflow-hidden rounded-[32px] bg-surface-dark p-6 text-white shadow-[0_22px_60px_rgba(0,0,0,0.28)] will-change-transform sm:p-7"
-      >
-        <motion.div
+    <div className="lg:sticky lg:top-36 lg:self-start">
+      <aside className="relative overflow-hidden rounded-[32px] bg-surface-dark p-6 text-white shadow-[0_22px_60px_rgba(0,0,0,0.28)] sm:p-7">
+        <div
           aria-hidden
-          style={{ y: glowY }}
           className="pointer-events-none absolute -top-16 -right-10 h-40 w-40 rounded-full bg-[#ff7f20]/25 blur-3xl"
         />
         <div
@@ -216,7 +179,7 @@ export function CheckoutOrderSummary({
             {isSubmitting ? processingLabel : placeOrderLabel}
           </motion.button>
         </div>
-      </motion.aside>
+      </aside>
     </div>
   );
 }

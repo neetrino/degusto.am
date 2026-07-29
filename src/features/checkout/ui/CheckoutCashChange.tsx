@@ -33,16 +33,8 @@ const NOTE_SRC: Record<(typeof CASH_CHANGE_OPTIONS)[number], string> = {
   20_000: "/assets/checkout/note-20000.webp",
 };
 
-/** Intrinsic pixel size of each note asset — keeps the button aspect exact (no letterbox gaps). */
-const NOTE_SIZE: Record<
-  (typeof CASH_CHANGE_OPTIONS)[number],
-  { width: number; height: number }
-> = {
-  1000: { width: 605, height: 330 },
-  5000: { width: 599, height: 302 },
-  10_000: { width: 640, height: 312 },
-  20_000: { width: 600, height: 284 },
-};
+/** Shared tile size so all denomination buttons match. */
+const NOTE_ASPECT_RATIO = "2 / 1";
 
 /** Cash change helper — pick the bill you will pay with, or no change. */
 export function CheckoutCashChange({
@@ -68,13 +60,12 @@ export function CheckoutCashChange({
         initial={reduceMotion ? false : "hidden"}
         animate="visible"
         variants={reduceMotion ? undefined : checkoutTileStagger}
-        className="mt-5 grid grid-cols-2 items-start gap-3 sm:grid-cols-4 sm:gap-4"
+        className="mt-5 grid grid-cols-2 items-stretch gap-3 sm:grid-cols-4 sm:gap-4"
         role="radiogroup"
         aria-label={title}
       >
         {CASH_CHANGE_OPTIONS.map((amount) => {
           const selected = value === amount;
-          const size = NOTE_SIZE[amount];
           return (
             <motion.button
               key={amount}
@@ -86,19 +77,19 @@ export function CheckoutCashChange({
               variants={reduceMotion ? undefined : checkoutTileItem}
               whileHover={reduceMotion ? undefined : { y: -4, scale: 1.03 }}
               whileTap={reduceMotion ? undefined : { scale: 0.97 }}
-              className={`relative block w-full self-start overflow-hidden rounded-[18px] border-2 p-0 leading-[0] transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ff7f20] disabled:opacity-60 ${
+              className={`relative block w-full overflow-hidden rounded-[18px] border-2 p-0 leading-[0] transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ff7f20] disabled:opacity-60 ${
                 selected
                   ? "border-[#ff7f20] shadow-[0_0_0_3px_rgba(255,127,32,0.2)]"
                   : "border-[#dedede] hover:border-[#ff7f20]/40"
               }`}
-              style={{ aspectRatio: `${size.width} / ${size.height}` }}
+              style={{ aspectRatio: NOTE_ASPECT_RATIO }}
             >
               <Image
                 src={NOTE_SRC[amount]}
                 alt={`${amount} AMD`}
                 fill
                 sizes="(max-width: 640px) 45vw, 160px"
-                className="object-fill"
+                className="object-cover object-center"
               />
             </motion.button>
           );
