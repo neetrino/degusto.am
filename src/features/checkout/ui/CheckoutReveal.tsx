@@ -3,33 +3,31 @@
 import { motion, useReducedMotion, type Variants } from "motion/react";
 import type { ReactNode } from "react";
 
-import { PRODUCT_EASE } from "@/features/products/ui/ProductDetailMotion";
+import { CHECKOUT_EASE } from "@/features/checkout/ui/CheckoutMotion";
 
-type ProductRevealVariant = "up" | "left" | "right" | "scale";
+type CheckoutRevealVariant = "up" | "left" | "right" | "scale";
 
-type ProductRevealProps = {
+type CheckoutRevealProps = {
   children: ReactNode;
   className?: string;
-  variant?: ProductRevealVariant;
+  variant?: CheckoutRevealVariant;
   delayMs?: number;
   durationMs?: number;
-  once?: boolean;
-  amount?: number;
 };
 
 function buildVariants(
-  variant: ProductRevealVariant,
+  variant: CheckoutRevealVariant,
   durationMs: number,
 ): Variants {
   const duration = durationMs / 1000;
   const hidden =
     variant === "left"
-      ? { opacity: 0, x: -28 }
+      ? { opacity: 0, x: -36, filter: "blur(12px)" }
       : variant === "right"
-        ? { opacity: 0, x: 28 }
+        ? { opacity: 0, x: 36, filter: "blur(12px)" }
         : variant === "scale"
-          ? { opacity: 0, scale: 0.96 }
-          : { opacity: 0, y: 28 };
+          ? { opacity: 0, scale: 0.94, filter: "blur(10px)" }
+          : { opacity: 0, y: 32, filter: "blur(12px)" };
 
   return {
     hidden,
@@ -38,21 +36,23 @@ function buildVariants(
       x: 0,
       y: 0,
       scale: 1,
-      transition: { duration, ease: PRODUCT_EASE },
+      filter: "blur(0px)",
+      transition: { duration, ease: CHECKOUT_EASE },
     },
   };
 }
 
-/** Motion reveal for PDP sections — no lingering filter/transform traps. */
-export function ProductReveal({
+/**
+ * Mount entrance for checkout blocks.
+ * Uses `animate` (not whileInView) to avoid opacity-stuck bugs on remount.
+ */
+export function CheckoutReveal({
   children,
   className = "",
   variant = "up",
   delayMs = 0,
-  durationMs = 850,
-  once = true,
-  amount = 0.18,
-}: ProductRevealProps) {
+  durationMs = 800,
+}: CheckoutRevealProps) {
   const reduceMotion = useReducedMotion();
 
   if (reduceMotion) {
@@ -63,8 +63,7 @@ export function ProductReveal({
     <motion.div
       className={className}
       initial="hidden"
-      whileInView="visible"
-      viewport={{ once, amount, margin: "0px 0px -6% 0px" }}
+      animate="visible"
       variants={buildVariants(variant, durationMs)}
       transition={{ delay: delayMs / 1000 }}
     >

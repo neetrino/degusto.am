@@ -2,11 +2,16 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useState, useTransition } from "react";
 import { X } from "lucide-react";
 
 import type { CheckoutOrderProduct } from "@/features/checkout/ui/checkout-order-product";
 import { removeItem } from "@/features/cart/cart";
+import {
+  checkoutTileItem,
+  checkoutTileStagger,
+} from "@/features/checkout/ui/CheckoutMotion";
 
 type CheckoutProductsInOrderProps = {
   products: CheckoutOrderProduct[];
@@ -37,6 +42,7 @@ export function CheckoutProductsInOrder({
   onCartChanged,
 }: CheckoutProductsInOrderProps) {
   const router = useRouter();
+  const reduceMotion = useReducedMotion();
   const [products, setProducts] = useState(initialProducts);
   const [pending, startTransition] = useTransition();
 
@@ -68,23 +74,38 @@ export function CheckoutProductsInOrder({
 
   return (
     <section
-      className="mb-8 rounded-3xl bg-[#eef3f8] px-5 py-5 sm:px-6"
+      className="relative overflow-hidden rounded-[32px] border border-[#ff7f20]/15 bg-[linear-gradient(135deg,#fff5ed_0%,#ffffff_55%,#f3f7f2_100%)] px-5 py-5 sm:px-6 sm:py-6"
       aria-label={title}
     >
-      <div className="mb-4 flex items-start justify-between gap-4">
-        <h2 className="text-sm font-bold tracking-wide text-gray-900 uppercase">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-10 right-8 h-28 w-28 rounded-full bg-[#ff7f20]/15 blur-2xl"
+      />
+
+      <div className="relative mb-5 flex items-start justify-between gap-4">
+        <h2 className="font-display text-lg font-black tracking-tight text-[#3C2F2F] uppercase sm:text-xl">
           {title}
         </h2>
-        <p className="shrink-0 text-sm text-gray-800">
+        <p className="shrink-0 rounded-full bg-white/80 px-3 py-1 text-sm font-semibold text-[#3C2F2F] ring-1 ring-[#dedede]">
           {formatItemCount(itemCount, itemsOneLabel, itemsManyLabel)}
         </p>
       </div>
 
-      <ul className="flex flex-wrap gap-4">
+      <motion.ul
+        initial={reduceMotion ? false : "hidden"}
+        animate="visible"
+        variants={reduceMotion ? undefined : checkoutTileStagger}
+        className="relative flex flex-wrap gap-4"
+      >
         {products.map((product) => (
-          <li key={product.id} className="w-24 sm:w-28">
+          <motion.li
+            key={product.id}
+            variants={reduceMotion ? undefined : checkoutTileItem}
+            layout
+            className="w-24 sm:w-28"
+          >
             <div className="relative">
-              <div className="relative aspect-square overflow-hidden rounded-2xl bg-white">
+              <div className="relative aspect-square overflow-hidden rounded-[22px] border border-[#dedede] bg-white shadow-[0_8px_24px_rgba(60,47,47,0.06)]">
                 {product.imageUrl ? (
                   <Image
                     src={product.imageUrl}
@@ -94,7 +115,7 @@ export function CheckoutProductsInOrder({
                     className="object-contain p-2"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center text-xs text-gray-400">
+                  <div className="flex h-full w-full items-center justify-center text-xs text-[#a1a1aa]">
                     —
                   </div>
                 )}
@@ -103,18 +124,21 @@ export function CheckoutProductsInOrder({
                 type="button"
                 onClick={() => onRemove(product.id)}
                 disabled={pending}
-                className="absolute -top-1.5 -right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-white text-gray-700 shadow-sm transition-colors hover:text-gray-900 disabled:opacity-60"
+                className="absolute -top-1.5 -right-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#3C2F2F] shadow-md ring-1 ring-[#dedede] transition hover:text-[#ff7f20] disabled:opacity-60"
                 aria-label={removeItemLabel}
               >
                 <X className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
             </div>
-            <p className="mt-2 truncate text-sm text-gray-900" title={product.title}>
+            <p
+              className="mt-2 truncate text-sm font-medium text-[#3C2F2F]"
+              title={product.title}
+            >
               {product.title}
             </p>
-          </li>
+          </motion.li>
         ))}
-      </ul>
+      </motion.ul>
     </section>
   );
 }

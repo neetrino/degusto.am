@@ -84,18 +84,10 @@ function FeaturedCardShell({
     [0, 0.5, 1],
     reduceMotion ? [0, 0, 0] : [28 * direction, 0, -32 * direction],
   );
-  const rotate = useTransform(
-    progress,
-    [0, 1],
-    reduceMotion ? [0, 0] : [-2.5 * direction, 2.5 * direction],
-  );
 
   return (
     <motion.div variants={reduceMotion ? undefined : cardEnterVariants}>
-      <motion.div
-        style={{ y, rotate }}
-        className="w-[236px] shrink-0 will-change-transform"
-      >
+      <motion.div style={{ y }} className="w-[236px] shrink-0 will-change-transform">
         {children}
       </motion.div>
     </motion.div>

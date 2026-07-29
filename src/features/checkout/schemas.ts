@@ -19,6 +19,16 @@ export const checkoutSchema = z
     idempotencyKey: z.string().trim().min(8).max(128),
     locale: z.enum(["hy", "en", "ru"]),
     couponCode: z.string().trim().max(64).optional(),
+    /** Bill the customer will pay with for cash orders; `none` = no change needed. */
+    cashChangePreference: z
+      .union([
+        z.literal("none"),
+        z.literal(1000),
+        z.literal(5000),
+        z.literal(10_000),
+        z.literal(20_000),
+      ])
+      .optional(),
   })
   .superRefine((value, ctx) => {
     if (value.shippingMethod === "delivery") {
@@ -36,6 +46,16 @@ export const checkoutSchema = z
           message: "Address is required for delivery.",
         });
       }
+    }
+    if (
+      value.paymentMethod === "cash_on_delivery" &&
+      value.cashChangePreference == null
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["cashChangePreference"],
+        message: "Cash change preference is required for cash payment.",
+      });
     }
   });
 

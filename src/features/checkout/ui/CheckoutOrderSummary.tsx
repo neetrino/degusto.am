@@ -1,7 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { motion, useReducedMotion } from "motion/react";
+
+import { CHECKOUT_EASE } from "@/features/checkout/ui/CheckoutMotion";
 
 type CheckoutOrderSummaryProps = {
   title: string;
@@ -30,6 +31,7 @@ type CheckoutOrderSummaryProps = {
   processingLabel: string;
 };
 
+/** Sticky order summary — plain sticky wrapper (no ancestor transform/filter). */
 export function CheckoutOrderSummary({
   title,
   couponTitle,
@@ -56,91 +58,128 @@ export function CheckoutOrderSummary({
   placeOrderLabel,
   processingLabel,
 }: CheckoutOrderSummaryProps) {
+  const reduceMotion = useReducedMotion();
+
   return (
-    <div>
-      <Card className="sticky top-4 rounded-2xl border border-gray-200/80 p-6 shadow-none">
-        <h2 className="mb-6 text-xl font-semibold text-gray-900">{title}</h2>
+    <div className="lg:sticky lg:top-36 lg:self-start">
+      <aside className="relative overflow-hidden rounded-[32px] bg-surface-dark p-6 text-white shadow-[0_22px_60px_rgba(0,0,0,0.28)] sm:p-7">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-16 -right-10 h-40 w-40 rounded-full bg-[#ff7f20]/25 blur-3xl"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -bottom-20 -left-12 h-44 w-44 rounded-full bg-[#3E573D]/35 blur-3xl"
+        />
 
-        <div className="mb-6 rounded-xl border border-gray-200 p-4">
-          <p className="mb-3 text-sm text-gray-700">{couponTitle}</p>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              name="couponCodeDraft"
-              value={couponDraft}
-              onChange={(event) => onCouponDraftChange(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  onApplyCoupon();
+        <div className="relative">
+          <h2 className="font-display text-2xl leading-none font-black tracking-tight text-white uppercase">
+            <span className="text-brand-headline">{title}</span>
+          </h2>
+
+          <div className="mt-6 rounded-[24px] border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
+            <p className="mb-3 text-sm text-white/75">{couponTitle}</p>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                name="couponCodeDraft"
+                value={couponDraft}
+                onChange={(event) => onCouponDraftChange(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    onApplyCoupon();
+                  }
+                }}
+                placeholder={couponPlaceholder}
+                autoComplete="off"
+                disabled={isSubmitting || isApplyingCoupon}
+                className="h-11 min-w-0 flex-1 rounded-full border border-white/15 bg-white/10 px-4 text-sm text-white placeholder:text-white/40 outline-none transition focus:border-[#ff7f20] focus:ring-2 focus:ring-[#ff7f20]/25 disabled:opacity-60"
+              />
+              <button
+                type="button"
+                className="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-[#ff7f20] px-4 text-sm font-bold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={
+                  isSubmitting || isApplyingCoupon || !couponDraft.trim()
                 }
-              }}
-              placeholder={couponPlaceholder}
-              autoComplete="off"
-              disabled={isSubmitting || isApplyingCoupon}
-              className="h-11 min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200"
-            />
-            <Button
-              type="button"
-              variant="secondary"
-              size="md"
-              className="h-11 shrink-0 rounded-lg px-4 text-sm"
-              disabled={isSubmitting || isApplyingCoupon || !couponDraft.trim()}
-              onClick={onApplyCoupon}
+                onClick={onApplyCoupon}
+              >
+                {isApplyingCoupon ? couponApplyingLabel : couponApplyLabel}
+              </button>
+            </div>
+            {couponError ? (
+              <p className="mt-2 text-sm text-[#ffb4a8]" role="alert">
+                {couponError}
+              </p>
+            ) : null}
+          </div>
+
+          <div className="mt-6 space-y-3.5 text-sm">
+            <div className="flex justify-between gap-4 text-white/70">
+              <span>{subtotalLabel}</span>
+              <span className="tabular-nums text-white">
+                {subtotalFormatted}
+              </span>
+            </div>
+            {discountFormatted ? (
+              <div className="flex justify-between gap-4 text-white/70">
+                <span>{discountLabel}</span>
+                <span className="tabular-nums text-[#7ddea3]">
+                  -{discountFormatted}
+                </span>
+              </div>
+            ) : null}
+            <div className="flex justify-between gap-4 text-white/70">
+              <span>{shippingLabel}</span>
+              <span className="max-w-[60%] text-right tabular-nums text-white">
+                {shippingFormatted}
+              </span>
+            </div>
+            <div className="flex justify-between gap-4 text-white/70">
+              <span>{taxLabel}</span>
+              <span className="tabular-nums text-white">{taxFormatted}</span>
+            </div>
+            <div className="border-t border-white/10 pt-4">
+              <div className="flex items-baseline justify-between gap-4">
+                <span className="text-base font-semibold text-white">
+                  {totalLabel}
+                </span>
+                <motion.span
+                  key={totalFormatted}
+                  initial={
+                    reduceMotion ? false : { opacity: 0.4, y: 6, scale: 0.96 }
+                  }
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.35, ease: CHECKOUT_EASE }}
+                  className="font-display text-2xl font-black tracking-tight text-brand-headline tabular-nums"
+                >
+                  {totalFormatted}
+                </motion.span>
+              </div>
+            </div>
+          </div>
+
+          {error ? (
+            <motion.div
+              initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 rounded-2xl border border-red-400/30 bg-red-500/10 p-3"
             >
-              {isApplyingCoupon ? couponApplyingLabel : couponApplyLabel}
-            </Button>
-          </div>
-          {couponError ? (
-            <p className="mt-2 text-sm text-red-600" role="alert">
-              {couponError}
-            </p>
+              <p className="text-sm text-[#ffb4a8]">{error}</p>
+            </motion.div>
           ) : null}
+
+          <motion.button
+            type="submit"
+            whileHover={reduceMotion ? undefined : { scale: 1.02 }}
+            whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+            className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-full bg-[#ff7f20] px-6 text-base font-bold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? processingLabel : placeOrderLabel}
+          </motion.button>
         </div>
-
-        <div className="mb-6 space-y-4">
-          <div className="flex justify-between text-gray-600">
-            <span>{subtotalLabel}</span>
-            <span>{subtotalFormatted}</span>
-          </div>
-          {discountFormatted ? (
-            <div className="flex justify-between text-gray-600">
-              <span>{discountLabel}</span>
-              <span className="text-emerald-700">-{discountFormatted}</span>
-            </div>
-          ) : null}
-          <div className="flex justify-between text-gray-600">
-            <span>{shippingLabel}</span>
-            <span className="text-right">{shippingFormatted}</span>
-          </div>
-          <div className="flex justify-between text-gray-600">
-            <span>{taxLabel}</span>
-            <span>{taxFormatted}</span>
-          </div>
-          <div className="border-t border-gray-200 pt-4">
-            <div className="flex justify-between text-lg font-bold text-gray-900">
-              <span>{totalLabel}</span>
-              <span>{totalFormatted}</span>
-            </div>
-          </div>
-        </div>
-
-        {error ? (
-          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3">
-            <p className="text-sm text-red-600">{error}</p>
-          </div>
-        ) : null}
-
-        <Button
-          type="submit"
-          variant="primary"
-          size="lg"
-          className="h-12 w-full"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? processingLabel : placeOrderLabel}
-        </Button>
-      </Card>
+      </aside>
     </div>
   );
 }

@@ -39,7 +39,11 @@
     "idram": "Idram",
     "idramDescription": "Оплата через Idram или картой",
     "arca": "ArCa",
-    "arcaDescription": "Оплата картой ArCa"
+    "arcaDescription": "Оплата картой ArCa",
+    "changeTitle": "Сдача",
+    "changeHint": "Нажмите купюру, которой будете платить, чтобы мы подготовили сдачу.",
+    "changeNone": "Сдача не нужна",
+    "changeRequired": "Выберите купюру или укажите, что сдача не нужна"
   },
   "coupon": {
     "title": "Есть промокод?",

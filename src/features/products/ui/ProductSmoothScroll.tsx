@@ -1,24 +1,15 @@
 "use client";
 
-import { ReactLenis } from "lenis/react";
 import type { ReactNode } from "react";
 
 type ProductSmoothScrollProps = {
   children: ReactNode;
 };
 
-/** Lenis smooth scroll for the product detail experience. */
+/**
+ * PDP uses native document scroll. Lenis + nested horizontal carousels
+ * swallows wheel events and blocks page scroll over related products.
+ */
 export function ProductSmoothScroll({ children }: ProductSmoothScrollProps) {
-  return (
-    <ReactLenis
-      root
-      options={{
-        duration: 1.2,
-        smoothWheel: true,
-        touchMultiplier: 1.4,
-      }}
-    >
-      {children}
-    </ReactLenis>
-  );
+  return <>{children}</>;
 }

@@ -108,7 +108,7 @@ export function CartDrawer({
         onClose={closeDrawer}
         ariaLabel={labels.title}
         panelClassName="w-[87%] max-w-[420px]"
-        zIndexClassName="z-[200]"
+        zIndexClassName="z-[10000]"
         backdropBlur
         closeTone="brand"
       >

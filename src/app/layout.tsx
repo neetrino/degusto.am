@@ -23,7 +23,7 @@ const montserrat = Montserrat({
 const notoArmenian = Noto_Sans_Armenian({
   variable: "--font-noto-arm",
   subsets: ["armenian"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800", "900"],
 });
 
 /** Figma display face — Mirage Expanded by Vahe Tamrazyan (see LICENSE). */

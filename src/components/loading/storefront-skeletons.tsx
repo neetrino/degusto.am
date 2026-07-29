@@ -12,13 +12,20 @@ function Block({ className = "" }: SkeletonProps) {
 
 export function CatalogGridSkeleton() {
   return (
-    <div className={`${pulse} space-y-6`} aria-busy="true" aria-live="polite">
+    <div
+      className={`${pulse} space-y-6 rounded-[24px] bg-white p-4 sm:p-6`}
+      aria-busy="true"
+      aria-live="polite"
+    >
       <Block className="h-9 w-48" />
-      <div className="grid grid-cols-2 gap-6 lg:grid-cols-3 xl:grid-cols-4">
-        <Block className="aspect-[4/3] rounded-lg" />
-        <Block className="aspect-[4/3] rounded-lg" />
-        <Block className="aspect-[4/3] rounded-lg" />
-        <Block className="aspect-[4/3] rounded-lg" />
+      <Block className="h-4 w-72 max-w-full" />
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-3">
+        <Block className="aspect-[3/4] rounded-[20px]" />
+        <Block className="aspect-[3/4] rounded-[20px]" />
+        <Block className="aspect-[3/4] rounded-[20px] max-lg:hidden" />
+        <Block className="aspect-[3/4] rounded-[20px]" />
+        <Block className="aspect-[3/4] rounded-[20px]" />
+        <Block className="aspect-[3/4] rounded-[20px] max-lg:hidden" />
       </div>
     </div>
   );

@@ -25,7 +25,10 @@
     "admin": "Ադմին",
     "createAccount": "Գրանցվել",
     "search": "Որոնել",
-    "searchPlaceholder": "..."
+    "searchPlaceholder": "...",
+    "searchLoading": "Բեռնվում է...",
+    "searchNoResults": "Ապրանքներ չգտնվեցին",
+    "searchSeeAll": "Տեսնել բոլորը"
   },
   "footer": {
     "addressesTitle": "Հասցեներ",

@@ -2,16 +2,22 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { motion, useReducedMotion } from "motion/react";
 import { useMemo, useState, useTransition, type FormEvent } from "react";
 
-import { Card } from "@/components/ui/Card";
 import type { CheckoutOrderProduct } from "@/features/checkout/ui/checkout-order-product";
 import { previewCouponAction } from "@/features/checkout/application/preview-coupon";
 import { createOrderAction } from "@/features/checkout/create-order";
 import type { CheckoutPaymentMethod } from "@/features/checkout/domain/payment-methods";
+import type { CashChangePreference } from "@/features/checkout/ui/CheckoutCashChange";
 import { CheckoutDetailsSections } from "@/features/checkout/ui/CheckoutDetailsSections";
+import {
+  CHECKOUT_EASE,
+  checkoutBlock,
+} from "@/features/checkout/ui/CheckoutMotion";
 import { CheckoutOrderSummary } from "@/features/checkout/ui/CheckoutOrderSummary";
 import { CheckoutProductsInOrder } from "@/features/checkout/ui/CheckoutProductsInOrder";
+import { CheckoutSmoothScroll } from "@/features/checkout/ui/CheckoutSmoothScroll";
 import type { CheckoutDeliveryOption } from "@/features/delivery/application/queries";
 import type { Locale } from "@/lib/i18n/config";
 import { formatMoneyAmount } from "@/lib/money/format";
@@ -51,6 +57,10 @@ type CheckoutLabels = {
   idramDescription: string;
   arca: string;
   arcaDescription: string;
+  changeTitle: string;
+  changeHint: string;
+  changeNone: string;
+  changeRequired: string;
   couponTitle: string;
   couponPlaceholder: string;
   couponApply: string;
@@ -110,6 +120,7 @@ export function CheckoutForm({
   hasItems,
 }: CheckoutFormProps) {
   const router = useRouter();
+  const reduceMotion = useReducedMotion();
   const idempotencyKey = useMemo(() => crypto.randomUUID(), []);
   const defaultRuleId = deliveryOptions[0]?.id ?? "";
   const [shippingMethod, setShippingMethod] = useState<"pickup" | "delivery">(
@@ -118,6 +129,8 @@ export function CheckoutForm({
   const [deliveryRuleId, setDeliveryRuleId] = useState(defaultRuleId);
   const [paymentMethod, setPaymentMethod] =
     useState<CheckoutPaymentMethod>("cash_on_delivery");
+  const [cashChangePreference, setCashChangePreference] =
+    useState<CashChangePreference>(null);
   const [error, setError] = useState<string | null>(null);
   const [couponDraft, setCouponDraft] = useState("");
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(
@@ -179,6 +192,13 @@ export function CheckoutForm({
         ? `${formatMoney(shippingAmount)} (${selectedDelivery.label})`
         : labels.selectDeliveryLocation;
 
+  function onPaymentMethodChange(method: CheckoutPaymentMethod): void {
+    setPaymentMethod(method);
+    if (method !== "cash_on_delivery") {
+      setCashChangePreference(null);
+    }
+  }
+
   function clearAppliedCoupon(): void {
     setAppliedCouponCode(null);
     setDiscountAmount(0);
@@ -216,18 +236,46 @@ export function CheckoutForm({
 
   if (!hasItems) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <h1 className="mb-8 text-3xl font-bold text-gray-900">{labels.title}</h1>
-        <Card className="rounded-2xl border border-gray-200/80 p-6 text-center shadow-none">
-          <p className="mb-4 text-gray-600">{labels.cartEmpty}</p>
-          <Link
-            href={productsHref}
-            className="inline-flex h-11 items-center justify-center rounded-xl bg-gray-900 px-4 text-sm font-medium text-white hover:bg-gray-800"
-          >
-            {labels.continueShopping}
-          </Link>
-        </Card>
-      </div>
+      <CheckoutSmoothScroll>
+        <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen bg-[linear-gradient(180deg,#fff8f2_0%,#ffffff_42%,#ffffff_100%)]">
+          <div className="mx-auto max-w-[min(1450px,calc(100%-2rem))] px-4 py-16 md:max-w-[min(1450px,calc(100%-2.5rem))] md:px-6 lg:max-w-[min(1450px,calc(100%-3rem))] lg:py-20">
+            <motion.h1
+              initial={
+                reduceMotion
+                  ? false
+                  : { opacity: 0, y: 28, filter: "blur(12px)" }
+              }
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              transition={{ duration: 0.9, ease: CHECKOUT_EASE }}
+              className="font-display text-4xl leading-none font-black tracking-tight text-brand-headline uppercase md:text-5xl lg:text-[3.75rem]"
+            >
+              {labels.title}
+            </motion.h1>
+            <motion.div
+              initial={
+                reduceMotion
+                  ? false
+                  : { opacity: 0, y: 32, scale: 0.96 }
+              }
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{
+                duration: 0.75,
+                ease: CHECKOUT_EASE,
+                delay: 0.15,
+              }}
+              className="mt-10 max-w-xl rounded-[32px] border border-[#dedede] bg-white p-8 text-center shadow-[0_18px_50px_rgba(60,47,47,0.06)] sm:p-10"
+            >
+              <p className="text-base text-[#5F6B66]">{labels.cartEmpty}</p>
+              <Link
+                href={productsHref}
+                className="mt-6 inline-flex h-12 items-center justify-center rounded-full bg-[#ff7f20] px-7 text-base font-bold text-white transition hover:brightness-95"
+              >
+                {labels.continueShopping}
+              </Link>
+            </motion.div>
+          </div>
+        </div>
+      </CheckoutSmoothScroll>
     );
   }
 
@@ -235,6 +283,14 @@ export function CheckoutForm({
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     setError(null);
+
+    if (
+      paymentMethod === "cash_on_delivery" &&
+      cashChangePreference == null
+    ) {
+      setError(labels.changeRequired);
+      return;
+    }
 
     startTransition(async () => {
       const result = await createOrderAction({
@@ -246,6 +302,10 @@ export function CheckoutForm({
         contactPhone: String(data.get("contactPhone") ?? ""),
         shippingMethod,
         paymentMethod,
+        cashChangePreference:
+          paymentMethod === "cash_on_delivery"
+            ? (cashChangePreference ?? undefined)
+            : undefined,
         deliveryRuleId:
           shippingMethod === "delivery" ? deliveryRuleId || undefined : undefined,
         city:
@@ -270,68 +330,132 @@ export function CheckoutForm({
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      <h1 className="mb-8 text-3xl font-bold text-gray-900">{labels.title}</h1>
+    <CheckoutSmoothScroll>
+      <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen bg-[linear-gradient(180deg,#fff8f2_0%,#ffffff_38%,#ffffff_100%)]">
+        <motion.div
+          aria-hidden
+          animate={
+            reduceMotion
+              ? undefined
+              : { scale: [1, 1.08, 1], opacity: [0.55, 0.85, 0.55] }
+          }
+          transition={
+            reduceMotion
+              ? undefined
+              : { duration: 10, repeat: Infinity, ease: "easeInOut" }
+          }
+          className="pointer-events-none absolute -top-24 -right-20 h-72 w-72 rounded-full bg-[#ff7f20]/10 blur-3xl"
+        />
+        <motion.div
+          aria-hidden
+          animate={
+            reduceMotion
+              ? undefined
+              : { scale: [1, 1.12, 1], opacity: [0.4, 0.7, 0.4] }
+          }
+          transition={
+            reduceMotion
+              ? undefined
+              : {
+                  duration: 12,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: 1.2,
+                }
+          }
+          className="pointer-events-none absolute top-40 -left-24 h-64 w-64 rounded-full bg-[#3E573D]/10 blur-3xl"
+        />
 
-      <CheckoutProductsInOrder
-        products={orderProducts}
-        title={labels.productsInOrder}
-        itemsOneLabel={labels.itemsOne}
-        itemsManyLabel={labels.itemsMany}
-        removeItemLabel={labels.removeItem}
-        onCartChanged={clearAppliedCoupon}
-      />
+        <div className="relative mx-auto max-w-[min(1450px,calc(100%-2rem))] px-4 pt-10 pb-16 md:max-w-[min(1450px,calc(100%-2.5rem))] md:px-6 lg:max-w-[min(1450px,calc(100%-3rem))] lg:pt-14 lg:pb-20">
+          <motion.h1
+            initial={reduceMotion ? false : "hidden"}
+            animate="visible"
+            variants={reduceMotion ? undefined : checkoutBlock}
+            className="font-display text-4xl leading-none font-black tracking-tight text-brand-headline uppercase md:text-5xl lg:text-[3.75rem]"
+          >
+            {labels.title}
+          </motion.h1>
 
-      <form onSubmit={onSubmit}>
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-          <CheckoutDetailsSections
-            labels={labels}
-            pending={pending}
-            shippingMethod={shippingMethod}
-            onShippingMethodChange={setShippingMethod}
-            deliveryOptions={deliveryOptions}
-            deliveryRuleId={deliveryRuleId}
-            onDeliveryRuleChange={setDeliveryRuleId}
-            paymentMethod={paymentMethod}
-            onPaymentMethodChange={setPaymentMethod}
-            paymentOptions={paymentOptions}
-            defaultFirstName={defaultFirstName}
-            defaultLastName={defaultLastName}
-            defaultEmail={defaultEmail}
-            defaultPhone={defaultPhone}
-            defaultLine1={defaultLine1}
-          />
+          <motion.div
+            initial={reduceMotion ? false : "hidden"}
+            animate="visible"
+            variants={reduceMotion ? undefined : checkoutBlock}
+            className="mt-8 lg:mt-10"
+          >
+            <CheckoutProductsInOrder
+              products={orderProducts}
+              title={labels.productsInOrder}
+              itemsOneLabel={labels.itemsOne}
+              itemsManyLabel={labels.itemsMany}
+              removeItemLabel={labels.removeItem}
+              onCartChanged={clearAppliedCoupon}
+            />
+          </motion.div>
 
-          <CheckoutOrderSummary
-            title={labels.orderSummary}
-            couponTitle={labels.couponTitle}
-            couponPlaceholder={labels.couponPlaceholder}
-            couponApplyLabel={labels.couponApply}
-            couponApplyingLabel={labels.couponApplying}
-            discountLabel={labels.discount}
-            subtotalLabel={labels.subtotal}
-            shippingLabel={labels.shipping}
-            taxLabel={labels.tax}
-            totalLabel={labels.total}
-            subtotalFormatted={formatMoney(subtotalAmount)}
-            shippingFormatted={shippingFormatted}
-            taxFormatted={formatMoney(0)}
-            discountFormatted={
-              discountAmount > 0 ? formatMoney(discountAmount) : null
-            }
-            totalFormatted={formatMoney(totalAmount)}
-            couponDraft={couponDraft}
-            onCouponDraftChange={onCouponDraftChange}
-            onApplyCoupon={onApplyCoupon}
-            couponError={couponError}
-            isApplyingCoupon={applyingCoupon}
-            error={error}
-            isSubmitting={pending}
-            placeOrderLabel={labels.placeOrder}
-            processingLabel={labels.processing}
-          />
+          <form onSubmit={onSubmit} className="mt-8 lg:mt-10">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 lg:gap-10">
+              <motion.div
+                initial={reduceMotion ? false : "hidden"}
+                animate="visible"
+                variants={reduceMotion ? undefined : checkoutBlock}
+                className="min-w-0 lg:col-span-2"
+              >
+                <CheckoutDetailsSections
+                  labels={labels}
+                  pending={pending}
+                  shippingMethod={shippingMethod}
+                  onShippingMethodChange={setShippingMethod}
+                  deliveryOptions={deliveryOptions}
+                  deliveryRuleId={deliveryRuleId}
+                  onDeliveryRuleChange={setDeliveryRuleId}
+                  paymentMethod={paymentMethod}
+                  onPaymentMethodChange={onPaymentMethodChange}
+                  paymentOptions={paymentOptions}
+                  cashChangePreference={cashChangePreference}
+                  onCashChangePreferenceChange={setCashChangePreference}
+                  defaultFirstName={defaultFirstName}
+                  defaultLastName={defaultLastName}
+                  defaultEmail={defaultEmail}
+                  defaultPhone={defaultPhone}
+                  defaultLine1={defaultLine1}
+                />
+              </motion.div>
+
+              {/* Tall grid column (default stretch) so sticky has room to travel */}
+              <div className="min-w-0">
+                <CheckoutOrderSummary
+                  title={labels.orderSummary}
+                  couponTitle={labels.couponTitle}
+                  couponPlaceholder={labels.couponPlaceholder}
+                  couponApplyLabel={labels.couponApply}
+                  couponApplyingLabel={labels.couponApplying}
+                  discountLabel={labels.discount}
+                  subtotalLabel={labels.subtotal}
+                  shippingLabel={labels.shipping}
+                  taxLabel={labels.tax}
+                  totalLabel={labels.total}
+                  subtotalFormatted={formatMoney(subtotalAmount)}
+                  shippingFormatted={shippingFormatted}
+                  taxFormatted={formatMoney(0)}
+                  discountFormatted={
+                    discountAmount > 0 ? formatMoney(discountAmount) : null
+                  }
+                  totalFormatted={formatMoney(totalAmount)}
+                  couponDraft={couponDraft}
+                  onCouponDraftChange={onCouponDraftChange}
+                  onApplyCoupon={onApplyCoupon}
+                  couponError={couponError}
+                  isApplyingCoupon={applyingCoupon}
+                  error={error}
+                  isSubmitting={pending}
+                  placeOrderLabel={labels.placeOrder}
+                  processingLabel={labels.processing}
+                />
+              </div>
+            </div>
+          </form>
         </div>
-      </form>
-    </div>
+      </div>
+    </CheckoutSmoothScroll>
   );
 }

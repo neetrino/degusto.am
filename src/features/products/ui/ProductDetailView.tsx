@@ -38,7 +38,7 @@ type ProductDetailViewProps = {
   mobileChrome: MobileChromeProps;
 };
 
-/** Storefront PDP — Degusto product detail with Motion + Lenis. */
+/** Storefront PDP — Degusto product detail with Motion. */
 export function ProductDetailView({
   locale,
   product,

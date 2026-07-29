@@ -16,13 +16,11 @@ type SiteHeaderProps = {
   dictionary: Dictionary;
 };
 
-function HeaderControlsFallback({ brand }: { brand: string }) {
+function HeaderControlsFallback() {
   return (
     <header className="pointer-events-auto relative z-40 px-3 pt-4 sm:px-6 md:px-8 md:pt-6">
       <div className="mx-auto flex h-16 max-w-[1374px] items-center justify-between rounded-full bg-black px-5 sm:h-20">
-        <span className="text-lg font-semibold tracking-tight text-brand">
-          {brand}
-        </span>
+        <div className="h-8 w-28" aria-hidden="true" />
         <div
           className="h-10 w-28 animate-pulse rounded-full bg-white/10"
           aria-hidden="true"
@@ -78,7 +76,7 @@ export function SiteHeader({ locale, currency, dictionary }: SiteHeaderProps) {
   return (
     <SiteHeaderShell locale={locale}>
       <Suspense
-        fallback={<HeaderControlsFallback brand={dictionary.brand} />}
+        fallback={<HeaderControlsFallback />}
       >
         <SiteHeaderMainNavAsync
           locale={locale}

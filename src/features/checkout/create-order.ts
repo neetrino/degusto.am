@@ -410,6 +410,11 @@ export async function createOrderAction(
         currency: defaultCurrency,
         status: "PENDING",
         attemptNumber: 1,
+        metadata:
+          input.paymentMethod === "cash_on_delivery" &&
+          input.cashChangePreference != null
+            ? { cashChangePreference: input.cashChangePreference }
+            : undefined,
       });
 
       await tx.insert(orderEvents).values({
@@ -420,7 +425,13 @@ export async function createOrderAction(
         toState: "PENDING",
         actorUserId: user?.id,
         isCustomerVisible: true,
-        payload: { source: "checkout" },
+        payload: {
+          source: "checkout",
+          ...(input.paymentMethod === "cash_on_delivery" &&
+          input.cashChangePreference != null
+            ? { cashChangePreference: input.cashChangePreference }
+            : {}),
+        },
       });
 
       await tx.delete(cartItems).where(eq(cartItems.cartId, cart.id));

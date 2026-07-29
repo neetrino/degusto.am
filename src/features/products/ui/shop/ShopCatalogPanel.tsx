@@ -1,16 +1,12 @@
 "use client";
 
-import { Suspense, useRef } from "react";
-import {
-  motion,
-  useReducedMotion,
-  useScroll,
-  useSpring,
-  useTransform,
-} from "motion/react";
+import { Suspense } from "react";
+import { motion, useReducedMotion } from "motion/react";
 
 import { AppLink } from "@/components/ui/AppLink";
+import { useCatalogNav } from "@/features/products/ui/shop/CatalogNavContext";
 import { ShopCatalogFilters } from "@/features/products/ui/shop/ShopCatalogFilters";
+import { ShopCatalogLoadingState } from "@/features/products/ui/shop/ShopCatalogLoadingState";
 import { ShopCatalogProductGrids } from "@/features/products/ui/shop/ShopCatalogProductGrids";
 import { ShopEmptyState } from "@/features/products/ui/shop/ShopEmptyState";
 import { ShopPagination } from "@/features/products/ui/shop/ShopPagination";
@@ -53,8 +49,12 @@ type ShopCatalogPanelProps = {
   filterKey: string;
   emptyTitle: string;
   emptyDescription: string;
+  emptySearchTitle: string;
+  emptySearchDescription: string;
   emptyCtaLabel: string;
   emptyCtaHref: string;
+  loadingLabel: string;
+  searchQuery: string;
   products: readonly CatalogCard[];
   wishlistLabel: string;
   addToCartLabel: string;
@@ -75,7 +75,7 @@ type ShopCatalogPanelProps = {
 };
 
 /**
- * Shared shop catalog body — Motion title/filters/grid + scroll float.
+ * Shared shop catalog body — Motion title/filters/grid.
  * Mobile uses compact home tiles to match live degusto-am category menu.
  */
 export function ShopCatalogPanel({
@@ -98,8 +98,12 @@ export function ShopCatalogPanel({
   filterKey,
   emptyTitle,
   emptyDescription,
+  emptySearchTitle,
+  emptySearchDescription,
   emptyCtaLabel,
   emptyCtaHref,
+  loadingLabel,
+  searchQuery,
   products,
   wishlistLabel,
   addToCartLabel,
@@ -118,8 +122,14 @@ export function ShopCatalogPanel({
   paginationQuery,
   paginationDiet,
 }: ShopCatalogPanelProps) {
-  const panelRef = useRef<HTMLElement>(null);
   const reduceMotion = useReducedMotion();
+  const catalogNav = useCatalogNav();
+  const isPending = catalogNav?.isPending ?? false;
+  const trimmedQuery = searchQuery.trim();
+  const emptyStateTitle = trimmedQuery ? emptySearchTitle : emptyTitle;
+  const emptyStateDescription = trimmedQuery
+    ? emptySearchDescription.replace("{query}", trimmedQuery)
+    : emptyDescription;
 
   function buildPageHref(nextPage: number): string {
     return buildCatalogHref(paginationLocale, {
@@ -132,36 +142,13 @@ export function ShopCatalogPanel({
     });
   }
 
-  const { scrollYProgress } = useScroll({
-    target: panelRef,
-    offset: ["start end", "end start"],
-  });
-  const panelProgress = useSpring(scrollYProgress, {
-    stiffness: 85,
-    damping: 28,
-    mass: 0.45,
-  });
-  const headerY = useTransform(
-    panelProgress,
-    [0, 1],
-    reduceMotion ? ["0%", "0%"] : ["6%", "-4%"],
-  );
-
   return (
-    <section ref={panelRef} className="relative min-w-0 flex-1 overflow-hidden">
-      <motion.div
-        style={{ y: headerY }}
-        className="relative mb-[42px] mt-2 flex flex-col gap-6 xl:mt-0 xl:flex-row xl:items-start xl:justify-between lg:mt-0"
-      >
+    <section className="relative min-w-0 flex-1">
+      <div className="relative mb-[42px] mt-2 flex flex-col gap-6 xl:mt-0 xl:flex-row xl:items-start xl:justify-between lg:mt-0">
         <motion.div
-          initial={
-            reduceMotion
-              ? false
-              : { opacity: 0, y: 36, filter: "blur(12px)" }
-          }
-          whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          viewport={{ once: true, amount: 0.45 }}
-          transition={{ duration: 0.85, ease: SHOP_EASE }}
+          initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, ease: SHOP_EASE }}
           className="min-w-0 max-w-xl"
         >
           <h1 className="text-[32px] leading-tight font-bold text-brand-headline lg:text-4xl xl:text-[60px] xl:leading-[51px]">
@@ -182,14 +169,16 @@ export function ShopCatalogPanel({
         </motion.div>
 
         <motion.div
-          initial={reduceMotion ? false : { opacity: 0, x: 28, y: 12 }}
-          whileInView={{ opacity: 1, x: 0, y: 0 }}
-          viewport={{ once: true, amount: 0.35 }}
-          transition={{ duration: 0.7, ease: SHOP_EASE, delay: 0.12 }}
+          initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: SHOP_EASE, delay: 0.06 }}
         >
           <Suspense
             fallback={
-              <div className="flex h-[83px] flex-wrap items-center gap-2 xl:pt-[37px]" />
+              <div
+                className="flex h-[83px] flex-wrap items-center gap-2 xl:pt-[37px]"
+                aria-busy="true"
+              />
             }
           >
             <ShopCatalogFilters
@@ -207,25 +196,27 @@ export function ShopCatalogPanel({
             />
           </Suspense>
         </motion.div>
-      </motion.div>
+      </div>
 
-      {products.length === 0 ? (
+      {isPending ? (
+        <ShopCatalogLoadingState label={loadingLabel} />
+      ) : products.length === 0 ? (
         <motion.div
-          key={`empty-${filterKey}-${currentPage}`}
-          initial={reduceMotion ? false : { opacity: 0, y: 24 }}
+          key={`empty-${filterKey}-${currentPage}-${trimmedQuery}`}
+          initial={reduceMotion ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.65, ease: SHOP_EASE }}
+          transition={{ duration: 0.45, ease: SHOP_EASE }}
         >
           <ShopEmptyState
-            title={emptyTitle}
-            description={emptyDescription}
+            title={emptyStateTitle}
+            description={emptyStateDescription}
             ctaLabel={emptyCtaLabel}
             ctaHref={emptyCtaHref}
           />
         </motion.div>
       ) : (
         <ShopCatalogProductGrids
-          key={`${filterKey}-${currentPage}-${paginationCategory ?? "all"}-${products[0]?.id ?? "none"}`}
+          key={`${filterKey}-${currentPage}-${paginationCategory ?? "all"}-${paginationQuery ?? ""}-${products[0]?.id ?? "none"}`}
           locale={locale}
           products={products}
           wishlistLabel={wishlistLabel}
@@ -236,20 +227,22 @@ export function ShopCatalogPanel({
         />
       )}
 
-      <motion.div
-        initial={reduceMotion ? false : { opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: SHOP_EASE, delay: 0.1 }}
-      >
-        <ShopPagination
-          ariaLabel={paginationLabel}
-          previousLabel={previousLabel}
-          nextLabel={nextLabel}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          buildHref={buildPageHref}
-        />
-      </motion.div>
+      {!isPending && products.length > 0 ? (
+        <motion.div
+          initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: SHOP_EASE, delay: 0.08 }}
+        >
+          <ShopPagination
+            ariaLabel={paginationLabel}
+            previousLabel={previousLabel}
+            nextLabel={nextLabel}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            buildHref={buildPageHref}
+          />
+        </motion.div>
+      ) : null}
     </section>
   );
 }

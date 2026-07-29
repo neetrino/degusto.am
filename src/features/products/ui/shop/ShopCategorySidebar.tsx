@@ -1,9 +1,12 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useState, type FormEvent } from "react";
 import { motion, useReducedMotion, type Variants } from "motion/react";
 
 import { AppLink } from "@/components/ui/AppLink";
+import { useCatalogNavigation } from "@/features/products/ui/shop/CatalogNavContext";
 
 export type ShopCategoryItem = {
   id: string;
@@ -53,7 +56,7 @@ function isCategoryActive(selectedSlug: string, categorySlug: string): boolean {
   return isComboSlug(selectedSlug) && isComboSlug(categorySlug);
 }
 
-/** Desktop sticky category sidebar — Motion slide-in + staggered links. */
+/** Desktop sticky category sidebar — search + staggered category links. */
 export function ShopCategorySidebar({
   title,
   allLabel,
@@ -64,29 +67,38 @@ export function ShopCategorySidebar({
   searchAction,
   searchQuery,
 }: ShopCategorySidebarProps) {
+  const router = useRouter();
   const reduceMotion = useReducedMotion();
+  const { isPending, startCatalogTransition } = useCatalogNavigation();
+  const [query, setQuery] = useState(searchQuery);
   const isAll = selectedSlug === "all" || selectedSlug === "";
 
+  function handleSearchSubmit(event: FormEvent<HTMLFormElement>): void {
+    event.preventDefault();
+    const trimmed = query.trim();
+    const params = new URLSearchParams();
+    if (trimmed) {
+      params.set("q", trimmed);
+    }
+    if (selectedSlug && selectedSlug !== "all") {
+      params.set("category", selectedSlug);
+    } else {
+      params.set("category", "all");
+    }
+    const href = params.size > 0 ? `${searchAction}?${params.toString()}` : searchAction;
+    startCatalogTransition(() => {
+      router.push(href);
+    });
+  }
+
   return (
-    <motion.aside
-      initial={reduceMotion ? false : { opacity: 0, x: -36, filter: "blur(10px)" }}
-      whileInView={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-      viewport={{ once: true, amount: 0.25 }}
-      transition={{ duration: 0.8, ease: EASE }}
-      className="sticky top-[104px] hidden h-[calc(100vh-120px)] w-[min(100%,240px)] shrink-0 flex-col overflow-hidden rounded-[20px] bg-black pb-5 text-white lg:flex lg:w-[240px] xl:w-[280px] 2xl:w-[320px]"
-    >
-      <motion.form
-        action={searchAction}
-        method="get"
-        initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.55, ease: EASE, delay: 0.1 }}
+    <aside className="sticky top-[104px] hidden h-[calc(100vh-120px)] w-[min(100%,240px)] shrink-0 flex-col overflow-hidden rounded-[20px] bg-black pb-5 text-white lg:flex lg:w-[240px] xl:w-[280px] 2xl:w-[320px]">
+      <form
+        onSubmit={handleSearchSubmit}
+        role="search"
+        aria-busy={isPending}
         className="mx-4 mt-5 flex h-12 items-center rounded-[30px] bg-[#f3f3f5]"
       >
-        {selectedSlug && selectedSlug !== "all" ? (
-          <input type="hidden" name="category" value={selectedSlug} />
-        ) : null}
         <label className="sr-only" htmlFor="shop-sidebar-search">
           {searchPlaceholder}
         </label>
@@ -94,13 +106,16 @@ export function ShopCategorySidebar({
           id="shop-sidebar-search"
           name="q"
           type="search"
-          defaultValue={searchQuery}
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
           placeholder={searchPlaceholder}
-          className="h-full min-w-0 flex-1 bg-transparent pr-2 pl-[14px] text-base leading-6 text-[#252525] outline-none placeholder:text-[rgba(105,105,105,0.56)]"
+          disabled={isPending}
+          className="h-full min-w-0 flex-1 bg-transparent pr-2 pl-[14px] text-base leading-6 text-[#252525] outline-none placeholder:text-[rgba(105,105,105,0.56)] disabled:opacity-70"
         />
         <button
           type="submit"
-          className="mr-1 inline-flex size-10 shrink-0 items-center justify-center rounded-full text-[#717182]"
+          disabled={isPending}
+          className="mr-1 inline-flex size-10 shrink-0 items-center justify-center rounded-full text-[#717182] disabled:opacity-70"
           aria-label={searchPlaceholder}
         >
           <svg
@@ -125,7 +140,7 @@ export function ShopCategorySidebar({
             />
           </svg>
         </button>
-      </motion.form>
+      </form>
 
       <p className="px-6 pt-5 pb-3 text-[14px] font-medium tracking-[0.2px] text-[#717182] uppercase">
         {title}
@@ -133,9 +148,8 @@ export function ShopCategorySidebar({
 
       <motion.nav
         aria-label={title}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
+        initial={reduceMotion ? false : "hidden"}
+        animate="visible"
         variants={reduceMotion ? undefined : listVariants}
         className="min-h-0 flex-1 space-y-1 overflow-y-auto px-4 pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
@@ -161,7 +175,7 @@ export function ShopCategorySidebar({
           </motion.div>
         ))}
       </motion.nav>
-    </motion.aside>
+    </aside>
   );
 }
 

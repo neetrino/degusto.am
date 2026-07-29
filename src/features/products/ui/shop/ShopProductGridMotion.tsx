@@ -1,92 +1,48 @@
 "use client";
 
-import {
-  motion,
-  useReducedMotion,
-  useScroll,
-  useSpring,
-  useTransform,
-  type MotionValue,
-  type Variants,
-} from "motion/react";
-import { useRef, type ReactNode, type RefObject } from "react";
+import { motion, type Variants } from "motion/react";
+import type { ReactNode } from "react";
 
 export const SHOP_EASE = [0.22, 1, 0.36, 1] as const;
 
 export const shopGridVariants: Variants = {
   hidden: {},
   visible: {
-    transition: { staggerChildren: 0.07, delayChildren: 0.08 },
+    transition: { staggerChildren: 0.05, delayChildren: 0.04 },
   },
 };
 
 const cardEnterVariants: Variants = {
   hidden: {
     opacity: 0,
-    y: 48,
-    scale: 0.92,
-    filter: "blur(10px)",
+    y: 20,
   },
   visible: {
     opacity: 1,
     y: 0,
-    scale: 1,
-    filter: "blur(0px)",
-    transition: { type: "spring", stiffness: 100, damping: 16 },
+    transition: { duration: 0.35, ease: SHOP_EASE },
   },
 };
 
 type ShopProductCardShellProps = {
   children: ReactNode;
   index: number;
-  progress: MotionValue<number>;
   reduceMotion: boolean | null;
 };
 
-/** Entrance once; continuous scroll float without remounting. */
+/** Simple entrance only — no scroll float / filter (those hid cards after search). */
 export function ShopProductCardShell({
   children,
   index,
-  progress,
   reduceMotion,
 }: ShopProductCardShellProps) {
-  const direction = index % 2 === 0 ? 1 : -1;
-  const y = useTransform(
-    progress,
-    [0, 0.5, 1],
-    reduceMotion ? [0, 0, 0] : [22 * direction, 0, -26 * direction],
-  );
-
   return (
     <motion.div
       variants={reduceMotion ? undefined : cardEnterVariants}
       className="relative"
-      style={{ zIndex: 1000 - index }}
+      custom={index}
     >
-      <motion.div style={{ y }} className="relative h-full will-change-transform">
-        {children}
-      </motion.div>
+      {children}
     </motion.div>
   );
-}
-
-/** Shared scroll progress for shop product grids. */
-export function useShopGridScroll(): [
-  RefObject<HTMLDivElement | null>,
-  MotionValue<number>,
-  boolean | null,
-] {
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const reduceMotion = useReducedMotion();
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start end", "end start"],
-  });
-  const progress = useSpring(scrollYProgress, {
-    stiffness: 90,
-    damping: 28,
-    mass: 0.45,
-  });
-
-  return [sectionRef, progress, reduceMotion];
 }

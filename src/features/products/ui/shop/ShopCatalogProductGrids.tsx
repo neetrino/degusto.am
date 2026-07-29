@@ -1,13 +1,12 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 
 import { HomeMobileProductCard } from "@/features/home/ui/HomeMobileProductCard";
 import { CatalogProductCard } from "@/features/products/ui/shop/CatalogProductCard";
 import {
   ShopProductCardShell,
   shopGridVariants,
-  useShopGridScroll,
 } from "@/features/products/ui/shop/ShopProductGridMotion";
 import type { Locale } from "@/lib/i18n/config";
 
@@ -46,26 +45,21 @@ export function ShopCatalogProductGrids({
   rating,
   isSignedIn,
 }: ShopCatalogProductGridsProps) {
-  const [mobileSectionRef, mobileProgress, mobileReduceMotion] =
-    useShopGridScroll();
-  const [desktopSectionRef, desktopProgress, desktopReduceMotion] =
-    useShopGridScroll();
+  const reduceMotion = useReducedMotion();
 
   return (
     <>
       <motion.div
-        ref={mobileSectionRef}
-        initial={mobileReduceMotion ? false : "hidden"}
+        initial={reduceMotion ? false : "hidden"}
         animate="visible"
-        variants={mobileReduceMotion ? undefined : shopGridVariants}
+        variants={reduceMotion ? undefined : shopGridVariants}
         className="mt-8 grid min-w-0 grid-cols-2 gap-x-[14px] gap-y-[52px] lg:hidden"
       >
         {products.map((product, index) => (
           <ShopProductCardShell
             key={product.id}
             index={index}
-            progress={mobileProgress}
-            reduceMotion={mobileReduceMotion}
+            reduceMotion={reduceMotion}
           >
             <HomeMobileProductCard
               href={product.href}
@@ -93,18 +87,16 @@ export function ShopCatalogProductGrids({
       </motion.div>
 
       <motion.div
-        ref={desktopSectionRef}
-        initial={desktopReduceMotion ? false : "hidden"}
+        initial={reduceMotion ? false : "hidden"}
         animate="visible"
-        variants={desktopReduceMotion ? undefined : shopGridVariants}
+        variants={reduceMotion ? undefined : shopGridVariants}
         className="hidden min-w-0 grid-cols-2 gap-x-4 gap-y-12 lg:grid xl:grid-cols-3 xl:gap-x-[30px] xl:gap-y-14"
       >
         {products.map((product, index) => (
           <ShopProductCardShell
             key={product.id}
             index={index}
-            progress={desktopProgress}
-            reduceMotion={desktopReduceMotion}
+            reduceMotion={reduceMotion}
           >
             <CatalogProductCard
               href={product.href}
