@@ -332,7 +332,7 @@ export function CheckoutForm({
 
   return (
     <CheckoutSmoothScroll>
-      <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen bg-[linear-gradient(180deg,#fff8f2_0%,#ffffff_38%,#ffffff_100%)]">
+      <div className="relative w-full">
         <motion.div
           aria-hidden
           animate={
@@ -367,7 +367,7 @@ export function CheckoutForm({
           className="pointer-events-none absolute top-40 -left-24 h-64 w-64 rounded-full bg-[#3E573D]/10 blur-3xl"
         />
 
-        <div className="relative mx-auto max-w-[min(1450px,calc(100%-2rem))] px-4 pt-10 pb-16 md:max-w-[min(1450px,calc(100%-2.5rem))] md:px-6 lg:max-w-[min(1450px,calc(100%-3rem))] lg:pt-14 lg:pb-20">
+        <div className="relative mx-auto max-w-[min(1450px,calc(100%-2rem))] px-0 pt-2 pb-8 md:max-w-[min(1450px,calc(100%-2.5rem))] md:px-0 lg:max-w-[min(1450px,calc(100%-3rem))] lg:px-0 lg:pt-14 lg:pb-20">
           <motion.h1
             initial={reduceMotion ? false : "hidden"}
             animate="visible"

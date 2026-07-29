@@ -37,7 +37,7 @@ function NavBadge({ count }: { count: number }) {
   }
 
   return (
-    <span className="absolute -top-1.5 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[9px] font-semibold text-white">
+    <span className="pointer-events-none absolute top-[-3px] left-[calc(50%+2px)] z-[1] flex h-[14px] min-w-[14px] items-center justify-center rounded-full bg-brand px-[3px] text-[8px] font-bold leading-none text-white ring-[1.5px] ring-[#111111]">
       {count > 99 ? "99+" : count}
     </span>
   );
@@ -153,9 +153,9 @@ export function MobileBottomNav({
               onFocus={prefetchDrawerView}
               aria-label={label}
               aria-expanded={open}
-              className="inline-flex h-[30px] w-[71px] items-start"
+              className="inline-flex h-[30px] w-[71px] items-center justify-center"
             >
-              <span className="relative inline-flex h-[30px] w-[71px] items-start">
+              <span className="relative inline-flex h-[30px] w-[71px] items-center justify-center">
                 <span
                   data-cart-fly-target="true"
                   className={
@@ -181,9 +181,9 @@ export function MobileBottomNav({
           prefetchPolicy="intent"
           aria-current={onWishlist ? "page" : undefined}
           aria-label={dictionary.nav.wishlist}
-          className="inline-flex h-[30px] w-[71px] items-start"
+          className="inline-flex h-[30px] w-[71px] items-center justify-center"
         >
-          <span className="relative inline-flex h-[30px] w-[71px] items-start">
+          <span className="relative inline-flex h-[30px] w-[71px] items-center justify-center">
             <span
               className={onWishlist ? favActiveClass : favInactiveClass}
               role="img"
