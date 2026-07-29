@@ -12,9 +12,10 @@ import { useEffect, useRef, useState } from "react";
 import { DailyOfferHeroCard } from "@/features/home/ui/DailyOfferHeroCard";
 import type { StorefrontHeroSlide } from "@/features/hero/application/queries";
 import type { Locale } from "@/lib/i18n/config";
+import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
 /** Live degusto-am hero composite (burger + DEGUSTO type + green ribbons). */
-const HERO_FALLBACK_IMAGE = "/assets/home/hero-visual.webp";
+const HERO_FALLBACK_IMAGE = staticAssetUrl("/assets/home/hero-visual.webp");
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 

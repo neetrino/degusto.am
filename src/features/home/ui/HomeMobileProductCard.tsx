@@ -4,11 +4,12 @@ import { AppLink } from "@/components/ui/AppLink";
 import { AddToCartButton } from "@/features/cart/ui/AddToCartButton";
 import { WishlistButton } from "@/features/wishlist/ui/WishlistButton";
 import type { Locale } from "@/lib/i18n/config";
+import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
-const STAR_ICON = "/assets/mobile/product-star.webp";
-const VEGGIE_ICON = "/assets/mobile/product-veggie.webp";
-const SPICY_ICON = "/assets/mobile/product-spicy.webp";
-const ADD_CART_ICON = "/assets/mobile/product-add-cart.webp";
+const STAR_ICON = staticAssetUrl("/assets/mobile/product-star.webp");
+const VEGGIE_ICON = staticAssetUrl("/assets/mobile/product-veggie.webp");
+const SPICY_ICON = staticAssetUrl("/assets/mobile/product-spicy.webp");
+const ADD_CART_ICON = staticAssetUrl("/assets/mobile/product-add-cart.webp");
 
 type HomeMobileProductCardProps = {
   href: string;

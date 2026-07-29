@@ -6,9 +6,10 @@ import { CartDrawer } from "@/features/cart/ui/CartDrawer";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
 import type { Currency } from "@/lib/money/currency";
+import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
-const CART_ICON = "/assets/brand/cart-icon.webp";
-const BADGE_CIRCLE = "/assets/brand/avatar-circle.webp";
+const CART_ICON = staticAssetUrl("/assets/brand/cart-icon.webp");
+const BADGE_CIRCLE = staticAssetUrl("/assets/brand/avatar-circle.webp");
 
 type HeaderCartButtonProps = {
   locale: Locale;

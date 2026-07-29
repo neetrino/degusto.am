@@ -22,8 +22,9 @@ import { ProductPurchaseControls } from "@/features/products/ui/ProductPurchaseC
 import type { ProductDetail } from "@/features/products/types";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
+import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
-const STAR_ICON = "/assets/product-card/star.webp";
+const STAR_ICON = staticAssetUrl("/assets/product-card/star.webp");
 
 type ProductDetailMainProps = {
   locale: Locale;

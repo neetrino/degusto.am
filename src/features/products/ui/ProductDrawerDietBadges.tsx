@@ -5,9 +5,10 @@ import { Check } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { ADMIN_LABEL, ADMIN_TEXT_MUTED } from "@/features/admin/ui/admin-form-classes";
+import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
-const SPICY_ICON = "/assets/product-card/spicy.webp";
-const VEGGIE_ICON = "/assets/product-card/veggie.webp";
+const SPICY_ICON = staticAssetUrl("/assets/product-card/spicy.webp");
+const VEGGIE_ICON = staticAssetUrl("/assets/product-card/veggie.webp");
 
 type ProductDrawerDietBadgesProps = {
   isSpicy: boolean;

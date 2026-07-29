@@ -8,6 +8,7 @@ import { CartDrawer } from "@/features/cart/ui/CartDrawer";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
 import type { Currency } from "@/lib/money/currency";
+import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
 type MobileBottomNavProps = {
   locale: Locale;
@@ -80,7 +81,7 @@ export function MobileBottomNav({
       aria-hidden={false}
     >
       <Image
-        src="/assets/mobile/nav/dock.webp"
+        src={staticAssetUrl("/assets/mobile/nav/dock.webp")}
         alt=""
         width={375}
         height={80}
@@ -96,7 +97,7 @@ export function MobileBottomNav({
         className="pointer-events-auto absolute top-10 left-1/2 inline-flex size-[70px] -translate-x-1/2 items-center justify-center"
       >
         <Image
-          src="/assets/mobile/nav/shop-disc.webp"
+          src={staticAssetUrl("/assets/mobile/nav/shop-disc.webp")}
           alt=""
           width={70}
           height={70}

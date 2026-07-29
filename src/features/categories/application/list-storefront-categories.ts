@@ -17,6 +17,7 @@ import {
 } from "@/lib/cache/tags";
 import type { Locale } from "@/lib/i18n/config";
 import { mediaPublicUrl } from "@/lib/media/public-url";
+import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
 export type StorefrontCategory = {
   id: string;
@@ -27,14 +28,14 @@ export type StorefrontCategory = {
 };
 
 const CATEGORY_FALLBACK_IMAGES = [
-  "/assets/categories/soup.webp",
-  "/assets/categories/salad.webp",
-  "/assets/categories/shawarma.webp",
-  "/assets/categories/pizza.webp",
-  "/assets/categories/lahmajoun.webp",
-  "/assets/categories/khachapuri.webp",
-  "/assets/categories/khorovats.webp",
-  "/assets/categories/combo.webp",
+  staticAssetUrl("/assets/categories/soup.webp"),
+  staticAssetUrl("/assets/categories/salad.webp"),
+  staticAssetUrl("/assets/categories/shawarma.webp"),
+  staticAssetUrl("/assets/categories/pizza.webp"),
+  staticAssetUrl("/assets/categories/lahmajoun.webp"),
+  staticAssetUrl("/assets/categories/khachapuri.webp"),
+  staticAssetUrl("/assets/categories/khorovats.webp"),
+  staticAssetUrl("/assets/categories/combo.webp"),
 ] as const;
 
 function translationFor(

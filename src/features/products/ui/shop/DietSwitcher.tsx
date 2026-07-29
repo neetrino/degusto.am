@@ -3,6 +3,7 @@
 import Image from "next/image";
 
 import styles from "@/features/products/ui/shop/DietSwitcher.module.css";
+import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
 export type DietSwitcherMode = "spicy" | "none" | "veg";
 
@@ -91,7 +92,7 @@ export function DietSwitcher({
         aria-hidden={value === "spicy"}
       >
         <Image
-          src="/assets/shop/switcher-chili.webp"
+          src={staticAssetUrl("/assets/shop/switcher-chili.webp")}
           alt=""
           width={24}
           height={24}

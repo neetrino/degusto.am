@@ -1,3 +1,4 @@
+import { staticAssetUrl } from "@/lib/media/static-asset-url";
 const CATEGORY_ICON_FILES = new Set([
   "all",
   "asian-sushi",
@@ -73,20 +74,20 @@ const TITLE_ICON_RULES: Array<{ pattern: RegExp; icon: string }> = [
 export function resolveCategoryIconSrc(slug: string, title = ""): string {
   const normalized = slug.trim().toLowerCase();
   if (CATEGORY_ICON_FILES.has(normalized)) {
-    return `/assets/categories/icons/${normalized}.webp`;
+    return staticAssetUrl(`/assets/categories/icons/${normalized}.webp`);
   }
 
   const alias = CATEGORY_ICON_ALIASES[normalized];
   if (alias && CATEGORY_ICON_FILES.has(alias)) {
-    return `/assets/categories/icons/${alias}.webp`;
+    return staticAssetUrl(`/assets/categories/icons/${alias}.webp`);
   }
 
   const haystack = `${normalized} ${title}`;
   for (const rule of TITLE_ICON_RULES) {
     if (rule.pattern.test(haystack) && CATEGORY_ICON_FILES.has(rule.icon)) {
-      return `/assets/categories/icons/${rule.icon}.webp`;
+      return staticAssetUrl(`/assets/categories/icons/${rule.icon}.webp`);
     }
   }
 
-  return "/assets/categories/icons/all.webp";
+  return staticAssetUrl("/assets/categories/icons/all.webp");
 }

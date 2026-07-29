@@ -11,8 +11,26 @@ function nextWithPathname(request: NextRequest, pathname: string): NextResponse 
   });
 }
 
+function resolveR2PublicBase(): string {
+  return (
+    process.env.NEXT_PUBLIC_R2_PUBLIC_URL ||
+    process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL ||
+    process.env.R2_PUBLIC_URL ||
+    process.env.R2_PUBLIC_BASE_URL ||
+    ""
+  ).replace(/\/$/, "");
+}
+
 export function proxy(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
+
+  // Static assets live on R2 — rewrite before Next looks on disk / Image opt.
+  if (pathname.startsWith("/assets/") || pathname.startsWith("/images/")) {
+    const base = resolveR2PublicBase();
+    if (base) {
+      return NextResponse.rewrite(new URL(`${base}${pathname}`));
+    }
+  }
 
   if (
     pathname.startsWith("/_next") ||

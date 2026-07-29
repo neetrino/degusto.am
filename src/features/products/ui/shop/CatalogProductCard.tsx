@@ -4,10 +4,11 @@ import { AppLink } from "@/components/ui/AppLink";
 import { AddToCartButton } from "@/features/cart/ui/AddToCartButton";
 import { WishlistButton } from "@/features/wishlist/ui/WishlistButton";
 import type { Locale } from "@/lib/i18n/config";
+import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
-const STAR_ICON = "/assets/product-card/star.webp";
-const SPICY_ICON = "/assets/product-card/spicy.webp";
-const VEGGIE_ICON = "/assets/product-card/veggie.webp";
+const STAR_ICON = staticAssetUrl("/assets/product-card/star.webp");
+const SPICY_ICON = staticAssetUrl("/assets/product-card/spicy.webp");
+const VEGGIE_ICON = staticAssetUrl("/assets/product-card/veggie.webp");
 
 type CatalogProductCardProps = {
   href: string;

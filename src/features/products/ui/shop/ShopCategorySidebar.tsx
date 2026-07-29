@@ -7,6 +7,7 @@ import { motion, useReducedMotion, type Variants } from "motion/react";
 
 import { AppLink } from "@/components/ui/AppLink";
 import { useCatalogNavigation } from "@/features/products/ui/shop/CatalogNavContext";
+import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
 export type ShopCategoryItem = {
   id: string;
@@ -157,7 +158,7 @@ export function ShopCategorySidebar({
           <CategoryLink
             href={allHref}
             title={allLabel}
-            iconSrc="/assets/categories/icons/all.webp"
+            iconSrc={staticAssetUrl("/assets/categories/icons/all.webp")}
             active={isAll}
           />
         </motion.div>

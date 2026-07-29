@@ -1,6 +1,9 @@
 import "server-only";
 
+import { getEnv } from "@/config/env";
 import { getProviders } from "@/config/providers";
+import { isR2PublicBaseUrlUsable } from "@/lib/r2/public-base-url";
+import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
 /** Seed product placeholders stored in R2 under stable `assets/products/` keys. */
 const SEED_PRODUCT_FALLBACKS = [
@@ -71,13 +74,17 @@ function resolveLocalAssetKey(objectKey: string): string {
 
 /**
  * Resolves a stored object key to a public URL.
- * `assets/` keys keep same-origin paths (`/assets/...`) and are proxied to R2
- * via Next rewrites when `R2_PUBLIC_BASE_URL` / `R2_PUBLIC_URL` is a public CDN.
+ * `assets/` keys resolve to the R2 public CDN (same-origin paths no longer
+ * exist on disk; Next Image requires absolute remote URLs).
  */
 export function mediaPublicUrl(objectKey: string): string {
   const key = resolveLocalAssetKey(objectKey.replace(/^\//, ""));
   if (key.startsWith("assets/")) {
-    return `/${key}`;
+    const envBase = getEnv().R2_PUBLIC_BASE_URL?.replace(/\/$/, "");
+    if (envBase && isR2PublicBaseUrlUsable(envBase)) {
+      return `${envBase}/${key}`;
+    }
+    return staticAssetUrl(`/${key}`);
   }
 
   return getProviders().storage.buildPublicUrl(objectKey);
@@ -90,7 +97,7 @@ export function mediaPublicUrl(objectKey: string): string {
 export async function resolveMediaPublicUrl(objectKey: string): Promise<string> {
   const key = resolveLocalAssetKey(objectKey.replace(/^\//, ""));
   if (key.startsWith("assets/")) {
-    return `/${key}`;
+    return mediaPublicUrl(key);
   }
 
   return getProviders().storage.resolveReadableUrl(objectKey);

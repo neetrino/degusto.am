@@ -4,10 +4,11 @@ import Image from "next/image";
 
 import { AppLink } from "@/components/ui/AppLink";
 import { AddToCartButton } from "@/features/cart/ui/AddToCartButton";
+import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
-const STAR_ICON = "/assets/product-card/star.webp";
-const VEGGIE_ICON = "/assets/product-card/veggie.webp";
-const DAILY_OFFER_STAR = "/assets/home/daily-offer-star.webp";
+const STAR_ICON = staticAssetUrl("/assets/product-card/star.webp");
+const VEGGIE_ICON = staticAssetUrl("/assets/product-card/veggie.webp");
+const DAILY_OFFER_STAR = staticAssetUrl("/assets/home/daily-offer-star.webp");
 
 type DailyOfferHeroCardProps = {
   href: string;
