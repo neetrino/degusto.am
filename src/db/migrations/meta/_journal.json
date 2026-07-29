@@ -22,6 +22,27 @@
       "when": 1784471653841,
       "tag": "0002_narrow_caretaker",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1785322232802,
+      "tag": "0003_curly_meteorite",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1785322708342,
+      "tag": "0004_needy_blackheart",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1785322974811,
+      "tag": "0005_careless_nick_fury",
+      "breakpoints": true
     }
   ]
 }

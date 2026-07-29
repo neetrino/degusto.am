@@ -18,7 +18,11 @@ import {
   idColumn,
   updatedAtColumn,
 } from "@/db/schema/columns";
-import { categoryStatusEnum, productStatusEnum } from "@/db/schema/enums";
+import {
+  categoryStatusEnum,
+  productModifierKindEnum,
+  productStatusEnum,
+} from "@/db/schema/enums";
 
 export type LocaleTranslation = {
   title: string;
@@ -46,6 +50,8 @@ export const products = pgTable(
     status: productStatusEnum("status").notNull().default("DRAFT"),
     isFeatured: boolean("is_featured").notNull().default(false),
     isUpcoming: boolean("is_upcoming").notNull().default(false),
+    isSpicy: boolean("is_spicy").notNull().default(false),
+    isVegetarian: boolean("is_vegetarian").notNull().default(false),
     badgeTranslations: jsonb("badge_translations").$type<
       Partial<Record<"hy" | "en" | "ru", string>>
     >(),
@@ -74,6 +80,39 @@ export const products = pgTable(
       sql`${table.compareAtAmount} IS NULL OR ${table.compareAtAmount} >= 0`,
     ),
     check("products_stock_nonneg_chk", sql`${table.stockOnHand} >= 0`),
+  ],
+);
+
+export const productModifiers = pgTable(
+  "product_modifiers",
+  {
+    id: idColumn(),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    kind: productModifierKindEnum("kind").notNull(),
+    label: text("label").notNull(),
+    /** Extra AMD amount for additions; exclusions stay 0. */
+    priceAmount: integer("price_amount").notNull().default(0),
+    isEnabled: boolean("is_enabled").notNull().default(true),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: createdAtColumn(),
+    updatedAt: updatedAtColumn(),
+  },
+  (table) => [
+    index("product_modifiers_product_kind_idx").on(
+      table.productId,
+      table.kind,
+      table.sortOrder,
+    ),
+    check(
+      "product_modifiers_label_nonempty_chk",
+      sql`char_length(btrim(${table.label})) > 0`,
+    ),
+    check(
+      "product_modifiers_price_nonneg_chk",
+      sql`${table.priceAmount} >= 0`,
+    ),
   ],
 );
 

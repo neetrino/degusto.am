@@ -44,6 +44,11 @@ function buildImageRemotePatterns(): NonNullable<
       hostname: "**.r2.dev",
       pathname: "/**",
     },
+    {
+      protocol: "https",
+      hostname: "**.r2.cloudflarestorage.com",
+      pathname: "/**",
+    },
   ];
 
   const r2Base =

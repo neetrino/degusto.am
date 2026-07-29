@@ -33,6 +33,14 @@ export function createStubObjectStorageAdapter(
       }
       return `${base}/${key}`;
     },
+    async resolveReadableUrl(objectKey) {
+      const key = objectKey.replace(/^\//, "");
+      const base = publicBaseUrl.replace(/\/$/, "");
+      if (!base) {
+        return `/${key}`;
+      }
+      return `${base}/${key}`;
+    },
     async deleteObject(objectKey) {
       const absolute = path.join(process.cwd(), "public", objectKey);
       try {

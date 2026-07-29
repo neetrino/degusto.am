@@ -38,7 +38,7 @@ export function DailyOfferHeroCard({
   dailyOfferLabel,
   categoryLabel = null,
   rating = 5,
-  isVegetarian = true,
+  isVegetarian = false,
 }: DailyOfferHeroCardProps) {
   return (
     <article

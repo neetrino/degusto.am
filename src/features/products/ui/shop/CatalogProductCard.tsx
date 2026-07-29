@@ -74,6 +74,10 @@ export function CatalogProductCard({
               sizes="(min-width: 1280px) 24vw, (min-width: 1024px) 30vw, 50vw"
               className="rounded-[20px] object-cover transition-transform duration-300 group-hover:scale-105"
               priority={priority}
+              unoptimized={
+                imageUrl.includes("X-Amz-Signature") ||
+                imageUrl.includes("X-Amz-Credential")
+              }
             />
           ) : (
             <span className="flex h-full w-full items-center justify-center text-sm text-gray-400">

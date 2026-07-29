@@ -13,22 +13,41 @@ import {
   type TranslationsJson,
 } from "@/db/schema";
 import { persistProductMedia } from "@/features/products/application/persist-product-media";
+import { syncProductModifiers } from "@/features/products/application/sync-product-modifiers";
 import { requireAdmin } from "@/lib/auth/policies";
 import { invalidateProductsCache } from "@/lib/cache/invalidate-public";
 import { createId } from "@/lib/id";
 import { isLocale, locales, type Locale } from "@/lib/i18n/config";
 import { err, ok, type Result } from "@/lib/result";
 
+const productModifierSchema = z.object({
+  label: z.string().trim().min(1).max(80),
+  isEnabled: z.boolean(),
+  priceAmount: z.number().int().nonnegative().max(2_147_483_647),
+});
+
+const localeTranslationInputSchema = z.object({
+  title: z.string().max(200),
+  slug: z.string().max(200),
+  description: z.string().max(5000).optional(),
+});
+
 const productUpsertSchema = z.object({
   sku: z.string().trim().min(1).max(120),
-  title: z.string().trim().min(1).max(200),
-  slug: z.string().trim().min(1).max(200),
-  description: z.string().trim().max(5000).optional(),
+  translations: z.object({
+    hy: localeTranslationInputSchema.optional(),
+    en: localeTranslationInputSchema.optional(),
+    ru: localeTranslationInputSchema.optional(),
+  }),
   priceAmount: z.number().int().nonnegative(),
   compareAtAmount: z.number().int().nonnegative().nullable(),
   stockOnHand: z.number().int().nonnegative(),
   categoryIds: z.array(z.string().uuid()),
   status: z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]),
+  isSpicy: z.boolean(),
+  isVegetarian: z.boolean(),
+  additions: z.array(productModifierSchema).max(40),
+  exclusions: z.array(productModifierSchema).max(40),
   primaryExistingId: z.string().uuid().nullable(),
   primaryNewIndex: z.number().int().nullable(),
   removeImageIds: z.array(z.string().uuid()),
@@ -36,13 +55,39 @@ const productUpsertSchema = z.object({
 
 export type ProductUpsertInput = z.infer<typeof productUpsertSchema>;
 
-function buildTranslations(data: ProductUpsertInput): TranslationsJson {
-  const entry = {
-    title: data.title,
-    slug: data.slug,
-    description: data.description || undefined,
-  };
-  return { hy: entry, en: entry, ru: entry };
+function buildTranslations(
+  data: ProductUpsertInput,
+): TranslationsJson | null {
+  const next: TranslationsJson = {};
+
+  for (const loc of locales) {
+    const entry = data.translations[loc];
+    if (!entry) continue;
+    const title = entry.title.trim();
+    const slug = entry.slug.trim();
+    if (!title || !slug) continue;
+    const description = entry.description?.trim();
+    next[loc] = {
+      title,
+      slug,
+      ...(description ? { description } : {}),
+    };
+  }
+
+  if (!next.hy && !next.en && !next.ru) {
+    return null;
+  }
+
+  return next;
+}
+
+function primarySlugFromTranslations(translations: TranslationsJson): string {
+  return (
+    translations.hy?.slug ??
+    translations.en?.slug ??
+    translations.ru?.slug ??
+    ""
+  );
 }
 
 function revalidateProducts(
@@ -145,6 +190,13 @@ export async function createProductFromDrawerAction(
   const actor = await requireAdmin(locale as Locale);
   const id = createId();
   const files = collectImageFiles(formData);
+  const translations = buildTranslations(data);
+  if (!translations) {
+    return err(
+      "VALIDATION_ERROR",
+      "Fill title and slug for at least one language (HY / EN / RU).",
+    );
+  }
 
   await getDb().insert(products).values({
     id,
@@ -153,12 +205,23 @@ export async function createProductFromDrawerAction(
     compareAtAmount: data.compareAtAmount,
     stockOnHand: data.stockOnHand,
     status: data.status,
-    translations: buildTranslations(data),
+    isSpicy: data.isSpicy,
+    isVegetarian: data.isVegetarian,
+    translations,
   });
 
   const categoryError = await syncProductCategories(id, data.categoryIds);
   if (categoryError) {
     return err("VALIDATION_ERROR", categoryError);
+  }
+
+  const modifiersError = await syncProductModifiers(
+    id,
+    data.additions,
+    data.exclusions,
+  );
+  if (modifiersError) {
+    return err("VALIDATION_ERROR", modifiersError);
   }
 
   if (data.stockOnHand > 0) {
@@ -183,7 +246,10 @@ export async function createProductFromDrawerAction(
     return err("VALIDATION_ERROR", mediaResult.error);
   }
 
-  revalidateProducts(locale, { id, slug: data.slug });
+  revalidateProducts(locale, {
+    id,
+    slug: primarySlugFromTranslations(translations),
+  });
   return ok({ id });
 }
 
@@ -230,6 +296,14 @@ export async function updateProductFromDrawerAction(
     return err("NOT_FOUND", "Product not found.");
   }
 
+  const translations = buildTranslations(data);
+  if (!translations) {
+    return err(
+      "VALIDATION_ERROR",
+      "Fill title and slug for at least one language (HY / EN / RU).",
+    );
+  }
+
   await getDb()
     .update(products)
     .set({
@@ -238,7 +312,9 @@ export async function updateProductFromDrawerAction(
       compareAtAmount: data.compareAtAmount,
       stockOnHand: data.stockOnHand,
       status: data.status || existing.status,
-      translations: buildTranslations(data),
+      isSpicy: data.isSpicy,
+      isVegetarian: data.isVegetarian,
+      translations,
       updatedAt: new Date(),
     })
     .where(eq(products.id, existing.id));
@@ -249,6 +325,15 @@ export async function updateProductFromDrawerAction(
   );
   if (categoryError) {
     return err("VALIDATION_ERROR", categoryError);
+  }
+
+  const modifiersError = await syncProductModifiers(
+    existing.id,
+    data.additions,
+    data.exclusions,
+  );
+  if (modifiersError) {
+    return err("VALIDATION_ERROR", modifiersError);
   }
 
   const delta = data.stockOnHand - existing.stockOnHand;
@@ -274,14 +359,11 @@ export async function updateProductFromDrawerAction(
     return err("VALIDATION_ERROR", mediaResult.error);
   }
 
-  const previousSlug =
-    existing.translations.hy?.slug ??
-    existing.translations.en?.slug ??
-    existing.translations.ru?.slug;
+  const previousSlug = primarySlugFromTranslations(existing.translations);
 
   revalidateProducts(locale, {
     id: existing.id,
-    slug: data.slug,
+    slug: primarySlugFromTranslations(translations),
     previousSlug,
   });
   return ok({ id: existing.id });

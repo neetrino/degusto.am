@@ -19,5 +19,7 @@ export type ObjectStorageAdapter = {
   }): Promise<PresignedUpload>;
   putObject(input: PutObjectInput): Promise<void>;
   buildPublicUrl(objectKey: string): string;
+  /** Browser-readable URL (public CDN or short-lived signed GET). */
+  resolveReadableUrl(objectKey: string): Promise<string>;
   deleteObject(objectKey: string): Promise<void>;
 };

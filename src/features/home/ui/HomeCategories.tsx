@@ -109,17 +109,13 @@ const imageVariants: Variants = {
   },
 };
 
-const charVariants: Variants = {
+const titleVariants: Variants = {
   rest: { y: 0, color: "#ffffff" },
-  hover: (index: number) => ({
-    y: -3,
+  hover: {
+    y: -2,
     color: "#ff7f20",
-    transition: {
-      duration: 0.28,
-      ease: EASE,
-      delay: index * 0.018,
-    },
-  }),
+    transition: { duration: 0.28, ease: EASE },
+  },
 };
 
 /** Desktop categories — Motion master entrance + hover (no mouse drag, no gradients). */
@@ -212,8 +208,6 @@ type CategoryCardProps = {
 };
 
 function CategoryCard({ category, reduceMotion }: CategoryCardProps) {
-  const titleChars = Array.from(category.title);
-
   return (
     <motion.li
       variants={reduceMotion ? undefined : cardEnterVariants}
@@ -230,23 +224,16 @@ function CategoryCard({ category, reduceMotion }: CategoryCardProps) {
           href={category.href}
           prefetchPolicy="intent"
           aria-label={category.title}
-          className="group relative flex h-full min-h-[22.6875rem] w-full flex-col overflow-visible rounded-[22px] p-4 outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-headline"
+          className="group relative flex h-full min-h-[22.6875rem] w-full min-w-0 flex-col overflow-visible rounded-[22px] p-4 outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-headline"
         >
-          <div className="relative z-0 shrink-0">
-            <h3 className="flex flex-nowrap whitespace-nowrap font-sans text-[clamp(1rem,0.85rem+0.55vw,1.5rem)] leading-tight font-black text-white group-hover:text-[#ff7f20]">
-              {reduceMotion
-                ? category.title
-                : titleChars.map((char, index) => (
-                    <motion.span
-                      key={`${category.id}-char-${index}`}
-                      custom={index}
-                      variants={charVariants}
-                      className="inline-block whitespace-pre"
-                    >
-                      {char}
-                    </motion.span>
-                  ))}
-            </h3>
+          <div className="relative z-10 min-w-0 w-full shrink-0 overflow-hidden">
+            <motion.h3
+              variants={reduceMotion ? undefined : titleVariants}
+              className="line-clamp-2 break-words font-sans text-[clamp(1rem,0.85rem+0.55vw,1.5rem)] leading-tight font-black text-white"
+              title={category.title}
+            >
+              {category.title}
+            </motion.h3>
             <motion.span
               aria-hidden
               variants={reduceMotion ? undefined : accentVariants}
@@ -254,13 +241,13 @@ function CategoryCard({ category, reduceMotion }: CategoryCardProps) {
             />
             <motion.p
               variants={reduceMotion ? undefined : metaVariants}
-              className="mt-2 text-sm text-white/80 group-hover:text-[#717182]"
+              className="mt-2 truncate text-sm text-white/80 group-hover:text-[#717182]"
             >
               {category.productCountLabel}
             </motion.p>
           </div>
 
-          <div className="relative z-50 mt-auto min-h-0 w-full flex-1 overflow-visible">
+          <div className="relative z-50 mt-auto min-h-0 w-full min-w-0 flex-1 overflow-visible">
             <motion.div
               variants={reduceMotion ? undefined : imageVariants}
               className="absolute inset-0 z-50 origin-bottom will-change-transform"

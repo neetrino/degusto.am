@@ -79,8 +79,8 @@ export function ShopCatalogProductGrids({
               outOfStockLabel={outOfStockLabel}
               categoryLabel={product.categoryLabel}
               rating={rating}
-              isSpicy={product.isSpicy ?? true}
-              isVegetarian={product.isVegetarian ?? true}
+              isSpicy={product.isSpicy ?? false}
+              isVegetarian={product.isVegetarian ?? false}
             />
           </ShopProductCardShell>
         ))}
@@ -116,8 +116,8 @@ export function ShopCatalogProductGrids({
               outOfStockLabel={outOfStockLabel}
               categoryLabel={product.categoryLabel}
               rating={rating}
-              isSpicy={product.isSpicy ?? true}
-              isVegetarian={product.isVegetarian ?? true}
+              isSpicy={product.isSpicy ?? false}
+              isVegetarian={product.isVegetarian ?? false}
             />
           </ShopProductCardShell>
         ))}

@@ -120,8 +120,8 @@ export default async function HomePage({ params }: HomePageProps) {
       inWishlist: wishlistIds.has(product.id),
       categoryLabel: categoryLabels.get(product.id) ?? null,
       rating: FEATURED_CARD_RATING,
-      isSpicy: true,
-      isVegetarian: true,
+      isSpicy: product.isSpicy,
+      isVegetarian: product.isVegetarian,
     };
   }
 

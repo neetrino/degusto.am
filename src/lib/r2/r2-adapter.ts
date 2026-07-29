@@ -2,12 +2,14 @@ import "server-only";
 
 import {
   DeleteObjectCommand,
+  GetObjectCommand,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { logger } from "@/lib/observability/logger";
+import { isR2ApiEndpointUrl } from "@/lib/r2/public-base-url";
 import type { ObjectStorageAdapter } from "@/lib/r2/types";
 
 export type R2AdapterConfig = {
@@ -21,6 +23,7 @@ export type R2AdapterConfig = {
 };
 
 const PRESIGN_TTL_SECONDS = 15 * 60;
+const READ_URL_TTL_SECONDS = 60 * 60;
 
 /** Cloudflare R2 adapter (S3-compatible API). */
 export function createR2ObjectStorageAdapter(
@@ -30,6 +33,14 @@ export function createR2ObjectStorageAdapter(
     config.endpoint?.replace(/\/$/, "") ??
     `https://${config.accountId}.r2.cloudflarestorage.com`;
   const publicBaseUrl = config.publicBaseUrl.replace(/\/$/, "");
+  const useSignedReads = isR2ApiEndpointUrl(publicBaseUrl);
+
+  if (useSignedReads) {
+    logger.warn("r2.public_base_url_is_api_endpoint", {
+      message:
+        "R2_PUBLIC_BASE_URL points at the S3 API host; using signed GET URLs. Set a public r2.dev or custom CDN URL for production.",
+    });
+  }
 
   const client = new S3Client({
     region: "auto",
@@ -39,6 +50,11 @@ export function createR2ObjectStorageAdapter(
       secretAccessKey: config.secretAccessKey,
     },
   });
+
+  function buildPublicUrl(objectKey: string): string {
+    const key = objectKey.replace(/^\//, "");
+    return `${publicBaseUrl}/${key}`;
+  }
 
   return {
     name: "cloudflare-r2",
@@ -75,9 +91,28 @@ export function createR2ObjectStorageAdapter(
         throw error;
       }
     },
-    buildPublicUrl(objectKey) {
+    buildPublicUrl,
+    async resolveReadableUrl(objectKey) {
       const key = objectKey.replace(/^\//, "");
-      return `${publicBaseUrl}/${key}`;
+      if (!useSignedReads) {
+        return buildPublicUrl(key);
+      }
+      try {
+        return await getSignedUrl(
+          client,
+          new GetObjectCommand({
+            Bucket: config.bucketName,
+            Key: key,
+          }),
+          { expiresIn: READ_URL_TTL_SECONDS },
+        );
+      } catch (error) {
+        logger.error("r2.sign_get_failed", {
+          objectKey: key,
+          message: error instanceof Error ? error.message : "unknown",
+        });
+        return buildPublicUrl(key);
+      }
     },
     async deleteObject(objectKey) {
       try {

@@ -27,6 +27,7 @@ type DailyOfferProduct = {
   inStock: boolean;
   categoryLabel?: string | null;
   rating?: number | null;
+  isVegetarian?: boolean;
 };
 
 type HomeHeroProps = {
@@ -212,7 +213,7 @@ export function HomeHero({
             dailyOfferLabel={dailyOfferLabel}
             categoryLabel={dailyOffer.categoryLabel}
             rating={dailyOffer.rating}
-            isVegetarian
+            isVegetarian={dailyOffer.isVegetarian ?? false}
           />
         </motion.div>
       ) : null}
