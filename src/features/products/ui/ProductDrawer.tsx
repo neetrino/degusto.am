@@ -35,6 +35,7 @@ import {
   type ProductModifierDraft,
 } from "@/features/products/ui/ProductDrawerModifiers";
 import type { TranslationsJson } from "@/db/schema";
+import { slugifyProductTitle } from "@/features/products/domain/slugify";
 import { isLocale, locales, type Locale } from "@/lib/i18n/config";
 
 type ProductDrawerProduct = Pick<
@@ -118,7 +119,32 @@ function draftsFromTranslations(
 }
 
 function isLocaleFilled(fields: LocaleFields): boolean {
-  return fields.title.trim().length > 0 && fields.slug.trim().length > 0;
+  return fields.title.trim().length > 0;
+}
+
+function primaryTitleFromDrafts(drafts: LocaleDrafts): string {
+  for (const loc of locales) {
+    const title = drafts[loc].title.trim();
+    if (title) return title;
+  }
+  return "";
+}
+
+function withSharedSlug(
+  drafts: LocaleDrafts,
+  sharedSlug: string,
+): LocaleDrafts {
+  const next = emptyLocaleDrafts();
+  for (const loc of locales) {
+    const title = drafts[loc].title.trim();
+    if (!title) continue;
+    next[loc] = {
+      title: drafts[loc].title,
+      slug: sharedSlug,
+      description: drafts[loc].description,
+    };
+  }
+  return next;
 }
 
 function imagesFromProduct(
@@ -274,7 +300,7 @@ export function ProductDrawer({
             event.preventDefault();
             if (filledLocales.length === 0) {
               setError(
-                "Fill title and slug for at least one language (HY / EN / RU).",
+                "Fill title for at least one language (HY / EN / RU).",
               );
               return;
             }
@@ -284,12 +310,17 @@ export function ProductDrawer({
               ? newImages.findIndex((image) => image.key === primaryImage.key)
               : null;
 
+            const sharedSlug =
+              (isEdit && product?.slug.trim()) ||
+              slugifyProductTitle(primaryTitleFromDrafts(localeDrafts));
+            const translations = withSharedSlug(localeDrafts, sharedSlug);
+
             const payload = {
               sku: sku.trim(),
               translations: {
-                hy: localeDrafts.hy,
-                en: localeDrafts.en,
-                ru: localeDrafts.ru,
+                hy: translations.hy,
+                en: translations.en,
+                ru: translations.ru,
               },
               priceAmount: Number(priceAmount),
               compareAtAmount: compareAtAmount.trim()
@@ -353,8 +384,8 @@ export function ProductDrawer({
               <div>
                 <p className={ADMIN_LABEL}>Content language</p>
                 <p className={`-mt-0.5 text-xs ${ADMIN_TEXT_MUTED}`}>
-                  Switch HY / EN / RU — title, slug and description update per
-                  language.
+                  Switch HY / EN / RU — title and description update per
+                  language. Slug is generated automatically.
                 </p>
               </div>
               <AdminContentLocaleToggle
@@ -365,7 +396,7 @@ export function ProductDrawer({
               />
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div>
               <label>
                 <span className={ADMIN_LABEL}>
                   Title ({contentLocale.toUpperCase()}){" "}
@@ -377,21 +408,6 @@ export function ProductDrawer({
                     patchActiveFields({ title: event.target.value })
                   }
                   placeholder="Product title"
-                  className={ADMIN_INPUT}
-                  disabled={isPending}
-                />
-              </label>
-              <label>
-                <span className={ADMIN_LABEL}>
-                  Slug ({contentLocale.toUpperCase()}){" "}
-                  <span className="text-red-600">*</span>
-                </span>
-                <input
-                  value={activeFields.slug}
-                  onChange={(event) =>
-                    patchActiveFields({ slug: event.target.value })
-                  }
-                  placeholder="product-slug"
                   className={ADMIN_INPUT}
                   disabled={isPending}
                 />

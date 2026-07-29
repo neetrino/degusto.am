@@ -30,6 +30,23 @@
     "searchNoResults": "Ապրանքներ չգտնվեցին",
     "searchSeeAll": "Տեսնել բոլորը"
   },
+  "adminMobile": {
+    "title": "Ադմին վահանակ",
+    "badge": "Ադմին",
+    "selectSection": "Ընտրեք բաժին",
+    "orders": "Պատվերներ",
+    "products": "Ապրանքներ",
+    "analytics": "Վերլուծություն",
+    "categories": "Կատեգորիաներ",
+    "messages": "Հաղորդագրություններ",
+    "users": "Օգտատերեր",
+    "discounts": "Զեղչեր",
+    "coupons": "Կուպոններ",
+    "delivery": "Առաքում",
+    "blog": "Բլոգ",
+    "hero": "Hero",
+    "settings": "Կարգավորումներ"
+  },
   "footer": {
     "addressesTitle": "Հասցեներ",
     "contactsTitle": "Կոնտակտներ",

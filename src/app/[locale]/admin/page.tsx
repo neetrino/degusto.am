@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Card } from "@/components/ui/Card";
+import { AdminMobileHub } from "@/features/admin/ui/AdminMobileHub";
 import { DashboardStatsGrid } from "@/features/admin/ui/DashboardStatsGrid";
 import {
   ADMIN_DASHBOARD_CARD,
@@ -18,7 +19,9 @@ import {
   formatPeriodDelta,
 } from "@/features/analytics/domain/date-range";
 import { getAdminDashboardMetrics } from "@/features/orders/application/queries";
+import { requireAdmin } from "@/lib/auth/policies";
 import { isLocale } from "@/lib/i18n/config";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 
 type AdminPageProps = {
   params: Promise<{ locale: string }>;
@@ -75,158 +78,173 @@ export default async function AdminPage({ params }: AdminPageProps) {
     notFound();
   }
 
-  const metrics = await getAdminDashboardMetrics(defaultAnalyticsDateRange());
+  const [user, metrics] = await Promise.all([
+    requireAdmin(locale),
+    getAdminDashboardMetrics(defaultAnalyticsDateRange()),
+  ]);
+  const dictionary = getDictionary(locale);
   const revenueDelta = `${formatPeriodDelta(
     metrics.revenueAmount,
     metrics.previousRevenueAmount,
   )} vs prev`;
 
   return (
-    <section>
-      <div className="mb-8">
-        <h1 className="font-display text-3xl font-semibold tracking-tight text-[#1f1a17]">
-          Admin
-        </h1>
-        <p className={`mt-1 ${ADMIN_PAGE_SUBTITLE}`}>
-          Welcome to the admin dashboard
-        </p>
+    <>
+      <div className="lg:hidden">
+        <AdminMobileHub
+          locale={locale}
+          user={user}
+          dictionary={dictionary.adminMobile}
+          logoutLabel={dictionary.header.logout}
+        />
       </div>
 
-      <DashboardStatsGrid
-        locale={locale}
-        users={metrics.users}
-        products={metrics.products}
-        orders={metrics.orders}
-        revenueLabel={formatMoney(metrics.revenueAmount)}
-        revenueDelta={revenueDelta}
-      />
+      <section className="hidden lg:block">
+        <div className="mb-8">
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-[#1f1a17]">
+            Admin
+          </h1>
+          <p className={`mt-1 ${ADMIN_PAGE_SUBTITLE}`}>
+            Welcome to the admin dashboard
+          </p>
+        </div>
 
-      <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card className={ADMIN_DASHBOARD_CARD}>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-[#1f1a17]">
-              Recent orders
-            </h2>
-            <Link
-              href={`/${locale}/admin/orders`}
-              className={ADMIN_VIEW_ALL_LINK}
-            >
-              View all
-            </Link>
-          </div>
-          <div className="space-y-4">
-            {metrics.recentOrders.map((order) => (
+        <DashboardStatsGrid
+          locale={locale}
+          users={metrics.users}
+          products={metrics.products}
+          orders={metrics.orders}
+          revenueLabel={formatMoney(metrics.revenueAmount)}
+          revenueDelta={revenueDelta}
+        />
+
+        <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <Card className={ADMIN_DASHBOARD_CARD}>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-[#1f1a17]">
+                Recent orders
+              </h2>
               <Link
-                key={order.id}
-                href={`/${locale}/admin/orders/${order.orderNumber}`}
-                className="block rounded-lg border border-[#e8e2d9] p-4 transition-colors hover:border-[#ff7f20]/30 hover:bg-[#fff8f2]"
+                href={`/${locale}/admin/orders`}
+                className={ADMIN_VIEW_ALL_LINK}
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <div className="mb-1 flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-medium text-[#1f1a17]">
-                        #{order.orderNumber}
+                View all
+              </Link>
+            </div>
+            <div className="space-y-4">
+              {metrics.recentOrders.map((order) => (
+                <Link
+                  key={order.id}
+                  href={`/${locale}/admin/orders/${order.orderNumber}`}
+                  className="block rounded-lg border border-[#e8e2d9] p-4 transition-colors hover:border-[#ff7f20]/30 hover:bg-[#fff8f2]"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-1 flex flex-wrap items-center gap-2">
+                        <p className="text-sm font-medium text-[#1f1a17]">
+                          #{order.orderNumber}
+                        </p>
+                        <span
+                          className={`${ADMIN_BADGE} ${paymentStatusBadgeClass(order.status)}`}
+                        >
+                          {order.status}
+                        </span>
+                      </div>
+                      <p className="truncate text-xs text-[#5c564e]">
+                        {order.contactEmail}
                       </p>
-                      <span
-                        className={`${ADMIN_BADGE} ${paymentStatusBadgeClass(order.status)}`}
-                      >
-                        {order.status}
-                      </span>
                     </div>
-                    <p className="truncate text-xs text-[#5c564e]">
-                      {order.contactEmail}
+                    <p className="shrink-0 text-sm font-semibold text-[#1f1a17]">
+                      {formatMoney(order.totalAmount)} {order.baseCurrency}
                     </p>
                   </div>
-                  <p className="shrink-0 text-sm font-semibold text-[#1f1a17]">
-                    {formatMoney(order.totalAmount)} {order.baseCurrency}
-                  </p>
+                </Link>
+              ))}
+              {metrics.recentOrders.length === 0 ? (
+                <p className="py-8 text-center text-sm text-[#8a837a]">
+                  No recent orders.
+                </p>
+              ) : null}
+            </div>
+          </Card>
+
+          <Card className={ADMIN_DASHBOARD_CARD}>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-[#1f1a17]">
+                Top products
+              </h2>
+              <Link
+                href={`/${locale}/admin/products`}
+                className={ADMIN_VIEW_ALL_LINK}
+              >
+                View all
+              </Link>
+            </div>
+            <div className="space-y-4">
+              {metrics.topProducts.map((product, index) => (
+                <div
+                  key={product.productId}
+                  className="flex items-center gap-4 rounded-lg border border-[#e8e2d9] p-3"
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-[#3e573d]/10 text-xs font-bold text-[#3e573d]">
+                    {index + 1}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-[#1f1a17]">
+                      {product.title}
+                    </p>
+                    <p className="text-xs text-[#8a837a]">
+                      {product.quantity} sold
+                    </p>
+                  </div>
+                </div>
+              ))}
+              {metrics.topProducts.length === 0 ? (
+                <p className="py-8 text-center text-sm text-[#8a837a]">
+                  No product sales in this range.
+                </p>
+              ) : null}
+            </div>
+          </Card>
+        </div>
+
+        <Card className={`mb-8 ${ADMIN_DASHBOARD_CARD}`}>
+          <h2 className="mb-4 text-xl font-semibold text-[#1f1a17]">
+            Quick actions
+          </h2>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {QUICK_ACTIONS.map((action) => (
+              <Link
+                key={action.href}
+                href={`/${locale}/admin/${action.href}`}
+                className={ADMIN_QUICK_ACTION}
+              >
+                <div
+                  className={`flex h-10 w-10 items-center justify-center rounded-full ${action.iconBg}`}
+                >
+                  <svg
+                    className={`h-5 w-5 ${action.iconColor}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d={action.iconPath}
+                    />
+                  </svg>
+                </div>
+                <div className="text-left">
+                  <p className="font-medium text-[#1f1a17]">{action.title}</p>
+                  <p className="text-xs text-[#8a837a]">{action.subtitle}</p>
                 </div>
               </Link>
             ))}
-            {metrics.recentOrders.length === 0 ? (
-              <p className="py-8 text-center text-sm text-[#8a837a]">
-                No recent orders.
-              </p>
-            ) : null}
           </div>
         </Card>
-
-        <Card className={ADMIN_DASHBOARD_CARD}>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-[#1f1a17]">
-              Top products
-            </h2>
-            <Link
-              href={`/${locale}/admin/products`}
-              className={ADMIN_VIEW_ALL_LINK}
-            >
-              View all
-            </Link>
-          </div>
-          <div className="space-y-4">
-            {metrics.topProducts.map((product, index) => (
-              <div
-                key={product.productId}
-                className="flex items-center gap-4 rounded-lg border border-[#e8e2d9] p-3"
-              >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-[#3e573d]/10 text-xs font-bold text-[#3e573d]">
-                  {index + 1}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-[#1f1a17]">
-                    {product.title}
-                  </p>
-                  <p className="text-xs text-[#8a837a]">
-                    {product.quantity} sold
-                  </p>
-                </div>
-              </div>
-            ))}
-            {metrics.topProducts.length === 0 ? (
-              <p className="py-8 text-center text-sm text-[#8a837a]">
-                No product sales in this range.
-              </p>
-            ) : null}
-          </div>
-        </Card>
-      </div>
-
-      <Card className={`mb-8 ${ADMIN_DASHBOARD_CARD}`}>
-        <h2 className="mb-4 text-xl font-semibold text-[#1f1a17]">
-          Quick actions
-        </h2>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {QUICK_ACTIONS.map((action) => (
-            <Link
-              key={action.href}
-              href={`/${locale}/admin/${action.href}`}
-              className={ADMIN_QUICK_ACTION}
-            >
-              <div
-                className={`flex h-10 w-10 items-center justify-center rounded-full ${action.iconBg}`}
-              >
-                <svg
-                  className={`h-5 w-5 ${action.iconColor}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d={action.iconPath}
-                  />
-                </svg>
-              </div>
-              <div className="text-left">
-                <p className="font-medium text-[#1f1a17]">{action.title}</p>
-                <p className="text-xs text-[#8a837a]">{action.subtitle}</p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </Card>
-    </section>
+      </section>
+    </>
   );
 }

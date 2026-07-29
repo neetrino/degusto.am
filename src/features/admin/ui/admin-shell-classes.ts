@@ -1,7 +1,7 @@
 /** Shared Tailwind classes: Degusto admin shell (dark culinary sidebar). */
 
 export const ADMIN_SIDEBAR_MOBILE_DRAWER_WRAP =
-  "mb-6 shrink-0 px-4 pt-8 sm:px-6 lg:hidden lg:pt-0";
+  "sticky top-0 z-30 shrink-0 border-b border-[#ead7bf]/80 bg-[#f4f1ec]/92 px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 backdrop-blur-md sm:px-4 lg:hidden";
 
 /** Width is set in `AdminSidebar` (expanded vs collapsed). */
 export const ADMIN_SIDEBAR_ASIDE =
@@ -15,7 +15,7 @@ export const ADMIN_PAGE_SHELL =
   "flex min-h-screen flex-col bg-[#f4f1ec] lg:h-dvh lg:max-h-dvh lg:flex-row lg:overflow-hidden";
 
 export const ADMIN_MAIN_COLUMN =
-  "min-w-0 flex-1 px-4 pb-8 pt-12 sm:px-6 lg:min-h-0 lg:overflow-y-auto lg:overscroll-y-contain lg:px-8";
+  "min-w-0 flex-1 px-3 pb-8 pt-4 sm:px-6 sm:pt-6 lg:min-h-0 lg:overflow-y-auto lg:overscroll-y-contain lg:px-8 lg:pt-12";
 
 export const ADMIN_MAIN_INNER = "w-full";
 
@@ -31,14 +31,4 @@ export const ADMIN_NAV_ICON_ACTIVE = "text-white";
 export const ADMIN_NAV_ICON_IDLE = "text-white/65";
 
 export const ADMIN_MOBILE_MENU_TRIGGER =
-  "inline-flex items-center gap-2 rounded-full border border-[#ff7f20]/35 bg-white px-4 py-2 text-sm font-semibold uppercase tracking-wide text-[#3e573d] shadow-sm transition-colors hover:border-[#ff7f20] hover:text-[#ff7f20]";
-
-export const ADMIN_DRAWER_PANEL =
-  "w-[min(18rem,85vw)] min-w-[16rem] max-w-full";
-
-/** Mobile menu sheet nav (cream surface — not dark sidebar). */
-export const ADMIN_SHEET_NAV_ACTIVE =
-  "bg-[#ff7f20] text-white shadow-[0_8px_20px_rgba(255,127,32,0.22)]";
-
-export const ADMIN_SHEET_NAV_IDLE =
-  "text-[#3c2f2f] hover:bg-[#fff4eb] hover:text-[#1f1a17]";
+  "inline-flex h-10 items-center gap-2 rounded-2xl border border-[#ead7bf] bg-white px-3.5 text-xs font-bold uppercase tracking-[0.08em] text-[#1f3a22] shadow-[0_8px_20px_-14px_rgba(28,25,23,0.45)] transition-all hover:border-[#ff7f20]/55 hover:text-[#ff7f20] active:scale-[0.98]";

@@ -42,6 +42,7 @@ async function MobileBottomNavAsync({
       cartItemCount={cartItemCount}
       wishlistCount={wishlistCount}
       isSignedIn={Boolean(user)}
+      isAdmin={user?.role === "ADMIN"}
     />
   );
 }

@@ -17,6 +17,7 @@ type MobileBottomNavProps = {
   cartItemCount: number;
   wishlistCount: number;
   isSignedIn: boolean;
+  isAdmin?: boolean;
 };
 
 function isHomePath(pathname: string, locale: Locale): boolean {
@@ -53,17 +54,21 @@ export function MobileBottomNav({
   cartItemCount,
   wishlistCount,
   isSignedIn,
+  isAdmin = false,
 }: MobileBottomNavProps) {
   const pathname = usePathname() ?? `/${locale}`;
   const onHome = isHomePath(pathname, locale);
   const onShop = isShopPath(pathname, locale);
   const onWishlist = startsWithPath(pathname, `/${locale}/wishlist`);
-  const onProfile =
-    startsWithPath(pathname, `/${locale}/profile`) ||
-    startsWithPath(pathname, `/${locale}/login`);
-  const profileHref = isSignedIn
-    ? `/${locale}/profile`
-    : `/${locale}/login`;
+  const onProfile = isAdmin
+    ? startsWithPath(pathname, `/${locale}/admin`)
+    : startsWithPath(pathname, `/${locale}/profile`) ||
+      startsWithPath(pathname, `/${locale}/login`);
+  const profileHref = isAdmin
+    ? `/${locale}/admin`
+    : isSignedIn
+      ? `/${locale}/profile`
+      : `/${locale}/login`;
 
   const cartInactiveClass = onShop
     ? "mobile-bottom-nav-fill-cart-shop-inactive"

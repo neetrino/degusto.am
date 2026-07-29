@@ -30,6 +30,23 @@
     "searchNoResults": "No products found",
     "searchSeeAll": "See all"
   },
+  "adminMobile": {
+    "title": "Admin panel",
+    "badge": "Admin",
+    "selectSection": "Choose a section",
+    "orders": "Orders",
+    "products": "Products",
+    "analytics": "Analytics",
+    "categories": "Categories",
+    "messages": "Messages",
+    "users": "Users",
+    "discounts": "Discounts",
+    "coupons": "Coupons",
+    "delivery": "Delivery",
+    "blog": "Blog",
+    "hero": "Hero",
+    "settings": "Settings"
+  },
   "footer": {
     "addressesTitle": "Addresses",
     "contactsTitle": "Contacts",

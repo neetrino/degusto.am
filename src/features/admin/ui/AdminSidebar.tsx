@@ -8,10 +8,10 @@ import {
   isAdminTabActive,
   type AdminMenuItem,
 } from "@/features/admin/ui/admin-menu.config";
-import { AdminMenuDrawer } from "@/features/admin/ui/AdminMenuDrawer";
 import { AdminSidebarBrand } from "@/features/admin/ui/AdminSidebarBrand";
 import { useAdminSidebarCollapse } from "@/features/admin/ui/AdminSidebarCollapseContext";
 import {
+  ADMIN_MOBILE_MENU_TRIGGER,
   ADMIN_NAV_ACTIVE,
   ADMIN_NAV_ICON_ACTIVE,
   ADMIN_NAV_ICON_IDLE,
@@ -47,20 +47,55 @@ export function AdminSidebar({ locale }: AdminSidebarProps) {
     useAdminProductsSubnavExpanded(pathname, locale);
 
   const asideWidthClass = collapsed ? "lg:w-16" : "lg:w-64";
+  const adminRoot = `/${locale}/admin`;
+  const isAdminRoot =
+    pathname === adminRoot || pathname === `${adminRoot}/`;
 
   return (
     <>
-      <div className={ADMIN_SIDEBAR_MOBILE_DRAWER_WRAP}>
-        <div className="flex items-center justify-between gap-3">
-          <Link
-            href={`/${locale}`}
-            className="font-display min-w-0 shrink text-lg font-semibold tracking-tight text-[#3e573d]"
-          >
-            Degusto
-          </Link>
-          <AdminMenuDrawer locale={locale} pathname={pathname} />
+      {!isAdminRoot ? (
+        <div className={ADMIN_SIDEBAR_MOBILE_DRAWER_WRAP}>
+          <div className="flex items-center justify-between gap-3 rounded-[1.35rem] border border-[#ead7bf]/90 bg-white/95 px-3 py-2.5 shadow-[0_12px_28px_-22px_rgba(28,25,23,0.5)]">
+            <Link
+              href={adminRoot}
+              className="flex min-w-0 items-center gap-2.5"
+            >
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#ff8a3d] to-[#f55c0a] text-sm font-black text-white shadow-[0_10px_18px_-10px_rgba(246,104,18,0.9)]">
+                D
+              </span>
+              <span className="min-w-0">
+                <span className="font-display block truncate text-base font-black uppercase tracking-[0.04em] text-[#1f3a22]">
+                  Degusto
+                </span>
+                <span className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8a837a]">
+                  Admin
+                </span>
+              </span>
+            </Link>
+            <Link
+              href={adminRoot}
+              className={`${ADMIN_MOBILE_MENU_TRIGGER} lg:hidden`}
+              aria-label="Admin home"
+            >
+              <svg
+                className="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M4 6H20M4 12H16M4 18H12"
+                />
+              </svg>
+              Menu
+            </Link>
+          </div>
         </div>
-      </div>
+      ) : null}
       <aside className={`${ADMIN_SIDEBAR_ASIDE} ${asideWidthClass}`}>
         <AdminSidebarBrand locale={locale} />
         <nav

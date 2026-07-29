@@ -92,6 +92,20 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: buildImageRemotePatterns(),
   },
+  async redirects() {
+    return [
+      {
+        source: "/:locale/admin-mobile",
+        destination: "/:locale/admin",
+        permanent: true,
+      },
+      {
+        source: "/:locale/admin-mobile/:path*",
+        destination: "/:locale/admin",
+        permanent: true,
+      },
+    ];
+  },
   async rewrites() {
     const base = resolveR2PublicBaseUrl();
     if (!base) {

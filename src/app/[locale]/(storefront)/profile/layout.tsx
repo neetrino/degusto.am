@@ -42,6 +42,7 @@ export default async function ProfileLayout({
               locale={rawLocale}
               user={user}
               dictionary={dictionary.profile}
+              homeLabel={dictionary.nav.home}
             >
               {children}
             </ProfileMobileShell>

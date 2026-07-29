@@ -1,8 +1,15 @@
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
+import { MobileBottomNavIsland } from "@/components/layout/MobileBottomNavIsland";
 import { AdminShell } from "@/features/admin/ui/AdminShell";
 import { requireAdmin } from "@/lib/auth/policies";
 import { isLocale } from "@/lib/i18n/config";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
+import {
+  CURRENCY_COOKIE_NAME,
+  parseCurrencyCookie,
+} from "@/lib/money/currency-cookie";
 
 type AdminLayoutProps = {
   children: React.ReactNode;
@@ -17,5 +24,24 @@ export default async function AdminLayout({
   if (!isLocale(locale)) notFound();
   await requireAdmin(locale);
 
-  return <AdminShell locale={locale}>{children}</AdminShell>;
+  const dictionary = getDictionary(locale);
+  const cookieStore = await cookies();
+  const currency = parseCurrencyCookie(
+    cookieStore.get(CURRENCY_COOKIE_NAME)?.value,
+  );
+
+  return (
+    <AdminShell
+      locale={locale}
+      mobileBottom={
+        <MobileBottomNavIsland
+          locale={locale}
+          currency={currency}
+          dictionary={dictionary}
+        />
+      }
+    >
+      {children}
+    </AdminShell>
+  );
 }

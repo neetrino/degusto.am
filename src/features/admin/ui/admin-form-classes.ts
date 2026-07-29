@@ -30,7 +30,7 @@ export const ADMIN_LINK_BACK =
   "font-medium text-[#5c564e] transition-colors hover:text-[#ff7f20] hover:underline";
 
 export const ADMIN_PAGINATION =
-  "mt-4 flex items-center gap-3 text-sm text-[#5c564e]";
+  "flex flex-wrap items-center gap-1.5 text-sm text-[#5c564e]";
 
 export const ADMIN_CARD =
   "border-[#e8e2d9] bg-white shadow-[0_8px_24px_rgba(31,26,23,0.04)]";

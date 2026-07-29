@@ -14,6 +14,7 @@ import {
 } from "@/db/schema";
 import { persistProductMedia } from "@/features/products/application/persist-product-media";
 import { syncProductModifiers } from "@/features/products/application/sync-product-modifiers";
+import { slugifyProductTitle } from "@/features/products/domain/slugify";
 import { requireAdmin } from "@/lib/auth/policies";
 import { invalidateProductsCache } from "@/lib/cache/invalidate-public";
 import { createId } from "@/lib/id";
@@ -28,7 +29,7 @@ const productModifierSchema = z.object({
 
 const localeTranslationInputSchema = z.object({
   title: z.string().max(200),
-  slug: z.string().max(200),
+  slug: z.string().max(200).optional(),
   description: z.string().max(5000).optional(),
 });
 
@@ -55,27 +56,51 @@ const productUpsertSchema = z.object({
 
 export type ProductUpsertInput = z.infer<typeof productUpsertSchema>;
 
+function primaryTitleFromInput(data: ProductUpsertInput): string {
+  for (const loc of locales) {
+    const title = data.translations[loc]?.title.trim() ?? "";
+    if (title) return title;
+  }
+  return "";
+}
+
+/**
+ * Builds locale translations with one shared auto-generated slug (no per-locale variants).
+ * When `existingSlug` is set (edit), that slug is preserved for URL stability.
+ */
 function buildTranslations(
   data: ProductUpsertInput,
+  existingSlug?: string,
 ): TranslationsJson | null {
   const next: TranslationsJson = {};
+  let primaryTitle = "";
 
   for (const loc of locales) {
     const entry = data.translations[loc];
     if (!entry) continue;
     const title = entry.title.trim();
-    const slug = entry.slug.trim();
-    if (!title || !slug) continue;
+    if (!title) continue;
+    if (!primaryTitle) primaryTitle = title;
     const description = entry.description?.trim();
     next[loc] = {
       title,
-      slug,
+      slug: "",
       ...(description ? { description } : {}),
     };
   }
 
   if (!next.hy && !next.en && !next.ru) {
     return null;
+  }
+
+  const sharedSlug =
+    existingSlug?.trim() ||
+    slugifyProductTitle(primaryTitle || primaryTitleFromInput(data));
+
+  for (const loc of locales) {
+    const entry = next[loc];
+    if (!entry) continue;
+    entry.slug = sharedSlug;
   }
 
   return next;
@@ -194,7 +219,7 @@ export async function createProductFromDrawerAction(
   if (!translations) {
     return err(
       "VALIDATION_ERROR",
-      "Fill title and slug for at least one language (HY / EN / RU).",
+      "Fill title for at least one language (HY / EN / RU).",
     );
   }
 
@@ -296,11 +321,14 @@ export async function updateProductFromDrawerAction(
     return err("NOT_FOUND", "Product not found.");
   }
 
-  const translations = buildTranslations(data);
+  const translations = buildTranslations(
+    data,
+    primarySlugFromTranslations(existing.translations),
+  );
   if (!translations) {
     return err(
       "VALIDATION_ERROR",
-      "Fill title and slug for at least one language (HY / EN / RU).",
+      "Fill title for at least one language (HY / EN / RU).",
     );
   }
 

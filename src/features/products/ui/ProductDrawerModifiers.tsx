@@ -97,18 +97,14 @@ function ModifierColumn({
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[20px] border border-[#ead7bf] bg-[#fffaf2] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.04)]">
-      <div className="border-b border-[#ead7bf]/80 px-4 py-3">
+      <div className="border-b border-[#ead7bf]/80 px-3 py-2.5">
         <p className="text-sm font-semibold text-[#1f1a17]">{title}</p>
         <p className={`mt-0.5 text-xs ${ADMIN_TEXT_MUTED}`}>{subtitle}</p>
       </div>
 
-      <ul className="min-h-[180px] max-h-[240px] flex-1 space-y-0.5 overflow-y-auto overscroll-contain px-2 py-2">
-        {items.length === 0 ? (
-          <li className={`px-2 py-8 text-center text-sm ${ADMIN_TEXT_MUTED}`}>
-            Դատարկ է
-          </li>
-        ) : (
-          items.map((item) => (
+      {items.length > 0 ? (
+        <ul className="max-h-[240px] space-y-0.5 overflow-y-auto overscroll-contain px-2 py-1.5">
+          {items.map((item) => (
             <li
               key={item.key}
               className="flex items-center gap-2 rounded-xl px-2 py-1.5 transition-colors hover:bg-white/80"
@@ -174,11 +170,17 @@ function ModifierColumn({
                 <X className="size-4" strokeWidth={2.25} aria-hidden />
               </button>
             </li>
-          ))
-        )}
-      </ul>
+          ))}
+        </ul>
+      ) : null}
 
-      <div className="flex flex-col gap-2 border-t border-[#ead7bf]/80 bg-white/70 p-2.5">
+      <div
+        className={
+          items.length > 0
+            ? "flex flex-col gap-2 border-t border-[#ead7bf]/80 bg-white/70 p-2.5"
+            : "flex flex-col gap-2 bg-white/70 p-2.5"
+        }
+      >
         <div
           className={
             showPrice
@@ -235,14 +237,7 @@ export function ProductDrawerModifiers({
 }: ProductDrawerModifiersProps) {
   return (
     <fieldset disabled={disabled} className="min-w-0 space-y-3">
-      <div>
-        <legend className={ADMIN_LABEL}>Ավելացում / Բացառում</legend>
-        <p className={`-mt-0.5 text-sm leading-relaxed ${ADMIN_TEXT_MUTED}`}>
-          Ավելացում — լրացուցիչ տարբերակ գնով։ Բացառում — ուտեստի հիմնական
-          բաղադրիչները, որոնք client-ը կարող է նշել PDP-ում, որ չմտնեն պատրաստի
-          ուտեստի մեջ։ Checkbox-ը որոշում է՝ տարբերակը երևա խանութում։
-        </p>
-      </div>
+      <legend className={ADMIN_LABEL}>Ավելացում / Բացառում</legend>
 
       <div className="grid gap-3 lg:grid-cols-2">
         <ModifierColumn

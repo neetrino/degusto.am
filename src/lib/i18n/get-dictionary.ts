@@ -60,6 +60,7 @@ function buildDictionary(namespaces: LocaleNamespaces) {
     nav: namespaces.common.nav,
     header: namespaces.common.header,
     footer: namespaces.common.footer,
+    adminMobile: namespaces.common.adminMobile,
     home: namespaces.home,
     contact: namespaces.contact,
     about: namespaces.about,
