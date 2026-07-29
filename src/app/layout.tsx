@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Montserrat, Noto_Sans_Armenian } from "next/font/google";
 import localFont from "next/font/local";
 
@@ -43,6 +43,14 @@ export const metadata: Metadata = {
   description: "Multilingual e-commerce storefront",
 };
 
+/** Disable pinch / double-tap zoom on mobile viewports. */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -51,7 +59,7 @@ export default function RootLayout({
   return (
     <html lang="hy" className="h-full" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} ${notoArmenian.variable} ${mirageExpanded.variable} flex min-h-dvh flex-col overflow-x-hidden antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} ${notoArmenian.variable} ${mirageExpanded.variable} flex min-h-dvh flex-col overflow-x-hidden antialiased touch-manipulation`}
       >
         {children}
       </body>

@@ -77,7 +77,7 @@ export default async function AdminOrdersPage({
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
-    <section>
+    <section className="min-w-0 max-w-full">
       <div className="mb-6">
         <h1 className={ADMIN_PAGE_TITLE}>Orders</h1>
       </div>

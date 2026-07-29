@@ -52,11 +52,11 @@ export function AdminOrdersFilters({
   }
 
   return (
-    <Card className="mb-6 overflow-visible">
+    <Card className="mb-6 min-w-0 overflow-visible">
       <form
         ref={formRef}
         method="get"
-        className="flex flex-nowrap items-center gap-3 p-4"
+        className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 lg:flex lg:flex-nowrap lg:items-center lg:gap-3"
       >
         <SelectDropdown
           name="status"
@@ -64,7 +64,7 @@ export function AdminOrdersFilters({
           value={statusValue}
           allLabel="All statuses"
           options={ORDER_STATUS_FILTERS}
-          className="w-[180px] shrink-0"
+          className="w-full min-w-0 lg:w-[180px] lg:shrink-0"
           onValueChange={applyStatus}
         />
         <SelectDropdown
@@ -73,14 +73,14 @@ export function AdminOrdersFilters({
           value={paymentValue}
           allLabel="All payment statuses"
           options={PAYMENT_STATUS_FILTERS}
-          className="w-[200px] shrink-0"
+          className="w-full min-w-0 lg:w-[200px] lg:shrink-0"
           onValueChange={applyPayment}
         />
         <input
           name="q"
           defaultValue={q ?? ""}
           placeholder="Search by order #, customer, email, phone…"
-          className={FILTER_SEARCH}
+          className={`${FILTER_SEARCH} sm:col-span-2 lg:col-auto`}
           aria-label="Search orders"
         />
       </form>

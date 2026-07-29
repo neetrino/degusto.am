@@ -17,7 +17,7 @@ export const ADMIN_PAGE_SHELL =
 export const ADMIN_MAIN_COLUMN =
   "min-w-0 flex-1 px-3 pb-8 pt-4 sm:px-6 sm:pt-6 lg:min-h-0 lg:overflow-y-auto lg:overscroll-y-contain lg:px-8 lg:pt-12";
 
-export const ADMIN_MAIN_INNER = "w-full";
+export const ADMIN_MAIN_INNER = "w-full min-w-0 max-w-full";
 
 /** Active nav row on the dark green sidebar. */
 export const ADMIN_NAV_ACTIVE =

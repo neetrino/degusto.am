@@ -115,9 +115,9 @@ export function BulkChangeOrderStatusForm({
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <Card className="flex flex-wrap items-center justify-between gap-3 p-4">
-        <p className="text-sm text-[#5c564e]">
+    <div className="flex min-w-0 flex-col gap-4">
+      <Card className="flex min-w-0 flex-wrap items-center justify-between gap-3 p-4">
+        <p className="min-w-0 text-sm text-[#5c564e]">
           Selected {selected.size} order{selected.size === 1 ? "" : "s"}
         </p>
         <Button
@@ -126,6 +126,7 @@ export function BulkChangeOrderStatusForm({
           variant="danger"
           disabled={isPending || selected.size === 0}
           onClick={deleteSelected}
+          className="shrink-0"
         >
           {isPending ? "Deleting…" : "Delete selected"}
         </Button>
@@ -137,7 +138,89 @@ export function BulkChangeOrderStatusForm({
         ) : null}
       </Card>
 
-      <Card className={ADMIN_TABLE_CARD}>
+      {/* Mobile card list */}
+      <div className="flex min-w-0 flex-col gap-3 lg:hidden">
+        {orders.length === 0 ? (
+          <Card className="p-4">
+            <p className="text-sm text-[#5c564e]">No orders match these filters.</p>
+          </Card>
+        ) : (
+          orders.map((order) => (
+            <Card
+              key={order.id}
+              className="min-w-0 overflow-hidden border-[#e8e2d9] p-0 shadow-[0_8px_24px_rgba(31,26,23,0.04)]"
+            >
+              <div className="flex items-start gap-3 border-b border-[#ead7bf]/80 px-3 py-3">
+                <input
+                  type="checkbox"
+                  className={`${ADMIN_TABLE_CHECKBOX} mt-1`}
+                  checked={selected.has(order.orderNumber)}
+                  onChange={() => toggleOne(order.orderNumber)}
+                  disabled={isPending || order.isArchived}
+                  aria-label={`Select ${order.orderNumber}`}
+                />
+                <div className="min-w-0 flex-1">
+                  <button
+                    type="button"
+                    onClick={() => onOpenOrder(order.orderNumber)}
+                    className="truncate text-left text-sm font-semibold text-[#1f1a17] hover:underline"
+                  >
+                    {order.orderNumber}
+                  </button>
+                  <p className="mt-0.5 truncate text-sm text-[#1f1a17]">
+                    {order.contactName}
+                  </p>
+                  <p className="truncate text-xs text-[#8a837a]">
+                    {order.contactEmail}
+                  </p>
+                </div>
+                <p className="shrink-0 text-sm font-semibold tabular-nums text-[#1f1a17]">
+                  {formatMoney(order.totalAmount, order.baseCurrency)}
+                </p>
+              </div>
+              <div className="grid grid-cols-1 gap-3 px-3 py-3 sm:grid-cols-2">
+                <div className="min-w-0">
+                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-[#8a837a]">
+                    Status
+                  </p>
+                  <AdminInlineStatusSelect
+                    locale={locale}
+                    orderNumber={order.orderNumber}
+                    kind="order"
+                    value={order.status}
+                    disabled={isPending || order.isArchived}
+                  />
+                </div>
+                <div className="min-w-0">
+                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-[#8a837a]">
+                    Payment
+                  </p>
+                  <AdminInlineStatusSelect
+                    locale={locale}
+                    orderNumber={order.orderNumber}
+                    kind="payment"
+                    value={order.paymentStatus}
+                    disabled={isPending || order.isArchived}
+                  />
+                </div>
+              </div>
+              <div className="border-t border-[#ead7bf]/80 px-3 py-2">
+                <p className="text-xs text-[#8a837a]">
+                  {new Date(order.placedAt)
+                    .toISOString()
+                    .slice(0, 16)
+                    .replace("T", " ")}{" "}
+                  UTC
+                  {order.isArchived ? " · Archived" : ""}
+                </p>
+              </div>
+            </Card>
+          ))
+        )}
+      </div>
+
+      {/* Desktop table */}
+      <Card className={`hidden min-w-0 lg:block ${ADMIN_TABLE_CARD}`}>
         <div className={ADMIN_TABLE_OUTER_SCROLL}>
           <table className={ADMIN_TABLE}>
             <thead className={ADMIN_TABLE_THEAD}>
