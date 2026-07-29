@@ -39,7 +39,11 @@
     "idram": "Idram",
     "idramDescription": "Pay with Idram wallet or card",
     "arca": "ArCa",
-    "arcaDescription": "Pay with ArCa card"
+    "arcaDescription": "Pay with ArCa card",
+    "changeTitle": "Change",
+    "changeHint": "Tap the banknote you will pay with so we can prepare the change.",
+    "changeNone": "No change needed",
+    "changeRequired": "Select a banknote or confirm that no change is needed"
   },
   "coupon": {
     "title": "Have a coupon?",

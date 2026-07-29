@@ -39,7 +39,11 @@
     "idram": "Idram",
     "idramDescription": "Վճարեք Idram դրամապանակով կամ քարտով",
     "arca": "ArCa",
-    "arcaDescription": "Վճարեք ArCa քարտով"
+    "arcaDescription": "Վճարեք ArCa քարտով",
+    "changeTitle": "Մանրը",
+    "changeHint": "Սեղմեք այն թղթադրամին, որը կվճարեք, որպեսզի պատրաստենք մանրը։",
+    "changeNone": "Մանր պետք չէ",
+    "changeRequired": "Ընտրեք թղթադրամը կամ նշեք, որ մանր պետք չէ"
   },
   "coupon": {
     "title": "Ունե՞ք պրոմոկոդ",
