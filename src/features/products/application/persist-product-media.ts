@@ -10,7 +10,7 @@ import {
   extensionForImageMime,
   validateImageFile,
 } from "@/lib/media/image-file";
-import { mediaPublicUrl } from "@/lib/media/public-url";
+import { resolveMediaPublicUrl } from "@/lib/media/public-url";
 
 const MAX_IMAGES = 12;
 
@@ -179,7 +179,7 @@ export async function loadProductImagesForAdmin(
     const list = map.get(row.productId) ?? [];
     list.push({
       id: row.id,
-      url: mediaPublicUrl(row.objectKey),
+      url: await resolveMediaPublicUrl(row.objectKey),
       isPrimary: row.isPrimary,
     });
     map.set(row.productId, list);

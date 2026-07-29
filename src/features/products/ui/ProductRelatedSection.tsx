@@ -69,6 +69,8 @@ export async function ProductRelatedSection({
       inStock: item.stockOnHand > 0,
       inWishlist: wishlistIds.has(item.id),
       categoryLabel: categoryLabels.get(item.id) ?? null,
+      isSpicy: item.isSpicy,
+      isVegetarian: item.isVegetarian,
     };
   });
 

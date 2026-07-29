@@ -9,6 +9,7 @@ import {
   categories,
   mediaAssets,
   productCategories,
+  productModifiers,
   products,
 } from "@/db/schema";
 import { resolveProductPrices } from "@/features/promotions/application/resolve-product-prices";
@@ -23,7 +24,7 @@ import {
   PUBLIC_CACHE_REVALIDATE_SECONDS,
 } from "@/lib/cache/tags";
 import type { Locale } from "@/lib/i18n/config";
-import { mediaPublicUrl } from "@/lib/media/public-url";
+import { resolveMediaPublicUrl } from "@/lib/media/public-url";
 
 export type {
   CatalogProduct,
@@ -43,6 +44,7 @@ export type CatalogListFilters = {
   minPrice?: number | null;
   maxPrice?: number | null;
   query?: string | null;
+  diet?: "none" | "veg" | "spicy" | null;
 };
 
 function toPriceFilterInt(value: number | null | undefined): number | null {
@@ -77,6 +79,8 @@ function toCatalogProduct(
     id: product.id,
     sku: product.sku,
     stockOnHand: product.stockOnHand,
+    isSpicy: product.isSpicy,
+    isVegetarian: product.isVegetarian,
     translation,
     imageUrl,
   };
@@ -112,7 +116,7 @@ async function loadPrimaryProductImages(
     if (!row.productId || map.has(row.productId)) {
       continue;
     }
-    map.set(row.productId, mediaPublicUrl(row.objectKey));
+    map.set(row.productId, await resolveMediaPublicUrl(row.objectKey));
   }
 
   return map;
@@ -230,6 +234,12 @@ function buildCatalogWhere(
     );
   }
 
+  if (filters.diet === "spicy") {
+    clauses.push(eq(products.isSpicy, true));
+  } else if (filters.diet === "veg") {
+    clauses.push(eq(products.isVegetarian, true));
+  }
+
   return and(...clauses);
 }
 
@@ -277,6 +287,8 @@ export async function getActiveProductsPage(
   const minPrice = minPriceValue != null ? String(minPriceValue) : "";
   const maxPrice = maxPriceValue != null ? String(maxPriceValue) : "";
   const query = filters.query?.trim() || "";
+  const diet =
+    filters.diet === "veg" || filters.diet === "spicy" ? filters.diet : "none";
 
   return unstable_cache(
     async () =>
@@ -285,6 +297,7 @@ export async function getActiveProductsPage(
         minPrice: minPriceValue,
         maxPrice: maxPriceValue,
         query: query || null,
+        diet,
       }),
     [
       "active-products-page",
@@ -294,6 +307,7 @@ export async function getActiveProductsPage(
       minPrice,
       maxPrice,
       query,
+      diet,
     ],
     {
       tags: [CACHE_TAGS.products],
@@ -392,14 +406,16 @@ async function loadProductGallery(
     )
     .orderBy(asc(mediaAssets.sortOrder));
 
-  return rows
-    .map((row) => ({
+  return Promise.all(
+    rows.map(async (row) => ({
       id: row.id,
-      url: mediaPublicUrl(row.objectKey),
+      url: await resolveMediaPublicUrl(row.objectKey),
       alt: row.altTranslations?.[locale] ?? fallbackTitle,
       isPrimary: row.isPrimary,
-    }))
-    .sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary));
+    })),
+  ).then((images) =>
+    images.sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary)),
+  );
 }
 
 async function loadProductCategories(
@@ -498,9 +514,25 @@ async function loadProductDetailBySlug(
     return null;
   }
 
-  const [images, productCats] = await Promise.all([
+  const [images, productCats, modifierRows] = await Promise.all([
     loadProductGallery(product.id, locale, product.translation.title),
     loadProductCategories(product.id, locale),
+    getDb()
+      .select({
+        id: productModifiers.id,
+        kind: productModifiers.kind,
+        label: productModifiers.label,
+        priceAmount: productModifiers.priceAmount,
+        sortOrder: productModifiers.sortOrder,
+      })
+      .from(productModifiers)
+      .where(
+        and(
+          eq(productModifiers.productId, product.id),
+          eq(productModifiers.isEnabled, true),
+        ),
+      )
+      .orderBy(asc(productModifiers.sortOrder), asc(productModifiers.createdAt)),
   ]);
 
   const gallery =
@@ -517,10 +549,27 @@ async function loadProductDetailBySlug(
           ]
         : [];
 
+  const additions: Array<{ id: string; label: string; priceAmount: number }> =
+    [];
+  const exclusions: Array<{ id: string; label: string }> = [];
+  for (const row of modifierRows) {
+    if (row.kind === "ADDITION") {
+      additions.push({
+        id: row.id,
+        label: row.label,
+        priceAmount: row.priceAmount,
+      });
+    } else {
+      exclusions.push({ id: row.id, label: row.label });
+    }
+  }
+
   return {
     ...product,
     images: gallery,
     categories: productCats,
+    additions,
+    exclusions,
   };
 }
 

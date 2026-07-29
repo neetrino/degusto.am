@@ -8,8 +8,9 @@ import {
   useSpring,
   useTransform,
 } from "motion/react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
+import { ProductAnimatedPrice } from "@/features/products/ui/ProductAnimatedPrice";
 import { ProductGallery } from "@/features/products/ui/ProductGallery";
 import { ProductModifierPills } from "@/features/products/ui/ProductModifierPills";
 import {
@@ -36,6 +37,10 @@ type ProductDetailMainProps = {
   padded: boolean;
 };
 
+function isAmdPriceLabel(priceFormatted: string): boolean {
+  return priceFormatted.includes("Դ") || /\bAMD\b/.test(priceFormatted);
+}
+
 /** Animated PDP hero — gallery + info with render stagger and scroll float. */
 export function ProductDetailMain({
   locale,
@@ -55,6 +60,15 @@ export function ProductDetailMain({
   const showDescription =
     description.length > 0 &&
     description !== product.translation.title.trim();
+  const [selectedAddIds, setSelectedAddIds] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  const additionsTotal = product.additions.reduce((sum, item) => {
+    if (!selectedAddIds.has(item.id)) return sum;
+    return sum + Math.max(0, item.priceAmount);
+  }, 0);
+  const liveUnitAmount = product.priceAmount + additionsTotal;
+  const animateLivePrice = isAmdPriceLabel(priceFormatted);
 
   const sectionRef = useRef<HTMLElement>(null);
   const reduceMotion = useReducedMotion();
@@ -165,9 +179,17 @@ export function ProductDetailMain({
               variants={reduceMotion ? undefined : productInfoItem}
               className="mb-4 flex flex-wrap items-baseline gap-x-3"
             >
-              <p className="text-[2.25rem] leading-none font-bold text-[#3C2F2F]">
-                {priceFormatted}
-              </p>
+              {animateLivePrice ? (
+                <ProductAnimatedPrice
+                  amount={liveUnitAmount}
+                  suffix=" Դ"
+                  className="text-[2.25rem] leading-none font-bold tabular-nums text-[#3C2F2F]"
+                />
+              ) : (
+                <p className="text-[2.25rem] leading-none font-bold text-[#3C2F2F]">
+                  {priceFormatted}
+                </p>
+              )}
               {compareAtFormatted ? (
                 <p className="text-base text-[#9a9a9a] line-through md:text-lg">
                   {compareAtFormatted}
@@ -197,7 +219,18 @@ export function ProductDetailMain({
               <ProductModifierPills
                 addLabel={labels.addModifier}
                 excludeLabel={labels.excludeModifier}
-                emptyLabel={labels.noModifierOptions}
+                excludeHint={labels.excludeModifierHint}
+                emptyAddLabel={labels.noModifierOptions}
+                emptyExcludeLabel={labels.noExcludeOptions}
+                addOptions={product.additions.map((item) => ({
+                  id: item.id,
+                  label: item.label,
+                  priceAmount: item.priceAmount,
+                  priceLabel:
+                    item.priceAmount > 0 ? `+${item.priceAmount} Դ` : undefined,
+                }))}
+                excludeOptions={product.exclusions}
+                onSelectedAddChange={setSelectedAddIds}
               />
             </motion.div>
 

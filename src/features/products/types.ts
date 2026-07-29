@@ -16,6 +16,8 @@ export type CatalogProduct = {
   compareAtAmount: number | null;
   discountPercent: number | null;
   stockOnHand: number;
+  isSpicy: boolean;
+  isVegetarian: boolean;
   translation: LocaleTranslation;
   imageUrl: string | null;
 };
@@ -36,4 +38,6 @@ export type ProductCategoryRef = {
 export type ProductDetail = CatalogProduct & {
   images: ProductGalleryImage[];
   categories: ProductCategoryRef[];
+  additions: Array<{ id: string; label: string; priceAmount: number }>;
+  exclusions: Array<{ id: string; label: string }>;
 };

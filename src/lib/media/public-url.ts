@@ -82,3 +82,16 @@ export function mediaPublicUrl(objectKey: string): string {
 
   return getProviders().storage.buildPublicUrl(objectKey);
 }
+
+/**
+ * Browser-readable media URL. Uses signed R2 GETs when the configured
+ * public base is the private S3 API host (common misconfig).
+ */
+export async function resolveMediaPublicUrl(objectKey: string): Promise<string> {
+  const key = resolveLocalAssetKey(objectKey.replace(/^\//, ""));
+  if (key.startsWith("assets/")) {
+    return `/${key}`;
+  }
+
+  return getProviders().storage.resolveReadableUrl(objectKey);
+}

@@ -101,6 +101,7 @@ export default async function ProductsPage({
       minPrice,
       maxPrice,
       query: searchQuery || null,
+      diet,
     }),
     getSelectedCurrency(),
     getCurrentUser(),
@@ -118,6 +119,7 @@ export default async function ProductsPage({
           minPrice,
           maxPrice,
           query: searchQuery || null,
+          diet,
         })
       : initialCatalog;
   if (page > totalPages) {
@@ -152,6 +154,8 @@ export default async function ProductsPage({
       inStock: product.stockOnHand > 0,
       inWishlist: wishlistIds.has(product.id),
       categoryLabel: categoryLabels.get(product.id) ?? null,
+      isSpicy: product.isSpicy,
+      isVegetarian: product.isVegetarian,
     };
   });
 

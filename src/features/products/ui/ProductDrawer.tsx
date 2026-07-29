@@ -11,8 +11,10 @@ import {
   ADMIN_SHEET_FOOTER,
   ADMIN_SHEET_PRIMARY_BUTTON,
   ADMIN_SHEET_SURFACE,
+  ADMIN_TEXT_MUTED,
   ADMIN_TEXTAREA,
 } from "@/features/admin/ui/admin-form-classes";
+import { AdminContentLocaleToggle } from "@/features/admin/ui/AdminContentLocaleToggle";
 import { AdminSheetHeader } from "@/features/admin/ui/AdminSheetHeader";
 import type {
   AdminCategoryOption,
@@ -23,10 +25,17 @@ import {
   updateProductFromDrawerAction,
 } from "@/features/products/application/upsert-product";
 import { ProductDrawerCategories } from "@/features/products/ui/ProductDrawerCategories";
+import { ProductDrawerDietBadges } from "@/features/products/ui/ProductDrawerDietBadges";
 import {
   ProductDrawerImages,
   type ProductDraftImage,
 } from "@/features/products/ui/ProductDrawerImages";
+import {
+  ProductDrawerModifiers,
+  type ProductModifierDraft,
+} from "@/features/products/ui/ProductDrawerModifiers";
+import type { TranslationsJson } from "@/db/schema";
+import { isLocale, locales, type Locale } from "@/lib/i18n/config";
 
 type ProductDrawerProduct = Pick<
   AdminProductListItem,
@@ -35,12 +44,17 @@ type ProductDrawerProduct = Pick<
   | "title"
   | "slug"
   | "description"
+  | "translations"
   | "priceAmount"
   | "compareAtAmount"
   | "stockOnHand"
   | "status"
   | "categoryIds"
   | "images"
+  | "isSpicy"
+  | "isVegetarian"
+  | "additions"
+  | "exclusions"
 >;
 
 type ProductDrawerProps = {
@@ -50,6 +64,62 @@ type ProductDrawerProps = {
   product?: ProductDrawerProduct | null;
   categories: AdminCategoryOption[];
 };
+
+type LocaleFields = {
+  title: string;
+  slug: string;
+  description: string;
+};
+
+type LocaleDrafts = Record<Locale, LocaleFields>;
+
+function emptyLocaleFields(): LocaleFields {
+  return { title: "", slug: "", description: "" };
+}
+
+function emptyLocaleDrafts(): LocaleDrafts {
+  return {
+    hy: emptyLocaleFields(),
+    en: emptyLocaleFields(),
+    ru: emptyLocaleFields(),
+  };
+}
+
+function draftsFromTranslations(
+  translations: TranslationsJson | null | undefined,
+  fallback?: { title: string; slug: string; description: string },
+): LocaleDrafts {
+  const drafts = emptyLocaleDrafts();
+  let anyFilled = false;
+
+  for (const loc of locales) {
+    const entry = translations?.[loc];
+    if (!entry) continue;
+    anyFilled = true;
+    drafts[loc] = {
+      title: entry.title ?? "",
+      slug: entry.slug ?? "",
+      description: entry.description ?? "",
+    };
+  }
+
+  if (!anyFilled && fallback && (fallback.title || fallback.slug)) {
+    const seed = {
+      title: fallback.title,
+      slug: fallback.slug,
+      description: fallback.description,
+    };
+    drafts.hy = seed;
+    drafts.en = { ...seed };
+    drafts.ru = { ...seed };
+  }
+
+  return drafts;
+}
+
+function isLocaleFilled(fields: LocaleFields): boolean {
+  return fields.title.trim().length > 0 && fields.slug.trim().length > 0;
+}
 
 function imagesFromProduct(
   product: ProductDrawerProduct | null,
@@ -63,6 +133,19 @@ function imagesFromProduct(
   }));
 }
 
+function modifiersFromProduct(
+  product: ProductDrawerProduct | null,
+  kind: "additions" | "exclusions",
+): ProductModifierDraft[] {
+  if (!product) return [];
+  return product[kind].map((item) => ({
+    key: item.id,
+    label: item.label,
+    isEnabled: item.isEnabled,
+    priceAmount: item.priceAmount,
+  }));
+}
+
 export function ProductDrawer({
   locale,
   open,
@@ -72,9 +155,11 @@ export function ProductDrawer({
 }: ProductDrawerProps) {
   const router = useRouter();
   const isEdit = product != null;
-  const [title, setTitle] = useState("");
-  const [slug, setSlug] = useState("");
-  const [description, setDescription] = useState("");
+  const initialContentLocale: Locale = isLocale(locale) ? locale : "hy";
+  const [contentLocale, setContentLocale] =
+    useState<Locale>(initialContentLocale);
+  const [localeDrafts, setLocaleDrafts] =
+    useState<LocaleDrafts>(emptyLocaleDrafts);
   const [images, setImages] = useState<ProductDraftImage[]>([]);
   const [removedImageIds, setRemovedImageIds] = useState<string[]>([]);
   const [categories, setCategories] =
@@ -84,8 +169,24 @@ export function ProductDrawer({
   const [compareAtAmount, setCompareAtAmount] = useState("");
   const [sku, setSku] = useState("");
   const [stockOnHand, setStockOnHand] = useState("");
+  const [isSpicy, setIsSpicy] = useState(false);
+  const [isVegetarian, setIsVegetarian] = useState(false);
+  const [additions, setAdditions] = useState<ProductModifierDraft[]>([]);
+  const [exclusions, setExclusions] = useState<ProductModifierDraft[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const activeFields = localeDrafts[contentLocale];
+  const filledLocales = locales.filter((loc) =>
+    isLocaleFilled(localeDrafts[loc]),
+  );
+
+  function patchActiveFields(patch: Partial<LocaleFields>): void {
+    setLocaleDrafts((prev) => ({
+      ...prev,
+      [contentLocale]: { ...prev[contentLocale], ...patch },
+    }));
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -93,10 +194,15 @@ export function ProductDrawer({
     queueMicrotask(() => {
       if (cancelled) return;
       setCategories(initialCategories);
+      setContentLocale(isLocale(locale) ? locale : "hy");
       if (product) {
-        setTitle(product.title);
-        setSlug(product.slug);
-        setDescription(product.description);
+        setLocaleDrafts(
+          draftsFromTranslations(product.translations, {
+            title: product.title,
+            slug: product.slug,
+            description: product.description,
+          }),
+        );
         setImages(imagesFromProduct(product));
         setRemovedImageIds([]);
         setCategoryIds(product.categoryIds);
@@ -106,12 +212,14 @@ export function ProductDrawer({
         );
         setSku(product.sku);
         setStockOnHand(String(product.stockOnHand));
+        setIsSpicy(product.isSpicy);
+        setIsVegetarian(product.isVegetarian);
+        setAdditions(modifiersFromProduct(product, "additions"));
+        setExclusions(modifiersFromProduct(product, "exclusions"));
         setError(null);
         return;
       }
-      setTitle("");
-      setSlug("");
-      setDescription("");
+      setLocaleDrafts(emptyLocaleDrafts());
       setImages([]);
       setRemovedImageIds([]);
       setCategoryIds([]);
@@ -119,12 +227,16 @@ export function ProductDrawer({
       setCompareAtAmount("");
       setSku("");
       setStockOnHand("");
+      setIsSpicy(false);
+      setIsVegetarian(false);
+      setAdditions([]);
+      setExclusions([]);
       setError(null);
     });
     return () => {
       cancelled = true;
     };
-  }, [open, product, initialCategories]);
+  }, [open, product, initialCategories, locale]);
 
   function handleImagesChange(next: ProductDraftImage[]): void {
     const nextKeys = new Set(next.map((image) => image.key));
@@ -147,7 +259,7 @@ export function ProductDrawer({
       open={open}
       onClose={onClose}
       ariaLabel={isEdit ? "Edit product" : "Add new product"}
-      panelClassName="w-[min(100%,42rem)] sm:w-[40%]"
+      panelClassName="w-[min(100%,48rem)] sm:w-[min(72%,56rem)]"
       surfaceClassName={ADMIN_SHEET_SURFACE}
       closeTone="brand"
       backdropBlur
@@ -160,6 +272,12 @@ export function ProductDrawer({
           className="flex min-h-0 flex-1 flex-col"
           onSubmit={(event) => {
             event.preventDefault();
+            if (filledLocales.length === 0) {
+              setError(
+                "Fill title and slug for at least one language (HY / EN / RU).",
+              );
+              return;
+            }
             const newImages = images.filter((image) => image.file);
             const primaryImage = images.find((image) => image.isPrimary);
             const primaryNewIndex = primaryImage?.file
@@ -168,9 +286,11 @@ export function ProductDrawer({
 
             const payload = {
               sku: sku.trim(),
-              title: title.trim(),
-              slug: slug.trim(),
-              description: description.trim() || undefined,
+              translations: {
+                hy: localeDrafts.hy,
+                en: localeDrafts.en,
+                ru: localeDrafts.ru,
+              },
               priceAmount: Number(priceAmount),
               compareAtAmount: compareAtAmount.trim()
                 ? Number(compareAtAmount)
@@ -181,6 +301,18 @@ export function ProductDrawer({
               product?.status === "ARCHIVED"
                 ? product.status
                 : "DRAFT") as "DRAFT" | "ACTIVE" | "ARCHIVED",
+              isSpicy,
+              isVegetarian,
+              additions: additions.map((item) => ({
+                label: item.label,
+                isEnabled: item.isEnabled,
+                priceAmount: item.priceAmount,
+              })),
+              exclusions: exclusions.map((item) => ({
+                label: item.label,
+                isEnabled: item.isEnabled,
+                priceAmount: 0,
+              })),
               primaryExistingId: primaryImage?.existingId ?? null,
               primaryNewIndex:
                 primaryNewIndex != null && primaryNewIndex >= 0
@@ -217,15 +349,33 @@ export function ProductDrawer({
           }}
         >
           <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className={ADMIN_LABEL}>Content language</p>
+                <p className={`-mt-0.5 text-xs ${ADMIN_TEXT_MUTED}`}>
+                  Switch HY / EN / RU — title, slug and description update per
+                  language.
+                </p>
+              </div>
+              <AdminContentLocaleToggle
+                value={contentLocale}
+                onChange={setContentLocale}
+                filledLocales={filledLocales}
+                disabled={isPending}
+              />
+            </div>
+
             <div className="grid gap-4 sm:grid-cols-2">
               <label>
                 <span className={ADMIN_LABEL}>
-                  Title <span className="text-red-600">*</span>
+                  Title ({contentLocale.toUpperCase()}){" "}
+                  <span className="text-red-600">*</span>
                 </span>
                 <input
-                  required
-                  value={title}
-                  onChange={(event) => setTitle(event.target.value)}
+                  value={activeFields.title}
+                  onChange={(event) =>
+                    patchActiveFields({ title: event.target.value })
+                  }
                   placeholder="Product title"
                   className={ADMIN_INPUT}
                   disabled={isPending}
@@ -233,12 +383,14 @@ export function ProductDrawer({
               </label>
               <label>
                 <span className={ADMIN_LABEL}>
-                  Slug <span className="text-red-600">*</span>
+                  Slug ({contentLocale.toUpperCase()}){" "}
+                  <span className="text-red-600">*</span>
                 </span>
                 <input
-                  required
-                  value={slug}
-                  onChange={(event) => setSlug(event.target.value)}
+                  value={activeFields.slug}
+                  onChange={(event) =>
+                    patchActiveFields({ slug: event.target.value })
+                  }
                   placeholder="product-slug"
                   className={ADMIN_INPUT}
                   disabled={isPending}
@@ -247,10 +399,14 @@ export function ProductDrawer({
             </div>
 
             <label className="block">
-              <span className={ADMIN_LABEL}>Description</span>
+              <span className={ADMIN_LABEL}>
+                Description ({contentLocale.toUpperCase()})
+              </span>
               <textarea
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
+                value={activeFields.description}
+                onChange={(event) =>
+                  patchActiveFields({ description: event.target.value })
+                }
                 placeholder="Product description"
                 className={ADMIN_TEXTAREA}
                 disabled={isPending}
@@ -270,6 +426,22 @@ export function ProductDrawer({
               disabled={isPending}
               onCategoriesChange={setCategories}
               onSelectedChange={setCategoryIds}
+            />
+
+            <ProductDrawerDietBadges
+              isSpicy={isSpicy}
+              isVegetarian={isVegetarian}
+              disabled={isPending}
+              onSpicyChange={setIsSpicy}
+              onVegetarianChange={setIsVegetarian}
+            />
+
+            <ProductDrawerModifiers
+              additions={additions}
+              exclusions={exclusions}
+              disabled={isPending}
+              onAdditionsChange={setAdditions}
+              onExclusionsChange={setExclusions}
             />
 
             <div className="grid gap-4 sm:grid-cols-2">

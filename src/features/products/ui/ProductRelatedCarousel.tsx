@@ -31,6 +31,8 @@ type RelatedCard = {
   inStock: boolean;
   inWishlist: boolean;
   categoryLabel: string | null;
+  isSpicy: boolean;
+  isVegetarian: boolean;
 };
 
 type ProductRelatedCarouselProps = {
@@ -234,8 +236,8 @@ export function ProductRelatedCarousel({
                     outOfStockLabel={outOfStockLabel}
                     categoryLabel={card.categoryLabel}
                     rating={5}
-                    isSpicy
-                    isVegetarian
+                    isSpicy={card.isSpicy}
+                    isVegetarian={card.isVegetarian}
                   />
                 </motion.div>
               ))}

@@ -10,7 +10,8 @@ import {
   useSpring,
   useTransform,
 } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 
 import {
   PRODUCT_EASE,
@@ -29,6 +30,19 @@ type ProductGalleryProps = {
   closeLabel: string;
 };
 
+function isSignedMediaUrl(url: string): boolean {
+  return url.includes("X-Amz-Signature") || url.includes("X-Amz-Credential");
+}
+
+function subscribeNowhere(): () => void {
+  return () => undefined;
+}
+
+/** True after client hydration — safe to portal lightbox to document.body. */
+function useIsClient(): boolean {
+  return useSyncExternalStore(subscribeNowhere, () => true, () => false);
+}
+
 /** PDP main gallery — Motion entrance, parallax, thumbnail stagger. */
 export function ProductGallery({
   images,
@@ -41,6 +55,7 @@ export function ProductGallery({
 }: ProductGalleryProps) {
   const [selectedId, setSelectedId] = useState(images[0]?.id ?? null);
   const [expanded, setExpanded] = useState(false);
+  const portalReady = useIsClient();
   const selected =
     images.find((image) => image.id === selectedId) ?? images[0] ?? null;
 
@@ -89,7 +104,7 @@ export function ProductGallery({
       <div className="flex flex-col gap-3">
         <motion.div
           ref={frameRef}
-          className="group/main relative aspect-[3/2] w-full overflow-hidden rounded-[2.125rem] bg-neutral-50 lg:aspect-[42/25]"
+          className="group/main relative aspect-[3/2] w-full min-h-[14rem] overflow-hidden rounded-[2.125rem] bg-neutral-50 lg:aspect-[42/25]"
         >
           <AnimatePresence mode="wait">
             {selected ? (
@@ -107,12 +122,20 @@ export function ProductGallery({
                     : { opacity: 0, scale: 0.98, filter: "blur(6px)" }
                 }
                 transition={{ duration: 0.55, ease: PRODUCT_EASE }}
-                className="absolute inset-0"
+                className="absolute inset-0 h-full w-full"
               >
                 <motion.div
                   style={{ y: imageY, scale: imageScale }}
-                  className="absolute inset-0 will-change-transform"
+                  className="absolute inset-0 h-full w-full will-change-transform"
                 >
+                  <button
+                    type="button"
+                    onClick={() => setExpanded(true)}
+                    aria-label={expandLabel}
+                    className="absolute inset-0 z-[1] cursor-zoom-in"
+                  >
+                    <span className="sr-only">{expandLabel}</span>
+                  </button>
                   <Image
                     src={selected.url}
                     alt={selected.alt || title}
@@ -120,6 +143,7 @@ export function ProductGallery({
                     sizes="(max-width: 1024px) 100vw, 50vw"
                     className="object-cover"
                     priority
+                    unoptimized={isSignedMediaUrl(selected.url)}
                   />
                 </motion.div>
               </motion.div>
@@ -203,6 +227,7 @@ export function ProductGallery({
                       fill
                       sizes="64px"
                       className="object-cover"
+                      unoptimized={isSignedMediaUrl(image.url)}
                     />
                   </motion.button>
                 </motion.li>
@@ -212,48 +237,55 @@ export function ProductGallery({
         ) : null}
       </div>
 
-      <AnimatePresence>
-        {expanded && selected ? (
-          <motion.div
-            role="dialog"
-            aria-modal="true"
-            aria-label={title}
-            initial={reduceMotion ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.28 }}
-            className="fixed inset-0 z-[1300] flex items-center justify-center bg-black/80 p-4"
-            onClick={() => setExpanded(false)}
-          >
-            <button
-              type="button"
-              aria-label={closeLabel}
-              className="absolute top-4 right-4 flex size-11 items-center justify-center rounded-full bg-white text-gray-800"
-              onClick={() => setExpanded(false)}
-            >
-              <X className="size-5" aria-hidden />
-            </button>
-            <motion.div
-              initial={
-                reduceMotion ? false : { opacity: 0, scale: 0.92, y: 24 }
-              }
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 12 }}
-              transition={{ duration: 0.4, ease: PRODUCT_EASE }}
-              className="relative h-[min(80vh,720px)] w-full max-w-5xl"
-              onClick={(event) => event.stopPropagation()}
-            >
-              <Image
-                src={selected.url}
-                alt={selected.alt || title}
-                fill
-                sizes="100vw"
-                className="object-contain"
-              />
-            </motion.div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+      {portalReady
+        ? createPortal(
+            <AnimatePresence>
+              {expanded && selected ? (
+                <motion.div
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label={title}
+                  initial={reduceMotion ? false : { opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.28 }}
+                  className="fixed inset-0 z-[1400] flex items-center justify-center bg-black/80 p-4 sm:p-8"
+                  onClick={() => setExpanded(false)}
+                >
+                  <button
+                    type="button"
+                    aria-label={closeLabel}
+                    className="absolute top-4 right-4 z-10 flex size-11 items-center justify-center rounded-full bg-white text-gray-800 shadow-md"
+                    onClick={() => setExpanded(false)}
+                  >
+                    <X className="size-5" aria-hidden />
+                  </button>
+                  <motion.div
+                    initial={
+                      reduceMotion ? false : { opacity: 0, scale: 0.92, y: 24 }
+                    }
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.96, y: 12 }}
+                    transition={{ duration: 0.4, ease: PRODUCT_EASE }}
+                    className="relative mx-auto h-[min(85vh,820px)] w-[min(100%,56rem)]"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <Image
+                      src={selected.url}
+                      alt={selected.alt || title}
+                      fill
+                      sizes="100vw"
+                      className="object-contain"
+                      unoptimized={isSignedMediaUrl(selected.url)}
+                      priority
+                    />
+                  </motion.div>
+                </motion.div>
+              ) : null}
+            </AnimatePresence>,
+            document.body,
+          )
+        : null}
     </>
   );
 }

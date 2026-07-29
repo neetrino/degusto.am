@@ -21,13 +21,15 @@ import {
   categories,
   mediaAssets,
   productCategories,
+  productModifiers,
   products,
   type LocaleTranslation,
+  type TranslationsJson,
 } from "@/db/schema";
 import { loadProductImagesForAdmin } from "@/features/products/application/persist-product-media";
 import type { AdminProductsFilter } from "@/features/products/schemas/admin-list";
 import type { Locale } from "@/lib/i18n/config";
-import { mediaPublicUrl } from "@/lib/media/public-url";
+import { resolveMediaPublicUrl } from "@/lib/media/public-url";
 
 const PAGE_SIZE = 20;
 
@@ -35,6 +37,13 @@ export type AdminProductImage = {
   id: string;
   url: string;
   isPrimary: boolean;
+};
+
+export type AdminProductModifier = {
+  id: string;
+  label: string;
+  isEnabled: boolean;
+  priceAmount: number;
 };
 
 export type AdminProductListItem = {
@@ -45,14 +54,20 @@ export type AdminProductListItem = {
   compareAtAmount: number | null;
   stockOnHand: number;
   isFeatured: boolean;
+  isSpicy: boolean;
+  isVegetarian: boolean;
   createdAt: Date;
   title: string;
   slug: string;
   description: string;
+  /** Full JSONB translations for DEC-017 locale editing. */
+  translations: TranslationsJson;
   imageUrl: string | null;
   categoryIds: string[];
   categoryLabels: string[];
   images: AdminProductImage[];
+  additions: AdminProductModifier[];
+  exclusions: AdminProductModifier[];
 };
 
 export type AdminCategoryOption = {
@@ -149,7 +164,7 @@ async function loadPrimaryImages(
 
   for (const row of rows) {
     if (!row.productId || map.has(row.productId)) continue;
-    map.set(row.productId, mediaPublicUrl(row.objectKey));
+    map.set(row.productId, await resolveMediaPublicUrl(row.objectKey));
   }
   return map;
 }
@@ -186,6 +201,52 @@ async function loadCategoryMeta(
   return map;
 }
 
+async function loadProductModifiers(
+  productIds: string[],
+): Promise<
+  Map<string, { additions: AdminProductModifier[]; exclusions: AdminProductModifier[] }>
+> {
+  const map = new Map<
+    string,
+    { additions: AdminProductModifier[]; exclusions: AdminProductModifier[] }
+  >();
+  if (productIds.length === 0) {
+    return map;
+  }
+
+  const rows = await getDb()
+    .select({
+      id: productModifiers.id,
+      productId: productModifiers.productId,
+      kind: productModifiers.kind,
+      label: productModifiers.label,
+      isEnabled: productModifiers.isEnabled,
+      priceAmount: productModifiers.priceAmount,
+      sortOrder: productModifiers.sortOrder,
+    })
+    .from(productModifiers)
+    .where(inArray(productModifiers.productId, productIds))
+    .orderBy(asc(productModifiers.sortOrder), asc(productModifiers.createdAt));
+
+  for (const row of rows) {
+    const entry = map.get(row.productId) ?? { additions: [], exclusions: [] };
+    const item = {
+      id: row.id,
+      label: row.label,
+      isEnabled: row.isEnabled,
+      priceAmount: row.priceAmount,
+    };
+    if (row.kind === "ADDITION") {
+      entry.additions.push(item);
+    } else {
+      entry.exclusions.push(item);
+    }
+    map.set(row.productId, entry);
+  }
+
+  return map;
+}
+
 /** Lists products for the admin catalog table with filters and sort. */
 export async function listAdminProducts(
   locale: Locale,
@@ -211,11 +272,13 @@ export async function listAdminProducts(
     .offset(offset);
 
   const ids = rows.map((row) => row.id);
-  const [primaryImages, categoryMap, galleryImages] = await Promise.all([
-    loadPrimaryImages(ids),
-    loadCategoryMeta(ids, locale),
-    loadProductImagesForAdmin(ids),
-  ]);
+  const [primaryImages, categoryMap, galleryImages, modifiersMap] =
+    await Promise.all([
+      loadPrimaryImages(ids),
+      loadCategoryMeta(ids, locale),
+      loadProductImagesForAdmin(ids),
+      loadProductModifiers(ids),
+    ]);
 
   return {
     total,
@@ -223,6 +286,7 @@ export async function listAdminProducts(
     rows: rows.map((product) => {
       const translation = translationFor(product.translations, locale);
       const categoryMeta = categoryMap.get(product.id);
+      const modifiers = modifiersMap.get(product.id);
       return {
         id: product.id,
         sku: product.sku,
@@ -231,14 +295,19 @@ export async function listAdminProducts(
         compareAtAmount: product.compareAtAmount,
         stockOnHand: product.stockOnHand,
         isFeatured: product.isFeatured,
+        isSpicy: product.isSpicy,
+        isVegetarian: product.isVegetarian,
         createdAt: product.createdAt,
         title: translation?.title ?? product.sku,
         slug: translation?.slug ?? "",
         description: translation?.description ?? "",
+        translations: product.translations,
         imageUrl: primaryImages.get(product.id) ?? null,
         categoryIds: categoryMeta?.ids ?? [],
         categoryLabels: categoryMeta?.labels ?? [],
         images: galleryImages.get(product.id) ?? [],
+        additions: modifiers?.additions ?? [],
+        exclusions: modifiers?.exclusions ?? [],
       };
     }),
   };

@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDown, Minus, Plus } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   useEffect,
   useId,
@@ -11,21 +12,26 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
-export type ProductModifierOption = {
-  id: string;
-  label: string;
-  /** Optional surcharge label, e.g. "+550 Դ". */
-  priceLabel?: string;
-};
+import {
+  ProductModifierOptionRow,
+  type ProductModifierOption,
+} from "@/features/products/ui/ProductModifierOptionRow";
+
+export type { ProductModifierOption };
 
 type ModifierKind = "add" | "exclude";
 
 type ProductModifierPillsProps = {
   addLabel: string;
   excludeLabel: string;
-  emptyLabel: string;
+  /** Explains that exclude options are base ingredients to leave out. */
+  excludeHint?: string;
+  emptyAddLabel: string;
+  emptyExcludeLabel: string;
   addOptions?: ReadonlyArray<ProductModifierOption>;
   excludeOptions?: ReadonlyArray<ProductModifierOption>;
+  /** Fires when addition selection changes (for live unit-price updates). */
+  onSelectedAddChange?: (selectedIds: ReadonlySet<string>) => void;
 };
 
 type MenuPosition = {
@@ -35,15 +41,19 @@ type MenuPosition = {
 };
 
 /**
- * PDP Ավելացնել / Բացառել preference pills (UI-only; selections do not
- * affect cart until a product-modifier API exists).
+ * PDP Ավելացնել / Բացառել pills.
+ * Exclude options are the dish’s base ingredients; checking one means
+ * leave it out of the prepared product (UI-only until cart API wires it).
  */
 export function ProductModifierPills({
   addLabel,
   excludeLabel,
-  emptyLabel,
+  excludeHint,
+  emptyAddLabel,
+  emptyExcludeLabel,
   addOptions = [],
   excludeOptions = [],
+  onSelectedAddChange,
 }: ProductModifierPillsProps) {
   const [open, setOpen] = useState<ModifierKind | null>(null);
   const [selectedAdd, setSelectedAdd] = useState<ReadonlySet<string>>(
@@ -57,20 +67,25 @@ export function ProductModifierPills({
     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
       <ModifierPill
         label={addLabel}
-        emptyLabel={emptyLabel}
+        emptyLabel={emptyAddLabel}
         options={addOptions}
         selected={selectedAdd}
         open={open === "add"}
         onOpenChange={(next) => setOpen(next ? "add" : null)}
         onToggle={(id) => {
-          setSelectedAdd((prev) => toggleId(prev, id));
+          setSelectedAdd((prev) => {
+            const next = toggleId(prev, id);
+            onSelectedAddChange?.(next);
+            return next;
+          });
         }}
         widthClassName="w-full sm:w-[12.1875rem]"
         icon={<Plus className="size-5" strokeWidth={2.5} aria-hidden />}
       />
       <ModifierPill
         label={excludeLabel}
-        emptyLabel={emptyLabel}
+        emptyLabel={emptyExcludeLabel}
+        hint={excludeHint}
         options={excludeOptions}
         selected={selectedExclude}
         open={open === "exclude"}
@@ -88,6 +103,7 @@ export function ProductModifierPills({
 type ModifierPillProps = {
   label: string;
   emptyLabel: string;
+  hint?: string;
   options: ReadonlyArray<ProductModifierOption>;
   selected: ReadonlySet<string>;
   open: boolean;
@@ -100,6 +116,7 @@ type ModifierPillProps = {
 function ModifierPill({
   label,
   emptyLabel,
+  hint,
   options,
   selected,
   open,
@@ -109,6 +126,7 @@ function ModifierPill({
   icon,
 }: ModifierPillProps) {
   const listId = useId();
+  const reduceMotion = useReducedMotion();
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState<MenuPosition | null>(null);
@@ -119,7 +137,7 @@ function ModifierPill({
     function updatePosition(): void {
       const rect = buttonRef.current?.getBoundingClientRect();
       if (!rect) return;
-      const width = Math.max(rect.width, 280);
+      const width = Math.max(rect.width, 300);
       const maxLeft = window.innerWidth - width - 12;
       setPosition({
         top: rect.bottom + 8,
@@ -198,55 +216,61 @@ function ModifierPill({
         />
       </button>
 
-      {typeof document !== "undefined" && open && position
+      {typeof document !== "undefined"
         ? createPortal(
-            <div
-              ref={menuRef}
-              id={listId}
-              role="listbox"
-              aria-label={label}
-              className="fixed z-[9999] overflow-x-hidden rounded-[1.25rem] border border-[#dedede] bg-white p-3 shadow-lg"
-              style={{
-                top: position.top,
-                left: position.left,
-                width: position.width,
-              }}
-            >
-              {options.length === 0 ? (
-                <p className="px-2 py-2 text-sm text-[#717182]">{emptyLabel}</p>
-              ) : (
-                <ul className="max-h-56 space-y-1 overflow-x-hidden overflow-y-auto">
-                  {options.map((option) => {
-                    const checked = selected.has(option.id);
-                    const inputId = `${listId}-${option.id}`;
-                    return (
-                      <li key={option.id}>
-                        <label
-                          htmlFor={inputId}
-                          className="flex cursor-pointer items-center gap-2 rounded-xl px-2 py-2 text-sm text-[#3c2f2f] hover:bg-[#f7f7f7]"
-                        >
-                          <input
-                            id={inputId}
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() => onToggle(option.id)}
-                            className="size-4 shrink-0 accent-[#ff7f20]"
+            <AnimatePresence>
+              {open && position ? (
+                <motion.div
+                  ref={menuRef}
+                  id={listId}
+                  role="listbox"
+                  aria-label={label}
+                  className="fixed z-[9999] overflow-hidden rounded-[1.5rem] border border-[#e8e8e8] bg-[#f3f3f3] p-3 shadow-[0_22px_50px_-20px_rgba(60,47,47,0.45)]"
+                  style={{
+                    top: position.top,
+                    left: position.left,
+                    width: position.width,
+                  }}
+                  initial={
+                    reduceMotion
+                      ? false
+                      : { opacity: 0, y: -10, scale: 0.96, filter: "blur(8px)" }
+                  }
+                  animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+                  exit={
+                    reduceMotion
+                      ? undefined
+                      : { opacity: 0, y: -8, scale: 0.97, filter: "blur(5px)" }
+                  }
+                  transition={{ type: "spring", stiffness: 380, damping: 28 }}
+                >
+                  {options.length === 0 ? (
+                    <p className="px-3 py-2.5 text-sm text-[#717182]">
+                      {emptyLabel}
+                    </p>
+                  ) : (
+                    <div className="flex min-w-0 flex-col gap-2">
+                      {hint ? (
+                        <p className="px-1 text-xs leading-relaxed text-[#717182]">
+                          {hint}
+                        </p>
+                      ) : null}
+                      <ul className="flex max-h-56 flex-col gap-2.5 overflow-y-auto overflow-x-hidden">
+                        {options.map((option, index) => (
+                          <ProductModifierOptionRow
+                            key={option.id}
+                            option={option}
+                            checked={selected.has(option.id)}
+                            index={index}
+                            onToggle={() => onToggle(option.id)}
                           />
-                          <span className="min-w-0 flex-1 break-words">
-                            {option.label}
-                          </span>
-                          {option.priceLabel ? (
-                            <span className="text-xs font-semibold text-emerald-700 tabular-nums">
-                              {option.priceLabel}
-                            </span>
-                          ) : null}
-                        </label>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>,
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </motion.div>
+              ) : null}
+            </AnimatePresence>,
             document.body,
           )
         : null}
