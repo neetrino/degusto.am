@@ -12,6 +12,8 @@ type ProductPurchaseControlsProps = {
   locale: Locale;
   productId: string;
   stockOnHand: number;
+  quantity: number;
+  onQuantityChange: (quantity: number) => void;
   inWishlist: boolean;
   isSignedIn: boolean;
   wishlistLabel: string;
@@ -32,6 +34,8 @@ export function ProductPurchaseControls({
   locale,
   productId,
   stockOnHand,
+  quantity,
+  onQuantityChange,
   inWishlist,
   isSignedIn,
   wishlistLabel,
@@ -39,7 +43,6 @@ export function ProductPurchaseControls({
 }: ProductPurchaseControlsProps) {
   const router = useRouter();
   const maxQty = Math.max(stockOnHand, 0);
-  const [quantity, setQuantity] = useState(maxQty > 0 ? 1 : 0);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -47,7 +50,7 @@ export function ProductPurchaseControls({
 
   function changeQuantity(next: number): void {
     if (disabled) return;
-    setQuantity(Math.min(Math.max(1, next), maxQty));
+    onQuantityChange(Math.min(Math.max(1, next), maxQty));
     setMessage(null);
     setError(null);
   }

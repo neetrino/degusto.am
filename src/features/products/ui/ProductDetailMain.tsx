@@ -60,6 +60,8 @@ export function ProductDetailMain({
   const showDescription =
     description.length > 0 &&
     description !== product.translation.title.trim();
+  const maxQty = Math.max(product.stockOnHand, 0);
+  const [quantity, setQuantity] = useState(maxQty > 0 ? 1 : 0);
   const [selectedAddIds, setSelectedAddIds] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
@@ -68,6 +70,7 @@ export function ProductDetailMain({
     return sum + Math.max(0, item.priceAmount);
   }, 0);
   const liveUnitAmount = product.priceAmount + additionsTotal;
+  const liveTotalAmount = liveUnitAmount * Math.max(quantity, 1);
   const animateLivePrice = isAmdPriceLabel(priceFormatted);
 
   const sectionRef = useRef<HTMLElement>(null);
@@ -181,7 +184,7 @@ export function ProductDetailMain({
             >
               {animateLivePrice ? (
                 <ProductAnimatedPrice
-                  amount={liveUnitAmount}
+                  amount={liveTotalAmount}
                   suffix=" Դ"
                   className="text-[2.25rem] leading-none font-bold tabular-nums text-[#3C2F2F]"
                 />
@@ -239,6 +242,8 @@ export function ProductDetailMain({
                 locale={locale}
                 productId={product.id}
                 stockOnHand={product.stockOnHand}
+                quantity={quantity}
+                onQuantityChange={setQuantity}
                 inWishlist={inWishlist}
                 isSignedIn={isSignedIn}
                 wishlistLabel={dictionary.nav.wishlist}
