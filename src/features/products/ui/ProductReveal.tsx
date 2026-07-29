@@ -24,12 +24,12 @@ function buildVariants(
   const duration = durationMs / 1000;
   const hidden =
     variant === "left"
-      ? { opacity: 0, x: -40, filter: "blur(12px)" }
+      ? { opacity: 0, x: -28 }
       : variant === "right"
-        ? { opacity: 0, x: 40, filter: "blur(12px)" }
+        ? { opacity: 0, x: 28 }
         : variant === "scale"
-          ? { opacity: 0, scale: 0.92, filter: "blur(10px)" }
-          : { opacity: 0, y: 40, filter: "blur(12px)" };
+          ? { opacity: 0, scale: 0.96 }
+          : { opacity: 0, y: 28 };
 
   return {
     hidden,
@@ -38,13 +38,12 @@ function buildVariants(
       x: 0,
       y: 0,
       scale: 1,
-      filter: "blur(0px)",
       transition: { duration, ease: PRODUCT_EASE },
     },
   };
 }
 
-/** Motion scroll/render reveal for PDP sections. */
+/** Motion reveal for PDP sections — no lingering filter/transform traps. */
 export function ProductReveal({
   children,
   className = "",

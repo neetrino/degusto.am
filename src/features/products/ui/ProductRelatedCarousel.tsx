@@ -3,12 +3,13 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   motion,
+  useInView,
   useReducedMotion,
   useScroll,
   useSpring,
   useTransform,
 } from "motion/react";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 
 import { AppLink } from "@/components/ui/AppLink";
 import {
@@ -56,6 +57,9 @@ function splitAccentTitle(title: string): { lead: string; rest: string } {
   };
 }
 
+const SCROLL_HINT_PEEK_PX = 40;
+const SCROLL_HINT_HOLD_MS = 480;
+
 /** Dark “try also” related products band with Motion + horizontal scroll. */
 export function ProductRelatedCarousel({
   locale,
@@ -70,7 +74,9 @@ export function ProductRelatedCarousel({
 }: ProductRelatedCarouselProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
+  const didHintScroll = useRef(false);
   const reduceMotion = useReducedMotion();
+  const isInView = useInView(sectionRef, { amount: 0.35, once: true });
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start end", "end start"],
@@ -80,16 +86,42 @@ export function ProductRelatedCarousel({
     damping: 28,
     mass: 0.45,
   });
-  const bandY = useTransform(
-    progress,
-    [0, 0.5, 1],
-    reduceMotion ? [0, 0, 0] : [40, 0, -24],
-  );
   const glowX = useTransform(
     progress,
     [0, 1],
     reduceMotion ? ["0%", "0%"] : ["-12%", "12%"],
   );
+
+  useEffect(() => {
+    if (!isInView || reduceMotion || didHintScroll.current) {
+      return;
+    }
+    const node = scrollerRef.current;
+    if (!node || node.scrollWidth <= node.clientWidth + 8) {
+      return;
+    }
+    // Mobile only — desktop has arrow controls as the affordance.
+    if (window.matchMedia("(min-width: 1024px)").matches) {
+      return;
+    }
+
+    didHintScroll.current = true;
+    const peek = Math.min(
+      SCROLL_HINT_PEEK_PX,
+      Math.round(node.clientWidth * 0.1),
+    );
+    const hintOut = window.setTimeout(() => {
+      node.scrollTo({ left: peek, behavior: "smooth" });
+    }, 280);
+    const hintBack = window.setTimeout(() => {
+      node.scrollTo({ left: 0, behavior: "smooth" });
+    }, 280 + SCROLL_HINT_HOLD_MS);
+
+    return () => {
+      window.clearTimeout(hintOut);
+      window.clearTimeout(hintBack);
+    };
+  }, [isInView, reduceMotion]);
 
   function scrollByCard(direction: -1 | 1): void {
     const node = scrollerRef.current;
@@ -104,10 +136,9 @@ export function ProductRelatedCarousel({
   const { lead, rest } = splitAccentTitle(title);
 
   return (
-    <motion.section
+    <section
       ref={sectionRef}
-      style={{ y: bandY }}
-      className="relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2 overflow-hidden rounded-none bg-surface-dark px-4 pt-10 pb-12 text-white will-change-transform sm:px-8 sm:pt-12 sm:pb-14 lg:rounded-[40px] lg:px-12 lg:pt-[4.8rem] lg:pb-16"
+      className="relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2 overflow-hidden rounded-none bg-surface-dark px-4 pt-10 pb-12 text-white sm:px-8 sm:pt-12 sm:pb-14 lg:rounded-[40px] lg:px-12 lg:pt-[4.8rem] lg:pb-16"
     >
       <motion.div
         aria-hidden
@@ -176,14 +207,14 @@ export function ProductRelatedCarousel({
               whileInView="visible"
               viewport={{ once: true, amount: 0.15 }}
               variants={reduceMotion ? undefined : productCardStagger}
-              className="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pt-1 pb-12 [scrollbar-width:none] lg:gap-[30px] lg:pb-14 [&::-webkit-scrollbar]:hidden"
+              className="flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain scroll-smooth pt-1 pb-12 [scrollbar-width:none] sm:gap-4 lg:gap-[30px] lg:pb-14 [&::-webkit-scrollbar]:hidden"
             >
               {cards.map((card, index) => (
                 <motion.div
                   key={card.id}
                   data-carousel-item
                   variants={reduceMotion ? undefined : productCardItem}
-                  className="mb-2 w-[calc((100%-1rem)/2)] shrink-0 snap-start sm:w-[calc((100%-2rem)/3)] md:w-[calc((100%-3rem)/4)] xl:w-[calc((100%-120px)/5)]"
+                  className="mb-2 w-[78%] max-w-[17.5rem] shrink-0 snap-center sm:w-[calc((100%-2rem)/3)] sm:max-w-none sm:snap-start md:w-[calc((100%-3rem)/4)] xl:w-[calc((100%-120px)/5)]"
                 >
                   <CatalogProductCard
                     href={card.href}
@@ -212,6 +243,6 @@ export function ProductRelatedCarousel({
           </div>
         </div>
       </div>
-    </motion.section>
+    </section>
   );
 }
