@@ -1,6 +1,7 @@
 "use client";
 
 import { Copy, Pencil, Star, Trash2 } from "lucide-react";
+import type { KeyboardEvent, MouseEvent } from "react";
 
 import {
   ADMIN_TABLE_ROW,
@@ -24,6 +25,10 @@ type AdminProductRowProps = {
   onVisibility: () => void;
 };
 
+function stopRowAction(event: MouseEvent | KeyboardEvent): void {
+  event.stopPropagation();
+}
+
 export function AdminProductRow({
   locale,
   product,
@@ -40,9 +45,25 @@ export function AdminProductRow({
   const created = new Date(product.createdAt);
   const createdLabel = `${created.getDate()}/${created.getMonth() + 1}/${created.getFullYear()}`;
 
+  function handleRowActivate(): void {
+    if (disabled) return;
+    onEdit();
+  }
+
   return (
-    <tr className={ADMIN_TABLE_ROW}>
-      <td className={ADMIN_TABLE_TD_CHECK}>
+    <tr
+      className={`${ADMIN_TABLE_ROW} cursor-pointer`}
+      onClick={handleRowActivate}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          handleRowActivate();
+        }
+      }}
+      tabIndex={disabled ? -1 : 0}
+      aria-label={`Edit ${product.title}`}
+    >
+      <td className={ADMIN_TABLE_TD_CHECK} onClick={stopRowAction}>
         <input
           type="checkbox"
           className={ADMIN_TABLE_CHECKBOX}
@@ -96,7 +117,7 @@ export function AdminProductRow({
             : "—"}
         </span>
       </td>
-      <td className={ADMIN_TABLE_TD}>
+      <td className={ADMIN_TABLE_TD} onClick={stopRowAction}>
         <button
           type="button"
           disabled={disabled}
@@ -111,7 +132,7 @@ export function AdminProductRow({
           />
         </button>
       </td>
-      <td className={ADMIN_TABLE_TD}>
+      <td className={ADMIN_TABLE_TD} onClick={stopRowAction}>
         <div className="flex items-center gap-1">
           <button
             type="button"
