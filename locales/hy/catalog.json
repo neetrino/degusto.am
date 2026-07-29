@@ -17,7 +17,10 @@
   "dietVegetarian": "Բուսական",
   "dietSpicy": "Կծու",
   "sidebarSearchPlaceholder": "Որոնել",
+  "loadingProducts": "Բեռնվում է…",
   "emptyProducts": "Ապրանքներ չեն գտնվել",
   "emptyProductsDescription": "Փորձեք փոխել գինը, կատեգորիան կամ սննդային ֆիլտրը՝ այլ տարբերակներ տեսնելու համար։",
+  "emptySearchTitle": "Ապրանք չկա",
+  "emptySearchDescription": "«{query}» որոնման համար արդյունք չի գտնվել։ Փորձեք այլ բառ։",
   "emptyProductsCta": "Տեսնել ամբողջ մենյուն"
 }

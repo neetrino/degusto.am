@@ -1,8 +1,9 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
+import { useCatalogNavigation } from "@/features/products/ui/shop/CatalogNavContext";
 import {
   DietSwitcher,
   type DietSwitcherMode,
@@ -37,7 +38,7 @@ export function ShopCatalogFilters({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [pending, startTransition] = useTransition();
+  const { isPending: pending, startCatalogTransition } = useCatalogNavigation();
   const [fromValue, setFromValue] = useState(minPrice);
   const [toValue, setToValue] = useState(maxPrice);
   const [dietValue, setDietValue] = useState(diet);
@@ -54,7 +55,7 @@ export function ShopCatalogFilters({
     mutate(params);
     params.delete("page");
     const query = params.toString();
-    startTransition(() => {
+    startCatalogTransition(() => {
       router.push(query ? `${pathname}?${query}` : pathname);
     });
   }

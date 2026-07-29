@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
+import { useCatalogNavigation } from "@/features/products/ui/shop/CatalogNavContext";
 import type { Locale } from "@/lib/i18n/config";
 
 type HomeMobileSearchProps = {
@@ -23,6 +24,7 @@ export function HomeMobileSearch({
   defaultQuery = "",
 }: HomeMobileSearchProps) {
   const router = useRouter();
+  const { isPending, startCatalogTransition } = useCatalogNavigation();
   const [query, setQuery] = useState(defaultQuery);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>): void {
@@ -32,14 +34,18 @@ export function HomeMobileSearch({
     if (trimmed) {
       params.set("q", trimmed);
     }
-    const suffix = params.size > 0 ? `?${params.toString()}` : "";
-    router.push(`/${locale}/products${suffix}`);
+    params.set("category", "all");
+    const suffix = `?${params.toString()}`;
+    startCatalogTransition(() => {
+      router.push(`/${locale}/products${suffix}`);
+    });
   }
 
   return (
     <form
       onSubmit={handleSubmit}
       role="search"
+      aria-busy={isPending}
       className="relative z-0 mt-2 h-12 translate-y-5 rounded-[30px] bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.05)]"
     >
       <label htmlFor="storefront-mobile-search" className="sr-only">
@@ -62,12 +68,14 @@ export function HomeMobileSearch({
         placeholder={placeholder}
         enterKeyHint="search"
         autoComplete="off"
-        className="h-full w-full rounded-[30px] bg-transparent pr-[58px] pl-[39px] text-base leading-6 text-black outline-none placeholder:text-[#abb7c2]"
+        disabled={isPending}
+        className="h-full w-full rounded-[30px] bg-transparent pr-[58px] pl-[39px] text-base leading-6 text-black outline-none placeholder:text-[#abb7c2] disabled:opacity-70"
       />
       <button
         type="submit"
         aria-label={searchLabel}
-        className="absolute top-1/2 right-[7px] inline-flex size-10 -translate-y-1/2 items-center justify-center"
+        disabled={isPending}
+        className="absolute top-1/2 right-[7px] inline-flex size-10 -translate-y-1/2 items-center justify-center disabled:opacity-70"
       >
         <Image
           src="/assets/mobile/search-filter.webp"

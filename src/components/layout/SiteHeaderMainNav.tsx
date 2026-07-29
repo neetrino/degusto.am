@@ -175,6 +175,9 @@ export function SiteHeaderMainNav({
                 locale={locale}
                 searchLabel={dictionary.header.search}
                 placeholder={dictionary.header.searchPlaceholder}
+                loadingLabel={dictionary.header.searchLoading}
+                emptyLabel={dictionary.header.searchNoResults}
+                seeAllLabel={dictionary.header.searchSeeAll}
               />
             </motion.div>
 

@@ -25,7 +25,10 @@
     "admin": "Админ",
     "createAccount": "Создать аккаунт",
     "search": "Поиск",
-    "searchPlaceholder": "..."
+    "searchPlaceholder": "...",
+    "searchLoading": "Загрузка...",
+    "searchNoResults": "Товары не найдены",
+    "searchSeeAll": "Смотреть все"
   },
   "footer": {
     "addressesTitle": "Адреса",

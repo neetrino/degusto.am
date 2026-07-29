@@ -25,7 +25,10 @@
     "admin": "Admin",
     "createAccount": "Create account",
     "search": "Search",
-    "searchPlaceholder": "..."
+    "searchPlaceholder": "...",
+    "searchLoading": "Loading...",
+    "searchNoResults": "No products found",
+    "searchSeeAll": "See all"
   },
   "footer": {
     "addressesTitle": "Addresses",

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { MobileBottomNavIsland } from "@/components/layout/MobileBottomNavIsland";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
+import { StorefrontProviders } from "@/components/layout/StorefrontProviders";
 import { MaintenanceGate } from "@/components/layout/MaintenanceGate";
 import { isLocale, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
@@ -35,21 +36,23 @@ export default async function StorefrontLayout({
   );
 
   return (
-    <div className="storefront-shell relative flex min-h-dvh flex-1 flex-col">
-      <SiteHeader
-        locale={locale}
-        currency={currency}
-        dictionary={dictionary}
-      />
-      <main className="storefront-main mx-auto w-full max-w-7xl flex-1 px-4 pt-[7.5rem] pb-24 sm:px-6 md:pb-10 lg:px-8">
-        <MaintenanceGate>{children}</MaintenanceGate>
-      </main>
-      <SiteFooter dictionary={dictionary} locale={locale} />
-      <MobileBottomNavIsland
-        locale={locale}
-        currency={currency}
-        dictionary={dictionary}
-      />
-    </div>
+    <StorefrontProviders>
+      <div className="storefront-shell relative flex min-h-dvh flex-1 flex-col">
+        <SiteHeader
+          locale={locale}
+          currency={currency}
+          dictionary={dictionary}
+        />
+        <main className="storefront-main mx-auto w-full max-w-7xl flex-1 px-4 pt-[7.5rem] pb-24 sm:px-6 md:pb-10 lg:px-8">
+          <MaintenanceGate>{children}</MaintenanceGate>
+        </main>
+        <SiteFooter dictionary={dictionary} locale={locale} />
+        <MobileBottomNavIsland
+          locale={locale}
+          currency={currency}
+          dictionary={dictionary}
+        />
+      </div>
+    </StorefrontProviders>
   );
 }

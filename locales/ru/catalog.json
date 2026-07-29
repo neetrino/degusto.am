@@ -17,7 +17,10 @@
   "dietVegetarian": "Вегетарианское",
   "dietSpicy": "Острое",
   "sidebarSearchPlaceholder": "Поиск",
+  "loadingProducts": "Загрузка…",
   "emptyProducts": "Товары не найдены",
   "emptyProductsDescription": "Попробуйте изменить цену, категорию или пищевой фильтр, чтобы увидеть другие варианты.",
+  "emptySearchTitle": "Нет товаров",
+  "emptySearchDescription": "По запросу «{query}» ничего не найдено. Попробуйте другое слово.",
   "emptyProductsCta": "Смотреть всё меню"
 }

@@ -17,7 +17,10 @@
   "dietVegetarian": "Vegetarian",
   "dietSpicy": "Spicy",
   "sidebarSearchPlaceholder": "Search",
+  "loadingProducts": "Loading…",
   "emptyProducts": "No products found",
   "emptyProductsDescription": "Try adjusting the price, category, or dietary filter to see more options.",
+  "emptySearchTitle": "No products",
+  "emptySearchDescription": "No results for “{query}”. Try a different search term.",
   "emptyProductsCta": "View full menu"
 }
