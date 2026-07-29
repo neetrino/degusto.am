@@ -12,13 +12,26 @@ import { defaultLocale, isLocale, type Locale } from "@/lib/i18n/config";
 
 export type AuthActionState = { error?: string };
 
-function resolveSafeNextPath(locale: Locale, raw: FormDataEntryValue | null): string {
+function defaultPostLoginPath(
+  locale: Locale,
+  role: "ADMIN" | "CUSTOMER",
+): string {
+  return role === "ADMIN" ? `/${locale}/admin` : `/${locale}/profile`;
+}
+
+function resolveSafeNextPath(
+  locale: Locale,
+  raw: FormDataEntryValue | null,
+  role: "ADMIN" | "CUSTOMER",
+): string {
+  const fallback = defaultPostLoginPath(locale, role);
+
   if (typeof raw !== "string" || !raw.startsWith("/") || raw.startsWith("//")) {
-    return `/${locale}/profile`;
+    return fallback;
   }
 
   if (!raw.startsWith(`/${locale}/`)) {
-    return `/${locale}/profile`;
+    return fallback;
   }
 
   return raw;
@@ -54,5 +67,5 @@ export async function loginAction(
     .set({ lastLoginAt: new Date(), updatedAt: new Date() })
     .where(eq(users.id, user.id));
   await createSession(user.id);
-  redirect(resolveSafeNextPath(locale, formData.get("next")));
+  redirect(resolveSafeNextPath(locale, formData.get("next"), user.role));
 }
