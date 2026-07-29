@@ -6,6 +6,7 @@ import { useState, type FormEvent } from "react";
 
 import { useCatalogNavigation } from "@/features/products/ui/shop/CatalogNavContext";
 import type { Locale } from "@/lib/i18n/config";
+import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
 type HomeMobileSearchProps = {
   locale: Locale;
@@ -52,7 +53,7 @@ export function HomeMobileSearch({
         {searchLabel}
       </label>
       <Image
-        src="/assets/mobile/search-icon.webp"
+        src={staticAssetUrl("/assets/mobile/search-icon.webp")}
         alt=""
         width={17}
         height={17}
@@ -78,7 +79,7 @@ export function HomeMobileSearch({
         className="absolute top-1/2 right-[7px] inline-flex size-10 -translate-y-1/2 items-center justify-center disabled:opacity-70"
       >
         <Image
-          src="/assets/mobile/search-filter.webp"
+          src={staticAssetUrl("/assets/mobile/search-filter.webp")}
           alt=""
           width={40}
           height={40}

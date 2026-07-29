@@ -1,8 +1,11 @@
 import "server-only";
 
+import { getEnv } from "@/config/env";
 import { getProviders } from "@/config/providers";
+import { isR2PublicBaseUrlUsable } from "@/lib/r2/public-base-url";
+import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
-/** Local product images used when seed placeholders are not uploaded to R2. */
+/** Seed product placeholders stored in R2 under stable `assets/products/` keys. */
 const SEED_PRODUCT_FALLBACKS = [
   "assets/products/burger-1.webp",
   "assets/products/burger-2.webp",
@@ -12,7 +15,7 @@ const SEED_PRODUCT_FALLBACKS = [
   "assets/products/double-cheeseburger.webp",
 ] as const;
 
-/** Maps Figma seed category keys to committed `public/assets/categories/` files. */
+/** Maps Figma seed category keys to R2 `assets/categories/` object keys. */
 const SEED_CATEGORY_FALLBACKS: Readonly<Record<string, string>> = {
   soups: "assets/categories/soup.webp",
   salads: "assets/categories/salad.webp",
@@ -71,13 +74,17 @@ function resolveLocalAssetKey(objectKey: string): string {
 
 /**
  * Resolves a stored object key to a public URL.
- * Repo-committed files under `public/assets/` stay as local paths so seed
- * and brand assets work without uploading to object storage.
+ * `assets/` keys resolve to the R2 public CDN (same-origin paths no longer
+ * exist on disk; Next Image requires absolute remote URLs).
  */
 export function mediaPublicUrl(objectKey: string): string {
   const key = resolveLocalAssetKey(objectKey.replace(/^\//, ""));
   if (key.startsWith("assets/")) {
-    return `/${key}`;
+    const envBase = getEnv().R2_PUBLIC_BASE_URL?.replace(/\/$/, "");
+    if (envBase && isR2PublicBaseUrlUsable(envBase)) {
+      return `${envBase}/${key}`;
+    }
+    return staticAssetUrl(`/${key}`);
   }
 
   return getProviders().storage.buildPublicUrl(objectKey);
@@ -90,7 +97,7 @@ export function mediaPublicUrl(objectKey: string): string {
 export async function resolveMediaPublicUrl(objectKey: string): Promise<string> {
   const key = resolveLocalAssetKey(objectKey.replace(/^\//, ""));
   if (key.startsWith("assets/")) {
-    return `/${key}`;
+    return mediaPublicUrl(key);
   }
 
   return getProviders().storage.resolveReadableUrl(objectKey);

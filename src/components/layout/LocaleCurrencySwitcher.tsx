@@ -18,6 +18,7 @@ import type { Locale } from "@/lib/i18n/config";
 import { localeLabels, locales } from "@/lib/i18n/config";
 import type { Currency } from "@/lib/money/currency";
 import { currencies } from "@/lib/money/currency";
+import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
 const HOVER_CLOSE_DELAY_MS = 140;
 
@@ -202,7 +203,7 @@ export function LocaleCurrencySwitcher({
         {isMobileHome ? (
           <span className="inline-flex items-center justify-center">
             <Image
-              src="/assets/mobile/globe-icon.webp"
+              src={staticAssetUrl("/assets/mobile/globe-icon.webp")}
               alt=""
               width={19}
               height={19}

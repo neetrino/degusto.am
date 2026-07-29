@@ -19,8 +19,9 @@ import {
 } from "@/components/layout/SiteFooterBlocks";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
+import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
-const FOOTER_DISH = "/assets/footer/dish.webp";
+const FOOTER_DISH = staticAssetUrl("/assets/footer/dish.webp");
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 

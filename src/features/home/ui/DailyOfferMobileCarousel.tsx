@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { AppLink } from "@/components/ui/AppLink";
 import { AddToCartButton } from "@/features/cart/ui/AddToCartButton";
+import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
 type DailyOfferItem = {
   id: string;
@@ -22,7 +23,7 @@ type DailyOfferMobileCarouselProps = {
   addToCartLabel: string;
 };
 
-const DAILY_OFFER_CART_ICON = "/assets/mobile/daily-offer-cart.webp";
+const DAILY_OFFER_CART_ICON = staticAssetUrl("/assets/mobile/daily-offer-cart.webp");
 
 /**
  * Home mobile daily-offer strip — horizontal snap swipe with page dots.

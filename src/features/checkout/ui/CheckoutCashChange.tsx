@@ -7,6 +7,7 @@ import {
   checkoutTileItem,
   checkoutTileStagger,
 } from "@/features/checkout/ui/CheckoutMotion";
+import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
 export const CASH_CHANGE_OPTIONS = [
   1000, 5000, 10_000, 20_000,
@@ -27,10 +28,10 @@ type CheckoutCashChangeProps = {
 };
 
 const NOTE_SRC: Record<(typeof CASH_CHANGE_OPTIONS)[number], string> = {
-  1000: "/assets/checkout/note-1000.webp",
-  5000: "/assets/checkout/note-5000.webp",
-  10_000: "/assets/checkout/note-10000.webp",
-  20_000: "/assets/checkout/note-20000.webp",
+  1000: staticAssetUrl("/assets/checkout/note-1000.webp"),
+  5000: staticAssetUrl("/assets/checkout/note-5000.webp"),
+  10_000: staticAssetUrl("/assets/checkout/note-10000.webp"),
+  20_000: staticAssetUrl("/assets/checkout/note-20000.webp"),
 };
 
 /** Shared tile size so all denomination buttons match. */

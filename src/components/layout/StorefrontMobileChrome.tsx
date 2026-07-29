@@ -5,6 +5,7 @@ import { AppLink } from "@/components/ui/AppLink";
 import { HomeMobileSearch } from "@/features/home/ui/HomeMobileSearch";
 import type { Locale } from "@/lib/i18n/config";
 import type { Currency } from "@/lib/money/currency";
+import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
 type StorefrontMobileChromeProps = {
   locale: Locale;
@@ -60,7 +61,7 @@ export function StorefrontMobileChrome({
             aria-label={brand}
           >
             <Image
-              src="/assets/mobile/degusto-logo-mobile.webp"
+              src={staticAssetUrl("/assets/mobile/degusto-logo-mobile.webp")}
               alt={brand}
               width={129}
               height={46}
@@ -75,7 +76,7 @@ export function StorefrontMobileChrome({
               className="relative inline-flex size-12 items-center justify-center"
             >
               <Image
-                src="/assets/mobile/call-btn-bg.webp"
+                src={staticAssetUrl("/assets/mobile/call-btn-bg.webp")}
                 alt=""
                 width={48}
                 height={48}
@@ -83,7 +84,7 @@ export function StorefrontMobileChrome({
                 aria-hidden
               />
               <Image
-                src="/assets/mobile/call-icon.webp"
+                src={staticAssetUrl("/assets/mobile/call-icon.webp")}
                 alt=""
                 width={23}
                 height={23}

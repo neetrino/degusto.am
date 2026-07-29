@@ -6,25 +6,26 @@ import { motion, type Variants } from "motion/react";
 import { AppLink } from "@/components/ui/AppLink";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
+import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
-const FOOTER_LOGO = "/assets/footer/logo.webp";
-const ICON_PIN = "/assets/footer/icon-pin.webp";
-const ICON_MAIL = "/assets/footer/icon-mail.webp";
-const ICON_PHONE = "/assets/footer/icon-phone.webp";
+const FOOTER_LOGO = staticAssetUrl("/assets/footer/logo.webp");
+const ICON_PIN = staticAssetUrl("/assets/footer/icon-pin.webp");
+const ICON_MAIL = staticAssetUrl("/assets/footer/icon-mail.webp");
+const ICON_PHONE = staticAssetUrl("/assets/footer/icon-phone.webp");
 
 const SOCIAL_ICONS = [
-  { key: "instagram", src: "/assets/footer/social-instagram.webp" },
-  { key: "facebook", src: "/assets/footer/social-facebook.webp" },
-  { key: "telegram", src: "/assets/footer/social-telegram.webp" },
-  { key: "whatsapp", src: "/assets/footer/social-whatsapp.webp" },
-  { key: "viber", src: "/assets/footer/social-viber.webp" },
+  { key: "instagram", src: staticAssetUrl("/assets/footer/social-instagram.webp") },
+  { key: "facebook", src: staticAssetUrl("/assets/footer/social-facebook.webp") },
+  { key: "telegram", src: staticAssetUrl("/assets/footer/social-telegram.webp") },
+  { key: "whatsapp", src: staticAssetUrl("/assets/footer/social-whatsapp.webp") },
+  { key: "viber", src: staticAssetUrl("/assets/footer/social-viber.webp") },
 ] as const;
 
 const PAYMENT_LOGOS = [
-  { src: "/assets/footer/pay-idram.webp", alt: "idram" },
-  { src: "/assets/footer/pay-fastshift.webp", alt: "fastshift" },
-  { src: "/assets/footer/pay-arca.webp", alt: "arca" },
-  { src: "/assets/footer/pay-visa.webp", alt: "visa" },
+  { src: staticAssetUrl("/assets/footer/pay-idram.webp"), alt: "idram" },
+  { src: staticAssetUrl("/assets/footer/pay-fastshift.webp"), alt: "fastshift" },
+  { src: staticAssetUrl("/assets/footer/pay-arca.webp"), alt: "arca" },
+  { src: staticAssetUrl("/assets/footer/pay-visa.webp"), alt: "visa" },
 ] as const;
 
 const EASE = [0.22, 1, 0.36, 1] as const;

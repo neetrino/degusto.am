@@ -21,6 +21,7 @@ import {
   type DisplayPrice,
   getSelectedCurrency,
 } from "@/lib/money/display-price";
+import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
 type ProductsPageProps = {
   params: Promise<{ locale: string }>;
@@ -186,7 +187,7 @@ export default async function ProductsPage({
   const categoriesPickerHref = `/${rawLocale}/products`;
   const searchAction = `/${rawLocale}/products`;
   const allImageUrl =
-    categoryItems[0]?.imageUrl ?? "/assets/categories/pizza.webp";
+    categoryItems[0]?.imageUrl ?? staticAssetUrl("/assets/categories/pizza.webp");
   const priceLabel = catalogCopy.priceLabel.replace("{currency}", currency);
 
   const catalogPanelProps = {

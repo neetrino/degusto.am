@@ -23,6 +23,7 @@ import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
 import type { Currency } from "@/lib/money/currency";
 import type { SessionUser } from "@/lib/auth/session";
+import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
 type NavItem = {
   href: string;
@@ -40,7 +41,7 @@ type SiteHeaderMainNavProps = {
   wishlistCount: number;
 };
 
-const LOGO_SRC = "/assets/brand/degusto-logo.webp";
+const LOGO_SRC = staticAssetUrl("/assets/brand/degusto-logo.webp");
 
 function isNavActive(pathname: string, href: string, locale: Locale): boolean {
   const pathOnly = href.split("?")[0] ?? href;
@@ -235,7 +236,7 @@ export function SiteHeaderMainNav({
                   triggerClassName="inline-flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white shadow-sm ring-1 ring-black/10 transition-colors hover:ring-brand/40"
                   icon={
                     <Image
-                      src="/assets/brand/account-arrow-up.webp"
+                      src={staticAssetUrl("/assets/brand/account-arrow-up.webp")}
                       alt=""
                       width={36}
                       height={36}

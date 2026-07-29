@@ -21,6 +21,7 @@ import { CheckoutSmoothScroll } from "@/features/checkout/ui/CheckoutSmoothScrol
 import type { CheckoutDeliveryOption } from "@/features/delivery/application/queries";
 import type { Locale } from "@/lib/i18n/config";
 import { formatMoneyAmount } from "@/lib/money/format";
+import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
 type CheckoutLabels = {
   title: string;
@@ -157,13 +158,13 @@ export function CheckoutForm({
         id: "idram" as const,
         name: labels.idram,
         description: labels.idramDescription,
-        logoSrc: "/assets/payments/idram.webp",
+        logoSrc: staticAssetUrl("/assets/payments/idram.webp"),
       },
       {
         id: "arca" as const,
         name: labels.arca,
         description: labels.arcaDescription,
-        logoSrc: "/assets/payments/arca.webp",
+        logoSrc: staticAssetUrl("/assets/payments/arca.webp"),
       },
     ],
     [

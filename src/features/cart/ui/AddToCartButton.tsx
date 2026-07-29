@@ -6,8 +6,9 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { addToCart } from "@/features/cart/cart";
+import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
-const ADD_TO_CART_ICON = "/assets/product-card/add-to-cart.webp";
+const ADD_TO_CART_ICON = staticAssetUrl("/assets/product-card/add-to-cart.webp");
 
 type AddToCartButtonProps = {
   productId: string;
