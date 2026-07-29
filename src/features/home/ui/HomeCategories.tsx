@@ -270,7 +270,7 @@ function CategoryCard({ category, reduceMotion }: CategoryCardProps) {
                 alt={category.title}
                 fill
                 sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
-                className="object-contain object-bottom drop-shadow-[0_18px_32px_rgba(0,0,0,0.55)]"
+                className="object-contain object-bottom"
               />
             </motion.div>
           </div>
