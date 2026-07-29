@@ -167,15 +167,14 @@ export function AdminMobileHub({
 
   return (
     <div className="relative mx-auto w-full max-w-lg pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-      <div
-        className="pointer-events-none absolute inset-x-[-1rem] -top-6 h-52 rounded-[2rem] bg-[radial-gradient(ellipse_at_top,_rgba(255,127,32,0.22),_transparent_70%)] sm:inset-x-[-1.5rem]"
-        aria-hidden
-      />
-
       <section
-        className="relative overflow-hidden rounded-[1.75rem] border border-brand/20 bg-white/95 p-5 shadow-[0_20px_48px_-28px_rgba(246,104,18,0.55)] backdrop-blur-sm sm:rounded-[2rem] sm:p-6"
+        className="relative isolate overflow-hidden rounded-[1.75rem] border border-brand/20 bg-white p-5 shadow-[0_20px_48px_-28px_rgba(246,104,18,0.55)] sm:rounded-[2rem] sm:p-6"
         aria-label={dictionary.title}
       >
+        <div
+          className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[radial-gradient(ellipse_at_top_right,_rgba(255,127,32,0.12),_transparent_55%)]"
+          aria-hidden
+        />
         <div
           className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-brand/10 blur-2xl"
           aria-hidden
@@ -218,15 +217,15 @@ export function AdminMobileHub({
               key={section.href}
               href={section.href}
               prefetchPolicy="intent"
-              className={`group flex min-h-[5.75rem] flex-col justify-between rounded-[1.35rem] border border-[#ead7bf]/90 bg-white p-3.5 shadow-[0_10px_28px_-22px_rgba(28,25,23,0.55)] transition duration-200 hover:-translate-y-0.5 hover:border-brand/35 hover:shadow-[0_16px_32px_-20px_rgba(246,104,18,0.45)] active:scale-[0.98] sm:min-h-[6.5rem] sm:rounded-[1.5rem] sm:p-4 ${tone.ring} ring-1`}
+              className={`group flex min-h-[5.75rem] min-w-0 flex-col justify-between overflow-hidden rounded-[1.35rem] border border-[#ead7bf]/90 bg-white p-3.5 shadow-[0_10px_28px_-22px_rgba(28,25,23,0.55)] transition duration-200 hover:-translate-y-0.5 hover:border-brand/35 hover:shadow-[0_16px_32px_-20px_rgba(246,104,18,0.45)] active:scale-[0.98] sm:min-h-[6.5rem] sm:rounded-[1.5rem] sm:p-4 ${tone.ring} ring-1`}
             >
               <span
                 className={`inline-flex h-10 w-10 items-center justify-center rounded-xl shadow-[0_10px_18px_-10px_rgba(0,0,0,0.35)] transition group-hover:scale-105 sm:h-11 sm:w-11 sm:rounded-[0.9rem] ${tone.tile} ${tone.icon}`}
               >
                 {section.icon}
               </span>
-              <span className="mt-3 flex items-end justify-between gap-1">
-                <span className="text-[13px] font-bold leading-snug text-product-ink sm:text-sm">
+              <span className="mt-3 flex min-w-0 items-end justify-between gap-1">
+                <span className="min-w-0 flex-1 text-[12px] font-bold leading-snug break-all text-product-ink sm:text-sm">
                   {section.label}
                 </span>
                 <ChevronRight
