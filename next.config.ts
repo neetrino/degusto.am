@@ -2,7 +2,21 @@ import type { NextConfig } from "next";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { isR2PublicBaseUrlUsable } from "./src/lib/r2/public-base-url";
+
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
+
+function resolveR2PublicBaseUrl(): string | undefined {
+  const raw = (
+    process.env.R2_PUBLIC_BASE_URL ||
+    process.env.R2_PUBLIC_URL ||
+    ""
+  ).trim();
+  if (!raw || !isR2PublicBaseUrlUsable(raw)) {
+    return undefined;
+  }
+  return raw.replace(/\/$/, "");
+}
 
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -77,6 +91,16 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: buildImageRemotePatterns(),
+  },
+  async rewrites() {
+    const base = resolveR2PublicBaseUrl();
+    if (!base) {
+      return [];
+    }
+    return [
+      { source: "/assets/:path*", destination: `${base}/assets/:path*` },
+      { source: "/images/:path*", destination: `${base}/images/:path*` },
+    ];
   },
   async headers() {
     return [

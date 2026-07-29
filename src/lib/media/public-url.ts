@@ -2,7 +2,7 @@ import "server-only";
 
 import { getProviders } from "@/config/providers";
 
-/** Local product images used when seed placeholders are not uploaded to R2. */
+/** Seed product placeholders stored in R2 under stable `assets/products/` keys. */
 const SEED_PRODUCT_FALLBACKS = [
   "assets/products/burger-1.webp",
   "assets/products/burger-2.webp",
@@ -12,7 +12,7 @@ const SEED_PRODUCT_FALLBACKS = [
   "assets/products/double-cheeseburger.webp",
 ] as const;
 
-/** Maps Figma seed category keys to committed `public/assets/categories/` files. */
+/** Maps Figma seed category keys to R2 `assets/categories/` object keys. */
 const SEED_CATEGORY_FALLBACKS: Readonly<Record<string, string>> = {
   soups: "assets/categories/soup.webp",
   salads: "assets/categories/salad.webp",
@@ -71,8 +71,8 @@ function resolveLocalAssetKey(objectKey: string): string {
 
 /**
  * Resolves a stored object key to a public URL.
- * Repo-committed files under `public/assets/` stay as local paths so seed
- * and brand assets work without uploading to object storage.
+ * `assets/` keys keep same-origin paths (`/assets/...`) and are proxied to R2
+ * via Next rewrites when `R2_PUBLIC_BASE_URL` / `R2_PUBLIC_URL` is a public CDN.
  */
 export function mediaPublicUrl(objectKey: string): string {
   const key = resolveLocalAssetKey(objectKey.replace(/^\//, ""));
