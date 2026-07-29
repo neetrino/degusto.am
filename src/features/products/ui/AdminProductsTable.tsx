@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState, useTransition, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -14,6 +14,7 @@ import {
   ADMIN_TABLE,
   ADMIN_TABLE_CARD,
   ADMIN_TABLE_CHECKBOX,
+  ADMIN_TABLE_FOOTER_ROUNDED_B,
   ADMIN_TABLE_OUTER_SCROLL,
   ADMIN_TABLE_STATE_INSET,
   ADMIN_TABLE_TBODY,
@@ -42,12 +43,15 @@ type AdminProductsTableProps = {
   products: AdminProductListItem[];
   sortLinks: AdminProductsSortLinks;
   onEdit: (product: AdminProductListItem) => void;
+  /** Server-rendered pagination slot (RSC → client composition). */
+  pagination?: ReactNode;
 };
 
 export function AdminProductsTable({
   locale,
   products,
   sortLinks,
+  pagination,
   onEdit,
 }: AdminProductsTableProps) {
   const router = useRouter();
@@ -240,6 +244,9 @@ export function AdminProductsTable({
             </table>
           </div>
         )}
+        {pagination ? (
+          <div className={ADMIN_TABLE_FOOTER_ROUNDED_B}>{pagination}</div>
+        ) : null}
       </Card>
 
       <ConfirmDialog

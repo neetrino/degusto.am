@@ -61,7 +61,15 @@ export function AdminProductsFilters({
 
   return (
     <div className="mb-4">
-      <p className="mb-3 text-sm text-[#5c564e]">Total products: {total}</p>
+      <div className="mb-3 inline-flex items-center gap-2 rounded-2xl border border-[#ead7bf]/90 bg-white px-3 py-2 shadow-[0_8px_20px_-16px_rgba(28,25,23,0.45)]">
+        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#fff4eb] text-xs font-black text-[#ff7f20]">
+          #
+        </span>
+        <p className="text-sm text-[#5c564e]">
+          Total products:{" "}
+          <span className="font-bold tabular-nums text-[#1f1a17]">{total}</span>
+        </p>
+      </div>
       <form
         ref={formRef}
         method="get"

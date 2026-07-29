@@ -30,6 +30,23 @@
     "searchNoResults": "Товары не найдены",
     "searchSeeAll": "Смотреть все"
   },
+  "adminMobile": {
+    "title": "Админ-панель",
+    "badge": "Админ",
+    "selectSection": "Выберите раздел",
+    "orders": "Заказы",
+    "products": "Товары",
+    "analytics": "Аналитика",
+    "categories": "Категории",
+    "messages": "Сообщения",
+    "users": "Пользователи",
+    "discounts": "Скидки",
+    "coupons": "Купоны",
+    "delivery": "Доставка",
+    "blog": "Блог",
+    "hero": "Hero",
+    "settings": "Настройки"
+  },
   "footer": {
     "addressesTitle": "Адреса",
     "contactsTitle": "Контакты",

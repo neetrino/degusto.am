@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { ReactNode } from "react";
 import { Plus } from "lucide-react";
 
 import type {
@@ -22,6 +23,7 @@ type AdminProductsViewProps = {
   products: AdminProductListItem[];
   sortLinks: AdminProductsSortLinks;
   categories: AdminCategoryOption[];
+  pagination?: ReactNode;
 };
 
 export function AdminProductsView({
@@ -29,6 +31,7 @@ export function AdminProductsView({
   products,
   sortLinks,
   categories,
+  pagination,
 }: AdminProductsViewProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingProduct, setEditingProduct] =
@@ -65,6 +68,7 @@ export function AdminProductsView({
         products={products}
         sortLinks={sortLinks}
         onEdit={openEdit}
+        pagination={pagination}
       />
 
       <ProductDrawer

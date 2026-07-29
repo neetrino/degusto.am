@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import {
   ChevronRight,
+  Home,
   LayoutDashboard,
   Lock,
   LogOut,
@@ -23,6 +24,7 @@ type ProfileMobileHubProps = {
   locale: Locale;
   user: SessionUser;
   dictionary: Dictionary["profile"];
+  homeLabel: string;
   onOpenDashboard: () => void;
 };
 
@@ -46,6 +48,7 @@ export function ProfileMobileHub({
   locale,
   user,
   dictionary,
+  homeLabel,
   onOpenDashboard,
 }: ProfileMobileHubProps) {
   const pathname = usePathname() ?? "";
@@ -53,8 +56,16 @@ export function ProfileMobileHub({
   const displayName = `${user.firstName} ${user.lastName}`.trim();
   const initials = `${user.firstName.slice(0, 1)}${user.lastName.slice(0, 1)}`.toUpperCase();
   const hubHref = `/${locale}/profile`;
+  const homeHref = `/${locale}`;
 
   const items: MenuItem[] = [
+    {
+      href: homeHref,
+      label: homeLabel,
+      icon: <Home className="h-5 w-5" />,
+      exact: true,
+      iconTheme: "amber",
+    },
     {
       href: hubHref,
       label: dictionary.dashboard,
@@ -140,6 +151,20 @@ export function ProfileMobileHub({
     );
 
     if (item.exact) {
+      if (item.href === homeHref) {
+        return (
+          <AppLink
+            key={item.href}
+            href={item.href}
+            prefetchPolicy="intent"
+            aria-current={active ? "page" : undefined}
+            className="flex w-full items-center justify-between px-4 py-3.5 text-left transition-colors hover:bg-[#fff7f0]/80"
+          >
+            {content}
+          </AppLink>
+        );
+      }
+
       return (
         <button
           key={item.href}

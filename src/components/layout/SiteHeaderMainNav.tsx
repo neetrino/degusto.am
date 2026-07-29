@@ -101,20 +101,21 @@ export function SiteHeaderMainNav({
             variants={reduceMotion ? undefined : headerItemVariants}
             whileHover={reduceMotion ? undefined : { scale: 1.04, rotate: -1.5 }}
             transition={{ type: "spring", stiffness: 320, damping: 18 }}
-            className="shrink-0"
+            className="pointer-events-auto relative z-20 shrink-0"
           >
             <AppLink
               href={`/${locale}`}
               prefetchPolicy="intent"
-              className="relative block h-10 w-[110px] overflow-hidden sm:h-12 sm:w-[134px]"
-              aria-label={dictionary.brand}
+              className="relative block h-10 w-[110px] cursor-pointer overflow-hidden sm:h-12 sm:w-[134px]"
+              aria-label={dictionary.nav.home}
+              title={dictionary.nav.home}
             >
               <Image
                 src={LOGO_SRC}
                 alt={dictionary.brand}
                 fill
                 sizes="134px"
-                className="object-contain object-left"
+                className="pointer-events-none object-contain object-left"
                 priority
               />
             </AppLink>

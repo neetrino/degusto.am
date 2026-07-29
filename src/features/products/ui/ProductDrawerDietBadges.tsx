@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Check } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { ADMIN_LABEL, ADMIN_TEXT_MUTED } from "@/features/admin/ui/admin-form-classes";
+import { ADMIN_LABEL } from "@/features/admin/ui/admin-form-classes";
 import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
 const SPICY_ICON = staticAssetUrl("/assets/product-card/spicy.webp");
@@ -93,9 +93,6 @@ export function ProductDrawerDietBadges({
   return (
     <fieldset disabled={disabled} className="min-w-0">
       <legend className={ADMIN_LABEL}>Կծու / Vegie</legend>
-      <p className={`-mt-0.5 ${ADMIN_TEXT_MUTED} text-sm leading-relaxed`}>
-        Նշեք պատկերակները — դրանք կերևան ապրանքի քարտում (home, shop, menu)։
-      </p>
 
       <div className="mt-3 grid grid-cols-2 gap-3 rounded-[22px] border border-[#ead7bf] bg-gradient-to-br from-[#fffaf2] via-[#fffdf8] to-[#fff4eb] p-3 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.04)] sm:gap-4 sm:p-4">
         <DietOption

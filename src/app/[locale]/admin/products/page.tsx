@@ -1,7 +1,6 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { ADMIN_LINK } from "@/features/admin/ui/admin-form-classes";
+import { AdminPagination } from "@/features/admin/ui/AdminPagination";
 import {
   listAdminCategoryOptions,
   listAdminProducts,
@@ -125,31 +124,21 @@ export default async function AdminProductsPage({
         products={rows}
         sortLinks={sortLinks}
         categories={categories}
+        pagination={
+          totalPages > 1 ? (
+            <AdminPagination
+              currentPage={filters.page}
+              totalPages={totalPages}
+              buildHref={(page) => {
+                const query = buildQuery(filters, { page });
+                return query
+                  ? `/${locale}/admin/products?${query}`
+                  : `/${locale}/admin/products`;
+              }}
+            />
+          ) : undefined
+        }
       />
-
-      {totalPages > 1 ? (
-        <nav className="mt-4 flex items-center gap-3 text-sm text-[#5c564e]">
-          {filters.page > 1 ? (
-            <Link
-              href={`/${locale}/admin/products?${buildQuery(filters, { page: filters.page - 1 })}`}
-              className={ADMIN_LINK}
-            >
-              Previous
-            </Link>
-          ) : null}
-          <span>
-            Page {filters.page} / {totalPages}
-          </span>
-          {filters.page < totalPages ? (
-            <Link
-              href={`/${locale}/admin/products?${buildQuery(filters, { page: filters.page + 1 })}`}
-              className={ADMIN_LINK}
-            >
-              Next
-            </Link>
-          ) : null}
-        </nav>
-      ) : null}
     </section>
   );
 }
