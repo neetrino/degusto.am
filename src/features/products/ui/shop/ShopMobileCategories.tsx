@@ -100,7 +100,7 @@ function CategoryCard({
       prefetchPolicy="intent"
       className="relative block h-[183px] overflow-hidden rounded-[28px] bg-[#090909] text-left transition-opacity active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-headline"
     >
-      <p className="relative z-10 px-[13px] pt-5 text-xs leading-[18px] font-medium text-white">
+      <p className="relative z-10 line-clamp-2 break-words px-[13px] pt-5 text-xs leading-[18px] font-medium text-white" title={title}>
         {title}
       </p>
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[134px] overflow-hidden rounded-b-[28px]">
