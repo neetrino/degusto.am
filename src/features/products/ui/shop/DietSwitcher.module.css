@@ -79,8 +79,8 @@
   width: 24px;
   height: 24px;
   background-color: #6fc604;
-  mask: url("https://pub-14a36d06d59742799eea48c36fae4fa5.r2.dev/assets/shop/switcher-leaf.webp") center / contain no-repeat;
-  -webkit-mask: url("https://pub-14a36d06d59742799eea48c36fae4fa5.r2.dev/assets/shop/switcher-leaf.webp") center / contain
+  mask: url("/assets/shop/switcher-leaf.webp") center / contain no-repeat;
+  -webkit-mask: url("/assets/shop/switcher-leaf.webp") center / contain
     no-repeat;
   mask-mode: luminance;
   -webkit-mask-source-type: luminance;
