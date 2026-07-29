@@ -518,26 +518,30 @@ body:has([data-cart-page]) {
 /* Shop / combo / PDP: white canvas meets the rounded footer (no gray strip). */
 .storefront-shell:has([data-shop-page]),
 .storefront-shell:has([data-pdp-page]),
-.storefront-shell:has([data-wishlist-page]) {
+.storefront-shell:has([data-wishlist-page]),
+.storefront-shell:has([data-checkout-page]) {
   background-color: #ffffff;
 }
 
 .storefront-shell:has([data-shop-page]) .storefront-main,
 .storefront-shell:has([data-pdp-page]) .storefront-main,
-.storefront-shell:has([data-wishlist-page]) .storefront-main {
+.storefront-shell:has([data-wishlist-page]) .storefront-main,
+.storefront-shell:has([data-checkout-page]) .storefront-main {
   background-color: #ffffff;
 }
 
 .storefront-shell:has([data-shop-page]) .storefront-footer,
 .storefront-shell:has([data-pdp-page]) .storefront-footer,
-.storefront-shell:has([data-wishlist-page]) .storefront-footer {
+.storefront-shell:has([data-wishlist-page]) .storefront-footer,
+.storefront-shell:has([data-checkout-page]) .storefront-footer {
   background-color: #ffffff;
 }
 
 @media (max-width: 1023px) {
   .storefront-shell:has([data-shop-page]) .storefront-main,
   .storefront-shell:has([data-wishlist-page]) .storefront-main,
-  .storefront-shell:has([data-pdp-page]) .storefront-main {
+  .storefront-shell:has([data-pdp-page]) .storefront-main,
+  .storefront-shell:has([data-checkout-page]) .storefront-main {
     padding-top: 0;
     padding-bottom: 0;
   }
