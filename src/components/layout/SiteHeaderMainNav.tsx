@@ -41,7 +41,7 @@ type SiteHeaderMainNavProps = {
   wishlistCount: number;
 };
 
-const LOGO_SRC = staticAssetUrl("/assets/brand/degusto-logo.webp");
+const LOGO_SRC = staticAssetUrl("/assets/brand/degusto-logo.svg");
 
 function isNavActive(pathname: string, href: string, locale: Locale): boolean {
   const pathOnly = href.split("?")[0] ?? href;
@@ -110,13 +110,15 @@ export function SiteHeaderMainNav({
               aria-label={dictionary.nav.home}
               title={dictionary.nav.home}
             >
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element -- SVG wordmark */}
+              <img
                 src={LOGO_SRC}
                 alt={dictionary.brand}
-                fill
-                sizes="134px"
-                className="pointer-events-none object-contain object-left"
-                priority
+                width={134}
+                height={48}
+                decoding="async"
+                fetchPriority="high"
+                className="pointer-events-none h-full w-full object-contain object-left"
               />
             </AppLink>
           </motion.div>
