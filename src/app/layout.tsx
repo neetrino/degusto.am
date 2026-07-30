@@ -37,8 +37,8 @@ const mirageExpanded = localFont({
 
 export const metadata: Metadata = {
   title: {
-    default: "White Shop",
-    template: "%s · White Shop",
+    default: "Degusto",
+    template: "%s · Degusto",
   },
   description: "Multilingual e-commerce storefront",
 };

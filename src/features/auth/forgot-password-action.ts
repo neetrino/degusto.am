@@ -18,7 +18,7 @@ export type ForgotPasswordActionState = {
 
 function buildResetEmail(resetUrl: string) {
   const text = [
-    "We received a request to reset your White Shop password.",
+    "We received a request to reset your Degusto password.",
     "",
     "Open this link to choose a new password (expires in 1 hour):",
     resetUrl,
@@ -27,13 +27,13 @@ function buildResetEmail(resetUrl: string) {
   ].join("\n");
 
   const html = `
-    <p>We received a request to reset your White Shop password.</p>
+    <p>We received a request to reset your Degusto password.</p>
     <p><a href="${resetUrl}">Choose a new password</a> (link expires in 1 hour).</p>
     <p>If you did not request this, you can ignore this email.</p>
   `.trim();
 
   return {
-    subject: "Reset your White Shop password",
+    subject: "Reset your Degusto password",
     text,
     html,
   };
