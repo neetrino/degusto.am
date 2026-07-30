@@ -49,6 +49,8 @@
   --radius-2xl: 15px;
   --radius-3xl: 15px;
   --radius-4xl: 15px;
+  /* iPad Air portrait (~820px) and up use desktop storefront chrome/layout */
+  --breakpoint-lg: 820px;
 }
 
 body {
@@ -476,7 +478,7 @@ body:has([data-cart-page]) {
   background-color: #fbf6ea;
 }
 
-@media (max-width: 1023px) {
+@media (max-width: 819px) {
   .storefront-shell:has([data-auth-page]) .storefront-main {
     padding-top: 0;
     padding-bottom: 0;
@@ -487,7 +489,7 @@ body:has([data-cart-page]) {
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 820px) {
   /*
    * Paint the auth hero on the shell so it spans header → footer.
    * Footer rounded corners then reveal the image (not a solid fill).
@@ -537,7 +539,7 @@ body:has([data-cart-page]) {
   background-color: #ffffff;
 }
 
-@media (max-width: 1023px) {
+@media (max-width: 819px) {
   .storefront-shell:has([data-shop-page]) .storefront-main,
   .storefront-shell:has([data-wishlist-page]) .storefront-main,
   .storefront-shell:has([data-pdp-page]) .storefront-main,
@@ -565,7 +567,7 @@ body:has([data-cart-page]) {
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 820px) {
   .storefront-shell:has([data-home-page]) .storefront-main {
     padding-bottom: 0;
   }
@@ -593,7 +595,7 @@ body:has([data-cart-page]) {
  * Hide the storefront top header — profile hub is the chrome on mobile.
  * Hide the storefront bottom tab bar — profile has its own hub chrome.
  */
-@media (max-width: 1023px) {
+@media (max-width: 819px) {
   .storefront-shell:has(.profile-mobile-page) .site-header {
     display: none;
   }

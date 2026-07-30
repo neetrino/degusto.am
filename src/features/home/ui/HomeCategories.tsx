@@ -172,7 +172,7 @@ export function HomeCategories({
             whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             viewport={{ once: true, amount: 0.5 }}
             transition={{ duration: 0.9, ease: EASE }}
-            className="mb-8 font-sans text-5xl font-black tracking-tight text-black md:text-6xl"
+            className="mb-8 font-display text-5xl font-black tracking-tight text-black md:text-6xl"
           >
             {title}
           </motion.h2>
@@ -185,7 +185,7 @@ export function HomeCategories({
               whileInView="visible"
               viewport={{ once: true, amount: 0.12 }}
               variants={reduceMotion ? undefined : gridVariants}
-              className="grid grid-cols-1 items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-4"
+              className="grid grid-cols-4 items-stretch gap-5"
             >
               {categories.map((category) => (
                 <CategoryCard

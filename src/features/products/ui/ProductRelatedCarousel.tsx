@@ -103,7 +103,7 @@ export function ProductRelatedCarousel({
       return;
     }
     // Mobile only — desktop has arrow controls as the affordance.
-    if (window.matchMedia("(min-width: 1024px)").matches) {
+    if (window.matchMedia("(min-width: 820px)").matches) {
       return;
     }
 

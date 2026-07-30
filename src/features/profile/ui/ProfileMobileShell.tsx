@@ -47,7 +47,7 @@ export function ProfileMobileShell({
   const [isDesktop, setIsDesktop] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const media = window.matchMedia("(min-width: 1024px)");
+    const media = window.matchMedia("(min-width: 820px)");
     function sync(): void {
       setIsDesktop(media.matches);
     }

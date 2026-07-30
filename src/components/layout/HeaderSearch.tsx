@@ -152,7 +152,7 @@ export function HeaderSearch({
     <form
       ref={rootRef}
       onSubmit={handleSubmit}
-      className="relative hidden h-12 w-[340px] shrink-0 items-center rounded-full bg-white lg:flex"
+      className="relative hidden h-12 w-[168px] min-w-0 items-center rounded-full bg-white lg:flex xl:w-[260px] 2xl:w-[340px]"
       role="search"
       aria-busy={isPending || status === "loading"}
     >
@@ -173,15 +173,16 @@ export function HeaderSearch({
         placeholder={placeholder}
         disabled={isPending}
         autoComplete="off"
-        className="h-full w-full min-w-0 rounded-full bg-transparent pr-[7.5rem] pl-4 text-base text-product-ink outline-none placeholder:text-[rgba(105,105,105,0.56)] disabled:opacity-70"
+        className="h-full w-full min-w-0 rounded-full bg-transparent pr-12 pl-3 text-sm text-product-ink outline-none placeholder:text-[rgba(105,105,105,0.56)] disabled:opacity-70 xl:pr-[7.5rem] xl:pl-4 xl:text-base"
       />
       <button
         type="submit"
         disabled={isPending}
-        className="absolute top-1 right-1 z-10 inline-flex h-10 items-center gap-1.5 rounded-[20px] bg-brand py-2 pr-4 pl-3 text-[15px] font-semibold text-white transition hover:bg-brand-strong disabled:opacity-70"
+        aria-label={searchLabel}
+        className="absolute top-1 right-1 z-10 inline-flex h-10 items-center gap-1.5 rounded-[20px] bg-brand p-2.5 text-[15px] font-semibold text-white transition hover:bg-brand-strong disabled:opacity-70 xl:py-2 xl:pr-4 xl:pl-3"
       >
         <Search className="size-5 shrink-0" aria-hidden />
-        <span>{searchLabel}</span>
+        <span className="hidden xl:inline">{searchLabel}</span>
       </button>
 
       {showDropdown && status != null ? (

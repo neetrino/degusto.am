@@ -130,7 +130,7 @@ export function SiteFooter({ dictionary, locale }: SiteFooterProps) {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 1.1, ease: EASE, delay: 0.15 }}
-          className="pointer-events-none absolute -right-[10px] top-[-115px] z-0 hidden h-[min(800px,90vh)] w-[min(512px,42vw)] max-w-none -rotate-90 -scale-x-100 object-contain will-change-transform [aspect-ratio:90/173] lg:block xl:h-[800px] xl:w-[512px]"
+          className="pointer-events-none absolute -right-[10px] top-[-35px] z-0 hidden h-[min(800px,90vh)] w-[min(512px,42vw)] max-w-none -rotate-90 -scale-x-100 object-contain will-change-transform [aspect-ratio:90/173] lg:block xl:top-[-115px] xl:h-[800px] xl:w-[512px]"
           aria-hidden
         />
 
