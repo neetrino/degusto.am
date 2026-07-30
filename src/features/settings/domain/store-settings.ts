@@ -159,7 +159,7 @@ export function parseGlobalDiscount(value: unknown): StoreGlobalDiscount {
 
 export function parseIdentity(value: unknown): StoreIdentity {
   if (!value || typeof value !== "object") {
-    return { name: "White Shop", supportEmail: "support@example.com" };
+    return { name: "Degusto", supportEmail: "support@example.com" };
   }
 
   const record = value as Record<string, unknown>;
@@ -167,7 +167,7 @@ export function parseIdentity(value: unknown): StoreIdentity {
     name:
       typeof record.name === "string" && record.name.trim()
         ? record.name.trim().slice(0, 120)
-        : "White Shop",
+        : "Degusto",
     supportEmail:
       typeof record.supportEmail === "string" && record.supportEmail.includes("@")
         ? record.supportEmail.trim().toLowerCase().slice(0, 254)
