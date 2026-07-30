@@ -3,7 +3,7 @@ description: Architecture — layers, feature modules, boundaries, project size 
 globs: []
 alwaysApply: false
 ---
-
+ 
 # Architecture
 
 ## Proportional architecture
