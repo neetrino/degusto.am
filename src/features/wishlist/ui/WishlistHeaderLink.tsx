@@ -27,7 +27,7 @@ export function WishlistHeaderLink({
     >
       <Heart className={iconClassName} aria-hidden="true" />
       {count > 0 ? (
-        <span className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-black px-1 text-[10px] font-semibold text-white">
+        <span className="absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-xs font-semibold text-white">
           {count > 99 ? "99+" : count}
         </span>
       ) : null}

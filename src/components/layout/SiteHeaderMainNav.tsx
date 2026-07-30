@@ -74,7 +74,7 @@ export function SiteHeaderMainNav({
   return (
     <motion.header
       style={{ paddingTop: pillPadY, y: pillY }}
-      className="pointer-events-auto relative z-40 px-3 sm:px-6 md:px-8"
+      className="pointer-events-auto relative z-40 px-3 sm:px-4 md:px-5 xl:px-8"
     >
       <motion.div
         style={{ scale: pillScale }}
@@ -91,7 +91,7 @@ export function SiteHeaderMainNav({
           animate="visible"
           variants={reduceMotion ? undefined : headerShellVariants}
           className={[
-            "relative mx-auto flex max-w-[min(1450px,calc(100%-2rem))] items-center gap-2 overflow-visible rounded-[120px] border px-6 shadow-2xl transition-[height,box-shadow,border-color,background] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:max-w-[min(1450px,calc(100%-2.5rem))] md:px-8 lg:max-w-[min(1450px,calc(100%-3rem))] lg:px-10 xl:px-11",
+            "relative mx-auto flex max-w-[min(1450px,calc(100%-1.5rem))] items-center gap-2 overflow-visible rounded-[120px] border px-3 shadow-2xl transition-[height,box-shadow,border-color,background] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:max-w-[min(1450px,calc(100%-2rem))] md:px-4 lg:px-5 xl:max-w-[min(1450px,calc(100%-3rem))] xl:px-10 2xl:px-11",
             scrolled
               ? "h-[68px] border-brand/25 bg-gradient-to-r from-[#0c0d12]/95 to-[#12141c]/95 shadow-[0_18px_50px_rgba(0,0,0,0.45),0_0_0_1px_rgba(246,104,18,0.12)] backdrop-blur-xl"
               : "h-20 border-white/10 bg-gradient-to-r from-[#0f1017] to-[#13151d] shadow-[0_22px_60px_rgba(0,0,0,0.4)]",
@@ -167,7 +167,7 @@ export function SiteHeaderMainNav({
 
           <motion.div
             variants={reduceMotion ? undefined : headerItemVariants}
-            className="ml-auto flex items-center gap-2 sm:gap-3"
+            className="ml-auto flex min-w-0 items-center gap-1.5 sm:gap-2 xl:gap-3"
           >
             <motion.div
               variants={reduceMotion ? undefined : headerItemVariants}
@@ -183,7 +183,7 @@ export function SiteHeaderMainNav({
               />
             </motion.div>
 
-            <div className="hidden items-center gap-2 md:flex md:gap-[7px]">
+            <div className="hidden items-center gap-1.5 md:flex xl:gap-[7px]">
               <motion.div
                 variants={reduceMotion ? undefined : headerItemVariants}
                 whileHover={reduceMotion ? undefined : { y: -2, scale: 1.03 }}
