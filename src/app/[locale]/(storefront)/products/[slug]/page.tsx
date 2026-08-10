@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { getEnv } from "@/config/env";
 import { getProductDetailBySlug } from "@/features/products/queries";
@@ -122,6 +122,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const product = await getProductDetailBySlug(locale, slug);
   if (!product) {
     notFound();
+  }
+
+  // Locale switcher only rewrites /{locale}/… and keeps the previous slug.
+  // Degusto products have distinct hy/en/ru slugs — canonicalize when needed.
+  if (product.translation.slug !== decodeURIComponent(slug)) {
+    redirect(`/${locale}/products/${product.translation.slug}`);
   }
 
   const [user, currency, inWishlist] = await Promise.all([

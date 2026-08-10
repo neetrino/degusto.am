@@ -364,6 +364,7 @@ export async function getProductBySlug(
   locale: Locale,
   slug: string,
 ): Promise<CatalogProduct | null> {
+  const decodedSlug = decodeURIComponent(slug);
   const [product] = await getDb()
     .select()
     .from(products)
@@ -371,7 +372,14 @@ export async function getProductBySlug(
       and(
         eq(products.status, "ACTIVE"),
         isNull(products.deletedAt),
-        sql`${products.translations}->${locale}->>'slug' = ${slug}`,
+        // Match any locale slug so locale-switcher path swaps (which keep the
+        // previous locale's slug) still resolve, then the page redirects to the
+        // canonical slug for the active locale.
+        or(
+          sql`${products.translations}->'hy'->>'slug' = ${decodedSlug}`,
+          sql`${products.translations}->'en'->>'slug' = ${decodedSlug}`,
+          sql`${products.translations}->'ru'->>'slug' = ${decodedSlug}`,
+        ),
       ),
     )
     .limit(1);
