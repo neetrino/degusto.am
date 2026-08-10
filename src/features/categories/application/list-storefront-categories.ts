@@ -18,6 +18,7 @@ import {
 import type { Locale } from "@/lib/i18n/config";
 import { mediaPublicUrl } from "@/lib/media/public-url";
 import { staticAssetUrl } from "@/lib/media/static-asset-url";
+import { isDemoSeedEntityId } from "@/db/seed/seed-uuid";
 
 export type StorefrontCategory = {
   id: string;
@@ -65,11 +66,15 @@ async function loadStorefrontCategories(
     )
     .orderBy(asc(categories.sortOrder), asc(categories.createdAt));
 
-  if (rows.length === 0) {
+  // Storefront shows Degusto catalog only. Keep demo/figma seed categories in DB
+  // but hide them from customer navigation (reliable ID prefix, not title matching).
+  const storefrontRows = rows.filter((row) => !isDemoSeedEntityId(row.id));
+
+  if (storefrontRows.length === 0) {
     return [];
   }
 
-  const categoryIds = rows.map((row) => row.id);
+  const categoryIds = storefrontRows.map((row) => row.id);
 
   const [mediaRows, countRows] = await Promise.all([
     getDb()
@@ -119,7 +124,7 @@ async function loadStorefrontCategories(
     counts.set(row.categoryId, Number(row.productCount));
   }
 
-  return rows.map((row, index) => {
+  return storefrontRows.map((row, index) => {
     const translation = translationFor(row.translations, locale);
     return {
       id: row.id,
@@ -137,7 +142,7 @@ export async function listStorefrontCategories(
 ): Promise<StorefrontCategory[]> {
   return unstable_cache(
     async () => loadStorefrontCategories(locale),
-    ["storefront-categories", locale],
+    ["storefront-categories", "degusto-only-v1", locale],
     {
       tags: [CACHE_TAGS.products],
       revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,
