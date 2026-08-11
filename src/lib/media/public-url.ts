@@ -28,7 +28,7 @@ const SEED_CATEGORY_FALLBACKS: Readonly<Record<string, string>> = {
   "stuffed-potato": "assets/categories/icons/stuffed-potato.webp",
   burgers: "assets/categories/icons/burgers-sandwiches.webp",
   "pies-crepes": "assets/categories/icons/cakes-pancakes.webp",
-  combo: "assets/categories/combo.webp",
+  combo: "assets/categories/icons/combo-packages.webp",
   "lunch-boxes": "assets/categories/icons/lunch-boxes.webp",
   "grill-smoked": "assets/categories/icons/grill-smoked.webp",
   bread: "assets/categories/icons/bread.webp",
