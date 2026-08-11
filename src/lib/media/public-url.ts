@@ -21,7 +21,7 @@ const SEED_CATEGORY_FALLBACKS: Readonly<Record<string, string>> = {
   salads: "assets/categories/salad.webp",
   shawarma: "assets/categories/shawarma.webp",
   pizza: "assets/categories/pizza.webp",
-  lahmajoun: "assets/categories/lahmajoun.webp",
+  lahmajoun: "assets/categories/icons/lahmajoun.webp",
   khachapuri: "assets/categories/khachapuri.webp",
   khorovats: "assets/categories/khorovats.webp",
   khinkali: "assets/categories/icons/khinkali.webp",

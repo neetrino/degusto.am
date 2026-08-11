@@ -135,7 +135,7 @@ export async function listStorefrontCategories(
 ): Promise<StorefrontCategory[]> {
   return unstable_cache(
     async () => loadStorefrontCategories(locale),
-    ["storefront-categories", "degusto-icons-cutouts-v12", locale],
+    ["storefront-categories", "degusto-icons-cutouts-v15", locale],
     {
       tags: [CACHE_TAGS.products],
       revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,

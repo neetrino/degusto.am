@@ -192,7 +192,7 @@ const TITLE_ICON_RULES: Array<{ pattern: RegExp; icon: string }> = [
 
 function iconUrl(name: string): string {
   // Cache-bust old Next/Image + CDN entries that still hold line-art icons.
-  return `${staticAssetUrl(`/assets/categories/icons/${name}.webp`)}?v=cutout10`;
+  return `${staticAssetUrl(`/assets/categories/icons/${name}.webp`)}?v=cutout13`;
 }
 
 function normalize(value: string): string {
