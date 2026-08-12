@@ -20,6 +20,7 @@ import {
 } from "@/features/categories/actions";
 import { slugifyCategoryTitle } from "@/features/categories/domain/slugify";
 import type { AdminCategoryListItem } from "@/features/categories/application/list-admin-categories";
+import { validateImageFile } from "@/lib/media/image-file";
 
 type AddCategoryDrawerProps = {
   locale: string;
@@ -101,6 +102,14 @@ export function AddCategoryDrawer({
           className="flex min-h-0 flex-1 flex-col"
           onSubmit={(event) => {
             event.preventDefault();
+            if (imageFile) {
+              const imageError = validateImageFile(imageFile);
+              if (imageError) {
+                setError(imageError);
+                return;
+              }
+            }
+
             const nextSlug =
               slugTouched && slug.trim()
                 ? slug.trim()
@@ -120,22 +129,26 @@ export function AddCategoryDrawer({
 
             startTransition(async () => {
               setError(null);
-              const result =
-                isEdit && category
-                  ? await updateCategoryFromDrawerAction(
-                      locale,
-                      category.id,
-                      formData,
-                    )
-                  : await createCategoryFromDrawerAction(locale, formData);
+              try {
+                const result =
+                  isEdit && category
+                    ? await updateCategoryFromDrawerAction(
+                        locale,
+                        category.id,
+                        formData,
+                      )
+                    : await createCategoryFromDrawerAction(locale, formData);
 
-              if (!result.ok) {
-                setError(result.error.message);
-                return;
+                if (!result.ok) {
+                  setError(result.error.message);
+                  return;
+                }
+
+                onClose();
+                router.refresh();
+              } catch {
+                setError("Upload failed. Try a smaller image and try again.");
               }
-
-              onClose();
-              router.refresh();
             });
           }}
         >
