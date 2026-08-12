@@ -89,6 +89,16 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: projectRoot,
   },
+  // Must be under `experimental` for Next 16; string form is what the action
+  // handler passes through `bytes.parse`. Covers admin multi-image FormData
+  // (up to 12 × 5MB) plus multipart overhead.
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "64mb",
+    },
+    // Proxy (src/proxy.ts) clones request bodies; keep in sync with uploads.
+    proxyClientMaxBodySize: "64mb",
+  },
   images: {
     remotePatterns: buildImageRemotePatterns(),
   },
