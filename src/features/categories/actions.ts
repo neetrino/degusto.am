@@ -28,7 +28,6 @@ function buildTranslations(title: string, slug: string): TranslationsJson {
 }
 
 function revalidateCategories(locale: string): void {
-  revalidatePath(`/${locale}`);
   revalidatePath(`/${locale}/admin/categories`);
   revalidatePath(`/${locale}/admin/products`);
   revalidatePath(`/${locale}/products`);
