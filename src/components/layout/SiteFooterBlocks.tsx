@@ -7,6 +7,7 @@ import { AppLink } from "@/components/ui/AppLink";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
 import { staticAssetUrl } from "@/lib/media/static-asset-url";
+import { splitPhoneLine } from "@/lib/phone/tel";
 
 const FOOTER_LOGO = staticAssetUrl("/assets/footer/logo.webp");
 const ICON_PIN = staticAssetUrl("/assets/footer/icon-pin.webp");
@@ -130,7 +131,21 @@ export function FooterContactsBlock({
             className="mt-0.5 h-6 w-6 shrink-0 object-contain"
             aria-hidden
           />
-          <span>{footer.phones}</span>
+          <span>
+            {splitPhoneLine(footer.phones).map((part, index) =>
+              part.kind === "tel" ? (
+                <a
+                  key={`${part.href}-${index}`}
+                  href={part.href}
+                  className="transition hover:text-brand"
+                >
+                  {part.display}
+                </a>
+              ) : (
+                <span key={`text-${index}`}>{part.value}</span>
+              ),
+            )}
+          </span>
         </p>
         <motion.ul
           variants={reduceMotion ? undefined : listVariants}
