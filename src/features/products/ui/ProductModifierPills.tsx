@@ -63,39 +63,47 @@ export function ProductModifierPills({
     () => new Set(),
   );
 
+  const showAdd = addOptions.length > 0;
+  const showExclude = excludeOptions.length > 0;
+  if (!showAdd && !showExclude) {
+    return null;
+  }
+
   return (
     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
-      <ModifierPill
-        label={addLabel}
-        emptyLabel={emptyAddLabel}
-        options={addOptions}
-        selected={selectedAdd}
-        open={open === "add"}
-        onOpenChange={(next) => setOpen(next ? "add" : null)}
-        onToggle={(id) => {
-          setSelectedAdd((prev) => {
-            const next = toggleId(prev, id);
+      {showAdd ? (
+        <ModifierPill
+          label={addLabel}
+          emptyLabel={emptyAddLabel}
+          options={addOptions}
+          selected={selectedAdd}
+          open={open === "add"}
+          onOpenChange={(next) => setOpen(next ? "add" : null)}
+          onToggle={(id) => {
+            const next = toggleId(selectedAdd, id);
+            setSelectedAdd(next);
             onSelectedAddChange?.(next);
-            return next;
-          });
-        }}
-        widthClassName="w-full sm:w-[12.1875rem]"
-        icon={<Plus className="size-5" strokeWidth={2.5} aria-hidden />}
-      />
-      <ModifierPill
-        label={excludeLabel}
-        emptyLabel={emptyExcludeLabel}
-        hint={excludeHint}
-        options={excludeOptions}
-        selected={selectedExclude}
-        open={open === "exclude"}
-        onOpenChange={(next) => setOpen(next ? "exclude" : null)}
-        onToggle={(id) => {
-          setSelectedExclude((prev) => toggleId(prev, id));
-        }}
-        widthClassName="w-full sm:w-[10.9375rem]"
-        icon={<Minus className="size-5" strokeWidth={2.5} aria-hidden />}
-      />
+          }}
+          widthClassName="w-full sm:w-[12.1875rem]"
+          icon={<Plus className="size-5" strokeWidth={2.5} aria-hidden />}
+        />
+      ) : null}
+      {showExclude ? (
+        <ModifierPill
+          label={excludeLabel}
+          emptyLabel={emptyExcludeLabel}
+          hint={excludeHint}
+          options={excludeOptions}
+          selected={selectedExclude}
+          open={open === "exclude"}
+          onOpenChange={(next) => setOpen(next ? "exclude" : null)}
+          onToggle={(id) => {
+            setSelectedExclude((prev) => toggleId(prev, id));
+          }}
+          widthClassName="w-full sm:w-[10.9375rem]"
+          icon={<Minus className="size-5" strokeWidth={2.5} aria-hidden />}
+        />
+      ) : null}
     </div>
   );
 }

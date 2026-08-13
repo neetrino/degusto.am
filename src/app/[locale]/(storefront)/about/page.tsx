@@ -41,7 +41,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
           brand={dictionary.brand}
           eyebrow={dictionary.about.storyEyebrow}
           title={dictionary.about.storyTitle}
-          yearsValue="04"
+          yearsValue="4"
           yearsLabel={dictionary.about.storyYearsLabel}
         />
         <AboutStats copy={dictionary.about} />

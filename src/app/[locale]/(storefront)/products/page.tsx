@@ -8,6 +8,10 @@ import {
 } from "@/features/products/queries";
 import { resolveCategoryIconSrc } from "@/features/products/ui/shop/resolve-category-icon";
 import { buildCatalogHref } from "@/features/products/ui/shop/build-catalog-href";
+import {
+  isComboSlug,
+  resolveComboCatalogSlug,
+} from "@/features/products/ui/shop/combo-slug";
 import { ShopCatalogPanel } from "@/features/products/ui/shop/ShopCatalogPanel";
 import { ShopCategorySidebar } from "@/features/products/ui/shop/ShopCategorySidebar";
 import { ShopMobileCategories } from "@/features/products/ui/shop/ShopMobileCategories";
@@ -85,7 +89,7 @@ export default async function ProductsPage({
   let page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
 
   const categoryParam = sp.category?.trim() || null;
-  const selectedCategory = categoryParam || "all";
+  const requestedCategory = categoryParam || "all";
   const showMobileCategoryPicker = categoryParam == null;
   const minPrice = parseOptionalInt(sp.min);
   const maxPrice = parseOptionalInt(sp.max);
@@ -96,9 +100,9 @@ export default async function ProductsPage({
   const dictionary = getDictionary(rawLocale);
   const catalogCopy = dictionary.catalog;
 
-  const [initialCatalog, currency, user, categories] = await Promise.all([
+  const [requestedCatalog, currency, user, categories] = await Promise.all([
     getActiveProductsPage(rawLocale, page, {
-      categorySlug: selectedCategory,
+      categorySlug: requestedCategory,
       minPrice,
       maxPrice,
       query: searchQuery || null,
@@ -109,19 +113,29 @@ export default async function ProductsPage({
     listStorefrontCategories(rawLocale),
   ]);
 
+  const selectedCategory = resolveComboCatalogSlug(
+    requestedCategory,
+    categories.map((category) => category.slug),
+  );
+  const catalogFilters = {
+    categorySlug: selectedCategory,
+    minPrice,
+    maxPrice,
+    query: searchQuery || null,
+    diet,
+  };
+  const initialCatalog =
+    selectedCategory === requestedCategory
+      ? requestedCatalog
+      : await getActiveProductsPage(rawLocale, page, catalogFilters);
+
   const totalPages = Math.max(
     1,
     Math.ceil(initialCatalog.total / initialCatalog.pageSize),
   );
   const catalog =
     page > totalPages
-      ? await getActiveProductsPage(rawLocale, totalPages, {
-          categorySlug: selectedCategory,
-          minPrice,
-          maxPrice,
-          query: searchQuery || null,
-          diet,
-        })
+      ? await getActiveProductsPage(rawLocale, totalPages, catalogFilters)
       : initialCatalog;
   if (page > totalPages) {
     page = totalPages;
@@ -169,7 +183,10 @@ export default async function ProductsPage({
       imageUrl: category.imageUrl,
       iconSrc: resolveCategoryIconSrc(category.slug, category.title),
       href: buildCatalogHref(rawLocale, {
-        category: category.slug,
+        category:
+          isComboSlug(category.slug) || isComboSlug(category.title)
+            ? "combo"
+            : category.slug,
         min: sp.min,
         max: sp.max,
         q: searchQuery || undefined,

@@ -13,6 +13,13 @@ import {
   type TranslationsJson,
 } from "@/db/schema";
 import { persistProductMedia } from "@/features/products/application/persist-product-media";
+import {
+  allocateUniqueProductSlug,
+  assertSkuAvailable,
+  isProductUniqueViolation,
+  uniqueConstraintMessage,
+  withSharedProductSlug,
+} from "@/features/products/application/product-uniqueness";
 import { syncProductModifiers } from "@/features/products/application/sync-product-modifiers";
 import { slugifyProductTitle } from "@/features/products/domain/slugify";
 import { requireAdmin } from "@/lib/auth/policies";
@@ -215,25 +222,40 @@ export async function createProductFromDrawerAction(
   const actor = await requireAdmin(locale as Locale);
   const id = createId();
   const files = collectImageFiles(formData);
-  const translations = buildTranslations(data);
-  if (!translations) {
+  const drafted = buildTranslations(data);
+  if (!drafted) {
     return err(
       "VALIDATION_ERROR",
       "Fill title for at least one language (HY / EN / RU).",
     );
   }
 
-  await getDb().insert(products).values({
-    id,
-    sku: data.sku,
-    priceAmount: data.priceAmount,
-    compareAtAmount: data.compareAtAmount,
-    stockOnHand: data.stockOnHand,
-    status: data.status,
-    isSpicy: data.isSpicy,
-    isVegetarian: data.isVegetarian,
-    translations,
-  });
+  const skuTaken = await assertSkuAvailable(data.sku);
+  if (skuTaken) return skuTaken;
+
+  const translations = withSharedProductSlug(
+    drafted,
+    await allocateUniqueProductSlug(primarySlugFromTranslations(drafted)),
+  );
+
+  try {
+    await getDb().insert(products).values({
+      id,
+      sku: data.sku,
+      priceAmount: data.priceAmount,
+      compareAtAmount: data.compareAtAmount,
+      stockOnHand: data.stockOnHand,
+      status: data.status,
+      isSpicy: data.isSpicy,
+      isVegetarian: data.isVegetarian,
+      translations,
+    });
+  } catch (error) {
+    if (isProductUniqueViolation(error)) {
+      return err("VALIDATION_ERROR", uniqueConstraintMessage(error));
+    }
+    throw error;
+  }
 
   const categoryError = await syncProductCategories(id, data.categoryIds);
   if (categoryError) {
@@ -332,20 +354,30 @@ export async function updateProductFromDrawerAction(
     );
   }
 
-  await getDb()
-    .update(products)
-    .set({
-      sku: data.sku,
-      priceAmount: data.priceAmount,
-      compareAtAmount: data.compareAtAmount,
-      stockOnHand: data.stockOnHand,
-      status: data.status || existing.status,
-      isSpicy: data.isSpicy,
-      isVegetarian: data.isVegetarian,
-      translations,
-      updatedAt: new Date(),
-    })
-    .where(eq(products.id, existing.id));
+  const skuTaken = await assertSkuAvailable(data.sku, existing.id);
+  if (skuTaken) return skuTaken;
+
+  try {
+    await getDb()
+      .update(products)
+      .set({
+        sku: data.sku,
+        priceAmount: data.priceAmount,
+        compareAtAmount: data.compareAtAmount,
+        stockOnHand: data.stockOnHand,
+        status: data.status || existing.status,
+        isSpicy: data.isSpicy,
+        isVegetarian: data.isVegetarian,
+        translations,
+        updatedAt: new Date(),
+      })
+      .where(eq(products.id, existing.id));
+  } catch (error) {
+    if (isProductUniqueViolation(error)) {
+      return err("VALIDATION_ERROR", uniqueConstraintMessage(error));
+    }
+    throw error;
+  }
 
   const categoryError = await syncProductCategories(
     existing.id,

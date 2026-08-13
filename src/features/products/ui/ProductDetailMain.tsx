@@ -219,24 +219,28 @@ export function ProductDetailMain({
               </motion.p>
             ) : null}
 
-            <motion.div variants={reduceMotion ? undefined : productInfoItem}>
-              <ProductModifierPills
-                addLabel={labels.addModifier}
-                excludeLabel={labels.excludeModifier}
-                excludeHint={labels.excludeModifierHint}
-                emptyAddLabel={labels.noModifierOptions}
-                emptyExcludeLabel={labels.noExcludeOptions}
-                addOptions={product.additions.map((item) => ({
-                  id: item.id,
-                  label: item.label,
-                  priceAmount: item.priceAmount,
-                  priceLabel:
-                    item.priceAmount > 0 ? `+${item.priceAmount} Դ` : undefined,
-                }))}
-                excludeOptions={product.exclusions}
-                onSelectedAddChange={setSelectedAddIds}
-              />
-            </motion.div>
+            {product.additions.length > 0 || product.exclusions.length > 0 ? (
+              <motion.div variants={reduceMotion ? undefined : productInfoItem}>
+                <ProductModifierPills
+                  addLabel={labels.addModifier}
+                  excludeLabel={labels.excludeModifier}
+                  excludeHint={labels.excludeModifierHint}
+                  emptyAddLabel={labels.noModifierOptions}
+                  emptyExcludeLabel={labels.noExcludeOptions}
+                  addOptions={product.additions.map((item) => ({
+                    id: item.id,
+                    label: item.label,
+                    priceAmount: item.priceAmount,
+                    priceLabel:
+                      item.priceAmount > 0
+                        ? `+${item.priceAmount} Դ`
+                        : undefined,
+                  }))}
+                  excludeOptions={product.exclusions}
+                  onSelectedAddChange={setSelectedAddIds}
+                />
+              </motion.div>
+            ) : null}
 
             <motion.div variants={reduceMotion ? undefined : productInfoItem}>
               <ProductPurchaseControls
