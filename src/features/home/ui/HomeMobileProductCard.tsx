@@ -60,7 +60,7 @@ export function HomeMobileProductCard({
   return (
     <article
       data-home-product-card="true"
-      className="relative h-[240px] w-full cursor-pointer rounded-[20px] border-[1.5px] border-[#dedede] bg-white"
+      className="relative flex w-full cursor-pointer flex-col rounded-[20px] border-[1.5px] border-[#dedede] bg-white pb-6"
     >
       <AppLink
         href={href}
@@ -69,93 +69,96 @@ export function HomeMobileProductCard({
         className="absolute inset-0 z-[1] rounded-[inherit] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f66913]"
       />
 
-      <div className="absolute top-[5px] right-1 left-1 h-[143px]">
-        <div className="relative h-full w-full overflow-hidden rounded-[20px] bg-gray-100">
-          {imageUrl ? (
-            <Image
-              src={imageUrl}
-              alt={title}
-              fill
-              sizes="50vw"
-              className="rounded-[20px] object-cover"
-              priority={priority}
-            />
-          ) : null}
-          <WishlistButton
-            locale={locale}
-            productId={productId}
-            initialInWishlist={inWishlist}
-            isSignedIn={isSignedIn}
-            label={wishlistLabel}
-            size="sm"
-            className="absolute top-1.5 right-1.5 z-20 size-8 border border-[#dedede]/90 bg-white/95 text-gray-700 shadow-md"
-          />
-        </div>
-      </div>
-
-      {isVegetarian ? (
-        <Image
-          src={VEGGIE_ICON}
-          alt=""
-          width={22}
-          height={22}
-          className="absolute top-[11px] left-[9px] z-[2] h-[22px] w-[22px] object-contain"
-          aria-hidden
-        />
-      ) : null}
-      {isSpicy ? (
-        <Image
-          src={SPICY_ICON}
-          alt=""
-          width={22}
-          height={22}
-          className={`absolute left-[9px] z-[2] h-[22px] w-[22px] object-contain ${isVegetarian ? "top-[38px]" : "top-[11px]"}`}
-          aria-hidden
-        />
-      ) : null}
-
-      {rating != null ? (
-        <div className="absolute top-[150px] left-[9px] z-[2] flex items-center gap-1.5">
+      <div className="relative aspect-[3/2] w-full overflow-hidden rounded-t-[20px] bg-gray-100">
+        {imageUrl ? (
           <Image
-            src={STAR_ICON}
+            src={imageUrl}
+            alt={title}
+            fill
+            sizes="50vw"
+            className="object-cover object-center"
+            priority={priority}
+          />
+        ) : null}
+        <WishlistButton
+          locale={locale}
+          productId={productId}
+          initialInWishlist={inWishlist}
+          isSignedIn={isSignedIn}
+          label={wishlistLabel}
+          size="sm"
+          className="absolute top-1.5 right-1.5 z-20 size-8 border border-[#dedede]/90 bg-white/95 text-gray-700 shadow-md"
+        />
+        {isVegetarian ? (
+          <Image
+            src={VEGGIE_ICON}
             alt=""
-            width={16}
-            height={16}
-            className="size-4 object-contain"
+            width={22}
+            height={22}
+            className="absolute top-[11px] left-[9px] z-[2] h-[22px] w-[22px] object-contain"
             aria-hidden
           />
-          <p className="text-sm leading-none font-medium text-[rgba(60,47,47,0.62)]">
-            {rating.toFixed(1)}
-          </p>
-        </div>
-      ) : null}
-
-      <div className="absolute top-[172px] left-[9px] z-[2] w-[calc(100%-84px)] pr-1">
-        <h3 className="text-sm leading-[1.15] font-bold text-[#3c2f2f]">
-          <span className="line-clamp-2 break-words">{title}</span>
-        </h3>
-        {categoryLabel ? (
-          <p className="mt-0.5 line-clamp-2 text-sm leading-[1.2] font-medium break-words text-[#a1a1a1]">
-            {categoryLabel}
-          </p>
+        ) : null}
+        {isSpicy ? (
+          <Image
+            src={SPICY_ICON}
+            alt=""
+            width={22}
+            height={22}
+            className={`absolute left-[9px] z-[2] h-[22px] w-[22px] object-contain ${isVegetarian ? "top-[38px]" : "top-[11px]"}`}
+            aria-hidden
+          />
         ) : null}
       </div>
 
-      {discountPercent != null ? (
-        <span className="absolute top-[152px] right-2 z-[2] inline-flex h-[25px] w-[65px] items-center justify-center rounded-[60px] bg-[#ff7f20] text-xs leading-none font-bold text-black">
-          -{discountPercent}%
-        </span>
-      ) : null}
+      <div className="relative z-[2] flex min-w-0 flex-col px-2.5 pt-1.5">
+        <div className="flex items-center justify-between gap-1">
+          {rating != null ? (
+            <div className="flex items-center gap-1.5">
+              <Image
+                src={STAR_ICON}
+                alt=""
+                width={16}
+                height={16}
+                className="size-4 object-contain"
+                aria-hidden
+              />
+              <p className="text-sm leading-none font-medium text-[rgba(60,47,47,0.62)]">
+                {rating.toFixed(1)}
+              </p>
+            </div>
+          ) : (
+            <span />
+          )}
+          {discountPercent != null ? (
+            <span className="inline-flex h-[25px] min-w-[65px] items-center justify-center rounded-[60px] bg-[#ff7f20] px-2 text-xs leading-none font-bold text-black">
+              -{discountPercent}%
+            </span>
+          ) : null}
+        </div>
 
-      <div className="absolute top-[182px] right-2 z-[2] flex max-w-[80px] flex-col items-end gap-0.5 text-right leading-tight">
-        <p className="w-full break-words text-sm font-black tabular-nums text-[#3c2f2f]">
-          {priceFormatted}
-        </p>
-        {compareAtFormatted ? (
-          <p className="w-full break-words text-sm font-medium text-[#3c2f2f] line-through tabular-nums">
-            {compareAtFormatted}
-          </p>
-        ) : null}
+        <div className="mt-1 flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <h3 className="text-sm leading-[1.15] font-bold text-[#3c2f2f]">
+              <span className="line-clamp-2 break-words">{title}</span>
+            </h3>
+            {categoryLabel ? (
+              <p className="mt-0.5 line-clamp-2 text-sm leading-[1.2] font-medium break-words text-[#a1a1a1]">
+                {categoryLabel}
+              </p>
+            ) : null}
+          </div>
+          <div className="flex max-w-[80px] shrink-0 flex-col items-end gap-0.5 text-right leading-tight">
+            <p className="w-full break-words text-sm font-black tabular-nums text-[#3c2f2f]">
+              {priceFormatted}
+            </p>
+            {compareAtFormatted ? (
+              <p className="w-full break-words text-sm font-medium text-[#3c2f2f] line-through tabular-nums">
+                {compareAtFormatted}
+              </p>
+            ) : null}
+          </div>
+        </div>
       </div>
 
       {!inStock ? (
