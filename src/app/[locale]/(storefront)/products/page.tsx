@@ -22,9 +22,9 @@ import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import {
   createDisplayPriceFormatter,
-  type DisplayPrice,
   getSelectedCurrency,
 } from "@/lib/money/display-price";
+import { formatStorefrontPrice } from "@/lib/money/format";
 import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
 type ProductsPageProps = {
@@ -42,13 +42,6 @@ type ProductsPageProps = {
 const CATALOG_CARD_RATING = 5;
 /** PostgreSQL `integer` upper bound used for catalog price filters. */
 const PRICE_FILTER_MAX = 2_147_483_647;
-
-function formatCardPrice(price: DisplayPrice): string {
-  if (price.displayCurrency === "AMD") {
-    return `${price.displayAmount.toString()} Դ`;
-  }
-  return price.formatted;
-}
 
 function parseOptionalInt(value: string | undefined): number | null {
   if (!value?.trim()) return null;
@@ -162,8 +155,8 @@ export default async function ProductsPage({
       id: product.id,
       href: `/${rawLocale}/products/${product.translation.slug}`,
       title: product.translation.title,
-      priceFormatted: formatCardPrice(price),
-      compareAtFormatted: compareAt ? formatCardPrice(compareAt) : null,
+      priceFormatted: formatStorefrontPrice(price),
+      compareAtFormatted: compareAt ? formatStorefrontPrice(compareAt) : null,
       discountPercent: product.discountPercent,
       imageUrl: product.imageUrl,
       inStock: product.stockOnHand > 0,

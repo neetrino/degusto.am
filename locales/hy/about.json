@@ -10,8 +10,8 @@
   "statsEyebrow": "ԹՎԵՐ",
   "statsTitle": "Մեր ցուցանիշները",
   "stats": [
-    { "value": "1000+", "label": "գոհ հաճախորդ", "icon": "users" },
-    { "value": "1000+", "label": "համեղ ուտելիք", "icon": "cloche" },
+    { "value": "1.000+", "label": "գոհ հաճախորդ", "icon": "users" },
+    { "value": "1.000+", "label": "համեղ ուտելիք", "icon": "cloche" },
     { "value": "20+", "label": "պարտաճանաչ առաքիչ", "icon": "star" },
     { "value": "4", "label": "տարվա աշխատանք", "icon": "location" }
   ],

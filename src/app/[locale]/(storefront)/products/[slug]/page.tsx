@@ -13,9 +13,9 @@ import { isLocale, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import {
   createDisplayPriceFormatter,
-  type DisplayPrice,
   getSelectedCurrency,
 } from "@/lib/money/display-price";
+import { formatStorefrontPrice } from "@/lib/money/format";
 
 type ProductPageProps = {
   params: Promise<{ locale: string; slug: string }>;
@@ -52,13 +52,6 @@ function buildProductJsonLd(input: {
         : "https://schema.org/OutOfStock",
     },
   };
-}
-
-function formatCardPrice(price: DisplayPrice): string {
-  if (price.displayCurrency === "AMD") {
-    return `${price.displayAmount.toString()} Դ`;
-  }
-  return price.formatted;
 }
 
 function firstPhoneHref(phones: string): string {
@@ -176,9 +169,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
     <ProductDetailView
       locale={locale}
       product={product}
-      priceFormatted={formatCardPrice(price)}
+      priceFormatted={formatStorefrontPrice(price)}
       compareAtFormatted={
-        compareAt ? formatCardPrice(compareAt) : null
+        compareAt ? formatStorefrontPrice(compareAt) : null
       }
       isSignedIn={isSignedIn}
       inWishlist={inWishlist}

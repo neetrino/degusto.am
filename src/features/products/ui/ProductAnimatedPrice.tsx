@@ -10,6 +10,8 @@ import {
 } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 
+import { formatGroupedInteger } from "@/lib/money/format";
+
 type ProductAnimatedPriceProps = {
   amount: number;
   /** Suffix after the number, e.g. " Դ". */
@@ -22,23 +24,11 @@ type PriceDelta = {
   signedAmount: number;
 };
 
-const GROUP_SEPARATOR = "\u202f";
 const DELTA_VISIBLE_MS = 900;
-
-function formatIntegerAmount(value: number): string {
-  const rounded = Math.round(value);
-  const sign = rounded < 0 ? "-" : "";
-  const absolute = Math.abs(rounded);
-  return `${sign}${String(absolute).replace(/\B(?=(\d{3})+(?!\d))/g, GROUP_SEPARATOR)}`;
-}
 
 function formatSignedDelta(value: number): string {
   const rounded = Math.round(value);
-  const absolute = Math.abs(rounded);
-  const grouped = String(absolute).replace(
-    /\B(?=(\d{3})+(?!\d))/g,
-    GROUP_SEPARATOR,
-  );
+  const grouped = formatGroupedInteger(Math.abs(rounded));
   return `${rounded > 0 ? "+" : "−"}${grouped}`;
 }
 
@@ -59,7 +49,7 @@ export function ProductAnimatedPrice({
     mass: 0.65,
   });
   const [display, setDisplay] = useState(
-    () => `${formatIntegerAmount(amount)}${suffix}`,
+    () => `${formatGroupedInteger(amount)}${suffix}`,
   );
   const [delta, setDelta] = useState<PriceDelta | null>(null);
   const [pulseDirection, setPulseDirection] = useState<"up" | "down" | null>(
@@ -68,7 +58,7 @@ export function ProductAnimatedPrice({
 
   useMotionValueEvent(spring, "change", (latest) => {
     if (reduceMotion) return;
-    setDisplay(`${formatIntegerAmount(latest)}${suffix}`);
+    setDisplay(`${formatGroupedInteger(latest)}${suffix}`);
   });
 
   useEffect(() => {
@@ -133,7 +123,7 @@ export function ProductAnimatedPrice({
         }
         transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
       >
-        {reduceMotion ? `${formatIntegerAmount(amount)}${suffix}` : display}
+        {reduceMotion ? `${formatGroupedInteger(amount)}${suffix}` : display}
       </motion.p>
 
       <AnimatePresence>
