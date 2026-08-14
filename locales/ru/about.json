@@ -10,8 +10,8 @@
   "statsEyebrow": "ЦИФРЫ",
   "statsTitle": "Наши показатели",
   "stats": [
-    { "value": "1000+", "label": "довольных клиентов", "icon": "users" },
-    { "value": "1000+", "label": "вкусных блюд", "icon": "cloche" },
+    { "value": "1.000+", "label": "довольных клиентов", "icon": "users" },
+    { "value": "1.000+", "label": "вкусных блюд", "icon": "cloche" },
     { "value": "20+", "label": "ответственных курьеров", "icon": "star" },
     { "value": "4", "label": "года работы", "icon": "location" }
   ],

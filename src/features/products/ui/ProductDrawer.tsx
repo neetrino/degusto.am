@@ -360,22 +360,28 @@ export function ProductDrawer({
 
             startTransition(async () => {
               setError(null);
-              const result =
-                isEdit && product
-                  ? await updateProductFromDrawerAction(
-                      locale,
-                      product.id,
-                      formData,
-                    )
-                  : await createProductFromDrawerAction(locale, formData);
+              try {
+                const result =
+                  isEdit && product
+                    ? await updateProductFromDrawerAction(
+                        locale,
+                        product.id,
+                        formData,
+                      )
+                    : await createProductFromDrawerAction(locale, formData);
 
-              if (!result.ok) {
-                setError(result.error.message);
-                return;
+                if (!result.ok) {
+                  setError(result.error.message);
+                  return;
+                }
+
+                onClose();
+                router.refresh();
+              } catch {
+                setError(
+                  "Unable to save product. Try a different SKU or title.",
+                );
               }
-
-              onClose();
-              router.refresh();
             });
           }}
         >

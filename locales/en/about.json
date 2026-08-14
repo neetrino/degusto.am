@@ -10,8 +10,8 @@
   "statsEyebrow": "IN NUMBERS",
   "statsTitle": "Our figures",
   "stats": [
-    { "value": "1000+", "label": "happy customers", "icon": "users" },
-    { "value": "1000+", "label": "delicious dishes", "icon": "cloche" },
+    { "value": "1.000+", "label": "happy customers", "icon": "users" },
+    { "value": "1.000+", "label": "delicious dishes", "icon": "cloche" },
     { "value": "20+", "label": "reliable couriers", "icon": "star" },
     { "value": "4", "label": "years of work", "icon": "location" }
   ],

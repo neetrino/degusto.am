@@ -6,11 +6,9 @@ import {
 import { getWishlistProductIds } from "@/features/wishlist/queries";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
-import {
-  createDisplayPriceFormatter,
-  type DisplayPrice,
-} from "@/lib/money/display-price";
+import { createDisplayPriceFormatter } from "@/lib/money/display-price";
 import type { Currency } from "@/lib/money/currency";
+import { formatStorefrontPrice } from "@/lib/money/format";
 
 type ProductRelatedSectionProps = {
   locale: Locale;
@@ -19,13 +17,6 @@ type ProductRelatedSectionProps = {
   isSignedIn: boolean;
   dictionary: Dictionary;
 };
-
-function formatCardPrice(price: DisplayPrice): string {
-  if (price.displayCurrency === "AMD") {
-    return `${price.displayAmount.toString()} Դ`;
-  }
-  return price.formatted;
-}
 
 /** Streams below the PDP fold — does not block gallery/purchase chrome. */
 export async function ProductRelatedSection({
@@ -62,8 +53,8 @@ export async function ProductRelatedSection({
       id: item.id,
       href: `/${locale}/products/${item.translation.slug}`,
       title: item.translation.title,
-      priceFormatted: formatCardPrice(price),
-      compareAtFormatted: compareAt ? formatCardPrice(compareAt) : null,
+      priceFormatted: formatStorefrontPrice(price),
+      compareAtFormatted: compareAt ? formatStorefrontPrice(compareAt) : null,
       discountPercent: item.discountPercent,
       imageUrl: item.imageUrl,
       inStock: item.stockOnHand > 0,

@@ -17,7 +17,7 @@ import {
   productCardItem,
   productCardStagger,
 } from "@/features/products/ui/ProductDetailMotion";
-import { CatalogProductCard } from "@/features/products/ui/shop/CatalogProductCard";
+import { ProductCard } from "@/features/products/ui/ProductCard";
 import type { Locale } from "@/lib/i18n/config";
 
 type RelatedCard = {
@@ -216,9 +216,9 @@ export function ProductRelatedCarousel({
                   key={card.id}
                   data-carousel-item
                   variants={reduceMotion ? undefined : productCardItem}
-                  className="mb-2 w-[78%] max-w-[17.5rem] shrink-0 snap-center sm:w-[calc((100%-2rem)/3)] sm:max-w-none sm:snap-start md:w-[calc((100%-3rem)/4)] xl:w-[calc((100%-120px)/5)]"
+                  className="mb-2 w-[236px] shrink-0 snap-center sm:snap-start"
                 >
-                  <CatalogProductCard
+                  <ProductCard
                     href={card.href}
                     title={card.title}
                     priceFormatted={card.priceFormatted}
@@ -238,6 +238,7 @@ export function ProductRelatedCarousel({
                     rating={5}
                     isSpicy={card.isSpicy}
                     isVegetarian={card.isVegetarian}
+                    showWishlist
                   />
                 </motion.div>
               ))}

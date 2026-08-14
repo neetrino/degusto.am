@@ -17,9 +17,9 @@ import { isLocale, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import {
   createDisplayPriceFormatter,
-  type DisplayPrice,
   getSelectedCurrency,
 } from "@/lib/money/display-price";
+import { formatStorefrontPrice } from "@/lib/money/format";
 
 type HomePageProps = {
   params: Promise<{ locale: string }>;
@@ -42,14 +42,6 @@ function compareAtDiscountPercent(
   }
 
   return Math.round((1 - priceAmount / compareAtAmount) * 100);
-}
-
-function formatCardPrice(price: DisplayPrice): string {
-  if (price.displayCurrency === "AMD") {
-    return `${price.displayAmount.toString()} Դ`;
-  }
-
-  return price.formatted;
 }
 
 function firstPhoneHref(phones: string): string {
@@ -107,8 +99,8 @@ export default async function HomePage({ params }: HomePageProps) {
       id: product.id,
       href: `/${locale}/products/${product.translation.slug}`,
       title: product.translation.title,
-      priceFormatted: formatCardPrice(price),
-      compareAtFormatted: compareAt ? formatCardPrice(compareAt) : null,
+      priceFormatted: formatStorefrontPrice(price),
+      compareAtFormatted: compareAt ? formatStorefrontPrice(compareAt) : null,
       discountPercent:
         product.discountPercent ??
         compareAtDiscountPercent(

@@ -57,7 +57,7 @@ export function CatalogProductCard({
   const onSale = Boolean(compareAtFormatted);
 
   return (
-    <article className="group relative h-[330px] w-full shrink-0 cursor-pointer rounded-[20px] border-[1.5px] border-[#dedede] bg-white transition-colors hover:bg-[#ffeacc] hover:shadow-md">
+    <article className="group relative flex w-full shrink-0 cursor-pointer flex-col rounded-[20px] border-[1.5px] border-[#dedede] bg-white pb-8 transition-colors hover:bg-[#ffeacc] hover:shadow-md">
       <AppLink
         href={href}
         prefetchPolicy={priority ? "intent" : "auto"}
@@ -65,27 +65,25 @@ export function CatalogProductCard({
         className="absolute inset-0 z-[1] rounded-[inherit] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-headline"
       />
 
-      <div className="relative mx-auto mt-1 h-[180px] w-[calc(100%-10px)]">
-        <div className="relative h-full w-full overflow-hidden rounded-[20px] bg-gray-100">
-          {imageUrl ? (
-            <Image
-              src={imageUrl}
-              alt={title}
-              fill
-              sizes="(min-width: 1280px) 24vw, (min-width: 1024px) 30vw, 50vw"
-              className="rounded-[20px] object-cover transition-transform duration-300 group-hover:scale-105"
-              priority={priority}
-              unoptimized={
-                imageUrl.includes("X-Amz-Signature") ||
-                imageUrl.includes("X-Amz-Credential")
-              }
-            />
-          ) : (
-            <span className="flex h-full w-full items-center justify-center text-sm text-gray-400">
-              No image
-            </span>
-          )}
-        </div>
+      <div className="relative aspect-[3/2] w-full overflow-hidden rounded-t-[20px] bg-gray-100">
+        {imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt={title}
+            fill
+            sizes="(min-width: 1280px) 24vw, (min-width: 1024px) 30vw, 50vw"
+            className="object-cover object-center transition-transform duration-300 group-hover:scale-105"
+            priority={priority}
+            unoptimized={
+              imageUrl.includes("X-Amz-Signature") ||
+              imageUrl.includes("X-Amz-Credential")
+            }
+          />
+        ) : (
+          <span className="flex h-full w-full items-center justify-center text-sm text-gray-400">
+            No image
+          </span>
+        )}
 
         {isVegetarian || isSpicy ? (
           <div className="absolute top-2 left-4 z-[3] flex flex-col gap-2">
@@ -134,30 +132,33 @@ export function CatalogProductCard({
         className="absolute -bottom-[25px] left-1/2 z-20 h-[52px] w-[51px] -translate-x-1/2"
       />
 
-      {rating != null ? (
-        <div className="absolute top-[215px] left-[14px] z-[2] flex items-center gap-1.5">
-          <Image
-            src={STAR_ICON}
-            alt=""
-            width={16}
-            height={16}
-            className="size-4 object-contain"
-            aria-hidden
-          />
-          <p className="text-base leading-[1.35] font-medium text-product-ink/60">
-            {rating.toFixed(1)}
-          </p>
+      <div className="relative z-[2] flex min-w-0 flex-col px-3.5 pt-2">
+        <div className="flex items-center justify-between gap-2">
+          {rating != null ? (
+            <div className="flex items-center gap-1.5">
+              <Image
+                src={STAR_ICON}
+                alt=""
+                width={16}
+                height={16}
+                className="size-4 object-contain"
+                aria-hidden
+              />
+              <p className="text-base leading-[1.35] font-medium text-product-ink/60">
+                {rating.toFixed(1)}
+              </p>
+            </div>
+          ) : (
+            <span />
+          )}
+          {discountPercent != null ? (
+            <span className="inline-flex h-[30px] items-center rounded-[60px] bg-[#ff7f20] px-[17px] text-sm leading-none font-bold text-black">
+              -{discountPercent}%
+            </span>
+          ) : null}
         </div>
-      ) : null}
 
-      {discountPercent != null ? (
-        <span className="absolute top-[215px] right-px z-[2] inline-flex h-[30px] items-center rounded-[60px] bg-[#ff7f20] px-[17px] text-sm leading-none font-bold text-black">
-          -{discountPercent}%
-        </span>
-      ) : null}
-
-      <div className="absolute top-[239px] right-[14px] left-[14px] z-[2] min-w-0 pb-8">
-        <h3 className="text-base leading-[1.15] font-bold text-product-ink">
+        <h3 className="mt-1 text-base leading-[1.15] font-bold text-product-ink">
           <span className="line-clamp-2 break-words">{title}</span>
         </h3>
         <div className="mt-1 flex items-start justify-between gap-2">

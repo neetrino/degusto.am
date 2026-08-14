@@ -1,14 +1,35 @@
 import type { Currency } from "@/lib/money/currency";
 import { getCurrencyMeta } from "@/lib/money/currency-meta";
 
-/** Narrow no-break space — stable across Node and browsers (unlike Intl hy/AMD). */
-const GROUP_SEPARATOR = "\u202f";
+/** Dot thousands grouping for AMD (1.000). Thin space for FX to keep `.` decimals. */
+const AMD_GROUP_SEPARATOR = ".";
+const FX_GROUP_SEPARATOR = "\u202f";
+
+/**
+ * Formats a whole number with `.` thousands separators from 1.000 up.
+ * Values below 1000 stay ungrouped (20, 999).
+ */
+export function formatGroupedInteger(value: number | bigint): string {
+  const raw = typeof value === "bigint" ? Number(value) : value;
+  if (!Number.isFinite(raw)) {
+    throw new Error("Money amount is not finite");
+  }
+
+  const rounded = Math.round(raw);
+  const sign = rounded < 0 ? "-" : "";
+  const absolute = Math.abs(rounded);
+  return `${sign}${String(absolute).replace(/\B(?=(\d{3})+(?!\d))/g, AMD_GROUP_SEPARATOR)}`;
+}
 
 /**
  * Formats the major-unit number without Intl currency style.
  * Avoids SSR/client hydration mismatches from ICU differences (e.g. hy + AMD).
  */
-function formatMajorAmount(major: number, fractionDigits: number): string {
+function formatMajorAmount(
+  major: number,
+  fractionDigits: number,
+  groupSeparator: string,
+): string {
   const sign = major < 0 ? "-" : "";
   const absolute = Math.abs(major);
   const [integerPart = "0", fractionPart] = absolute
@@ -16,7 +37,7 @@ function formatMajorAmount(major: number, fractionDigits: number): string {
     .split(".");
   const grouped = integerPart.replace(
     /\B(?=(\d{3})+(?!\d))/g,
-    GROUP_SEPARATOR,
+    groupSeparator,
   );
 
   if (fractionDigits > 0 && fractionPart !== undefined) {
@@ -41,5 +62,21 @@ export function formatMoneyAmount(
   }
 
   const major = raw / 10 ** meta.scale;
-  return `${formatMajorAmount(major, meta.fractionDigits)} ${currency}`;
+  const groupSeparator =
+    currency === "AMD" ? AMD_GROUP_SEPARATOR : FX_GROUP_SEPARATOR;
+  return `${formatMajorAmount(major, meta.fractionDigits, groupSeparator)} ${currency}`;
+}
+
+type StorefrontPriceInput = {
+  displayCurrency: Currency;
+  displayAmount: bigint | number;
+  formatted: string;
+};
+
+/** Storefront price label: AMD uses `1.000 Դ`, other currencies keep `formatted`. */
+export function formatStorefrontPrice(price: StorefrontPriceInput): string {
+  if (price.displayCurrency === "AMD") {
+    return `${formatGroupedInteger(price.displayAmount)} Դ`;
+  }
+  return price.formatted;
 }

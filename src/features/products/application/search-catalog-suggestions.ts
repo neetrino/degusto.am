@@ -7,9 +7,9 @@ import {
 import type { Locale } from "@/lib/i18n/config";
 import {
   createDisplayPriceFormatter,
-  type DisplayPrice,
   getSelectedCurrency,
 } from "@/lib/money/display-price";
+import { formatStorefrontPrice } from "@/lib/money/format";
 
 const SEARCH_SUGGESTIONS_LIMIT = 8;
 
@@ -22,13 +22,6 @@ export type CatalogSearchSuggestion = {
   compareAtFormatted: string | null;
   imageUrl: string | null;
 };
-
-function formatCardPrice(price: DisplayPrice): string {
-  if (price.displayCurrency === "AMD") {
-    return `${price.displayAmount.toString()} Դ`;
-  }
-  return price.formatted;
-}
 
 /** Live header/catalog search suggestions for a query string. */
 export async function searchCatalogSuggestions(
@@ -65,8 +58,8 @@ export async function searchCatalogSuggestions(
       href: `/${locale}/products/${product.translation.slug}`,
       title: product.translation.title,
       categoryLabel: categoryLabels.get(product.id) ?? null,
-      priceFormatted: formatCardPrice(price),
-      compareAtFormatted: compareAt ? formatCardPrice(compareAt) : null,
+      priceFormatted: formatStorefrontPrice(price),
+      compareAtFormatted: compareAt ? formatStorefrontPrice(compareAt) : null,
       imageUrl: product.imageUrl,
     };
   });

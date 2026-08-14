@@ -7,6 +7,7 @@ import { motion, useReducedMotion, type Variants } from "motion/react";
 
 import { AppLink } from "@/components/ui/AppLink";
 import { useCatalogNavigation } from "@/features/products/ui/shop/CatalogNavContext";
+import { isComboSlug } from "@/features/products/ui/shop/combo-slug";
 import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
 export type ShopCategoryItem = {
@@ -29,7 +30,6 @@ type ShopCategorySidebarProps = {
   searchQuery: string;
 };
 
-const COMBO_SLUGS = new Set(["combo", "combos", "kombo"]);
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 const listVariants: Variants = {
@@ -45,10 +45,6 @@ const itemVariants: Variants = {
     transition: { duration: 0.4, ease: EASE },
   },
 };
-
-function isComboSlug(slug: string): boolean {
-  return COMBO_SLUGS.has(slug.trim().toLowerCase());
-}
 
 function isCategoryActive(selectedSlug: string, categorySlug: string): boolean {
   if (selectedSlug === categorySlug) {
