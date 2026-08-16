@@ -13,8 +13,10 @@ export function HomeSmoothScroll({ children }: HomeSmoothScrollProps) {
     <ReactLenis
       root
       options={{
-        duration: 1.15,
+        duration: 0.55,
+        lerp: 0.14,
         smoothWheel: true,
+        wheelMultiplier: 1.45,
         touchMultiplier: 1.4,
       }}
     >
