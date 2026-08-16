@@ -60,7 +60,7 @@ export function HomeMobileProductCard({
   return (
     <article
       data-home-product-card="true"
-      className="relative flex w-full cursor-pointer flex-col rounded-[20px] border-[1.5px] border-[#dedede] bg-white pb-6"
+      className="relative flex h-full w-full cursor-pointer flex-col rounded-[20px] border-[1.5px] border-[#dedede] bg-white pb-6"
     >
       <AppLink
         href={href}
@@ -139,14 +139,12 @@ export function HomeMobileProductCard({
 
         <div className="mt-1 flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <h3 className="text-sm leading-[1.15] font-bold text-[#3c2f2f]">
+            <h3 className="min-h-[calc(2*1.15em)] text-sm leading-[1.15] font-bold text-[#3c2f2f]">
               <span className="line-clamp-2 break-words">{title}</span>
             </h3>
-            {categoryLabel ? (
-              <p className="mt-0.5 line-clamp-2 text-sm leading-[1.2] font-medium break-words text-[#a1a1a1]">
-                {categoryLabel}
-              </p>
-            ) : null}
+            <p className="mt-0.5 min-h-[1.2em] line-clamp-1 text-sm leading-[1.2] font-medium break-words text-[#a1a1a1]">
+              {categoryLabel}
+            </p>
           </div>
           <div className="flex max-w-[80px] shrink-0 flex-col items-end gap-0.5 text-right leading-tight">
             <p className="w-full break-words text-sm font-black tabular-nums text-[#3c2f2f]">
