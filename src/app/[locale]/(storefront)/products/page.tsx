@@ -6,7 +6,7 @@ import {
   getActiveProductsPage,
   getPrimaryCategoryLabels,
 } from "@/features/products/queries";
-import { resolveCategoryIconSrc } from "@/features/products/ui/shop/resolve-category-icon";
+import { resolveCategoryIcon } from "@/features/products/ui/shop/resolve-category-icon";
 import { buildCatalogHref } from "@/features/products/ui/shop/build-catalog-href";
 import {
   isComboSlug,
@@ -14,7 +14,6 @@ import {
 } from "@/features/products/ui/shop/combo-slug";
 import { ShopCatalogPanel } from "@/features/products/ui/shop/ShopCatalogPanel";
 import { ShopCategorySidebar } from "@/features/products/ui/shop/ShopCategorySidebar";
-import { ShopMobileCategories } from "@/features/products/ui/shop/ShopMobileCategories";
 import { ShopSmoothScroll } from "@/features/products/ui/shop/ShopSmoothScroll";
 import { getWishlistProductIds } from "@/features/wishlist/queries";
 import { getCurrentUser } from "@/lib/auth/session";
@@ -25,7 +24,6 @@ import {
   getSelectedCurrency,
 } from "@/lib/money/display-price";
 import { formatStorefrontPrice } from "@/lib/money/format";
-import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
 type ProductsPageProps = {
   params: Promise<{ locale: string }>;
@@ -83,7 +81,6 @@ export default async function ProductsPage({
 
   const categoryParam = sp.category?.trim() || null;
   const requestedCategory = categoryParam || "all";
-  const showMobileCategoryPicker = categoryParam == null;
   const minPrice = parseOptionalInt(sp.min);
   const maxPrice = parseOptionalInt(sp.max);
   const searchQuery = sp.q?.trim() || "";
@@ -174,7 +171,7 @@ export default async function ProductsPage({
       slug: category.slug,
       title: category.title,
       imageUrl: category.imageUrl,
-      iconSrc: resolveCategoryIconSrc(category.slug, category.title),
+      icon: resolveCategoryIcon(category.slug, category.title),
       href: buildCatalogHref(rawLocale, {
         category:
           isComboSlug(category.slug) || isComboSlug(category.title)
@@ -194,19 +191,18 @@ export default async function ProductsPage({
     q: searchQuery || undefined,
     diet: diet === "none" ? undefined : diet,
   });
-  const categoriesPickerHref = `/${rawLocale}/products`;
   const searchAction = `/${rawLocale}/products`;
-  const allImageUrl =
-    categoryItems[0]?.imageUrl ?? staticAssetUrl("/assets/categories/pizza.webp");
   const priceLabel = catalogCopy.priceLabel.replace("{currency}", currency);
 
   const catalogPanelProps = {
     locale: rawLocale,
     menuTitle: catalogCopy.menuTitle,
     menuSubtitle: catalogCopy.menuSubtitle,
-    selectCategoriesLabel: catalogCopy.selectCategories,
-    categoriesPickerHref,
-    showSelectCategories: true as const,
+    categoriesNavLabel: catalogCopy.categoriesSidebarTitle,
+    allCategoriesLabel: catalogCopy.allCategories,
+    allCategoriesHref: allHref,
+    categories: categoryItems,
+    selectedSlug: selectedCategory,
     priceLabel,
     priceFromLabel: catalogCopy.priceFrom,
     priceToLabel: catalogCopy.priceTo,
@@ -263,17 +259,7 @@ export default async function ProductsPage({
           searchPlaceholder={dictionary.header.search}
           searchQuery={searchQuery}
         >
-          {showMobileCategoryPicker ? (
-            <ShopMobileCategories
-              title={catalogCopy.categoriesTitle}
-              allLabel={catalogCopy.allCategories}
-              allHref={allHref}
-              allImageUrl={allImageUrl}
-              categories={categoryItems}
-            />
-          ) : (
-            <ShopCatalogPanel {...catalogPanelProps} />
-          )}
+          <ShopCatalogPanel {...catalogPanelProps} />
         </StorefrontMobileChrome>
 
         <div className="mx-auto hidden min-w-0 w-full max-w-[min(1450px,calc(100%-2rem))] gap-4 px-4 pt-2 pb-10 md:max-w-[min(1450px,calc(100%-2.5rem))] md:px-6 lg:flex lg:max-w-[min(1450px,calc(100%-3rem))] lg:gap-8 lg:pt-5 xl:pl-4 2xl:px-6">
@@ -288,10 +274,7 @@ export default async function ProductsPage({
             searchQuery={searchQuery}
           />
 
-          <ShopCatalogPanel
-            {...catalogPanelProps}
-            showSelectCategories={false}
-          />
+          <ShopCatalogPanel {...catalogPanelProps} />
         </div>
       </div>
     </ShopSmoothScroll>
