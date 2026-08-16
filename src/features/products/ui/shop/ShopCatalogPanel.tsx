@@ -3,13 +3,14 @@
 import { Suspense } from "react";
 import { motion, useReducedMotion } from "motion/react";
 
-import { AppLink } from "@/components/ui/AppLink";
 import { useCatalogNav } from "@/features/products/ui/shop/CatalogNavContext";
 import { ShopCatalogFilters } from "@/features/products/ui/shop/ShopCatalogFilters";
+import { ShopMobileCategoryChips } from "@/features/products/ui/shop/ShopMobileCategoryChips";
 import { ShopCatalogLoadingState } from "@/features/products/ui/shop/ShopCatalogLoadingState";
 import { ShopCatalogProductGrids } from "@/features/products/ui/shop/ShopCatalogProductGrids";
 import { ShopEmptyState } from "@/features/products/ui/shop/ShopEmptyState";
 import { ShopPagination } from "@/features/products/ui/shop/ShopPagination";
+import type { ShopCategoryItem } from "@/features/products/ui/shop/ShopCategorySidebar";
 import { buildCatalogHref } from "@/features/products/ui/shop/build-catalog-href";
 import { SHOP_EASE } from "@/features/products/ui/shop/ShopProductGridMotion";
 import type { Locale } from "@/lib/i18n/config";
@@ -33,9 +34,11 @@ type ShopCatalogPanelProps = {
   locale: Locale;
   menuTitle: string;
   menuSubtitle: string;
-  selectCategoriesLabel: string;
-  categoriesPickerHref: string;
-  showSelectCategories: boolean;
+  categoriesNavLabel: string;
+  allCategoriesLabel: string;
+  allCategoriesHref: string;
+  categories: readonly ShopCategoryItem[];
+  selectedSlug: string;
   priceLabel: string;
   priceFromLabel: string;
   priceToLabel: string;
@@ -76,15 +79,16 @@ type ShopCatalogPanelProps = {
 
 /**
  * Shared shop catalog body — Motion title/filters/grid.
- * Mobile uses compact home tiles to match live degusto-am category menu.
  */
 export function ShopCatalogPanel({
   locale,
   menuTitle,
   menuSubtitle,
-  selectCategoriesLabel,
-  categoriesPickerHref,
-  showSelectCategories,
+  categoriesNavLabel,
+  allCategoriesLabel,
+  allCategoriesHref,
+  categories,
+  selectedSlug,
   priceLabel,
   priceFromLabel,
   priceToLabel,
@@ -157,15 +161,13 @@ export function ShopCatalogPanel({
           <p className="mt-2 text-sm tracking-[-0.2px] text-[#717182] lg:mt-3 lg:text-base lg:tracking-normal">
             {menuSubtitle}
           </p>
-          {showSelectCategories ? (
-            <AppLink
-              href={categoriesPickerHref}
-              prefetchPolicy="intent"
-              className="mt-4 inline-flex h-[46px] w-full items-center justify-center rounded-[40px] bg-[#ff7f20] px-6 text-base font-semibold text-white lg:hidden"
-            >
-              {selectCategoriesLabel}
-            </AppLink>
-          ) : null}
+          <ShopMobileCategoryChips
+            label={categoriesNavLabel}
+            allLabel={allCategoriesLabel}
+            allHref={allCategoriesHref}
+            categories={categories}
+            selectedSlug={selectedSlug}
+          />
         </motion.div>
 
         <motion.div

@@ -48,8 +48,14 @@ function replaceLocaleInPath(pathname: string, nextLocale: Locale): string {
 
 function optionClassName(selected: boolean): string {
   return selected
-    ? "flex w-full justify-center whitespace-nowrap rounded-lg px-2.5 py-1.5 text-center text-sm font-semibold text-gray-900 bg-gray-100 transition-colors"
-    : "flex w-full justify-center whitespace-nowrap rounded-lg px-2.5 py-1.5 text-center text-sm text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-900";
+    ? "flex h-9 w-full items-center justify-center whitespace-nowrap rounded-[30px] px-3 text-center text-sm font-semibold text-white bg-[#ff7f20] transition-colors"
+    : "flex h-9 w-full items-center justify-center whitespace-nowrap rounded-[30px] px-3 text-center text-sm font-medium text-[#3c2f2f] transition-colors hover:bg-[#fff5ed] hover:text-[#ff7f20]";
+}
+
+function mobileHomeTriggerClassName(open: boolean): string {
+  return open
+    ? "relative inline-flex h-12 w-[159px] items-center justify-between rounded-[70px] bg-[#ff7f20] px-3.5 text-white shadow-[0_8px_20px_rgba(255,127,32,0.35)]"
+    : "relative inline-flex h-12 w-[159px] items-center justify-between rounded-[70px] bg-white px-3.5 text-[#ff7f20] shadow-[0_4px_14px_rgba(60,47,47,0.1)]";
 }
 
 /**
@@ -189,7 +195,7 @@ export function LocaleCurrencySwitcher({
         type="button"
         className={
           isMobileHome
-            ? "relative inline-flex h-12 w-[159px] items-center rounded-[70px] bg-white px-[19px]"
+            ? mobileHomeTriggerClassName(open)
             : isDegusto
               ? "flex h-12 w-[159px] shrink-0 items-center gap-2 rounded-full bg-brand-strong px-4 text-white transition hover:bg-brand"
               : "flex h-9 w-[calc(2.75rem*3+0.5rem*2-0.75rem)] shrink-0 items-center rounded-full border border-gray-200 bg-white py-0 pr-3 pl-3 text-gray-700 transition-colors hover:bg-gray-50"
@@ -201,16 +207,16 @@ export function LocaleCurrencySwitcher({
         onClick={() => (open ? closeMenu() : openMenu())}
       >
         {isMobileHome ? (
-          <span className="inline-flex items-center justify-center">
+          <span className="inline-flex min-w-0 items-center">
             <Image
               src={staticAssetUrl("/assets/mobile/globe-icon.webp")}
               alt=""
               width={19}
               height={19}
-              className="h-[19px] w-[19px] shrink-0 object-contain brightness-0"
+              className={`h-[19px] w-[19px] shrink-0 object-contain brightness-0 ${open ? "invert" : ""}`}
               aria-hidden
             />
-            <span className="ml-0.5 text-base leading-[18px] font-bold text-[#ff7f20]">
+            <span className="ml-1 truncate text-sm leading-[18px] font-bold">
               {localeShortLabels[locale]} / {currency}
               {currency === "AMD" ? " Դ" : ""}
             </span>
@@ -243,16 +249,16 @@ export function LocaleCurrencySwitcher({
             )}
           </span>
         ) : null}
-        {isMobileHome ? null : (
-          <ChevronDown
-            className={
-              isDegusto
+        <ChevronDown
+          className={
+            isMobileHome
+              ? `h-4 w-4 shrink-0 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? "rotate-180 text-white" : "text-[#ff7f20]"}`
+              : isDegusto
                 ? `h-4 w-4 shrink-0 text-white transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? "rotate-180" : ""}`
                 : `h-4 w-4 shrink-0 text-gray-500 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? "rotate-180" : ""}`
-            }
-            aria-hidden
-          />
-        )}
+          }
+          aria-hidden
+        />
       </button>
 
       {rendered ? (
@@ -267,15 +273,15 @@ export function LocaleCurrencySwitcher({
           }`}
           style={{ transitionDuration: `${DROPDOWN_ANIMATION_MS}ms` }}
         >
-          <div className="flex w-max overflow-hidden rounded-xl border border-gray-100 bg-white py-2">
-            <div className="w-max border-r border-gray-100">
-              <p className="whitespace-nowrap px-3 pb-1 text-center text-[11px] font-semibold tracking-wide text-gray-500 uppercase">
+          <div className="flex h-fit w-max items-start overflow-hidden rounded-[20px] border border-[#dedede] bg-white pt-2.5 pb-2 shadow-[0_18px_44px_rgba(60,47,47,0.14)]">
+            <div className="w-max border-r border-[#dedede]">
+              <p className="whitespace-nowrap px-3 pb-1 text-center text-[11px] font-medium tracking-[0.2px] text-[#717182] uppercase">
                 {currencyLabel}
               </p>
               <ul
                 role="listbox"
                 aria-label={currencyLabel}
-                className="px-1.5"
+                className="space-y-0.5 px-1.5"
               >
                 {currencies.map((code) => {
                   const selected = code === currency;
@@ -296,13 +302,13 @@ export function LocaleCurrencySwitcher({
             </div>
 
             <div className="w-max">
-              <p className="whitespace-nowrap px-3 pb-1 text-center text-[11px] font-semibold tracking-wide text-gray-500 uppercase">
+              <p className="whitespace-nowrap px-3 pb-1 text-center text-[11px] font-medium tracking-[0.2px] text-[#717182] uppercase">
                 {languageLabel}
               </p>
               <ul
                 role="listbox"
                 aria-label={languageLabel}
-                className="px-1.5"
+                className="space-y-0.5 px-1.5"
               >
                 {locales.map((code) => {
                   const selected = code === locale;

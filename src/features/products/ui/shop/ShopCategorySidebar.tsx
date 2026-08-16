@@ -1,14 +1,17 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { motion, useReducedMotion, type Variants } from "motion/react";
 
 import { AppLink } from "@/components/ui/AppLink";
+import { CategoryIconImage } from "@/features/products/ui/shop/CategoryIconImage";
 import { useCatalogNavigation } from "@/features/products/ui/shop/CatalogNavContext";
 import { isComboSlug } from "@/features/products/ui/shop/combo-slug";
-import { staticAssetUrl } from "@/lib/media/static-asset-url";
+import {
+  resolveCategoryIcon,
+  type CategoryIconAsset,
+} from "@/features/products/ui/shop/resolve-category-icon";
 
 export type ShopCategoryItem = {
   id: string;
@@ -16,7 +19,7 @@ export type ShopCategoryItem = {
   title: string;
   href: string;
   imageUrl: string;
-  iconSrc: string;
+  icon: CategoryIconAsset;
 };
 
 type ShopCategorySidebarProps = {
@@ -154,7 +157,7 @@ export function ShopCategorySidebar({
           <CategoryLink
             href={allHref}
             title={allLabel}
-            iconSrc={staticAssetUrl("/assets/categories/icons/all.webp")}
+            icon={resolveCategoryIcon("all")}
             active={isAll}
           />
         </motion.div>
@@ -166,7 +169,7 @@ export function ShopCategorySidebar({
             <CategoryLink
               href={category.href}
               title={category.title}
-              iconSrc={category.iconSrc}
+              icon={category.icon}
               active={isCategoryActive(selectedSlug, category.slug)}
             />
           </motion.div>
@@ -179,33 +182,25 @@ export function ShopCategorySidebar({
 function CategoryLink({
   href,
   title,
-  iconSrc,
+  icon,
   active,
 }: {
   href: string;
   title: string;
-  iconSrc: string;
+  icon: CategoryIconAsset;
   active: boolean;
 }) {
   return (
     <AppLink
       href={href}
       prefetchPolicy="intent"
-      className={`flex h-10 w-full min-w-0 items-center gap-2 px-3 py-2.5 text-left text-[14px] leading-5 font-medium tracking-[-0.15px] ${
+      className={`flex min-h-10 w-full min-w-0 items-center gap-3 px-3 py-2.5 text-left text-[14px] leading-5 font-medium tracking-[-0.15px] ${
         active
           ? "rounded-[30px] bg-[#ff7f20] text-white"
           : "rounded-[10px] text-white hover:bg-white/10"
       }`}
     >
-      <span className="relative size-5 shrink-0">
-        <Image
-          src={iconSrc}
-          alt=""
-          fill
-          className="object-contain brightness-0 invert"
-          aria-hidden
-        />
-      </span>
+      <CategoryIconImage icon={icon} />
       <span className="min-w-0 truncate">{title}</span>
     </AppLink>
   );

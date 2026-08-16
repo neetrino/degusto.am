@@ -17,9 +17,6 @@ const ICON_PHONE = staticAssetUrl("/assets/footer/icon-phone.webp");
 const SOCIAL_ICONS = [
   { key: "instagram", src: staticAssetUrl("/assets/footer/social-instagram.webp") },
   { key: "facebook", src: staticAssetUrl("/assets/footer/social-facebook.webp") },
-  { key: "telegram", src: staticAssetUrl("/assets/footer/social-telegram.webp") },
-  { key: "whatsapp", src: staticAssetUrl("/assets/footer/social-whatsapp.webp") },
-  { key: "viber", src: staticAssetUrl("/assets/footer/social-viber.webp") },
 ] as const;
 
 const PAYMENT_LOGOS = [
@@ -153,7 +150,6 @@ export function FooterContactsBlock({
         >
           {SOCIAL_ICONS.map((item) => {
             const href = social[item.key];
-            const isViber = item.key === "viber";
             return (
               <motion.li
                 key={item.key}
@@ -177,18 +173,14 @@ export function FooterContactsBlock({
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={item.key}
-                  className={
-                    isViber
-                      ? "flex size-10 items-center justify-center rounded-full bg-brand transition hover:brightness-110"
-                      : "block size-10 overflow-hidden rounded-full transition hover:brightness-110"
-                  }
+                  className="block size-10 overflow-hidden rounded-full transition hover:brightness-110"
                 >
                   <Image
                     src={item.src}
                     alt=""
-                    width={isViber ? 20 : 40}
-                    height={isViber ? 22 : 40}
-                    className={isViber ? "h-[22px] w-5" : "size-10"}
+                    width={40}
+                    height={40}
+                    className="size-10"
                     aria-hidden
                   />
                 </a>
