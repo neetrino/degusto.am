@@ -20,6 +20,8 @@ type StorefrontMobileChromeProps = {
   searchQuery?: string;
   /** Optional sheet surface (e.g. auth cream). Defaults to white. */
   sheetClassName?: string;
+  /** Sheet offset and padding. Home/shop keep the default overlap. */
+  sheetSpacingClassName?: string;
   children: React.ReactNode;
 };
 
@@ -39,10 +41,11 @@ export function StorefrontMobileChrome({
   searchPlaceholder,
   searchQuery = "",
   sheetClassName = "bg-white",
+  sheetSpacingClassName = "mt-[87px] min-h-[calc(100dvh-10rem)] px-4 pt-8 pb-[110px]",
   children,
 }: StorefrontMobileChromeProps) {
   return (
-    <div className="relative min-h-dvh w-full overflow-x-clip overflow-y-visible bg-[var(--project-color)] lg:hidden">
+    <div className="relative flex min-h-dvh w-full flex-col overflow-x-clip overflow-y-visible bg-[var(--project-color)] lg:hidden">
       <div
         className="pointer-events-none absolute -top-[123px] -left-[210px] h-[434px] w-[418px] rounded-full border-[80px] border-[#3E573D]"
         aria-hidden
@@ -113,7 +116,7 @@ export function StorefrontMobileChrome({
       </header>
 
       <div
-        className={`relative z-10 mt-[87px] min-h-[calc(100dvh-10rem)] rounded-t-[30px] px-4 pt-8 pb-[110px] ${sheetClassName}`}
+        className={`relative z-10 rounded-t-[30px] ${sheetSpacingClassName} ${sheetClassName}`}
       >
         {children}
       </div>

@@ -2,7 +2,6 @@
 
 import { motion, useReducedMotion } from "motion/react";
 
-import { HomeMobileProductCard } from "@/features/home/ui/HomeMobileProductCard";
 import { CatalogProductCard } from "@/features/products/ui/shop/CatalogProductCard";
 import {
   ShopProductCardShell,
@@ -35,7 +34,7 @@ type ShopCatalogProductGridsProps = {
   isSignedIn: boolean;
 };
 
-/** Animated mobile + desktop product grids for the shop catalog. */
+/** Animated product grid for the shop catalog (same card on mobile and desktop). */
 export function ShopCatalogProductGrids({
   locale,
   products,
@@ -48,80 +47,41 @@ export function ShopCatalogProductGrids({
   const reduceMotion = useReducedMotion();
 
   return (
-    <>
-      <motion.div
-        initial={reduceMotion ? false : "hidden"}
-        animate="visible"
-        variants={reduceMotion ? undefined : shopGridVariants}
-        className="mt-8 grid min-w-0 grid-cols-2 gap-x-[14px] gap-y-[52px] lg:hidden"
-      >
-        {products.map((product, index) => (
-          <ShopProductCardShell
-            key={product.id}
-            index={index}
-            reduceMotion={reduceMotion}
-          >
-            <HomeMobileProductCard
-              href={product.href}
-              title={product.title}
-              priceFormatted={product.priceFormatted}
-              compareAtFormatted={product.compareAtFormatted}
-              discountPercent={product.discountPercent}
-              imageUrl={product.imageUrl}
-              inStock={product.inStock}
-              priority={index < 4}
-              locale={locale}
-              productId={product.id}
-              inWishlist={product.inWishlist}
-              isSignedIn={isSignedIn}
-              wishlistLabel={wishlistLabel}
-              addToCartLabel={addToCartLabel}
-              outOfStockLabel={outOfStockLabel}
-              categoryLabel={product.categoryLabel}
-              rating={rating}
-              isSpicy={product.isSpicy ?? false}
-              isVegetarian={product.isVegetarian ?? false}
-            />
-          </ShopProductCardShell>
-        ))}
-      </motion.div>
-
-      <motion.div
-        initial={reduceMotion ? false : "hidden"}
-        animate="visible"
-        variants={reduceMotion ? undefined : shopGridVariants}
-        className="hidden min-w-0 grid-cols-2 gap-x-4 gap-y-12 lg:grid xl:grid-cols-3 xl:gap-x-[30px] xl:gap-y-14"
-      >
-        {products.map((product, index) => (
-          <ShopProductCardShell
-            key={product.id}
-            index={index}
-            reduceMotion={reduceMotion}
-          >
-            <CatalogProductCard
-              href={product.href}
-              title={product.title}
-              priceFormatted={product.priceFormatted}
-              compareAtFormatted={product.compareAtFormatted}
-              discountPercent={product.discountPercent}
-              imageUrl={product.imageUrl}
-              inStock={product.inStock}
-              priority={index < 6}
-              locale={locale}
-              productId={product.id}
-              inWishlist={product.inWishlist}
-              isSignedIn={isSignedIn}
-              wishlistLabel={wishlistLabel}
-              addToCartLabel={addToCartLabel}
-              outOfStockLabel={outOfStockLabel}
-              categoryLabel={product.categoryLabel}
-              rating={rating}
-              isSpicy={product.isSpicy ?? false}
-              isVegetarian={product.isVegetarian ?? false}
-            />
-          </ShopProductCardShell>
-        ))}
-      </motion.div>
-    </>
+    <motion.div
+      initial={reduceMotion ? false : "hidden"}
+      animate="visible"
+      variants={reduceMotion ? undefined : shopGridVariants}
+      className="mt-8 grid min-w-0 grid-cols-2 gap-x-[14px] gap-y-[52px] lg:gap-x-4 lg:gap-y-12 xl:grid-cols-3 xl:gap-x-[30px] xl:gap-y-14"
+    >
+      {products.map((product, index) => (
+        <ShopProductCardShell
+          key={product.id}
+          index={index}
+          reduceMotion={reduceMotion}
+        >
+          <CatalogProductCard
+            href={product.href}
+            title={product.title}
+            priceFormatted={product.priceFormatted}
+            compareAtFormatted={product.compareAtFormatted}
+            discountPercent={product.discountPercent}
+            imageUrl={product.imageUrl}
+            inStock={product.inStock}
+            priority={index < 6}
+            locale={locale}
+            productId={product.id}
+            inWishlist={product.inWishlist}
+            isSignedIn={isSignedIn}
+            wishlistLabel={wishlistLabel}
+            addToCartLabel={addToCartLabel}
+            outOfStockLabel={outOfStockLabel}
+            categoryLabel={product.categoryLabel}
+            rating={rating}
+            isSpicy={product.isSpicy ?? false}
+            isVegetarian={product.isVegetarian ?? false}
+          />
+        </ShopProductCardShell>
+      ))}
+    </motion.div>
   );
 }

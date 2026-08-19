@@ -15,6 +15,8 @@ import type { Locale } from "@/lib/i18n/config";
 import type { Currency } from "@/lib/money/currency";
 import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
+const HOME_MOBILE_NEW_PRODUCTS_COUNT = 6;
+
 type CategoryItem = {
   id: string;
   href: string;
@@ -177,7 +179,7 @@ export function HomeMobile({
         <HomeReveal variant="up" delayMs={100} durationMs={800}>
           <div className="mt-[30px] space-y-[22px] px-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-base leading-5 font-semibold text-black">
+              <h2 className="font-display text-base leading-5 font-semibold text-black">
                 {newProductsTitle}
               </h2>
               <AppLink
@@ -190,7 +192,7 @@ export function HomeMobile({
             </div>
 
             <div className="grid grid-cols-2 gap-x-[14px] gap-y-[52px]">
-              {products.slice(0, 4).map((product, index) => (
+              {products.slice(0, HOME_MOBILE_NEW_PRODUCTS_COUNT).map((product, index) => (
                 <div
                   key={product.id}
                   className="relative"

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 import { AppLink } from "@/components/ui/AppLink";
 import { CartDrawer } from "@/features/cart/ui/CartDrawer";
+import { buildCategoryPickerHref } from "@/features/products/ui/shop/build-catalog-href";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
 import type { Currency } from "@/lib/money/currency";
@@ -82,7 +83,7 @@ export function MobileBottomNav({
 
   return (
     <div
-      className="mobile-bottom-nav pointer-events-none fixed bottom-0 left-1/2 z-40 h-[calc(159px+env(safe-area-inset-bottom))] w-[375px] max-w-full -translate-x-1/2 pb-[env(safe-area-inset-bottom)] md:hidden"
+      className="mobile-bottom-nav pointer-events-none fixed -bottom-3 left-1/2 z-40 h-[calc(159px+env(safe-area-inset-bottom))] w-[375px] max-w-full -translate-x-1/2 pb-[env(safe-area-inset-bottom)] md:hidden"
       aria-hidden={false}
     >
       <Image
@@ -96,9 +97,9 @@ export function MobileBottomNav({
       />
 
       <AppLink
-        href={`/${locale}/products`}
+        href={buildCategoryPickerHref(locale)}
         prefetchPolicy="intent"
-        aria-label={dictionary.nav.shop}
+        aria-label={dictionary.catalog.selectCategories}
         className="pointer-events-auto absolute top-10 left-1/2 inline-flex size-[70px] -translate-x-1/2 items-center justify-center"
       >
         <Image

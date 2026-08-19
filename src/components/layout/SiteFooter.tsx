@@ -99,8 +99,7 @@ export function SiteFooter({ dictionary, locale }: SiteFooterProps) {
 
   const legalLinks = [
     { href: `/${locale}/legal/privacy`, label: footer.privacyPolicy },
-    { href: `/${locale}/legal/terms`, label: footer.shippingPolicy },
-    { href: `/${locale}/legal/terms`, label: footer.returnPolicy },
+    { href: `/${locale}/legal/returns`, label: footer.returnPolicy },
     { href: `/${locale}/legal/terms`, label: footer.terms },
   ] as const;
 
