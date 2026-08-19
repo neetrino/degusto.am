@@ -179,7 +179,6 @@ export default async function ProductsPage({
             : category.slug,
         min: sp.min,
         max: sp.max,
-        q: searchQuery || undefined,
         diet: diet === "none" ? undefined : diet,
       }),
     }));
@@ -188,7 +187,6 @@ export default async function ProductsPage({
     category: "all",
     min: sp.min,
     max: sp.max,
-    q: searchQuery || undefined,
     diet: diet === "none" ? undefined : diet,
   });
   const searchAction = `/${rawLocale}/products`;

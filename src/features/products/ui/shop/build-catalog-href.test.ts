@@ -18,4 +18,14 @@ describe("buildCatalogHref", () => {
       "/hy/products?category=pizza",
     );
   });
+
+  it("omits the search query when q is not passed", () => {
+    expect(
+      buildCatalogHref("hy", {
+        category: "pizza",
+        min: "100",
+        diet: "veg",
+      }),
+    ).toBe("/hy/products?category=pizza&min=100&diet=veg");
+  });
 });

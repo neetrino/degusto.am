@@ -2,9 +2,13 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { useCatalogNavigation } from "@/features/products/ui/shop/CatalogNavContext";
+import {
+  shouldCommitCatalogSearch,
+  useDebouncedCatalogSearch,
+} from "@/features/products/ui/shop/use-debounced-catalog-search";
 import type { Locale } from "@/lib/i18n/config";
 import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
@@ -27,19 +31,46 @@ export function HomeMobileSearch({
   const router = useRouter();
   const { isPending, startCatalogTransition } = useCatalogNavigation();
   const [query, setQuery] = useState(defaultQuery);
+  const [isDirty, setIsDirty] = useState(false);
+  const lastUrlQueryRef = useRef(defaultQuery);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>): void {
-    event.preventDefault();
-    const trimmed = query.trim();
+  useEffect(() => {
+    if (defaultQuery === lastUrlQueryRef.current) {
+      return;
+    }
+    lastUrlQueryRef.current = defaultQuery;
+    setQuery(defaultQuery);
+    setIsDirty(false);
+  }, [defaultQuery]);
+
+  function commitSearch(nextQuery: string): void {
+    const trimmed = nextQuery.trim();
+    if (!shouldCommitCatalogSearch(trimmed, defaultQuery)) {
+      setIsDirty(false);
+      return;
+    }
+    lastUrlQueryRef.current = trimmed;
+    setIsDirty(false);
     const params = new URLSearchParams();
     if (trimmed) {
       params.set("q", trimmed);
     }
     params.set("category", "all");
-    const suffix = `?${params.toString()}`;
     startCatalogTransition(() => {
-      router.push(`/${locale}/products${suffix}`);
+      router.push(`/${locale}/products?${params.toString()}`);
     });
+  }
+
+  useDebouncedCatalogSearch({
+    draftQuery: query,
+    committedQuery: defaultQuery,
+    isDirty,
+    onCommit: commitSearch,
+  });
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>): void {
+    event.preventDefault();
+    commitSearch(query);
   }
 
   return (
@@ -65,18 +96,19 @@ export function HomeMobileSearch({
         type="search"
         name="q"
         value={query}
-        onChange={(event) => setQuery(event.target.value)}
+        onChange={(event) => {
+          setIsDirty(true);
+          setQuery(event.target.value);
+        }}
         placeholder={placeholder}
         enterKeyHint="search"
         autoComplete="off"
-        disabled={isPending}
-        className="h-full w-full rounded-[30px] bg-transparent pr-[58px] pl-[39px] text-base leading-6 text-black outline-none placeholder:text-[#abb7c2] disabled:opacity-70"
+        className="h-full w-full rounded-[30px] bg-transparent pr-[58px] pl-[39px] text-base leading-6 text-black outline-none placeholder:text-[#abb7c2]"
       />
       <button
         type="submit"
         aria-label={searchLabel}
-        disabled={isPending}
-        className="absolute top-1/2 right-[7px] inline-flex size-10 -translate-y-1/2 items-center justify-center disabled:opacity-70"
+        className="absolute top-1/2 right-[7px] inline-flex size-10 -translate-y-1/2 items-center justify-center"
       >
         <Image
           src={staticAssetUrl("/assets/mobile/search-filter.webp")}

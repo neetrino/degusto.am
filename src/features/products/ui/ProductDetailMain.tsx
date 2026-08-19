@@ -19,13 +19,19 @@ import {
   productInfoStagger,
 } from "@/features/products/ui/ProductDetailMotion";
 import { ProductPurchaseControls } from "@/features/products/ui/ProductPurchaseControls";
+import { pickLocalizedProductDescription } from "@/features/products/domain/localized-description";
 import type { ProductDetail } from "@/features/products/types";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
 import { formatGroupedInteger } from "@/lib/money/format";
 import { staticAssetUrl } from "@/lib/media/static-asset-url";
+import { sanitizeBlogHtml } from "@/lib/sanitize/html";
 
 const STAR_ICON = staticAssetUrl("/assets/product-card/star.webp");
+
+function descriptionLooksLikeHtml(value: string): boolean {
+  return /<\/?[a-z][\w:-]*\b/i.test(value);
+}
 
 type ProductDetailMainProps = {
   locale: Locale;
@@ -58,10 +64,15 @@ export function ProductDetailMain({
   const labels = dictionary.product;
   const inStock = product.stockOnHand > 0;
   const categoryTitle = product.categories[0]?.title ?? null;
-  const description = product.translation.description?.trim() ?? "";
+  const description = pickLocalizedProductDescription(
+    product.translation.description?.trim() ?? "",
+    locale,
+  );
   const showDescription =
     description.length > 0 &&
     description !== product.translation.title.trim();
+  const descriptionHtml = showDescription ? sanitizeBlogHtml(description) : "";
+  const descriptionHasMarkup = descriptionLooksLikeHtml(description);
   const maxQty = Math.max(product.stockOnHand, 0);
   const [quantity, setQuantity] = useState(maxQty > 0 ? 1 : 0);
   const [selectedAddIds, setSelectedAddIds] = useState<ReadonlySet<string>>(
@@ -211,7 +222,13 @@ export function ProductDetailMain({
               </motion.p>
             ) : null}
 
-            {showDescription ? (
+            {showDescription && descriptionHasMarkup ? (
+              <motion.div
+                variants={reduceMotion ? undefined : productInfoItem}
+                className="mb-5 max-w-[31.125rem] text-base leading-6 text-[#3C2F2F] [&_p]:mb-2 [&_p:last-child]:mb-0"
+                dangerouslySetInnerHTML={{ __html: descriptionHtml }}
+              />
+            ) : showDescription ? (
               <motion.p
                 variants={reduceMotion ? undefined : productInfoItem}
                 className="mb-5 max-w-[31.125rem] whitespace-pre-wrap text-base leading-6 text-[#3C2F2F]"

@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 
 import { getEnv } from "@/config/env";
+import { productDescriptionPlainText } from "@/features/products/domain/localized-description";
 import { getProductDetailBySlug } from "@/features/products/queries";
 import { ProductDetailView } from "@/features/products/ui/ProductDetailView";
 import { ProductRelatedSection } from "@/features/products/ui/ProductRelatedSection";
@@ -86,8 +87,12 @@ export async function generateMetadata({
   }
 
   const title = product.translation.seoTitle ?? product.translation.title;
-  const description =
-    product.translation.seoDescription ?? product.translation.description;
+  const description = productDescriptionPlainText(
+    product.translation.seoDescription ??
+      product.translation.description ??
+      "",
+    rawLocale,
+  );
   const canonicalPath = `/${rawLocale}/products/${product.translation.slug}`;
 
   return {
@@ -139,7 +144,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
     locale,
     slug: product.translation.slug,
     title: product.translation.title,
-    description: product.translation.description,
+    description: productDescriptionPlainText(
+      product.translation.description ?? "",
+      locale,
+    ),
     sku: product.sku,
     priceAmount: product.priceAmount,
     imageUrl: product.images[0]?.url ?? product.imageUrl,
