@@ -39,3 +39,10 @@ export function buildCatalogHref(
   const query = params.toString();
   return query ? `/${locale}/products?${query}` : `/${locale}/products`;
 }
+
+export const CATALOG_CATEGORY_PICKER_VIEW = "categories";
+
+/** Mobile kitchen entry — category list before the product grid. */
+export function buildCategoryPickerHref(locale: string): string {
+  return `/${locale}/products?view=${CATALOG_CATEGORY_PICKER_VIEW}`;
+}

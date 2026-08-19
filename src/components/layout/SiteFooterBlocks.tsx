@@ -6,6 +6,7 @@ import { motion, type Variants } from "motion/react";
 import { AppLink } from "@/components/ui/AppLink";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
+import { googleMapsSearchUrl } from "@/lib/maps/google-maps-url";
 import { staticAssetUrl } from "@/lib/media/static-asset-url";
 import { splitPhoneLine } from "@/lib/phone/tel";
 
@@ -79,9 +80,15 @@ export function FooterAddressesBlock({
           <motion.li
             key={address}
             variants={reduceMotion ? undefined : itemVariants}
-            className="text-sm leading-[27px] text-white"
           >
-            {address}
+            <a
+              href={googleMapsSearchUrl(address)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm leading-[27px] text-white transition hover:text-brand"
+            >
+              {address}
+            </a>
           </motion.li>
         ))}
       </motion.ul>

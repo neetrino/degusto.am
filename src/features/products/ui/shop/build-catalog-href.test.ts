@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildCatalogHref } from "@/features/products/ui/shop/build-catalog-href";
+import { buildCatalogHref, buildCategoryPickerHref } from "@/features/products/ui/shop/build-catalog-href";
 
 describe("buildCatalogHref", () => {
   it("sends combo categories to the combo route", () => {
@@ -16,6 +16,12 @@ describe("buildCatalogHref", () => {
   it("keeps other categories on the shop catalog", () => {
     expect(buildCatalogHref("hy", { category: "pizza" })).toBe(
       "/hy/products?category=pizza",
+    );
+  });
+
+  it("builds the mobile category picker URL", () => {
+    expect(buildCategoryPickerHref("hy")).toBe(
+      "/hy/products?view=categories",
     );
   });
 

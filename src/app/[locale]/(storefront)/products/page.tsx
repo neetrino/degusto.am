@@ -7,13 +7,17 @@ import {
   getPrimaryCategoryLabels,
 } from "@/features/products/queries";
 import { resolveCategoryIcon } from "@/features/products/ui/shop/resolve-category-icon";
-import { buildCatalogHref } from "@/features/products/ui/shop/build-catalog-href";
+import {
+  buildCatalogHref,
+  CATALOG_CATEGORY_PICKER_VIEW,
+} from "@/features/products/ui/shop/build-catalog-href";
 import {
   isComboSlug,
   resolveComboCatalogSlug,
 } from "@/features/products/ui/shop/combo-slug";
 import { ShopCatalogPanel } from "@/features/products/ui/shop/ShopCatalogPanel";
 import { ShopCategorySidebar } from "@/features/products/ui/shop/ShopCategorySidebar";
+import { ShopMobileCategoryPicker } from "@/features/products/ui/shop/ShopMobileCategoryPicker";
 import { ShopSmoothScroll } from "@/features/products/ui/shop/ShopSmoothScroll";
 import { getWishlistProductIds } from "@/features/wishlist/queries";
 import { getCurrentUser } from "@/lib/auth/session";
@@ -34,6 +38,7 @@ type ProductsPageProps = {
     max?: string;
     q?: string;
     diet?: string;
+    view?: string;
   }>;
 };
 
@@ -257,7 +262,14 @@ export default async function ProductsPage({
           searchPlaceholder={dictionary.header.search}
           searchQuery={searchQuery}
         >
-          <ShopCatalogPanel {...catalogPanelProps} />
+          {sp.view === CATALOG_CATEGORY_PICKER_VIEW ? (
+            <ShopMobileCategoryPicker
+              title={catalogCopy.categoriesTitle}
+              categories={categoryItems}
+            />
+          ) : (
+            <ShopCatalogPanel {...catalogPanelProps} />
+          )}
         </StorefrontMobileChrome>
 
         <div className="mx-auto hidden min-w-0 w-full max-w-[min(1450px,calc(100%-2rem))] gap-4 px-4 pt-2 pb-10 md:max-w-[min(1450px,calc(100%-2.5rem))] md:px-6 lg:flex lg:max-w-[min(1450px,calc(100%-3rem))] lg:gap-8 lg:pt-5 xl:pl-4 2xl:px-6">

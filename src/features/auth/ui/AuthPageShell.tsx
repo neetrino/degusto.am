@@ -42,6 +42,7 @@ export function AuthPageShell({ children, mobileChrome }: AuthPageShellProps) {
         <StorefrontMobileChrome
           {...mobileChrome}
           sheetClassName="bg-[#FBF6EA]"
+          sheetSpacingClassName="mt-5 flex-1 px-4 pt-3 pb-[6.75rem]"
         >
           {children}
         </StorefrontMobileChrome>
@@ -67,19 +68,19 @@ type AuthCardProps = {
 /** Cream gradient auth card with chef-hat badge — Degusto login/register. */
 export function AuthCard({ title, subtitle, children }: AuthCardProps) {
   return (
-    <div className="relative overflow-visible rounded-[28px] border border-[#FFE5CF] bg-[linear-gradient(168deg,#fffef9_0%,#fff7eb_44%,#ffeed9_100%)] p-5 shadow-[0_24px_60px_rgba(50,24,0,0.16)] sm:rounded-[32px] sm:p-8 lg:rounded-[40px] lg:px-10 lg:pt-11 lg:pb-10 lg:shadow-[0_28px_70px_rgba(50,24,0,0.22)]">
-      <header className="mb-6 text-center sm:mb-8">
-        <div className="mb-4 flex justify-center sm:mb-5">
+    <div className="relative overflow-visible rounded-[28px] border border-[#FFE5CF] bg-[linear-gradient(168deg,#fffef9_0%,#fff7eb_44%,#ffeed9_100%)] px-4 pt-6 pb-7 shadow-[0_24px_60px_rgba(50,24,0,0.16)] sm:rounded-[32px] sm:p-8 lg:rounded-[40px] lg:px-10 lg:pt-11 lg:pb-10 lg:shadow-[0_28px_70px_rgba(50,24,0,0.22)]">
+      <header className="mb-5 text-center sm:mb-8">
+        <div className="mb-2 flex justify-center sm:mb-5">
           <div className="rounded-full bg-[#f4dfbf] p-1 shadow-[0_10px_22px_rgba(49,27,0,0.2)]">
-            <div className="flex size-[4.25rem] items-center justify-center rounded-full bg-[#1f3a22] text-[#fff2d8] shadow-[inset_0_0_0_1px_rgba(255,235,200,0.28)] sm:size-16">
-              <ChefHat className="size-8" aria-hidden />
+            <div className="flex size-14 items-center justify-center rounded-full bg-[#1f3a22] text-[#fff2d8] shadow-[inset_0_0_0_1px_rgba(255,235,200,0.28)] sm:size-16">
+              <ChefHat className="size-7 sm:size-8" aria-hidden />
             </div>
           </div>
         </div>
-        <h1 className="text-center text-[1.75rem] leading-[1.15] font-bold tracking-tight text-[#16331f] sm:text-[32px]">
+        <h1 className="text-center text-[1.5rem] leading-[1.15] font-bold tracking-tight text-[#16331f] sm:text-[32px]">
           {title}
         </h1>
-        <p className="mx-auto mt-3 max-w-md text-center text-sm leading-relaxed text-[#395145] sm:text-[15px]">
+        <p className="mx-auto mt-1.5 max-w-md text-center text-[13px] leading-snug text-[#395145] sm:mt-3 sm:text-[15px] sm:leading-relaxed">
           {subtitle}
         </p>
       </header>

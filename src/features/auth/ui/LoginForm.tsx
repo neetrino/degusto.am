@@ -42,7 +42,7 @@ export function LoginForm({ locale, dictionary }: LoginFormProps) {
         </p>
       ) : null}
 
-      <div className="space-y-2.5">
+      <div className="space-y-1.5 sm:space-y-2.5">
         <label htmlFor="login-email" className={authLabelClassName}>
           {dictionary.email}
           <span className="ml-0.5 text-[#F66812]">*</span>
@@ -64,7 +64,7 @@ export function LoginForm({ locale, dictionary }: LoginFormProps) {
         </div>
       </div>
 
-      <div className="space-y-2.5">
+      <div className="space-y-1.5 sm:space-y-2.5">
         <label htmlFor="login-password" className={authLabelClassName}>
           {dictionary.password}
           <span className="ml-0.5 text-[#F66812]">*</span>
@@ -104,7 +104,7 @@ export function LoginForm({ locale, dictionary }: LoginFormProps) {
         </div>
       </div>
 
-      <div className="flex min-h-11 items-center justify-between gap-3 pt-0.5">
+      <div className="flex items-center justify-between gap-3 pt-0.5 sm:min-h-11">
         <label className="flex shrink-0 cursor-pointer items-center">
           <input
             type="checkbox"

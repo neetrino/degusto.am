@@ -1,9 +1,18 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import { AppLink } from "@/components/ui/AppLink";
+import {
+  CATEGORIES_PER_PAGE,
+  CATEGORY_LOOP_COPIES,
+  categoryLogicalPageCount,
+  categoryLoopItemIndex,
+  logicalCategoryPage,
+  settledCategoryLoopIndex,
+  wrapCategoryLoopIndex,
+} from "@/features/home/ui/home-mobile-categories-loop";
 
 type CategoryItem = {
   id: string;
@@ -19,26 +28,40 @@ type HomeMobileCategoriesProps = {
   categories: readonly CategoryItem[];
 };
 
-function pageCountFromScroll(el: HTMLDivElement): number {
-  if (el.scrollWidth <= el.clientWidth + 8) {
-    return 1;
-  }
-  return Math.max(2, Math.round(el.scrollWidth / el.clientWidth));
+function CategoryChip({ category }: { category: CategoryItem }) {
+  return (
+    <AppLink
+      href={category.href}
+      prefetchPolicy="intent"
+      aria-label={category.title}
+      className="min-w-0 w-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f66a13]"
+    >
+      <div className="relative mx-auto flex h-[72px] w-12 items-center justify-center rounded-[24px] bg-[#090909]">
+        <Image
+          src={category.imageUrl}
+          alt={category.title}
+          width={40}
+          height={42}
+          className="relative h-[42px] w-10 rounded-[10px] object-cover"
+        />
+      </div>
+      <p className="mt-1.5 line-clamp-2 text-center text-xs leading-5 text-black">
+        {category.title}
+      </p>
+    </AppLink>
+  );
 }
 
-function activePageFromScroll(el: HTMLDivElement, pages: number): number {
-  if (pages <= 1) {
-    return 0;
-  }
-  const maxScroll = el.scrollWidth - el.clientWidth;
-  if (maxScroll <= 0) {
-    return 0;
-  }
-  return Math.min(pages - 1, Math.round((el.scrollLeft / maxScroll) * (pages - 1)));
+function scrollToLoopPage(
+  el: HTMLDivElement,
+  loopIndex: number,
+  behavior: ScrollBehavior,
+): void {
+  el.scrollTo({ left: loopIndex * el.clientWidth, behavior });
 }
 
 /**
- * Home mobile category chips with horizontal snap paging dots.
+ * Home mobile category chips — five visible, wrap-filled, infinite snap loop.
  */
 export function HomeMobileCategories({
   title,
@@ -47,41 +70,66 @@ export function HomeMobileCategories({
   categories,
 }: HomeMobileCategoriesProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
-  const [pageCount, setPageCount] = useState(1);
+  const logicalCount = categoryLogicalPageCount(categories.length);
   const [page, setPage] = useState(0);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = scrollerRef.current;
-    if (!el || categories.length === 0) {
+    if (!el || logicalCount === 0) {
       return;
     }
 
+    scrollToLoopPage(el, logicalCount, "auto");
+    setPage(0);
+
     function sync(): void {
+      if (!el || logicalCount === 0) {
+        return;
+      }
+      const width = el.clientWidth;
+      const settledIndex = settledCategoryLoopIndex(el.scrollLeft, width);
+      if (settledIndex === null) {
+        setPage(
+          logicalCategoryPage(
+            Math.round(el.scrollLeft / Math.max(1, width)),
+            logicalCount,
+          ),
+        );
+        return;
+      }
+      const wrapped = wrapCategoryLoopIndex(settledIndex, logicalCount);
+      if (wrapped.jumped) {
+        scrollToLoopPage(el, wrapped.index, "auto");
+      }
+      setPage(logicalCategoryPage(wrapped.index, logicalCount));
+    }
+
+    function onResize(): void {
       if (!el) {
         return;
       }
-      const pages = pageCountFromScroll(el);
-      setPageCount(pages);
-      setPage(activePageFromScroll(el, pages));
+      const current = logicalCategoryPage(
+        Math.round(el.scrollLeft / Math.max(1, el.clientWidth)),
+        logicalCount,
+      );
+      scrollToLoopPage(el, logicalCount + current, "auto");
+      setPage(current);
     }
 
-    sync();
     el.addEventListener("scroll", sync, { passive: true });
-    window.addEventListener("resize", sync);
+    window.addEventListener("resize", onResize);
     return () => {
       el.removeEventListener("scroll", sync);
-      window.removeEventListener("resize", sync);
+      window.removeEventListener("resize", onResize);
     };
-  }, [categories.length]);
+  }, [logicalCount, categories.length]);
 
   function goToPage(index: number): void {
     const el = scrollerRef.current;
-    if (!el || pageCount <= 1) {
+    if (!el || logicalCount <= 1) {
       return;
     }
-    const maxScroll = el.scrollWidth - el.clientWidth;
-    const left = (index / (pageCount - 1)) * maxScroll;
-    el.scrollTo({ left, behavior: "smooth" });
+    scrollToLoopPage(el, logicalCount + index, "smooth");
   }
 
   if (categories.length === 0) {
@@ -105,39 +153,43 @@ export function HomeMobileCategories({
 
       <div
         ref={scrollerRef}
-        className="-mx-3 overflow-x-auto px-3 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex overflow-x-auto overscroll-x-contain pb-1 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        <div className="flex w-max items-start gap-2">
-          {categories.map((category) => (
-            <AppLink
-              key={category.id}
-              href={category.href}
-              prefetchPolicy="intent"
-              aria-label={category.title}
-              className="w-14 shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f66a13]"
+        {Array.from({ length: CATEGORY_LOOP_COPIES }, (_, copy) =>
+          Array.from({ length: logicalCount }, (_, pageIndex) => (
+            <div
+              key={`category-copy-${copy}-page-${pageIndex}`}
+              className="grid w-full shrink-0 basis-full grid-cols-5 gap-2 snap-start snap-always"
             >
-              <div className="relative mx-auto flex h-[72px] w-12 items-center justify-center rounded-[24px] bg-[#090909]">
-                <Image
-                  src={category.imageUrl}
-                  alt={category.title}
-                  width={40}
-                  height={42}
-                  className="relative h-[42px] w-10 rounded-[10px] object-cover"
-                />
-              </div>
-              <p className="mt-1.5 line-clamp-2 text-center text-xs leading-5 text-black">
-                {category.title}
-              </p>
-            </AppLink>
-          ))}
-        </div>
+              {Array.from({ length: CATEGORIES_PER_PAGE }, (_, slot) => {
+                const item =
+                  categories[
+                    categoryLoopItemIndex(
+                      categories.length,
+                      pageIndex,
+                      slot,
+                    )
+                  ];
+                if (!item) {
+                  return null;
+                }
+                return (
+                  <CategoryChip
+                    key={`${copy}-${pageIndex}-${slot}-${item.id}`}
+                    category={item}
+                  />
+                );
+              })}
+            </div>
+          )),
+        )}
       </div>
 
-      {pageCount > 1 ? (
+      {logicalCount > 1 ? (
         <div className="flex items-center justify-center gap-1">
-          {Array.from({ length: pageCount }, (_, index) => (
+          {Array.from({ length: logicalCount }, (_, index) => (
             <button
-              key={`category-page-${index}`}
+              key={`category-dot-${index}`}
               type="button"
               aria-label={`Go to category page ${index + 1}`}
               aria-current={index === page}

@@ -26,6 +26,7 @@ type HomePageProps = {
 };
 
 const HOME_FEATURED_LIMIT = 5;
+const HOME_MOBILE_NEW_PRODUCTS_LIMIT = 6;
 const HOME_DAILY_OFFERS_LIMIT = 12;
 const FEATURED_CARD_RATING = 5;
 
@@ -72,7 +73,10 @@ export default async function HomePage({ params }: HomePageProps) {
       getCurrentUser(),
     ]);
 
-  const homeProducts = featuredProducts.slice(0, HOME_FEATURED_LIMIT);
+  const homeProducts = featuredProducts.slice(
+    0,
+    Math.max(HOME_FEATURED_LIMIT, HOME_MOBILE_NEW_PRODUCTS_LIMIT),
+  );
   const dailyOfferProducts = featuredProducts.slice(0, HOME_DAILY_OFFERS_LIMIT);
   const cardSource = featuredProducts.slice(
     0,
@@ -189,7 +193,7 @@ export default async function HomePage({ params }: HomePageProps) {
               addToCartLabel={dictionary.product.addToCart}
               outOfStockLabel={dictionary.product.outOfStock}
               isSignedIn={Boolean(user)}
-              products={featuredCards}
+              products={featuredCards.slice(0, HOME_FEATURED_LIMIT)}
             />
           </div>
 
