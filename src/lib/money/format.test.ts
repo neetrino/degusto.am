@@ -7,13 +7,15 @@ import {
 } from "@/lib/money/format";
 
 describe("formatGroupedInteger", () => {
-  it("leaves numbers below 1000 ungrouped", () => {
+  it("leaves numbers below 10000 ungrouped", () => {
     expect(formatGroupedInteger(20)).toBe("20");
     expect(formatGroupedInteger(999)).toBe("999");
+    expect(formatGroupedInteger(1_000)).toBe("1000");
+    expect(formatGroupedInteger(1_800)).toBe("1800");
+    expect(formatGroupedInteger(9_999)).toBe("9999");
   });
 
-  it("groups thousands with dots", () => {
-    expect(formatGroupedInteger(1_000)).toBe("1.000");
+  it("groups thousands with dots from 10000 up", () => {
     expect(formatGroupedInteger(10_000)).toBe("10.000");
     expect(formatGroupedInteger(100_000)).toBe("100.000");
     expect(formatGroupedInteger(1_000_000)).toBe("1.000.000");
@@ -35,7 +37,7 @@ describe("formatMoneyAmount", () => {
     expect(formatMoneyAmount(amount, "AMD", "hy")).toBe(
       formatMoneyAmount(amount, "AMD", "en"),
     );
-    expect(formatMoneyAmount(amount, "AMD", "hy")).toBe("1.234 AMD");
+    expect(formatMoneyAmount(amount, "AMD", "hy")).toBe("1234 AMD");
   });
 });
 
@@ -45,9 +47,9 @@ describe("formatStorefrontPrice", () => {
       formatStorefrontPrice({
         displayCurrency: "AMD",
         displayAmount: 2150n,
-        formatted: "2.150 AMD",
+        formatted: "2150 AMD",
       }),
-    ).toBe("2.150 Դ");
+    ).toBe("2150 Դ");
   });
 
   it("keeps non-AMD formatted labels", () => {

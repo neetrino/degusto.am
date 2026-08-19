@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { motion, useReducedMotion, type Variants } from "motion/react";
 
 import { AppLink } from "@/components/ui/AppLink";
@@ -12,6 +12,10 @@ import {
   resolveCategoryIcon,
   type CategoryIconAsset,
 } from "@/features/products/ui/shop/resolve-category-icon";
+import {
+  shouldCommitCatalogSearch,
+  useDebouncedCatalogSearch,
+} from "@/features/products/ui/shop/use-debounced-catalog-search";
 
 export type ShopCategoryItem = {
   id: string;
@@ -71,11 +75,27 @@ export function ShopCategorySidebar({
   const reduceMotion = useReducedMotion();
   const { isPending, startCatalogTransition } = useCatalogNavigation();
   const [query, setQuery] = useState(searchQuery);
+  const [isDirty, setIsDirty] = useState(false);
+  const lastUrlQueryRef = useRef(searchQuery);
   const isAll = selectedSlug === "all" || selectedSlug === "";
 
-  function handleSearchSubmit(event: FormEvent<HTMLFormElement>): void {
-    event.preventDefault();
-    const trimmed = query.trim();
+  useEffect(() => {
+    if (searchQuery === lastUrlQueryRef.current) {
+      return;
+    }
+    lastUrlQueryRef.current = searchQuery;
+    setQuery(searchQuery);
+    setIsDirty(false);
+  }, [searchQuery]);
+
+  function commitSearch(nextQuery: string): void {
+    const trimmed = nextQuery.trim();
+    if (!shouldCommitCatalogSearch(trimmed, searchQuery)) {
+      setIsDirty(false);
+      return;
+    }
+    lastUrlQueryRef.current = trimmed;
+    setIsDirty(false);
     const params = new URLSearchParams();
     if (trimmed) {
       params.set("q", trimmed);
@@ -89,6 +109,18 @@ export function ShopCategorySidebar({
     startCatalogTransition(() => {
       router.push(href);
     });
+  }
+
+  useDebouncedCatalogSearch({
+    draftQuery: query,
+    committedQuery: searchQuery,
+    isDirty,
+    onCommit: commitSearch,
+  });
+
+  function handleSearchSubmit(event: FormEvent<HTMLFormElement>): void {
+    event.preventDefault();
+    commitSearch(query);
   }
 
   return (
@@ -107,15 +139,17 @@ export function ShopCategorySidebar({
           name="q"
           type="search"
           value={query}
-          onChange={(event) => setQuery(event.target.value)}
+          onChange={(event) => {
+            setIsDirty(true);
+            setQuery(event.target.value);
+          }}
           placeholder={searchPlaceholder}
-          disabled={isPending}
-          className="h-full min-w-0 flex-1 bg-transparent pr-2 pl-[14px] text-base leading-6 text-[#252525] outline-none placeholder:text-[rgba(105,105,105,0.56)] disabled:opacity-70"
+          autoComplete="off"
+          className="h-full min-w-0 flex-1 bg-transparent pr-2 pl-[14px] text-base leading-6 text-[#252525] outline-none placeholder:text-[rgba(105,105,105,0.56)]"
         />
         <button
           type="submit"
-          disabled={isPending}
-          className="mr-1 inline-flex size-10 shrink-0 items-center justify-center rounded-full text-[#717182] disabled:opacity-70"
+          className="mr-1 inline-flex size-10 shrink-0 items-center justify-center rounded-full text-[#717182]"
           aria-label={searchPlaceholder}
         >
           <svg

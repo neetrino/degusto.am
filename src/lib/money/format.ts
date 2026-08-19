@@ -1,13 +1,14 @@
 import type { Currency } from "@/lib/money/currency";
 import { getCurrencyMeta } from "@/lib/money/currency-meta";
 
-/** Dot thousands grouping for AMD (1.000). Thin space for FX to keep `.` decimals. */
+/** Dot thousands grouping for AMD (10.000). Thin space for FX to keep `.` decimals. */
 const AMD_GROUP_SEPARATOR = ".";
 const FX_GROUP_SEPARATOR = "\u202f";
+const AMD_GROUP_FROM = 10_000;
 
 /**
- * Formats a whole number with `.` thousands separators from 1.000 up.
- * Values below 1000 stay ungrouped (20, 999).
+ * Formats a whole number with `.` thousands separators from 10.000 up.
+ * Values below 10.000 stay ungrouped (20, 1800, 9999).
  */
 export function formatGroupedInteger(value: number | bigint): string {
   const raw = typeof value === "bigint" ? Number(value) : value;
@@ -18,6 +19,9 @@ export function formatGroupedInteger(value: number | bigint): string {
   const rounded = Math.round(raw);
   const sign = rounded < 0 ? "-" : "";
   const absolute = Math.abs(rounded);
+  if (absolute < AMD_GROUP_FROM) {
+    return `${sign}${String(absolute)}`;
+  }
   return `${sign}${String(absolute).replace(/\B(?=(\d{3})+(?!\d))/g, AMD_GROUP_SEPARATOR)}`;
 }
 
@@ -35,10 +39,12 @@ function formatMajorAmount(
   const [integerPart = "0", fractionPart] = absolute
     .toFixed(fractionDigits)
     .split(".");
-  const grouped = integerPart.replace(
-    /\B(?=(\d{3})+(?!\d))/g,
-    groupSeparator,
-  );
+  const integerValue = Number(integerPart);
+  const shouldGroup =
+    groupSeparator !== AMD_GROUP_SEPARATOR || integerValue >= AMD_GROUP_FROM;
+  const grouped = shouldGroup
+    ? integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, groupSeparator)
+    : integerPart;
 
   if (fractionDigits > 0 && fractionPart !== undefined) {
     return `${sign}${grouped}.${fractionPart}`;
@@ -73,7 +79,7 @@ type StorefrontPriceInput = {
   formatted: string;
 };
 
-/** Storefront price label: AMD uses `1.000 Դ`, other currencies keep `formatted`. */
+/** Storefront price label: AMD uses `10.000 Դ` grouping, other currencies keep `formatted`. */
 export function formatStorefrontPrice(price: StorefrontPriceInput): string {
   if (price.displayCurrency === "AMD") {
     return `${formatGroupedInteger(price.displayAmount)} Դ`;
