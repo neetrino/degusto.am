@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { StorefrontMobileChrome } from "@/components/layout/StorefrontMobileChrome";
 import { listStorefrontCategories } from "@/features/categories/application/list-storefront-categories";
+import { SHOW_DIET_UI } from "@/features/products/diet-ui";
 import {
   getActiveProductsPage,
   getPrimaryCategoryLabels,
@@ -90,7 +91,9 @@ export default async function ProductsPage({
   const maxPrice = parseOptionalInt(sp.max);
   const searchQuery = sp.q?.trim() || "";
   const diet: "none" | "veg" | "spicy" =
-    sp.diet === "veg" || sp.diet === "spicy" ? sp.diet : "none";
+    SHOW_DIET_UI && (sp.diet === "veg" || sp.diet === "spicy")
+      ? sp.diet
+      : "none";
 
   const dictionary = getDictionary(rawLocale);
   const catalogCopy = dictionary.catalog;

@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { SHOW_ADMIN_HERO_UI } from "@/features/hero/admin-hero-ui";
+
 export type AdminMenuItem = {
   id: string;
   label: string;
@@ -40,7 +42,7 @@ function SettingsIcon() {
 export function getAdminMenuItems(locale: string): AdminMenuItem[] {
   const base = `/${locale}/admin`;
 
-  return [
+  const items: AdminMenuItem[] = [
     {
       id: "dashboard",
       label: "Dashboard",
@@ -116,14 +118,6 @@ export function getAdminMenuItems(locale: string): AdminMenuItem[] {
       ),
     },
     {
-      id: "hero",
-      label: "Hero",
-      href: `${base}/hero`,
-      icon: (
-        <MenuIcon d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-      ),
-    },
-    {
       id: "blog",
       label: "Blog",
       href: `${base}/blog`,
@@ -146,6 +140,20 @@ export function getAdminMenuItems(locale: string): AdminMenuItem[] {
       icon: <SettingsIcon />,
     },
   ];
+
+  if (SHOW_ADMIN_HERO_UI) {
+    const blogIndex = items.findIndex((item) => item.id === "blog");
+    items.splice(blogIndex >= 0 ? blogIndex : items.length, 0, {
+      id: "hero",
+      label: "Hero",
+      href: `${base}/hero`,
+      icon: (
+        <MenuIcon d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      ),
+    });
+  }
+
+  return items;
 }
 
 export function isAdminTabActive(tabHref: string, pathname: string, locale: string): boolean {

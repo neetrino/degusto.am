@@ -2,6 +2,7 @@ import Image from "next/image";
 
 import { AppLink } from "@/components/ui/AppLink";
 import { AddToCartButton } from "@/features/cart/ui/AddToCartButton";
+import { SHOW_DIET_UI } from "@/features/products/diet-ui";
 import { WishlistButton } from "@/features/wishlist/ui/WishlistButton";
 import type { Locale } from "@/lib/i18n/config";
 import { staticAssetUrl } from "@/lib/media/static-asset-url";
@@ -89,7 +90,7 @@ export function HomeMobileProductCard({
           size="sm"
           className="absolute top-1.5 right-1.5 z-20 size-8 border border-[#dedede]/90 bg-white/95 text-gray-700 shadow-md"
         />
-        {isVegetarian ? (
+        {SHOW_DIET_UI && isVegetarian ? (
           <Image
             src={VEGGIE_ICON}
             alt=""
@@ -99,7 +100,7 @@ export function HomeMobileProductCard({
             aria-hidden
           />
         ) : null}
-        {isSpicy ? (
+        {SHOW_DIET_UI && isSpicy ? (
           <Image
             src={SPICY_ICON}
             alt=""

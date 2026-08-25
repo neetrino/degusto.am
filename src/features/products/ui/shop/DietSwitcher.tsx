@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 
+import { SHOW_DIET_UI } from "@/features/products/diet-ui";
 import styles from "@/features/products/ui/shop/DietSwitcher.module.css";
 import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
@@ -41,6 +42,10 @@ export function DietSwitcher({
   noneLabel,
   vegetarianLabel,
 }: DietSwitcherProps) {
+  if (!SHOW_DIET_UI) {
+    return null;
+  }
+
   return (
     <div
       role="radiogroup"

@@ -5,6 +5,7 @@ import { Check } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { ADMIN_LABEL } from "@/features/admin/ui/admin-form-classes";
+import { SHOW_DIET_UI } from "@/features/products/diet-ui";
 import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
 const SPICY_ICON = staticAssetUrl("/assets/product-card/spicy.webp");
@@ -90,6 +91,10 @@ export function ProductDrawerDietBadges({
   onSpicyChange,
   onVegetarianChange,
 }: ProductDrawerDietBadgesProps) {
+  if (!SHOW_DIET_UI) {
+    return null;
+  }
+
   return (
     <fieldset disabled={disabled} className="min-w-0">
       <legend className={ADMIN_LABEL}>Կծու / Vegie</legend>
