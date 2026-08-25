@@ -1,5 +1,6 @@
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
+import { SHOW_ADMIN_HERO_UI } from "@/features/hero/admin-hero-ui";
 import { isLocale } from "@/lib/i18n/config";
 
 type AdminHeroDetailPageProps = {
@@ -10,6 +11,10 @@ type AdminHeroDetailPageProps = {
 export default async function AdminHeroDetailPage({
   params,
 }: AdminHeroDetailPageProps) {
+  if (!SHOW_ADMIN_HERO_UI) {
+    notFound();
+  }
+
   const { locale, id } = await params;
   if (!isLocale(locale)) {
     redirect("/");
@@ -17,4 +22,3 @@ export default async function AdminHeroDetailPage({
 
   redirect(`/${locale}/admin/hero?edit=${id}`);
 }
-

@@ -20,6 +20,7 @@ import {
 
 import { AppLink } from "@/components/ui/AppLink";
 import { logoutAction } from "@/features/auth/logout-action";
+import { SHOW_ADMIN_HERO_UI } from "@/features/hero/admin-hero-ui";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
 import type { SessionUser } from "@/lib/auth/session";
@@ -151,12 +152,16 @@ export function AdminMobileHub({
       icon: <Newspaper className="h-5 w-5" strokeWidth={2.25} />,
       tone: "sky",
     },
-    {
-      href: `${base}/hero`,
-      label: dictionary.hero,
-      icon: <ImageIcon className="h-5 w-5" strokeWidth={2.25} />,
-      tone: "rose",
-    },
+    ...(SHOW_ADMIN_HERO_UI
+      ? [
+          {
+            href: `${base}/hero`,
+            label: dictionary.hero,
+            icon: <ImageIcon className="h-5 w-5" strokeWidth={2.25} />,
+            tone: "rose" as const,
+          },
+        ]
+      : []),
     {
       href: `${base}/settings`,
       label: dictionary.settings,

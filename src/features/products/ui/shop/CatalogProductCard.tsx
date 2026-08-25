@@ -2,6 +2,7 @@ import Image from "next/image";
 
 import { AppLink } from "@/components/ui/AppLink";
 import { AddToCartButton } from "@/features/cart/ui/AddToCartButton";
+import { SHOW_DIET_UI } from "@/features/products/diet-ui";
 import { WishlistButton } from "@/features/wishlist/ui/WishlistButton";
 import type { Locale } from "@/lib/i18n/config";
 import { staticAssetUrl } from "@/lib/media/static-asset-url";
@@ -86,7 +87,7 @@ export function CatalogProductCard({
             </span>
           )}
 
-          {isVegetarian || isSpicy ? (
+          {SHOW_DIET_UI && (isVegetarian || isSpicy) ? (
             <div className="absolute top-2 left-4 z-[3] flex flex-col gap-2">
               {isVegetarian ? (
                 <span className="flex size-8 items-center justify-center overflow-hidden rounded-full">

@@ -4,6 +4,7 @@ import Image from "next/image";
 
 import { AppLink } from "@/components/ui/AppLink";
 import { AddToCartButton } from "@/features/cart/ui/AddToCartButton";
+import { SHOW_DIET_UI } from "@/features/products/diet-ui";
 import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
 const STAR_ICON = staticAssetUrl("/assets/product-card/star.webp");
@@ -65,7 +66,7 @@ export function DailyOfferHeroCard({
             priority
           />
         ) : null}
-        {isVegetarian ? (
+        {SHOW_DIET_UI && isVegetarian ? (
           <div className="absolute top-2 left-[11px] z-[2] flex size-8 items-center justify-center overflow-hidden rounded-full">
             <Image
               src={VEGGIE_ICON}
