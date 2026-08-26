@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { SHOW_ADMIN_BLOG_UI } from "@/features/blog/admin-blog-ui";
 import { SHOW_ADMIN_HERO_UI } from "@/features/hero/admin-hero-ui";
 
 export type AdminMenuItem = {
@@ -153,7 +154,7 @@ export function getAdminMenuItems(locale: string): AdminMenuItem[] {
     });
   }
 
-  return items;
+  return items.filter((item) => SHOW_ADMIN_BLOG_UI || item.id !== "blog");
 }
 
 export function isAdminTabActive(tabHref: string, pathname: string, locale: string): boolean {

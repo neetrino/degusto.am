@@ -63,6 +63,7 @@ body {
   background-color: var(--background);
 }
 
+body:has([data-contact-page]),
 body:has([data-wishlist-page]),
 body:has([data-shop-page]),
 body:has([data-pdp-page]),
@@ -522,6 +523,20 @@ body:has([data-cart-page]) {
 .storefront-shell:has([data-pdp-page]),
 .storefront-shell:has([data-wishlist-page]),
 .storefront-shell:has([data-checkout-page]) {
+  background-color: #ffffff;
+}
+
+.storefront-shell:has([data-contact-page]) {
+  background-color: #ffffff;
+}
+
+.storefront-shell:has([data-contact-page]) .storefront-main {
+  max-width: none;
+  padding: 0;
+  background-color: #ffffff;
+}
+
+.storefront-shell:has([data-contact-page]) .storefront-footer {
   background-color: #ffffff;
 }
 
