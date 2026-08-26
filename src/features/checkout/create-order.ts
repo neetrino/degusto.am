@@ -29,6 +29,12 @@ import {
 } from "@/features/checkout/schemas";
 import { toPaymentRecord } from "@/features/checkout/domain/payment-methods";
 import {
+  isPickupBranchId,
+  resolvePickupBranchLabel,
+  type PickupBranchOption,
+} from "@/features/checkout/domain/pickup-branches";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
+import {
   ORDER_NUMBER_LOCK_KEY,
   formatOrderNumber,
   nextOrderSequence,
@@ -59,6 +65,13 @@ function deliveryLabel(countryCode: string, city: string | null): string {
     return `${cityPart}, ${countryCode}`;
   }
   return countryCode;
+}
+
+function pickupBranchesForLocale(locale: CheckoutInput["locale"]): PickupBranchOption[] {
+  const branches = getDictionary(locale).checkout.pickupBranches;
+  return branches.filter((branch): branch is PickupBranchOption =>
+    isPickupBranchId(branch.id),
+  );
 }
 
 export type CreateOrderResult =
@@ -107,6 +120,7 @@ export async function createOrderAction(
       shippingMethod: input.shippingMethod,
       paymentMethod: input.paymentMethod,
       deliveryRuleId: input.deliveryRuleId ?? null,
+      pickupBranchId: input.pickupBranchId ?? null,
     }),
   );
 
@@ -129,6 +143,7 @@ export async function createOrderAction(
       }
 
       let delivery: typeof deliveryRules.$inferSelect | null = null;
+      let pickupBranchLabel: string | null = null;
       if (input.shippingMethod === "delivery") {
         if (!input.deliveryRuleId) {
           throw new Error("Delivery location is required.");
@@ -150,6 +165,17 @@ export async function createOrderAction(
         }
 
         delivery = matched;
+      } else {
+        if (!input.pickupBranchId) {
+          throw new Error("Pickup branch is required.");
+        }
+        pickupBranchLabel = resolvePickupBranchLabel(
+          input.pickupBranchId,
+          pickupBranchesForLocale(input.locale),
+        );
+        if (!pickupBranchLabel) {
+          throw new Error("Selected pickup branch is unavailable.");
+        }
       }
 
       const address = {
@@ -164,7 +190,7 @@ export async function createOrderAction(
             : (delivery?.city?.trim() || input.city?.trim() || ""),
         line1:
           input.shippingMethod === "pickup"
-            ? (input.line1?.trim() || "Store pickup")
+            ? (pickupBranchLabel ?? "Store pickup")
             : (input.line1 ?? ""),
         line2: input.line2,
         postalCode: input.postalCode,

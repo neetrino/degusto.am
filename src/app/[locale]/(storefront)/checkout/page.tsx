@@ -4,6 +4,10 @@ import { StorefrontMobileChrome } from "@/components/layout/StorefrontMobileChro
 import { getCartWithItems } from "@/features/cart/cart";
 import { getCheckoutDeliveryOptions } from "@/features/checkout/application/get-checkout-delivery";
 import { getCheckoutOrderProducts } from "@/features/checkout/application/get-checkout-order-products";
+import {
+  isPickupBranchId,
+  type PickupBranchOption,
+} from "@/features/checkout/domain/pickup-branches";
 import { CheckoutForm } from "@/features/checkout/ui/CheckoutForm";
 import { getDefaultShippingAddress } from "@/features/profile/application/address-queries";
 import { resolveProductPrices } from "@/features/promotions/application/resolve-product-prices";
@@ -55,6 +59,10 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
     return sum + item.quantity * unit;
   }, 0);
 
+  const pickupBranches: PickupBranchOption[] = copy.pickupBranches.filter(
+    (branch): branch is PickupBranchOption => isPickupBranchId(branch.id),
+  );
+
   const formProps = {
     locale: rawLocale,
     productsHref: `/${rawLocale}/products`,
@@ -69,6 +77,7 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
     defaultLine1: defaultAddress?.line1 ?? "",
     subtotalAmount: subtotal,
     deliveryOptions,
+    pickupBranches,
     labels: {
       title: copy.title,
       productsInOrder: copy.productsInOrder,
@@ -88,6 +97,8 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
       address: copy.form.address,
       deliveryLocation: copy.form.deliveryLocation,
       selectLocation: copy.form.selectLocation,
+      pickupBranch: copy.form.pickupBranch,
+      selectBranch: copy.form.selectBranch,
       phonePlaceholder: copy.placeholders.phone,
       cityPlaceholder: copy.placeholders.city,
       addressPlaceholder: copy.placeholders.address,
@@ -98,6 +109,7 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
       freePickup: copy.shipping.freePickup,
       enterCity: copy.shipping.enterCity,
       selectDeliveryLocation: copy.shipping.selectDeliveryLocation,
+      selectPickupBranch: copy.shipping.selectPickupBranch,
       cashOnDelivery: copy.payment.cashOnDelivery,
       cashOnDeliveryDescription: copy.payment.cashOnDeliveryDescription,
       idram: copy.payment.idram,
@@ -108,6 +120,7 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
       changeHint: copy.payment.changeHint,
       changeNone: copy.payment.changeNone,
       changeRequired: copy.payment.changeRequired,
+      pickupBranchRequired: copy.payment.pickupBranchRequired,
       couponTitle: copy.coupon.title,
       couponPlaceholder: copy.coupon.placeholder,
       couponApply: copy.coupon.apply,
@@ -143,12 +156,12 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
     >
       <StorefrontMobileChrome
         {...mobileChrome}
-        sheetClassName="bg-[linear-gradient(180deg,#fff8f2_0%,#ffffff_38%,#ffffff_100%)]"
+        sheetClassName="bg-white"
       >
         <CheckoutForm {...formProps} />
       </StorefrontMobileChrome>
 
-      <div className="hidden bg-[linear-gradient(180deg,#fff8f2_0%,#ffffff_38%,#ffffff_100%)] lg:block">
+      <div className="hidden bg-white lg:block">
         <div className="mx-auto w-full max-w-[min(1450px,calc(100%-2rem))] px-4 md:max-w-[min(1450px,calc(100%-2.5rem))] md:px-6 lg:max-w-[min(1450px,calc(100%-3rem))]">
           <CheckoutForm {...formProps} />
         </div>

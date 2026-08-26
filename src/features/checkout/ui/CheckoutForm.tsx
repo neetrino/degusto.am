@@ -9,6 +9,12 @@ import type { CheckoutOrderProduct } from "@/features/checkout/ui/checkout-order
 import { previewCouponAction } from "@/features/checkout/application/preview-coupon";
 import { createOrderAction } from "@/features/checkout/create-order";
 import type { CheckoutPaymentMethod } from "@/features/checkout/domain/payment-methods";
+import {
+  isPickupBranchId,
+  resolvePickupBranchLabel,
+  type PickupBranchId,
+  type PickupBranchOption,
+} from "@/features/checkout/domain/pickup-branches";
 import type { CashChangePreference } from "@/features/checkout/ui/CheckoutCashChange";
 import { CheckoutDetailsSections } from "@/features/checkout/ui/CheckoutDetailsSections";
 import {
@@ -42,6 +48,8 @@ type CheckoutLabels = {
   address: string;
   deliveryLocation: string;
   selectLocation: string;
+  pickupBranch: string;
+  selectBranch: string;
   phonePlaceholder: string;
   cityPlaceholder: string;
   addressPlaceholder: string;
@@ -52,6 +60,8 @@ type CheckoutLabels = {
   freePickup: string;
   enterCity: string;
   selectDeliveryLocation: string;
+  selectPickupBranch: string;
+  pickupBranchRequired: string;
   cashOnDelivery: string;
   cashOnDeliveryDescription: string;
   idram: string;
@@ -89,6 +99,7 @@ type CheckoutFormProps = {
   defaultLine1: string;
   subtotalAmount: number;
   deliveryOptions: CheckoutDeliveryOption[];
+  pickupBranches: ReadonlyArray<PickupBranchOption>;
   hasItems: boolean;
 };
 
@@ -118,6 +129,7 @@ export function CheckoutForm({
   defaultLine1,
   subtotalAmount,
   deliveryOptions,
+  pickupBranches,
   hasItems,
 }: CheckoutFormProps) {
   const router = useRouter();
@@ -128,6 +140,7 @@ export function CheckoutForm({
     deliveryOptions.length > 0 ? "delivery" : "pickup",
   );
   const [deliveryRuleId, setDeliveryRuleId] = useState(defaultRuleId);
+  const [pickupBranchId, setPickupBranchId] = useState("");
   const [paymentMethod, setPaymentMethod] =
     useState<CheckoutPaymentMethod>("cash_on_delivery");
   const [cashChangePreference, setCashChangePreference] =
@@ -186,12 +199,22 @@ export function CheckoutForm({
   const totalAmount =
     Math.max(0, subtotalAmount - discountAmount) + shippingAmount;
 
+  const selectedPickupBranch = pickupBranches.find(
+    (branch) => branch.id === pickupBranchId,
+  );
+
   const shippingFormatted =
     shippingMethod === "pickup"
-      ? labels.freePickup
+      ? selectedPickupBranch
+        ? `${labels.freePickup} · ${selectedPickupBranch.label}`
+        : labels.selectPickupBranch
       : selectedDelivery
         ? `${formatMoney(shippingAmount)} (${selectedDelivery.label})`
         : labels.selectDeliveryLocation;
+
+  function onPickupBranchChange(branchId: string): void {
+    setPickupBranchId(branchId);
+  }
 
   function onPaymentMethodChange(method: CheckoutPaymentMethod): void {
     setPaymentMethod(method);
@@ -238,7 +261,7 @@ export function CheckoutForm({
   if (!hasItems) {
     return (
       <CheckoutSmoothScroll>
-        <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen bg-[linear-gradient(180deg,#fff8f2_0%,#ffffff_42%,#ffffff_100%)]">
+        <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen bg-white">
           <div className="mx-auto max-w-[min(1450px,calc(100%-2rem))] px-4 py-16 md:max-w-[min(1450px,calc(100%-2.5rem))] md:px-6 lg:max-w-[min(1450px,calc(100%-3rem))] lg:py-20">
             <motion.h1
               initial={
@@ -293,6 +316,20 @@ export function CheckoutForm({
       return;
     }
 
+    if (shippingMethod === "pickup" && !isPickupBranchId(pickupBranchId)) {
+      setError(labels.pickupBranchRequired);
+      return;
+    }
+
+    const resolvedPickupBranchId: PickupBranchId | undefined =
+      shippingMethod === "pickup" && isPickupBranchId(pickupBranchId)
+        ? pickupBranchId
+        : undefined;
+    const pickupBranchLabel =
+      resolvedPickupBranchId != null
+        ? resolvePickupBranchLabel(resolvedPickupBranchId, pickupBranches)
+        : null;
+
     startTransition(async () => {
       const result = await createOrderAction({
         locale,
@@ -309,6 +346,7 @@ export function CheckoutForm({
             : undefined,
         deliveryRuleId:
           shippingMethod === "delivery" ? deliveryRuleId || undefined : undefined,
+        pickupBranchId: resolvedPickupBranchId,
         city:
           shippingMethod === "delivery"
             ? selectedDelivery?.city
@@ -316,7 +354,7 @@ export function CheckoutForm({
         line1:
           shippingMethod === "delivery"
             ? String(data.get("line1") ?? "")
-            : undefined,
+            : (pickupBranchLabel ?? undefined),
         couponCode: appliedCouponCode ?? undefined,
       });
 
@@ -333,40 +371,6 @@ export function CheckoutForm({
   return (
     <CheckoutSmoothScroll>
       <div className="relative w-full">
-        <motion.div
-          aria-hidden
-          animate={
-            reduceMotion
-              ? undefined
-              : { scale: [1, 1.08, 1], opacity: [0.55, 0.85, 0.55] }
-          }
-          transition={
-            reduceMotion
-              ? undefined
-              : { duration: 10, repeat: Infinity, ease: "easeInOut" }
-          }
-          className="pointer-events-none absolute -top-24 -right-20 h-72 w-72 rounded-full bg-[#ff7f20]/10 blur-3xl"
-        />
-        <motion.div
-          aria-hidden
-          animate={
-            reduceMotion
-              ? undefined
-              : { scale: [1, 1.12, 1], opacity: [0.4, 0.7, 0.4] }
-          }
-          transition={
-            reduceMotion
-              ? undefined
-              : {
-                  duration: 12,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: 1.2,
-                }
-          }
-          className="pointer-events-none absolute top-40 -left-24 h-64 w-64 rounded-full bg-[#3E573D]/10 blur-3xl"
-        />
-
         <div className="relative mx-auto max-w-[min(1450px,calc(100%-2rem))] px-0 pt-2 pb-8 md:max-w-[min(1450px,calc(100%-2.5rem))] md:px-0 lg:max-w-[min(1450px,calc(100%-3rem))] lg:px-0 lg:pt-14 lg:pb-20">
           <motion.h1
             initial={reduceMotion ? false : "hidden"}
@@ -409,6 +413,9 @@ export function CheckoutForm({
                   deliveryOptions={deliveryOptions}
                   deliveryRuleId={deliveryRuleId}
                   onDeliveryRuleChange={setDeliveryRuleId}
+                  pickupBranches={pickupBranches}
+                  pickupBranchId={pickupBranchId}
+                  onPickupBranchChange={onPickupBranchChange}
                   paymentMethod={paymentMethod}
                   onPaymentMethodChange={onPaymentMethodChange}
                   paymentOptions={paymentOptions}

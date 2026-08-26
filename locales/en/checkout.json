@@ -17,8 +17,24 @@
     "address": "Address",
     "city": "City",
     "deliveryLocation": "Delivery location",
-    "selectLocation": "Select location"
+    "selectLocation": "Select location",
+    "pickupBranch": "Branch",
+    "selectBranch": "Select a branch"
   },
+  "pickupBranches": [
+    {
+      "id": "paruyr-sevak-92",
+      "label": "Paruyr Sevak 92"
+    },
+    {
+      "id": "bagratunyats-11a",
+      "label": "Bagratunyats 11A"
+    },
+    {
+      "id": "azatutyan-24-19",
+      "label": "Azatutyan 24/19, Coffee Studio by Degusto"
+    }
+  ],
   "placeholders": {
     "phone": "+374XXXXXXXX",
     "address": "Street, apartment, office, etc.",
@@ -31,7 +47,8 @@
     "deliveryDescription": "We will deliver your order to your address",
     "freePickup": "Free (Store Pickup)",
     "enterCity": "Enter City",
-    "selectDeliveryLocation": "Select delivery location"
+    "selectDeliveryLocation": "Select delivery location",
+    "selectPickupBranch": "Select a branch"
   },
   "payment": {
     "cashOnDelivery": "Cash on Delivery",
@@ -43,7 +60,8 @@
     "changeTitle": "Change",
     "changeHint": "Tap the banknote you will pay with so we can prepare the change.",
     "changeNone": "No change needed",
-    "changeRequired": "Select a banknote or confirm that no change is needed"
+    "changeRequired": "Select a banknote or confirm that no change is needed",
+    "pickupBranchRequired": "Select a pickup branch"
   },
   "coupon": {
     "title": "Have a coupon?",

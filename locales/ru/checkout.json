@@ -17,8 +17,24 @@
     "address": "Адрес",
     "city": "Город",
     "deliveryLocation": "Место доставки",
-    "selectLocation": "Выберите место"
+    "selectLocation": "Выберите место",
+    "pickupBranch": "Филиал",
+    "selectBranch": "Выберите филиал"
   },
+  "pickupBranches": [
+    {
+      "id": "paruyr-sevak-92",
+      "label": "Паруйра Севака 92"
+    },
+    {
+      "id": "bagratunyats-11a",
+      "label": "Багратунянц 11А"
+    },
+    {
+      "id": "azatutyan-24-19",
+      "label": "Азатутян 24/19, Coffee Studio by Degusto"
+    }
+  ],
   "placeholders": {
     "phone": "+374XXXXXXXX",
     "address": "Улица, квартира, офис и т.д.",
@@ -31,7 +47,8 @@
     "deliveryDescription": "Доставим заказ по вашему адресу",
     "freePickup": "Бесплатно (Самовывоз)",
     "enterCity": "Укажите город",
-    "selectDeliveryLocation": "Выберите место доставки"
+    "selectDeliveryLocation": "Выберите место доставки",
+    "selectPickupBranch": "Выберите филиал"
   },
   "payment": {
     "cashOnDelivery": "Наличными при получении",
@@ -43,7 +60,8 @@
     "changeTitle": "Сдача",
     "changeHint": "Нажмите купюру, которой будете платить, чтобы мы подготовили сдачу.",
     "changeNone": "Сдача не нужна",
-    "changeRequired": "Выберите купюру или укажите, что сдача не нужна"
+    "changeRequired": "Выберите купюру или укажите, что сдача не нужна",
+    "pickupBranchRequired": "Выберите филиал"
   },
   "coupon": {
     "title": "Есть промокод?",
