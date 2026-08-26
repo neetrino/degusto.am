@@ -1,20 +1,17 @@
 "use client";
 
-import Image from "next/image";
-
 import { CartDrawer } from "@/features/cart/ui/CartDrawer";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
 import type { Currency } from "@/lib/money/currency";
-import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
-const BADGE_CIRCLE = staticAssetUrl("/assets/brand/avatar-circle.webp");
+const CART_BADGE_BG = "#F5C518";
 
 function HeaderCartIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="h-[34px] w-[37px] -translate-y-1 text-[#F66812]"
+      className="h-6 w-6 text-white"
       fill="currentColor"
       aria-hidden
     >
@@ -31,11 +28,21 @@ type HeaderCartButtonProps = {
   totalFormatted: string;
 };
 
+/** Formats money for the header cart pill (e.g. `9 800֏`). */
 function toDramLabel(totalFormatted: string): string {
-  return totalFormatted.replace(/\s*AMD\b/g, " Դ").trim();
+  const withoutCurrency = totalFormatted
+    .replace(/\s*AMD\b/gi, "")
+    .replace(/[֏Դ]/g, "")
+    .trim();
+  const digits = withoutCurrency.replace(/[^\d]/g, "");
+  if (!digits) {
+    return `${withoutCurrency}֏`.trim();
+  }
+  const grouped = digits.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  return `${grouped}֏`;
 }
 
-/** Degusto header cart — live degusto-am cart icon + white price pill. */
+/** Degusto header cart — brand pill with cart badge + total. */
 export function HeaderCartButton({
   locale,
   currency,
@@ -63,34 +70,26 @@ export function HeaderCartButton({
           onClick={openDrawer}
           onPointerEnter={prefetchDrawerView}
           onFocus={prefetchDrawerView}
-          className="relative inline-flex h-12 shrink-0 items-end"
+          className="inline-flex h-11 shrink-0 items-center gap-2.5 rounded-full bg-brand px-3.5 pr-4 text-white shadow-[0_6px_18px_rgba(246,104,18,0.28)] transition hover:bg-brand-strong"
           aria-label={`${label}, ${priceLabel}`}
           aria-expanded={open}
         >
           <span
             data-cart-fly-target="true"
-            className="relative z-[2] mb-px inline-flex h-[34px] w-[37px] shrink-0 translate-x-1 items-center justify-center"
+            className="relative inline-flex size-7 shrink-0 items-center justify-center"
           >
             <HeaderCartIcon />
             <span
               aria-hidden
-              className="pointer-events-none absolute top-[-2px] left-[27px] inline-flex size-6 items-center justify-center"
+              className="pointer-events-none absolute -top-1.5 -right-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] leading-none font-bold text-black tabular-nums shadow-[0_1px_4px_rgba(0,0,0,0.18)]"
+              style={{ backgroundColor: CART_BADGE_BG }}
             >
-              <Image
-                src={BADGE_CIRCLE}
-                alt=""
-                width={24}
-                height={24}
-                className="absolute size-6 object-contain"
-              />
-              <span className="relative text-sm leading-6 font-bold text-white">
-                {badgeCount > 99 ? "99+" : badgeCount}
-              </span>
+              {badgeCount > 99 ? "99+" : badgeCount}
             </span>
           </span>
           <span
             aria-hidden
-            className="relative z-[1] -ml-[21px] inline-flex h-12 min-w-[88px] shrink-0 items-center justify-center rounded-[70px] bg-white pr-3 pl-9 text-base font-bold whitespace-nowrap text-black tabular-nums"
+            className="text-base font-bold whitespace-nowrap tabular-nums"
           >
             {priceLabel}
           </span>

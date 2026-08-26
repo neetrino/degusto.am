@@ -17,21 +17,38 @@
     "address": "Հասցե",
     "city": "Քաղաք",
     "deliveryLocation": "Առաքման վայր",
-    "selectLocation": "Ընտրեք վայրը"
+    "selectLocation": "Ընտրեք վայրը",
+    "pickupBranch": "Մասնաճյուղ",
+    "selectBranch": "Ընտրեք մասնաճյուղը"
   },
+  "pickupBranches": [
+    {
+      "id": "paruyr-sevak-92",
+      "label": "Պարույր Սևակի 92"
+    },
+    {
+      "id": "bagratunyats-11a",
+      "label": "Բագրատունյաց 11Ա"
+    },
+    {
+      "id": "azatutyan-24-19",
+      "label": "Ազատության 24/19, Coffee Studio by Degusto"
+    }
+  ],
   "placeholders": {
     "phone": "+374XXXXXXXX",
     "address": "Փողոց, բնակարան, գրասենյակ և այլն",
     "city": "Քաղաք"
   },
   "shipping": {
-    "storePickup": "Ինքնաառաքում",
+    "storePickup": "Վերցնել մասնաճյուղից",
     "storePickupDescription": "Վերցրեք պատվերը խանութից (Անվճար)",
     "delivery": "Առաքում",
     "deliveryDescription": "Կառաքենք ձեր հասցեով",
-    "freePickup": "Անվճար (Ինքնաառաքում)",
+    "freePickup": "Անվճար (Վերցնել մասնաճյուղից)",
     "enterCity": "Մուտքագրեք քաղաքը",
-    "selectDeliveryLocation": "Ընտրեք առաքման վայրը"
+    "selectDeliveryLocation": "Ընտրեք առաքման վայրը",
+    "selectPickupBranch": "Ընտրեք մասնաճյուղը"
   },
   "payment": {
     "cashOnDelivery": "Կանխիկ առաքման պահին",
@@ -43,7 +60,8 @@
     "changeTitle": "Մանրը",
     "changeHint": "Սեղմեք այն թղթադրամին, որը կվճարեք, որպեսզի պատրաստենք մանրը։",
     "changeNone": "Մանր պետք չէ",
-    "changeRequired": "Ընտրեք թղթադրամը կամ նշեք, որ մանր պետք չէ"
+    "changeRequired": "Ընտրեք թղթադրամը կամ նշեք, որ մանր պետք չէ",
+    "pickupBranchRequired": "Ընտրեք մասնաճյուղը"
   },
   "coupon": {
     "title": "Ունե՞ք պրոմոկոդ",

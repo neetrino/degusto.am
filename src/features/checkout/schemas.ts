@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { CHECKOUT_PAYMENT_METHODS } from "@/features/checkout/domain/payment-methods";
+import { PICKUP_BRANCH_IDS } from "@/features/checkout/domain/pickup-branches";
 
 export const checkoutSchema = z
   .object({
@@ -11,6 +12,7 @@ export const checkoutSchema = z
     shippingMethod: z.enum(["pickup", "delivery"]),
     paymentMethod: z.enum(CHECKOUT_PAYMENT_METHODS),
     deliveryRuleId: z.string().uuid().optional(),
+    pickupBranchId: z.enum(PICKUP_BRANCH_IDS).optional(),
     city: z.string().trim().max(80).optional(),
     line1: z.string().trim().max(160).optional(),
     line2: z.string().trim().max(160).optional(),
@@ -46,6 +48,13 @@ export const checkoutSchema = z
           message: "Address is required for delivery.",
         });
       }
+    }
+    if (value.shippingMethod === "pickup" && !value.pickupBranchId) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["pickupBranchId"],
+        message: "Pickup branch is required.",
+      });
     }
     if (
       value.paymentMethod === "cash_on_delivery" &&

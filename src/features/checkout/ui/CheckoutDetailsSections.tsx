@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import { SelectDropdown } from "@/components/ui/SelectDropdown";
 import type { CheckoutPaymentMethod } from "@/features/checkout/domain/payment-methods";
+import type { PickupBranchOption } from "@/features/checkout/domain/pickup-branches";
 import {
   CheckoutCashChange,
   type CashChangePreference,
@@ -42,6 +43,8 @@ type CheckoutDetailsLabels = {
   address: string;
   deliveryLocation: string;
   selectLocation: string;
+  pickupBranch: string;
+  selectBranch: string;
   phonePlaceholder: string;
   cityPlaceholder: string;
   addressPlaceholder: string;
@@ -69,6 +72,9 @@ type CheckoutDetailsSectionsProps = {
   deliveryOptions: CheckoutDeliveryOption[];
   deliveryRuleId: string;
   onDeliveryRuleChange: (ruleId: string) => void;
+  pickupBranches: ReadonlyArray<PickupBranchOption>;
+  pickupBranchId: string;
+  onPickupBranchChange: (branchId: string) => void;
   paymentMethod: CheckoutPaymentMethod;
   onPaymentMethodChange: (method: CheckoutPaymentMethod) => void;
   paymentOptions: PaymentOption[];
@@ -89,6 +95,9 @@ export function CheckoutDetailsSections({
   deliveryOptions,
   deliveryRuleId,
   onDeliveryRuleChange,
+  pickupBranches,
+  pickupBranchId,
+  onPickupBranchChange,
   paymentMethod,
   onPaymentMethodChange,
   paymentOptions,
@@ -225,6 +234,43 @@ export function CheckoutDetailsSections({
       </motion.section>
 
       <AnimatePresence initial={false}>
+        {shippingMethod === "pickup" ? (
+          <motion.section
+            key="pickup-branch"
+            initial={
+              reduceMotion
+                ? false
+                : { opacity: 0, y: 20, filter: "blur(8px)" }
+            }
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            exit={
+              reduceMotion
+                ? undefined
+                : { opacity: 0, y: -12, filter: "blur(6px)" }
+            }
+            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            className={`${SECTION_CLASS} relative z-20`}
+          >
+            <h2 className={SECTION_TITLE}>{labels.pickupBranch}</h2>
+            <div className="max-w-xl">
+              <SelectDropdown
+                name="pickupBranchId"
+                ariaLabel={labels.pickupBranch}
+                value={pickupBranchId}
+                allLabel={labels.selectBranch}
+                options={pickupBranches.map((branch) => ({
+                  label: branch.label,
+                  value: branch.id,
+                }))}
+                disabled={pending || pickupBranches.length === 0}
+                onValueChange={onPickupBranchChange}
+              />
+            </div>
+          </motion.section>
+        ) : null}
+      </AnimatePresence>
+
+      <AnimatePresence initial={false}>
         {shippingMethod === "delivery" ? (
           <motion.section
             key="shipping-address"
@@ -240,7 +286,7 @@ export function CheckoutDetailsSections({
                 : { opacity: 0, y: -12, filter: "blur(6px)" }
             }
             transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-            className={SECTION_CLASS}
+            className={`${SECTION_CLASS} relative z-20`}
           >
             <h2 className={SECTION_TITLE}>{labels.shippingAddress}</h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
