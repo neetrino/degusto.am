@@ -53,6 +53,19 @@ export function AdminOrdersView({ locale, orders }: AdminOrdersViewProps) {
     setError(null);
   }
 
+  function refreshDetail(): void {
+    if (!detail?.orderNumber) {
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await getAdminOrderDetailAction(locale, detail.orderNumber);
+      if (result.ok) {
+        setDetail(result.value);
+      }
+    });
+  }
+
   return (
     <>
       <BulkChangeOrderStatusForm
@@ -63,9 +76,11 @@ export function AdminOrdersView({ locale, orders }: AdminOrdersViewProps) {
       <OrderDetailsDrawer
         open={drawerOpen}
         onClose={closeDrawer}
+        locale={locale}
         detail={detail}
         error={error}
         isLoading={isPending}
+        onDetailRefresh={refreshDetail}
       />
     </>
   );

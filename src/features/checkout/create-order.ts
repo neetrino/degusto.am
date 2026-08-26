@@ -43,6 +43,7 @@ import {
   couponDiscountErrorMessage,
   evaluateCouponDiscount,
 } from "@/features/promotions/domain/evaluate-coupon";
+import { loadCouponEligibilityContext } from "@/features/promotions/application/promotion-user-access";
 import { normalizePromotionCode } from "@/features/promotions/domain/promotion-rules";
 import { resolveProductPrices } from "@/features/promotions/application/resolve-product-prices";
 import { getCurrentUser } from "@/lib/auth/session";
@@ -299,14 +300,35 @@ export async function createOrderAction(
           .for("update")
           .limit(1);
 
+        if (!coupon) {
+          throw new Error(couponDiscountErrorMessage("INVALID_OR_INACTIVE"));
+        }
+
         const nowCheck = new Date();
-        const evaluated = evaluateCouponDiscount(coupon, subtotal, nowCheck);
-        if (!evaluated.ok || !coupon) {
-          throw new Error(
-            couponDiscountErrorMessage(
-              evaluated.ok ? "INVALID_OR_INACTIVE" : evaluated.error,
-            ),
-          );
+        const eligibility = await loadCouponEligibilityContext(
+          coupon.id,
+          user?.id ?? null,
+          tx,
+        );
+        const evaluated = evaluateCouponDiscount(
+          {
+            isActive: coupon.isActive,
+            startsAt: coupon.startsAt,
+            endsAt: coupon.endsAt,
+            minimumOrderAmount: coupon.minimumOrderAmount,
+            totalUsageLimit: coupon.totalUsageLimit,
+            perUserUsageLimit: coupon.perUserUsageLimit,
+            usedCount: coupon.usedCount,
+            discountType: coupon.discountType,
+            discountValue: coupon.discountValue,
+            maxDiscountAmount: coupon.maxDiscountAmount,
+          },
+          subtotal,
+          nowCheck,
+          eligibility,
+        );
+        if (!evaluated.ok) {
+          throw new Error(couponDiscountErrorMessage(evaluated.error));
         }
 
         discountAmount = evaluated.discountAmount;

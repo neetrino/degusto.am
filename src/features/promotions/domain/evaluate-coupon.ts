@@ -9,10 +9,18 @@ export type CouponDiscountInput = {
   endsAt: Date | null;
   minimumOrderAmount: number | null;
   totalUsageLimit: number | null;
+  perUserUsageLimit: number | null;
   usedCount: number;
   discountType: DiscountType;
   discountValue: number;
   maxDiscountAmount: number | null;
+};
+
+export type CouponEligibilityContext = {
+  hasAllowlist: boolean;
+  isUserAllowed: boolean;
+  userUsageCount: number;
+  userId: string | null;
 };
 
 export type CouponDiscountError =
@@ -20,7 +28,10 @@ export type CouponDiscountError =
   | "NOT_YET_ACTIVE"
   | "EXPIRED"
   | "MINIMUM_NOT_MET"
-  | "USAGE_LIMIT";
+  | "USAGE_LIMIT"
+  | "USER_LOGIN_REQUIRED"
+  | "USER_NOT_ALLOWED"
+  | "PER_USER_LIMIT";
 
 /**
  * Validates an active coupon row against the order subtotal and returns the discount.
@@ -30,6 +41,7 @@ export function evaluateCouponDiscount(
   coupon: CouponDiscountInput | null | undefined,
   subtotal: number,
   now: Date = new Date(),
+  eligibility?: CouponEligibilityContext,
 ):
   | { ok: true; discountAmount: number }
   | { ok: false; error: CouponDiscountError } {
@@ -59,6 +71,26 @@ export function evaluateCouponDiscount(
     return { ok: false, error: "USAGE_LIMIT" };
   }
 
+  if (eligibility) {
+    if (eligibility.hasAllowlist) {
+      if (!eligibility.userId) {
+        return { ok: false, error: "USER_LOGIN_REQUIRED" };
+      }
+      if (!eligibility.isUserAllowed) {
+        return { ok: false, error: "USER_NOT_ALLOWED" };
+      }
+    }
+
+    if (coupon.perUserUsageLimit !== null) {
+      if (!eligibility.userId) {
+        return { ok: false, error: "USER_LOGIN_REQUIRED" };
+      }
+      if (eligibility.userUsageCount >= coupon.perUserUsageLimit) {
+        return { ok: false, error: "PER_USER_LIMIT" };
+      }
+    }
+  }
+
   return {
     ok: true,
     discountAmount: computeDiscountAmount(
@@ -82,5 +114,11 @@ export function couponDiscountErrorMessage(error: CouponDiscountError): string {
       return "Order does not meet coupon minimum.";
     case "USAGE_LIMIT":
       return "Coupon usage limit reached.";
+    case "USER_LOGIN_REQUIRED":
+      return "Sign in to use this coupon.";
+    case "USER_NOT_ALLOWED":
+      return "This coupon is not available for your account.";
+    case "PER_USER_LIMIT":
+      return "You have already used this coupon the maximum number of times.";
   }
 }

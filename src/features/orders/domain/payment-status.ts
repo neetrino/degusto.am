@@ -39,13 +39,25 @@ const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
   CANCELLED: "Failed",
 };
 
+const PAYMENT_STATUS_LABELS_HY: Record<PaymentStatus, string> = {
+  PENDING: "Սպասող",
+  AUTHORIZED: "Սպասող",
+  CAPTURED: "Վճարված",
+  FAILED: "Չհաջողվեց",
+  REFUNDED: "Վերադարձված",
+  CANCELLED: "Չեղարկված",
+};
+
 export function isPaymentStatus(value: string): value is PaymentStatus {
   return (PAYMENT_STATUSES as readonly string[]).includes(value);
 }
 
 /** Human label for admin orders table. */
-export function paymentStatusLabel(status: string): string {
+export function paymentStatusLabel(status: string, locale?: string): string {
   if (!isPaymentStatus(status)) return status;
+  if (locale === "hy") {
+    return PAYMENT_STATUS_LABELS_HY[status];
+  }
   return PAYMENT_STATUS_LABELS[status];
 }
 

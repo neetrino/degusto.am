@@ -9,6 +9,7 @@ import {
   ADMIN_LINK_BACK,
 } from "@/features/admin/ui/admin-form-classes";
 import { ADMIN_BADGE } from "@/features/admin/ui/status-badge";
+import { SHOW_ADMIN_MESSAGES_UI } from "@/features/contact/admin-messages-ui";
 import { getAdminContactMessageById } from "@/features/contact/application/queries";
 import {
   getEligibleContactStatuses,
@@ -33,6 +34,10 @@ function contactStatusBadgeClass(status: string): string {
 export default async function AdminMessageDetailPage({
   params,
 }: AdminMessageDetailPageProps) {
+  if (!SHOW_ADMIN_MESSAGES_UI) {
+    notFound();
+  }
+
   const { locale, id } = await params;
   if (!isLocale(locale)) {
     notFound();

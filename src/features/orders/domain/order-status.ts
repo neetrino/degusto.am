@@ -49,13 +49,26 @@ const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   REFUNDED: "Cancelled",
 };
 
+const ORDER_STATUS_LABELS_HY: Record<OrderStatus, string> = {
+  PENDING: "Սպասող",
+  CONFIRMED: "Սպասող",
+  PROCESSING: "Մշակման մեջ",
+  SHIPPED: "Ճանապարհին",
+  DELIVERED: "Ավարտված",
+  CANCELLED: "Չեղարկված",
+  REFUNDED: "Վերադարձված",
+};
+
 export function isOrderStatus(value: string): value is OrderStatus {
   return (ORDER_STATUSES as readonly string[]).includes(value);
 }
 
 /** Human label for admin orders table. */
-export function orderStatusLabel(status: string): string {
+export function orderStatusLabel(status: string, locale?: string): string {
   if (!isOrderStatus(status)) return status;
+  if (locale === "hy") {
+    return ORDER_STATUS_LABELS_HY[status];
+  }
   return ORDER_STATUS_LABELS[status];
 }
 

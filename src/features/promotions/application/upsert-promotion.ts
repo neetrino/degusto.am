@@ -6,6 +6,10 @@ import { revalidatePath } from "next/cache";
 import { auditLogs, promotions } from "@/db/schema";
 import { withTransaction } from "@/db/transaction";
 import {
+  copyPromotionAllowedUsers,
+  syncPromotionAllowedUsers,
+} from "@/features/promotions/application/promotion-user-access";
+import {
   normalizePromotionCode,
   promotionRuleErrorMessage,
   validatePromotionRules,
@@ -112,10 +116,15 @@ export async function createPromotionAction(
           discountType: parsed.data.discountType,
           discountValue: parsed.data.discountValue,
           isActive: parsed.data.isActive,
+          allowedUserCount: parsed.data.allowedUserIds.length,
         },
         correlationId,
         context: { createdAt: now.toISOString() },
       });
+
+      if (ruleInput.kind === "COUPON") {
+        await syncPromotionAllowedUsers(tx, id, parsed.data.allowedUserIds);
+      }
     });
 
     revalidatePromotionPaths(locale, id);
@@ -124,6 +133,9 @@ export async function createPromotionAction(
     const message = error instanceof Error ? error.message : "";
     if (message.includes("promotions_code_uidx") || message.includes("unique")) {
       return err("CODE_TAKEN", "That coupon code is already in use.");
+    }
+    if (message === "INVALID_USERS") {
+      return err("INVALID_USERS", "One or more selected users are invalid.");
     }
     return err("PROMOTION_CREATE_FAILED", "Unable to create promotion.");
   }
@@ -207,9 +219,18 @@ export async function updatePromotionAction(
           code: ruleInput.code,
           discountValue: parsed.data.discountValue,
           isActive: parsed.data.isActive,
+          allowedUserCount: parsed.data.allowedUserIds.length,
         },
         correlationId,
       });
+
+      if (existing.kind === "COUPON") {
+        await syncPromotionAllowedUsers(
+          tx,
+          promotionId,
+          parsed.data.allowedUserIds,
+        );
+      }
     });
 
     revalidatePromotionPaths(locale, promotionId);
@@ -225,6 +246,9 @@ export async function updatePromotionAction(
     const message = error instanceof Error ? error.message : "";
     if (message.includes("promotions_code_uidx") || message.includes("unique")) {
       return err("CODE_TAKEN", "That coupon code is already in use.");
+    }
+    if (message === "INVALID_USERS") {
+      return err("INVALID_USERS", "One or more selected users are invalid.");
     }
     return err("PROMOTION_UPDATE_FAILED", "Unable to update promotion.");
   }
@@ -401,6 +425,8 @@ export async function duplicatePromotionAction(
         afterDiff: { sourceId: promotionId, code: nextCode },
         correlationId: createId(),
       });
+
+      await copyPromotionAllowedUsers(tx, promotionId, id);
     });
 
     revalidatePromotionPaths(locale, id);

@@ -4,6 +4,7 @@ import {
   DISCOUNT_TYPES,
   PROMOTION_KINDS,
 } from "@/features/promotions/domain/promotion-rules";
+import { MAX_COUPON_ALLOWED_USERS } from "@/features/promotions/domain/coupon-user-picker";
 
 function emptyToNull(value: unknown): unknown {
   if (value === "" || value === undefined) {
@@ -57,6 +58,11 @@ export const upsertPromotionSchema = z.object({
   }, z.boolean()),
   startsAt: z.preprocess(emptyToNull, z.coerce.date().nullable()),
   endsAt: z.preprocess(emptyToNull, z.coerce.date().nullable()),
+  allowedUserIds: z
+    .array(z.string().uuid())
+    .max(MAX_COUPON_ALLOWED_USERS)
+    .optional()
+    .default([]),
 });
 
 export type UpsertPromotionInput = z.infer<typeof upsertPromotionSchema>;

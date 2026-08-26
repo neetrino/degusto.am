@@ -25,6 +25,7 @@ import {
   ADMIN_TABLE_THEAD,
 } from "@/features/admin/ui/admin-table-classes";
 import { ADMIN_BADGE } from "@/features/admin/ui/status-badge";
+import { SHOW_ADMIN_MESSAGES_UI } from "@/features/contact/admin-messages-ui";
 import { listAdminContactMessages } from "@/features/contact/application/queries";
 import { CONTACT_STATUSES } from "@/features/contact/domain/contact-rules";
 import { adminContactFilterSchema } from "@/features/contact/schemas/contact";
@@ -57,6 +58,10 @@ export default async function AdminMessagesPage({
   params,
   searchParams,
 }: AdminMessagesPageProps) {
+  if (!SHOW_ADMIN_MESSAGES_UI) {
+    notFound();
+  }
+
   const { locale } = await params;
   if (!isLocale(locale)) {
     notFound();

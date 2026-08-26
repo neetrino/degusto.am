@@ -45,6 +45,7 @@ type AdminInlineStatusSelectProps = {
   kind: "order" | "payment";
   value: string;
   disabled?: boolean;
+  onChanged?: () => void;
 };
 
 export function AdminInlineStatusSelect({
@@ -53,6 +54,7 @@ export function AdminInlineStatusSelect({
   kind,
   value,
   disabled = false,
+  onChanged,
 }: AdminInlineStatusSelectProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -108,8 +110,8 @@ export function AdminInlineStatusSelect({
 
   const currentLabel =
     kind === "order"
-      ? orderStatusLabel(displayValue)
-      : paymentStatusLabel(displayValue);
+      ? orderStatusLabel(displayValue, locale)
+      : paymentStatusLabel(displayValue, locale);
 
   const badgeClassName =
     kind === "order"
@@ -199,6 +201,7 @@ export function AdminInlineStatusSelect({
       }
 
       router.refresh();
+      onChanged?.();
     });
   }
 
