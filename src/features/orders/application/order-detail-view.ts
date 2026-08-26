@@ -39,6 +39,7 @@ export type AdminOrderDetailView = {
   addressHint: string | null;
   paymentMethod: string;
   paymentAmount: number;
+  placedAt: string;
   items: AdminOrderDetailItemView[];
 };
 
@@ -107,6 +108,7 @@ export function toAdminOrderDetailView(
       ? paymentMethodLabel(latestPayment.method)
       : "—",
     paymentAmount: latestPayment?.amount ?? order.totalAmount,
+    placedAt: order.placedAt.toISOString(),
     items: items.map((item) => ({
       id: item.id,
       title: item.productTitleSnapshot,

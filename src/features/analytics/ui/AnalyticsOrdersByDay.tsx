@@ -1,178 +1,122 @@
-import { BarChart3 } from "lucide-react";
+import { BarChart3, TrendingUp } from "lucide-react";
 
 import { Card } from "@/components/ui/Card";
 import type { AnalyticsCsvRow } from "@/features/analytics/domain/csv";
 import { formatAnalyticsShortDate } from "@/features/analytics/domain/date-range";
+import { AnalyticsOrdersBarChart } from "@/features/analytics/ui/AnalyticsOrdersBarChart";
 
 type AnalyticsOrdersByDayProps = {
   rows: AnalyticsCsvRow[];
   formatMoney: (amount: number) => string;
 };
 
-function OrdersTrendChart({ rows }: { rows: AnalyticsCsvRow[] }) {
-  const width = 640;
-  const height = 220;
-  const padding = { top: 16, right: 16, bottom: 36, left: 36 };
-  const plotWidth = width - padding.left - padding.right;
-  const plotHeight = height - padding.top - padding.bottom;
-  const maxOrders = Math.max(...rows.map((row) => row.orderCount), 1);
-  const yMax = Math.max(2, Math.ceil(maxOrders));
-
-  const points = rows.map((row, index) => {
-    const x =
-      rows.length === 1
-        ? padding.left + plotWidth / 2
-        : padding.left + (index / (rows.length - 1)) * plotWidth;
-    const y =
-      padding.top + plotHeight - (row.orderCount / yMax) * plotHeight;
-    return { x, y, row };
-  });
-
-  const linePath = points
-    .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`)
-    .join(" ");
-  const areaPath = `${linePath} L ${points[points.length - 1]?.x ?? padding.left} ${
-    padding.top + plotHeight
-  } L ${points[0]?.x ?? padding.left} ${padding.top + plotHeight} Z`;
-
-  const yTicks = Array.from({ length: yMax + 1 }, (_, index) => index);
-
-  return (
-    <svg
-      viewBox={`0 0 ${width} ${height}`}
-      className="h-56 w-full"
-      role="img"
-      aria-label="Orders by day trend chart"
-    >
-      <defs>
-        <linearGradient id="ordersAreaFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.02" />
-        </linearGradient>
-      </defs>
-
-      {yTicks.map((tick) => {
-        const y = padding.top + plotHeight - (tick / yMax) * plotHeight;
-        return (
-          <g key={tick}>
-            <line
-              x1={padding.left}
-              y1={y}
-              x2={width - padding.right}
-              y2={y}
-              stroke="#E5E7EB"
-              strokeDasharray="4 4"
-            />
-            <text
-              x={padding.left - 10}
-              y={y + 4}
-              textAnchor="end"
-              className="fill-gray-400 text-[11px]"
-            >
-              {tick}
-            </text>
-          </g>
-        );
-      })}
-
-      <path d={areaPath} fill="url(#ordersAreaFill)" />
-      <path
-        d={linePath}
-        fill="none"
-        stroke="#8B5CF6"
-        strokeWidth="2.5"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-      />
-
-      {points.map((point) => (
-        <g key={point.row.date}>
-          <circle
-            cx={point.x}
-            cy={point.y}
-            r="5"
-            fill="#3B82F6"
-            stroke="white"
-            strokeWidth="2"
-          />
-          <text
-            x={point.x}
-            y={height - 10}
-            textAnchor="middle"
-            className="fill-gray-500 text-[11px]"
-          >
-            {formatAnalyticsShortDate(point.row.date)}
-          </text>
-        </g>
-      ))}
-    </svg>
-  );
+function formatOrderLabel(count: number): string {
+  return count === 1 ? "1 order" : `${count} orders`;
 }
 
 export function AnalyticsOrdersByDay({
   rows,
   formatMoney,
 }: AnalyticsOrdersByDayProps) {
+  const totalOrders = rows.reduce((sum, row) => sum + row.orderCount, 0);
+  const totalRevenue = rows.reduce((sum, row) => sum + row.revenueAmount, 0);
   const maxOrders = Math.max(...rows.map((row) => row.orderCount), 1);
+  const chartRows = rows.map((row) => ({
+    ...row,
+    revenueLabel: formatMoney(row.revenueAmount),
+  }));
 
   return (
-    <Card className="rounded-2xl p-5 sm:p-6">
-      <div className="mb-2 flex items-start justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-semibold text-[#1f1a17]">Orders by Day</h2>
-          <p className="mt-1 text-sm text-[#8a837a]">
-            Daily Order Trends and Revenue
-          </p>
-        </div>
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
-          <BarChart3 className="h-4 w-4" aria-hidden />
+    <Card className="overflow-hidden rounded-2xl border-[#ead7bf]/70 p-0 shadow-sm">
+      <div className="border-b border-[#ead7bf]/60 bg-gradient-to-r from-[#fff8f0] via-white to-[#fff8f0] px-5 py-5 sm:px-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#ff8a3d] to-[#f55c0a] text-white shadow-[0_10px_24px_-12px_rgba(246,104,18,0.85)]">
+              <BarChart3 className="h-5 w-5" aria-hidden />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-[#1f1a17]">
+                Orders by Day
+              </h2>
+              <p className="mt-0.5 text-sm text-[#8a837a]">
+                Daily order trends and revenue
+              </p>
+            </div>
+          </div>
+
+          {rows.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              <div className="rounded-xl border border-orange-100 bg-white px-3 py-2">
+                <p className="text-[11px] font-medium uppercase tracking-wide text-[#8a837a]">
+                  Orders
+                </p>
+                <p className="text-lg font-bold text-[#f55c0a]">{totalOrders}</p>
+              </div>
+              <div className="rounded-xl border border-emerald-100 bg-white px-3 py-2">
+                <p className="text-[11px] font-medium uppercase tracking-wide text-[#8a837a]">
+                  Revenue
+                </p>
+                <p className="text-lg font-bold text-emerald-600">
+                  {formatMoney(totalRevenue)}
+                </p>
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
 
       {rows.length === 0 ? (
-        <p className="py-12 text-center text-sm text-[#8a837a]">
+        <p className="px-5 py-14 text-center text-sm text-[#8a837a] sm:px-6">
           No orders in this range.
         </p>
       ) : (
-        <>
-          <div className="mt-4 rounded-xl border border-[#ead7bf]/80 bg-[#fff8f0]/60 p-3">
-            <OrdersTrendChart rows={rows} />
+        <div className="space-y-6 px-5 py-5 sm:px-6 sm:py-6">
+          <div className="rounded-2xl border border-[#ece7df] bg-gradient-to-b from-white to-[#faf8f5] p-4 sm:p-5">
+            <AnalyticsOrdersBarChart rows={chartRows} />
           </div>
 
-          <div className="mt-6 space-y-3">
+          <div className="space-y-2.5">
             {rows.map((row) => {
               const widthPct = Math.max(
-                8,
+                6,
                 Math.round((row.orderCount / maxOrders) * 100),
               );
+
               return (
                 <div
                   key={row.date}
-                  className="grid grid-cols-[5.5rem_1fr_auto] items-center gap-3"
+                  className="grid grid-cols-1 gap-3 rounded-xl border border-[#ece7df] bg-white p-3.5 sm:grid-cols-[5.5rem_1fr_auto] sm:items-center sm:gap-4"
                 >
-                  <p className="text-sm font-medium text-[#5c564e]">
-                    {formatAnalyticsShortDate(row.date)}
-                  </p>
-                  <div className="relative h-9 overflow-hidden rounded-full bg-[#e8e2d9]">
+                  <div>
+                    <p className="text-sm font-semibold text-[#1f1a17]">
+                      {formatAnalyticsShortDate(row.date)}
+                    </p>
+                    <p className="mt-0.5 text-xs text-[#8a837a]">
+                      {formatOrderLabel(row.orderCount)}
+                    </p>
+                  </div>
+
+                  <div className="relative h-2 overflow-hidden rounded-full bg-[#f1ece4]">
                     <div
-                      className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-blue-500 to-violet-500"
+                      className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[#ff8a3d] to-[#f55c0a]"
                       style={{ width: `${widthPct}%` }}
                     />
-                    <span className="relative z-10 ml-3 inline-flex h-full items-center text-xs font-semibold text-white">
-                      {row.orderCount} orders
-                    </span>
                   </div>
-                  <p className="text-right text-sm text-[#5c564e]">
-                    <span className="font-medium text-[#1f1a17]">
+
+                  <div className="flex items-center justify-between gap-3 sm:block sm:text-right">
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-[#8a837a] sm:hidden">
+                      <TrendingUp className="h-3.5 w-3.5" aria-hidden />
+                      Revenue
+                    </span>
+                    <p className="text-sm font-bold text-[#1f1a17]">
                       {formatMoney(row.revenueAmount)}
-                    </span>{" "}
-                    revenue
-                  </p>
+                    </p>
+                  </div>
                 </div>
               );
             })}
           </div>
-        </>
+        </div>
       )}
     </Card>
   );

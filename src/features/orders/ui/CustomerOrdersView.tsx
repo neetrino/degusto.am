@@ -56,6 +56,7 @@ export function CustomerOrdersView({ locale, orders }: CustomerOrdersViewProps) 
       <OrderDetailsDrawer
         open={drawerOpen}
         onClose={closeDrawer}
+        locale={locale}
         detail={detail}
         error={error}
         isLoading={isPending}

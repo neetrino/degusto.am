@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 
 import { SHOW_ADMIN_BLOG_UI } from "@/features/blog/admin-blog-ui";
 import { isLocale } from "@/lib/i18n/config";

@@ -148,25 +148,24 @@ export function BulkChangeOrderStatusForm({
           orders.map((order) => (
             <Card
               key={order.id}
-              className="min-w-0 overflow-hidden border-[#e8e2d9] p-0 shadow-[0_8px_24px_rgba(31,26,23,0.04)]"
+              className="min-w-0 cursor-pointer overflow-hidden border-[#e8e2d9] p-0 shadow-[0_8px_24px_rgba(31,26,23,0.04)] transition hover:border-brand/25 hover:shadow-[0_10px_28px_rgba(246,104,18,0.08)]"
+              onClick={() => onOpenOrder(order.orderNumber)}
             >
               <div className="flex items-start gap-3 border-b border-[#ead7bf]/80 px-3 py-3">
-                <input
-                  type="checkbox"
-                  className={`${ADMIN_TABLE_CHECKBOX} mt-1`}
-                  checked={selected.has(order.orderNumber)}
-                  onChange={() => toggleOne(order.orderNumber)}
-                  disabled={isPending || order.isArchived}
-                  aria-label={`Select ${order.orderNumber}`}
-                />
+                <div onClick={(event) => event.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    className={`${ADMIN_TABLE_CHECKBOX} mt-1`}
+                    checked={selected.has(order.orderNumber)}
+                    onChange={() => toggleOne(order.orderNumber)}
+                    disabled={isPending || order.isArchived}
+                    aria-label={`Select ${order.orderNumber}`}
+                  />
+                </div>
                 <div className="min-w-0 flex-1">
-                  <button
-                    type="button"
-                    onClick={() => onOpenOrder(order.orderNumber)}
-                    className="truncate text-left text-sm font-semibold text-[#1f1a17] hover:underline"
-                  >
+                  <p className="truncate text-sm font-semibold text-[#1f1a17]">
                     {order.orderNumber}
-                  </button>
+                  </p>
                   <p className="mt-0.5 truncate text-sm text-[#1f1a17]">
                     {order.contactName}
                   </p>
@@ -178,7 +177,10 @@ export function BulkChangeOrderStatusForm({
                   {formatMoney(order.totalAmount, order.baseCurrency)}
                 </p>
               </div>
-              <div className="grid grid-cols-1 gap-3 px-3 py-3 sm:grid-cols-2">
+              <div
+                className="grid grid-cols-1 gap-3 px-3 py-3 sm:grid-cols-2"
+                onClick={(event) => event.stopPropagation()}
+              >
                 <div className="min-w-0">
                   <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-[#8a837a]">
                     Status
@@ -245,8 +247,15 @@ export function BulkChangeOrderStatusForm({
             </thead>
             <tbody className={ADMIN_TABLE_TBODY}>
               {orders.map((order) => (
-                <tr key={order.id} className={ADMIN_TABLE_ROW}>
-                  <td className={ADMIN_TABLE_TD_CHECK}>
+                <tr
+                  key={order.id}
+                  className={`${ADMIN_TABLE_ROW} cursor-pointer transition hover:bg-[#fff8f0]/70`}
+                  onClick={() => onOpenOrder(order.orderNumber)}
+                >
+                  <td
+                    className={ADMIN_TABLE_TD_CHECK}
+                    onClick={(event) => event.stopPropagation()}
+                  >
                     <input
                       type="checkbox"
                       className={ADMIN_TABLE_CHECKBOX}
@@ -257,13 +266,9 @@ export function BulkChangeOrderStatusForm({
                     />
                   </td>
                   <td className={ADMIN_TABLE_TD}>
-                    <button
-                      type="button"
-                      onClick={() => onOpenOrder(order.orderNumber)}
-                      className="font-medium text-[#1f1a17] hover:underline"
-                    >
+                    <span className="font-medium text-[#1f1a17]">
                       {order.orderNumber}
-                    </button>
+                    </span>
                     {order.isArchived ? (
                       <span className="ml-2 rounded-full bg-[#e8e2d9] px-2 py-0.5 text-[10px] font-medium uppercase text-[#5c564e]">
                         Archived
@@ -274,7 +279,10 @@ export function BulkChangeOrderStatusForm({
                     <p className="text-sm text-[#1f1a17]">{order.contactName}</p>
                     <p className="text-xs text-[#8a837a]">{order.contactEmail}</p>
                   </td>
-                  <td className={ADMIN_TABLE_TD_METRIC}>
+                  <td
+                    className={ADMIN_TABLE_TD_METRIC}
+                    onClick={(event) => event.stopPropagation()}
+                  >
                     <AdminInlineStatusSelect
                       locale={locale}
                       orderNumber={order.orderNumber}
@@ -283,7 +291,10 @@ export function BulkChangeOrderStatusForm({
                       disabled={isPending || order.isArchived}
                     />
                   </td>
-                  <td className={ADMIN_TABLE_TD_METRIC}>
+                  <td
+                    className={ADMIN_TABLE_TD_METRIC}
+                    onClick={(event) => event.stopPropagation()}
+                  >
                     <AdminInlineStatusSelect
                       locale={locale}
                       orderNumber={order.orderNumber}

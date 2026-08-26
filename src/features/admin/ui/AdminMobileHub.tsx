@@ -21,6 +21,7 @@ import {
 import { AppLink } from "@/components/ui/AppLink";
 import { logoutAction } from "@/features/auth/logout-action";
 import { SHOW_ADMIN_BLOG_UI } from "@/features/blog/admin-blog-ui";
+import { SHOW_ADMIN_MESSAGES_UI } from "@/features/contact/admin-messages-ui";
 import { SHOW_ADMIN_HERO_UI } from "@/features/hero/admin-hero-ui";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
@@ -117,12 +118,16 @@ export function AdminMobileHub({
       icon: <Tags className="h-5 w-5" strokeWidth={2.25} />,
       tone: "sky",
     },
-    {
-      href: `${base}/messages`,
-      label: dictionary.messages,
-      icon: <MessageSquare className="h-5 w-5" strokeWidth={2.25} />,
-      tone: "rose",
-    },
+    ...(SHOW_ADMIN_MESSAGES_UI
+      ? [
+          {
+            href: `${base}/messages`,
+            label: dictionary.messages,
+            icon: <MessageSquare className="h-5 w-5" strokeWidth={2.25} />,
+            tone: "rose" as const,
+          },
+        ]
+      : []),
     {
       href: `${base}/users`,
       label: dictionary.users,
