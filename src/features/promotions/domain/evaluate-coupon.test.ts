@@ -15,6 +15,7 @@ function coupon(
     endsAt: null,
     minimumOrderAmount: null,
     totalUsageLimit: null,
+    perUserUsageLimit: null,
     usedCount: 0,
     discountType: "PERCENTAGE",
     discountValue: 10,
@@ -96,5 +97,44 @@ describe("evaluateCouponDiscount", () => {
 
   it("maps error codes to messages", () => {
     expect(couponDiscountErrorMessage("EXPIRED")).toBe("Coupon has expired.");
+    expect(couponDiscountErrorMessage("USER_NOT_ALLOWED")).toBe(
+      "This coupon is not available for your account.",
+    );
+  });
+
+  it("rejects allowlisted coupons for guests and non-allowed users", () => {
+    expect(
+      evaluateCouponDiscount(coupon(), 10_000, now, {
+        hasAllowlist: true,
+        isUserAllowed: false,
+        userUsageCount: 0,
+        userId: null,
+      }),
+    ).toEqual({ ok: false, error: "USER_LOGIN_REQUIRED" });
+
+    expect(
+      evaluateCouponDiscount(coupon(), 10_000, now, {
+        hasAllowlist: true,
+        isUserAllowed: false,
+        userUsageCount: 0,
+        userId: "user-1",
+      }),
+    ).toEqual({ ok: false, error: "USER_NOT_ALLOWED" });
+  });
+
+  it("rejects per-user usage limit violations", () => {
+    expect(
+      evaluateCouponDiscount(
+        coupon({ perUserUsageLimit: 1 }),
+        10_000,
+        now,
+        {
+          hasAllowlist: false,
+          isUserAllowed: true,
+          userUsageCount: 1,
+          userId: "user-1",
+        },
+      ),
+    ).toEqual({ ok: false, error: "PER_USER_LIMIT" });
   });
 });

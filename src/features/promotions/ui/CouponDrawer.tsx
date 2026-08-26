@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { SelectDropdown } from "@/components/ui/SelectDropdown";
@@ -16,12 +15,15 @@ import {
   ADMIN_SHEET_SURFACE,
 } from "@/features/admin/ui/admin-form-classes";
 import { AdminSheetHeader } from "@/features/admin/ui/AdminSheetHeader";
+import { getCouponAllowedUsersAction } from "@/features/promotions/application/coupon-user-actions";
 import {
   createPromotionAction,
   updatePromotionAction,
 } from "@/features/promotions/application/upsert-promotion";
 import type { AdminPromotionListItem } from "@/features/promotions/application/queries";
+import type { CouponUserPickerOption } from "@/features/promotions/domain/coupon-user-picker";
 import type { DiscountType } from "@/features/promotions/domain/promotion-rules";
+import { CouponUserSelect } from "@/features/promotions/ui/CouponUserSelect";
 
 type CouponDrawerCoupon = Pick<
   AdminPromotionListItem,
@@ -63,12 +65,16 @@ export function CouponDrawer({
   const [value, setValue] = useState("10");
   const [quantity, setQuantity] = useState("1");
   const [expiresAt, setExpiresAt] = useState("");
+  const [allowedUsers, setAllowedUsers] = useState<CouponUserPickerOption[]>(
+    [],
+  );
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
+
     queueMicrotask(() => {
       if (cancelled) return;
       if (coupon) {
@@ -85,18 +91,37 @@ export function CouponDrawer({
         setError(null);
         return;
       }
+
       setName("");
       setCode("");
       setDiscountType("PERCENTAGE");
       setValue("10");
       setQuantity("1");
       setExpiresAt("");
+      setAllowedUsers([]);
       setError(null);
     });
+
+    if (coupon) {
+      startTransition(async () => {
+        const result = await getCouponAllowedUsersAction(locale, {
+          promotionId: coupon.id,
+        });
+        if (cancelled) {
+          return;
+        }
+        if (result.ok) {
+          setAllowedUsers(result.value);
+        } else {
+          setAllowedUsers([]);
+        }
+      });
+    }
+
     return () => {
       cancelled = true;
     };
-  }, [open, coupon]);
+  }, [open, coupon, locale]);
 
   return (
     <SideSheet
@@ -136,6 +161,7 @@ export function CouponDrawer({
               isActive: coupon?.isActive ?? true,
               startsAt: null,
               endsAt: expiresAt ? new Date(expiresAt) : null,
+              allowedUserIds: allowedUsers.map((user) => user.id),
             };
 
             startTransition(async () => {
@@ -237,19 +263,12 @@ export function CouponDrawer({
               </label>
             </div>
 
-            <div className="rounded-2xl border border-[#ead7bf] px-4 py-3">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-medium text-[#1f1a17]">
-                    Select users
-                  </p>
-                  <p className="mt-0.5 text-sm text-[#8a837a]">
-                    All users can use this coupon
-                  </p>
-                </div>
-                <ChevronDown className="mt-1 h-4 w-4 shrink-0 text-gray-400" />
-              </div>
-            </div>
+            <CouponUserSelect
+              locale={locale}
+              selectedUsers={allowedUsers}
+              disabled={isPending}
+              onSelectedChange={setAllowedUsers}
+            />
 
             {error ? <p className="text-sm text-red-700">{error}</p> : null}
           </div>
