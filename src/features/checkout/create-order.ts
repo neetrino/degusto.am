@@ -86,8 +86,6 @@ function pickupBranchesForLocale(locale: CheckoutInput["locale"]): PickupBranchO
   );
 }
 
-export type { ArcaCheckoutPayload, IdramCheckoutPayload };
-
 export type CreateOrderResult =
   | {
       ok: true;

@@ -1,14 +1,19 @@
 import { and, eq } from "drizzle-orm";
 
-import { getEnv } from "@/config/env";
 import { getDb } from "@/db/client";
 import { orders, payments } from "@/db/schema";
 import type { Locale } from "@/lib/i18n/config";
 import { getArcaCredentials } from "@/lib/payments/arca/credentials";
-import { registerArcaOrder } from "@/lib/payments/arca/client";
+import {
+  recoverArcaCheckoutRegistration,
+  registerArcaOrder,
+} from "@/lib/payments/arca/client";
+import { resolveCheckoutAppUrl } from "@/lib/app-url/resolve-checkout-app-url";
 import {
   ARCA_REGISTER_ALREADY,
+  arcaReturnUrl,
   isHttpsUrl,
+  shouldReuseArcaRegistration,
 } from "@/lib/payments/arca/protocol";
 import { logger } from "@/lib/observability/logger";
 
@@ -30,6 +35,13 @@ function storedFormUrl(
     return url;
   }
   return undefined;
+}
+
+function storedReturnUrl(
+  metadata: Record<string, unknown> | null,
+): string | undefined {
+  const url = metadata?.returnUrl;
+  return typeof url === "string" && url.trim().length > 0 ? url.trim() : undefined;
 }
 
 async function loadPendingArcaPayment(
@@ -62,13 +74,14 @@ async function saveArcaRegistration(
   paymentId: string,
   arcaOrderId: string,
   formUrl: string,
+  returnUrl: string,
   metadata: Record<string, unknown> | null,
 ): Promise<void> {
   await getDb()
     .update(payments)
     .set({
       providerReference: arcaOrderId,
-      metadata: { ...metadata, formUrl, arcaOrderId },
+      metadata: { ...metadata, formUrl, arcaOrderId, returnUrl },
       updatedAt: new Date(),
     })
     .where(eq(payments.id, paymentId));
@@ -76,7 +89,7 @@ async function saveArcaRegistration(
 
 /**
  * Registers the pending order with Arca and persists bank orderId.
- * Reuses a stored formUrl on retry; errorCode 1 without a stored URL fails.
+ * Reuses a stored formUrl on retry; recovers from Arca when already registered.
  */
 export async function registerArcaCheckout(input: {
   orderNumber: string;
@@ -88,27 +101,64 @@ export async function registerArcaCheckout(input: {
   if (!credentials || !payment) {
     return null;
   }
+  const appUrl = await resolveCheckoutAppUrl();
+  const returnUrl = arcaReturnUrl(appUrl, input.orderNumber);
   const existingUrl = storedFormUrl(payment.metadata);
-  if (payment.providerReference && existingUrl) {
+  const cachedReturnUrl = storedReturnUrl(payment.metadata);
+  const reuseRegistration = shouldReuseArcaRegistration({
+    providerReference: payment.providerReference,
+    formUrl: existingUrl,
+    cachedReturnUrl,
+    expectedReturnUrl: returnUrl,
+    isDevelopment: process.env.NODE_ENV === "development",
+  });
+  if (reuseRegistration && existingUrl) {
     return { redirectUrl: existingUrl };
   }
   const registered = await registerArcaOrder(credentials, {
     orderNumber: input.orderNumber,
     totalAmount: input.totalAmount,
     locale: input.locale,
-    appUrl: getEnv().NEXT_PUBLIC_APP_URL,
+    appUrl,
   });
   if (registered.ok) {
     await saveArcaRegistration(
       payment.paymentId,
       registered.orderId,
       registered.formUrl,
+      returnUrl,
       payment.metadata,
     );
     return { redirectUrl: registered.formUrl };
   }
-  if (registered.errorCode === ARCA_REGISTER_ALREADY && existingUrl) {
+  if (
+    registered.errorCode === ARCA_REGISTER_ALREADY &&
+    reuseRegistration &&
+    existingUrl
+  ) {
     return { redirectUrl: existingUrl };
+  }
+  if (registered.errorCode === ARCA_REGISTER_ALREADY && !reuseRegistration) {
+    logger.warn("Arca checkout session cannot be reused locally", {
+      orderNumber: input.orderNumber,
+      cachedReturnUrl,
+      returnUrl,
+    });
+    return null;
+  }
+  const recovered = await recoverArcaCheckoutRegistration(credentials, {
+    orderNumber: input.orderNumber,
+    locale: input.locale,
+  });
+  if (recovered) {
+    await saveArcaRegistration(
+      payment.paymentId,
+      recovered.orderId,
+      recovered.formUrl,
+      returnUrl,
+      payment.metadata,
+    );
+    return { redirectUrl: recovered.formUrl };
   }
   if (registered.errorCode === ARCA_REGISTER_ALREADY) {
     logger.warn("Arca order already registered", {

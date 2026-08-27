@@ -34,6 +34,71 @@ export function arcaReturnUrl(appUrl: string, orderNumber: string): string {
   return `${origin}/inecobank/result?order=${encodeURIComponent(orderNumber)}`;
 }
 
+export function shouldReuseArcaRegistration(input: {
+  providerReference: string | null;
+  formUrl: string | undefined;
+  cachedReturnUrl: string | undefined;
+  expectedReturnUrl: string;
+  isDevelopment: boolean;
+}): boolean {
+  if (!input.providerReference || !input.formUrl) {
+    return false;
+  }
+  if (input.isDevelopment) {
+    return input.cachedReturnUrl === input.expectedReturnUrl;
+  }
+  return (
+    input.cachedReturnUrl === undefined ||
+    input.cachedReturnUrl === input.expectedReturnUrl
+  );
+}
+
+/** Ineco usernames look like 384.{merchantId}.{terminalId}. */
+export function arcaMerchantIdFromUserName(userName: string): string | null {
+  const parts = userName.split(".");
+  if (parts.length < 2) {
+    return null;
+  }
+  const merchantId = parts[1]?.trim();
+  return merchantId ? merchantId : null;
+}
+
+export function readArcaOrderIdFromStatusPayload(payload: unknown): string | null {
+  const record = asRecord(payload);
+  if (!record) {
+    return null;
+  }
+  const orderId = readArcaString(record, "orderId");
+  if (orderId) {
+    return orderId;
+  }
+  const attributes = record.attributes;
+  if (!Array.isArray(attributes)) {
+    return null;
+  }
+  for (const item of attributes) {
+    const attr = asRecord(item);
+    if (attr && readArcaString(attr, "name") === "mdOrder") {
+      return readArcaString(attr, "value") ?? null;
+    }
+  }
+  return null;
+}
+
+export function buildArcaFormUrl(
+  baseUrl: string,
+  userName: string,
+  locale: Locale,
+  arcaOrderId: string,
+): string | null {
+  const merchantId = arcaMerchantIdFromUserName(userName);
+  if (!merchantId) {
+    return null;
+  }
+  const origin = baseUrl.replace(/\/payment\/rest\/?$/, "");
+  return `${origin}/payment/merchants/${merchantId}/payment_${arcaLanguage(locale)}.html?mdOrder=${encodeURIComponent(arcaOrderId)}`;
+}
+
 export function isHttpsUrl(value: string): boolean {
   try {
     return new URL(value).protocol === "https:";
@@ -95,7 +160,8 @@ export function parseArcaRegisterResponse(
   return {
     ok: false,
     errorCode,
-    errorMessage: readArcaString(record, "errorMessage"),
+    errorMessage:
+      readArcaString(record, "errorMessage") ?? readArcaString(record, "message"),
   };
 }
 
