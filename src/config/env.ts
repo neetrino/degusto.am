@@ -2,6 +2,8 @@ import "server-only";
 
 import { z } from "zod";
 
+import { pickUsableR2PublicBaseUrl } from "@/lib/r2/public-base-url";
+
 /**
  * Foundation env contract. Provider secrets become required when the
  * corresponding feature is wired (auth, DB, Redis, R2, email).
@@ -48,8 +50,11 @@ function optionalEnv(value: string | undefined): string | undefined {
 }
 
 function resolvePublicBaseUrl(): string | undefined {
-  return optionalEnv(
-    process.env.R2_PUBLIC_BASE_URL || process.env.R2_PUBLIC_URL,
+  return pickUsableR2PublicBaseUrl(
+    process.env.R2_PUBLIC_URL,
+    process.env.NEXT_PUBLIC_R2_PUBLIC_URL,
+    process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL,
+    process.env.R2_PUBLIC_BASE_URL,
   );
 }
 

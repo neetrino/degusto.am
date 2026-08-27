@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import { defaultLocale, isLocale } from "@/lib/i18n/config";
 import { isLegacyPaymentPath } from "@/lib/payments/legacy-callback-paths";
+import { pickUsableR2PublicBaseUrl } from "@/lib/r2/public-base-url";
 
 function nextWithPathname(request: NextRequest, pathname: string): NextResponse {
   const requestHeaders = new Headers(request.headers);
@@ -14,12 +15,13 @@ function nextWithPathname(request: NextRequest, pathname: string): NextResponse 
 
 function resolveR2PublicBase(): string {
   return (
-    process.env.NEXT_PUBLIC_R2_PUBLIC_URL ||
-    process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL ||
-    process.env.R2_PUBLIC_URL ||
-    process.env.R2_PUBLIC_BASE_URL ||
-    ""
-  ).replace(/\/$/, "");
+    pickUsableR2PublicBaseUrl(
+      process.env.NEXT_PUBLIC_R2_PUBLIC_URL,
+      process.env.R2_PUBLIC_URL,
+      process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL,
+      process.env.R2_PUBLIC_BASE_URL,
+    ) ?? ""
+  );
 }
 
 export function proxy(request: NextRequest): NextResponse {

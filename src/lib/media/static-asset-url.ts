@@ -1,13 +1,16 @@
+import { pickUsableR2PublicBaseUrl } from "@/lib/r2/public-base-url";
+
 /**
  * Client-safe CDN URL for static keys under `/assets` and `/images`
  * (uploaded to R2; no longer served from `public/`).
  */
 export function getStaticAssetBaseUrl(): string {
   return (
-    process.env.NEXT_PUBLIC_R2_PUBLIC_URL ||
-    process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL ||
-    ""
-  ).replace(/\/$/, "");
+    pickUsableR2PublicBaseUrl(
+      process.env.NEXT_PUBLIC_R2_PUBLIC_URL,
+      process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL,
+    ) ?? ""
+  );
 }
 
 /**

@@ -2,20 +2,17 @@ import type { NextConfig } from "next";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { isR2PublicBaseUrlUsable } from "./src/lib/r2/public-base-url";
+import { pickUsableR2PublicBaseUrl } from "./src/lib/r2/public-base-url";
 
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
 function resolveR2PublicBaseUrl(): string | undefined {
-  const raw = (
-    process.env.R2_PUBLIC_BASE_URL ||
-    process.env.R2_PUBLIC_URL ||
-    ""
-  ).trim();
-  if (!raw || !isR2PublicBaseUrlUsable(raw)) {
-    return undefined;
-  }
-  return raw.replace(/\/$/, "");
+  return pickUsableR2PublicBaseUrl(
+    process.env.R2_PUBLIC_URL,
+    process.env.NEXT_PUBLIC_R2_PUBLIC_URL,
+    process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL,
+    process.env.R2_PUBLIC_BASE_URL,
+  );
 }
 
 const securityHeaders = [
