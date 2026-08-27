@@ -7,11 +7,7 @@ import { isR2PublicBaseUrlUsable } from "./src/lib/r2/public-base-url";
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
 function resolveR2PublicBaseUrl(): string | undefined {
-  const raw = (
-    process.env.R2_PUBLIC_BASE_URL ||
-    process.env.R2_PUBLIC_URL ||
-    ""
-  ).trim();
+  const raw = (process.env.R2_PUBLIC_BASE_URL || "").trim();
   if (!raw || !isR2PublicBaseUrlUsable(raw)) {
     return undefined;
   }
@@ -65,8 +61,7 @@ function buildImageRemotePatterns(): NonNullable<
     },
   ];
 
-  const r2Base =
-    process.env.R2_PUBLIC_BASE_URL || process.env.R2_PUBLIC_URL;
+  const r2Base = process.env.R2_PUBLIC_BASE_URL;
   if (r2Base) {
     try {
       const url = new URL(r2Base);

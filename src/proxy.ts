@@ -13,13 +13,7 @@ function nextWithPathname(request: NextRequest, pathname: string): NextResponse 
 }
 
 function resolveR2PublicBase(): string {
-  return (
-    process.env.NEXT_PUBLIC_R2_PUBLIC_URL ||
-    process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL ||
-    process.env.R2_PUBLIC_URL ||
-    process.env.R2_PUBLIC_BASE_URL ||
-    ""
-  ).replace(/\/$/, "");
+  return (process.env.R2_PUBLIC_BASE_URL || "").replace(/\/$/, "");
 }
 
 export function proxy(request: NextRequest): NextResponse {

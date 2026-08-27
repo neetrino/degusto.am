@@ -78,11 +78,7 @@ const accountId = env.R2_ACCOUNT_ID;
 const accessKeyId = env.R2_ACCESS_KEY_ID;
 const secretAccessKey = env.R2_SECRET_ACCESS_KEY;
 const bucket = env.R2_BUCKET_NAME;
-const publicBase = (
-  env.R2_PUBLIC_BASE_URL ||
-  env.R2_PUBLIC_URL ||
-  ""
-).replace(/\/$/, "");
+const publicBase = (env.R2_PUBLIC_BASE_URL || "").replace(/\/$/, "");
 
 if (!accountId || !accessKeyId || !secretAccessKey || !bucket) {
   console.error("Missing R2 credentials in .env");
@@ -91,7 +87,7 @@ if (!accountId || !accessKeyId || !secretAccessKey || !bucket) {
 
 if (!publicBase || isR2ApiEndpointUrl(publicBase)) {
   console.error(
-    "R2_PUBLIC_BASE_URL / R2_PUBLIC_URL must be a public CDN (pub-….r2.dev), not the S3 API host.",
+    "R2_PUBLIC_BASE_URL must be a public CDN (pub-….r2.dev), not the S3 API host.",
   );
   process.exit(1);
 }
