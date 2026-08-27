@@ -1,4 +1,4 @@
-# PR quality gate. Vercel already covers production build/preview.
+# PR quality gate: lint, types, unit tests, production build.
 name: CI
 
 on:
@@ -18,11 +18,11 @@ jobs:
   quality:
     name: CI
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     env:
-      NODE_ENV: test
       NEXT_PUBLIC_APP_URL: http://localhost:3000
+      AUTH_SECRET: ci-build-placeholder-secret-min-32-chars
 
     steps:
       - name: Checkout
@@ -48,3 +48,8 @@ jobs:
 
       - name: Unit tests
         run: pnpm test
+        env:
+          NODE_ENV: test
+
+      - name: Build
+        run: pnpm build

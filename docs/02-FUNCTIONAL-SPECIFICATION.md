@@ -92,7 +92,7 @@
 |---|---|
 | AUTH-001 | Login-ն ունի email, password, visibility toggle, forgot password, submit և register link։ |
 | AUTH-002 | Register-ն ունի first/last name, email, phone, password/confirm և required terms acceptance։ |
-| AUTH-003 | Password-ը min 8 նիշ է և ունի uppercase, lowercase, digit, special character; server validation-ը authoritative է։ |
+| AUTH-003 | Password-ը min 8 և max 128 նիշ է, առանց composition rules (uppercase/digit/special); server validation-ը authoritative է։ |
 | AUTH-004 | Email-ը normalized և case-insensitive unique է; duplicate/login errors-ը account enumeration չի բացահայտում։ |
 | AUTH-005 | Successful registration-ը ստեղծում է Customer account և single-use expiring email verification token։ |
 | AUTH-006 | Suspended/unverified account behavior-ը policy-ով սահմանված և generic/safe է։ |

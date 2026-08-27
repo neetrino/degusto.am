@@ -26,3 +26,16 @@ export function isR2PublicBaseUrlUsable(value: string): boolean {
     return false;
   }
 }
+
+/** First candidate that is a browser-readable CDN, skipping S3 API hosts. */
+export function pickUsableR2PublicBaseUrl(
+  ...candidates: Array<string | undefined>
+): string | undefined {
+  for (const candidate of candidates) {
+    const value = candidate?.trim().replace(/\/$/, "") ?? "";
+    if (value && isR2PublicBaseUrlUsable(value)) {
+      return value;
+    }
+  }
+  return undefined;
+}

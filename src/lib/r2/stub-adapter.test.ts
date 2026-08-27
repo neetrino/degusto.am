@@ -4,6 +4,7 @@ import { isR2Configured } from "@/lib/r2/is-configured";
 import {
   isR2ApiEndpointUrl,
   isR2PublicBaseUrlUsable,
+  pickUsableR2PublicBaseUrl,
 } from "@/lib/r2/public-base-url";
 import { createStubObjectStorageAdapter } from "@/lib/r2/stub-adapter";
 
@@ -45,6 +46,16 @@ describe("isR2Configured", () => {
         bucketName: "d",
       }),
     ).toBe(false);
+
+    expect(
+      isR2Configured({
+        accountId: "a",
+        accessKeyId: "b",
+        secretAccessKey: "c",
+        bucketName: "d",
+        publicBaseUrl: "https://abc.r2.cloudflarestorage.com",
+      }),
+    ).toBe(false);
   });
 });
 
@@ -57,5 +68,14 @@ describe("R2 public base URL", () => {
       isR2PublicBaseUrlUsable("https://abc.r2.cloudflarestorage.com"),
     ).toBe(false);
     expect(isR2PublicBaseUrlUsable("https://pub-abc.r2.dev")).toBe(true);
+  });
+
+  it("skips the S3 API host when a pub CDN is also set", () => {
+    expect(
+      pickUsableR2PublicBaseUrl(
+        "https://abc.r2.cloudflarestorage.com",
+        "https://pub-abc.r2.dev/",
+      ),
+    ).toBe("https://pub-abc.r2.dev");
   });
 });

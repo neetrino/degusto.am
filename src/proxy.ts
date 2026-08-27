@@ -20,7 +20,11 @@ export function proxy(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
 
   // Static assets live on R2 — rewrite before Next looks on disk / Image opt.
-  if (pathname.startsWith("/assets/") || pathname.startsWith("/images/")) {
+  if (
+    pathname.startsWith("/assets/") ||
+    pathname.startsWith("/images/") ||
+    pathname.startsWith("/uploads/")
+  ) {
     const base = resolveR2PublicBase();
     if (base) {
       return NextResponse.rewrite(new URL(`${base}${pathname}`));

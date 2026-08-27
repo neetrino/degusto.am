@@ -119,6 +119,7 @@ const nextConfig: NextConfig = {
     return [
       { source: "/assets/:path*", destination: `${base}/assets/:path*` },
       { source: "/images/:path*", destination: `${base}/images/:path*` },
+      { source: "/uploads/:path*", destination: `${base}/uploads/:path*` },
     ];
   },
   async headers() {

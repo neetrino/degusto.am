@@ -26,11 +26,11 @@ URL колбэков — как на старом сайте, не `/api/v1/paym
 - [x] **Idram** — форма GetPayment, RESULT `/idram`, success/error, checksum, корзина/склад только после confirm
 - [x] **Ineco / Arca** — register.do, returnUrl `/inecobank/result`, статус только из getOrderStatusExtended
 - [x] **Скрипт заливки + dry-run** — `pnpm import:legacy:dry`
-- [x] **Apply в Neon** — 2134 users, 1218 addresses, 27745 orders (21974 гостя)
+- [x] **Apply в Neon** — повтор после restore: 2134 dump users + 5 seed, 27745 заказов `o*`, тестовые `p100`/`p101` на месте
 
 ## Дальше (не начинать без команды)
 
-- [ ] Картинки: сверка R2 с уже залитым каталогом
+- [x] Картинки: сверка R2 — все 917 `uploads/` + живые категории на месте; 25 битых ключей только у ARCHIVED seed-категорий
 - [ ] Проверка логина старым паролем
 - [ ] Ночь cutover
 

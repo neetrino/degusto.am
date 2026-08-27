@@ -1,3 +1,5 @@
+import { isR2PublicBaseUrlUsable } from "@/lib/r2/public-base-url";
+
 type R2Credentials = {
   accountId: string;
   accessKeyId: string;
@@ -15,6 +17,7 @@ export function isR2Configured(
       input.accessKeyId &&
       input.secretAccessKey &&
       input.bucketName &&
-      input.publicBaseUrl,
+      input.publicBaseUrl &&
+      isR2PublicBaseUrlUsable(input.publicBaseUrl),
   );
 }
