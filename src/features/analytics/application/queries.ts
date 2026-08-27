@@ -3,6 +3,7 @@ import "server-only";
 import {
   and,
   count,
+  countDistinct,
   eq,
   gte,
   inArray,
@@ -12,7 +13,7 @@ import {
 
 import { getProviders } from "@/config/providers";
 import { getDb } from "@/db/client";
-import { orders, users } from "@/db/schema";
+import { orders } from "@/db/schema";
 import {
   queryTopCategories,
   queryTopSellingProducts,
@@ -20,6 +21,12 @@ import {
   type AnalyticsTopProduct,
 } from "@/features/analytics/application/top-rankings";
 import type { AnalyticsCsvRow } from "@/features/analytics/domain/csv";
+import {
+  ANALYTICS_OVERVIEW_PERIODS,
+  fillDailyAnalyticsGaps,
+  rangeForOverviewPeriod,
+  type AnalyticsOverviewPeriod,
+} from "@/features/analytics/domain/date-range";
 import type { OrderStatus } from "@/features/orders/domain/order-status";
 import { getStoreRevenue } from "@/features/settings/application/queries";
 import type { Locale } from "@/lib/i18n/config";
@@ -32,7 +39,26 @@ export type { AnalyticsCsvRow } from "@/features/analytics/domain/csv";
 export { buildAnalyticsCsv, guardCsvCell } from "@/features/analytics/domain/csv";
 
 const CACHE_TTL_SECONDS = 300;
+const CACHE_VERSION = "v2";
 const cacheKeys = new Set<string>();
+
+export type AnalyticsPeriodSnapshot = {
+  id: AnalyticsOverviewPeriod;
+  from: string;
+  to: string;
+  orderCount: number;
+  revenueAmount: number;
+  averageOrderValue: number;
+  previousOrderCount: number;
+  previousRevenueAmount: number;
+  previousAverageOrderValue: number;
+};
+
+export type AnalyticsBestDay = {
+  date: string;
+  orderCount: number;
+  revenueAmount: number;
+};
 
 export type AnalyticsSummary = {
   from: string;
@@ -42,11 +68,14 @@ export type AnalyticsSummary = {
   orderCount: number;
   revenueAmount: number;
   averageOrderValue: number;
-  userCount: number;
+  customerCount: number;
   previousOrderCount: number;
   previousRevenueAmount: number;
   previousAverageOrderValue: number;
+  previousCustomerCount: number;
   dailyRows: AnalyticsCsvRow[];
+  overview: AnalyticsPeriodSnapshot[];
+  bestDay: AnalyticsBestDay | null;
   topProducts: AnalyticsTopProduct[];
   topCategories: AnalyticsTopCategory[];
 };
@@ -86,7 +115,7 @@ function averageOrderValue(revenue: number, orderCount: number): number {
 }
 
 function cacheKey(from: string, to: string, locale: Locale): string {
-  return `analytics:${locale}:${from}:${to}`;
+  return `analytics:${CACHE_VERSION}:${locale}:${from}:${to}`;
 }
 
 async function queryPeriodMetrics(input: {
@@ -118,6 +147,26 @@ async function queryPeriodMetrics(input: {
   };
 }
 
+async function queryCustomerCount(input: {
+  start: Date;
+  end: Date;
+}): Promise<number> {
+  const [row] = await getDb()
+    .select({
+      value: countDistinct(orders.contactEmail),
+    })
+    .from(orders)
+    .where(
+      and(
+        eq(orders.isArchived, false),
+        gte(orders.placedAt, input.start),
+        lte(orders.placedAt, input.end),
+      ),
+    );
+
+  return row?.value ?? 0;
+}
+
 async function queryDailyRows(input: {
   from: string;
   to: string;
@@ -147,12 +196,85 @@ async function queryDailyRows(input: {
     .groupBy(sql`to_char(${orders.placedAt} at time zone 'UTC', 'YYYY-MM-DD')`)
     .orderBy(sql`to_char(${orders.placedAt} at time zone 'UTC', 'YYYY-MM-DD')`);
 
-  return rows.map((row) => ({
+  const mapped = rows.map((row) => ({
     date: row.date,
     orderCount: row.orderCount,
     revenueAmount: row.revenueAmount,
     averageOrderValue: averageOrderValue(row.revenueAmount, row.orderCount),
   }));
+
+  return fillDailyAnalyticsGaps(input.from, input.to, mapped, (date) => ({
+    date,
+    orderCount: 0,
+    revenueAmount: 0,
+    averageOrderValue: 0,
+  }));
+}
+
+function pickBestDay(rows: AnalyticsCsvRow[]): AnalyticsBestDay | null {
+  let best: AnalyticsCsvRow | null = null;
+  for (const row of rows) {
+    if (row.revenueAmount <= 0 && row.orderCount <= 0) {
+      continue;
+    }
+    if (
+      !best ||
+      row.revenueAmount > best.revenueAmount ||
+      (row.revenueAmount === best.revenueAmount &&
+        row.orderCount > best.orderCount)
+    ) {
+      best = row;
+    }
+  }
+  if (!best) {
+    return null;
+  }
+  return {
+    date: best.date,
+    orderCount: best.orderCount,
+    revenueAmount: best.revenueAmount,
+  };
+}
+
+async function queryOverviewSnapshots(
+  revenueStatuses: OrderStatus[],
+): Promise<AnalyticsPeriodSnapshot[]> {
+  return Promise.all(
+    ANALYTICS_OVERVIEW_PERIODS.map(async (id) => {
+      const range = rangeForOverviewPeriod(id);
+      const bounds = periodBounds(range.from, range.to);
+      const [current, previous] = await Promise.all([
+        queryPeriodMetrics({
+          start: bounds.start,
+          end: bounds.end,
+          revenueStatuses,
+        }),
+        queryPeriodMetrics({
+          start: bounds.previousStart,
+          end: bounds.previousEnd,
+          revenueStatuses,
+        }),
+      ]);
+
+      return {
+        id,
+        from: range.from,
+        to: range.to,
+        orderCount: current.orderCount,
+        revenueAmount: current.revenueAmount,
+        averageOrderValue: averageOrderValue(
+          current.revenueAmount,
+          current.orderCount,
+        ),
+        previousOrderCount: previous.orderCount,
+        previousRevenueAmount: previous.revenueAmount,
+        previousAverageOrderValue: averageOrderValue(
+          previous.revenueAmount,
+          previous.orderCount,
+        ),
+      };
+    }),
+  );
 }
 
 async function computeAnalyticsSummary(input: {
@@ -164,36 +286,49 @@ async function computeAnalyticsSummary(input: {
   const revenueStatuses = revenue.statuses as OrderStatus[];
   const bounds = periodBounds(input.from, input.to);
 
-  const [current, previous, dailyRows, [usersRow], topProducts, topCategories] =
-    await Promise.all([
-      queryPeriodMetrics({
-        start: bounds.start,
-        end: bounds.end,
-        revenueStatuses,
-      }),
-      queryPeriodMetrics({
-        start: bounds.previousStart,
-        end: bounds.previousEnd,
-        revenueStatuses,
-      }),
-      queryDailyRows({
-        from: input.from,
-        to: input.to,
-        revenueStatuses,
-      }),
-      getDb().select({ value: count() }).from(users),
-      queryTopSellingProducts({
-        start: bounds.start,
-        end: bounds.end,
-        revenueStatuses,
-      }),
-      queryTopCategories({
-        start: bounds.start,
-        end: bounds.end,
-        revenueStatuses,
-        locale: input.locale,
-      }),
-    ]);
+  const [
+    current,
+    previous,
+    dailyRows,
+    customerCount,
+    previousCustomerCount,
+    topProducts,
+    topCategories,
+    overview,
+  ] = await Promise.all([
+    queryPeriodMetrics({
+      start: bounds.start,
+      end: bounds.end,
+      revenueStatuses,
+    }),
+    queryPeriodMetrics({
+      start: bounds.previousStart,
+      end: bounds.previousEnd,
+      revenueStatuses,
+    }),
+    queryDailyRows({
+      from: input.from,
+      to: input.to,
+      revenueStatuses,
+    }),
+    queryCustomerCount({ start: bounds.start, end: bounds.end }),
+    queryCustomerCount({
+      start: bounds.previousStart,
+      end: bounds.previousEnd,
+    }),
+    queryTopSellingProducts({
+      start: bounds.start,
+      end: bounds.end,
+      revenueStatuses,
+    }),
+    queryTopCategories({
+      start: bounds.start,
+      end: bounds.end,
+      revenueStatuses,
+      locale: input.locale,
+    }),
+    queryOverviewSnapshots(revenueStatuses),
+  ]);
 
   return {
     from: input.from,
@@ -206,14 +341,17 @@ async function computeAnalyticsSummary(input: {
       current.revenueAmount,
       current.orderCount,
     ),
-    userCount: usersRow?.value ?? 0,
+    customerCount,
     previousOrderCount: previous.orderCount,
     previousRevenueAmount: previous.revenueAmount,
     previousAverageOrderValue: averageOrderValue(
       previous.revenueAmount,
       previous.orderCount,
     ),
+    previousCustomerCount,
     dailyRows,
+    overview,
+    bestDay: pickBestDay(dailyRows),
     topProducts,
     topCategories,
   };

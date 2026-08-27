@@ -878,3 +878,38 @@ body:has([data-cart-page]) {
     transform: translateY(-3px) rotate(2deg);
   }
 }
+
+/* Admin analytics trend chart (ApexCharts tooltip + axes) */
+.degusto-analytics-tooltip {
+  border: 1px solid rgba(234, 215, 191, 0.95) !important;
+  border-radius: 16px !important;
+  background: rgba(255, 252, 248, 0.98) !important;
+  box-shadow:
+    0 20px 44px -28px rgba(31, 26, 23, 0.55),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset !important;
+  color: #1f1a17 !important;
+  padding: 10px 12px !important;
+  backdrop-filter: blur(8px);
+}
+
+.degusto-analytics-tooltip .apexcharts-tooltip-title {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(234, 215, 191, 0.75) !important;
+  color: #8a837a !important;
+  font-weight: 600 !important;
+  margin-bottom: 6px !important;
+  padding: 0 0 6px !important;
+}
+
+.degusto-analytics-tooltip .apexcharts-tooltip-series-group {
+  padding: 2px 0 !important;
+}
+
+.degusto-analytics-chart .apexcharts-xaxis-label,
+.degusto-analytics-chart .apexcharts-yaxis-label {
+  fill: #9a9288;
+}
+
+.degusto-analytics-chart .apexcharts-area-series path.apexcharts-area {
+  filter: drop-shadow(0 10px 18px rgba(245, 92, 10, 0.12));
+}
