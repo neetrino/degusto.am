@@ -18,17 +18,18 @@ URL колбэков — как на старом сайте, не `/api/v1/paym
 - [x] Логин: bcrypt `$2y$` → после входа Argon2id
 - [x] Колбэк-пути заняты, без locale-редиректа
 - [x] `.env.example` — пустые платёжные ключи; live только в `.env`
-- [x] Neon SELECT 27.08: 891 products (735 ACTIVE), 5 тестовых users, 2 COD orders
+- [x] Neon SELECT 27.08: 891 products (735 ACTIVE)
+- [x] Тестовый мусор в Neon вычищен (5 users, p100/p101, корзины/сессии); склад тестовых заказов возвращён
 
 ## Сейчас
 
 - [x] **Idram** — форма GetPayment, RESULT `/idram`, success/error, checksum, корзина/склад только после confirm
 - [x] **Ineco / Arca** — register.do, returnUrl `/inecobank/result`, статус только из getOrderStatusExtended
-- [x] **Скрипт заливки + dry-run** — `pnpm import:legacy:dry`. Apply не запускали.
+- [x] **Скрипт заливки + dry-run** — `pnpm import:legacy:dry`
+- [x] **Apply в Neon** — 2134 users, 1218 addresses, 27745 orders (21974 гостя)
 
 ## Дальше (не начинать без команды)
 
-- [ ] Apply users/addresses/orders в Neon (`--apply` + `LEGACY_IMPORT_APPLY=YES`)
 - [ ] Картинки: сверка R2 с уже залитым каталогом
 - [ ] Проверка логина старым паролем
 - [ ] Ночь cutover
