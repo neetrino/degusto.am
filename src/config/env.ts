@@ -24,6 +24,11 @@ const envSchema = z.object({
   R2_ENDPOINT: z.string().url().optional(),
   EMAIL_FROM: z.string().email().optional(),
   RESEND_API_KEY: z.string().min(1).optional(),
+  IDRAM_TEST_MODE: z.string().optional(),
+  IDRAM_REC_ACCOUNT: z.string().min(1).optional(),
+  IDRAM_SECRET_KEY: z.string().min(1).optional(),
+  IDRAM_LIVE_REC_ACCOUNT: z.string().min(1).optional(),
+  IDRAM_LIVE_SECRET_KEY: z.string().min(1).optional(),
 });
 
 export type AppEnv = z.infer<typeof envSchema>;
@@ -62,6 +67,11 @@ export function getEnv(): AppEnv {
     R2_ENDPOINT: optionalEnv(process.env.R2_ENDPOINT),
     EMAIL_FROM: optionalEnv(process.env.EMAIL_FROM),
     RESEND_API_KEY: optionalEnv(process.env.RESEND_API_KEY),
+    IDRAM_TEST_MODE: optionalEnv(process.env.IDRAM_TEST_MODE),
+    IDRAM_REC_ACCOUNT: optionalEnv(process.env.IDRAM_REC_ACCOUNT),
+    IDRAM_SECRET_KEY: optionalEnv(process.env.IDRAM_SECRET_KEY),
+    IDRAM_LIVE_REC_ACCOUNT: optionalEnv(process.env.IDRAM_LIVE_REC_ACCOUNT),
+    IDRAM_LIVE_SECRET_KEY: optionalEnv(process.env.IDRAM_LIVE_SECRET_KEY),
   });
 
   if (!parsed.success) {

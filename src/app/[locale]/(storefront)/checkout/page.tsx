@@ -17,6 +17,7 @@ import { getDictionary } from "@/lib/i18n/get-dictionary";
 
 type CheckoutPageProps = {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ payment?: string }>;
 };
 
 function firstPhoneHref(phones: string): string {
@@ -28,8 +29,9 @@ function firstPhoneHref(phones: string): string {
   return `tel:+${digits.startsWith("0") ? `374${digits.slice(1)}` : digits}`;
 }
 
-export default async function CheckoutPage({ params }: CheckoutPageProps) {
+export default async function CheckoutPage({ params, searchParams }: CheckoutPageProps) {
   const { locale: rawLocale } = await params;
+  const query = await searchParams;
   if (!isLocale(rawLocale)) {
     notFound();
   }
@@ -133,6 +135,8 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
       continueShopping: copy.buttons.continueShopping,
       cartEmpty: copy.errors.cartEmpty,
     },
+    paymentNotice:
+      query.payment === "failed" ? copy.errors.paymentFailed : null,
   } as const;
 
   const mobileChrome = {

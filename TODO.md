@@ -1,27 +1,36 @@
 # Degusto cutover — по шагам
 
 Ничего на прод не писать, пока шаг не подтверждён.
+После каждого шага: проверка (lint / typecheck / tests / правила проекта) → коммит на `sipan` → стоп, ждать команду.
 
-## Сейчас (готово в коде, ветка `sipan`)
+## Порядок
 
-- [x] Логин: старый bcrypt `$2y$` принимается, после входа хеш → Argon2id
-- [x] Колбэк-пути как на живом сайте, без похода в банк:
-  - Idram: `/idram`, `/idram/success`, `/idram/error`
-  - Ineco: `/inecobank/result`
-  - FastShift: `/pay-by-fastshift/callback`, `/pay-by-fastshift/webhook`
-- [x] Эти пути не редиректятся на `/hy/...` (иначе Idram сломается)
-- [x] В `.env.example` — пустые платёжные ключи. Живые значения только в `.env`
+1. Оплата: Idram → Ineco (Arca). FastShift не в первой волне.
+2. Потом заливка: users + addresses + заказы (гости как гости). Каталог в Neon уже есть — не лить второй раз.
+3. Ночь cutover.
 
-## Дальше
+Протокол и checksum — из `docs/reference/payment integration/`.  
+URL колбэков — как на старом сайте, не `/api/v1/payments/...`.  
+Платёж хранить в новой схеме (`payments` + `payment_status`), не копировать PHP-костыли (`paid_at`, session).
 
-1. **Секреты в `.env`** — вставить live Idram / Ineco / FastShift (шаблоны уже в `.env.example`). В git не коммитить.
-2. **Прочитать Neon (только SELECT)** — сколько users / products / orders уже есть, чтобы не залить каталог второй раз.
-3. **Dry-run маппинга** — `import/dry_run.py` в папке миграции. Отчёт: `import/out/report.json`. В базу не пишет.
-4. **Apply в staging** (не прод): users + bcrypt-хеши → addresses → заказы (гости как гости, аккаунты как аккаунты).
-5. **Картинки** — старый диск / `Old/images` → R2, сверить с уже залитым каталогом.
-6. **Idram / Arca / FastShift адаптеры** — повесить на те же старые URL, не на `/api/v1/payments/...`.
-7. **Проверка логина** — один старый аккаунт: вход по старому паролю, в БД хеш стал `$argon2...`.
-8. **Ночь cutover** — закрыть старый сайт, свежий дамп, snapshot, финальная заливка, DNS/прокси на новый. Откат = вернуть старый docroot.
+## Сделано
+
+- [x] Логин: bcrypt `$2y$` → после входа Argon2id
+- [x] Колбэк-пути заняты, без locale-редиректа
+- [x] `.env.example` — пустые платёжные ключи; live только в `.env`
+- [x] Neon SELECT 27.08: 891 products (735 ACTIVE), 5 тестовых users, 2 COD orders
+
+## Сейчас
+
+- [x] **Idram** — форма GetPayment, RESULT `/idram`, success/error, checksum, корзина/склад только после confirm
+
+## Дальше (не начинать без команды)
+
+- [ ] Ineco / Arca на `/inecobank/result`
+- [ ] Dry-run + apply users/orders в staging
+- [ ] Картинки: сверка R2 с уже залитым каталогом
+- [ ] Проверка логина старым паролем
+- [ ] Ночь cutover
 
 ## Не трогать
 

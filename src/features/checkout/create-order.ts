@@ -24,6 +24,10 @@ import {
   revalidateCartPaths,
 } from "@/features/cart/cart";
 import {
+  buildIdramCheckoutPayload,
+  type IdramCheckoutPayload,
+} from "@/features/checkout/application/idram-checkout-payload";
+import {
   checkoutSchema,
   type CheckoutInput,
 } from "@/features/checkout/schemas";
@@ -34,6 +38,8 @@ import {
   type PickupBranchOption,
 } from "@/features/checkout/domain/pickup-branches";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
+import { isLocale } from "@/lib/i18n/config";
+import { getIdramCredentials } from "@/lib/payments/idram/credentials";
 import {
   ORDER_NUMBER_LOCK_KEY,
   formatOrderNumber,
@@ -75,11 +81,21 @@ function pickupBranchesForLocale(locale: CheckoutInput["locale"]): PickupBranchO
   );
 }
 
+export type { IdramCheckoutPayload };
+
 export type CreateOrderResult =
-  | { ok: true; orderNumber: string }
+  | { ok: true; orderNumber: string; idram?: IdramCheckoutPayload }
   | { ok: false; error: string };
 
-/** Creates a COD order with server-side totals, stock decrement, and cart clear. */
+type PlacedOrder = {
+  orderNumber: string;
+  totalAmount: number;
+  contactEmail: string;
+  locale: CheckoutInput["locale"];
+  attachIdram: boolean;
+};
+
+/** Creates a COD or Idram order. Idram does not clear the cart or decrement stock. */
 export async function createOrderAction(
   raw: CheckoutInput,
 ): Promise<CreateOrderResult> {
@@ -89,6 +105,16 @@ export async function createOrderAction(
   }
 
   const input = parsed.data;
+  const isIdram = input.paymentMethod === "idram";
+  if (isIdram && defaultCurrency !== "AMD") {
+    return { ok: false, error: "Idram accepts AMD only." };
+  }
+  if (isIdram && !getIdramCredentials()) {
+    return {
+      ok: false,
+      error: "Idram is unavailable. Choose another payment method.",
+    };
+  }
   const user = await getCurrentUser();
   const { cart, items } = await getCartWithItems();
   const cookieStore = await cookies();
@@ -126,9 +152,16 @@ export async function createOrderAction(
   );
 
   try {
-    const orderNumber = await withTransaction(async (tx) => {
+    const placed = await withTransaction(async (tx): Promise<PlacedOrder> => {
       const [existing] = await tx
-        .select({ orderNumber: orders.orderNumber })
+        .select({
+          orderNumber: orders.orderNumber,
+          totalAmount: orders.totalAmount,
+          contactEmail: orders.contactEmail,
+          locale: orders.locale,
+          status: orders.status,
+          paymentStatus: orders.paymentStatus,
+        })
         .from(orders)
         .where(
           and(
@@ -140,7 +173,22 @@ export async function createOrderAction(
         .limit(1);
 
       if (existing) {
-        return existing.orderNumber;
+        if (
+          existing.status === "CANCELLED" ||
+          existing.paymentStatus === "FAILED"
+        ) {
+          throw new Error("Previous payment failed. Refresh and try again.");
+        }
+        const locale = isLocale(existing.locale)
+          ? existing.locale
+          : input.locale;
+        return {
+          orderNumber: existing.orderNumber,
+          totalAmount: existing.totalAmount,
+          contactEmail: existing.contactEmail,
+          locale,
+          attachIdram: isIdram && existing.paymentStatus === "PENDING",
+        };
       }
 
       let delivery: typeof deliveryRules.$inferSelect | null = null;
@@ -420,32 +468,38 @@ export async function createOrderAction(
           currency: defaultCurrency,
         });
 
-        await tx
-          .update(products)
-          .set({
-            stockOnHand: line.nextStock,
-            version: sql`${products.version} + 1`,
-            updatedAt: now,
-          })
-          .where(eq(products.id, line.productId));
+        if (!isIdram) {
+          await tx
+            .update(products)
+            .set({
+              stockOnHand: line.nextStock,
+              version: sql`${products.version} + 1`,
+              updatedAt: now,
+            })
+            .where(eq(products.id, line.productId));
 
-        await tx.insert(stockMovements).values({
-          id: createId(),
-          productId: line.productId,
-          delta: -line.quantity,
-          reason: "ORDER",
-          orderId,
-          resultingBalance: line.nextStock,
-          correlationId: number,
-        });
+          await tx.insert(stockMovements).values({
+            id: createId(),
+            productId: line.productId,
+            delta: -line.quantity,
+            reason: "ORDER",
+            orderId,
+            resultingBalance: line.nextStock,
+            correlationId: number,
+          });
+        }
       }
 
-      const payment = await getProviders().payment.createPayment({
-        orderId,
-        amount: BigInt(totalAmount),
-        currency: defaultCurrency,
-        idempotencyKey: input.idempotencyKey,
-      });
+      const providerReference = isIdram
+        ? null
+        : (
+            await getProviders().payment.createPayment({
+              orderId,
+              amount: BigInt(totalAmount),
+              currency: defaultCurrency,
+              idempotencyKey: input.idempotencyKey,
+            })
+          ).providerReference;
       const paymentRecord = toPaymentRecord(input.paymentMethod);
 
       await tx.insert(payments).values({
@@ -453,7 +507,7 @@ export async function createOrderAction(
         orderId,
         provider: paymentRecord.provider,
         method: paymentRecord.method,
-        providerReference: payment.providerReference,
+        providerReference,
         amount: totalAmount,
         currency: defaultCurrency,
         status: "PENDING",
@@ -482,17 +536,40 @@ export async function createOrderAction(
         },
       });
 
-      await tx.delete(cartItems).where(eq(cartItems.cartId, cart.id));
-      await tx
-        .update(carts)
-        .set({ status: "CONVERTED", updatedAt: now })
-        .where(eq(carts.id, cart.id));
+      if (!isIdram) {
+        await tx.delete(cartItems).where(eq(cartItems.cartId, cart.id));
+        await tx
+          .update(carts)
+          .set({ status: "CONVERTED", updatedAt: now })
+          .where(eq(carts.id, cart.id));
+      }
 
-      return number;
+      return {
+        orderNumber: number,
+        totalAmount,
+        contactEmail: input.contactEmail.toLowerCase(),
+        locale: input.locale,
+        attachIdram: isIdram,
+      };
     });
 
     await revalidateCartPaths();
-    return { ok: true, orderNumber };
+    if (placed.attachIdram) {
+      const idram = buildIdramCheckoutPayload({
+        locale: placed.locale,
+        orderNumber: placed.orderNumber,
+        totalAmount: placed.totalAmount,
+        contactEmail: placed.contactEmail,
+      });
+      if (!idram) {
+        return {
+          ok: false,
+          error: "Idram is unavailable. Choose another payment method.",
+        };
+      }
+      return { ok: true, orderNumber: placed.orderNumber, idram };
+    }
+    return { ok: true, orderNumber: placed.orderNumber };
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Unable to place order.";
