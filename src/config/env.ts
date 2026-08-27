@@ -2,8 +2,6 @@ import "server-only";
 
 import { z } from "zod";
 
-import { pickUsableR2PublicBaseUrl } from "@/lib/r2/public-base-url";
-
 /**
  * Foundation env contract. Provider secrets become required when the
  * corresponding feature is wired (auth, DB, Redis, R2, email).
@@ -49,15 +47,6 @@ function optionalEnv(value: string | undefined): string | undefined {
   return trimmed ? trimmed : undefined;
 }
 
-function resolvePublicBaseUrl(): string | undefined {
-  return pickUsableR2PublicBaseUrl(
-    process.env.R2_PUBLIC_URL,
-    process.env.NEXT_PUBLIC_R2_PUBLIC_URL,
-    process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL,
-    process.env.R2_PUBLIC_BASE_URL,
-  );
-}
-
 export function getEnv(): AppEnv {
   if (cachedEnv) {
     return cachedEnv;
@@ -74,7 +63,7 @@ export function getEnv(): AppEnv {
     R2_ACCESS_KEY_ID: optionalEnv(process.env.R2_ACCESS_KEY_ID),
     R2_SECRET_ACCESS_KEY: optionalEnv(process.env.R2_SECRET_ACCESS_KEY),
     R2_BUCKET_NAME: optionalEnv(process.env.R2_BUCKET_NAME),
-    R2_PUBLIC_BASE_URL: resolvePublicBaseUrl(),
+    R2_PUBLIC_BASE_URL: optionalEnv(process.env.R2_PUBLIC_BASE_URL),
     R2_ENDPOINT: optionalEnv(process.env.R2_ENDPOINT),
     EMAIL_FROM: optionalEnv(process.env.EMAIL_FROM),
     RESEND_API_KEY: optionalEnv(process.env.RESEND_API_KEY),
