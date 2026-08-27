@@ -36,4 +36,5 @@ public/uploads/
 
 # Degusto migration local state, logs, and verification dumps
 scripts/degusto-import/state/
+scripts/legacy-import/state/
 

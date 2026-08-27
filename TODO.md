@@ -23,11 +23,12 @@ URL колбэков — как на старом сайте, не `/api/v1/paym
 ## Сейчас
 
 - [x] **Idram** — форма GetPayment, RESULT `/idram`, success/error, checksum, корзина/склад только после confirm
-- [x] **Ineco / Arca** — register.do, returnUrl `/inecobank/result`, статус только из getOrderStatusExtended (не session, не orderStatus 5)
+- [x] **Ineco / Arca** — register.do, returnUrl `/inecobank/result`, статус только из getOrderStatusExtended
+- [x] **Скрипт заливки + dry-run** — `pnpm import:legacy:dry`. Apply не запускали.
 
 ## Дальше (не начинать без команды)
 
-- [ ] Dry-run + apply users/orders в staging
+- [ ] Apply users/addresses/orders в Neon (`--apply` + `LEGACY_IMPORT_APPLY=YES`)
 - [ ] Картинки: сверка R2 с уже залитым каталогом
 - [ ] Проверка логина старым паролем
 - [ ] Ночь cutover
