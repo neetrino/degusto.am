@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { defaultLocale, isLocale } from "@/lib/i18n/config";
+import { isLegacyPaymentPath } from "@/lib/payments/legacy-callback-paths";
 
 function nextWithPathname(request: NextRequest, pathname: string): NextResponse {
   const requestHeaders = new Headers(request.headers);
@@ -35,6 +36,7 @@ export function proxy(request: NextRequest): NextResponse {
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
+    isLegacyPaymentPath(pathname) ||
     pathname.includes(".")
   ) {
     return nextWithPathname(request, pathname);

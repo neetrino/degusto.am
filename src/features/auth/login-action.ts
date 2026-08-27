@@ -7,7 +7,11 @@ import { getDb } from "@/db/client";
 import { users } from "@/db/schema";
 import { loginSchema } from "@/features/auth/schemas";
 import { createSession } from "@/lib/auth/session";
-import { verifyPassword } from "@/lib/auth/password";
+import {
+  hashPassword,
+  needsPasswordRehash,
+  verifyPassword,
+} from "@/lib/auth/password";
 import { defaultLocale, isLocale, type Locale } from "@/lib/i18n/config";
 
 export type AuthActionState = { error?: string };
@@ -62,9 +66,19 @@ export async function loginAction(
     return { error: "Invalid email or password." };
   }
 
+  const now = new Date();
+  const passwordHash = needsPasswordRehash(user.passwordHash)
+    ? await hashPassword(parsed.data.password)
+    : undefined;
   await getDb()
     .update(users)
-    .set({ lastLoginAt: new Date(), updatedAt: new Date() })
+    .set({
+      lastLoginAt: now,
+      updatedAt: now,
+      ...(passwordHash
+        ? { passwordHash, passwordUpdatedAt: now }
+        : {}),
+    })
     .where(eq(users.id, user.id));
   await createSession(user.id);
   redirect(resolveSafeNextPath(locale, formData.get("next"), user.role));
