@@ -4,6 +4,11 @@ import {
   normalizeRateDecimalString,
   parseRateToFixed,
 } from "@/lib/money/convert";
+import {
+  currencies,
+  defaultCurrency,
+  type Currency,
+} from "@/lib/money/currency";
 
 export const STORE_SETTING_KEYS = [
   "store.identity",
@@ -14,6 +19,7 @@ export const STORE_SETTING_KEYS = [
   "store.revenue",
   "store.globalDiscount",
   "store.fxRates",
+  "store.storefrontCurrencies",
 ] as const;
 
 export type StoreSettingKey = (typeof STORE_SETTING_KEYS)[number];
@@ -63,6 +69,15 @@ export type StoreFxRates = {
 export const DEFAULT_FX_RATES: StoreFxRates = {
   usd: DEFAULT_RATES_FROM_AMD.USD,
   rub: DEFAULT_RATES_FROM_AMD.RUB,
+};
+
+/** Which catalog currencies appear in the storefront header switcher. */
+export type StorefrontCurrencies = Record<Currency, boolean>;
+
+export const DEFAULT_STOREFRONT_CURRENCIES: StorefrontCurrencies = {
+  AMD: true,
+  USD: false,
+  RUB: false,
 };
 
 function isPositiveRateString(value: unknown): value is string {
@@ -191,4 +206,49 @@ export function parseFxRates(value: unknown): StoreFxRates {
       ? normalizeRateDecimalString(record.rub)
       : DEFAULT_FX_RATES.rub,
   };
+}
+
+export function parseStorefrontCurrencies(
+  value: unknown,
+): StorefrontCurrencies {
+  if (!value || typeof value !== "object") {
+    return { ...DEFAULT_STOREFRONT_CURRENCIES };
+  }
+
+  const record = value as Record<string, unknown>;
+  const parsed: StorefrontCurrencies = {
+    AMD: record.AMD === true,
+    USD: record.USD === true,
+    RUB: record.RUB === true,
+  };
+
+  if (!currencies.some((code) => parsed[code])) {
+    return { ...DEFAULT_STOREFRONT_CURRENCIES };
+  }
+
+  return parsed;
+}
+
+/** Enabled storefront currencies in catalog order. */
+export function listEnabledStorefrontCurrencies(
+  flags: StorefrontCurrencies,
+): Currency[] {
+  return currencies.filter((code) => flags[code]);
+}
+
+/**
+ * Clamps a shopper preference to an enabled storefront currency.
+ * Prefers AMD when the selected code is disabled.
+ */
+export function resolveEnabledCurrency(
+  selected: Currency,
+  flags: StorefrontCurrencies,
+): Currency {
+  if (flags[selected]) {
+    return selected;
+  }
+  if (flags[defaultCurrency]) {
+    return defaultCurrency;
+  }
+  return listEnabledStorefrontCurrencies(flags)[0] ?? defaultCurrency;
 }

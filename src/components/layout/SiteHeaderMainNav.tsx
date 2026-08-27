@@ -39,6 +39,7 @@ type SiteHeaderMainNavProps = {
   cartItemCount: number;
   cartTotalFormatted: string;
   wishlistCount: number;
+  enabledCurrencies: readonly Currency[];
 };
 
 const LOGO_SRC = staticAssetUrl("/assets/brand/degusto-logo.svg");
@@ -60,6 +61,7 @@ export function SiteHeaderMainNav({
   cartItemCount,
   cartTotalFormatted,
   wishlistCount,
+  enabledCurrencies,
 }: SiteHeaderMainNavProps) {
   const pathname = usePathname() ?? `/${locale}`;
   const {
@@ -220,6 +222,7 @@ export function SiteHeaderMainNav({
                   currency={currency}
                   currencyLabel={dictionary.header.currency}
                   languageLabel={dictionary.header.language}
+                  enabledCurrencies={enabledCurrencies}
                   variant="degusto"
                 />
               </motion.div>
@@ -257,6 +260,7 @@ export function SiteHeaderMainNav({
                 currency={currency}
                 currencyLabel={dictionary.header.currency}
                 languageLabel={dictionary.header.language}
+                enabledCurrencies={enabledCurrencies}
                 variant="degusto"
               />
               <MobileNavDrawer

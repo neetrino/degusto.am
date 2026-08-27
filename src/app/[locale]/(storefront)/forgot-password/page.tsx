@@ -8,7 +8,6 @@ import {
 import { ForgotPasswordForm } from "@/features/auth/ui/ForgotPasswordForm";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
-import { getSelectedCurrency } from "@/lib/money/display-price";
 
 type ForgotPasswordPageProps = {
   params: Promise<{ locale: string }>;
@@ -24,17 +23,14 @@ export default async function ForgotPasswordPage({
   }
 
   const dictionary = getDictionary(rawLocale);
-  const currency = await getSelectedCurrency();
 
   return (
     <AuthPageShell
       mobileChrome={{
         locale: rawLocale,
-        currency,
         brand: dictionary.brand,
         callLabel: dictionary.home.call,
         phoneHref: firstAuthPhoneHref(dictionary.footer.phones),
-        currencyLabel: dictionary.header.currency,
         languageLabel: dictionary.header.language,
         searchLabel: dictionary.header.search,
         searchPlaceholder: dictionary.header.search,

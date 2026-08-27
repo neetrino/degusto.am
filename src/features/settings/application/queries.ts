@@ -12,12 +12,14 @@ import {
   parseMaintenance,
   parseRevenueStatuses,
   parseStacking,
+  parseStorefrontCurrencies,
   type StoreFxRates,
   type StoreGlobalDiscount,
   type StoreIdentity,
   type StoreMaintenance,
   type StoreRevenue,
   type StoreStacking,
+  type StorefrontCurrencies,
   type StoreSettingKey,
 } from "@/features/settings/domain/store-settings";
 
@@ -63,25 +65,43 @@ export const getStoreFxRates = cache(async (): Promise<StoreFxRates> => {
   return parseFxRates(await getSettingValue("store.fxRates"));
 });
 
+export const getStorefrontCurrencies = cache(
+  async (): Promise<StorefrontCurrencies> => {
+    return parseStorefrontCurrencies(
+      await getSettingValue("store.storefrontCurrencies"),
+    );
+  },
+);
+
 export async function getAllStoreSettings(): Promise<{
   identity: StoreIdentity;
   maintenance: StoreMaintenance;
   stacking: StoreStacking;
   revenue: StoreRevenue;
   fxRates: StoreFxRates;
+  storefrontCurrencies: StorefrontCurrencies;
   branding: Record<string, unknown>;
   social: Record<string, unknown>;
 }> {
-  const [identity, maintenance, stacking, revenue, fxRates, branding, social] =
-    await Promise.all([
-      getStoreIdentity(),
-      getStoreMaintenance(),
-      getStoreStacking(),
-      getStoreRevenue(),
-      getStoreFxRates(),
-      getSettingValue("store.branding"),
-      getSettingValue("store.social"),
-    ]);
+  const [
+    identity,
+    maintenance,
+    stacking,
+    revenue,
+    fxRates,
+    storefrontCurrencies,
+    branding,
+    social,
+  ] = await Promise.all([
+    getStoreIdentity(),
+    getStoreMaintenance(),
+    getStoreStacking(),
+    getStoreRevenue(),
+    getStoreFxRates(),
+    getStorefrontCurrencies(),
+    getSettingValue("store.branding"),
+    getSettingValue("store.social"),
+  ]);
 
   return {
     identity,
@@ -89,6 +109,7 @@ export async function getAllStoreSettings(): Promise<{
     stacking,
     revenue,
     fxRates,
+    storefrontCurrencies,
     branding: branding ?? {},
     social: social ?? {},
   };

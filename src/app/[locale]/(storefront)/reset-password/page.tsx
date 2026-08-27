@@ -8,7 +8,6 @@ import {
 import { ResetPasswordForm } from "@/features/auth/ui/ResetPasswordForm";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
-import { getSelectedCurrency } from "@/lib/money/display-price";
 
 type ResetPasswordPageProps = {
   params: Promise<{ locale: string }>;
@@ -37,18 +36,15 @@ export default async function ResetPasswordPage({
   }
 
   const dictionary = getDictionary(rawLocale);
-  const currency = await getSelectedCurrency();
   const token = resolveToken(query.token);
 
   return (
     <AuthPageShell
       mobileChrome={{
         locale: rawLocale,
-        currency,
         brand: dictionary.brand,
         callLabel: dictionary.home.call,
         phoneHref: firstAuthPhoneHref(dictionary.footer.phones),
-        currencyLabel: dictionary.header.currency,
         languageLabel: dictionary.header.language,
         searchLabel: dictionary.header.search,
         searchPlaceholder: dictionary.header.search,

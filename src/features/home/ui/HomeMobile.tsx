@@ -11,8 +11,11 @@ import {
 import { HomeMobileProductCard } from "@/features/home/ui/HomeMobileProductCard";
 import { HomeMobileSearch } from "@/features/home/ui/HomeMobileSearch";
 import { HomeReveal } from "@/features/home/ui/HomeReveal";
+import { getStorefrontCurrencies } from "@/features/settings/application/queries";
+import { listEnabledStorefrontCurrencies } from "@/features/settings/domain/store-settings";
 import type { Locale } from "@/lib/i18n/config";
-import type { Currency } from "@/lib/money/currency";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
+import { getSelectedCurrency } from "@/lib/money/display-price";
 import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
 const HOME_MOBILE_NEW_PRODUCTS_COUNT = 6;
@@ -42,11 +45,9 @@ type ProductItem = {
 
 type HomeMobileProps = {
   locale: Locale;
-  currency: Currency;
   brand: string;
   callLabel: string;
   phoneHref: string;
-  currencyLabel: string;
   languageLabel: string;
   searchLabel: string;
   searchPlaceholder: string;
@@ -69,13 +70,11 @@ type HomeMobileProps = {
  * Mobile-only home composition matching live degusto-am
  * (orange chrome + search + white sheet + chips + daily offers + new products).
  */
-export function HomeMobile({
+export async function HomeMobile({
   locale,
-  currency,
   brand,
   callLabel,
   phoneHref,
-  currencyLabel,
   languageLabel,
   searchLabel,
   searchPlaceholder,
@@ -93,6 +92,13 @@ export function HomeMobile({
   dailyOffers,
   products,
 }: HomeMobileProps) {
+  const dictionary = getDictionary(locale);
+  const [currency, storefrontCurrencies] = await Promise.all([
+    getSelectedCurrency(),
+    getStorefrontCurrencies(),
+  ]);
+  const enabledCurrencies =
+    listEnabledStorefrontCurrencies(storefrontCurrencies);
   return (
     <HomeMobileMotionShell>
       <header className="relative z-[1100] overflow-visible px-4 pt-[58px]">
@@ -139,8 +145,9 @@ export function HomeMobile({
               <LocaleCurrencySwitcher
                 locale={locale}
                 currency={currency}
-                currencyLabel={currencyLabel}
+                currencyLabel={dictionary.header.currency}
                 languageLabel={languageLabel}
+                enabledCurrencies={enabledCurrencies}
                 variant="mobileHome"
               />
             </div>

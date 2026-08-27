@@ -3,17 +3,18 @@ import Image from "next/image";
 import { LocaleCurrencySwitcher } from "@/components/layout/LocaleCurrencySwitcher";
 import { AppLink } from "@/components/ui/AppLink";
 import { HomeMobileSearch } from "@/features/home/ui/HomeMobileSearch";
+import { getStorefrontCurrencies } from "@/features/settings/application/queries";
+import { listEnabledStorefrontCurrencies } from "@/features/settings/domain/store-settings";
 import type { Locale } from "@/lib/i18n/config";
-import type { Currency } from "@/lib/money/currency";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
+import { getSelectedCurrency } from "@/lib/money/display-price";
 import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
 type StorefrontMobileChromeProps = {
   locale: Locale;
-  currency: Currency;
   brand: string;
   callLabel: string;
   phoneHref: string;
-  currencyLabel: string;
   languageLabel: string;
   searchLabel: string;
   searchPlaceholder: string;
@@ -29,13 +30,11 @@ type StorefrontMobileChromeProps = {
  * Shared mobile orange chrome (logo / call / locale / search + white sheet)
  * used by home and shop routes to match live degusto-am.
  */
-export function StorefrontMobileChrome({
+export async function StorefrontMobileChrome({
   locale,
-  currency,
   brand,
   callLabel,
   phoneHref,
-  currencyLabel,
   languageLabel,
   searchLabel,
   searchPlaceholder,
@@ -44,6 +43,14 @@ export function StorefrontMobileChrome({
   sheetSpacingClassName = "mt-[87px] min-h-[calc(100dvh-10rem)] px-4 pt-8 pb-[110px]",
   children,
 }: StorefrontMobileChromeProps) {
+  const dictionary = getDictionary(locale);
+  const [currency, storefrontCurrencies] = await Promise.all([
+    getSelectedCurrency(),
+    getStorefrontCurrencies(),
+  ]);
+  const enabledCurrencies =
+    listEnabledStorefrontCurrencies(storefrontCurrencies);
+
   return (
     <div className="relative flex min-h-dvh w-full flex-col overflow-x-clip overflow-y-visible bg-[var(--project-color)] lg:hidden">
       <div
@@ -98,8 +105,9 @@ export function StorefrontMobileChrome({
             <LocaleCurrencySwitcher
               locale={locale}
               currency={currency}
-              currencyLabel={currencyLabel}
+              currencyLabel={dictionary.header.currency}
               languageLabel={languageLabel}
+              enabledCurrencies={enabledCurrencies}
               variant="mobileHome"
             />
           </div>

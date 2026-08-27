@@ -143,11 +143,9 @@ export default async function HomePage({ params }: HomePageProps) {
       <div className="-mx-4 -mt-[7.5rem] -mb-10 sm:-mx-6 lg:-mx-8" data-home-page>
         <HomeMobile
           locale={locale}
-          currency={currency}
           brand={dictionary.brand}
           callLabel={dictionary.home.call}
           phoneHref={firstPhoneHref(dictionary.footer.phones)}
-          currencyLabel={dictionary.header.currency}
           languageLabel={dictionary.header.language}
           searchLabel={dictionary.header.search}
           searchPlaceholder={dictionary.header.search}

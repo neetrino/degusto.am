@@ -19,6 +19,7 @@ import {
   formatPeriodDelta,
 } from "@/features/analytics/domain/date-range";
 import { getAdminDashboardMetrics } from "@/features/orders/application/queries";
+import { SHOW_ADMIN_SETTINGS_UI } from "@/features/settings/admin-settings-ui";
 import { requireAdmin } from "@/lib/auth/policies";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
@@ -213,7 +214,10 @@ export default async function AdminPage({ params }: AdminPageProps) {
             Quick actions
           </h2>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {QUICK_ACTIONS.map((action) => (
+            {QUICK_ACTIONS.filter(
+              (action) =>
+                action.href !== "settings" || SHOW_ADMIN_SETTINGS_UI,
+            ).map((action) => (
               <Link
                 key={action.href}
                 href={`/${locale}/admin/${action.href}`}

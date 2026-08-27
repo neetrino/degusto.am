@@ -3,6 +3,12 @@ import { Suspense } from "react";
 import { SiteHeaderMainNav } from "@/components/layout/SiteHeaderMainNav";
 import { SiteHeaderShell } from "@/components/layout/SiteHeaderShell";
 import { getCartDrawerView } from "@/features/cart/get-cart-drawer-view";
+import {
+  getStorefrontCurrencies,
+} from "@/features/settings/application/queries";
+import {
+  listEnabledStorefrontCurrencies,
+} from "@/features/settings/domain/store-settings";
 import { getWishlistCount } from "@/features/wishlist/queries";
 import { getCurrentUser } from "@/lib/auth/session";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
@@ -42,16 +48,20 @@ async function SiteHeaderMainNavAsync({
     { href: `/${locale}/about`, label: dictionary.nav.about },
   ] as const;
 
-  const [user, cartView, wishlistCount, formatPrice] = await Promise.all([
-    getCurrentUser(),
-    getCartDrawerView(locale, currency),
-    getWishlistCount(),
-    createDisplayPriceFormatter(locale, currency),
-  ]);
+  const [user, cartView, wishlistCount, formatPrice, storefrontCurrencies] =
+    await Promise.all([
+      getCurrentUser(),
+      getCartDrawerView(locale, currency),
+      getWishlistCount(),
+      createDisplayPriceFormatter(locale, currency),
+      getStorefrontCurrencies(),
+    ]);
 
   const emptyTotal = formatPrice(0).formatted;
   const cartTotalFormatted =
     cartView.itemCount > 0 ? cartView.totalFormatted : emptyTotal;
+  const enabledCurrencies =
+    listEnabledStorefrontCurrencies(storefrontCurrencies);
 
   return (
     <SiteHeaderMainNav
@@ -63,6 +73,7 @@ async function SiteHeaderMainNavAsync({
       cartItemCount={cartView.itemCount}
       cartTotalFormatted={cartTotalFormatted}
       wishlistCount={wishlistCount}
+      enabledCurrencies={enabledCurrencies}
     />
   );
 }

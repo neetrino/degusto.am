@@ -7,15 +7,12 @@ import { ProductSmoothScroll } from "@/features/products/ui/ProductSmoothScroll"
 import type { ProductDetail } from "@/features/products/types";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
-import type { Currency } from "@/lib/money/currency";
 
 type MobileChromeProps = {
   locale: Locale;
-  currency: Currency;
   brand: string;
   callLabel: string;
   phoneHref: string;
-  currencyLabel: string;
   languageLabel: string;
   searchLabel: string;
   searchPlaceholder: string;

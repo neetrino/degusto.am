@@ -23,6 +23,7 @@ import { logoutAction } from "@/features/auth/logout-action";
 import { SHOW_ADMIN_BLOG_UI } from "@/features/blog/admin-blog-ui";
 import { SHOW_ADMIN_MESSAGES_UI } from "@/features/contact/admin-messages-ui";
 import { SHOW_ADMIN_HERO_UI } from "@/features/hero/admin-hero-ui";
+import { SHOW_ADMIN_SETTINGS_UI } from "@/features/settings/admin-settings-ui";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
 import type { SessionUser } from "@/lib/auth/session";
@@ -172,12 +173,16 @@ export function AdminMobileHub({
           },
         ]
       : []),
-    {
-      href: `${base}/settings`,
-      label: dictionary.settings,
-      icon: <Settings className="h-5 w-5" strokeWidth={2.25} />,
-      tone: "slate",
-    },
+    ...(SHOW_ADMIN_SETTINGS_UI
+      ? [
+          {
+            href: `${base}/settings`,
+            label: dictionary.settings,
+            icon: <Settings className="h-5 w-5" strokeWidth={2.25} />,
+            tone: "slate" as const,
+          },
+        ]
+      : []),
   ];
 
   return (

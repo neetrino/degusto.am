@@ -17,7 +17,6 @@ import { setCurrencyAction } from "@/features/preferences/set-currency-action";
 import type { Locale } from "@/lib/i18n/config";
 import { localeLabels, locales } from "@/lib/i18n/config";
 import type { Currency } from "@/lib/money/currency";
-import { currencies } from "@/lib/money/currency";
 import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
 const HOVER_CLOSE_DELAY_MS = 140;
@@ -34,6 +33,8 @@ type LocaleCurrencySwitcherProps = {
   currency: Currency;
   currencyLabel: string;
   languageLabel: string;
+  /** Enabled storefront currencies. One or fewer → language-only UI. */
+  enabledCurrencies: readonly Currency[];
   variant?: "default" | "degusto" | "mobileHome";
 };
 
@@ -52,21 +53,35 @@ function optionClassName(selected: boolean): string {
     : "flex h-9 w-full items-center justify-center whitespace-nowrap rounded-[30px] px-3 text-center text-sm font-medium text-[#3c2f2f] transition-colors hover:bg-[#fff5ed] hover:text-[#ff7f20]";
 }
 
-function mobileHomeTriggerClassName(open: boolean): string {
+function mobileHomeTriggerClassName(open: boolean, compact: boolean): string {
+  const widthClass = compact ? "w-auto min-w-0" : "w-[159px]";
   return open
-    ? "relative inline-flex h-12 w-[159px] items-center justify-between rounded-[70px] bg-[#ff7f20] px-3.5 text-white shadow-[0_8px_20px_rgba(255,127,32,0.35)]"
-    : "relative inline-flex h-12 w-[159px] items-center justify-between rounded-[70px] bg-white px-3.5 text-[#ff7f20] shadow-[0_4px_14px_rgba(60,47,47,0.1)]";
+    ? `relative inline-flex h-12 ${widthClass} items-center justify-between gap-1.5 rounded-[70px] bg-[#ff7f20] px-3 text-white shadow-[0_8px_20px_rgba(255,127,32,0.35)]`
+    : `relative inline-flex h-12 ${widthClass} items-center justify-between gap-1.5 rounded-[70px] bg-white px-3 text-[#ff7f20] shadow-[0_4px_14px_rgba(60,47,47,0.1)]`;
+}
+
+function degustoTriggerClassName(compact: boolean): string {
+  return compact
+    ? "flex h-12 w-auto shrink-0 items-center gap-1.5 rounded-full bg-brand-strong px-3 text-white transition hover:bg-brand"
+    : "flex h-12 w-[159px] shrink-0 items-center gap-2 rounded-full bg-brand-strong px-4 text-white transition hover:bg-brand";
+}
+
+function defaultTriggerClassName(compact: boolean): string {
+  return compact
+    ? "flex h-9 w-auto shrink-0 items-center rounded-full border border-gray-200 bg-white py-0 pr-2.5 pl-2.5 text-gray-700 transition-colors hover:bg-gray-50"
+    : "flex h-9 w-[calc(2.75rem*3+0.5rem*2-0.75rem)] shrink-0 items-center rounded-full border border-gray-200 bg-white py-0 pr-3 pl-3 text-gray-700 transition-colors hover:bg-gray-50";
 }
 
 /**
- * Combined currency + language control matching MaMarie navbar:
- * pill trigger `AMD / HY`, two-column dropdown.
+ * Combined currency + language control matching MaMarie navbar.
+ * When fewer than two currencies are enabled, only language is shown.
  */
 export function LocaleCurrencySwitcher({
   locale,
   currency,
   currencyLabel,
   languageLabel,
+  enabledCurrencies,
   variant = "default",
 }: LocaleCurrencySwitcherProps) {
   const router = useRouter();
@@ -78,6 +93,7 @@ export function LocaleCurrencySwitcher({
   const rootRef = useRef<HTMLDivElement>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const menuId = useId();
+  const showCurrency = enabledCurrencies.length > 1;
 
   const clearCloseTimer = useCallback((): void => {
     if (closeTimerRef.current !== null) {
@@ -183,6 +199,10 @@ export function LocaleCurrencySwitcher({
 
   const isMobileHome = variant === "mobileHome";
   const isDegusto = variant === "degusto";
+  const compact = !showCurrency;
+  const triggerLabel = showCurrency
+    ? `${localeShortLabels[locale]} / ${currency}`
+    : localeShortLabels[locale];
 
   return (
     <div
@@ -195,15 +215,15 @@ export function LocaleCurrencySwitcher({
         type="button"
         className={
           isMobileHome
-            ? mobileHomeTriggerClassName(open)
+            ? mobileHomeTriggerClassName(open, compact)
             : isDegusto
-              ? "flex h-12 w-[159px] shrink-0 items-center gap-2 rounded-full bg-brand-strong px-4 text-white transition hover:bg-brand"
-              : "flex h-9 w-[calc(2.75rem*3+0.5rem*2-0.75rem)] shrink-0 items-center rounded-full border border-gray-200 bg-white py-0 pr-3 pl-3 text-gray-700 transition-colors hover:bg-gray-50"
+              ? degustoTriggerClassName(compact)
+              : defaultTriggerClassName(compact)
         }
         aria-expanded={open}
         aria-haspopup="dialog"
         aria-controls={menuId}
-        aria-label={`${localeShortLabels[locale]} / ${currency}`}
+        aria-label={triggerLabel}
         onClick={() => (open ? closeMenu() : openMenu())}
       >
         {isMobileHome ? (
@@ -217,8 +237,14 @@ export function LocaleCurrencySwitcher({
               aria-hidden
             />
             <span className="ml-1 truncate text-sm leading-[18px] font-bold">
-              {localeShortLabels[locale]} / {currency}
-              {currency === "AMD" ? " Դ" : ""}
+              {showCurrency ? (
+                <>
+                  {localeShortLabels[locale]} / {currency}
+                  {currency === "AMD" ? " Դ" : ""}
+                </>
+              ) : (
+                localeShortLabels[locale]
+              )}
             </span>
           </span>
         ) : isDegusto ? (
@@ -228,24 +254,32 @@ export function LocaleCurrencySwitcher({
           <span
             className={
               isDegusto
-                ? "flex min-w-0 flex-1 items-center justify-center gap-1 whitespace-nowrap text-base font-bold leading-[18px] capitalize"
-                : "flex min-w-0 flex-1 items-center justify-center whitespace-nowrap text-[15px] font-bold leading-none tabular-nums"
+                ? compact
+                  ? "flex items-center justify-center whitespace-nowrap text-base font-bold leading-[18px] capitalize"
+                  : "flex min-w-0 flex-1 items-center justify-center gap-1 whitespace-nowrap text-base font-bold leading-[18px] capitalize"
+                : compact
+                  ? "flex items-center justify-center whitespace-nowrap text-[15px] font-bold leading-none tabular-nums"
+                  : "flex min-w-0 flex-1 items-center justify-center whitespace-nowrap text-[15px] font-bold leading-none tabular-nums"
             }
           >
-            {isDegusto ? (
-              <>
-                <span>{localeShortLabels[locale]}</span>
-                <span>/</span>
-                <span>{currency}</span>
-              </>
+            {showCurrency ? (
+              isDegusto ? (
+                <>
+                  <span>{localeShortLabels[locale]}</span>
+                  <span>/</span>
+                  <span>{currency}</span>
+                </>
+              ) : (
+                <>
+                  <span>{currency}</span>
+                  <span className="inline-block w-[2px]" aria-hidden />
+                  <span>/</span>
+                  <span className="inline-block w-[2px]" aria-hidden />
+                  <span>{localeShortLabels[locale]}</span>
+                </>
+              )
             ) : (
-              <>
-                <span>{currency}</span>
-                <span className="inline-block w-[2px]" aria-hidden />
-                <span>/</span>
-                <span className="inline-block w-[2px]" aria-hidden />
-                <span>{localeShortLabels[locale]}</span>
-              </>
+              localeShortLabels[locale]
             )}
           </span>
         ) : null}
@@ -265,7 +299,11 @@ export function LocaleCurrencySwitcher({
         <div
           id={menuId}
           role="dialog"
-          aria-label={`${currencyLabel} / ${languageLabel}`}
+          aria-label={
+            showCurrency
+              ? `${currencyLabel} / ${languageLabel}`
+              : languageLabel
+          }
           className={`absolute right-0 top-full z-[310] origin-top pt-2 transition-[opacity,transform] ease-out ${
             entered
               ? "pointer-events-auto translate-y-0 opacity-100"
@@ -274,32 +312,34 @@ export function LocaleCurrencySwitcher({
           style={{ transitionDuration: `${DROPDOWN_ANIMATION_MS}ms` }}
         >
           <div className="flex h-fit w-max items-start overflow-hidden rounded-[20px] border border-[#dedede] bg-white pt-2.5 pb-2 shadow-[0_18px_44px_rgba(60,47,47,0.14)]">
-            <div className="w-max border-r border-[#dedede]">
-              <p className="whitespace-nowrap px-3 pb-1 text-center text-[11px] font-medium tracking-[0.2px] text-[#717182] uppercase">
-                {currencyLabel}
-              </p>
-              <ul
-                role="listbox"
-                aria-label={currencyLabel}
-                className="space-y-0.5 px-1.5"
-              >
-                {currencies.map((code) => {
-                  const selected = code === currency;
-                  return (
-                    <li key={code} role="option" aria-selected={selected}>
-                      <button
-                        type="button"
-                        disabled={pending}
-                        className={optionClassName(selected)}
-                        onClick={() => selectCurrency(code)}
-                      >
-                        {code}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
+            {showCurrency ? (
+              <div className="w-max border-r border-[#dedede]">
+                <p className="whitespace-nowrap px-3 pb-1 text-center text-[11px] font-medium tracking-[0.2px] text-[#717182] uppercase">
+                  {currencyLabel}
+                </p>
+                <ul
+                  role="listbox"
+                  aria-label={currencyLabel}
+                  className="space-y-0.5 px-1.5"
+                >
+                  {enabledCurrencies.map((code) => {
+                    const selected = code === currency;
+                    return (
+                      <li key={code} role="option" aria-selected={selected}>
+                        <button
+                          type="button"
+                          disabled={pending}
+                          className={optionClassName(selected)}
+                          onClick={() => selectCurrency(code)}
+                        >
+                          {code}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ) : null}
 
             <div className="w-max">
               <p className="whitespace-nowrap px-3 pb-1 text-center text-[11px] font-medium tracking-[0.2px] text-[#717182] uppercase">
