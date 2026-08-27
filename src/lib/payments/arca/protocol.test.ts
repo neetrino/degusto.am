@@ -14,9 +14,13 @@ import {
 import {
   amdToMinorUnits,
   arcaReturnUrl,
+  buildArcaFormUrl,
+  arcaMerchantIdFromUserName,
   isArcaDepositSuccess,
   parseArcaRegisterResponse,
   parseArcaStatusResponse,
+  readArcaOrderIdFromStatusPayload,
+  shouldReuseArcaRegistration,
   type ArcaStatusSnapshot,
 } from "@/lib/payments/arca/protocol";
 
@@ -204,6 +208,67 @@ describe("arcaReturnUrl", () => {
     expect(arcaReturnUrl("http://192.168.15.204:3000/", "p123")).toBe(
       "http://192.168.15.204:3000/inecobank/result?order=p123",
     );
+  });
+});
+
+describe("shouldReuseArcaRegistration", () => {
+  const expected =
+    "http://localhost:3000/inecobank/result?order=p123";
+  const formUrl =
+    "https://pg.inecoecom.am/payment/merchants/29005442/payment_hy.html?mdOrder=bank-uuid";
+
+  it("reuses when development returnUrl matches", () => {
+    expect(
+      shouldReuseArcaRegistration({
+        providerReference: "bank-uuid",
+        formUrl,
+        cachedReturnUrl: expected,
+        expectedReturnUrl: expected,
+        isDevelopment: true,
+      }),
+    ).toBe(true);
+  });
+
+  it("does not reuse in development when returnUrl port changed", () => {
+    expect(
+      shouldReuseArcaRegistration({
+        providerReference: "bank-uuid",
+        formUrl,
+        cachedReturnUrl:
+          "http://localhost:3002/inecobank/result?order=p123",
+        expectedReturnUrl: expected,
+        isDevelopment: true,
+      }),
+    ).toBe(false);
+  });
+});
+
+describe("Arca recovery helpers", () => {
+  it("derives merchant id and rebuilds formUrl from status payload", () => {
+    expect(arcaMerchantIdFromUserName("384.29005442.29535442")).toBe("29005442");
+    expect(
+      readArcaOrderIdFromStatusPayload({
+        attributes: [{ name: "mdOrder", value: "bank-uuid" }],
+      }),
+    ).toBe("bank-uuid");
+    expect(
+      buildArcaFormUrl(
+        ARCA_INECO_BASE_URL,
+        "384.29005442.29535442",
+        "hy",
+        "bank-uuid",
+      ),
+    ).toBe(
+      "https://pg.inecoecom.am/payment/merchants/29005442/payment_hy.html?mdOrder=bank-uuid",
+    );
+  });
+
+  it("maps unauthorized JSON to errorCode -1 with message", () => {
+    expect(parseArcaRegisterResponse({ message: "Unauthorized" })).toMatchObject({
+      ok: false,
+      errorCode: -1,
+      errorMessage: "Unauthorized",
+    });
   });
 });
 

@@ -6,8 +6,11 @@ import {
   amdToMinorUnits,
   arcaLanguage,
   arcaReturnUrl,
+  buildArcaFormUrl,
+  isHttpsUrl,
   parseArcaRegisterResponse,
   parseArcaStatusResponse,
+  readArcaOrderIdFromStatusPayload,
   type ArcaRegisterResult,
   type ArcaStatusSnapshot,
 } from "@/lib/payments/arca/protocol";
@@ -24,6 +27,11 @@ export type ArcaRegisterInput = {
   locale: Locale;
   appUrl: string;
   description?: string;
+};
+
+export type ArcaRecoveredRegistration = {
+  orderId: string;
+  formUrl: string;
 };
 
 const FETCH_MS = 20_000;
@@ -84,6 +92,7 @@ export async function registerArcaOrder(
       logger.warn("Arca register.do failed", {
         orderNumber: input.orderNumber,
         errorCode: result.errorCode,
+        errorMessage: result.errorMessage,
       });
     }
     return result;
@@ -111,6 +120,41 @@ export async function getArcaOrderStatus(
     return parseArcaStatusResponse(payload);
   } catch {
     logger.error("Arca getOrderStatusExtended.do request failed", {});
+    return null;
+  }
+}
+
+/** Rebuild formUrl when Arca already has the order but we lost the redirect URL. */
+export async function recoverArcaCheckoutRegistration(
+  credentials: ArcaCredentials,
+  input: { orderNumber: string; locale: Locale },
+  fetchImpl: ArcaFetch = fetch,
+): Promise<ArcaRecoveredRegistration | null> {
+  try {
+    const payload = await postArcaForm(
+      credentials,
+      "getOrderStatusExtended.do",
+      { ...authFields(credentials), orderNumber: input.orderNumber },
+      fetchImpl,
+    );
+    const orderId = readArcaOrderIdFromStatusPayload(payload);
+    if (!orderId) {
+      return null;
+    }
+    const formUrl = buildArcaFormUrl(
+      credentials.baseUrl,
+      credentials.userName,
+      input.locale,
+      orderId,
+    );
+    if (!formUrl || !isHttpsUrl(formUrl)) {
+      return null;
+    }
+    return { orderId, formUrl };
+  } catch {
+    logger.error("Arca checkout recovery failed", {
+      orderNumber: input.orderNumber,
+    });
     return null;
   }
 }
