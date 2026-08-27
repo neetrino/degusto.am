@@ -24,6 +24,10 @@ import {
   revalidateCartPaths,
 } from "@/features/cart/cart";
 import {
+  registerArcaCheckout,
+  type ArcaCheckoutPayload,
+} from "@/features/checkout/application/arca-register";
+import {
   buildIdramCheckoutPayload,
   type IdramCheckoutPayload,
 } from "@/features/checkout/application/idram-checkout-payload";
@@ -39,6 +43,7 @@ import {
 } from "@/features/checkout/domain/pickup-branches";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { isLocale } from "@/lib/i18n/config";
+import { getArcaCredentials } from "@/lib/payments/arca/credentials";
 import { getIdramCredentials } from "@/lib/payments/idram/credentials";
 import {
   ORDER_NUMBER_LOCK_KEY,
@@ -81,10 +86,15 @@ function pickupBranchesForLocale(locale: CheckoutInput["locale"]): PickupBranchO
   );
 }
 
-export type { IdramCheckoutPayload };
+export type { ArcaCheckoutPayload, IdramCheckoutPayload };
 
 export type CreateOrderResult =
-  | { ok: true; orderNumber: string; idram?: IdramCheckoutPayload }
+  | {
+      ok: true;
+      orderNumber: string;
+      idram?: IdramCheckoutPayload;
+      arca?: ArcaCheckoutPayload;
+    }
   | { ok: false; error: string };
 
 type PlacedOrder = {
@@ -93,9 +103,10 @@ type PlacedOrder = {
   contactEmail: string;
   locale: CheckoutInput["locale"];
   attachIdram: boolean;
+  attachArca: boolean;
 };
 
-/** Creates a COD or Idram order. Idram does not clear the cart or decrement stock. */
+/** COD captures immediately. Idram/Arca hold cart and stock until capture. */
 export async function createOrderAction(
   raw: CheckoutInput,
 ): Promise<CreateOrderResult> {
@@ -106,13 +117,24 @@ export async function createOrderAction(
 
   const input = parsed.data;
   const isIdram = input.paymentMethod === "idram";
+  const isArca = input.paymentMethod === "arca";
+  const holdUntilCapture = isIdram || isArca;
   if (isIdram && defaultCurrency !== "AMD") {
     return { ok: false, error: "Idram accepts AMD only." };
+  }
+  if (isArca && defaultCurrency !== "AMD") {
+    return { ok: false, error: "Card payment accepts AMD only." };
   }
   if (isIdram && !getIdramCredentials()) {
     return {
       ok: false,
       error: "Idram is unavailable. Choose another payment method.",
+    };
+  }
+  if (isArca && !getArcaCredentials()) {
+    return {
+      ok: false,
+      error: "Card payment is unavailable. Choose another payment method.",
     };
   }
   const user = await getCurrentUser();
@@ -188,6 +210,7 @@ export async function createOrderAction(
           contactEmail: existing.contactEmail,
           locale,
           attachIdram: isIdram && existing.paymentStatus === "PENDING",
+          attachArca: isArca && existing.paymentStatus === "PENDING",
         };
       }
 
@@ -468,7 +491,7 @@ export async function createOrderAction(
           currency: defaultCurrency,
         });
 
-        if (!isIdram) {
+        if (!holdUntilCapture) {
           await tx
             .update(products)
             .set({
@@ -490,7 +513,7 @@ export async function createOrderAction(
         }
       }
 
-      const providerReference = isIdram
+      const providerReference = holdUntilCapture
         ? null
         : (
             await getProviders().payment.createPayment({
@@ -536,7 +559,7 @@ export async function createOrderAction(
         },
       });
 
-      if (!isIdram) {
+      if (!holdUntilCapture) {
         await tx.delete(cartItems).where(eq(cartItems.cartId, cart.id));
         await tx
           .update(carts)
@@ -550,6 +573,7 @@ export async function createOrderAction(
         contactEmail: input.contactEmail.toLowerCase(),
         locale: input.locale,
         attachIdram: isIdram,
+        attachArca: isArca,
       };
     });
 
@@ -568,6 +592,20 @@ export async function createOrderAction(
         };
       }
       return { ok: true, orderNumber: placed.orderNumber, idram };
+    }
+    if (placed.attachArca) {
+      const arca = await registerArcaCheckout({
+        orderNumber: placed.orderNumber,
+        totalAmount: placed.totalAmount,
+        locale: placed.locale,
+      });
+      if (!arca) {
+        return {
+          ok: false,
+          error: "Card payment is unavailable. Choose another payment method.",
+        };
+      }
+      return { ok: true, orderNumber: placed.orderNumber, arca };
     }
     return { ok: true, orderNumber: placed.orderNumber };
   } catch (error) {

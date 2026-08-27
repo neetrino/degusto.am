@@ -23,10 +23,10 @@ URL колбэков — как на старом сайте, не `/api/v1/paym
 ## Сейчас
 
 - [x] **Idram** — форма GetPayment, RESULT `/idram`, success/error, checksum, корзина/склад только после confirm
+- [x] **Ineco / Arca** — register.do, returnUrl `/inecobank/result`, статус только из getOrderStatusExtended (не session, не orderStatus 5)
 
 ## Дальше (не начинать без команды)
 
-- [ ] Ineco / Arca на `/inecobank/result`
 - [ ] Dry-run + apply users/orders в staging
 - [ ] Картинки: сверка R2 с уже залитым каталогом
 - [ ] Проверка логина старым паролем

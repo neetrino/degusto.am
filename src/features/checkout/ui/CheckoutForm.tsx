@@ -371,6 +371,11 @@ export function CheckoutForm({
         return;
       }
 
+      if (result.arca) {
+        window.location.assign(result.arca.redirectUrl);
+        return;
+      }
+
       router.push(`/${locale}/checkout/success/${result.orderNumber}`);
       router.refresh();
     });

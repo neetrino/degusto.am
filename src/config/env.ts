@@ -29,6 +29,12 @@ const envSchema = z.object({
   IDRAM_SECRET_KEY: z.string().min(1).optional(),
   IDRAM_LIVE_REC_ACCOUNT: z.string().min(1).optional(),
   IDRAM_LIVE_SECRET_KEY: z.string().min(1).optional(),
+  ARCA_TEST_MODE: z.string().optional(),
+  ARCA_BANK: z.string().optional(),
+  ARCA_USERNAME: z.string().min(1).optional(),
+  ARCA_PASSWORD: z.string().min(1).optional(),
+  ARCA_LIVE_USERNAME: z.string().min(1).optional(),
+  ARCA_LIVE_PASSWORD: z.string().min(1).optional(),
 });
 
 export type AppEnv = z.infer<typeof envSchema>;
@@ -72,6 +78,12 @@ export function getEnv(): AppEnv {
     IDRAM_SECRET_KEY: optionalEnv(process.env.IDRAM_SECRET_KEY),
     IDRAM_LIVE_REC_ACCOUNT: optionalEnv(process.env.IDRAM_LIVE_REC_ACCOUNT),
     IDRAM_LIVE_SECRET_KEY: optionalEnv(process.env.IDRAM_LIVE_SECRET_KEY),
+    ARCA_TEST_MODE: optionalEnv(process.env.ARCA_TEST_MODE),
+    ARCA_BANK: optionalEnv(process.env.ARCA_BANK),
+    ARCA_USERNAME: optionalEnv(process.env.ARCA_USERNAME),
+    ARCA_PASSWORD: optionalEnv(process.env.ARCA_PASSWORD),
+    ARCA_LIVE_USERNAME: optionalEnv(process.env.ARCA_LIVE_USERNAME),
+    ARCA_LIVE_PASSWORD: optionalEnv(process.env.ARCA_LIVE_PASSWORD),
   });
 
   if (!parsed.success) {
