@@ -43,7 +43,7 @@ export function AnalyticsTopRankings({
       <Card className="rounded-2xl p-5 sm:p-6">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="text-lg font-semibold text-[#1f1a17]">
-            Top Selling Products
+            Թոփ վաճառվող ապրանքներ
           </h2>
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-[#ff7f20]">
             <TrendingUp className="h-4 w-4" aria-hidden />
@@ -76,10 +76,10 @@ export function AnalyticsTopRankings({
                 <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-[#8a837a]">
                   <span className="inline-flex items-center gap-1">
                     <ShoppingBag className="h-3 w-3" aria-hidden />
-                    {product.quantitySold} sold
+                    {product.quantitySold} վաճառք
                   </span>
                   <span>|</span>
-                  <span>{product.orderCount} orders</span>
+                  <span>{product.orderCount} պատվեր</span>
                 </p>
               </div>
               <p className="shrink-0 text-sm font-bold text-[#1f1a17]">
@@ -89,7 +89,7 @@ export function AnalyticsTopRankings({
           ))}
           {products.length === 0 ? (
             <p className="py-8 text-center text-sm text-[#8a837a]">
-              No product sales in this range.
+              Այս միջակայքում վաճառքներ չկան։
             </p>
           ) : null}
         </div>
@@ -97,7 +97,7 @@ export function AnalyticsTopRankings({
 
       <Card className="rounded-2xl p-5 sm:p-6">
         <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold text-[#1f1a17]">Top Categories</h2>
+          <h2 className="text-lg font-semibold text-[#1f1a17]">Թոփ կատեգորիաներ</h2>
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
             <Tag className="h-4 w-4" aria-hidden />
           </div>
@@ -114,9 +114,9 @@ export function AnalyticsTopRankings({
                   {category.title}
                 </p>
                 <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-[#8a837a]">
-                  <span>{category.itemCount} items</span>
+                  <span>{category.itemCount} ապրանք</span>
                   <span>|</span>
-                  <span>{category.orderCount} orders</span>
+                  <span>{category.orderCount} պատվեր</span>
                 </p>
               </div>
               <p className="shrink-0 text-sm font-bold text-[#1f1a17]">
@@ -126,7 +126,7 @@ export function AnalyticsTopRankings({
           ))}
           {categories.length === 0 ? (
             <p className="py-8 text-center text-sm text-[#8a837a]">
-              No category sales in this range.
+              Այս միջակայքում կատեգորիաներ չկան։
             </p>
           ) : null}
         </div>

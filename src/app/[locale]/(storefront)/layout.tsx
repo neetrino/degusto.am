@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { MobileBottomNavIsland } from "@/components/layout/MobileBottomNavIsland";
@@ -8,10 +7,7 @@ import { StorefrontProviders } from "@/components/layout/StorefrontProviders";
 import { MaintenanceGate } from "@/components/layout/MaintenanceGate";
 import { isLocale, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
-import {
-  CURRENCY_COOKIE_NAME,
-  parseCurrencyCookie,
-} from "@/lib/money/currency-cookie";
+import { getSelectedCurrency } from "@/lib/money/display-price";
 
 type StorefrontLayoutProps = {
   children: React.ReactNode;
@@ -30,10 +26,7 @@ export default async function StorefrontLayout({
 
   const locale: Locale = rawLocale;
   const dictionary = getDictionary(locale);
-  const cookieStore = await cookies();
-  const currency = parseCurrencyCookie(
-    cookieStore.get(CURRENCY_COOKIE_NAME)?.value,
-  );
+  const currency = await getSelectedCurrency();
 
   return (
     <StorefrontProviders>

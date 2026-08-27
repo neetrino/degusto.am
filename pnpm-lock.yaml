@@ -20,6 +20,9 @@ importers:
       '@node-rs/argon2':
         specifier: ^2.0.2
         version: 2.0.2
+      apexcharts:
+        specifier: ^7.0.0
+        version: 7.0.0
       drizzle-orm:
         specifier: ^0.45.2
         version: 0.45.2(@neondatabase/serverless@1.1.0)
@@ -38,6 +41,9 @@ importers:
       react:
         specifier: 19.2.4
         version: 19.2.4
+      react-apexcharts:
+        specifier: ^2.1.1
+        version: 2.1.1(apexcharts@7.0.0)(react@19.2.4)
       react-dom:
         specifier: 19.2.4
         version: 19.2.4(react@19.2.4)
@@ -1726,6 +1732,13 @@ packages:
     resolution: {integrity: sha512-zbB9rCJAT1rbjiVDb2hqKFHNYLxgtk8NURxZ3IZwD3F6NtxbXZQCnnSi1Lkx+IDohdPlFp222wVALIheZJQSEg==}
     engines: {node: '>=8'}
 
+  apex-commons@0.5.0:
+    resolution: {integrity: sha512-xz83SgPREE1wGtoflvxjwJtcjzl5bKTz2/bDxWCZNL6QVjUNE47kMg/1Zqt0bSh6eOnmFCWlTDc3RU8o85N+wg==}
+
+  apexcharts@7.0.0:
+    resolution: {integrity: sha512-wX0LP5WajZXIAvQpCcDMVOlBUhlfhzUmEaKxPkUs54WFm0/GBbEyYCpw4G6iK7W5nU/R+kRzk+NHQSWlmp0qCA==}
+    engines: {node: ^20.19.0 || ^22.12.0 || >=24.0.0}
+
   argparse@2.0.1:
     resolution: {integrity: sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==}
 
@@ -2892,6 +2905,12 @@ packages:
 
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
+
+  react-apexcharts@2.1.1:
+    resolution: {integrity: sha512-aV25n+1ZdAzRG0KhODVC48K8WbhMKBAr3yWSeaaBqM1ySn22kSSKblsNCUvlwegsT+cdMLuOrK9xGZb+IK+OkQ==}
+    peerDependencies:
+      apexcharts: '>=5.10.1'
+      react: '>=16.8.0'
 
   react-dom@19.2.4:
     resolution: {integrity: sha512-AXJdLo8kgMbimY95O2aKQqsz2iWi9jMgKJhRBAxECE4IFxfcazB2LmzloIoibJI3C12IlY20+KFaLv+71bUJeQ==}
@@ -4703,6 +4722,12 @@ snapshots:
     dependencies:
       color-convert: 2.0.1
 
+  apex-commons@0.5.0: {}
+
+  apexcharts@7.0.0:
+    dependencies:
+      apex-commons: 0.5.0
+
   argparse@2.0.1: {}
 
   aria-query@5.3.2: {}
@@ -5974,6 +5999,12 @@ snapshots:
   punycode@2.3.1: {}
 
   queue-microtask@1.2.3: {}
+
+  react-apexcharts@2.1.1(apexcharts@7.0.0)(react@19.2.4):
+    dependencies:
+      apexcharts: 7.0.0
+      prop-types: 15.8.1
+      react: 19.2.4
 
   react-dom@19.2.4(react@19.2.4):
     dependencies:

@@ -12,6 +12,8 @@ import {
   parseCurrencyCookie,
 } from "@/lib/money/currency-cookie";
 import { formatMoneyAmount } from "@/lib/money/format";
+import { getStorefrontCurrencies } from "@/features/settings/application/queries";
+import { resolveEnabledCurrency } from "@/features/settings/domain/store-settings";
 
 export type DisplayPrice = {
   baseAmount: number;
@@ -26,7 +28,11 @@ export type DisplayPrice = {
 /** Resolves selected display currency from the preference cookie. */
 export const getSelectedCurrency = cache(async (): Promise<Currency> => {
   const store = await cookies();
-  return parseCurrencyCookie(store.get(CURRENCY_COOKIE_NAME)?.value);
+  const selected = parseCurrencyCookie(
+    store.get(CURRENCY_COOKIE_NAME)?.value,
+  );
+  const enabled = await getStorefrontCurrencies();
+  return resolveEnabledCurrency(selected, enabled);
 });
 
 const getCachedRateSnapshot = cache(async (displayCurrency: Currency) => {

@@ -97,6 +97,18 @@ const upsertSchema = z.discriminatedUnion("key", [
       rub: positiveRateSchema,
     }),
   }),
+  z.object({
+    key: z.literal("store.storefrontCurrencies"),
+    value: z
+      .object({
+        AMD: z.boolean(),
+        USD: z.boolean(),
+        RUB: z.boolean(),
+      })
+      .refine((value) => value.AMD || value.USD || value.RUB, {
+        message: "At least one storefront currency must stay enabled.",
+      }),
+  }),
 ]);
 
 export type UpsertStoreSettingInput = z.infer<typeof upsertSchema>;
@@ -166,6 +178,9 @@ export async function upsertStoreSettingAction(
 
     revalidatePath(`/${locale}/admin/settings`);
     revalidatePath(`/${locale}/admin`);
+    if (parsed.data.key === "store.storefrontCurrencies") {
+      revalidatePath("/", "layout");
+    }
     return ok({ key: parsed.data.key });
   } catch {
     return err("SETTINGS_UPSERT_FAILED", "Unable to save settings.");

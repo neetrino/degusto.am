@@ -10,7 +10,7 @@ import {
   authIconBubbleClassName,
   authInputClassName,
   authLabelClassName,
-} from "@/features/auth/ui/AuthPageShell";
+} from "@/features/auth/ui/auth-form-classes";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 

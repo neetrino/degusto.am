@@ -14,7 +14,6 @@ import { resolveProductPrices } from "@/features/promotions/application/resolve-
 import { getCurrentUser } from "@/lib/auth/session";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
-import { getSelectedCurrency } from "@/lib/money/display-price";
 
 type CheckoutPageProps = {
   params: Promise<{ locale: string }>;
@@ -37,11 +36,10 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
 
   const dictionary = getDictionary(rawLocale);
   const copy = dictionary.checkout;
-  const [user, { items }, deliveryOptions, currency] = await Promise.all([
+  const [user, { items }, deliveryOptions] = await Promise.all([
     getCurrentUser(),
     getCartWithItems(),
     getCheckoutDeliveryOptions(),
-    getSelectedCurrency(),
   ]);
   const [defaultAddress, prices, orderProducts] = await Promise.all([
     user ? getDefaultShippingAddress(user.id) : Promise.resolve(null),
@@ -139,11 +137,9 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
 
   const mobileChrome = {
     locale: rawLocale,
-    currency,
     brand: dictionary.brand,
     callLabel: dictionary.home.call,
     phoneHref: firstPhoneHref(dictionary.footer.phones),
-    currencyLabel: dictionary.header.currency,
     languageLabel: dictionary.header.language,
     searchLabel: dictionary.header.search,
     searchPlaceholder: dictionary.header.search,

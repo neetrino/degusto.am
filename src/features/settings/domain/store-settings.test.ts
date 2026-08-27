@@ -3,10 +3,14 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_FX_RATES,
   DEFAULT_REVENUE_STATUSES,
+  DEFAULT_STOREFRONT_CURRENCIES,
+  listEnabledStorefrontCurrencies,
   parseFxRates,
   parseMaintenance,
   parseRevenueStatuses,
   parseStacking,
+  parseStorefrontCurrencies,
+  resolveEnabledCurrency,
 } from "@/features/settings/domain/store-settings";
 
 describe("store settings parsers", () => {
@@ -38,5 +42,22 @@ describe("store settings parsers", () => {
       rub: "1.5",
     });
     expect(parseFxRates({ usd: "0", rub: "abc" })).toEqual(DEFAULT_FX_RATES);
+  });
+
+  it("parses storefront currencies and clamps selection", () => {
+    expect(parseStorefrontCurrencies(null)).toEqual(
+      DEFAULT_STOREFRONT_CURRENCIES,
+    );
+    expect(
+      parseStorefrontCurrencies({ AMD: false, USD: false, RUB: false }),
+    ).toEqual(DEFAULT_STOREFRONT_CURRENCIES);
+    expect(
+      parseStorefrontCurrencies({ AMD: true, USD: true, RUB: false }),
+    ).toEqual({ AMD: true, USD: true, RUB: false });
+
+    const flags = { AMD: true, USD: true, RUB: false } as const;
+    expect(listEnabledStorefrontCurrencies(flags)).toEqual(["AMD", "USD"]);
+    expect(resolveEnabledCurrency("USD", flags)).toBe("USD");
+    expect(resolveEnabledCurrency("RUB", flags)).toBe("AMD");
   });
 });

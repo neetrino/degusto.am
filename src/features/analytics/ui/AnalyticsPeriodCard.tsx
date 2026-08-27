@@ -1,5 +1,6 @@
 "use client";
 
+import { Download } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, type FormEvent } from "react";
 
@@ -71,75 +72,82 @@ export function AnalyticsPeriodCard({
   }
 
   return (
-    <Card className="mb-6 rounded-2xl p-5 sm:p-6">
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <h2 className="text-lg font-semibold text-[#1f1a17]">Time Period</h2>
-        <p className="text-sm font-medium text-[#8a837a]">
-          {formatAnalyticsDisplayDate(from)} – {formatAnalyticsDisplayDate(to)}
-        </p>
-      </div>
+    <Card className="mb-5 rounded-2xl border-[#ead7bf]/80 p-4 sm:p-5">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
+            <h2 className="text-[11px] font-bold tracking-[0.14em] text-[#8a837a] uppercase">
+              Ժամանակահատված
+            </h2>
+            <p className="text-sm font-medium text-[#5c564e]">
+              {formatAnalyticsDisplayDate(from)} –{" "}
+              {formatAnalyticsDisplayDate(to)}
+            </p>
+          </div>
 
-      <div className="max-w-md">
-        <span className={ADMIN_LABEL}>Period</span>
-        <SelectDropdown
-          ariaLabel="Period"
-          value={selectedPreset}
-          options={ANALYTICS_PERIOD_PRESETS.map((option) => ({
-            label: analyticsPeriodLabel(option),
-            value: option,
-          }))}
-          disabled={pending}
-          deferChange={false}
-          className="mt-1"
-          onValueChange={onPeriodChange}
-        />
-      </div>
-
-      {selectedPreset === "custom" ? (
-        <form
-          onSubmit={onCustomSubmit}
-          className="mt-4 flex flex-wrap items-end gap-3"
-        >
-          <label className="min-w-[140px] flex-1">
-            <span className={ADMIN_LABEL}>From</span>
-            <input
-              name="from"
-              type="date"
-              defaultValue={from}
-              className={ADMIN_INPUT}
+          <div className="max-w-md">
+            <span className={ADMIN_LABEL}>Ընտրել միջակայք</span>
+            <SelectDropdown
+              ariaLabel="Ժամանակահատված"
+              value={selectedPreset}
+              options={ANALYTICS_PERIOD_PRESETS.map((option) => ({
+                label: analyticsPeriodLabel(option),
+                value: option,
+              }))}
+              disabled={pending}
+              deferChange={false}
+              className="mt-1"
+              onValueChange={onPeriodChange}
             />
-          </label>
-          <label className="min-w-[140px] flex-1">
-            <span className={ADMIN_LABEL}>To</span>
-            <input
-              name="to"
-              type="date"
-              defaultValue={to}
-              className={ADMIN_INPUT}
-            />
-          </label>
-          <button
-            type="submit"
-            disabled={pending}
-            className="rounded-md bg-[#1f3a22] px-4 py-2 text-sm font-medium text-white hover:bg-[#19311c] disabled:opacity-60"
-          >
-            Apply
-          </button>
-        </form>
-      ) : null}
+          </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-4">
+          {selectedPreset === "custom" ? (
+            <form
+              onSubmit={onCustomSubmit}
+              className="mt-3 flex flex-wrap items-end gap-3"
+            >
+              <label className="min-w-[140px] flex-1">
+                <span className={ADMIN_LABEL}>Սկիզբ</span>
+                <input
+                  name="from"
+                  type="date"
+                  defaultValue={from}
+                  className={ADMIN_INPUT}
+                />
+              </label>
+              <label className="min-w-[140px] flex-1">
+                <span className={ADMIN_LABEL}>Ավարտ</span>
+                <input
+                  name="to"
+                  type="date"
+                  defaultValue={to}
+                  className={ADMIN_INPUT}
+                />
+              </label>
+              <button
+                type="submit"
+                disabled={pending}
+                className="rounded-full bg-[#1f3a22] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#19311c] disabled:opacity-60"
+              >
+                Կիրառել
+              </button>
+            </form>
+          ) : null}
+
+          {rangeInvalid ? (
+            <p className="mt-2 text-sm text-red-700">
+              Անվավեր միջակայք։ Ցուցադրվում է լռելյայնը։
+            </p>
+          ) : null}
+        </div>
+
         <a
           href={`/api/exports/admin/analytics?${exportQuery}`}
-          className="text-sm font-medium text-[#5c564e] underline-offset-2 hover:underline"
+          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-[#ead7bf] bg-white px-4 text-sm font-semibold text-[#1f3a22] transition hover:border-[#ff7f20]/45 hover:bg-[#fff5ed]"
         >
-          Download CSV export
+          <Download className="size-4" aria-hidden />
+          Ներբեռնել CSV արտահանում
         </a>
-        {rangeInvalid ? (
-          <p className="text-sm text-red-700">
-            Invalid date range. Showing defaults.
-          </p>
-        ) : null}
       </div>
     </Card>
   );

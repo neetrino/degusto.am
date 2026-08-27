@@ -102,11 +102,9 @@ export default async function WishlistPage({ params }: WishlistPageProps) {
     >
       <StorefrontMobileChrome
         locale={rawLocale}
-        currency={currency}
         brand={dictionary.brand}
         callLabel={dictionary.home.call}
         phoneHref={firstPhoneHref(dictionary.footer.phones)}
-        currencyLabel={dictionary.header.currency}
         languageLabel={dictionary.header.language}
         searchLabel={dictionary.header.search}
         searchPlaceholder={dictionary.header.search}

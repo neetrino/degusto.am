@@ -1,16 +1,21 @@
 import { notFound } from "next/navigation";
 
-import { ADMIN_PAGE_SUBTITLE } from "@/features/admin/ui/admin-form-classes";
+import {
+  ADMIN_PAGE_SUBTITLE,
+  ADMIN_PAGE_TITLE,
+} from "@/features/admin/ui/admin-form-classes";
 import { getAnalyticsSummary } from "@/features/analytics/application/queries";
 import {
   analyticsDateRangeSchema,
   matchAnalyticsPeriodPreset,
   rangeForAnalyticsPeriod,
 } from "@/features/analytics/domain/date-range";
-import { AnalyticsMetricCards } from "@/features/analytics/ui/AnalyticsMetricCards";
-import { AnalyticsOrdersByDay } from "@/features/analytics/ui/AnalyticsOrdersByDay";
+import { AnalyticsOverviewCards } from "@/features/analytics/ui/AnalyticsOverviewCards";
 import { AnalyticsPeriodCard } from "@/features/analytics/ui/AnalyticsPeriodCard";
+import { AnalyticsSelectedRangeCards } from "@/features/analytics/ui/AnalyticsSelectedRangeCards";
 import { AnalyticsTopRankings } from "@/features/analytics/ui/AnalyticsTopRankings";
+import { AnalyticsTrendPanel } from "@/features/analytics/ui/AnalyticsTrendPanel";
+import { formatAnalyticsShortDate } from "@/features/analytics/domain/date-range";
 import { isLocale } from "@/lib/i18n/config";
 import { formatMoneyAmount } from "@/lib/money/format";
 
@@ -55,13 +60,24 @@ export default async function AdminAnalyticsPage({
   const formatMoney = (amount: number): string =>
     formatMoneyAmount(amount, "AMD", locale);
 
+  const chartRows = summary.dailyRows.map((row) => ({
+    ...row,
+    revenueLabel: formatMoney(row.revenueAmount),
+  }));
+
   return (
     <section>
-      <div className="mb-6">
-        <p className={ADMIN_PAGE_SUBTITLE}>
-          Track your business performance and statistics
+      <div className="mb-5">
+        <h1 className={ADMIN_PAGE_TITLE}>Վերլուծություն</h1>
+        <p className={`mt-1 ${ADMIN_PAGE_SUBTITLE}`}>
+          Բիզնեսի արդյունքներ և վիճակագրություն
         </p>
       </div>
+
+      <AnalyticsOverviewCards
+        snapshots={summary.overview}
+        formatMoney={formatMoney}
+      />
 
       <AnalyticsPeriodCard
         key={`${range.from}:${range.to}`}
@@ -73,20 +89,33 @@ export default async function AdminAnalyticsPage({
         rangeInvalid={!parsed.success}
       />
 
-      <AnalyticsMetricCards
-        orderCount={summary.orderCount}
+      <AnalyticsSelectedRangeCards
         revenueLabel={formatMoney(summary.revenueAmount)}
-        userCount={summary.userCount}
+        orderCount={summary.orderCount}
+        averageOrderLabel={formatMoney(summary.averageOrderValue)}
+        customerCount={summary.customerCount}
+      />
+
+      <AnalyticsTrendPanel
+        rows={chartRows}
+        bestDayLabel={
+          summary.bestDay
+            ? formatAnalyticsShortDate(summary.bestDay.date)
+            : null
+        }
+        bestDayDetail={
+          summary.bestDay
+            ? `${formatMoney(summary.bestDay.revenueAmount)} · ${summary.bestDay.orderCount} պատվեր`
+            : null
+        }
+        orderCountLabel={String(summary.orderCount)}
+        revenueLabel={formatMoney(summary.revenueAmount)}
+        averageOrderLabel={formatMoney(summary.averageOrderValue)}
       />
 
       <AnalyticsTopRankings
         products={summary.topProducts}
         categories={summary.topCategories}
-        formatMoney={formatMoney}
-      />
-
-      <AnalyticsOrdersByDay
-        rows={summary.dailyRows}
         formatMoney={formatMoney}
       />
     </section>
