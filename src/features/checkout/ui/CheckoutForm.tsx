@@ -24,6 +24,7 @@ import {
 import { CheckoutOrderSummary } from "@/features/checkout/ui/CheckoutOrderSummary";
 import { CheckoutProductsInOrder } from "@/features/checkout/ui/CheckoutProductsInOrder";
 import { CheckoutSmoothScroll } from "@/features/checkout/ui/CheckoutSmoothScroll";
+import { submitIdramForm } from "@/features/checkout/ui/submit-idram-form";
 import type { CheckoutDeliveryOption } from "@/features/delivery/application/queries";
 import type { Locale } from "@/lib/i18n/config";
 import { formatMoneyAmount } from "@/lib/money/format";
@@ -101,6 +102,7 @@ type CheckoutFormProps = {
   deliveryOptions: CheckoutDeliveryOption[];
   pickupBranches: ReadonlyArray<PickupBranchOption>;
   hasItems: boolean;
+  paymentNotice?: string | null;
 };
 
 function quoteDeliveryAmount(
@@ -131,6 +133,7 @@ export function CheckoutForm({
   deliveryOptions,
   pickupBranches,
   hasItems,
+  paymentNotice = null,
 }: CheckoutFormProps) {
   const router = useRouter();
   const reduceMotion = useReducedMotion();
@@ -145,7 +148,7 @@ export function CheckoutForm({
     useState<CheckoutPaymentMethod>("cash_on_delivery");
   const [cashChangePreference, setCashChangePreference] =
     useState<CashChangePreference>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(paymentNotice);
   const [couponDraft, setCouponDraft] = useState("");
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(
     null,
@@ -360,6 +363,16 @@ export function CheckoutForm({
 
       if (!result.ok) {
         setError(result.error);
+        return;
+      }
+
+      if (result.idram) {
+        submitIdramForm(result.idram.formAction, result.idram.formData);
+        return;
+      }
+
+      if (result.arca) {
+        window.location.assign(result.arca.redirectUrl);
         return;
       }
 

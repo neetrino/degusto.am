@@ -82,7 +82,8 @@
     "continueShopping": "Continue Shopping"
   },
   "errors": {
-    "cartEmpty": "Cart is empty"
+    "cartEmpty": "Cart is empty",
+    "paymentFailed": "Payment was not completed. You can try again."
   },
   "success": {
     "title": "Order confirmed",
@@ -90,5 +91,10 @@
     "total": "Total: {amount}",
     "continueShopping": "Continue shopping",
     "viewOrders": "View orders"
+  },
+  "pending": {
+    "title": "Payment processing",
+    "body": "We have not confirmed the payment yet. Refresh this page in a moment — do not place the order again.",
+    "continueShopping": "Continue shopping"
   }
 }

@@ -22,13 +22,15 @@
     "db:check": "drizzle-kit check",
     "db:seed": "tsx src/db/seed/run.ts",
     "db:seed:catalog": "tsx src/db/seed/seed-figma-catalog.ts",
-    "db:export": "tsx src/db/seed/export-catalog.ts"
+    "db:export": "tsx src/db/seed/export-catalog.ts",
+    "import:legacy:dry": "tsx scripts/legacy-import/run.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1090.0",
     "@aws-sdk/s3-request-presigner": "^3.1090.0",
     "@neondatabase/serverless": "^1.1.0",
     "@node-rs/argon2": "^2.0.2",
+    "@node-rs/bcrypt": "^1.10.8",
     "apexcharts": "^7.0.0",
     "drizzle-orm": "^0.45.2",
     "lenis": "^1.3.25",
