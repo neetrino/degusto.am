@@ -13,7 +13,7 @@ export const ADMIN_TEXTAREA =
   "min-h-[100px] w-full resize-y rounded-2xl border border-[#ead7bf] bg-[#fffaf2] px-4 py-2 text-sm text-[#183322] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.05)] outline-none transition-[border-color,box-shadow,background-color] duration-200 placeholder:text-[#7f8f84] hover:border-[#f66812]/45 focus:border-[#f66812] focus:bg-white focus:ring-4 focus:ring-[#f66812]/15";
 
 export const ADMIN_PAGE_TITLE =
-  "font-display text-2xl font-semibold tracking-tight text-[#1f1a17] sm:text-3xl";
+  "text-2xl font-semibold tracking-tight text-[#1f1a17] sm:text-3xl";
 
 export const ADMIN_PAGE_SUBTITLE = "text-sm text-[#5c564e]";
 
@@ -64,7 +64,7 @@ export const ADMIN_SHEET_HEADER =
   "relative overflow-hidden border-b border-[#ff7f20]/15 px-5 py-4 sm:px-6 sm:py-5";
 
 export const ADMIN_SHEET_TITLE =
-  "font-display text-xl font-bold tracking-tight text-[#1f1a17]";
+  "text-xl font-semibold tracking-tight text-[#1f1a17]";
 
 export const ADMIN_SHEET_SUBTITLE = "mt-1 text-sm text-[#5c564e]";
 

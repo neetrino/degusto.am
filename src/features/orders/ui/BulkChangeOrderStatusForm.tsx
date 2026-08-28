@@ -29,6 +29,7 @@ import { bulkArchiveOrdersAction } from "@/features/orders/application/bulk-arch
 import { displayOrderContactName } from "@/features/orders/domain/contact-display";
 import { displayPaymentMethodLabel } from "@/features/orders/domain/payment-method-display";
 import { AdminInlineStatusSelect } from "@/features/orders/ui/AdminInlineStatusSelect";
+import { OrderPlacedAtCell } from "@/features/orders/ui/OrderPlacedAtCell";
 
 type BulkOrderRow = {
   id: string;
@@ -185,13 +186,10 @@ export function BulkChangeOrderStatusForm({
                 </p>
               </div>
               <div className="border-t border-[#ead7bf]/80 px-3 py-2">
-                <p className="text-xs text-[#8a837a]">
-                  {new Date(order.placedAt)
-                    .toISOString()
-                    .slice(0, 16)
-                    .replace("T", " ")}
-                  {order.isArchived ? " · Archived" : ""}
-                </p>
+                <OrderPlacedAtCell
+                  value={order.placedAt}
+                  hint={order.isArchived ? "Archived" : undefined}
+                />
               </div>
               <div
                 className="grid grid-cols-1 gap-3 border-t border-[#ead7bf]/80 px-3 py-3 sm:grid-cols-2"
@@ -305,12 +303,7 @@ export function BulkChangeOrderStatusForm({
                     </span>
                   </td>
                   <td className={ADMIN_TABLE_TD}>
-                    <span className="text-xs text-[#8a837a]">
-                      {new Date(order.placedAt)
-                        .toISOString()
-                        .slice(0, 16)
-                        .replace("T", " ")}
-                    </span>
+                    <OrderPlacedAtCell value={order.placedAt} />
                   </td>
                   <td
                     className={ADMIN_TABLE_TD_METRIC}

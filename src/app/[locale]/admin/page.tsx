@@ -102,7 +102,7 @@ export default async function AdminPage({ params }: AdminPageProps) {
 
       <section className="hidden lg:block">
         <div className="mb-8">
-          <h1 className="font-display text-3xl font-semibold tracking-tight text-[#1f1a17]">
+          <h1 className="text-3xl font-semibold tracking-tight text-[#1f1a17]">
             Admin
           </h1>
           <p className={`mt-1 ${ADMIN_PAGE_SUBTITLE}`}>
