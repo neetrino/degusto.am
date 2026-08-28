@@ -1,4 +1,4 @@
-import type { Locale } from "@/lib/i18n/config";
+import { locales, type Locale } from "@/lib/i18n/config";
 
 type DescriptionScript = Locale | "unknown";
 
@@ -38,6 +38,20 @@ function extractParagraphs(html: string): string[] {
   return html.match(paragraphRegex) ?? [];
 }
 
+/** True when HTML holds multiple paragraphs in different scripts (hy/ru/en). */
+export function isMixedLocaleDescription(html: string): boolean {
+  const paragraphs = extractParagraphs(html.trim());
+  if (paragraphs.length <= 1) {
+    return false;
+  }
+  const scripts = new Set(
+    paragraphs
+      .map((paragraph) => classifyDescriptionScript(paragraph))
+      .filter((script): script is Locale => script !== "unknown"),
+  );
+  return scripts.size > 1;
+}
+
 /**
  * When a product description stores hy/ru/en in one HTML blob, keep the
  * paragraph that matches the active storefront locale.
@@ -70,4 +84,23 @@ export function productDescriptionPlainText(
   return stripMarkup(pickLocalizedProductDescription(html, locale))
     .replace(/\s+/g, " ")
     .trim();
+}
+
+/**
+ * Splits a legacy multi-language HTML description into per-locale plain text.
+ * Returns null when the value is not a mixed hy/ru/en blob.
+ */
+export function splitLocalizedProductDescriptions(
+  html: string,
+): Record<Locale, string> | null {
+  const trimmed = html.trim();
+  if (!trimmed || !isMixedLocaleDescription(trimmed)) {
+    return null;
+  }
+
+  const next = {} as Record<Locale, string>;
+  for (const locale of locales) {
+    next[locale] = productDescriptionPlainText(trimmed, locale);
+  }
+  return next;
 }

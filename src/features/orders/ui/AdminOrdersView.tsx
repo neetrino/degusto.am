@@ -14,6 +14,7 @@ type AdminOrdersViewOrder = {
   paymentStatus: string;
   contactName: string;
   contactEmail: string;
+  contactPhone: string;
   totalAmount: number;
   baseCurrency: string;
   placedAt: string | Date;

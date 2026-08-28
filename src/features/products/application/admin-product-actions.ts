@@ -9,6 +9,7 @@ import {
   productIdsSchema,
   type ProductIdsInput,
 } from "@/features/products/schemas/admin-list";
+import { PRODUCT_DEFAULT_STOCK } from "@/features/products/domain/auto-stock";
 import { requireAdmin } from "@/lib/auth/policies";
 import { invalidateProductsCache } from "@/lib/cache/invalidate-public";
 import { createId } from "@/lib/id";
@@ -188,7 +189,7 @@ export async function duplicateProductAction(
     translations: withCopySuffix(existing.translations),
     priceAmount: existing.priceAmount,
     compareAtAmount: existing.compareAtAmount,
-    stockOnHand: 0,
+    stockOnHand: PRODUCT_DEFAULT_STOCK,
     lowStockThreshold: existing.lowStockThreshold,
     status: "DRAFT",
     isFeatured: false,

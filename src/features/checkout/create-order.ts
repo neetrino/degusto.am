@@ -36,6 +36,7 @@ import {
   type CheckoutInput,
 } from "@/features/checkout/schemas";
 import { toPaymentRecord } from "@/features/checkout/domain/payment-methods";
+import { planStockAfterSale } from "@/features/products/domain/auto-stock";
 import {
   isPickupBranchId,
   resolvePickupBranchLabel,
@@ -278,6 +279,8 @@ export async function createOrderAction(
         lineDiscountAmount: number;
         lineTotal: number;
         nextStock: number;
+        orderBalance: number;
+        replenishDelta: number | null;
       }> = [];
 
       const lockedProducts: Array<{
@@ -329,6 +332,7 @@ export async function createOrderAction(
             displayCurrency,
           ).amount,
         );
+        const stockPlan = planStockAfterSale(locked.stockOnHand, quantity);
         subtotal += lineTotal;
         lineSnapshots.push({
           productId: locked.id,
@@ -343,7 +347,9 @@ export async function createOrderAction(
           compareAtAmount,
           lineDiscountAmount,
           lineTotal,
-          nextStock: locked.stockOnHand - quantity,
+          nextStock: stockPlan.finalBalance,
+          orderBalance: stockPlan.orderBalance,
+          replenishDelta: stockPlan.replenishDelta,
         });
       }
 
@@ -505,9 +511,21 @@ export async function createOrderAction(
             delta: -line.quantity,
             reason: "ORDER",
             orderId,
-            resultingBalance: line.nextStock,
+            resultingBalance: line.orderBalance,
             correlationId: number,
           });
+
+          if (line.replenishDelta != null) {
+            await tx.insert(stockMovements).values({
+              id: createId(),
+              productId: line.productId,
+              delta: line.replenishDelta,
+              reason: "ADMIN_ADJUSTMENT",
+              orderId,
+              resultingBalance: line.nextStock,
+              correlationId: number,
+            });
+          }
         }
       }
 

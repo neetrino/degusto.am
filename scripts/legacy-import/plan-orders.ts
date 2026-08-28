@@ -1,7 +1,11 @@
 import { DEFAULT_CITY, DEFAULT_COUNTRY, UNKNOWN_PHONE } from "./constants";
 import {
+  guestContactFromAvailable,
+  phoneMatchKey,
+  type MatchedContactUser,
+} from "./guest-contact";
+import {
   displayName,
-  guestEmail,
   legacyUuid,
   mapOrderStatus,
   mapPayment,
@@ -29,6 +33,7 @@ function contactForOrder(
   order: DumpOrder,
   user: DumpUser | undefined,
   userId: string | null,
+  phoneMatchedUser: MatchedContactUser | null,
 ): {
   kind: "guest" | "registered";
   userId: string | null;
@@ -47,14 +52,34 @@ function contactForOrder(
       lastName: user.lastName,
     };
   }
+  const guest = guestContactFromAvailable({
+    oldId: order.oldId,
+    phone: order.phone,
+    matched: phoneMatchedUser,
+  });
   return {
     kind: "guest",
     userId: null,
-    contactEmail: guestEmail(order.oldId),
-    contactName: "Guest",
-    firstName: "Guest",
-    lastName: "-",
+    ...guest,
   };
+}
+
+function buildPhoneUserIndex(
+  dumpUsers: DumpUser[],
+): Map<string, MatchedContactUser> {
+  const byPhone = new Map<string, MatchedContactUser>();
+  for (const user of dumpUsers) {
+    const key = phoneMatchKey(user.phone);
+    if (!key || byPhone.has(key)) {
+      continue;
+    }
+    byPhone.set(key, {
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+    });
+  }
+  return byPhone;
 }
 
 function shippingOf(
@@ -82,6 +107,7 @@ export function planOrders(
   now: Date,
 ): PlannedOrder[] {
   const userByOldId = new Map(dumpUsers.map((user) => [user.oldId, user]));
+  const usersByPhone = buildPhoneUserIndex(dumpUsers);
   return dumpOrders.map((order) => {
     const user =
       order.oldUserId !== null ? userByOldId.get(order.oldUserId) : undefined;
@@ -89,7 +115,17 @@ export function planOrders(
       order.oldUserId !== null
         ? (uuidByOldId.get(order.oldUserId) ?? null)
         : null;
-    const contact = contactForOrder(order, user, mappedUserId);
+    const phoneKey = phoneMatchKey(order.phone);
+    const phoneMatchedUser =
+      mappedUserId == null && phoneKey
+        ? (usersByPhone.get(phoneKey) ?? null)
+        : null;
+    const contact = contactForOrder(
+      order,
+      user,
+      mappedUserId,
+      phoneMatchedUser,
+    );
     const statuses = mapOrderStatus(order.paymentMethod, order.status);
     const payment = mapPayment(order.paymentMethod);
     const placedAt = parseTimestamp(order.createdAt, now);
