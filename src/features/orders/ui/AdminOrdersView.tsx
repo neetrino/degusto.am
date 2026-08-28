@@ -12,6 +12,7 @@ type AdminOrdersViewOrder = {
   orderNumber: string;
   status: string;
   paymentStatus: string;
+  paymentMethod: string | null;
   contactName: string;
   contactEmail: string;
   contactPhone: string;

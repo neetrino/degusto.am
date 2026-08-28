@@ -34,6 +34,7 @@ export type AdminOrderListItem = {
   orderNumber: string;
   status: string;
   paymentStatus: string;
+  paymentMethod: string | null;
   contactName: string;
   contactEmail: string;
   contactPhone: string;
@@ -94,6 +95,30 @@ function buildOrderFilters(filters: AdminOrdersFilter): SQL | undefined {
   return conditions.length > 0 ? and(...conditions) : undefined;
 }
 
+/** Latest payment method for an order (highest attempt). */
+const latestPaymentMethodSql = sql<string | null>`(
+  select ${payments.method}
+  from ${payments}
+  where ${payments.orderId} = ${orders.id}
+  order by ${payments.attemptNumber} desc
+  limit 1
+)`.as("paymentMethod");
+
+const adminOrderListSelect = {
+  id: orders.id,
+  orderNumber: orders.orderNumber,
+  status: orders.status,
+  paymentStatus: orders.paymentStatus,
+  paymentMethod: latestPaymentMethodSql,
+  contactName: orders.contactName,
+  contactEmail: orders.contactEmail,
+  contactPhone: orders.contactPhone,
+  totalAmount: orders.totalAmount,
+  baseCurrency: orders.baseCurrency,
+  placedAt: orders.placedAt,
+  isArchived: orders.isArchived,
+};
+
 /** Lists orders for the admin surface with optional status/search filters. */
 export async function listAdminOrders(
   filters: AdminOrdersFilter,
@@ -103,19 +128,7 @@ export async function listAdminOrders(
 
   const [rows, [totalRow]] = await Promise.all([
     getDb()
-      .select({
-        id: orders.id,
-        orderNumber: orders.orderNumber,
-        status: orders.status,
-        paymentStatus: orders.paymentStatus,
-        contactName: orders.contactName,
-        contactEmail: orders.contactEmail,
-        contactPhone: orders.contactPhone,
-        totalAmount: orders.totalAmount,
-        baseCurrency: orders.baseCurrency,
-        placedAt: orders.placedAt,
-        isArchived: orders.isArchived,
-      })
+      .select(adminOrderListSelect)
       .from(orders)
       .where(where)
       .orderBy(desc(orders.placedAt))
@@ -147,19 +160,7 @@ export async function listCustomerOrders(
 
   const [rows, [totalRow]] = await Promise.all([
     getDb()
-      .select({
-        id: orders.id,
-        orderNumber: orders.orderNumber,
-        status: orders.status,
-        paymentStatus: orders.paymentStatus,
-        contactName: orders.contactName,
-        contactEmail: orders.contactEmail,
-        contactPhone: orders.contactPhone,
-        totalAmount: orders.totalAmount,
-        baseCurrency: orders.baseCurrency,
-        placedAt: orders.placedAt,
-        isArchived: orders.isArchived,
-      })
+      .select(adminOrderListSelect)
       .from(orders)
       .where(where)
       .orderBy(desc(orders.placedAt))
@@ -311,19 +312,7 @@ export async function getAdminDashboardMetrics(input: {
         ),
       ),
     getDb()
-      .select({
-        id: orders.id,
-        orderNumber: orders.orderNumber,
-        status: orders.status,
-        paymentStatus: orders.paymentStatus,
-        contactName: orders.contactName,
-        contactEmail: orders.contactEmail,
-        contactPhone: orders.contactPhone,
-        totalAmount: orders.totalAmount,
-        baseCurrency: orders.baseCurrency,
-        placedAt: orders.placedAt,
-        isArchived: orders.isArchived,
-      })
+      .select(adminOrderListSelect)
       .from(orders)
       .where(eq(orders.isArchived, false))
       .orderBy(desc(orders.placedAt))
