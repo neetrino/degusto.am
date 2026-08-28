@@ -27,6 +27,7 @@ import {
 } from "@/features/admin/ui/admin-table-classes";
 import { bulkArchiveOrdersAction } from "@/features/orders/application/bulk-archive-orders";
 import { displayOrderContactName } from "@/features/orders/domain/contact-display";
+import { displayPaymentMethodLabel } from "@/features/orders/domain/payment-method-display";
 import { AdminInlineStatusSelect } from "@/features/orders/ui/AdminInlineStatusSelect";
 
 type BulkOrderRow = {
@@ -34,6 +35,7 @@ type BulkOrderRow = {
   orderNumber: string;
   status: string;
   paymentStatus: string;
+  paymentMethod: string | null;
   contactName: string;
   contactEmail: string;
   contactPhone: string;
@@ -220,6 +222,14 @@ export function BulkChangeOrderStatusForm({
                   />
                 </div>
               </div>
+              <div className="border-t border-[#ead7bf]/80 px-3 py-2">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8a837a]">
+                  Method
+                </p>
+                <p className="mt-0.5 text-sm text-[#1f1a17]">
+                  {displayPaymentMethodLabel(order.paymentMethod)}
+                </p>
+              </div>
             </Card>
           ))
         )}
@@ -247,6 +257,7 @@ export function BulkChangeOrderStatusForm({
                 <th className={ADMIN_TABLE_TH}>Placed</th>
                 <th className={ADMIN_TABLE_TH_METRIC}>Status</th>
                 <th className={ADMIN_TABLE_TH_METRIC}>Payment</th>
+                <th className={ADMIN_TABLE_TH}>Method</th>
               </tr>
             </thead>
             <tbody className={ADMIN_TABLE_TBODY}>
@@ -324,6 +335,11 @@ export function BulkChangeOrderStatusForm({
                       value={order.paymentStatus}
                       disabled={isPending || order.isArchived}
                     />
+                  </td>
+                  <td className={ADMIN_TABLE_TD}>
+                    <span className="text-sm text-[#1f1a17]">
+                      {displayPaymentMethodLabel(order.paymentMethod)}
+                    </span>
                   </td>
                 </tr>
               ))}

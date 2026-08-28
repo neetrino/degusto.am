@@ -7,6 +7,7 @@ import {
   type AdminOrderDetail,
 } from "@/features/orders/application/queries";
 import { displayOrderContactName } from "@/features/orders/domain/contact-display";
+import { displayPaymentMethodLabel } from "@/features/orders/domain/payment-method-display";
 
 export type AdminOrderDetailItemView = {
   id: string;
@@ -59,20 +60,6 @@ function formatAddressLine(
   return parts.join(", ");
 }
 
-function paymentMethodLabel(method: string): string {
-  const normalized = method.toUpperCase();
-  if (normalized === "COD" || normalized === "CASH") {
-    return "Cash";
-  }
-  if (normalized === "IDRAM") {
-    return "Idram";
-  }
-  if (normalized === "ARCA") {
-    return "ArCa";
-  }
-  return method;
-}
-
 /** Maps a loaded order into a serializable admin drawer view. */
 export function toAdminOrderDetailView(
   detail: AdminOrderDetail,
@@ -108,9 +95,7 @@ export function toAdminOrderDetailView(
     addressHint: isPickup
       ? "You can pick up your order at this store"
       : null,
-    paymentMethod: latestPayment
-      ? paymentMethodLabel(latestPayment.method)
-      : "—",
+    paymentMethod: displayPaymentMethodLabel(latestPayment?.method),
     paymentAmount: latestPayment?.amount ?? order.totalAmount,
     placedAt: order.placedAt.toISOString(),
     items: items.map((item) => ({
