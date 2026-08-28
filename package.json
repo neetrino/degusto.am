@@ -23,7 +23,9 @@
     "db:seed": "tsx src/db/seed/run.ts",
     "db:seed:catalog": "tsx src/db/seed/seed-figma-catalog.ts",
     "db:export": "tsx src/db/seed/export-catalog.ts",
-    "import:legacy:dry": "tsx scripts/legacy-import/run.ts"
+    "import:legacy:dry": "tsx scripts/legacy-import/run.ts",
+    "import:legacy:backfill-guest:dry": "tsx scripts/legacy-import/backfill-guest-contacts.ts",
+    "import:legacy:backfill-guest:apply": "LEGACY_IMPORT_APPLY=YES tsx scripts/legacy-import/backfill-guest-contacts.ts --apply"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1090.0",

@@ -24,6 +24,7 @@ import {
   paymentStatusBadgeClass,
 } from "@/features/admin/ui/status-badge";
 import { getAdminOrderByNumber } from "@/features/orders/application/queries";
+import { displayOrderContactName } from "@/features/orders/domain/contact-display";
 import { isLocale } from "@/lib/i18n/config";
 
 type AdminOrderDetailPageProps = {
@@ -86,7 +87,9 @@ export default async function AdminOrderDetailPage({
       <div className="mb-6 grid gap-6 md:grid-cols-2">
         <Card className="p-6">
           <h2 className={`mb-3 ${ADMIN_SECTION_TITLE}`}>Customer</h2>
-          <p className="text-sm font-medium text-[#1f1a17]">{order.contactName}</p>
+          <p className="text-sm font-medium text-[#1f1a17]">
+            {displayOrderContactName(order.contactName, order.contactPhone)}
+          </p>
           <p className="text-sm text-[#5c564e]">{order.contactEmail}</p>
           <p className="text-sm text-[#5c564e]">{order.contactPhone}</p>
           <p className="mt-3 text-sm text-[#5c564e]">
@@ -125,7 +128,7 @@ export default async function AdminOrderDetailPage({
           </p>
           <p className="mt-2 text-sm text-[#8a837a]">
             Placed{" "}
-            {order.placedAt.toISOString().slice(0, 16).replace("T", " ")} UTC
+            {order.placedAt.toISOString().slice(0, 16).replace("T", " ")}
           </p>
         </Card>
       </div>

@@ -36,6 +36,7 @@ export type AdminOrderListItem = {
   paymentStatus: string;
   contactName: string;
   contactEmail: string;
+  contactPhone: string;
   totalAmount: number;
   baseCurrency: string;
   placedAt: Date;
@@ -109,6 +110,7 @@ export async function listAdminOrders(
         paymentStatus: orders.paymentStatus,
         contactName: orders.contactName,
         contactEmail: orders.contactEmail,
+        contactPhone: orders.contactPhone,
         totalAmount: orders.totalAmount,
         baseCurrency: orders.baseCurrency,
         placedAt: orders.placedAt,
@@ -152,6 +154,7 @@ export async function listCustomerOrders(
         paymentStatus: orders.paymentStatus,
         contactName: orders.contactName,
         contactEmail: orders.contactEmail,
+        contactPhone: orders.contactPhone,
         totalAmount: orders.totalAmount,
         baseCurrency: orders.baseCurrency,
         placedAt: orders.placedAt,
@@ -315,6 +318,7 @@ export async function getAdminDashboardMetrics(input: {
         paymentStatus: orders.paymentStatus,
         contactName: orders.contactName,
         contactEmail: orders.contactEmail,
+        contactPhone: orders.contactPhone,
         totalAmount: orders.totalAmount,
         baseCurrency: orders.baseCurrency,
         placedAt: orders.placedAt,

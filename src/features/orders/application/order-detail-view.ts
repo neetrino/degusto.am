@@ -6,6 +6,7 @@ import {
   getAdminOrderByNumber,
   type AdminOrderDetail,
 } from "@/features/orders/application/queries";
+import { displayOrderContactName } from "@/features/orders/domain/contact-display";
 
 export type AdminOrderDetailItemView = {
   id: string;
@@ -85,7 +86,10 @@ export function toAdminOrderDetailView(
     orderNumber: order.orderNumber,
     status: order.status,
     paymentStatus: order.paymentStatus,
-    contactName: order.contactName,
+    contactName: displayOrderContactName(
+      order.contactName,
+      order.contactPhone,
+    ),
     contactEmail: order.contactEmail,
     contactPhone: order.contactPhone,
     baseCurrency: order.baseCurrency,

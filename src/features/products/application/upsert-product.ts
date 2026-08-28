@@ -21,6 +21,7 @@ import {
   withSharedProductSlug,
 } from "@/features/products/application/product-uniqueness";
 import { syncProductModifiers } from "@/features/products/application/sync-product-modifiers";
+import { PRODUCT_DEFAULT_STOCK } from "@/features/products/domain/auto-stock";
 import { slugifyProductTitle } from "@/features/products/domain/slugify";
 import { requireAdmin } from "@/lib/auth/policies";
 import { invalidateProductsCache } from "@/lib/cache/invalidate-public";
@@ -49,7 +50,6 @@ const productUpsertSchema = z.object({
   }),
   priceAmount: z.number().int().nonnegative(),
   compareAtAmount: z.number().int().nonnegative().nullable(),
-  stockOnHand: z.number().int().nonnegative(),
   categoryIds: z.array(z.string().uuid()),
   status: z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]),
   isSpicy: z.boolean(),
@@ -244,7 +244,7 @@ export async function createProductFromDrawerAction(
       sku: data.sku,
       priceAmount: data.priceAmount,
       compareAtAmount: data.compareAtAmount,
-      stockOnHand: data.stockOnHand,
+      stockOnHand: PRODUCT_DEFAULT_STOCK,
       status: data.status,
       isSpicy: data.isSpicy,
       isVegetarian: data.isVegetarian,
@@ -271,16 +271,14 @@ export async function createProductFromDrawerAction(
     return err("VALIDATION_ERROR", modifiersError);
   }
 
-  if (data.stockOnHand > 0) {
-    await getDb().insert(stockMovements).values({
-      id: createId(),
-      productId: id,
-      delta: data.stockOnHand,
-      reason: "ADMIN_ADJUSTMENT",
-      actorUserId: actor.id,
-      resultingBalance: data.stockOnHand,
-    });
-  }
+  await getDb().insert(stockMovements).values({
+    id: createId(),
+    productId: id,
+    delta: PRODUCT_DEFAULT_STOCK,
+    reason: "ADMIN_ADJUSTMENT",
+    actorUserId: actor.id,
+    resultingBalance: PRODUCT_DEFAULT_STOCK,
+  });
 
   const mediaResult = await persistProductMedia({
     productId: id,
@@ -325,13 +323,12 @@ export async function updateProductFromDrawerAction(
     );
   }
 
-  const actor = await requireAdmin(locale as Locale);
+  await requireAdmin(locale as Locale);
   const files = collectImageFiles(formData);
 
   const [existing] = await getDb()
     .select({
       id: products.id,
-      stockOnHand: products.stockOnHand,
       status: products.status,
       translations: products.translations,
     })
@@ -364,7 +361,6 @@ export async function updateProductFromDrawerAction(
         sku: data.sku,
         priceAmount: data.priceAmount,
         compareAtAmount: data.compareAtAmount,
-        stockOnHand: data.stockOnHand,
         status: data.status || existing.status,
         isSpicy: data.isSpicy,
         isVegetarian: data.isVegetarian,
@@ -394,18 +390,6 @@ export async function updateProductFromDrawerAction(
   );
   if (modifiersError) {
     return err("VALIDATION_ERROR", modifiersError);
-  }
-
-  const delta = data.stockOnHand - existing.stockOnHand;
-  if (delta !== 0) {
-    await getDb().insert(stockMovements).values({
-      id: createId(),
-      productId: existing.id,
-      delta,
-      reason: "ADMIN_ADJUSTMENT",
-      actorUserId: actor.id,
-      resultingBalance: data.stockOnHand,
-    });
   }
 
   const mediaResult = await persistProductMedia({

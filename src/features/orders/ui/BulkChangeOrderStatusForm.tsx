@@ -26,6 +26,7 @@ import {
   ADMIN_TABLE_THEAD,
 } from "@/features/admin/ui/admin-table-classes";
 import { bulkArchiveOrdersAction } from "@/features/orders/application/bulk-archive-orders";
+import { displayOrderContactName } from "@/features/orders/domain/contact-display";
 import { AdminInlineStatusSelect } from "@/features/orders/ui/AdminInlineStatusSelect";
 
 type BulkOrderRow = {
@@ -35,6 +36,7 @@ type BulkOrderRow = {
   paymentStatus: string;
   contactName: string;
   contactEmail: string;
+  contactPhone: string;
   totalAmount: number;
   baseCurrency: string;
   placedAt: string | Date;
@@ -167,7 +169,10 @@ export function BulkChangeOrderStatusForm({
                     {order.orderNumber}
                   </p>
                   <p className="mt-0.5 truncate text-sm text-[#1f1a17]">
-                    {order.contactName}
+                    {displayOrderContactName(
+                      order.contactName,
+                      order.contactPhone,
+                    )}
                   </p>
                   <p className="truncate text-xs text-[#8a837a]">
                     {order.contactEmail}
@@ -177,8 +182,17 @@ export function BulkChangeOrderStatusForm({
                   {formatMoney(order.totalAmount, order.baseCurrency)}
                 </p>
               </div>
+              <div className="border-t border-[#ead7bf]/80 px-3 py-2">
+                <p className="text-xs text-[#8a837a]">
+                  {new Date(order.placedAt)
+                    .toISOString()
+                    .slice(0, 16)
+                    .replace("T", " ")}
+                  {order.isArchived ? " · Archived" : ""}
+                </p>
+              </div>
               <div
-                className="grid grid-cols-1 gap-3 px-3 py-3 sm:grid-cols-2"
+                className="grid grid-cols-1 gap-3 border-t border-[#ead7bf]/80 px-3 py-3 sm:grid-cols-2"
                 onClick={(event) => event.stopPropagation()}
               >
                 <div className="min-w-0">
@@ -206,16 +220,6 @@ export function BulkChangeOrderStatusForm({
                   />
                 </div>
               </div>
-              <div className="border-t border-[#ead7bf]/80 px-3 py-2">
-                <p className="text-xs text-[#8a837a]">
-                  {new Date(order.placedAt)
-                    .toISOString()
-                    .slice(0, 16)
-                    .replace("T", " ")}{" "}
-                  UTC
-                  {order.isArchived ? " · Archived" : ""}
-                </p>
-              </div>
             </Card>
           ))
         )}
@@ -239,10 +243,10 @@ export function BulkChangeOrderStatusForm({
                 </th>
                 <th className={ADMIN_TABLE_TH}>Order</th>
                 <th className={ADMIN_TABLE_TH}>Customer</th>
-                <th className={ADMIN_TABLE_TH_METRIC}>Status</th>
-                <th className={ADMIN_TABLE_TH_METRIC}>Payment</th>
                 <th className={ADMIN_TABLE_TH_METRIC}>Total</th>
                 <th className={ADMIN_TABLE_TH}>Placed</th>
+                <th className={ADMIN_TABLE_TH_METRIC}>Status</th>
+                <th className={ADMIN_TABLE_TH_METRIC}>Payment</th>
               </tr>
             </thead>
             <tbody className={ADMIN_TABLE_TBODY}>
@@ -276,8 +280,26 @@ export function BulkChangeOrderStatusForm({
                     ) : null}
                   </td>
                   <td className={ADMIN_TABLE_TD}>
-                    <p className="text-sm text-[#1f1a17]">{order.contactName}</p>
+                    <p className="text-sm text-[#1f1a17]">
+                      {displayOrderContactName(
+                        order.contactName,
+                        order.contactPhone,
+                      )}
+                    </p>
                     <p className="text-xs text-[#8a837a]">{order.contactEmail}</p>
+                  </td>
+                  <td className={ADMIN_TABLE_TD_METRIC}>
+                    <span className="font-medium text-[#1f1a17]">
+                      {formatMoney(order.totalAmount, order.baseCurrency)}
+                    </span>
+                  </td>
+                  <td className={ADMIN_TABLE_TD}>
+                    <span className="text-xs text-[#8a837a]">
+                      {new Date(order.placedAt)
+                        .toISOString()
+                        .slice(0, 16)
+                        .replace("T", " ")}
+                    </span>
                   </td>
                   <td
                     className={ADMIN_TABLE_TD_METRIC}
@@ -302,20 +324,6 @@ export function BulkChangeOrderStatusForm({
                       value={order.paymentStatus}
                       disabled={isPending || order.isArchived}
                     />
-                  </td>
-                  <td className={ADMIN_TABLE_TD_METRIC}>
-                    <span className="font-medium text-[#1f1a17]">
-                      {formatMoney(order.totalAmount, order.baseCurrency)}
-                    </span>
-                  </td>
-                  <td className={ADMIN_TABLE_TD}>
-                    <span className="text-xs text-[#8a837a]">
-                      {new Date(order.placedAt)
-                        .toISOString()
-                        .slice(0, 16)
-                        .replace("T", " ")}{" "}
-                      UTC
-                    </span>
                   </td>
                 </tr>
               ))}

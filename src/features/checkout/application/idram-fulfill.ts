@@ -11,6 +11,7 @@ import {
   stockMovements,
 } from "@/db/schema";
 import type { DbTransaction } from "@/db/transaction";
+import { planStockAfterSale } from "@/features/products/domain/auto-stock";
 import { createId } from "@/lib/id";
 import { logger } from "@/lib/observability/logger";
 
@@ -60,11 +61,11 @@ async function decrementLine(
     });
     return;
   }
-  const nextStock = product.stockOnHand - line.quantity;
+  const stockPlan = planStockAfterSale(product.stockOnHand, line.quantity);
   await tx
     .update(products)
     .set({
-      stockOnHand: nextStock,
+      stockOnHand: stockPlan.finalBalance,
       version: sql`${products.version} + 1`,
       updatedAt: now,
     })
@@ -75,9 +76,20 @@ async function decrementLine(
     delta: -line.quantity,
     reason: "ORDER",
     orderId,
-    resultingBalance: nextStock,
+    resultingBalance: stockPlan.orderBalance,
     correlationId: orderNumber,
   });
+  if (stockPlan.replenishDelta != null) {
+    await tx.insert(stockMovements).values({
+      id: createId(),
+      productId: product.id,
+      delta: stockPlan.replenishDelta,
+      reason: "ADMIN_ADJUSTMENT",
+      orderId,
+      resultingBalance: stockPlan.finalBalance,
+      correlationId: orderNumber,
+    });
+  }
 }
 
 /** Decrements stock for a paid Idram order unless an ORDER movement already exists. */

@@ -35,6 +35,10 @@ import {
   type ProductModifierDraft,
 } from "@/features/products/ui/ProductDrawerModifiers";
 import type { TranslationsJson } from "@/db/schema";
+import {
+  isMixedLocaleDescription,
+  splitLocalizedProductDescriptions,
+} from "@/features/products/domain/localized-description";
 import { slugifyProductTitle } from "@/features/products/domain/slugify";
 import { isLocale, locales, type Locale } from "@/lib/i18n/config";
 
@@ -48,7 +52,6 @@ type ProductDrawerProduct = Pick<
   | "translations"
   | "priceAmount"
   | "compareAtAmount"
-  | "stockOnHand"
   | "status"
   | "categoryIds"
   | "images"
@@ -115,7 +118,48 @@ function draftsFromTranslations(
     drafts.ru = { ...seed };
   }
 
-  return drafts;
+  return withSplitDescriptions(drafts, fallback?.description);
+}
+
+/**
+ * Legacy imports stored hy/ru/en paragraphs in one HTML blob. Split that into
+ * per-locale plain text so the admin locale toggle shows the right language.
+ */
+function withSplitDescriptions(
+  drafts: LocaleDrafts,
+  fallbackDescription?: string,
+): LocaleDrafts {
+  const candidates = [
+    drafts.hy.description,
+    drafts.en.description,
+    drafts.ru.description,
+    fallbackDescription ?? "",
+  ];
+  const mixedSource = candidates.find((value) =>
+    isMixedLocaleDescription(value),
+  );
+  if (!mixedSource) {
+    return drafts;
+  }
+
+  const split = splitLocalizedProductDescriptions(mixedSource);
+  if (!split) {
+    return drafts;
+  }
+
+  const next = emptyLocaleDrafts();
+  for (const loc of locales) {
+    const current = drafts[loc].description.trim();
+    const shouldReplace =
+      !current ||
+      current === mixedSource.trim() ||
+      isMixedLocaleDescription(current);
+    next[loc] = {
+      ...drafts[loc],
+      description: shouldReplace ? split[loc] : drafts[loc].description,
+    };
+  }
+  return next;
 }
 
 function isLocaleFilled(fields: LocaleFields): boolean {
@@ -194,7 +238,6 @@ export function ProductDrawer({
   const [priceAmount, setPriceAmount] = useState("");
   const [compareAtAmount, setCompareAtAmount] = useState("");
   const [sku, setSku] = useState("");
-  const [stockOnHand, setStockOnHand] = useState("");
   const [isSpicy, setIsSpicy] = useState(false);
   const [isVegetarian, setIsVegetarian] = useState(false);
   const [additions, setAdditions] = useState<ProductModifierDraft[]>([]);
@@ -237,7 +280,6 @@ export function ProductDrawer({
           product.compareAtAmount != null ? String(product.compareAtAmount) : "",
         );
         setSku(product.sku);
-        setStockOnHand(String(product.stockOnHand));
         setIsSpicy(product.isSpicy);
         setIsVegetarian(product.isVegetarian);
         setAdditions(modifiersFromProduct(product, "additions"));
@@ -252,7 +294,6 @@ export function ProductDrawer({
       setPriceAmount("");
       setCompareAtAmount("");
       setSku("");
-      setStockOnHand("");
       setIsSpicy(false);
       setIsVegetarian(false);
       setAdditions([]);
@@ -326,7 +367,6 @@ export function ProductDrawer({
               compareAtAmount: compareAtAmount.trim()
                 ? Number(compareAtAmount)
                 : null,
-              stockOnHand: Number(stockOnHand),
               categoryIds,
               status: (product?.status === "ACTIVE" ||
               product?.status === "ARCHIVED"
@@ -506,21 +546,6 @@ export function ProductDrawer({
                   value={sku}
                   onChange={(event) => setSku(event.target.value)}
                   placeholder="SKU"
-                  className={ADMIN_INPUT}
-                  disabled={isPending}
-                />
-              </label>
-              <label>
-                <span className={ADMIN_LABEL}>
-                  Quantity <span className="text-red-600">*</span>
-                </span>
-                <input
-                  required
-                  min={0}
-                  type="number"
-                  value={stockOnHand}
-                  onChange={(event) => setStockOnHand(event.target.value)}
-                  placeholder="Stock"
                   className={ADMIN_INPUT}
                   disabled={isPending}
                 />
