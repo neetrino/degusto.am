@@ -64,7 +64,7 @@ export function AdminSidebar({ locale }: AdminSidebarProps) {
                 D
               </span>
               <span className="min-w-0">
-                <span className="font-display block truncate text-base font-black uppercase tracking-[0.04em] text-[#1f3a22]">
+                <span className="block truncate text-base font-semibold uppercase tracking-[0.04em] text-[#1f3a22]">
                   Degusto
                 </span>
                 <span className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8a837a]">

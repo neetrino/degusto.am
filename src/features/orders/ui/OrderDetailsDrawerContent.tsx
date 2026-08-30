@@ -24,7 +24,7 @@ function DrawerSection({
 }) {
   return (
     <section className="rounded-[var(--radius)] border border-[#ece7df] bg-white px-4 py-4 shadow-[0_2px_12px_rgba(31,26,23,0.04)]">
-      <h3 className="mb-3 font-display text-sm font-black tracking-wide text-brand">
+      <h3 className="mb-3 text-sm font-semibold tracking-wide text-brand">
         {title}
       </h3>
       {children}
@@ -135,10 +135,10 @@ export function OrderDetailsDrawerContent({
             </div>
           ) : null}
           <div className="flex items-center justify-between gap-4 border-t border-[#ece7df] pt-3">
-            <span className="font-display text-base font-black text-[#1f1a17]">
+            <span className="text-base font-semibold text-[#1f1a17]">
               {copy.total}
             </span>
-            <span className="font-display text-base font-black text-[#1f1a17]">
+            <span className="text-base font-semibold tabular-nums text-[#1f1a17]">
               {formatOrderDrawerMoney(detail.totalAmount, detail.baseCurrency)}
             </span>
           </div>

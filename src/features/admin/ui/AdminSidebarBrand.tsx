@@ -33,7 +33,7 @@ export function AdminSidebarBrand({ locale }: AdminSidebarBrandProps) {
           className="group flex min-w-0 flex-1 items-center gap-2 rounded-md px-2 py-2 transition-colors hover:bg-white/10"
           title="Degusto home"
         >
-          <span className="font-display truncate text-xl font-black tracking-tight text-white">
+          <span className="truncate text-xl font-semibold tracking-tight text-white">
             Degusto
           </span>
         </Link>

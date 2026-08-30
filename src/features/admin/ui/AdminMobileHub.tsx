@@ -212,7 +212,7 @@ export function AdminMobileHub({
             <div className="mb-1 inline-flex items-center rounded-full bg-[#1f3a22] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white sm:text-[11px]">
               {dictionary.badge}
             </div>
-            <p className="truncate font-display text-xl font-black leading-tight text-product-ink sm:text-2xl">
+            <p className="truncate text-xl font-semibold leading-tight text-product-ink sm:text-2xl">
               {displayName}
             </p>
             <p className="mt-0.5 truncate text-sm leading-snug text-product-ink/55">

@@ -96,7 +96,7 @@ export function AnalyticsTrendPanel({
             </div>
           </div>
 
-          <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-1 lg:content-start">
+          <div className="grid grid-cols-1 gap-2.5 lg:content-start">
             <SummaryTile
               label="Եկամուտ"
               value={revenueLabel}
