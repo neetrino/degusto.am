@@ -8,6 +8,7 @@ import {
   isPickupBranchId,
   type PickupBranchOption,
 } from "@/features/checkout/domain/pickup-branches";
+import { isOrderingOpen } from "@/features/checkout/domain/ordering-hours";
 import { CheckoutForm } from "@/features/checkout/ui/CheckoutForm";
 import { getDefaultShippingAddress } from "@/features/profile/application/address-queries";
 import { resolveProductPrices } from "@/features/promotions/application/resolve-product-prices";
@@ -78,6 +79,7 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
     subtotalAmount: subtotal,
     deliveryOptions,
     pickupBranches,
+    orderingOpenInitially: isOrderingOpen(new Date()),
     labels: {
       title: copy.title,
       productsInOrder: copy.productsInOrder,
@@ -134,6 +136,7 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
       processing: copy.buttons.processing,
       continueShopping: copy.buttons.continueShopping,
       cartEmpty: copy.errors.cartEmpty,
+      orderingClosed: copy.errors.orderingClosed,
     },
     paymentNotice:
       query.payment === "failed" ? copy.errors.paymentFailed : null,

@@ -27,6 +27,7 @@ type CheckoutOrderSummaryProps = {
   isApplyingCoupon: boolean;
   error: string | null;
   isSubmitting: boolean;
+  canPlaceOrder: boolean;
   placeOrderLabel: string;
   processingLabel: string;
 };
@@ -55,6 +56,7 @@ export function CheckoutOrderSummary({
   isApplyingCoupon,
   error,
   isSubmitting,
+  canPlaceOrder,
   placeOrderLabel,
   processingLabel,
 }: CheckoutOrderSummaryProps) {
@@ -174,7 +176,7 @@ export function CheckoutOrderSummary({
             whileHover={reduceMotion ? undefined : { scale: 1.02 }}
             whileTap={reduceMotion ? undefined : { scale: 0.98 }}
             className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-full bg-[#ff7f20] px-6 text-base font-bold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !canPlaceOrder}
           >
             {isSubmitting ? processingLabel : placeOrderLabel}
           </motion.button>

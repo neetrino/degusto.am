@@ -8,6 +8,7 @@ import { useMemo, useState, useTransition, type FormEvent } from "react";
 import type { CheckoutOrderProduct } from "@/features/checkout/ui/checkout-order-product";
 import { previewCouponAction } from "@/features/checkout/application/preview-coupon";
 import { createOrderAction } from "@/features/checkout/create-order";
+import { isOrderingOpen } from "@/features/checkout/domain/ordering-hours";
 import type { CheckoutPaymentMethod } from "@/features/checkout/domain/payment-methods";
 import {
   isPickupBranchId,
@@ -25,6 +26,7 @@ import { CheckoutOrderSummary } from "@/features/checkout/ui/CheckoutOrderSummar
 import { CheckoutProductsInOrder } from "@/features/checkout/ui/CheckoutProductsInOrder";
 import { CheckoutSmoothScroll } from "@/features/checkout/ui/CheckoutSmoothScroll";
 import { submitIdramForm } from "@/features/checkout/ui/submit-idram-form";
+import { useOrderingWindow } from "@/features/checkout/ui/use-ordering-window";
 import type { CheckoutDeliveryOption } from "@/features/delivery/application/queries";
 import type { Locale } from "@/lib/i18n/config";
 import { formatMoneyAmount } from "@/lib/money/format";
@@ -86,6 +88,7 @@ type CheckoutLabels = {
   processing: string;
   continueShopping: string;
   cartEmpty: string;
+  orderingClosed: string;
 };
 
 type CheckoutFormProps = {
@@ -103,6 +106,7 @@ type CheckoutFormProps = {
   pickupBranches: ReadonlyArray<PickupBranchOption>;
   hasItems: boolean;
   paymentNotice?: string | null;
+  orderingOpenInitially: boolean;
 };
 
 function quoteDeliveryAmount(
@@ -134,9 +138,11 @@ export function CheckoutForm({
   pickupBranches,
   hasItems,
   paymentNotice = null,
+  orderingOpenInitially,
 }: CheckoutFormProps) {
   const router = useRouter();
   const reduceMotion = useReducedMotion();
+  const orderingOpen = useOrderingWindow(orderingOpenInitially);
   const idempotencyKey = useMemo(() => crypto.randomUUID(), []);
   const defaultRuleId = deliveryOptions[0]?.id ?? "";
   const [shippingMethod, setShippingMethod] = useState<"pickup" | "delivery">(
@@ -311,6 +317,11 @@ export function CheckoutForm({
     const data = new FormData(event.currentTarget);
     setError(null);
 
+    if (!isOrderingOpen(new Date())) {
+      setError(labels.orderingClosed);
+      return;
+    }
+
     if (
       paymentMethod === "cash_on_delivery" &&
       cashChangePreference == null
@@ -467,8 +478,9 @@ export function CheckoutForm({
                   onApplyCoupon={onApplyCoupon}
                   couponError={couponError}
                   isApplyingCoupon={applyingCoupon}
-                  error={error}
+                  error={orderingOpen ? error : labels.orderingClosed}
                   isSubmitting={pending}
+                  canPlaceOrder={orderingOpen}
                   placeOrderLabel={labels.placeOrder}
                   processingLabel={labels.processing}
                 />
