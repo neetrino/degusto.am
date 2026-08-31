@@ -186,7 +186,7 @@ export async function HomeMobile({
         <HomeReveal variant="up" delayMs={100} durationMs={800}>
           <div className="mt-[30px] space-y-[22px] px-3">
             <div className="flex items-center justify-between">
-              <h2 className="font-display text-base leading-5 font-semibold text-black">
+              <h2 className="text-base leading-5 font-semibold text-black">
                 {newProductsTitle}
               </h2>
               <AppLink
