@@ -10,6 +10,7 @@ import { staticAssetUrl } from "@/lib/media/static-asset-url";
 const STAR_ICON = staticAssetUrl("/assets/product-card/star.webp");
 const SPICY_ICON = staticAssetUrl("/assets/product-card/spicy.webp");
 const VEGGIE_ICON = staticAssetUrl("/assets/product-card/veggie.webp");
+const ADD_CART_ICON_MOBILE = staticAssetUrl("/assets/mobile/product-add-cart.webp");
 
 type CatalogProductCardProps = {
   href: string;
@@ -33,7 +34,10 @@ type CatalogProductCardProps = {
   isVegetarian?: boolean;
 };
 
-/** Storefront shop/catalog product card — live degusto-am /shop parity. */
+/**
+ * Storefront shop/catalog product card.
+ * Mobile matches Figma product card (node 1:1077); desktop keeps larger catalog chrome.
+ */
 export function CatalogProductCard({
   href,
   title,
@@ -58,7 +62,7 @@ export function CatalogProductCard({
   const onSale = Boolean(compareAtFormatted);
 
   return (
-    <article className="group relative flex w-full shrink-0 cursor-pointer flex-col rounded-[20px] border-[1.5px] border-[#dedede] bg-white pb-8 transition-colors hover:bg-[#ffeacc] hover:shadow-md">
+    <article className="group relative flex h-full w-full shrink-0 cursor-pointer flex-col rounded-[20px] border-0 bg-[#ffeacc] pb-5 transition-colors lg:border-[1.5px] lg:border-[#dedede] lg:bg-white lg:pb-8 lg:hover:bg-[#ffeacc] lg:hover:shadow-md">
       <AppLink
         href={href}
         prefetchPolicy={priority ? "intent" : "auto"}
@@ -66,15 +70,15 @@ export function CatalogProductCard({
         className="absolute inset-0 z-[1] rounded-[inherit] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-headline"
       />
 
-      <div className="relative w-full px-[5px] pt-[5px]">
-        <div className="relative aspect-[3/2] w-full overflow-hidden rounded-[18px] bg-gray-100">
+      <div className="relative mx-[4px] mt-[5px] w-auto lg:mx-0 lg:mt-0 lg:w-full lg:px-[5px] lg:pt-[5px]">
+        <div className="relative aspect-[221/143] w-full overflow-hidden rounded-[18px] bg-[#f3e6d2] lg:aspect-[3/2] lg:bg-gray-100">
           {imageUrl ? (
             <Image
               src={imageUrl}
               alt={title}
               fill
               sizes="(min-width: 1280px) 24vw, (min-width: 1024px) 30vw, 50vw"
-              className="object-cover object-center transition-transform duration-300 group-hover:scale-105"
+              className="object-cover object-center transition-transform duration-300 lg:group-hover:scale-105"
               priority={priority}
               unoptimized={
                 imageUrl.includes("X-Amz-Signature") ||
@@ -88,27 +92,27 @@ export function CatalogProductCard({
           )}
 
           {SHOW_DIET_UI && (isVegetarian || isSpicy) ? (
-            <div className="absolute top-2 left-4 z-[3] flex flex-col gap-2">
-              {isVegetarian ? (
-                <span className="flex size-8 items-center justify-center overflow-hidden rounded-full">
-                  <Image
-                    src={VEGGIE_ICON}
-                    alt=""
-                    width={32}
-                    height={32}
-                    className="size-8 scale-110 object-cover"
-                    aria-hidden
-                  />
-                </span>
-              ) : null}
+            <div className="absolute top-[6px] left-[5px] z-[3] flex flex-col gap-1.5 lg:top-2 lg:left-4 lg:gap-2">
               {isSpicy ? (
-                <span className="flex size-8 items-center justify-center rounded-full bg-[#ff2b2e] p-1">
+                <span className="flex size-[22px] items-center justify-center rounded-full bg-[#ff2b2e] p-0.5 lg:size-8 lg:p-1">
                   <Image
                     src={SPICY_ICON}
                     alt=""
                     width={19}
                     height={19}
-                    className="size-[19px] -rotate-[13deg] object-contain"
+                    className="size-[13px] -rotate-[13deg] object-contain lg:size-[19px]"
+                    aria-hidden
+                  />
+                </span>
+              ) : null}
+              {isVegetarian ? (
+                <span className="flex size-[22px] items-center justify-center overflow-hidden rounded-full lg:size-8">
+                  <Image
+                    src={VEGGIE_ICON}
+                    alt=""
+                    width={32}
+                    height={32}
+                    className="size-[22px] object-cover lg:size-8 lg:scale-110"
                     aria-hidden
                   />
                 </span>
@@ -123,31 +127,24 @@ export function CatalogProductCard({
             isSignedIn={isSignedIn}
             label={wishlistLabel}
             size="sm"
-            className="absolute top-2 right-2 z-20 h-9 w-9 border border-[#dedede]/90 bg-white/95 text-gray-700 shadow-md transition-all duration-300 hover:scale-110 hover:border-red-300 hover:bg-red-50 hover:text-red-500 hover:shadow-[0_4px_14px_rgba(239,68,68,0.35)] active:scale-95 sm:h-10 sm:w-10"
+            className="absolute top-1.5 right-1.5 z-20 size-8 border border-white/70 bg-white/95 text-gray-700 shadow-md transition-all duration-300 hover:scale-110 hover:border-red-300 hover:bg-red-50 hover:text-red-500 hover:shadow-[0_4px_14px_rgba(239,68,68,0.35)] active:scale-95 lg:top-2 lg:right-2 lg:size-10 lg:border-[#dedede]/90"
           />
         </div>
       </div>
 
-      <AddToCartButton
-        productId={productId}
-        label={addToCartLabel}
-        disabled={!inStock}
-        className="absolute -bottom-[25px] left-1/2 z-20 h-[52px] w-[51px] -translate-x-1/2"
-      />
-
-      <div className="relative z-[2] flex min-w-0 flex-col px-3.5 pt-2">
-        <div className="flex items-center justify-between gap-2">
+      <div className="relative z-[2] flex min-w-0 flex-1 flex-col px-2.5 pt-1.5 pb-1 lg:px-3.5 lg:pt-2 lg:pb-0">
+        <div className="flex items-center justify-between gap-1.5 lg:gap-2">
           {rating != null ? (
             <div className="flex items-center gap-1.5">
               <Image
                 src={STAR_ICON}
                 alt=""
-                width={16}
-                height={16}
-                className="size-4 object-contain"
+                width={19}
+                height={19}
+                className="size-[19px] object-contain lg:size-4"
                 aria-hidden
               />
-              <p className="text-base leading-[1.35] font-medium text-product-ink/60">
+              <p className="text-sm leading-none font-medium text-[rgba(60,47,47,0.62)] lg:text-base lg:leading-[1.35] lg:text-product-ink/60">
                 {rating.toFixed(1)}
               </p>
             </div>
@@ -155,29 +152,32 @@ export function CatalogProductCard({
             <span />
           )}
           {discountPercent != null ? (
-            <span className="inline-flex h-[30px] items-center rounded-[60px] bg-[#ff7f20] px-[17px] text-sm leading-none font-bold text-black">
+            <span className="inline-flex h-[25px] min-w-[65px] items-center justify-center rounded-[60px] bg-[#ff7f20] px-2 text-xs leading-none font-bold text-black lg:h-[30px] lg:min-w-0 lg:px-[17px] lg:text-sm">
               -{discountPercent}%
             </span>
           ) : null}
         </div>
 
-        <h3 className="mt-1 line-clamp-2 break-words text-base leading-snug font-bold text-product-ink">
-          {title}
+        <h3 className="mt-1 min-h-[calc(2*1.15em)] text-sm leading-[1.15] font-bold text-[#3c2f2f] lg:min-h-0 lg:line-clamp-2 lg:text-base lg:leading-snug lg:text-product-ink">
+          <span className="line-clamp-2 break-words">{title}</span>
         </h3>
-        <div className="mt-1 flex items-start justify-between gap-2">
+
+        <div className="mt-auto flex items-end justify-between gap-2 pt-1 lg:mt-1 lg:items-start lg:pt-0">
           {categoryLabel ? (
-            <p className="min-w-0 flex-1 text-sm leading-snug font-medium break-words text-[#a1a1a1] line-clamp-2 sm:text-base">
+            <p className="min-w-0 flex-1 line-clamp-1 text-sm leading-normal font-medium text-[#a1a1a1] lg:line-clamp-2 lg:text-base lg:leading-snug lg:break-words">
               {categoryLabel}
             </p>
           ) : (
-            <span className="min-w-0 flex-1" aria-hidden />
+            <span className="min-w-0 flex-1" aria-hidden>
+              {"\u00a0"}
+            </span>
           )}
           <div className="shrink-0 text-right leading-tight">
-            <p className="text-[18px] leading-none font-black whitespace-nowrap text-product-ink sm:text-[20px]">
+            <p className="text-base font-black tabular-nums text-[#3c2f2f] lg:text-[20px] lg:leading-none lg:whitespace-nowrap lg:text-product-ink">
               {priceFormatted}
             </p>
             {onSale ? (
-              <p className="mt-1 text-sm leading-none font-light whitespace-nowrap text-product-ink line-through">
+              <p className="mt-0.5 text-xs font-medium text-[#a1a1a1] line-through tabular-nums lg:mt-1 lg:text-sm lg:leading-none lg:font-light lg:whitespace-nowrap lg:text-product-ink">
                 {compareAtFormatted}
               </p>
             ) : null}
@@ -186,10 +186,27 @@ export function CatalogProductCard({
       </div>
 
       {!inStock ? (
-        <span className="absolute bottom-16 left-3 z-10 rounded bg-gray-900/90 px-2 py-1 text-xs font-semibold text-white">
+        <span className="absolute bottom-8 left-2 z-10 rounded bg-gray-900/90 px-2 py-1 text-[10px] font-semibold text-white lg:bottom-16 lg:left-3 lg:text-xs">
           {outOfStockLabel}
         </span>
       ) : null}
+
+      {/* Mobile cart icon (Figma ~41px); desktop keeps default catalog asset */}
+      <AddToCartButton
+        productId={productId}
+        label={addToCartLabel}
+        disabled={!inStock}
+        iconSrc={ADD_CART_ICON_MOBILE}
+        iconWidth={41}
+        iconHeight={42}
+        className="absolute bottom-0 left-1/2 z-20 h-[42px] w-[41px] -translate-x-1/2 translate-y-1/2 lg:hidden"
+      />
+      <AddToCartButton
+        productId={productId}
+        label={addToCartLabel}
+        disabled={!inStock}
+        className="absolute -bottom-[25px] left-1/2 z-20 hidden h-[52px] w-[51px] -translate-x-1/2 lg:inline-flex"
+      />
     </article>
   );
 }

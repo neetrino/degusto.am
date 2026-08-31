@@ -29,6 +29,7 @@ import {
   getSelectedCurrency,
 } from "@/lib/money/display-price";
 import { formatStorefrontPrice } from "@/lib/money/format";
+import { currencySymbols } from "@/lib/money/currency";
 
 type ProductsPageProps = {
   params: Promise<{ locale: string }>;
@@ -199,6 +200,7 @@ export default async function ProductsPage({
   });
   const searchAction = `/${rawLocale}/products`;
   const priceLabel = catalogCopy.priceLabel.replace("{currency}", currency);
+  const currencySymbol = currencySymbols[currency];
 
   const catalogPanelProps = {
     locale: rawLocale,
@@ -210,8 +212,13 @@ export default async function ProductsPage({
     categories: categoryItems,
     selectedSlug: selectedCategory,
     priceLabel,
+    priceChipLabel: catalogCopy.priceChip,
+    pricePopoverTitle: catalogCopy.pricePopoverTitle,
+    priceMinLabel: catalogCopy.priceMinLabel,
+    priceMaxLabel: catalogCopy.priceMaxLabel,
     priceFromLabel: catalogCopy.priceFrom,
     priceToLabel: catalogCopy.priceTo,
+    currencySymbol,
     dietFilterLabel: catalogCopy.dietFilterLabel,
     dietNoneLabel: catalogCopy.dietNone,
     dietVegetarianLabel: catalogCopy.dietVegetarian,

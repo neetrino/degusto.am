@@ -139,7 +139,7 @@ export function HomeMobileCategories({
   return (
     <section className="space-y-3 px-3">
       <div className="flex items-center justify-between">
-        <h2 className="font-display text-base leading-5 font-semibold text-black">
+        <h2 className="text-base leading-5 font-semibold text-black">
           {title}
         </h2>
         <AppLink

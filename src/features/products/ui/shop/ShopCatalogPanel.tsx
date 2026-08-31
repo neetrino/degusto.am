@@ -6,6 +6,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { useCatalogNav } from "@/features/products/ui/shop/CatalogNavContext";
 import { ShopCatalogFilters } from "@/features/products/ui/shop/ShopCatalogFilters";
 import { ShopMobileCategoryChips } from "@/features/products/ui/shop/ShopMobileCategoryChips";
+import { ShopMobilePriceFilter } from "@/features/products/ui/shop/ShopMobilePriceFilter";
 import { ShopCatalogLoadingState } from "@/features/products/ui/shop/ShopCatalogLoadingState";
 import { ShopCatalogProductGrids } from "@/features/products/ui/shop/ShopCatalogProductGrids";
 import { ShopEmptyState } from "@/features/products/ui/shop/ShopEmptyState";
@@ -40,8 +41,13 @@ type ShopCatalogPanelProps = {
   categories: readonly ShopCategoryItem[];
   selectedSlug: string;
   priceLabel: string;
+  priceChipLabel: string;
+  pricePopoverTitle: string;
+  priceMinLabel: string;
+  priceMaxLabel: string;
   priceFromLabel: string;
   priceToLabel: string;
+  currencySymbol: string;
   dietFilterLabel: string;
   dietNoneLabel: string;
   dietVegetarianLabel: string;
@@ -90,8 +96,13 @@ export function ShopCatalogPanel({
   categories,
   selectedSlug,
   priceLabel,
+  priceChipLabel,
+  pricePopoverTitle,
+  priceMinLabel,
+  priceMaxLabel,
   priceFromLabel,
   priceToLabel,
+  currencySymbol,
   dietFilterLabel,
   dietNoneLabel,
   dietVegetarianLabel,
@@ -148,37 +159,45 @@ export function ShopCatalogPanel({
 
   return (
     <section className="relative min-w-0 flex-1">
-      <div className="relative mb-[42px] mt-2 flex flex-col gap-6 xl:mt-0 xl:flex-row xl:items-start xl:justify-between lg:mt-0">
+      <div className="relative z-30 mb-[42px] mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-4 lg:mt-0 xl:relative xl:z-auto xl:mt-0 xl:flex xl:gap-6 xl:justify-between">
         <motion.div
           initial={reduceMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, ease: SHOP_EASE }}
-          className="min-w-0 max-w-xl"
+          className="col-start-1 row-start-1 min-w-0 xl:max-w-xl"
         >
           <h1 className="text-[32px] leading-tight font-bold text-brand-headline lg:text-4xl xl:text-[60px] xl:leading-[51px]">
             {menuTitle}
           </h1>
-          <p className="mt-2 text-sm tracking-[-0.2px] text-[#717182] lg:mt-3 lg:text-base lg:tracking-normal">
+          <p className="mt-2 hidden text-sm tracking-[-0.2px] text-[#717182] lg:mt-3 lg:block lg:text-base lg:tracking-normal">
             {menuSubtitle}
           </p>
-          <ShopMobileCategoryChips
-            label={categoriesNavLabel}
-            allLabel={allCategoriesLabel}
-            allHref={allCategoriesHref}
-            categories={categories}
-            selectedSlug={selectedSlug}
-          />
         </motion.div>
 
         <motion.div
           initial={reduceMotion ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: SHOP_EASE, delay: 0.06 }}
+          className="col-start-2 row-start-1 min-w-0 justify-self-end xl:shrink-0"
         >
+          <div className="xl:hidden">
+            <Suspense fallback={<div className="h-10 w-20" aria-busy="true" />}>
+              <ShopMobilePriceFilter
+                key={`mobile-price-${filterKey}`}
+                chipLabel={priceChipLabel}
+                popoverTitle={pricePopoverTitle}
+                minLabel={priceMinLabel}
+                maxLabel={priceMaxLabel}
+                currencySymbol={currencySymbol}
+                minPrice={minPrice}
+                maxPrice={maxPrice}
+              />
+            </Suspense>
+          </div>
           <Suspense
             fallback={
               <div
-                className="flex h-[83px] flex-wrap items-center gap-2 xl:pt-[37px]"
+                className="hidden h-[83px] flex-wrap items-center gap-2 xl:flex xl:pt-[37px]"
                 aria-busy="true"
               />
             }
@@ -198,6 +217,16 @@ export function ShopCatalogPanel({
             />
           </Suspense>
         </motion.div>
+
+        <div className="col-span-2 min-w-0 xl:hidden">
+          <ShopMobileCategoryChips
+            label={categoriesNavLabel}
+            allLabel={allCategoriesLabel}
+            allHref={allCategoriesHref}
+            categories={categories}
+            selectedSlug={selectedSlug}
+          />
+        </div>
       </div>
 
       {isPending ? (
