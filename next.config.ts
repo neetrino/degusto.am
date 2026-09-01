@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { buildLegacyNextRedirects } from "./src/lib/legacy-urls/legacy-path-map";
 import { isR2PublicBaseUrlUsable } from "./src/lib/r2/public-base-url";
 
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
@@ -99,6 +100,7 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      ...buildLegacyNextRedirects(),
       {
         source: "/:locale/admin-mobile",
         destination: "/:locale/admin",

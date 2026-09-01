@@ -28,6 +28,7 @@ import { invalidateProductsCache } from "@/lib/cache/invalidate-public";
 import { createId } from "@/lib/id";
 import { isLocale, locales, type Locale } from "@/lib/i18n/config";
 import { err, ok, type Result } from "@/lib/result";
+import { isAsciiSlug } from "@/lib/seo/url-slug";
 
 const productModifierSchema = z.object({
   label: z.string().trim().min(1).max(80),
@@ -71,9 +72,14 @@ function primaryTitleFromInput(data: ProductUpsertInput): string {
   return "";
 }
 
+function slugSourceTitle(data: ProductUpsertInput, primaryTitle: string): string {
+  const englishTitle = data.translations.en?.title.trim() ?? "";
+  return englishTitle || primaryTitle || primaryTitleFromInput(data);
+}
+
 /**
- * Builds locale translations with one shared auto-generated slug (no per-locale variants).
- * When `existingSlug` is set (edit), that slug is preserved for URL stability.
+ * Builds locale translations with one shared ASCII slug (English title first).
+ * Unicode slugs are regenerated; ASCII slugs stay stable on edit.
  */
 function buildTranslations(
   data: ProductUpsertInput,
@@ -100,9 +106,10 @@ function buildTranslations(
     return null;
   }
 
-  const sharedSlug =
-    existingSlug?.trim() ||
-    slugifyProductTitle(primaryTitle || primaryTitleFromInput(data));
+  const preserved = existingSlug?.trim() ?? "";
+  const sharedSlug = isAsciiSlug(preserved)
+    ? preserved
+    : slugifyProductTitle(slugSourceTitle(data, primaryTitle));
 
   for (const loc of locales) {
     const entry = next[loc];

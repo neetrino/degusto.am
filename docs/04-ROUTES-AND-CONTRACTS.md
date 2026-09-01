@@ -2,7 +2,7 @@
 
 **Կարգավիճակ.** Draft
 **Տարբերակ.** 1.0
-**Վերջին թարմացում.** 2026-07-17
+**Վերջին թարմացում.** 2026-09-01
 
 ## 1. Contract principles
 
@@ -32,6 +32,32 @@
 | `/[locale]/cart` | Public | Guest/customer scoped dynamic page |
 | `/[locale]/checkout` | Public | Guest/customer dynamic checkout |
 | `/[locale]/checkout/success/[orderNumber]` | Owner only | Retry-safe confirmation |
+
+### 2.1 Legacy degusto.am URL redirects (cutover)
+
+Old PHP/Laravel paths 308/301 to the new locale-prefixed storefront. Proxy intercepts **before** the blind `/{locale}` prefix so `/shop` does not become `/hy/shop` (404). Prefixed leftovers (`/hy/about-us`) are handled too. Payment callbacks (`/idram`, `/inecobank/*`, `/pay-by-fastshift/*`) are not redirected.
+
+| Old path | New path |
+|---|---|
+| `/about-us` | `/hy/about` |
+| `/contact-us` | `/hy/contact` |
+| `/basket` | `/hy/cart` |
+| `/login` | `/hy/login` |
+| `/register` | `/hy/register` |
+| `/terms-conditions` | `/hy/legal/terms` |
+| `/return` | `/hy/legal/returns` |
+| `/privacy-policy` | `/hy/legal/privacy` |
+| `/language/en` `/language/ru` `/language/am` | `/en` `/ru` `/hy` |
+| `/shop` | `/hy/products` |
+| `/shop?category=14` (known id) | `/hy/products?category=grill-smoked` (or `/hy/combo` for id 12) |
+| `/shop?category=` unknown / `/shop/*` | `/hy/products` |
+| `/product/:id` | `/{locale}/products/{asciiSlug}` when `products.sku` equals the numeric id; otherwise `/{locale}/products`. Never `/`. |
+
+`/:locale/...` equivalents keep the request locale (`/en/shop` → `/en/products`). Unprefixed paths use default `hy`.
+
+**Product id gap.** Live `/product/1293` is the old MySQL id; the visible article code ("Կոդ") is a separate SKU (`fQfUBT91OYl7`). There is no `old_id` column and no catalog-import mapping in this repo, so most numeric ids fall back to the catalog until a mapping is added.
+
+Implementation: `src/lib/legacy-urls/legacy-path-map.ts`, `next.config.ts` `redirects()`, `src/proxy.ts`, `src/app/product/[id]/page.tsx`, `src/app/[locale]/(storefront)/product/[id]/page.tsx`.
 
 ## 3. Authentication routes
 
@@ -104,7 +130,7 @@
 | `q` | trimmed string | max length, normalized whitespace |
 | `minPrice` | integer display/base policy | non-negative; conversion filtering policy must be deterministic |
 | `maxPrice` | integer | `>= minPrice` |
-| `category` | locale slug or repeated slugs | active category only |
+| `category` | shared English/ASCII slug | active category only; legacy Unicode slugs 308 to canonical |
 | `inStock` | boolean | `true`/`false` allowlist |
 | `sort` | enum | `newest`, `price_asc`, `price_desc`, `popular` |
 | `page` | positive integer, default 1 | bounded |

@@ -23,16 +23,3 @@ export function isComboSlug(slug: string): boolean {
   );
 }
 
-/**
- * Maps a combo route alias (e.g. `combo`) to the catalog slug that exists
- * in storefront categories, so `/combo` still filters the real category.
- */
-export function resolveComboCatalogSlug(
-  requested: string,
-  categorySlugs: readonly string[],
-): string {
-  if (!isComboSlug(requested)) {
-    return requested;
-  }
-  return categorySlugs.find((slug) => isComboSlug(slug)) ?? requested;
-}

@@ -17,6 +17,7 @@ import { requireUser } from "@/lib/auth/policies";
 import { createId } from "@/lib/id";
 import { isLocale, type Locale } from "@/lib/i18n/config";
 import { err, ok, type Result } from "@/lib/result";
+import { pickStoredAsciiSlug } from "@/lib/seo/url-slug";
 
 /** Customer submits a product review (pending moderation). */
 export async function submitReviewAction(
@@ -98,6 +99,7 @@ export async function submitReviewAction(
       });
 
       const slug =
+        pickStoredAsciiSlug(product.translations) ??
         product.translations[locale as Locale]?.slug ??
         product.translations.hy?.slug ??
         null;

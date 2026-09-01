@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 
 import { StorefrontMobileChrome } from "@/components/layout/StorefrontMobileChrome";
 import { listStorefrontCategories } from "@/features/categories/application/list-storefront-categories";
@@ -12,10 +12,8 @@ import {
   buildCatalogHref,
   CATALOG_CATEGORY_PICKER_VIEW,
 } from "@/features/products/ui/shop/build-catalog-href";
-import {
-  isComboSlug,
-  resolveComboCatalogSlug,
-} from "@/features/products/ui/shop/combo-slug";
+import { isComboSlug } from "@/features/products/ui/shop/combo-slug";
+import { resolveCatalogSelection } from "@/features/products/ui/shop/resolve-catalog-selection";
 import { ShopCatalogPanel } from "@/features/products/ui/shop/ShopCatalogPanel";
 import { ShopCategorySidebar } from "@/features/products/ui/shop/ShopCategorySidebar";
 import { ShopMobileCategoryPicker } from "@/features/products/ui/shop/ShopMobileCategoryPicker";
@@ -98,34 +96,42 @@ export default async function ProductsPage({
   const dictionary = getDictionary(rawLocale);
   const catalogCopy = dictionary.catalog;
 
-  const [requestedCatalog, currency, user, categories] = await Promise.all([
-    getActiveProductsPage(rawLocale, page, {
-      categorySlug: requestedCategory,
-      minPrice,
-      maxPrice,
-      query: searchQuery || null,
-      diet,
-    }),
+  const [currency, user, categories] = await Promise.all([
     getSelectedCurrency(),
     getCurrentUser(),
     listStorefrontCategories(rawLocale),
   ]);
 
-  const selectedCategory = resolveComboCatalogSlug(
+  const selection = resolveCatalogSelection(
+    rawLocale,
     requestedCategory,
-    categories.map((category) => category.slug),
+    categories,
+    {
+      page: page > 1 ? page : undefined,
+      min: sp.min,
+      max: sp.max,
+      q: searchQuery || undefined,
+      diet: diet === "none" ? undefined : diet,
+    },
   );
+  if (categoryParam && selection.canonicalHref) {
+    permanentRedirect(selection.canonicalHref);
+  }
+
+  const selectedCategory = selection.selectedSlug;
   const catalogFilters = {
     categorySlug: selectedCategory,
+    categoryId: selection.categoryId,
     minPrice,
     maxPrice,
     query: searchQuery || null,
     diet,
   };
-  const initialCatalog =
-    selectedCategory === requestedCategory
-      ? requestedCatalog
-      : await getActiveProductsPage(rawLocale, page, catalogFilters);
+  const initialCatalog = await getActiveProductsPage(
+    rawLocale,
+    page,
+    catalogFilters,
+  );
 
   const totalPages = Math.max(
     1,

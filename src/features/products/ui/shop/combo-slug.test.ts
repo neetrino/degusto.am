@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  isComboSlug,
-  resolveComboCatalogSlug,
-} from "@/features/products/ui/shop/combo-slug";
+import { isComboSlug } from "@/features/products/ui/shop/combo-slug";
 
 describe("isComboSlug", () => {
   it("matches canonical and catalog combo slugs", () => {
@@ -22,19 +19,3 @@ describe("isComboSlug", () => {
   });
 });
 
-describe("resolveComboCatalogSlug", () => {
-  it("maps combo route alias to the live catalog slug", () => {
-    expect(
-      resolveComboCatalogSlug("combo", ["pizza", "combo-packages", "soups"]),
-    ).toBe("combo-packages");
-    expect(
-      resolveComboCatalogSlug("combo", ["pizza", "Կոմբո փաթեթներ"]),
-    ).toBe("Կոմբո փաթեթներ");
-  });
-
-  it("leaves non-combo slugs unchanged", () => {
-    expect(resolveComboCatalogSlug("pizza", ["pizza", "combo-packages"])).toBe(
-      "pizza",
-    );
-  });
-});

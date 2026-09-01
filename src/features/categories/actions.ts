@@ -6,16 +6,23 @@ import { z } from "zod";
 
 import { getDb } from "@/db/client";
 import { categories, type TranslationsJson } from "@/db/schema";
+import { assertCategorySlugAvailable } from "@/features/categories/application/assert-category-slug";
 import { persistCategoryImage, removeCategoryImage } from "@/features/categories/application/persist-category-media";
 import { requireAdmin } from "@/lib/auth/policies";
 import { invalidateProductsCache } from "@/lib/cache/invalidate-public";
 import { createId } from "@/lib/id";
 import { isLocale, type Locale } from "@/lib/i18n/config";
 import { err, ok, type Result } from "@/lib/result";
+import { slugifyToAscii } from "@/lib/seo/url-slug";
 
 const createCategorySchema = z.object({
   title: z.string().trim().min(1).max(120),
-  slug: z.string().trim().min(1).max(120),
+  slug: z
+    .string()
+    .trim()
+    .min(1)
+    .max(120)
+    .transform((value) => slugifyToAscii(value, "category")),
   parentId: z.string().uuid().nullable(),
   status: z.enum(["ACTIVE", "ARCHIVED"]),
 });
@@ -52,6 +59,11 @@ async function insertCategory(
     if (!parent) {
       return err("NOT_FOUND", "Parent category not found.");
     }
+  }
+
+  const slugTaken = await assertCategorySlugAvailable(data.slug);
+  if (slugTaken) {
+    return slugTaken;
   }
 
   const [maxSort] = await getDb()
@@ -185,6 +197,14 @@ export async function updateCategoryFromDrawerAction(
     if (!parent) {
       return err("NOT_FOUND", "Parent category not found.");
     }
+  }
+
+  const slugTaken = await assertCategorySlugAvailable(
+    parsed.data.slug,
+    existing.id,
+  );
+  if (slugTaken) {
+    return slugTaken;
   }
 
   await getDb()

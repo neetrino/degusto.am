@@ -2,7 +2,7 @@
 
 **Կարգավիճակ.** Draft
 **Տարբերակ.** 1.0
-**Վերջին թարմացում.** 2026-07-18
+**Վերջին թարմացում.** 2026-09-01
 
 ## 1. Locale model
 
@@ -47,6 +47,7 @@ locales/
 - Product, category, hero և blog admin-managed translations-ը պահվում են համապատասխան parent table-ի versioned `translations JSONB` դաշտում։ Առանձին translation tables չկան canonical 25-table schema-ում։
 - JSON structure-ը entity-specific Zod schema ունի; `hy`/`en`/`ru` keys-ը optional են (partial translations թույլատրված են՝ `DEC-017`)։
 - Slug-ը unique է per locale/entity namespace՝ PostgreSQL expression unique indexes-ով (`translations->'hy'->>'slug'` և այլն) միայն առկա locale keys-ի համար։
+- Storefront URL-ները օգտագործում են **մեկ shared English/ASCII slug** (`pizza`, `grill-and-smoked-products`) բոլոր locale prefix-ներում (`/hy/`, `/en/`, `/ru/`)։ Title-ը մնում է localized։ Unicode/percent-encoded slugs-ը 308-ով գնում են canonical ASCII URL։
 - Public publish command-ը ստուգում է առնվազն մեկ լրիվ locale-ի completeness-ը, ոչ բոլոր երեք locale-ները։
 - Locale translation բացակայելու դեպքում այդ լեզվի storefront-ում product/entity-ը չի ցուցադրվում (ոչ silent cross-locale content leak). fallback policy-ն entity type-ով explicit է։
 - Slug change-ը redirect-history model է պահանջում, եթե SEO continuity-ն launch requirement է; հակառակ դեպքում հին URL-ը 404 է։
@@ -117,12 +118,13 @@ interface ExchangeRateProvider {
 - Catalog filters-ը shareable են, բայց crawl/index policy-ն explicit է՝ base catalog canonical կամ curated filter pages only։
 - Pagination canonical/prev-next behavior-ը current search engine guidance-ի և product SEO strategy-ի համաձայն lock է արվում։
 - Tracking params-ը canonical-ից դուրս են մնում։
+- Cutover-ից հետո հին degusto.am URL-ները (`/shop`, `/shop?category=`, `/product/:id`, `/about-us`, …) 308/301 են գնում canonical locale-prefixed routes (`/hy/products`, `/hy/products?category=grill-smoked`, `/hy/about`). Անհայտ product id-ը catalog է գնում, ոչ homepage։ Payment callback path-երը չեն փոխվում։ See `docs/04-ROUTES-AND-CONTRACTS.md` §2.1.
 
 ### 6.2 hreflang
 
 - `hy`, `en`, `ru` alternates միայն գոյություն ունեցող equivalent content-ի համար։
 - Optional `x-default`-ը կարող է ցույց տալ `/hy` կամ locale selector policy-ին։
-- Product/blog alternate URL-ը target locale slug-ն է, ոչ միայն segment replacement։
+- Product alternate URL-ը նույն English/ASCII slug-ն է locale prefix-ով (`/hy/products/pesto-pizza`, `/en/products/pesto-pizza`)։ Blog-ը դեռ կարող է ունենալ locale-specific slug։
 
 ### 6.3 Structured data
 

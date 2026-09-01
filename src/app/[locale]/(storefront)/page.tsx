@@ -11,6 +11,8 @@ import {
   getFeaturedProducts,
   getPrimaryCategoryLabels,
 } from "@/features/products/queries";
+import { buildCatalogHref } from "@/features/products/ui/shop/build-catalog-href";
+import { isComboSlug } from "@/features/products/ui/shop/combo-slug";
 import { getWishlistProductIds } from "@/features/wishlist/queries";
 import { getCurrentUser } from "@/lib/auth/session";
 import { isLocale, type Locale } from "@/lib/i18n/config";
@@ -128,7 +130,12 @@ export default async function HomePage({ params }: HomePageProps) {
   const categoryCards = categories.map((category) => ({
     id: category.id,
     href: category.slug
-      ? `/${locale}/products?category=${encodeURIComponent(category.slug)}`
+      ? buildCatalogHref(locale, {
+          category:
+            isComboSlug(category.slug) || isComboSlug(category.title)
+              ? "combo"
+              : category.slug,
+        })
       : `/${locale}/products`,
     title: category.title,
     productCountLabel: formatProductCount(
