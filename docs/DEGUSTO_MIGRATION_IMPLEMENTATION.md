@@ -78,6 +78,32 @@ Files:
 
 ARCHIVED products remain hidden from storefront listing and PDP (unchanged policy).
 
+---
+
+## Post-Migration Demo Seed Products on Storefront
+
+### Symptom
+
+Home «նորույթներ» / featured strip and `/products/[slug]` resolved Figma demo catalog rows (e.g. `DG-MEXICAN-001`, slug `mexican-01-hy`) instead of Degusto-imported products.
+
+### Root cause
+
+Classification: **A. SEED_AND_DEGUSTO_BOTH_VISIBLE** (products)
+
+Demo/figma seed products use ID prefix `01900000-` (same rule as categories). Storefront product queries loaded all ACTIVE products with no seed filter. Categories had already been filtered; products had not.
+
+### Fix
+
+Exclude demo seed product IDs from storefront catalog eligibility:
+
+- `activeCatalogWhere` in `src/features/products/queries.ts` (featured, catalog page, PDP, related)
+- cart `addToCart` rejects demo seed IDs
+- category product counts exclude seed products
+
+Seed rows remain in DB (admin/dev). No product deletes. Cache keys bumped with `degusto-only-v1`.
+
+---
+
 ### Full Storefront Verification
 
 Diagnostic: `scripts/degusto-import/verify-storefront-pdp.ts` → `scripts/degusto-import/state/storefront-pdp-verify.json`

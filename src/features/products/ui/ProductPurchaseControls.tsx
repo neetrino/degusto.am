@@ -5,8 +5,21 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { addToCart } from "@/features/cart/cart";
+import {
+  beginCartMutation,
+  endCartMutation,
+  optimisticAddToCartLocal,
+  replaceCartLocalFromServer,
+  type CartProductSnapshot,
+} from "@/features/cart/client/cart-local-cache";
+import { loadCartDrawerViewAction } from "@/features/cart/load-cart-drawer-view-action";
 import { WishlistButton } from "@/features/wishlist/ui/WishlistButton";
 import type { Locale } from "@/lib/i18n/config";
+import {
+  CURRENCY_COOKIE_NAME,
+  parseCurrencyCookie,
+} from "@/lib/money/currency-cookie";
+import type { Currency } from "@/lib/money/currency";
 
 type ProductPurchaseControlsProps = {
   locale: Locale;
@@ -17,6 +30,7 @@ type ProductPurchaseControlsProps = {
   inWishlist: boolean;
   isSignedIn: boolean;
   wishlistLabel: string;
+  snapshot: Omit<CartProductSnapshot, "productId">;
   labels: {
     quantity: string;
     decreaseQuantity: string;
@@ -29,6 +43,18 @@ type ProductPurchaseControlsProps = {
   };
 };
 
+function readClientCurrency(): Currency {
+  if (typeof document === "undefined") {
+    return parseCurrencyCookie(undefined);
+  }
+  const match = document.cookie.match(
+    new RegExp(`(?:^|; )${CURRENCY_COOKIE_NAME}=([^;]*)`),
+  );
+  return parseCurrencyCookie(
+    match?.[1] ? decodeURIComponent(match[1]) : undefined,
+  );
+}
+
 /** PDP qty + cart + wishlist — Degusto orange pill controls. */
 export function ProductPurchaseControls({
   locale,
@@ -39,6 +65,7 @@ export function ProductPurchaseControls({
   inWishlist,
   isSignedIn,
   wishlistLabel,
+  snapshot,
   labels,
 }: ProductPurchaseControlsProps) {
   const router = useRouter();
@@ -59,13 +86,31 @@ export function ProductPurchaseControls({
     if (disabled || quantity < 1) return;
     setMessage(null);
     setError(null);
+    const currency = readClientCurrency();
+
     startTransition(async () => {
+      beginCartMutation();
       try {
+        optimisticAddToCartLocal(
+          { productId, ...snapshot },
+          quantity,
+          locale,
+          currency,
+        );
         await addToCart(productId, quantity);
         setMessage(labels.added);
         router.refresh();
       } catch {
         setError(labels.error);
+      } finally {
+        endCartMutation();
+      }
+
+      try {
+        const next = await loadCartDrawerViewAction(locale, currency);
+        replaceCartLocalFromServer(next, locale, currency);
+      } catch {
+        // Keep optimistic cache; next drawer open will resync.
       }
     });
   }

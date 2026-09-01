@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, count, eq, inArray, isNotNull, isNull, or } from "drizzle-orm";
+import { and, asc, count, eq, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
 import { unstable_cache } from "next/cache";
 
 import { getDb } from "@/db/client";
@@ -18,7 +18,10 @@ import {
 import type { Locale } from "@/lib/i18n/config";
 import { mediaPublicUrl } from "@/lib/media/public-url";
 import { staticAssetUrl } from "@/lib/media/static-asset-url";
-import { isDemoSeedEntityId } from "@/db/seed/seed-uuid";
+import {
+  DEMO_SEED_ENTITY_ID_PREFIX,
+  isDemoSeedEntityId,
+} from "@/db/seed/seed-uuid";
 
 export type StorefrontCategory = {
   id: string;
@@ -106,6 +109,8 @@ async function loadStorefrontCategories(
           inArray(productCategories.categoryId, categoryIds),
           eq(products.status, "ACTIVE"),
           isNull(products.deletedAt),
+          // Match storefront product catalog: exclude demo/figma seed rows.
+          sql`${products.id}::text not like ${`${DEMO_SEED_ENTITY_ID_PREFIX}%`}`,
         ),
       )
       .groupBy(productCategories.categoryId),

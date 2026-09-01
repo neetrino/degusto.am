@@ -1,14 +1,23 @@
 "use client";
 
-import Image from "next/image";
 import { useState, useTransition } from "react";
-import { ArrowRight, Minus, Plus, ShoppingCart, X } from "lucide-react";
+import { ArrowRight, ShoppingCart } from "lucide-react";
 
 import { AppLink } from "@/components/ui/AppLink";
 import { SideSheet } from "@/components/ui/SideSheet";
 import { removeItem, updateQuantity } from "@/features/cart/cart";
+import {
+  beginCartMutation,
+  endCartMutation,
+  optimisticRemoveLocal,
+  optimisticSetQuantityLocal,
+  replaceCartLocalFromServer,
+  toCartDrawerView,
+} from "@/features/cart/client/cart-local-cache";
+import { useCartLocalView } from "@/features/cart/client/use-cart-local-cache";
 import type { CartDrawerView } from "@/features/cart/get-cart-drawer-view";
 import { loadCartDrawerViewAction } from "@/features/cart/load-cart-drawer-view-action";
+import { CartDrawerLineList } from "@/features/cart/ui/CartDrawerLineList";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
 import type { Currency } from "@/lib/money/currency";
@@ -48,28 +57,41 @@ export function CartDrawer({
   renderTrigger,
 }: CartDrawerProps) {
   const [open, setOpen] = useState(false);
-  const [view, setView] = useState<CartDrawerView | null>(null);
+  const [serverView, setServerView] = useState<CartDrawerView | null>(null);
   const [loadingView, setLoadingView] = useState(false);
   const [pending, startTransition] = useTransition();
+  const localView = useCartLocalView(locale, currency);
   const labels = dictionary.cartDrawer;
-  // Ignore cached drawer payload when it disagrees with the server badge
-  // (stale empty prefetch after addToCart would otherwise hide line items).
-  const syncedView =
-    view && view.itemCount === itemCount ? view : null;
-  const badgeCount = syncedView?.itemCount ?? itemCount;
-  const hasItems = Boolean(syncedView && syncedView.items.length > 0);
+
+  const displayView: CartDrawerView | null = localView
+    ? toCartDrawerView(localView)
+    : serverView;
+  const badgeCount = Math.max(
+    displayView?.itemCount ?? 0,
+    itemCount,
+    localView?.itemCount ?? 0,
+  );
+  const hasItems = Boolean(displayView && displayView.items.length > 0);
+
+  function applyServerView(next: CartDrawerView, force = false): void {
+    setServerView(next);
+    replaceCartLocalFromServer(next, locale, currency, { force });
+  }
 
   function fetchDrawerView(): void {
     setLoadingView(true);
     startTransition(async () => {
-      const next = await loadCartDrawerViewAction(locale, currency);
-      setView(next);
-      setLoadingView(false);
+      try {
+        const next = await loadCartDrawerViewAction(locale, currency);
+        applyServerView(next);
+      } finally {
+        setLoadingView(false);
+      }
     });
   }
 
   function prefetchDrawerView(): void {
-    if (syncedView || loadingView || open) {
+    if (displayView || loadingView || open) {
       return;
     }
     fetchDrawerView();
@@ -77,27 +99,62 @@ export function CartDrawer({
 
   function openDrawer(): void {
     setOpen(true);
-    // Always reload on open so adds from product cards/PDP are visible.
     fetchDrawerView();
   }
 
-  function closeDrawer(): void {
-    setOpen(false);
-  }
-
   function changeQuantity(itemId: string, quantity: number): void {
+    beginCartMutation();
+    optimisticSetQuantityLocal(itemId, quantity, locale, currency);
     startTransition(async () => {
-      await updateQuantity(itemId, quantity);
-      const next = await loadCartDrawerViewAction(locale, currency);
-      setView(next);
+      try {
+        if (itemId.startsWith("local:")) {
+          const productId = itemId.slice("local:".length);
+          let next = await loadCartDrawerViewAction(locale, currency);
+          const durable = next.items.find((item) => item.productId === productId);
+          if (durable && durable.quantity !== quantity) {
+            await updateQuantity(durable.id, quantity);
+            next = await loadCartDrawerViewAction(locale, currency);
+          }
+          applyServerView(next, true);
+          return;
+        }
+        await updateQuantity(itemId, quantity);
+        applyServerView(await loadCartDrawerViewAction(locale, currency), true);
+      } catch {
+        // Keep optimistic quantity until the next successful sync.
+      } finally {
+        endCartMutation();
+      }
     });
   }
 
   function removeCartItem(itemId: string): void {
+    beginCartMutation();
+    optimisticRemoveLocal(itemId, locale, currency);
     startTransition(async () => {
-      await removeItem(itemId);
-      const next = await loadCartDrawerViewAction(locale, currency);
-      setView(next);
+      try {
+        if (itemId.startsWith("local:")) {
+          const productId = itemId.slice("local:".length);
+          const next = await loadCartDrawerViewAction(locale, currency);
+          const durable = next.items.find((item) => item.productId === productId);
+          if (durable) {
+            await removeItem(durable.id);
+            applyServerView(
+              await loadCartDrawerViewAction(locale, currency),
+              true,
+            );
+          } else {
+            applyServerView(next, true);
+          }
+          return;
+        }
+        await removeItem(itemId);
+        applyServerView(await loadCartDrawerViewAction(locale, currency), true);
+      } catch {
+        // Keep optimistic removal until the next successful sync.
+      } finally {
+        endCartMutation();
+      }
     });
   }
 
@@ -105,7 +162,7 @@ export function CartDrawer({
     <>
       <SideSheet
         open={open}
-        onClose={closeDrawer}
+        onClose={() => setOpen(false)}
         ariaLabel={labels.title}
         panelClassName="w-[87%] max-w-[420px]"
         zIndexClassName="z-[10000]"
@@ -140,7 +197,7 @@ export function CartDrawer({
               <div className="h-24 animate-pulse rounded-[20px] bg-[#fff4eb]" />
               <div className="h-24 animate-pulse rounded-[20px] bg-[#fff4eb]" />
             </div>
-          ) : !syncedView || syncedView.items.length === 0 ? (
+          ) : !displayView || displayView.items.length === 0 ? (
             <div className="cart-enter flex h-full min-h-[280px] flex-col items-center justify-center px-2 text-center">
               <div className="relative flex size-28 items-center justify-center">
                 <span
@@ -160,7 +217,7 @@ export function CartDrawer({
               <AppLink
                 href={`/${locale}/products`}
                 prefetchPolicy="intent"
-                onClick={closeDrawer}
+                onClick={() => setOpen(false)}
                 className="cart-enter cart-enter-delay-3 cart-cta-shine group relative mt-6 inline-flex min-h-[50px] w-full max-w-sm items-center overflow-hidden rounded-full bg-[#ff7f20] py-1.5 pr-1.5 pl-5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(255,127,32,0.32)] transition-[transform,filter] duration-300 hover:-translate-y-0.5 hover:brightness-[1.03] motion-reduce:hover:translate-y-0"
               >
                 <span className="pointer-events-none absolute inset-0 flex items-center justify-center px-12">
@@ -172,87 +229,13 @@ export function CartDrawer({
               </AppLink>
             </div>
           ) : (
-            <ul className="cart-line-stagger space-y-3">
-              {syncedView.items.map((item) => (
-                <li
-                  key={item.id}
-                  className="group rounded-[20px] border border-[#dedede] bg-white p-3 shadow-sm transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-0.5 hover:border-[#ff7f20]/40 hover:shadow-[0_12px_28px_rgba(255,127,32,0.12)] motion-reduce:hover:translate-y-0"
-                >
-                  <div className="flex gap-3">
-                    <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-[#f7f7f7]">
-                      {item.imageUrl ? (
-                        <Image
-                          src={item.imageUrl}
-                          alt={item.title}
-                          fill
-                          sizes="96px"
-                          className="object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:group-hover:scale-100"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-xs text-[#a1a1a1]">
-                          —
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex min-w-0 flex-1 flex-col">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="line-clamp-2 text-sm font-bold text-[#3c2f2f]">
-                            {item.title}
-                          </p>
-                          <p className="mt-1 text-sm font-black text-[#3c2f2f]">
-                            {item.lineTotalFormatted}
-                          </p>
-                          <p className="mt-0.5 text-xs text-[#717182]">
-                            {item.unitPriceFormatted} × {item.quantity}
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => removeCartItem(item.id)}
-                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f3f3f3] text-[#717182] transition-[transform,background-color,color] duration-300 hover:scale-105 hover:bg-[#ffe8d9] hover:text-[#ff7f20] active:scale-95"
-                          aria-label={labels.removeItem}
-                          disabled={pending}
-                        >
-                          <X className="h-4 w-4" aria-hidden />
-                        </button>
-                      </div>
-
-                      <div className="mt-auto flex justify-end pt-3">
-                        <div className="inline-flex items-center gap-1 rounded-full border-2 border-[#ff7f20] bg-white px-1 py-0.5">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              changeQuantity(item.id, item.quantity - 1)
-                            }
-                            className="flex h-7 w-7 items-center justify-center rounded-full text-[#ff7f20] transition-[transform,background-color] hover:bg-[#fff4eb] active:scale-90"
-                            aria-label={labels.decreaseQuantity}
-                            disabled={pending}
-                          >
-                            <Minus className="h-3.5 w-3.5" aria-hidden />
-                          </button>
-                          <span className="min-w-5 text-center text-sm font-semibold tabular-nums text-[#ff7f20]">
-                            {item.quantity}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              changeQuantity(item.id, item.quantity + 1)
-                            }
-                            className="flex h-7 w-7 items-center justify-center rounded-full text-[#ff7f20] transition-[transform,background-color] hover:bg-[#fff4eb] active:scale-90"
-                            aria-label={labels.increaseQuantity}
-                            disabled={pending}
-                          >
-                            <Plus className="h-3.5 w-3.5" aria-hidden />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <CartDrawerLineList
+              items={displayView.items}
+              labels={labels}
+              pending={pending}
+              onChangeQuantity={changeQuantity}
+              onRemove={removeCartItem}
+            />
           )}
         </div>
 
@@ -261,19 +244,19 @@ export function CartDrawer({
             <div className="flex items-center justify-between text-[#717182]">
               <dt>{labels.subtotal}</dt>
               <dd className="tabular-nums font-medium text-[#3c2f2f]">
-                {syncedView?.subtotalFormatted ?? "—"}
+                {displayView?.subtotalFormatted ?? "—"}
               </dd>
             </div>
             <div className="flex items-center justify-between text-[#717182]">
               <dt>{labels.shipping}</dt>
               <dd className="tabular-nums font-medium text-[#3c2f2f]">
-                {syncedView?.shippingFormatted ?? "—"}
+                {displayView?.shippingFormatted ?? "—"}
               </dd>
             </div>
             <div className="flex items-center justify-between pt-1 text-base font-bold text-[#3c2f2f]">
               <dt>{labels.total}</dt>
               <dd className="tabular-nums text-[#ff7f20]">
-                {syncedView?.totalFormatted ?? "—"}
+                {displayView?.totalFormatted ?? "—"}
               </dd>
             </div>
           </dl>
@@ -283,7 +266,7 @@ export function CartDrawer({
               href={`/${locale}/checkout`}
               prefetchPolicy="intent"
               className="cart-cta-shine group relative mt-5 flex min-h-[50px] w-full items-center overflow-hidden rounded-full bg-[#ff7f20] py-1.5 pr-1.5 pl-5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(255,127,32,0.35)] transition-[transform,filter] duration-300 hover:-translate-y-0.5 hover:brightness-[1.03] motion-reduce:hover:translate-y-0"
-              onClick={closeDrawer}
+              onClick={() => setOpen(false)}
             >
               <span className="pointer-events-none absolute inset-0 flex items-center justify-center pr-12 pl-4">
                 {labels.checkout}
