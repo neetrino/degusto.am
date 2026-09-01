@@ -3,15 +3,24 @@ import { MapPin } from "lucide-react";
 
 import type { AdminOrderDetailView } from "@/features/orders/application/order-detail-view";
 import { AdminInlineStatusSelect } from "@/features/orders/ui/AdminInlineStatusSelect";
+import type { AdminOrderCapabilities } from "@/features/orders/ui/AdminOrdersView";
 import { getOrderDrawerCopy } from "@/features/orders/ui/order-drawer-copy";
 import {
   formatOrderDrawerMoney,
   formatOrderPlacedDate,
 } from "@/features/orders/ui/order-drawer-format";
+import {
+  ADMIN_BADGE,
+  orderStatusBadgeClass,
+  paymentStatusBadgeClass,
+} from "@/features/admin/ui/status-badge";
+import { orderStatusLabel } from "@/features/orders/domain/order-status";
+import { paymentStatusLabel } from "@/features/orders/domain/payment-status";
 
 type OrderDetailsDrawerContentProps = {
   locale: string;
   detail: AdminOrderDetailView;
+  capabilities: AdminOrderCapabilities;
   onStatusChanged?: () => void;
 };
 
@@ -51,6 +60,7 @@ function DetailField({
 export function OrderDetailsDrawerContent({
   locale,
   detail,
+  capabilities,
   onStatusChanged,
 }: OrderDetailsDrawerContentProps) {
   const copy = getOrderDrawerCopy(locale);
@@ -62,20 +72,36 @@ export function OrderDetailsDrawerContent({
     <div className="space-y-4">
       <DrawerSection title={copy.orderStatus}>
         <div className="flex flex-wrap gap-2">
-          <AdminInlineStatusSelect
-            locale={locale}
-            orderNumber={detail.orderNumber}
-            kind="order"
-            value={detail.status}
-            onChanged={onStatusChanged}
-          />
-          <AdminInlineStatusSelect
-            locale={locale}
-            orderNumber={detail.orderNumber}
-            kind="payment"
-            value={detail.paymentStatus}
-            onChanged={onStatusChanged}
-          />
+          {capabilities.canChangeOrderStatus ? (
+            <AdminInlineStatusSelect
+              locale={locale}
+              orderNumber={detail.orderNumber}
+              kind="order"
+              value={detail.status}
+              onChanged={onStatusChanged}
+            />
+          ) : (
+            <span
+              className={`${ADMIN_BADGE} ${orderStatusBadgeClass(detail.status)}`}
+            >
+              {orderStatusLabel(detail.status, locale)}
+            </span>
+          )}
+          {capabilities.canChangePaymentStatus ? (
+            <AdminInlineStatusSelect
+              locale={locale}
+              orderNumber={detail.orderNumber}
+              kind="payment"
+              value={detail.paymentStatus}
+              onChanged={onStatusChanged}
+            />
+          ) : (
+            <span
+              className={`${ADMIN_BADGE} ${paymentStatusBadgeClass(detail.paymentStatus)}`}
+            >
+              {paymentStatusLabel(detail.paymentStatus, locale)}
+            </span>
+          )}
         </div>
         <p className="mt-3 text-sm text-[#5c564e]">
           {detail.paymentMethod} ·{" "}
@@ -118,6 +144,12 @@ export function OrderDetailsDrawerContent({
                 : ""}
             </span>
             <span className="font-medium text-[#1f1a17]">{shippingLabel}</span>
+          </div>
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-[#8a837a]">{copy.bag}</span>
+            <span className="font-medium text-[#1f1a17]">
+              {formatOrderDrawerMoney(detail.bagAmount, detail.baseCurrency)}
+            </span>
           </div>
           {detail.discountAmount > 0 ? (
             <div className="flex items-center justify-between gap-4">
@@ -184,6 +216,14 @@ export function OrderDetailsDrawerContent({
           <DetailField label={copy.email} value={detail.contactEmail} />
         </div>
       </DrawerSection>
+
+      {detail.customerComment ? (
+        <DrawerSection title={copy.comment}>
+          <p className="whitespace-pre-wrap text-sm text-[#1f1a17]">
+            {detail.customerComment}
+          </p>
+        </DrawerSection>
+      ) : null}
     </div>
   );
 }

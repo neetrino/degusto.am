@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { getCartItemCount } from "@/features/cart/cart";
 import { getWishlistCount } from "@/features/wishlist/queries";
+import { isStaffRole } from "@/features/users/domain/user-lifecycle";
 import { getCurrentUser } from "@/lib/auth/session";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
@@ -42,7 +43,7 @@ async function MobileBottomNavAsync({
       cartItemCount={cartItemCount}
       wishlistCount={wishlistCount}
       isSignedIn={Boolean(user)}
-      isAdmin={user?.role === "ADMIN"}
+      isAdmin={Boolean(user && isStaffRole(user.role))}
     />
   );
 }

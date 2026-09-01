@@ -8,6 +8,7 @@ export type OrderDrawerCopy = {
   orderSummary: string;
   subtotal: string;
   delivery: string;
+  bag: string;
   total: string;
   deliveryMethod: string;
   deliveryAddress: string;
@@ -18,6 +19,7 @@ export type OrderDrawerCopy = {
   name: string;
   phone: string;
   email: string;
+  comment: string;
   quantity: string;
   loading: string;
   ariaLabel: string;
@@ -32,6 +34,7 @@ const COPY: Record<Locale, OrderDrawerCopy> = {
     orderSummary: "Պատվերի ամփոփում",
     subtotal: "Ենթագումար",
     delivery: "Առաքում",
+    bag: "Տոպրակի գումար",
     total: "Ընդամենը",
     deliveryMethod: "Առաքման եղանակ",
     deliveryAddress: "Առաքման հասցե",
@@ -42,6 +45,7 @@ const COPY: Record<Locale, OrderDrawerCopy> = {
     name: "Անուն",
     phone: "Հեռախոսահամար",
     email: "Էլ. փոստ",
+    comment: "Մեկնաբանություն",
     quantity: "Քանակ",
     loading: "Բեռնվում է…",
     ariaLabel: "Պատվերի մանրամասներ",
@@ -54,6 +58,7 @@ const COPY: Record<Locale, OrderDrawerCopy> = {
     orderSummary: "Order summary",
     subtotal: "Subtotal",
     delivery: "Delivery",
+    bag: "Bag fee",
     total: "Total",
     deliveryMethod: "Delivery method",
     deliveryAddress: "Delivery address",
@@ -64,6 +69,7 @@ const COPY: Record<Locale, OrderDrawerCopy> = {
     name: "Name",
     phone: "Phone",
     email: "Email",
+    comment: "Comment",
     quantity: "Qty",
     loading: "Loading order…",
     ariaLabel: "Order details",
@@ -76,6 +82,7 @@ const COPY: Record<Locale, OrderDrawerCopy> = {
     orderSummary: "Итог заказа",
     subtotal: "Подытог",
     delivery: "Доставка",
+    bag: "Сумма пакета",
     total: "Итого",
     deliveryMethod: "Способ доставки",
     deliveryAddress: "Адрес доставки",
@@ -86,6 +93,7 @@ const COPY: Record<Locale, OrderDrawerCopy> = {
     name: "Имя",
     phone: "Телефон",
     email: "Email",
+    comment: "Комментарий",
     quantity: "Кол-во",
     loading: "Загрузка заказа…",
     ariaLabel: "Детали заказа",

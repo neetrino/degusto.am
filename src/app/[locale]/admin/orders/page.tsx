@@ -10,6 +10,11 @@ import type { OrderStatus } from "@/features/orders/domain/order-status";
 import { adminOrdersFilterSchema } from "@/features/orders/schemas/change-status";
 import { AdminOrdersFilters } from "@/features/orders/ui/AdminOrdersFilters";
 import { AdminOrdersView } from "@/features/orders/ui/AdminOrdersView";
+import {
+  canChangeOrderStatus,
+  canManageOrderAdmin,
+} from "@/features/users/domain/user-lifecycle";
+import { requireStaff } from "@/lib/auth/policies";
 import { isLocale } from "@/lib/i18n/config";
 
 type AdminOrdersPageProps = {
@@ -52,6 +57,7 @@ export default async function AdminOrdersPage({
     notFound();
   }
 
+  const user = await requireStaff(locale);
   const raw = await searchParams;
   const parsed = adminOrdersFilterSchema.safeParse({
     status: firstParam(raw.status) || undefined,
@@ -75,6 +81,11 @@ export default async function AdminOrdersPage({
 
   const { rows, total, pageSize } = await listAdminOrders(filters);
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const capabilities = {
+    canChangeOrderStatus: canChangeOrderStatus(user.role),
+    canChangePaymentStatus: canManageOrderAdmin(user.role),
+    canArchiveOrders: canManageOrderAdmin(user.role),
+  };
 
   return (
     <section className="min-w-0 max-w-full">
@@ -89,7 +100,11 @@ export default async function AdminOrdersPage({
         q={filters.q}
       />
 
-      <AdminOrdersView locale={locale} orders={rows} />
+      <AdminOrdersView
+        locale={locale}
+        orders={rows}
+        capabilities={capabilities}
+      />
 
       {totalPages > 1 ? (
         <nav className="mt-4 flex items-center gap-3 text-sm text-[#5c564e]">

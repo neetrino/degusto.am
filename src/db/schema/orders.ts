@@ -67,6 +67,7 @@ export const orders = pgTable(
     discountAmount: integer("discount_amount").notNull().default(0),
     taxAmount: integer("tax_amount").notNull().default(0),
     deliveryAmount: integer("delivery_amount").notNull().default(0),
+    bagAmount: integer("bag_amount").notNull().default(0),
     totalAmount: integer("total_amount").notNull(),
     shippingAddress: jsonb("shipping_address").$type<AddressSnapshot>().notNull(),
     billingAddress: jsonb("billing_address").$type<AddressSnapshot>().notNull(),
@@ -82,6 +83,8 @@ export const orders = pgTable(
     }),
     deliveryLabelSnapshot: text("delivery_label_snapshot"),
     deliveryEstimateSnapshot: text("delivery_estimate_snapshot"),
+    /** Optional customer note from checkout (max 1000 chars at write boundary). */
+    customerComment: text("customer_comment"),
     idempotencyScopeHash: text("idempotency_scope_hash").notNull(),
     idempotencyKeyHash: text("idempotency_key_hash").notNull(),
     requestFingerprint: text("request_fingerprint").notNull(),

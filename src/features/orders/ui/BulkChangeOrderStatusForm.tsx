@@ -29,7 +29,13 @@ import { bulkArchiveOrdersAction } from "@/features/orders/application/bulk-arch
 import { displayOrderContactName } from "@/features/orders/domain/contact-display";
 import { displayPaymentMethodLabel } from "@/features/orders/domain/payment-method-display";
 import { AdminInlineStatusSelect } from "@/features/orders/ui/AdminInlineStatusSelect";
+import type { AdminOrderCapabilities } from "@/features/orders/ui/AdminOrdersView";
 import { OrderPlacedAtCell } from "@/features/orders/ui/OrderPlacedAtCell";
+import {
+  ADMIN_BADGE,
+  paymentStatusBadgeClass,
+} from "@/features/admin/ui/status-badge";
+import { paymentStatusLabel } from "@/features/orders/domain/payment-status";
 
 type BulkOrderRow = {
   id: string;
@@ -49,6 +55,7 @@ type BulkOrderRow = {
 type BulkChangeOrderStatusFormProps = {
   locale: string;
   orders: BulkOrderRow[];
+  capabilities: AdminOrderCapabilities;
   onOpenOrder: (orderNumber: string) => void;
 };
 
@@ -59,6 +66,7 @@ function formatMoney(amount: number, currency: string): string {
 export function BulkChangeOrderStatusForm({
   locale,
   orders,
+  capabilities,
   onOpenOrder,
 }: BulkChangeOrderStatusFormProps) {
   const router = useRouter();
@@ -121,27 +129,29 @@ export function BulkChangeOrderStatusForm({
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
-      <Card className="flex min-w-0 flex-wrap items-center justify-between gap-3 p-4">
-        <p className="min-w-0 text-sm text-[#5c564e]">
-          Selected {selected.size} order{selected.size === 1 ? "" : "s"}
-        </p>
-        <Button
-          type="button"
-          size="sm"
-          variant="danger"
-          disabled={isPending || selected.size === 0}
-          onClick={deleteSelected}
-          className="shrink-0"
-        >
-          {isPending ? "Deleting…" : "Delete selected"}
-        </Button>
-        {error ? (
-          <p className="w-full text-sm text-red-700">{error}</p>
-        ) : null}
-        {message ? (
-          <p className="w-full text-sm text-green-700">{message}</p>
-        ) : null}
-      </Card>
+      {capabilities.canArchiveOrders ? (
+        <Card className="flex min-w-0 flex-wrap items-center justify-between gap-3 p-4">
+          <p className="min-w-0 text-sm text-[#5c564e]">
+            Selected {selected.size} order{selected.size === 1 ? "" : "s"}
+          </p>
+          <Button
+            type="button"
+            size="sm"
+            variant="danger"
+            disabled={isPending || selected.size === 0}
+            onClick={deleteSelected}
+            className="shrink-0"
+          >
+            {isPending ? "Deleting…" : "Delete selected"}
+          </Button>
+          {error ? (
+            <p className="w-full text-sm text-red-700">{error}</p>
+          ) : null}
+          {message ? (
+            <p className="w-full text-sm text-green-700">{message}</p>
+          ) : null}
+        </Card>
+      ) : null}
 
       {/* Mobile card list */}
       <div className="flex min-w-0 flex-col gap-3 lg:hidden">
@@ -157,16 +167,18 @@ export function BulkChangeOrderStatusForm({
               onClick={() => onOpenOrder(order.orderNumber)}
             >
               <div className="flex items-start gap-3 border-b border-[#ead7bf]/80 px-3 py-3">
-                <div onClick={(event) => event.stopPropagation()}>
-                  <input
-                    type="checkbox"
-                    className={`${ADMIN_TABLE_CHECKBOX} mt-1`}
-                    checked={selected.has(order.orderNumber)}
-                    onChange={() => toggleOne(order.orderNumber)}
-                    disabled={isPending || order.isArchived}
-                    aria-label={`Select ${order.orderNumber}`}
-                  />
-                </div>
+                {capabilities.canArchiveOrders ? (
+                  <div onClick={(event) => event.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      className={`${ADMIN_TABLE_CHECKBOX} mt-1`}
+                      checked={selected.has(order.orderNumber)}
+                      onChange={() => toggleOne(order.orderNumber)}
+                      disabled={isPending || order.isArchived}
+                      aria-label={`Select ${order.orderNumber}`}
+                    />
+                  </div>
+                ) : null}
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-[#1f1a17]">
                     {order.orderNumber}
@@ -204,20 +216,32 @@ export function BulkChangeOrderStatusForm({
                     orderNumber={order.orderNumber}
                     kind="order"
                     value={order.status}
-                    disabled={isPending || order.isArchived}
+                    disabled={
+                      isPending ||
+                      order.isArchived ||
+                      !capabilities.canChangeOrderStatus
+                    }
                   />
                 </div>
                 <div className="min-w-0">
                   <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-[#8a837a]">
                     Payment
                   </p>
-                  <AdminInlineStatusSelect
-                    locale={locale}
-                    orderNumber={order.orderNumber}
-                    kind="payment"
-                    value={order.paymentStatus}
-                    disabled={isPending || order.isArchived}
-                  />
+                  {capabilities.canChangePaymentStatus ? (
+                    <AdminInlineStatusSelect
+                      locale={locale}
+                      orderNumber={order.orderNumber}
+                      kind="payment"
+                      value={order.paymentStatus}
+                      disabled={isPending || order.isArchived}
+                    />
+                  ) : (
+                    <span
+                      className={`${ADMIN_BADGE} ${paymentStatusBadgeClass(order.paymentStatus)}`}
+                    >
+                      {paymentStatusLabel(order.paymentStatus, locale)}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="border-t border-[#ead7bf]/80 px-3 py-2">
@@ -239,16 +263,18 @@ export function BulkChangeOrderStatusForm({
           <table className={ADMIN_TABLE}>
             <thead className={ADMIN_TABLE_THEAD}>
               <tr>
-                <th className={ADMIN_TABLE_TH_CHECK}>
-                  <input
-                    type="checkbox"
-                    className={ADMIN_TABLE_CHECKBOX}
-                    checked={allSelected}
-                    onChange={toggleAll}
-                    disabled={isPending || orders.length === 0}
-                    aria-label="Select all orders on page"
-                  />
-                </th>
+                {capabilities.canArchiveOrders ? (
+                  <th className={ADMIN_TABLE_TH_CHECK}>
+                    <input
+                      type="checkbox"
+                      className={ADMIN_TABLE_CHECKBOX}
+                      checked={allSelected}
+                      onChange={toggleAll}
+                      disabled={isPending || orders.length === 0}
+                      aria-label="Select all orders on page"
+                    />
+                  </th>
+                ) : null}
                 <th className={ADMIN_TABLE_TH}>Order</th>
                 <th className={ADMIN_TABLE_TH}>Customer</th>
                 <th className={ADMIN_TABLE_TH_METRIC}>Total</th>
@@ -265,19 +291,21 @@ export function BulkChangeOrderStatusForm({
                   className={`${ADMIN_TABLE_ROW} cursor-pointer transition hover:bg-[#fff8f0]/70`}
                   onClick={() => onOpenOrder(order.orderNumber)}
                 >
-                  <td
-                    className={ADMIN_TABLE_TD_CHECK}
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <input
-                      type="checkbox"
-                      className={ADMIN_TABLE_CHECKBOX}
-                      checked={selected.has(order.orderNumber)}
-                      onChange={() => toggleOne(order.orderNumber)}
-                      disabled={isPending || order.isArchived}
-                      aria-label={`Select ${order.orderNumber}`}
-                    />
-                  </td>
+                  {capabilities.canArchiveOrders ? (
+                    <td
+                      className={ADMIN_TABLE_TD_CHECK}
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <input
+                        type="checkbox"
+                        className={ADMIN_TABLE_CHECKBOX}
+                        checked={selected.has(order.orderNumber)}
+                        onChange={() => toggleOne(order.orderNumber)}
+                        disabled={isPending || order.isArchived}
+                        aria-label={`Select ${order.orderNumber}`}
+                      />
+                    </td>
+                  ) : null}
                   <td className={ADMIN_TABLE_TD}>
                     <span className="font-medium text-[#1f1a17]">
                       {order.orderNumber}
@@ -314,20 +342,32 @@ export function BulkChangeOrderStatusForm({
                       orderNumber={order.orderNumber}
                       kind="order"
                       value={order.status}
-                      disabled={isPending || order.isArchived}
+                      disabled={
+                        isPending ||
+                        order.isArchived ||
+                        !capabilities.canChangeOrderStatus
+                      }
                     />
                   </td>
                   <td
                     className={ADMIN_TABLE_TD_METRIC}
                     onClick={(event) => event.stopPropagation()}
                   >
-                    <AdminInlineStatusSelect
-                      locale={locale}
-                      orderNumber={order.orderNumber}
-                      kind="payment"
-                      value={order.paymentStatus}
-                      disabled={isPending || order.isArchived}
-                    />
+                    {capabilities.canChangePaymentStatus ? (
+                      <AdminInlineStatusSelect
+                        locale={locale}
+                        orderNumber={order.orderNumber}
+                        kind="payment"
+                        value={order.paymentStatus}
+                        disabled={isPending || order.isArchived}
+                      />
+                    ) : (
+                      <span
+                        className={`${ADMIN_BADGE} ${paymentStatusBadgeClass(order.paymentStatus)}`}
+                      >
+                        {paymentStatusLabel(order.paymentStatus, locale)}
+                      </span>
+                    )}
                   </td>
                   <td className={ADMIN_TABLE_TD}>
                     <span className="text-sm text-[#1f1a17]">
@@ -346,22 +386,26 @@ export function BulkChangeOrderStatusForm({
         ) : (
           <div className={ADMIN_TABLE_FOOTER_ROUNDED_B}>
             <p className="text-sm text-[#5c564e]">
-              {selected.size} selected on this page
+              {capabilities.canArchiveOrders
+                ? `${selected.size} selected on this page`
+                : `${orders.length} order${orders.length === 1 ? "" : "s"} on this page`}
             </p>
           </div>
         )}
       </Card>
 
-      <ConfirmDialog
-        open={confirmOpen}
-        title="Delete"
-        description={`Are you sure you want to delete ${selected.size} selected order${selected.size === 1 ? "" : "s"}? This action cannot be undone.`}
-        isPending={isPending}
-        onClose={() => {
-          if (!isPending) setConfirmOpen(false);
-        }}
-        onConfirm={confirmDelete}
-      />
+      {capabilities.canArchiveOrders ? (
+        <ConfirmDialog
+          open={confirmOpen}
+          title="Delete"
+          description={`Are you sure you want to delete ${selected.size} selected order${selected.size === 1 ? "" : "s"}? This action cannot be undone.`}
+          isPending={isPending}
+          onClose={() => {
+            if (!isPending) setConfirmOpen(false);
+          }}
+          onConfirm={confirmDelete}
+        />
+      ) : null}
     </div>
   );
 }

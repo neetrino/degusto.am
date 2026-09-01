@@ -7,6 +7,7 @@ import { getDb } from "@/db/client";
 import { addresses } from "@/db/schema";
 import { withTransaction } from "@/db/transaction";
 import {
+  PROFILE_ADDRESS_CITY,
   addressFormSchema,
   addressIdSchema,
 } from "@/features/profile/schemas/address";
@@ -80,7 +81,7 @@ export async function createCustomerAddressAction(
         recipientLastName: user.lastName,
         phone: parsed.data.phone,
         countryCode: "AM",
-        city: parsed.data.city,
+        city: PROFILE_ADDRESS_CITY,
         line1: parsed.data.line1,
         isDefaultShipping: makeDefault,
         isDefaultBilling: makeDefault,
@@ -144,7 +145,7 @@ export async function updateCustomerAddressAction(
           recipientFirstName: user.firstName,
           recipientLastName: user.lastName,
           phone: parsed.data.phone,
-          city: parsed.data.city,
+          city: PROFILE_ADDRESS_CITY,
           line1: parsed.data.line1,
           isDefaultShipping: parsed.data.isDefault,
           isDefaultBilling: parsed.data.isDefault,

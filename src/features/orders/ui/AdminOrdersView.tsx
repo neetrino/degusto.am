@@ -22,12 +22,23 @@ type AdminOrdersViewOrder = {
   isArchived: boolean;
 };
 
+export type AdminOrderCapabilities = {
+  canChangeOrderStatus: boolean;
+  canChangePaymentStatus: boolean;
+  canArchiveOrders: boolean;
+};
+
 type AdminOrdersViewProps = {
   locale: string;
   orders: AdminOrdersViewOrder[];
+  capabilities: AdminOrderCapabilities;
 };
 
-export function AdminOrdersView({ locale, orders }: AdminOrdersViewProps) {
+export function AdminOrdersView({
+  locale,
+  orders,
+  capabilities,
+}: AdminOrdersViewProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [detail, setDetail] = useState<AdminOrderDetailView | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -73,6 +84,7 @@ export function AdminOrdersView({ locale, orders }: AdminOrdersViewProps) {
       <BulkChangeOrderStatusForm
         locale={locale}
         orders={orders}
+        capabilities={capabilities}
         onOpenOrder={openOrder}
       />
       <OrderDetailsDrawer
@@ -82,6 +94,7 @@ export function AdminOrdersView({ locale, orders }: AdminOrdersViewProps) {
         detail={detail}
         error={error}
         isLoading={isPending}
+        capabilities={capabilities}
         onDetailRefresh={refreshDetail}
       />
     </>

@@ -21,6 +21,8 @@ export const checkoutSchema = z
     idempotencyKey: z.string().trim().min(8).max(128),
     locale: z.enum(["hy", "en", "ru"]),
     couponCode: z.string().trim().max(64).optional(),
+    /** Optional order note from the customer (shown on order details). */
+    customerComment: z.string().trim().max(1000).optional(),
     /** Bill the customer will pay with for cash orders; `none` = no change needed. */
     cashChangePreference: z
       .union([

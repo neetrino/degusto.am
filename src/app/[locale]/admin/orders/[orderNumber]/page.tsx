@@ -117,6 +117,9 @@ export default async function AdminOrderDetailPage({
             : {formatMoney(order.deliveryAmount, order.baseCurrency)}
           </p>
           <p className="text-sm text-[#5c564e]">
+            Bag fee: {formatMoney(order.bagAmount, order.baseCurrency)}
+          </p>
+          <p className="text-sm text-[#5c564e]">
             Coupon discount
             {order.promotionCodeSnapshot
               ? ` (${order.promotionCodeSnapshot})`
@@ -126,6 +129,14 @@ export default async function AdminOrderDetailPage({
           <p className="mt-2 text-sm font-semibold text-[#1f1a17]">
             Total: {formatMoney(order.totalAmount, order.baseCurrency)}
           </p>
+          {order.customerComment ? (
+            <div className="mt-4 border-t border-[#ead7bf] pt-3">
+              <p className="text-sm font-medium text-[#1f1a17]">Comment</p>
+              <p className="mt-1 whitespace-pre-wrap text-sm text-[#5c564e]">
+                {order.customerComment}
+              </p>
+            </div>
+          ) : null}
           <p className="mt-2 text-sm text-[#8a837a]">
             Placed{" "}
             {order.placedAt.toISOString().slice(0, 16).replace("T", " ")}

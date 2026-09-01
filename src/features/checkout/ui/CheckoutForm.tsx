@@ -77,10 +77,12 @@ type CheckoutLabels = {
   couponPlaceholder: string;
   couponApply: string;
   couponApplying: string;
+  commentLabel: string;
+  commentPlaceholder: string;
   discount: string;
   subtotal: string;
   shipping: string;
-  tax: string;
+  bag: string;
   total: string;
   placeOrder: string;
   processing: string;
@@ -99,6 +101,7 @@ type CheckoutFormProps = {
   defaultPhone: string;
   defaultLine1: string;
   subtotalAmount: number;
+  bagAmount: number;
   deliveryOptions: CheckoutDeliveryOption[];
   pickupBranches: ReadonlyArray<PickupBranchOption>;
   hasItems: boolean;
@@ -119,6 +122,16 @@ function quoteDeliveryAmount(
   return option.priceAmount;
 }
 
+/** Checkout delivery is locked to Yerevan; prefer that rule when present. */
+function resolveLockedDeliveryOption(
+  options: CheckoutDeliveryOption[],
+): CheckoutDeliveryOption | undefined {
+  const yerevan = options.find(
+    (option) => option.city.trim().toLowerCase() === "yerevan",
+  );
+  return yerevan ?? options[0];
+}
+
 export function CheckoutForm({
   locale,
   labels,
@@ -130,6 +143,7 @@ export function CheckoutForm({
   defaultPhone,
   defaultLine1,
   subtotalAmount,
+  bagAmount,
   deliveryOptions,
   pickupBranches,
   hasItems,
@@ -138,11 +152,11 @@ export function CheckoutForm({
   const router = useRouter();
   const reduceMotion = useReducedMotion();
   const idempotencyKey = useMemo(() => crypto.randomUUID(), []);
-  const defaultRuleId = deliveryOptions[0]?.id ?? "";
+  const lockedDelivery = resolveLockedDeliveryOption(deliveryOptions);
+  const deliveryRuleId = lockedDelivery?.id ?? "";
   const [shippingMethod, setShippingMethod] = useState<"pickup" | "delivery">(
     deliveryOptions.length > 0 ? "delivery" : "pickup",
   );
-  const [deliveryRuleId, setDeliveryRuleId] = useState(defaultRuleId);
   const [pickupBranchId, setPickupBranchId] = useState("");
   const [paymentMethod, setPaymentMethod] =
     useState<CheckoutPaymentMethod>("cash_on_delivery");
@@ -155,12 +169,11 @@ export function CheckoutForm({
   );
   const [discountAmount, setDiscountAmount] = useState(0);
   const [couponError, setCouponError] = useState<string | null>(null);
+  const [customerComment, setCustomerComment] = useState("");
   const [pending, startTransition] = useTransition();
   const [applyingCoupon, startApplyCoupon] = useTransition();
 
-  const selectedDelivery = deliveryOptions.find(
-    (option) => option.id === deliveryRuleId,
-  );
+  const selectedDelivery = lockedDelivery;
 
   const paymentOptions = useMemo(
     () => [
@@ -168,19 +181,42 @@ export function CheckoutForm({
         id: "cash_on_delivery" as const,
         name: labels.cashOnDelivery,
         description: labels.cashOnDeliveryDescription,
-        logoSrc: null,
+        logos: [
+          {
+            src: staticAssetUrl("/assets/payments/dollar.svg"),
+            alt: labels.cashOnDelivery,
+          },
+        ],
       },
       {
         id: "idram" as const,
         name: labels.idram,
         description: labels.idramDescription,
-        logoSrc: staticAssetUrl("/assets/payments/idram.webp"),
+        logos: [
+          {
+            src: staticAssetUrl("/assets/payments/Idram_logo_wiki.svg"),
+            alt: labels.idram,
+          },
+        ],
       },
       {
         id: "arca" as const,
         name: labels.arca,
         description: labels.arcaDescription,
-        logoSrc: staticAssetUrl("/assets/payments/arca.webp"),
+        logos: [
+          {
+            src: staticAssetUrl("/assets/payments/Arca_logo_wiki.svg"),
+            alt: "ArCa",
+          },
+          {
+            src: staticAssetUrl("/assets/payments/Mastercard-logo.svg"),
+            alt: "Mastercard",
+          },
+          {
+            src: staticAssetUrl("/assets/payments/Visa_logo_wiki.svg"),
+            alt: "Visa",
+          },
+        ],
       },
     ],
     [
@@ -200,7 +236,7 @@ export function CheckoutForm({
   const quotedDelivery = quoteDeliveryAmount(selectedDelivery, subtotalAmount);
   const shippingAmount = shippingMethod === "pickup" ? 0 : quotedDelivery;
   const totalAmount =
-    Math.max(0, subtotalAmount - discountAmount) + shippingAmount;
+    Math.max(0, subtotalAmount - discountAmount) + shippingAmount + bagAmount;
 
   const selectedPickupBranch = pickupBranches.find(
     (branch) => branch.id === pickupBranchId,
@@ -212,7 +248,7 @@ export function CheckoutForm({
         ? `${labels.freePickup} · ${selectedPickupBranch.label}`
         : labels.selectPickupBranch
       : selectedDelivery
-        ? `${formatMoney(shippingAmount)} (${selectedDelivery.label})`
+        ? formatMoney(shippingAmount)
         : labels.selectDeliveryLocation;
 
   function onPickupBranchChange(branchId: string): void {
@@ -359,6 +395,7 @@ export function CheckoutForm({
             ? String(data.get("line1") ?? "")
             : (pickupBranchLabel ?? undefined),
         couponCode: appliedCouponCode ?? undefined,
+        customerComment: customerComment.trim() || undefined,
       });
 
       if (!result.ok) {
@@ -425,7 +462,6 @@ export function CheckoutForm({
                   onShippingMethodChange={setShippingMethod}
                   deliveryOptions={deliveryOptions}
                   deliveryRuleId={deliveryRuleId}
-                  onDeliveryRuleChange={setDeliveryRuleId}
                   pickupBranches={pickupBranches}
                   pickupBranchId={pickupBranchId}
                   onPickupBranchChange={onPickupBranchChange}
@@ -450,14 +486,16 @@ export function CheckoutForm({
                   couponPlaceholder={labels.couponPlaceholder}
                   couponApplyLabel={labels.couponApply}
                   couponApplyingLabel={labels.couponApplying}
+                  commentLabel={labels.commentLabel}
+                  commentPlaceholder={labels.commentPlaceholder}
                   discountLabel={labels.discount}
                   subtotalLabel={labels.subtotal}
                   shippingLabel={labels.shipping}
-                  taxLabel={labels.tax}
+                  bagLabel={labels.bag}
                   totalLabel={labels.total}
                   subtotalFormatted={formatMoney(subtotalAmount)}
                   shippingFormatted={shippingFormatted}
-                  taxFormatted={formatMoney(0)}
+                  bagFormatted={formatMoney(bagAmount)}
                   discountFormatted={
                     discountAmount > 0 ? formatMoney(discountAmount) : null
                   }
@@ -467,6 +505,8 @@ export function CheckoutForm({
                   onApplyCoupon={onApplyCoupon}
                   couponError={couponError}
                   isApplyingCoupon={applyingCoupon}
+                  customerComment={customerComment}
+                  onCustomerCommentChange={setCustomerComment}
                   error={error}
                   isSubmitting={pending}
                   placeOrderLabel={labels.placeOrder}

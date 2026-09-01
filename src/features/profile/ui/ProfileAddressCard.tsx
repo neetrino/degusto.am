@@ -37,7 +37,6 @@ export function ProfileAddressCard({
             ) : null}
           </div>
           <p className="text-sm text-gray-800 sm:text-base">{address.line1}</p>
-          <p className="text-sm text-gray-800 sm:text-base">{address.city}</p>
           {address.phone ? (
             <p className="text-sm text-gray-600 sm:text-base">{address.phone}</p>
           ) : null}
