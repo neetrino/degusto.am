@@ -68,6 +68,9 @@ export type LegacyNextRedirect = {
 
 const LOCALE_SOURCE = `/:locale(${locales.join("|")})`;
 const PRODUCT_ID_PATTERN = /^\d{1,10}$/;
+const SHOP_STATIC_ASSET_PREFIX = "/shop/category-icons";
+/** Leftover `/shop/*` except `public/shop/category-icons` SVGs. */
+const SHOP_LEGACY_NESTED_SOURCE = "/shop/:path((?!category-icons).*)";
 
 export function normalizeLegacyPathname(pathname: string): string {
   const pathOnly = pathname.split("?")[0] ?? "";
@@ -120,6 +123,9 @@ export function resolveLegacyRedirect(
     );
   }
   if (remainder.startsWith("/shop/")) {
+    if (isShopStaticAssetPath(remainder)) {
+      return null;
+    }
     return skipNoopRedirect(normalized, `/${locale}/products`);
   }
 
@@ -275,10 +281,17 @@ function shopCategoryRedirects(): LegacyNextRedirect[] {
   ]);
 }
 
+function isShopStaticAssetPath(remainder: string): boolean {
+  return (
+    remainder === SHOP_STATIC_ASSET_PREFIX ||
+    remainder.startsWith(`${SHOP_STATIC_ASSET_PREFIX}/`)
+  );
+}
+
 function shopFallbackRedirects(): LegacyNextRedirect[] {
   return [
     ...pairLocaleRedirects("/shop", "/products"),
-    ...pairLocaleRedirects("/shop/:path*", "/products"),
+    ...pairLocaleRedirects(SHOP_LEGACY_NESTED_SOURCE, "/products"),
   ];
 }
 
