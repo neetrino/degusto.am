@@ -1,7 +1,7 @@
 "use client";
 
 import { Copy, Pencil, Star, Trash2 } from "lucide-react";
-import { useState, useEffect, type KeyboardEvent, type MouseEvent } from "react";
+import { useState, type KeyboardEvent, type MouseEvent } from "react";
 
 import {
   ADMIN_TABLE_ROW,
@@ -41,15 +41,12 @@ export function AdminProductRow({
   onDelete,
   onVisibility,
 }: AdminProductRowProps) {
-  const [imageFailed, setImageFailed] = useState(false);
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
   const isActive = product.status === "ACTIVE";
   const created = new Date(product.createdAt);
   const createdLabel = `${created.getDate()}/${created.getMonth() + 1}/${created.getFullYear()}`;
-  const showImage = product.imageUrl && !imageFailed;
-
-  useEffect(() => {
-    setImageFailed(false);
-  }, [product.id, product.imageUrl]);
+  const imageUrl = product.imageUrl;
+  const showImage = imageUrl != null && imageUrl !== failedImageUrl;
 
   function handleRowActivate(): void {
     if (disabled) return;
@@ -82,14 +79,18 @@ export function AdminProductRow({
       <td className={ADMIN_TABLE_TD}>
         <div className="flex min-w-[200px] items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded bg-[#e8e2d9]">
-            {showImage ? (
+            {showImage && imageUrl ? (
               // Admin media may use storage hosts outside next/image config.
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={product.imageUrl ?? ""}
+                src={imageUrl}
                 alt=""
                 className="h-full w-full object-cover"
-                onError={() => setImageFailed(true)}
+                onError={() => {
+                  if (imageUrl) {
+                    setFailedImageUrl(imageUrl);
+                  }
+                }}
               />
             ) : (
               <span className="text-[10px] text-[#8a837a]">N/A</span>
