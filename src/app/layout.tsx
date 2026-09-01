@@ -1,18 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Montserrat, Noto_Sans_Armenian } from "next/font/google";
+import { Montserrat, Noto_Sans_Armenian } from "next/font/google";
 import localFont from "next/font/local";
 
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
@@ -59,7 +49,7 @@ export default function RootLayout({
   return (
     <html lang="hy" className="h-full" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} ${notoArmenian.variable} ${mirageExpanded.variable} flex min-h-dvh flex-col overflow-x-hidden antialiased touch-manipulation`}
+        className={`${montserrat.variable} ${notoArmenian.variable} ${mirageExpanded.variable} flex min-h-dvh flex-col overflow-x-hidden antialiased touch-manipulation`}
       >
         {children}
       </body>
