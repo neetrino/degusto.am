@@ -180,7 +180,8 @@ export function AddCategoryDrawer({
                 disabled={isPending}
               />
               <span className="mt-1 block text-xs text-[#8a837a]">
-                Generated automatically from the title and used on /products.
+                English ASCII slug used in all storefront URLs. Saving writes
+                this value for every language.
               </span>
             </label>
 

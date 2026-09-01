@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { notFound, redirect } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 
 import { getEnv } from "@/config/env";
 import { productDescriptionPlainText } from "@/features/products/domain/localized-description";
@@ -122,10 +122,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  // Locale switcher only rewrites /{locale}/… and keeps the previous slug.
-  // Degusto products have distinct hy/en/ru slugs — canonicalize when needed.
+  // Old Unicode slugs and locale-switcher prefix swaps resolve above, then
+  // permanently canonicalize to the shared English/ASCII slug.
   if (product.translation.slug !== decodeURIComponent(slug)) {
-    redirect(`/${locale}/products/${product.translation.slug}`);
+    permanentRedirect(`/${locale}/products/${product.translation.slug}`);
   }
 
   const [user, currency, inWishlist] = await Promise.all([

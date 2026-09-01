@@ -12,21 +12,25 @@ import {
   type LocaleTranslation,
 } from "@/db/schema";
 import {
+  DEMO_SEED_ENTITY_ID_PREFIX,
+  isDemoSeedEntityId,
+} from "@/db/seed/seed-uuid";
+import { canonicalCategorySlug } from "@/features/categories/domain/canonical-category-slug";
+import {
   CACHE_TAGS,
   PUBLIC_CACHE_REVALIDATE_SECONDS,
 } from "@/lib/cache/tags";
 import type { Locale } from "@/lib/i18n/config";
 import { mediaPublicUrl } from "@/lib/media/public-url";
 import { staticAssetUrl } from "@/lib/media/static-asset-url";
-import {
-  DEMO_SEED_ENTITY_ID_PREFIX,
-  isDemoSeedEntityId,
-} from "@/db/seed/seed-uuid";
+import { uniquifySlugs } from "@/lib/seo/uniquify-slugs";
+import { collectStoredSlugs } from "@/lib/seo/url-slug";
 
 export type StorefrontCategory = {
   id: string;
   title: string;
   slug: string;
+  aliases: string[];
   productCount: number;
   imageUrl: string;
 };
@@ -129,16 +133,22 @@ async function loadStorefrontCategories(
     counts.set(row.categoryId, Number(row.productCount));
   }
 
-  return storefrontRows.map((row, index) => {
-    const translation = translationFor(row.translations, locale);
-    return {
-      id: row.id,
-      title: translation?.title ?? "Untitled",
-      slug: translation?.slug ?? "",
-      productCount: counts.get(row.id) ?? 0,
-      imageUrl: images.get(row.id) ?? fallbackImageForIndex(index),
-    };
-  });
+  return uniquifySlugs(
+    storefrontRows.map((row, index) => {
+      const translation = translationFor(row.translations, locale);
+      const slug = canonicalCategorySlug(row.translations);
+      return {
+        id: row.id,
+        title: translation?.title ?? "Untitled",
+        slug,
+        aliases: collectStoredSlugs(row.translations).filter(
+          (stored) => stored !== slug,
+        ),
+        productCount: counts.get(row.id) ?? 0,
+        imageUrl: images.get(row.id) ?? fallbackImageForIndex(index),
+      };
+    }),
+  );
 }
 
 /** Active top-level categories for the storefront home grid. */
@@ -147,7 +157,7 @@ export async function listStorefrontCategories(
 ): Promise<StorefrontCategory[]> {
   return unstable_cache(
     async () => loadStorefrontCategories(locale),
-    ["storefront-categories", "degusto-only-v1", locale],
+    ["storefront-categories", "ascii-slugs-v1", locale],
     {
       tags: [CACHE_TAGS.products],
       revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,

@@ -2,6 +2,10 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { defaultLocale, isLocale } from "@/lib/i18n/config";
+import {
+  isUnprefixedLegacyProductIdPath,
+  resolveLegacyRedirect,
+} from "@/lib/legacy-urls/legacy-path-map";
 import { isLegacyPaymentPath } from "@/lib/payments/legacy-callback-paths";
 
 function nextWithPathname(request: NextRequest, pathname: string): NextResponse {
@@ -10,6 +14,17 @@ function nextWithPathname(request: NextRequest, pathname: string): NextResponse 
   return NextResponse.next({
     request: { headers: requestHeaders },
   });
+}
+
+function redirectPermanent(
+  request: NextRequest,
+  destination: string,
+): NextResponse {
+  const url = request.nextUrl.clone();
+  const parsed = new URL(destination, request.nextUrl.origin);
+  url.pathname = parsed.pathname;
+  url.search = parsed.search;
+  return NextResponse.redirect(url, 308);
 }
 
 function resolveR2PublicBase(): string {
@@ -37,6 +52,18 @@ export function proxy(request: NextRequest): NextResponse {
     isLegacyPaymentPath(pathname) ||
     pathname.includes(".")
   ) {
+    return nextWithPathname(request, pathname);
+  }
+
+  const legacyDestination = resolveLegacyRedirect(
+    pathname,
+    request.nextUrl.searchParams,
+  );
+  if (legacyDestination) {
+    return redirectPermanent(request, legacyDestination);
+  }
+
+  if (isUnprefixedLegacyProductIdPath(pathname)) {
     return nextWithPathname(request, pathname);
   }
 

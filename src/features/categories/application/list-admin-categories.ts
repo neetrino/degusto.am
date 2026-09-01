@@ -4,6 +4,7 @@ import { and, asc, eq, isNotNull, isNull, or } from "drizzle-orm";
 
 import { getDb } from "@/db/client";
 import { categories, mediaAssets, type LocaleTranslation } from "@/db/schema";
+import { canonicalCategorySlug } from "@/features/categories/domain/canonical-category-slug";
 import type { Locale } from "@/lib/i18n/config";
 import { mediaPublicUrl } from "@/lib/media/public-url";
 
@@ -80,7 +81,7 @@ export async function listAdminCategories(
     return {
       id: row.id,
       title: translation?.title ?? "Untitled",
-      slug: translation?.slug ?? "",
+      slug: canonicalCategorySlug(row.translations),
       status: row.status,
       parentId: row.parentId,
       parentTitle,

@@ -13,6 +13,7 @@ import {
   products,
 } from "@/db/schema";
 import { DEMO_SEED_ENTITY_ID_PREFIX } from "@/db/seed/seed-uuid";
+import { canonicalCategorySlug } from "@/features/categories/domain/canonical-category-slug";
 import { resolveProductPrices } from "@/features/promotions/application/resolve-product-prices";
 import type {
   CatalogProduct,
@@ -26,6 +27,7 @@ import {
 } from "@/lib/cache/tags";
 import type { Locale } from "@/lib/i18n/config";
 import { resolveMediaPublicUrl } from "@/lib/media/public-url";
+import { isAsciiSlug, pickCanonicalUrlSlug } from "@/lib/seo/url-slug";
 
 export type {
   CatalogProduct,
@@ -42,6 +44,7 @@ const PRICE_FILTER_MAX = 2_147_483_647;
 
 export type CatalogListFilters = {
   categorySlug?: string | null;
+  categoryId?: string | null;
   minPrice?: number | null;
   maxPrice?: number | null;
   query?: string | null;
@@ -82,7 +85,13 @@ function toCatalogProduct(
     stockOnHand: product.stockOnHand,
     isSpicy: product.isSpicy,
     isVegetarian: product.isVegetarian,
-    translation,
+    translation: {
+      ...translation,
+      slug: pickCanonicalUrlSlug(
+        product.translations,
+        translation.slug || "product",
+      ),
+    },
     imageUrl,
   };
 }
@@ -196,8 +205,22 @@ function buildCatalogWhere(
 ): ReturnType<typeof and> {
   const clauses = [activeCatalogWhere];
 
+  const categoryId = filters.categoryId?.trim();
   const categorySlug = filters.categorySlug?.trim();
-  if (categorySlug && categorySlug !== "all") {
+  if (categoryId) {
+    clauses.push(
+      sql`exists (
+        select 1
+        from ${productCategories}
+        inner join ${categories}
+          on ${categories.id} = ${productCategories.categoryId}
+        where ${productCategories.productId} = ${products.id}
+          and ${categories.id} = ${categoryId}
+          and ${categories.status} = 'ACTIVE'
+          and ${categories.deletedAt} is null
+      )`,
+    );
+  } else if (categorySlug && categorySlug !== "all") {
     clauses.push(
       sql`exists (
         select 1
@@ -291,6 +314,7 @@ export async function getActiveProductsPage(
 ): Promise<{ products: CatalogProduct[]; total: number; pageSize: number }> {
   const safePage = Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
   const categorySlug = filters.categorySlug?.trim() || "all";
+  const categoryId = filters.categoryId?.trim() || "";
   const minPriceValue = toPriceFilterInt(filters.minPrice);
   const maxPriceValue = toPriceFilterInt(filters.maxPrice);
   const minPrice = minPriceValue != null ? String(minPriceValue) : "";
@@ -303,6 +327,7 @@ export async function getActiveProductsPage(
     async () =>
       loadActiveProductsPage(locale, safePage, {
         categorySlug,
+        categoryId: categoryId || null,
         minPrice: minPriceValue,
         maxPrice: maxPriceValue,
         query: query || null,
@@ -310,10 +335,11 @@ export async function getActiveProductsPage(
       }),
     [
       "active-products-page",
-      "degusto-only-v1",
+      "ascii-slugs-v1",
       locale,
       String(safePage),
       categorySlug,
+      categoryId,
       minPrice,
       maxPrice,
       query,
@@ -357,7 +383,7 @@ export async function getFeaturedProducts(
 ): Promise<CatalogProduct[]> {
   return unstable_cache(
     async () => loadFeaturedProducts(locale),
-    ["featured-products", "degusto-only-v1", locale],
+    ["featured-products", "ascii-slugs-v1", locale],
     {
       tags: [CACHE_TAGS.products],
       revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,
@@ -376,9 +402,8 @@ export async function getProductBySlug(
     .where(
       and(
         activeCatalogWhere,
-        // Match any locale slug so locale-switcher path swaps (which keep the
-        // previous locale's slug) still resolve, then the page redirects to the
-        // canonical slug for the active locale.
+        // Match any locale slug so old Unicode URLs and locale-switcher
+        // prefix swaps still resolve; the PDP then 308s to the ASCII slug.
         or(
           sql`${products.translations}->'hy'->>'slug' = ${decodedSlug}`,
           sql`${products.translations}->'en'->>'slug' = ${decodedSlug}`,
@@ -389,11 +414,67 @@ export async function getProductBySlug(
     .limit(1);
 
   if (!product) {
-    return null;
+    const derived = await findActiveProductByCanonicalSlug(decodedSlug);
+    if (!derived) {
+      return null;
+    }
+    const [enriched] = await withProductImages([derived], locale);
+    return enriched ?? null;
   }
 
   const [enriched] = await withProductImages([product], locale);
   return enriched ?? null;
+}
+
+async function findActiveProductByCanonicalSlug(
+  slug: string,
+): Promise<typeof products.$inferSelect | null> {
+  if (!isAsciiSlug(slug)) {
+    return null;
+  }
+
+  const index = await loadCanonicalProductSlugIndex();
+  const productId = index[slug];
+  if (!productId) {
+    return null;
+  }
+
+  const [row] = await getDb()
+    .select()
+    .from(products)
+    .where(and(activeCatalogWhere, eq(products.id, productId)))
+    .limit(1);
+  return row ?? null;
+}
+
+async function loadCanonicalProductSlugIndex(): Promise<
+  Record<string, string>
+> {
+  return unstable_cache(
+    async () => {
+      const rows = await getDb()
+        .select({
+          id: products.id,
+          translations: products.translations,
+        })
+        .from(products)
+        .where(activeCatalogWhere);
+
+      const index: Record<string, string> = {};
+      for (const row of rows) {
+        const canonical = pickCanonicalUrlSlug(row.translations, "");
+        if (canonical && index[canonical] === undefined) {
+          index[canonical] = row.id;
+        }
+      }
+      return index;
+    },
+    ["product-canonical-slug-index", "ascii-slugs-v1"],
+    {
+      tags: [CACHE_TAGS.products],
+      revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,
+    },
+  )();
 }
 
 async function loadProductGallery(
@@ -459,7 +540,7 @@ async function loadProductCategories(
       return {
         id: row.id,
         title: translation.title,
-        slug: translation.slug,
+        slug: canonicalCategorySlug(row.translations),
       } satisfies ProductCategoryRef;
     })
     .filter((row): row is ProductCategoryRef => row !== null);
@@ -590,7 +671,7 @@ export const getProductDetailBySlug = cache(
   async (locale: Locale, slug: string): Promise<ProductDetail | null> => {
     return unstable_cache(
       async () => loadProductDetailBySlug(locale, slug),
-      ["product-detail", "degusto-only-v1", locale, slug],
+      ["product-detail", "ascii-slugs-v1", locale, slug],
       {
         tags: [
           CACHE_TAGS.productDetail,

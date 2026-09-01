@@ -17,6 +17,7 @@ import {
 import { requireUser } from "@/lib/auth/policies";
 import { isLocale, type Locale } from "@/lib/i18n/config";
 import { err, ok, type Result } from "@/lib/result";
+import { pickStoredAsciiSlug } from "@/lib/seo/url-slug";
 
 /** Owner updates rating/comment; edited reviews return to pending moderation. */
 export async function updateReviewAction(
@@ -92,6 +93,7 @@ export async function updateReviewAction(
         .where(eq(reviews.id, existing.id));
 
       const slug =
+        pickStoredAsciiSlug(product.translations) ??
         product.translations[locale as Locale]?.slug ??
         product.translations.hy?.slug ??
         null;

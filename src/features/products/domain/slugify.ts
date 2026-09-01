@@ -1,13 +1,6 @@
-/** Builds a URL-safe product slug from a title. */
-export function slugifyProductTitle(title: string): string {
-  const slug = title
-    .trim()
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^\p{L}\p{N}]+/gu, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 120);
+import { slugifyToAscii } from "@/lib/seo/url-slug";
 
-  return slug || "product";
+/** Builds an English/ASCII product slug for storefront URLs. */
+export function slugifyProductTitle(title: string): string {
+  return slugifyToAscii(title, "product");
 }
