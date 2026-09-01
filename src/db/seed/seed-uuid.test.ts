@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { isDemoSeedEntityId, seedUuid } from "@/db/seed/seed-uuid";
+import {
+  DEMO_SEED_ENTITY_ID_PREFIX,
+  isDemoSeedEntityId,
+  seedUuid,
+} from "@/db/seed/seed-uuid";
 
 describe("isDemoSeedEntityId", () => {
   it("recognizes figma/demo seed UUID prefix", () => {
@@ -8,6 +12,10 @@ describe("isDemoSeedEntityId", () => {
     expect(isDemoSeedEntityId("01900000-0000-7000-8000-000000000119")).toBe(
       true,
     );
+    expect(
+      isDemoSeedEntityId("01900000-0000-7000-9000-000000300001"),
+    ).toBe(true);
+    expect(seedUuid(110).startsWith(DEMO_SEED_ENTITY_ID_PREFIX)).toBe(true);
   });
 
   it("rejects Degusto-style non-seed ids", () => {

@@ -270,6 +270,14 @@ export function ProductDetailMain({
                 inWishlist={inWishlist}
                 isSignedIn={isSignedIn}
                 wishlistLabel={dictionary.nav.wishlist}
+                snapshot={{
+                  title: product.translation.title,
+                  imageUrl: product.images[0]?.url ?? null,
+                  unitPriceFormatted: priceFormatted,
+                  unitAmount: isAmdPriceLabel(priceFormatted)
+                    ? product.priceAmount
+                    : null,
+                }}
                 labels={{
                   quantity: labels.quantity,
                   decreaseQuantity: dictionary.cartDrawer.decreaseQuantity,

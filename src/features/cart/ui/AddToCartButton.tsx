@@ -2,13 +2,39 @@
 
 import type { MouseEvent } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { addToCart } from "@/features/cart/cart";
+import {
+  beginCartMutation,
+  endCartMutation,
+  optimisticAddToCartLocal,
+  replaceCartLocalFromServer,
+  type CartProductSnapshot,
+} from "@/features/cart/client/cart-local-cache";
+import { loadCartDrawerViewAction } from "@/features/cart/load-cart-drawer-view-action";
+import { defaultLocale, isLocale, type Locale } from "@/lib/i18n/config";
+import {
+  CURRENCY_COOKIE_NAME,
+  parseCurrencyCookie,
+} from "@/lib/money/currency-cookie";
+import type { Currency } from "@/lib/money/currency";
 import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
 const ADD_TO_CART_ICON = staticAssetUrl("/assets/product-card/add-to-cart.webp");
+
+function readClientCurrency(): Currency {
+  if (typeof document === "undefined") {
+    return parseCurrencyCookie(undefined);
+  }
+  const match = document.cookie.match(
+    new RegExp(`(?:^|; )${CURRENCY_COOKIE_NAME}=([^;]*)`),
+  );
+  return parseCurrencyCookie(
+    match?.[1] ? decodeURIComponent(match[1]) : undefined,
+  );
+}
 
 type AddToCartButtonProps = {
   productId: string;
@@ -19,6 +45,8 @@ type AddToCartButtonProps = {
   iconSrc?: string;
   iconWidth?: number;
   iconHeight?: number;
+  /** Product fields for instant cart drawer rendering via localStorage. */
+  snapshot?: Omit<CartProductSnapshot, "productId">;
 };
 
 export function AddToCartButton({
@@ -29,8 +57,15 @@ export function AddToCartButton({
   iconSrc = ADD_TO_CART_ICON,
   iconWidth = 51,
   iconHeight = 52,
+  snapshot,
 }: AddToCartButtonProps) {
   const router = useRouter();
+  const params = useParams();
+  const localeParam = params?.locale;
+  const locale: Locale =
+    typeof localeParam === "string" && isLocale(localeParam)
+      ? localeParam
+      : defaultLocale;
   const [pending, startTransition] = useTransition();
   const [justAdded, setJustAdded] = useState(false);
 
@@ -39,14 +74,34 @@ export function AddToCartButton({
     event.stopPropagation();
     if (disabled || pending) return;
 
+    const currency = readClientCurrency();
+
     startTransition(async () => {
+      beginCartMutation();
       try {
+        if (snapshot) {
+          optimisticAddToCartLocal(
+            { productId, ...snapshot },
+            1,
+            locale,
+            currency,
+          );
+        }
         await addToCart(productId, 1);
         setJustAdded(true);
         router.refresh();
         window.setTimeout(() => setJustAdded(false), 1500);
       } catch {
         setJustAdded(false);
+      } finally {
+        endCartMutation();
+      }
+
+      try {
+        const next = await loadCartDrawerViewAction(locale, currency);
+        replaceCartLocalFromServer(next, locale, currency);
+      } catch {
+        // Keep optimistic cache; next drawer open will resync.
       }
     });
   }

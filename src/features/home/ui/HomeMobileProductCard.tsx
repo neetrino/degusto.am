@@ -174,6 +174,11 @@ export function HomeMobileProductCard({
         iconWidth={42}
         iconHeight={42}
         className="absolute bottom-0 left-1/2 z-20 h-[42px] w-[42px] -translate-x-1/2 translate-y-1/2"
+        snapshot={{
+          title,
+          imageUrl,
+          unitPriceFormatted: priceFormatted,
+        }}
       />
     </article>
   );

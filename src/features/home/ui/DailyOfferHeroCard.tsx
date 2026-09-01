@@ -118,6 +118,11 @@ export function DailyOfferHeroCard({
         label={addToCartLabel}
         disabled={!inStock}
         className="absolute bottom-[-25px] left-1/2 z-20 h-[52px] w-[51px] -translate-x-1/2 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-110 hover:-translate-y-1.5 active:scale-95 motion-reduce:transition-none"
+        snapshot={{
+          title,
+          imageUrl,
+          unitPriceFormatted: priceFormatted,
+        }}
       />
 
       <div className="pointer-events-none absolute -top-[46px] -right-[88px] z-30 h-[132px] w-[132px]">

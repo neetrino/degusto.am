@@ -12,6 +12,7 @@ import {
   productModifiers,
   products,
 } from "@/db/schema";
+import { DEMO_SEED_ENTITY_ID_PREFIX } from "@/db/seed/seed-uuid";
 import { resolveProductPrices } from "@/features/promotions/application/resolve-product-prices";
 import type {
   CatalogProduct,
@@ -159,9 +160,17 @@ async function withProductImages(
     .filter((product): product is CatalogProduct => product !== null);
 }
 
+/**
+ * Storefront catalog eligibility.
+ * Hides demo/figma seed rows (same ID-prefix rule as storefront categories)
+ * while leaving them available in admin/dev seed.
+ */
+const notDemoSeedProduct = sql`${products.id}::text not like ${`${DEMO_SEED_ENTITY_ID_PREFIX}%`}`;
+
 const activeCatalogWhere = and(
   eq(products.status, "ACTIVE"),
   isNull(products.deletedAt),
+  notDemoSeedProduct,
 );
 
 /** Active products by id — used by wishlist (not shared-cache; IDs are user-specific). */
@@ -301,6 +310,7 @@ export async function getActiveProductsPage(
       }),
     [
       "active-products-page",
+      "degusto-only-v1",
       locale,
       String(safePage),
       categorySlug,
@@ -335,13 +345,8 @@ async function loadFeaturedProducts(
   const rows = await getDb()
     .select()
     .from(products)
-    .where(
-      and(
-        eq(products.status, "ACTIVE"),
-        eq(products.isFeatured, true),
-        isNull(products.deletedAt),
-      ),
-    )
+    .where(and(activeCatalogWhere, eq(products.isFeatured, true)))
+    .orderBy(desc(products.createdAt))
     .limit(8);
 
   return withProductImages(rows, locale);
@@ -352,7 +357,7 @@ export async function getFeaturedProducts(
 ): Promise<CatalogProduct[]> {
   return unstable_cache(
     async () => loadFeaturedProducts(locale),
-    ["featured-products", locale],
+    ["featured-products", "degusto-only-v1", locale],
     {
       tags: [CACHE_TAGS.products],
       revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,
@@ -370,8 +375,7 @@ export async function getProductBySlug(
     .from(products)
     .where(
       and(
-        eq(products.status, "ACTIVE"),
-        isNull(products.deletedAt),
+        activeCatalogWhere,
         // Match any locale slug so locale-switcher path swaps (which keep the
         // previous locale's slug) still resolve, then the page redirects to the
         // canonical slug for the active locale.
@@ -586,7 +590,7 @@ export const getProductDetailBySlug = cache(
   async (locale: Locale, slug: string): Promise<ProductDetail | null> => {
     return unstable_cache(
       async () => loadProductDetailBySlug(locale, slug),
-      ["product-detail", locale, slug],
+      ["product-detail", "degusto-only-v1", locale, slug],
       {
         tags: [
           CACHE_TAGS.productDetail,

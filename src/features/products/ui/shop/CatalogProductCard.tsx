@@ -133,6 +133,11 @@ export function CatalogProductCard({
         label={addToCartLabel}
         disabled={!inStock}
         className="absolute -bottom-[25px] left-1/2 z-20 h-[52px] w-[51px] -translate-x-1/2"
+        snapshot={{
+          title,
+          imageUrl,
+          unitPriceFormatted: priceFormatted,
+        }}
       />
 
       <div className="relative z-[2] flex min-w-0 flex-col px-3.5 pt-2">

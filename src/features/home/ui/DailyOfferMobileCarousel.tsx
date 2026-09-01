@@ -132,6 +132,11 @@ export function DailyOfferMobileCarousel({
                   iconWidth={42}
                   iconHeight={42}
                   className="absolute top-[76px] left-[35.95%] z-10 h-[42px] w-[41px]"
+                  snapshot={{
+                    title: offer.title,
+                    imageUrl: offer.imageUrl,
+                    unitPriceFormatted: offer.priceFormatted,
+                  }}
                 />
               </article>
             </div>

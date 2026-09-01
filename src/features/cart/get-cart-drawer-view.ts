@@ -16,9 +16,12 @@ import { formatMoneyAmount } from "@/lib/money/format";
 
 export type CartDrawerItemView = {
   id: string;
+  productId: string;
   title: string;
   quantity: number;
   imageUrl: string | null;
+  /** Display-currency minor units for optimistic local recalculation. */
+  unitAmount: number | null;
   unitPriceFormatted: string;
   lineTotalFormatted: string;
 };
@@ -103,28 +106,34 @@ export async function getCartDrawerView(
   for (const { item, product } of rows) {
     const translation =
       product.translations[locale] ?? product.translations.hy;
-    const unitAmount =
+    const unitAmountBase =
       prices.get(product.id)?.unitAmount ?? product.priceAmount;
+    const unitAmountDisplay = Number(
+      convertAmount(unitAmountBase, quote.rate, defaultCurrency, currency)
+        .amount,
+    );
 
     items.push({
       id: item.id,
+      productId: product.id,
       title: translation?.title ?? product.sku,
       quantity: item.quantity,
       imageUrl: images.get(product.id) ?? null,
+      unitAmount: unitAmountDisplay,
       unitPriceFormatted: formatConvertedAmount(
-        unitAmount,
+        unitAmountBase,
         quote.rate,
         currency,
         locale,
       ),
       lineTotalFormatted: formatConvertedAmount(
-        unitAmount * item.quantity,
+        unitAmountBase * item.quantity,
         quote.rate,
         currency,
         locale,
       ),
     });
-    subtotalBase += item.quantity * unitAmount;
+    subtotalBase += item.quantity * unitAmountBase;
   }
 
   const subtotalFormatted = formatConvertedAmount(
