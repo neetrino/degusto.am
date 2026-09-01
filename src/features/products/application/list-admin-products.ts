@@ -26,12 +26,16 @@ import {
   type LocaleTranslation,
   type TranslationsJson,
 } from "@/db/schema";
+import { DEMO_SEED_ENTITY_ID_PREFIX } from "@/db/seed/seed-uuid";
 import { loadProductImagesForAdmin } from "@/features/products/application/persist-product-media";
 import type { AdminProductsFilter } from "@/features/products/schemas/admin-list";
 import type { Locale } from "@/lib/i18n/config";
 import { resolveMediaPublicUrl } from "@/lib/media/public-url";
 
 const PAGE_SIZE = 20;
+
+/** Hide demo/figma seed rows from admin catalog (same rule as storefront). */
+const notDemoSeedProduct = sql`${products.id}::text not like ${`${DEMO_SEED_ENTITY_ID_PREFIX}%`}`;
 
 export type AdminProductImage = {
   id: string;
@@ -83,7 +87,7 @@ function translationFor(
 }
 
 function buildWhere(filters: AdminProductsFilter, locale: Locale): SQL | undefined {
-  const conditions: SQL[] = [isNull(products.deletedAt)];
+  const conditions: SQL[] = [isNull(products.deletedAt), notDemoSeedProduct];
 
   if (filters.q) {
     const pattern = `%${filters.q}%`;

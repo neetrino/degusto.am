@@ -85,7 +85,8 @@
   },
   "errors": {
     "cartEmpty": "Cart is empty",
-    "paymentFailed": "Payment was not completed. You can try again."
+    "paymentFailed": "Payment was not completed. You can try again.",
+    "orderingClosed": "We are not accepting orders right now. Ordering hours: 09:00–23:59."
   },
   "success": {
     "title": "Order confirmed",

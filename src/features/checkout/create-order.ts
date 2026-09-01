@@ -37,6 +37,7 @@ import {
   type CheckoutInput,
 } from "@/features/checkout/schemas";
 import { calculateBagFeeAmount } from "@/features/checkout/domain/bag-fee";
+import { isOrderingOpen } from "@/features/checkout/domain/ordering-hours";
 import { toPaymentRecord } from "@/features/checkout/domain/payment-methods";
 import { planStockAfterSale } from "@/features/products/domain/auto-stock";
 import {
@@ -215,6 +216,12 @@ export async function createOrderAction(
           attachIdram: isIdram && existing.paymentStatus === "PENDING",
           attachArca: isArca && existing.paymentStatus === "PENDING",
         };
+      }
+
+      if (!isOrderingOpen(new Date())) {
+        throw new Error(
+          getDictionary(input.locale).checkout.errors.orderingClosed,
+        );
       }
 
       let delivery: typeof deliveryRules.$inferSelect | null = null;
