@@ -46,6 +46,12 @@ describe("resolveLegacyRedirect", () => {
     expect(resolveLegacyRedirect("/ru/shop/foo/bar")).toBe("/ru/products");
   });
 
+  it("does not redirect storefront category icons under /shop/category-icons", () => {
+    expect(resolveLegacyRedirect("/shop/category-icons/salads.svg")).toBeNull();
+    expect(resolveLegacyRedirect("/hy/shop/category-icons/pizza.svg")).toBeNull();
+    expect(resolveLegacyRedirect("/shop/category-icons")).toBeNull();
+  });
+
   it("does not statically resolve /product/:id; leftover product paths go to catalog", () => {
     expect(resolveLegacyRedirect("/product/1293")).toBeNull();
     expect(resolveLegacyRedirect("/hy/product/1293")).toBeNull();
@@ -107,5 +113,19 @@ describe("buildLegacyNextRedirects", () => {
     expect(redirects.some((rule) => rule.source.includes("/product/"))).toBe(
       false,
     );
+  });
+
+  it("does not catch-all /shop/category-icons as a leftover Laravel path", () => {
+    const redirects = buildLegacyNextRedirects();
+    expect(
+      redirects.some((rule) => rule.source === "/shop/:path*"),
+    ).toBe(false);
+    expect(
+      redirects.some(
+        (rule) =>
+          rule.source === "/shop/:path((?!category-icons).*)" &&
+          rule.destination === "/hy/products",
+      ),
+    ).toBe(true);
   });
 });

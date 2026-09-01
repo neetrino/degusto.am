@@ -50,7 +50,8 @@ Old PHP/Laravel paths 308/301 to the new locale-prefixed storefront. Proxy inter
 | `/language/en` `/language/ru` `/language/am` | `/en` `/ru` `/hy` |
 | `/shop` | `/hy/products` |
 | `/shop?category=14` (known id) | `/hy/products?category=grill-smoked` (or `/hy/combo` for id 12) |
-| `/shop?category=` unknown / `/shop/*` | `/hy/products` |
+| `/shop?category=` unknown / `/shop/*` except `/shop/category-icons/*` | `/hy/products` |
+| `/shop/category-icons/*` | static SVG from `public/` (not redirected) |
 | `/product/:id` | `/{locale}/products/{asciiSlug}` when `products.sku` equals the numeric id; otherwise `/{locale}/products`. Never `/`. |
 
 `/:locale/...` equivalents keep the request locale (`/en/shop` → `/en/products`). Unprefixed paths use default `hy`.
