@@ -11,7 +11,7 @@ import type { SessionUser } from "@/lib/auth/session";
 
 type AccountControlsProps = {
   locale: Locale;
-  loginLabel: string;
+  loginLabel: string ;
   logoutLabel: string;
   profileLabel: string;
   adminLabel: string;
@@ -67,9 +67,13 @@ export function AccountControls({
       trigger={triggerIcon}
       openOnHover
     >
-      {user.role === "ADMIN" ? (
+      {user.role === "ADMIN" || user.role === "DISPATCHER" ? (
         <AppLink
-          href={`/${locale}/admin`}
+          href={
+            user.role === "DISPATCHER"
+              ? `/${locale}/admin/orders`
+              : `/${locale}/admin`
+          }
           prefetchPolicy="intent"
           role="menuitem"
           className={menuItemClassName}

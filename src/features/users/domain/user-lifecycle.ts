@@ -1,6 +1,10 @@
 /** Canonical user roles from the database enum. */
-export const USER_ROLES = ["ADMIN", "CUSTOMER"] as const;
+export const USER_ROLES = ["ADMIN", "DISPATCHER", "CUSTOMER"] as const;
 export type UserRole = (typeof USER_ROLES)[number];
+
+/** Roles that may enter the admin shell. */
+export const STAFF_ROLES = ["ADMIN", "DISPATCHER"] as const;
+export type StaffRole = (typeof STAFF_ROLES)[number];
 
 /** Canonical account statuses from the database enum. */
 export const USER_STATUSES = ["ACTIVE", "SUSPENDED", "ANONYMIZED"] as const;
@@ -10,8 +14,22 @@ export function isUserRole(value: string): value is UserRole {
   return (USER_ROLES as readonly string[]).includes(value);
 }
 
+export function isStaffRole(value: string): value is StaffRole {
+  return (STAFF_ROLES as readonly string[]).includes(value);
+}
+
 export function isUserStatus(value: string): value is UserStatus {
   return (USER_STATUSES as readonly string[]).includes(value);
+}
+
+/** Whether the role may view admin orders and change order status. */
+export function canChangeOrderStatus(role: UserRole): boolean {
+  return role === "ADMIN" || role === "DISPATCHER";
+}
+
+/** Full order admin controls (payment, archive/delete, notes). */
+export function canManageOrderAdmin(role: UserRole): boolean {
+  return role === "ADMIN";
 }
 
 /**
@@ -61,9 +79,10 @@ export function shouldRevokeSessions(input: {
     return true;
   }
 
-  if (input.fromRole === "ADMIN" && input.toRole === "CUSTOMER") {
-    return true;
+  if (input.fromRole === input.toRole) {
+    return false;
   }
 
-  return false;
+  // Any staff role change must invalidate existing sessions.
+  return isStaffRole(input.fromRole) || isStaffRole(input.toRole);
 }

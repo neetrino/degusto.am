@@ -30,6 +30,7 @@ export type AdminOrderDetailView = {
   baseCurrency: string;
   subtotalAmount: number;
   deliveryAmount: number;
+  bagAmount: number;
   discountAmount: number;
   totalAmount: number;
   deliveryLabel: string | null;
@@ -42,6 +43,7 @@ export type AdminOrderDetailView = {
   paymentMethod: string;
   paymentAmount: number;
   placedAt: string;
+  customerComment: string | null;
   items: AdminOrderDetailItemView[];
 };
 
@@ -82,6 +84,7 @@ export function toAdminOrderDetailView(
     baseCurrency: order.baseCurrency,
     subtotalAmount: order.subtotalAmount,
     deliveryAmount: order.deliveryAmount,
+    bagAmount: order.bagAmount,
     discountAmount: order.discountAmount,
     totalAmount: order.totalAmount,
     deliveryLabel: order.deliveryLabelSnapshot,
@@ -98,6 +101,7 @@ export function toAdminOrderDetailView(
     paymentMethod: displayPaymentMethodLabel(latestPayment?.method),
     paymentAmount: latestPayment?.amount ?? order.totalAmount,
     placedAt: order.placedAt.toISOString(),
+    customerComment: order.customerComment,
     items: items.map((item) => ({
       id: item.id,
       title: item.productTitleSnapshot,

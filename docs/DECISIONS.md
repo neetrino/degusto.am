@@ -52,7 +52,7 @@
 | OPEN-014 | Legal content | Open | Terms/privacy/shipping/returns/cookies approved copy | Routes ստեղծվում են, publish-ը blocked է մինչև approved text |
 | OPEN-015 | Countries | Open | Միայն Հայաստան, թե միջազգային shipping | Armenia-first, data model-ը international-ready |
 | OPEN-016 | Inventory policy | Open | Overselling/backorder և reservation timeout | Backorder չկա; stock decrement order creation-ի transaction-ում |
-| DEF-001 | Granular staff roles | Deferred | ADMIN/CUSTOMER-ից ավելի մանր permissions | Future RBAC extension |
+| DEF-001 | Granular staff roles | Partially delivered | `DISPATCHER` added (orders view + order status). Finer permissions still deferred | Future RBAC extension beyond admin/dispatcher |
 | DEF-002 | Advanced search | Deferred | Algolia/Meilisearch/Elastic | PostgreSQL indexed search initial release-ում |
 | DEF-003 | Background jobs | Deferred | Durable queue provider | Synchronous/outbox-ready flows; critical work չի կորցվում |
 
@@ -61,7 +61,7 @@
 1. AMD-ի integer unit-ը մեկ դրամ է, հետևաբար amount scale-ը 0 է AMD-ի համար։ USD/EUR/RUB display rounding-ը currency metadata-ից է։
 2. Guest checkout թույլատրված է, քանի որ prompt-ը սահմանում է guest cart, բայց պարտադիր registration չի պահանջում։
 3. Review eligibility-ն սահմանվում է delivered/completed order item-ով։ Refund-ից հետո review visibility policy-ն դեռ բաց է։
-4. `ADMIN` role-ը launch-ին ներառում է բոլոր admin capabilities, սակայն every mutation-ը դեռ server-side role check ունի։
+4. `ADMIN` has full admin capabilities; `DISPATCHER` may view orders and change order status only. Every mutation still has a server-side role check.
 5. Storefront slugs-ը `translations JSONB`-ում են և fixed-locale expression indexes-ով unique են per locale։
 6. Admin product/content form-ը reference UX-ով է՝ մեկ Basic Information դաշտերի հավաքածու; լեզուն փոխվում է selector-ով, ոչ թե մեկ էջում բոլոր locale-ների դաշտերով։
 

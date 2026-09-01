@@ -31,10 +31,12 @@ import {
   buildIdramCheckoutPayload,
   type IdramCheckoutPayload,
 } from "@/features/checkout/application/idram-checkout-payload";
+import { countDistinctPrimaryCategories } from "@/features/checkout/application/count-cart-categories";
 import {
   checkoutSchema,
   type CheckoutInput,
 } from "@/features/checkout/schemas";
+import { calculateBagFeeAmount } from "@/features/checkout/domain/bag-fee";
 import { isOrderingOpen } from "@/features/checkout/domain/ordering-hours";
 import { toPaymentRecord } from "@/features/checkout/domain/payment-methods";
 import { planStockAfterSale } from "@/features/products/domain/auto-stock";
@@ -158,6 +160,7 @@ export async function createOrderAction(
   const contactName = `${input.firstName} ${input.lastName}`.trim();
   const scopeHash = hashValue(user?.id ?? cart.guestTokenHash ?? cart.id);
   const keyHash = hashValue(input.idempotencyKey);
+  const customerComment = input.customerComment?.trim() || null;
   const fingerprint = hashValue(
     JSON.stringify({
       cartId: cart.id,
@@ -170,6 +173,7 @@ export async function createOrderAction(
       paymentMethod: input.paymentMethod,
       deliveryRuleId: input.deliveryRuleId ?? null,
       pickupBranchId: input.pickupBranchId ?? null,
+      customerComment,
     }),
   );
 
@@ -369,6 +373,12 @@ export async function createOrderAction(
             ? delivery.priceAmount
             : 0;
 
+      const uniqueCategoryCount = await countDistinctPrimaryCategories(
+        lockedProducts.map(({ product }) => product.id),
+        tx,
+      );
+      const bagAmount = calculateBagFeeAmount(uniqueCategoryCount);
+
       let discountAmount = 0;
       let appliedPromotion: typeof promotions.$inferSelect | null = null;
       if (input.couponCode) {
@@ -425,7 +435,8 @@ export async function createOrderAction(
           .where(eq(promotions.id, coupon.id));
       }
 
-      const totalAmount = Math.max(0, subtotal - discountAmount) + deliveryAmount;
+      const totalAmount =
+        Math.max(0, subtotal - discountAmount) + deliveryAmount + bagAmount;
       const orderId = createId();
       await tx.execute(
         sql`select pg_advisory_xact_lock(${ORDER_NUMBER_LOCK_KEY})`,
@@ -457,6 +468,7 @@ export async function createOrderAction(
         discountAmount,
         taxAmount: 0,
         deliveryAmount,
+        bagAmount,
         totalAmount,
         shippingAddress: address,
         billingAddress: address,
@@ -479,6 +491,7 @@ export async function createOrderAction(
             : delivery
               ? `${delivery.estimatedDaysMin ?? 1}-${delivery.estimatedDaysMax ?? 3} days`
               : null,
+        customerComment,
         idempotencyScopeHash: scopeHash,
         idempotencyKeyHash: keyHash,
         requestFingerprint: fingerprint,

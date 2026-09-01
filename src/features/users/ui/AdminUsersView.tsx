@@ -128,6 +128,7 @@ export function AdminUsersView({
   const rolePills = [
     { label: "All", value: undefined },
     { label: "Admins", value: "ADMIN" },
+    { label: "Dispatchers", value: "DISPATCHER" },
     { label: "Customers", value: "CUSTOMER" },
   ] as const;
 
@@ -268,7 +269,9 @@ export function AdminUsersView({
                           className={`${ADMIN_BADGE} ${
                             user.role === "ADMIN"
                               ? "bg-[#ff7f20]/15 text-[#c45a0a]"
-                              : "bg-sky-100 text-sky-800"
+                              : user.role === "DISPATCHER"
+                                ? "bg-[#3e573d]/15 text-[#1f3a22]"
+                                : "bg-sky-100 text-sky-800"
                           }`}
                         >
                           {user.role.toLowerCase()}

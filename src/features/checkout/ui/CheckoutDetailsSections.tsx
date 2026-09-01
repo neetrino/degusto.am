@@ -61,7 +61,7 @@ type PaymentOption = {
   id: CheckoutPaymentMethod;
   name: string;
   description: string;
-  logoSrc: string | null;
+  logos?: Array<{ src: string; alt: string }>;
 };
 
 type CheckoutDetailsSectionsProps = {
@@ -71,7 +71,6 @@ type CheckoutDetailsSectionsProps = {
   onShippingMethodChange: (method: "pickup" | "delivery") => void;
   deliveryOptions: CheckoutDeliveryOption[];
   deliveryRuleId: string;
-  onDeliveryRuleChange: (ruleId: string) => void;
   pickupBranches: ReadonlyArray<PickupBranchOption>;
   pickupBranchId: string;
   onPickupBranchChange: (branchId: string) => void;
@@ -94,7 +93,6 @@ export function CheckoutDetailsSections({
   onShippingMethodChange,
   deliveryOptions,
   deliveryRuleId,
-  onDeliveryRuleChange,
   pickupBranches,
   pickupBranchId,
   onPickupBranchChange,
@@ -292,18 +290,14 @@ export function CheckoutDetailsSections({
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="flex flex-col gap-2 text-sm font-semibold text-[#3C2F2F]">
                 {labels.deliveryLocation}
-                <SelectDropdown
-                  name="deliveryRuleId"
-                  ariaLabel={labels.deliveryLocation}
-                  value={deliveryRuleId}
-                  allLabel={labels.selectLocation}
-                  options={deliveryOptions.map((option) => ({
-                    label: option.label,
-                    value: option.id,
-                  }))}
-                  disabled={pending || deliveryOptions.length === 0}
-                  onValueChange={onDeliveryRuleChange}
-                />
+                <input type="hidden" name="deliveryRuleId" value={deliveryRuleId} />
+                <div
+                  aria-label={labels.deliveryLocation}
+                  className="flex h-12 w-full cursor-default select-none items-center rounded-[70px] border border-[#dedede] bg-[#f7f7f8] px-5 text-[#3C2F2F] pointer-events-none"
+                >
+                  {deliveryOptions.find((option) => option.id === deliveryRuleId)
+                    ?.label ?? "Yerevan, Armenia"}
+                </div>
               </div>
               <label className="flex flex-col gap-2 text-sm font-semibold text-[#3C2F2F]">
                 {labels.address}

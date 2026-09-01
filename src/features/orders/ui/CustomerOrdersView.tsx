@@ -60,6 +60,11 @@ export function CustomerOrdersView({ locale, orders }: CustomerOrdersViewProps) 
         detail={detail}
         error={error}
         isLoading={isPending}
+        capabilities={{
+          canChangeOrderStatus: false,
+          canChangePaymentStatus: false,
+          canArchiveOrders: false,
+        }}
       />
     </>
   );

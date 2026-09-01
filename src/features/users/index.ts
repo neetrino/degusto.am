@@ -9,12 +9,17 @@ export {
 } from "@/features/users/application/queries";
 export {
   getEligibleUserStatuses,
+  isStaffRole,
   isUserRole,
   isUserStatus,
+  canChangeOrderStatus,
+  canManageOrderAdmin,
   shouldRevokeSessions,
+  STAFF_ROLES,
   USER_ROLES,
   USER_STATUSES,
   wouldRemoveLastActiveAdmin,
+  type StaffRole,
   type UserRole,
   type UserStatus,
 } from "@/features/users/domain/user-lifecycle";

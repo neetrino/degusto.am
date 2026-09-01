@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 
 import { getDb } from "@/db/client";
 import { cartItems, carts, products } from "@/db/schema";
+import { isDemoSeedEntityId } from "@/db/seed/seed-uuid";
 import {
   getGuestCartToken,
   hashGuestToken,
@@ -138,7 +139,12 @@ export async function addToCart(
     .from(products)
     .where(eq(products.id, productId))
     .limit(1);
-  if (!product || product.status !== "ACTIVE" || product.stock < 1) {
+  if (
+    !product ||
+    product.status !== "ACTIVE" ||
+    product.stock < 1 ||
+    isDemoSeedEntityId(product.id)
+  ) {
     throw new Error("Product unavailable.");
   }
 

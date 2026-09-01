@@ -77,7 +77,7 @@ Connection pool size, `statement_timeout`, `lock_timeout`, `idle_in_transaction_
 | Auth | Auth.js | ✅ | Credentials flow; OAuth `accounts` table-ը initial scope-ում չկա |
 | Password hashing | Argon2id | ✅ | Parameters benchmark անել target runtime-ում |
 | Sessions | Database-backed secure sessions | ✅ | Safer revocation/suspension; Auth.js DB adapter |
-| Roles | `ADMIN`, `CUSTOMER` | ✅ | Server-side checks every protected read/mutation-ում |
+| Roles | `ADMIN`, `DISPATCHER`, `CUSTOMER` | ✅ | Dispatcher՝ orders view + order status only; admin mutations server-side checked |
 | Verification | Email verification required | ✅ | Redis-ում hashed, TTL, atomic single-use token |
 | Reset | Forgot/reset password | ✅ | Redis token, generic response, session revocation |
 | Account controls | Active/suspended/anonymized lifecycle | ✅ | Last admin self-demotion invariant |

@@ -8,9 +8,11 @@ import {
   ADMIN_MAIN_INNER,
   ADMIN_PAGE_SHELL,
 } from "@/features/admin/ui/admin-shell-classes";
+import type { StaffRole } from "@/features/users/domain/user-lifecycle";
 
 type AdminShellProps = {
   locale: string;
+  role: StaffRole;
   children: ReactNode;
   /** Storefront bottom nav shown only below `lg`. */
   mobileBottom?: ReactNode;
@@ -22,13 +24,14 @@ type AdminShellProps = {
  */
 export function AdminShell({
   locale,
+  role,
   children,
   mobileBottom,
 }: AdminShellProps) {
   return (
     <AdminSidebarCollapseProvider>
       <div className={ADMIN_PAGE_SHELL}>
-        <AdminSidebar locale={locale} />
+        <AdminSidebar locale={locale} role={role} />
 
         <div
           className={

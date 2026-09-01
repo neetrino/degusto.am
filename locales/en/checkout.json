@@ -73,8 +73,10 @@
     "subtotal": "Subtotal",
     "discount": "Discount",
     "shipping": "Shipping",
-    "tax": "Tax",
-    "total": "Total"
+    "bag": "Bag fee",
+    "total": "Total",
+    "comment": "Comment",
+    "commentPlaceholder": "Add a note for your order (optional)"
   },
   "buttons": {
     "placeOrder": "Place Order",

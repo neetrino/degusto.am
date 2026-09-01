@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { MobileBottomNavIsland } from "@/components/layout/MobileBottomNavIsland";
 import { AdminShell } from "@/features/admin/ui/AdminShell";
-import { requireAdmin } from "@/lib/auth/policies";
+import { requireStaff } from "@/lib/auth/policies";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import {
@@ -22,7 +22,7 @@ export default async function AdminLayout({
 }: AdminLayoutProps) {
   const { locale } = (await params) as { locale: string };
   if (!isLocale(locale)) notFound();
-  await requireAdmin(locale);
+  const user = await requireStaff(locale);
 
   const dictionary = getDictionary(locale);
   const cookieStore = await cookies();
@@ -33,6 +33,7 @@ export default async function AdminLayout({
   return (
     <AdminShell
       locale={locale}
+      role={user.role}
       mobileBottom={
         <MobileBottomNavIsland
           locale={locale}

@@ -4,20 +4,24 @@ import { motion, useReducedMotion } from "motion/react";
 
 import { CHECKOUT_EASE } from "@/features/checkout/ui/CheckoutMotion";
 
+const CUSTOMER_COMMENT_MAX_LENGTH = 1000;
+
 type CheckoutOrderSummaryProps = {
   title: string;
   couponTitle: string;
   couponPlaceholder: string;
   couponApplyLabel: string;
   couponApplyingLabel: string;
+  commentLabel: string;
+  commentPlaceholder: string;
   discountLabel: string;
   subtotalLabel: string;
   shippingLabel: string;
-  taxLabel: string;
+  bagLabel: string;
   totalLabel: string;
   subtotalFormatted: string;
   shippingFormatted: string;
-  taxFormatted: string;
+  bagFormatted: string;
   discountFormatted: string | null;
   totalFormatted: string;
   couponDraft: string;
@@ -25,6 +29,8 @@ type CheckoutOrderSummaryProps = {
   onApplyCoupon: () => void;
   couponError: string | null;
   isApplyingCoupon: boolean;
+  customerComment: string;
+  onCustomerCommentChange: (value: string) => void;
   error: string | null;
   isSubmitting: boolean;
   canPlaceOrder: boolean;
@@ -39,14 +45,16 @@ export function CheckoutOrderSummary({
   couponPlaceholder,
   couponApplyLabel,
   couponApplyingLabel,
+  commentLabel,
+  commentPlaceholder,
   discountLabel,
   subtotalLabel,
   shippingLabel,
-  taxLabel,
+  bagLabel,
   totalLabel,
   subtotalFormatted,
   shippingFormatted,
-  taxFormatted,
+  bagFormatted,
   discountFormatted,
   totalFormatted,
   couponDraft,
@@ -54,6 +62,8 @@ export function CheckoutOrderSummary({
   onApplyCoupon,
   couponError,
   isApplyingCoupon,
+  customerComment,
+  onCustomerCommentChange,
   error,
   isSubmitting,
   canPlaceOrder,
@@ -116,6 +126,33 @@ export function CheckoutOrderSummary({
             ) : null}
           </div>
 
+          <div className="mt-4 rounded-[24px] border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
+            <label
+              htmlFor="checkout-customer-comment"
+              className="mb-3 block text-sm text-white/75"
+            >
+              {commentLabel}
+            </label>
+            <textarea
+              id="checkout-customer-comment"
+              name="customerComment"
+              value={customerComment}
+              onChange={(event) =>
+                onCustomerCommentChange(
+                  event.target.value.slice(0, CUSTOMER_COMMENT_MAX_LENGTH),
+                )
+              }
+              placeholder={commentPlaceholder}
+              maxLength={CUSTOMER_COMMENT_MAX_LENGTH}
+              rows={4}
+              disabled={isSubmitting}
+              className="min-h-[6.5rem] w-full resize-y rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white placeholder:text-white/40 outline-none transition focus:border-[#ff7f20] focus:ring-2 focus:ring-[#ff7f20]/25 disabled:opacity-60"
+            />
+            <p className="mt-2 text-right text-xs text-white/45 tabular-nums">
+              {customerComment.length}/{CUSTOMER_COMMENT_MAX_LENGTH}
+            </p>
+          </div>
+
           <div className="mt-6 space-y-3.5 text-sm">
             <div className="flex justify-between gap-4 text-white/70">
               <span>{subtotalLabel}</span>
@@ -138,8 +175,8 @@ export function CheckoutOrderSummary({
               </span>
             </div>
             <div className="flex justify-between gap-4 text-white/70">
-              <span>{taxLabel}</span>
-              <span className="tabular-nums text-white">{taxFormatted}</span>
+              <span>{bagLabel}</span>
+              <span className="tabular-nums text-white">{bagFormatted}</span>
             </div>
             <div className="border-t border-white/10 pt-4">
               <div className="flex items-baseline justify-between gap-4">

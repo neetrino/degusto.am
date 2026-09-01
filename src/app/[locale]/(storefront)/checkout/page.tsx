@@ -2,8 +2,10 @@ import { notFound } from "next/navigation";
 
 import { StorefrontMobileChrome } from "@/components/layout/StorefrontMobileChrome";
 import { getCartWithItems } from "@/features/cart/cart";
+import { countDistinctPrimaryCategories } from "@/features/checkout/application/count-cart-categories";
 import { getCheckoutDeliveryOptions } from "@/features/checkout/application/get-checkout-delivery";
 import { getCheckoutOrderProducts } from "@/features/checkout/application/get-checkout-order-products";
+import { calculateBagFeeAmount } from "@/features/checkout/domain/bag-fee";
 import {
   isPickupBranchId,
   type PickupBranchOption,
@@ -59,6 +61,10 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
     const unit = prices.get(product.id)?.unitAmount ?? product.priceAmount;
     return sum + item.quantity * unit;
   }, 0);
+  const uniqueCategoryCount = await countDistinctPrimaryCategories(
+    items.map(({ product }) => product.id),
+  );
+  const bagAmount = calculateBagFeeAmount(uniqueCategoryCount);
 
   const pickupBranches: PickupBranchOption[] = copy.pickupBranches.filter(
     (branch): branch is PickupBranchOption => isPickupBranchId(branch.id),
@@ -77,6 +83,7 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
     defaultPhone: defaultAddress?.phone ?? user?.phone ?? "",
     defaultLine1: defaultAddress?.line1 ?? "",
     subtotalAmount: subtotal,
+    bagAmount,
     deliveryOptions,
     pickupBranches,
     orderingOpenInitially: isOrderingOpen(new Date()),
@@ -127,10 +134,12 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
       couponPlaceholder: copy.coupon.placeholder,
       couponApply: copy.coupon.apply,
       couponApplying: copy.coupon.applying,
+      commentLabel: copy.summary.comment,
+      commentPlaceholder: copy.summary.commentPlaceholder,
       discount: copy.summary.discount,
       subtotal: copy.summary.subtotal,
       shipping: copy.summary.shipping,
-      tax: copy.summary.tax,
+      bag: copy.summary.bag,
       total: copy.summary.total,
       placeOrder: copy.buttons.placeOrder,
       processing: copy.buttons.processing,

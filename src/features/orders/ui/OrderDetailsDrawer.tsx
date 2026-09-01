@@ -11,6 +11,7 @@ import {
   getOrderDrawerLoadingLabel,
   OrderDetailsDrawerContent,
 } from "@/features/orders/ui/OrderDetailsDrawerContent";
+import type { AdminOrderCapabilities } from "@/features/orders/ui/AdminOrdersView";
 
 type OrderDetailsDrawerProps = {
   open: boolean;
@@ -19,6 +20,7 @@ type OrderDetailsDrawerProps = {
   detail: AdminOrderDetailView | null;
   error: string | null;
   isLoading: boolean;
+  capabilities: AdminOrderCapabilities;
   onDetailRefresh?: () => void;
 };
 
@@ -29,6 +31,7 @@ export function OrderDetailsDrawer({
   detail,
   error,
   isLoading,
+  capabilities,
   onDetailRefresh,
 }: OrderDetailsDrawerProps) {
   return (
@@ -65,6 +68,7 @@ export function OrderDetailsDrawer({
           <OrderDetailsDrawerContent
             locale={locale}
             detail={detail}
+            capabilities={capabilities}
             onStatusChanged={onDetailRefresh}
           />
         ) : null}

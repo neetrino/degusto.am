@@ -190,6 +190,11 @@ export function ProductCard({
           label={addToCartLabel}
           disabled={!inStock}
           className="absolute top-[259px] left-[93px] z-[1] h-[52px] w-[51px]"
+          snapshot={{
+            title,
+            imageUrl,
+            unitPriceFormatted: priceFormatted,
+          }}
         />
       ) : null}
     </article>
