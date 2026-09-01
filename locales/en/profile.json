@@ -33,7 +33,6 @@
     "formAddTitle": "Add address",
     "formEditTitle": "Edit address",
     "line1": "Address",
-    "city": "City",
     "phone": "Phone",
     "phonePlaceholder": "+374XXXXXXXX",
     "isDefault": "Set as default shipping address",

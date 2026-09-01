@@ -8,6 +8,7 @@ import { cache } from "react";
 
 import { getDb } from "@/db/client";
 import { sessions, users } from "@/db/schema";
+import type { UserRole, UserStatus } from "@/features/users/domain/user-lifecycle";
 import { createId } from "@/lib/id";
 
 const SESSION_COOKIE_NAME = "ws_session";
@@ -19,8 +20,8 @@ export type SessionUser = {
   firstName: string;
   lastName: string;
   phone: string | null;
-  role: "ADMIN" | "CUSTOMER";
-  status: "ACTIVE" | "SUSPENDED" | "ANONYMIZED";
+  role: UserRole;
+  status: UserStatus;
 };
 
 function hashToken(token: string): string {

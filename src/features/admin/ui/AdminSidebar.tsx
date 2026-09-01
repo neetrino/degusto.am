@@ -21,9 +21,11 @@ import {
   ADMIN_SIDEBAR_NAV,
 } from "@/features/admin/ui/admin-shell-classes";
 import { useAdminProductsSubnavExpanded } from "@/features/admin/ui/useAdminProductsSubnavExpanded";
+import type { StaffRole } from "@/features/users/domain/user-lifecycle";
 
 type AdminSidebarProps = {
   locale: string;
+  role: StaffRole;
 };
 
 function isNestedVisible(
@@ -39,17 +41,20 @@ function isNestedVisible(
   return productsNestedExpanded;
 }
 
-export function AdminSidebar({ locale }: AdminSidebarProps) {
+export function AdminSidebar({ locale, role }: AdminSidebarProps) {
   const pathname = usePathname() ?? `/${locale}/admin`;
-  const tabs = getAdminMenuItems(locale);
+  const tabs = getAdminMenuItems(locale, role);
   const { collapsed } = useAdminSidebarCollapse();
   const [productsNestedExpanded, toggleProductsNested] =
     useAdminProductsSubnavExpanded(pathname, locale);
 
   const asideWidthClass = collapsed ? "lg:w-16" : "lg:w-64";
-  const adminRoot = `/${locale}/admin`;
+  const adminHome =
+    role === "DISPATCHER"
+      ? `/${locale}/admin/orders`
+      : `/${locale}/admin`;
   const isAdminRoot =
-    pathname === adminRoot || pathname === `${adminRoot}/`;
+    pathname === adminHome || pathname === `${adminHome}/`;
 
   return (
     <>
@@ -57,7 +62,7 @@ export function AdminSidebar({ locale }: AdminSidebarProps) {
         <div className={ADMIN_SIDEBAR_MOBILE_DRAWER_WRAP}>
           <div className="flex items-center justify-between gap-3 rounded-[1.35rem] border border-[#ead7bf]/90 bg-white/95 px-3 py-2.5 shadow-[0_12px_28px_-22px_rgba(28,25,23,0.5)]">
             <Link
-              href={adminRoot}
+              href={adminHome}
               className="flex min-w-0 items-center gap-2.5"
             >
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#ff8a3d] to-[#f55c0a] text-sm font-black text-white shadow-[0_10px_18px_-10px_rgba(246,104,18,0.9)]">
@@ -68,12 +73,12 @@ export function AdminSidebar({ locale }: AdminSidebarProps) {
                   Degusto
                 </span>
                 <span className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8a837a]">
-                  Admin
+                  {role === "DISPATCHER" ? "Dispatcher" : "Admin"}
                 </span>
               </span>
             </Link>
             <Link
-              href={adminRoot}
+              href={adminHome}
               className={`${ADMIN_MOBILE_MENU_TRIGGER} lg:hidden`}
               aria-label="Admin home"
             >

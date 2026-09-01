@@ -33,7 +33,6 @@
     "formAddTitle": "Добавить адрес",
     "formEditTitle": "Изменить адрес",
     "line1": "Адрес",
-    "city": "Город",
     "phone": "Телефон",
     "phonePlaceholder": "+374XXXXXXXX",
     "isDefault": "Сделать адресом доставки по умолчанию",

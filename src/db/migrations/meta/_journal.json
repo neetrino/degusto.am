@@ -43,6 +43,27 @@
       "when": 1785322974811,
       "tag": "0005_careless_nick_fury",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788273784630,
+      "tag": "0006_many_black_crow",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1788275235813,
+      "tag": "0007_chubby_darwin",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1788276710448,
+      "tag": "0008_keen_quasimodo",
+      "breakpoints": true
     }
   ]
 }

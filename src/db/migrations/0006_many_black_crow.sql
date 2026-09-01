@@ -1,0 +1,1 @@
+ALTER TABLE "orders" ADD COLUMN "bag_amount" integer DEFAULT 0 NOT NULL;

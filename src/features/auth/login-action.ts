@@ -12,29 +12,33 @@ import {
   needsPasswordRehash,
   verifyPassword,
 } from "@/lib/auth/password";
+import type { UserRole } from "@/features/users/domain/user-lifecycle";
+import { staffHomePath } from "@/lib/auth/policies";
 import { defaultLocale, isLocale, type Locale } from "@/lib/i18n/config";
 
 export type AuthActionState = { error?: string };
 
-function defaultPostLoginPath(
-  locale: Locale,
-  role: "ADMIN" | "CUSTOMER",
-): string {
-  return role === "ADMIN" ? `/${locale}/admin` : `/${locale}/profile`;
-}
-
 function resolveSafeNextPath(
   locale: Locale,
   raw: FormDataEntryValue | null,
-  role: "ADMIN" | "CUSTOMER",
+  role: UserRole,
 ): string {
-  const fallback = defaultPostLoginPath(locale, role);
+  const fallback = staffHomePath(locale, role);
 
   if (typeof raw !== "string" || !raw.startsWith("/") || raw.startsWith("//")) {
     return fallback;
   }
 
   if (!raw.startsWith(`/${locale}/`)) {
+    return fallback;
+  }
+
+  // Dispatchers may only land in orders under admin.
+  if (
+    role === "DISPATCHER" &&
+    raw.startsWith(`/${locale}/admin`) &&
+    !raw.startsWith(`/${locale}/admin/orders`)
+  ) {
     return fallback;
   }
 

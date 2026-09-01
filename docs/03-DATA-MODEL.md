@@ -75,7 +75,7 @@
 | Identity | `id`, normalized `email` UNIQUE, nullable verified timestamp |
 | Credentials | `password_hash` Argon2id, password-updated timestamp |
 | Profile | first/last name, normalized phone |
-| Authorization | role `ADMIN`/`CUSTOMER`, status `ACTIVE`/`SUSPENDED`/`ANONYMIZED` |
+| Authorization | role `ADMIN`/`DISPATCHER`/`CUSTOMER`, status `ACTIVE`/`SUSPENDED`/`ANONYMIZED` |
 | Consent | terms accepted timestamp/version |
 | Lifecycle | last login, created/updated/anonymized timestamps |
 

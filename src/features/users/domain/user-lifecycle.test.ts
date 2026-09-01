@@ -63,7 +63,7 @@ describe("user lifecycle guards", () => {
     ]);
   });
 
-  it("revokes sessions on suspend, anonymize, or admin demotion", () => {
+  it("revokes sessions on suspend, anonymize, or staff role change", () => {
     expect(
       shouldRevokeSessions({
         fromRole: "CUSTOMER",
@@ -76,6 +76,24 @@ describe("user lifecycle guards", () => {
     expect(
       shouldRevokeSessions({
         fromRole: "ADMIN",
+        fromStatus: "ACTIVE",
+        toRole: "CUSTOMER",
+        toStatus: "ACTIVE",
+      }),
+    ).toBe(true);
+
+    expect(
+      shouldRevokeSessions({
+        fromRole: "CUSTOMER",
+        fromStatus: "ACTIVE",
+        toRole: "DISPATCHER",
+        toStatus: "ACTIVE",
+      }),
+    ).toBe(true);
+
+    expect(
+      shouldRevokeSessions({
+        fromRole: "DISPATCHER",
         fromStatus: "ACTIVE",
         toRole: "CUSTOMER",
         toStatus: "ACTIVE",
