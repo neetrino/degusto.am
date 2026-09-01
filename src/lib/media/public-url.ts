@@ -5,16 +5,6 @@ import { getProviders } from "@/config/providers";
 import { isR2PublicBaseUrlUsable } from "@/lib/r2/public-base-url";
 import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
-/** Seed product placeholders stored in R2 under stable `assets/products/` keys. */
-const SEED_PRODUCT_FALLBACKS = [
-  "assets/products/burger-1.webp",
-  "assets/products/burger-2.webp",
-  "assets/products/burger-3.webp",
-  "assets/products/burger-4.webp",
-  "assets/products/burger-5.webp",
-  "assets/products/double-cheeseburger.webp",
-] as const;
-
 /** Maps Figma seed category keys to R2 `assets/categories/` object keys. */
 const SEED_CATEGORY_FALLBACKS: Readonly<Record<string, string>> = {
   soups: "assets/categories/soup.webp",
@@ -45,14 +35,6 @@ const SEED_CATEGORY_FALLBACKS: Readonly<Record<string, string>> = {
   mexican: "assets/categories/icons/mexican.webp",
 };
 
-function hashKey(value: string): number {
-  let hash = 0;
-  for (let index = 0; index < value.length; index += 1) {
-    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
-  }
-  return hash;
-}
-
 function resolveLocalAssetKey(objectKey: string): string {
   const categorySeed = /^assets\/categories\/seed\/([^.]+)\.webp$/.exec(
     objectKey,
@@ -62,11 +44,6 @@ function resolveLocalAssetKey(objectKey: string): string {
       SEED_CATEGORY_FALLBACKS[categorySeed[1] ?? ""] ??
       "assets/categories/pizza.webp"
     );
-  }
-
-  if (objectKey.startsWith("assets/products/seed/")) {
-    const index = hashKey(objectKey) % SEED_PRODUCT_FALLBACKS.length;
-    return SEED_PRODUCT_FALLBACKS[index] ?? SEED_PRODUCT_FALLBACKS[0];
   }
 
   return objectKey;
