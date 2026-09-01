@@ -36,11 +36,11 @@
   --color-surface-muted: var(--surface-muted);
   --color-brand-forest: var(--brand-forest);
   --color-product-ink: var(--product-ink);
-  --font-sans: var(--font-montserrat), var(--font-noto-arm), var(--font-geist-sans),
-    ui-sans-serif, sans-serif;
+  --font-sans: var(--font-montserrat), var(--font-noto-arm), ui-sans-serif,
+    sans-serif;
   --font-display: var(--font-mirage), var(--font-noto-arm), var(--font-montserrat),
-    var(--font-geist-sans), ui-sans-serif, sans-serif;
-  --font-mono: var(--font-geist-mono);
+    ui-sans-serif, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   --animate-product-card-heart-beat: product-card-heart-beat 0.55s ease-in-out;
   --radius-sm: 15px;
   --radius-md: 15px;
