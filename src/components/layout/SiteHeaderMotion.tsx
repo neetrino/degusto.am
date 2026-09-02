@@ -13,39 +13,26 @@ import { useState } from "react";
 
 export const HEADER_EASE = [0.22, 1, 0.36, 1] as const;
 
-/** Shell drops in once; children stagger after. */
+/**
+ * Header chrome must never start at opacity 0 / off-screen / blurred.
+ * Entrance traps (`opacity: 0`, `filter: blur`, `y: -N`) leave the bar
+ * invisible when Motion fails to run (old browsers, blocked JS, or while
+ * `useReducedMotion()` is still `null` on the first client paint).
+ *
+ * Keep variants for optional hover/stagger polish only — no hide states.
+ */
 export const headerShellVariants: Variants = {
-  hidden: {
-    opacity: 0,
-    y: -56,
-    filter: "blur(14px)",
-  },
   visible: {
-    opacity: 1,
-    y: 0,
-    filter: "blur(0px)",
     transition: {
-      duration: 1.05,
-      ease: HEADER_EASE,
       when: "beforeChildren",
       staggerChildren: 0.055,
-      delayChildren: 0.12,
+      delayChildren: 0.08,
     },
   },
 };
 
 export const headerItemVariants: Variants = {
-  hidden: {
-    opacity: 0,
-    y: -18,
-    scale: 0.88,
-    filter: "blur(8px)",
-  },
   visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    filter: "blur(0px)",
     transition: {
       type: "spring",
       stiffness: 140,
@@ -56,22 +43,13 @@ export const headerItemVariants: Variants = {
 };
 
 export const headerNavLinkVariants: Variants = {
-  hidden: {
-    opacity: 0,
-    y: -12,
-    filter: "blur(6px)",
-  },
   visible: {
-    opacity: 1,
-    y: 0,
-    filter: "blur(0px)",
-    transition: { duration: 0.55, ease: HEADER_EASE },
+    transition: { duration: 0.45, ease: HEADER_EASE },
   },
 };
 
 /** Stagger container for desktop nav links. */
 export const headerNavGroupVariants: Variants = {
-  hidden: {},
   visible: {
     transition: { staggerChildren: 0.07, delayChildren: 0.04 },
   },
