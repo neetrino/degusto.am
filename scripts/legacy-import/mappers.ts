@@ -48,17 +48,17 @@ export function mapPayment(method: string | null): {
 } {
   switch (method) {
     case "idram":
-      return { provider: "idram", method: "IDRAM" };
+      return { provider: "idram", method: "idram" };
     case "inecobank":
-      return { provider: "arca", method: "ARCA" };
+      return { provider: "arca", method: "arca" };
     case "FastShift":
-      return { provider: "fastshift", method: "FASTSHIFT" };
+      return { provider: "fastshift", method: "fastshift" };
     case "cash":
-      return { provider: "cod", method: "COD" };
+      return { provider: "cod", method: "cache" };
     case null:
-      return { provider: "cod", method: "COD" };
+      return { provider: "cod", method: "cache" };
     default:
-      return { provider: "unknown", method: method.toUpperCase() };
+      return { provider: "unknown", method: method.toLowerCase() };
   }
 }
 

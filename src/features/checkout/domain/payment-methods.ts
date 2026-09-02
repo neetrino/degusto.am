@@ -19,10 +19,10 @@ export function toPaymentRecord(method: CheckoutPaymentMethod): {
 } {
   switch (method) {
     case "idram":
-      return { provider: "idram", method: "IDRAM" };
+      return { provider: "idram", method: "idram" };
     case "arca":
-      return { provider: "arca", method: "ARCA" };
+      return { provider: "arca", method: "arca" };
     case "cash_on_delivery":
-      return { provider: "cod", method: "COD" };
+      return { provider: "cod", method: "cache" };
   }
 }

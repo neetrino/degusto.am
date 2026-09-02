@@ -22,6 +22,10 @@ export {
   type DashboardMetrics,
 } from "@/features/orders/application/queries";
 export {
+  listPendingOrderAlerts,
+  type PendingOrderAlert,
+} from "@/features/orders/application/list-pending-order-alerts";
+export {
   canTransitionOrderStatus,
   getEligibleOrderStatuses,
   isOrderStatus,

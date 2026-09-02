@@ -47,6 +47,15 @@
     "hero": "Hero",
     "settings": "Настройки"
   },
+  "newOrderAlert": {
+    "badge": "Новый заказ ({count} ожидает)",
+    "orderTitle": "Заказ #{orderNumber}",
+    "customer": "Клиент",
+    "total": "Итого",
+    "payment": "Оплата",
+    "time": "Время",
+    "acknowledge": "Слышу — закрыть все ({count})"
+  },
   "footer": {
     "addressesTitle": "Адреса",
     "contactsTitle": "Контакты",
