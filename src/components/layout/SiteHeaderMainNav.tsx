@@ -89,7 +89,8 @@ export function SiteHeaderMainNav({
         />
 
         <motion.div
-          initial={reduceMotion ? false : "hidden"}
+          /* Never mount chrome at opacity 0 / off-screen — see SiteHeaderMotion. */
+          initial={false}
           animate="visible"
           variants={reduceMotion ? undefined : headerShellVariants}
           className={[
