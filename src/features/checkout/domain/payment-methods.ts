@@ -23,6 +23,6 @@ export function toPaymentRecord(method: CheckoutPaymentMethod): {
     case "arca":
       return { provider: "arca", method: "arca" };
     case "cash_on_delivery":
-      return { provider: "cod", method: "cache" };
+      return { provider: "cod", method: "cash" };
   }
 }

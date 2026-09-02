@@ -113,13 +113,13 @@ export function HomeHero({
   return (
     <section
       ref={sectionRef}
-      className="relative left-1/2 right-1/2 hidden w-screen -ml-[50vw] -mr-[50vw] overflow-x-clip bg-[var(--project-color)] pt-8 pb-56 lg:block lg:min-h-[680px] lg:overflow-y-visible lg:pt-8 lg:pb-0 xl:min-h-[780px] 2xl:min-h-[930px]"
+      className="relative left-1/2 right-1/2 hidden w-screen -ml-[50vw] -mr-[50vw] overflow-x-clip bg-[var(--project-color)] pt-8 pb-56 lg:block lg:min-h-[760px] lg:overflow-y-visible lg:pt-8 lg:pb-12 xl:min-h-[860px] 2xl:min-h-[1020px]"
     >
       <h1 className="sr-only">{title}</h1>
 
       <motion.div
         style={{ y: imageY, scale: imageScale }}
-        className="pointer-events-none absolute inset-x-0 top-[68px] z-0 h-[900px] w-full will-change-transform lg:h-full"
+        className="pointer-events-none absolute inset-x-0 top-[68px] bottom-10 z-0 w-full will-change-transform"
       >
         <motion.div
           initial={reduceMotion ? false : { opacity: 0, scale: 1.08 }}

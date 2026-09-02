@@ -1,6 +1,6 @@
 /**
  * Admin/list label for payments.method — store values as-is for new records
- * (idram, arca, cache); normalize legacy COD / IDRAM / ARCA / CASH.
+ * (idram, arca, cash); normalize legacy COD / CASH / misspelled "cache".
  */
 export function displayPaymentMethodLabel(method: string | null | undefined): string {
   if (!method || method.trim().length === 0) {
@@ -13,7 +13,7 @@ export function displayPaymentMethodLabel(method: string | null | undefined): st
     normalized === "cash" ||
     normalized === "cache"
   ) {
-    return "cache";
+    return "cash";
   }
   if (normalized === "idram") {
     return "idram";

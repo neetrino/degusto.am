@@ -4,9 +4,9 @@ import { displayPaymentMethodLabel } from "./payment-method-display";
 
 describe("displayPaymentMethodLabel", () => {
   it("maps known payment methods", () => {
-    expect(displayPaymentMethodLabel("COD")).toBe("cache");
-    expect(displayPaymentMethodLabel("cash")).toBe("cache");
-    expect(displayPaymentMethodLabel("cache")).toBe("cache");
+    expect(displayPaymentMethodLabel("COD")).toBe("cash");
+    expect(displayPaymentMethodLabel("cash")).toBe("cash");
+    expect(displayPaymentMethodLabel("cache")).toBe("cash");
     expect(displayPaymentMethodLabel("IDRAM")).toBe("idram");
     expect(displayPaymentMethodLabel("idram")).toBe("idram");
     expect(displayPaymentMethodLabel("arca")).toBe("arca");
