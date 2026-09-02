@@ -64,14 +64,15 @@
     "addresses": [
       "Паруйра Севака 92",
       "Багратунянц 11А",
-      "Азатутян 24/19, Coffee Studio by Degusto"
+      "Азатутян 24/19, Coffee Studio by Degusto",
+      "проспект Гая 17/3"
     ],
     "email": "info@degusto.am",
     "phones": "Тел. (060) 38-80-80 / (033)-80-80-80 / (010)-38-80-80",
     "privacyPolicy": "Политика конфиденциальности",
     "returnPolicy": "Политика возврата",
     "terms": "Условия и положения",
-    "copyrightLead": "Copyright © {year} | Все права защищены | Создано",
+    "copyrightLead": "Copyright © {year} | All rights reserved | Created by",
     "copyrightBrand": "Neetrino IT Company",
     "copyrightTrail": "",
     "neetrinoHref": "https://neetrino.com",

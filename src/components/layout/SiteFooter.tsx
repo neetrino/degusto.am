@@ -158,39 +158,41 @@ export function SiteFooter({ dictionary, locale }: SiteFooterProps) {
                 footer={footer}
                 reduceMotion={reduceMotion}
               />
-              <FooterContactsBlock
-                footer={footer}
-                social={footer.social}
-                reduceMotion={reduceMotion}
-              />
+              <div>
+                <h2 className={`${headingClassName()} uppercase`}>
+                  {footer.termsTitle}
+                </h2>
+                <motion.ul
+                  variants={reduceMotion ? undefined : listVariants}
+                  className="mt-4 flex flex-col gap-2"
+                >
+                  {legalLinks.map((item) => (
+                    <motion.li
+                      key={item.label}
+                      variants={reduceMotion ? undefined : itemVariants}
+                    >
+                      <AppLink
+                        href={item.href}
+                        prefetchPolicy="intent"
+                        className={linkClassName()}
+                      >
+                        {item.label}
+                      </AppLink>
+                    </motion.li>
+                  ))}
+                </motion.ul>
+              </div>
             </motion.div>
 
             <motion.div
               variants={reduceMotion ? undefined : columnVariants}
               className="lg:col-span-3 lg:-translate-x-8 xl:-translate-x-12"
             >
-              <h2 className={`${headingClassName()} uppercase`}>
-                {footer.termsTitle}
-              </h2>
-              <motion.ul
-                variants={reduceMotion ? undefined : listVariants}
-                className="mt-4 flex flex-col gap-2"
-              >
-                {legalLinks.map((item) => (
-                  <motion.li
-                    key={item.label}
-                    variants={reduceMotion ? undefined : itemVariants}
-                  >
-                    <AppLink
-                      href={item.href}
-                      prefetchPolicy="intent"
-                      className={linkClassName()}
-                    >
-                      {item.label}
-                    </AppLink>
-                  </motion.li>
-                ))}
-              </motion.ul>
+              <FooterContactsBlock
+                footer={footer}
+                social={footer.social}
+                reduceMotion={reduceMotion}
+              />
             </motion.div>
 
             <motion.div
