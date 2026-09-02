@@ -48,7 +48,7 @@ export function ShopMobileCategoryChips({
   return (
     <nav
       aria-label={label}
-      className="-mx-4 mt-4 overflow-x-auto px-4 [scrollbar-width:none] lg:hidden [&::-webkit-scrollbar]:hidden"
+      className="-mx-4 mt-0 overflow-x-auto px-4 [scrollbar-width:none] lg:hidden [&::-webkit-scrollbar]:hidden"
     >
       <ul className="flex w-max items-center gap-2 pb-1">
         <li ref={isAll ? activeRef : undefined}>

@@ -35,7 +35,7 @@ type HomeMobileProductCardProps = {
 };
 
 /**
- * Compact home mobile product tile matching live degusto-am grid cards.
+ * Home / wishlist mobile product tile — Figma product card (node 1:1077).
  */
 export function HomeMobileProductCard({
   href,
@@ -61,7 +61,7 @@ export function HomeMobileProductCard({
   return (
     <article
       data-home-product-card="true"
-      className="relative flex h-full w-full cursor-pointer flex-col rounded-[20px] border-[1.5px] border-[#dedede] bg-white pb-6"
+      className="relative flex h-full w-full cursor-pointer flex-col rounded-[20px] bg-[#ffeacc] pb-5"
     >
       <AppLink
         href={href}
@@ -70,7 +70,7 @@ export function HomeMobileProductCard({
         className="absolute inset-0 z-[1] rounded-[inherit] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f66913]"
       />
 
-      <div className="relative aspect-[3/2] w-full overflow-hidden rounded-t-[20px] bg-gray-100">
+      <div className="relative mx-[4px] mt-[5px] aspect-[221/143] overflow-hidden rounded-[18px] bg-[#f3e6d2]">
         {imageUrl ? (
           <Image
             src={imageUrl}
@@ -81,6 +81,7 @@ export function HomeMobileProductCard({
             priority={priority}
           />
         ) : null}
+
         <WishlistButton
           locale={locale}
           productId={productId}
@@ -88,40 +89,41 @@ export function HomeMobileProductCard({
           isSignedIn={isSignedIn}
           label={wishlistLabel}
           size="sm"
-          className="absolute top-1.5 right-1.5 z-20 size-8 border border-[#dedede]/90 bg-white/95 text-gray-700 shadow-md"
+          className="absolute top-1.5 right-1.5 z-20 size-8 border border-white/70 bg-white/95 text-gray-700 shadow-md"
         />
-        {SHOW_DIET_UI && isVegetarian ? (
-          <Image
-            src={VEGGIE_ICON}
-            alt=""
-            width={22}
-            height={22}
-            className="absolute top-[11px] left-[9px] z-[2] h-[22px] w-[22px] object-contain"
-            aria-hidden
-          />
-        ) : null}
+
         {SHOW_DIET_UI && isSpicy ? (
           <Image
             src={SPICY_ICON}
             alt=""
             width={22}
             height={22}
-            className={`absolute left-[9px] z-[2] h-[22px] w-[22px] object-contain ${isVegetarian ? "top-[38px]" : "top-[11px]"}`}
+            className="absolute top-[6px] left-[5px] z-[2] size-[22px] object-contain"
+            aria-hidden
+          />
+        ) : null}
+        {SHOW_DIET_UI && isVegetarian ? (
+          <Image
+            src={VEGGIE_ICON}
+            alt=""
+            width={22}
+            height={22}
+            className={`absolute left-[5px] z-[2] size-[22px] object-contain ${isSpicy ? "top-[33px]" : "top-[6px]"}`}
             aria-hidden
           />
         ) : null}
       </div>
 
-      <div className="relative z-[2] flex min-w-0 flex-col px-2.5 pt-1.5">
-        <div className="flex items-center justify-between gap-1">
+      <div className="relative z-[2] flex min-w-0 flex-1 flex-col px-2.5 pt-1.5 pb-1">
+        <div className="flex items-center justify-between gap-1.5">
           {rating != null ? (
             <div className="flex items-center gap-1.5">
               <Image
                 src={STAR_ICON}
                 alt=""
-                width={16}
-                height={16}
-                className="size-4 object-contain"
+                width={19}
+                height={19}
+                className="size-[19px] object-contain"
                 aria-hidden
               />
               <p className="text-sm leading-none font-medium text-[rgba(60,47,47,0.62)]">
@@ -138,21 +140,20 @@ export function HomeMobileProductCard({
           ) : null}
         </div>
 
-        <div className="mt-1 flex items-start justify-between gap-2">
-          <div className="min-w-0 flex-1">
-            <h3 className="min-h-[calc(2*1.15em)] text-sm leading-[1.15] font-bold text-[#3c2f2f]">
-              <span className="line-clamp-2 break-words">{title}</span>
-            </h3>
-            <p className="mt-0.5 min-h-[1.2em] line-clamp-1 text-sm leading-[1.2] font-medium break-words text-[#a1a1a1]">
-              {categoryLabel}
-            </p>
-          </div>
-          <div className="flex max-w-[80px] shrink-0 flex-col items-end gap-0.5 text-right leading-tight">
-            <p className="w-full break-words text-sm font-black tabular-nums text-[#3c2f2f]">
+        <h3 className="mt-1 min-h-[calc(2*1.15em)] text-sm leading-[1.15] font-bold text-[#3c2f2f]">
+          <span className="line-clamp-2 break-words">{title}</span>
+        </h3>
+
+        <div className="mt-auto flex items-end justify-between gap-2 pt-1">
+          <p className="min-w-0 flex-1 line-clamp-1 text-sm leading-normal font-medium text-[#a1a1a1]">
+            {categoryLabel ?? "\u00a0"}
+          </p>
+          <div className="shrink-0 text-right leading-tight">
+            <p className="text-base font-black tabular-nums text-[#3c2f2f]">
               {priceFormatted}
             </p>
             {compareAtFormatted ? (
-              <p className="w-full break-words text-sm font-medium text-[#3c2f2f] line-through tabular-nums">
+              <p className="text-xs font-medium text-[#a1a1a1] line-through tabular-nums">
                 {compareAtFormatted}
               </p>
             ) : null}
@@ -171,9 +172,9 @@ export function HomeMobileProductCard({
         label={addToCartLabel}
         disabled={!inStock}
         iconSrc={ADD_CART_ICON}
-        iconWidth={42}
+        iconWidth={41}
         iconHeight={42}
-        className="absolute bottom-0 left-1/2 z-20 h-[42px] w-[42px] -translate-x-1/2 translate-y-1/2"
+        className="absolute bottom-0 left-1/2 z-20 h-[42px] w-[41px] -translate-x-1/2 translate-y-1/2"
         snapshot={{
           title,
           imageUrl,

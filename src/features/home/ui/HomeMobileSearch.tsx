@@ -20,7 +20,7 @@ type HomeMobileSearchProps = {
 };
 
 /**
- * Home mobile search pill — white field + filter submit control.
+ * Home mobile search pill — white field with leading search icon.
  */
 export function HomeMobileSearch({
   locale,
@@ -103,22 +103,8 @@ export function HomeMobileSearch({
         placeholder={placeholder}
         enterKeyHint="search"
         autoComplete="off"
-        className="h-full w-full rounded-[30px] bg-transparent pr-[58px] pl-[39px] text-base leading-6 text-black outline-none placeholder:text-[#abb7c2]"
+        className="h-full w-full rounded-[30px] bg-transparent pr-4 pl-[39px] text-base leading-6 text-black outline-none placeholder:text-[#abb7c2]"
       />
-      <button
-        type="submit"
-        aria-label={searchLabel}
-        className="absolute top-1/2 right-[7px] inline-flex size-10 -translate-y-1/2 items-center justify-center"
-      >
-        <Image
-          src={staticAssetUrl("/assets/mobile/search-filter.webp")}
-          alt=""
-          width={40}
-          height={40}
-          className="size-10 object-contain"
-          aria-hidden
-        />
-      </button>
     </form>
   );
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   useCallback,
@@ -17,7 +16,6 @@ import { setCurrencyAction } from "@/features/preferences/set-currency-action";
 import type { Locale } from "@/lib/i18n/config";
 import { localeLabels, locales } from "@/lib/i18n/config";
 import type { Currency } from "@/lib/money/currency";
-import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
 const HOVER_CLOSE_DELAY_MS = 140;
 
@@ -227,16 +225,9 @@ export function LocaleCurrencySwitcher({
         onClick={() => (open ? closeMenu() : openMenu())}
       >
         {isMobileHome ? (
-          <span className="inline-flex min-w-0 items-center">
-            <Image
-              src={staticAssetUrl("/assets/mobile/globe-icon.webp")}
-              alt=""
-              width={19}
-              height={19}
-              className={`h-[19px] w-[19px] shrink-0 object-contain brightness-0 ${open ? "invert" : ""}`}
-              aria-hidden
-            />
-            <span className="ml-1 truncate text-sm leading-[18px] font-bold">
+          <span className="inline-flex min-w-0 items-center gap-1">
+            <Globe className="size-[19px] shrink-0" strokeWidth={2} aria-hidden />
+            <span className="truncate text-sm leading-[18px] font-bold">
               {showCurrency ? (
                 <>
                   {localeShortLabels[locale]} / {currency}
