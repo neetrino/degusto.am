@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, count, desc, eq, ilike, inArray, or, type SQL } from "drizzle-orm";
+import { and, count, desc, eq, ilike, or, type SQL } from "drizzle-orm";
 
 import { getDb } from "@/db/client";
 import { orders, users } from "@/db/schema";
@@ -75,6 +75,7 @@ export async function listAdminUsers(
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
   const offset = (filters.page - 1) * PAGE_SIZE;
+  const orderCountExpr = count(orders.id);
 
   const [rows, [totalRow]] = await Promise.all([
     getDb()
@@ -88,43 +89,30 @@ export async function listAdminUsers(
         status: users.status,
         lastLoginAt: users.lastLoginAt,
         createdAt: users.createdAt,
+        orderCount: orderCountExpr,
       })
       .from(users)
+      .leftJoin(orders, eq(orders.userId, users.id))
       .where(where)
-      .orderBy(desc(users.createdAt))
+      .groupBy(
+        users.id,
+        users.email,
+        users.phone,
+        users.firstName,
+        users.lastName,
+        users.role,
+        users.status,
+        users.lastLoginAt,
+        users.createdAt,
+      )
+      .orderBy(desc(orderCountExpr), desc(users.createdAt))
       .limit(PAGE_SIZE)
       .offset(offset),
     getDb().select({ value: count() }).from(users).where(where),
   ]);
 
-  const orderCountMap = new Map<string, number>();
-  if (rows.length > 0) {
-    const counts = await getDb()
-      .select({
-        userId: orders.userId,
-        value: count(),
-      })
-      .from(orders)
-      .where(
-        inArray(
-          orders.userId,
-          rows.map((row) => row.id),
-        ),
-      )
-      .groupBy(orders.userId);
-
-    for (const row of counts) {
-      if (row.userId) {
-        orderCountMap.set(row.userId, row.value);
-      }
-    }
-  }
-
   return {
-    rows: rows.map((row) => ({
-      ...row,
-      orderCount: orderCountMap.get(row.id) ?? 0,
-    })),
+    rows,
     total: totalRow?.value ?? 0,
     pageSize: PAGE_SIZE,
   };

@@ -135,19 +135,19 @@ export function FooterContactsBlock({
             className="mt-0.5 h-6 w-6 shrink-0 object-contain"
             aria-hidden
           />
-          <span>
-            {splitPhoneLine(footer.phones).map((part, index) =>
-              part.kind === "tel" ? (
-                <a
-                  key={`${part.href}-${index}`}
-                  href={part.href}
-                  className="transition hover:text-brand"
-                >
-                  {part.display}
-                </a>
-              ) : (
-                <span key={`text-${index}`}>{part.value}</span>
-              ),
+          <span className="flex flex-col">
+            {splitPhoneLine(footer.phones).flatMap((part, index) =>
+              part.kind === "tel"
+                ? [
+                    <a
+                      key={`${part.href}-${index}`}
+                      href={part.href}
+                      className="transition hover:text-brand"
+                    >
+                      {part.display}
+                    </a>,
+                  ]
+                : [],
             )}
           </span>
         </p>

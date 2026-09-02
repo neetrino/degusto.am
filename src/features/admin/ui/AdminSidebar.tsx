@@ -21,6 +21,8 @@ import {
   ADMIN_SIDEBAR_NAV,
 } from "@/features/admin/ui/admin-shell-classes";
 import { useAdminProductsSubnavExpanded } from "@/features/admin/ui/useAdminProductsSubnavExpanded";
+import { AdminOrdersNavBadge } from "@/features/orders/ui/AdminOrdersNavBadge";
+import { useNewOrderAlertWaitingCount } from "@/features/orders/ui/NewOrderAlertContext";
 import type { StaffRole } from "@/features/users/domain/user-lifecycle";
 
 type AdminSidebarProps = {
@@ -47,6 +49,7 @@ export function AdminSidebar({ locale, role }: AdminSidebarProps) {
   const { collapsed } = useAdminSidebarCollapse();
   const [productsNestedExpanded, toggleProductsNested] =
     useAdminProductsSubnavExpanded(pathname, locale);
+  const newOrderCount = useNewOrderAlertWaitingCount();
 
   const asideWidthClass = collapsed ? "lg:w-16" : "lg:w-64";
   const adminHome =
@@ -184,20 +187,39 @@ export function AdminSidebar({ locale, role }: AdminSidebarProps) {
               );
             }
 
+            const showOrdersBadge = tab.id === "orders" && newOrderCount > 0;
+
             return (
               <Link
                 key={tab.id}
                 href={tab.href}
-                title={tab.label}
+                title={
+                  showOrdersBadge
+                    ? `${tab.label} (${newOrderCount})`
+                    : tab.label
+                }
                 className={rowClasses}
               >
                 <span
-                  className={`shrink-0 ${isActive ? ADMIN_NAV_ICON_ACTIVE : ADMIN_NAV_ICON_IDLE}`}
+                  className={`relative shrink-0 ${isActive ? ADMIN_NAV_ICON_ACTIVE : ADMIN_NAV_ICON_IDLE}`}
                 >
                   {tab.icon}
+                  {collapsed && showOrdersBadge ? (
+                    <span
+                      className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-0.5 text-[9px] font-bold leading-none text-white"
+                      aria-hidden
+                    >
+                      {newOrderCount > 99 ? "99+" : newOrderCount}
+                    </span>
+                  ) : null}
                 </span>
                 {collapsed ? null : (
-                  <span className="min-w-0 truncate">{tab.label}</span>
+                  <>
+                    <span className="min-w-0 truncate">{tab.label}</span>
+                    {showOrdersBadge ? (
+                      <AdminOrdersNavBadge count={newOrderCount} />
+                    ) : null}
+                  </>
                 )}
               </Link>
             );

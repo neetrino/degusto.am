@@ -29,6 +29,10 @@
     {
       "id": "bagratunyats-11a",
       "label": "Բագրատունյաց 11Ա"
+    },
+    {
+      "id": "gai-avenue-17-3",
+      "label": "Գայի Պողոտա 17/3"
     }
   ],
   "placeholders": {
@@ -41,7 +45,7 @@
     "storePickupDescription": "Վերցրեք պատվերը խանութից (Անվճար)",
     "delivery": "Առաքում",
     "deliveryDescription": "Կառաքենք ձեր հասցեով",
-    "freePickup": "Անվճար (Վերցնել մասնաճյուղից)",
+    "freePickup": "Անվճար",
     "enterCity": "Մուտքագրեք քաղաքը",
     "selectDeliveryLocation": "Ընտրեք առաքման վայրը",
     "selectPickupBranch": "Ընտրեք մասնաճյուղը"

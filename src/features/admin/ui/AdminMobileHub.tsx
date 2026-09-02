@@ -23,6 +23,8 @@ import { logoutAction } from "@/features/auth/logout-action";
 import { SHOW_ADMIN_BLOG_UI } from "@/features/blog/admin-blog-ui";
 import { SHOW_ADMIN_MESSAGES_UI } from "@/features/contact/admin-messages-ui";
 import { SHOW_ADMIN_HERO_UI } from "@/features/hero/admin-hero-ui";
+import { AdminOrdersNavBadge } from "@/features/orders/ui/AdminOrdersNavBadge";
+import { useNewOrderAlertWaitingCount } from "@/features/orders/ui/NewOrderAlertContext";
 import { SHOW_ADMIN_SETTINGS_UI } from "@/features/settings/admin-settings-ui";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
@@ -93,10 +95,12 @@ export function AdminMobileHub({
     `${user.firstName.slice(0, 1)}${user.lastName.slice(0, 1)}`.toUpperCase() ||
     "A";
   const base = `/${locale}/admin`;
+  const newOrderCount = useNewOrderAlertWaitingCount();
+  const ordersHref = `${base}/orders`;
 
   const sections: SectionItem[] = [
     {
-      href: `${base}/orders`,
+      href: ordersHref,
       label: dictionary.orders,
       icon: <ClipboardList className="h-5 w-5" strokeWidth={2.25} />,
       tone: "brand",
@@ -240,9 +244,12 @@ export function AdminMobileHub({
               className={`group flex min-h-[5.75rem] min-w-0 flex-col justify-between overflow-hidden rounded-[1.35rem] border border-[#ead7bf]/90 bg-white p-3.5 shadow-[0_10px_28px_-22px_rgba(28,25,23,0.55)] transition duration-200 hover:-translate-y-0.5 hover:border-brand/35 hover:shadow-[0_16px_32px_-20px_rgba(246,104,18,0.45)] active:scale-[0.98] sm:min-h-[6.5rem] sm:rounded-[1.5rem] sm:p-4 ${tone.ring} ring-1`}
             >
               <span
-                className={`inline-flex h-10 w-10 items-center justify-center rounded-xl shadow-[0_10px_18px_-10px_rgba(0,0,0,0.35)] transition group-hover:scale-105 sm:h-11 sm:w-11 sm:rounded-[0.9rem] ${tone.tile} ${tone.icon}`}
+                className={`relative inline-flex h-10 w-10 items-center justify-center rounded-xl shadow-[0_10px_18px_-10px_rgba(0,0,0,0.35)] transition group-hover:scale-105 sm:h-11 sm:w-11 sm:rounded-[0.9rem] ${tone.tile} ${tone.icon}`}
               >
                 {section.icon}
+                {section.href === ordersHref ? (
+                  <AdminOrdersNavBadge count={newOrderCount} variant="hub" />
+                ) : null}
               </span>
               <span className="mt-3 flex min-w-0 items-end justify-between gap-1">
                 <span className="min-w-0 flex-1 text-[12px] font-bold leading-snug break-all text-product-ink sm:text-sm">

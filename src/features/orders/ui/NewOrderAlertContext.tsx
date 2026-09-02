@@ -1,6 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 
 import { NewOrderAlertPopup } from "@/features/orders/ui/NewOrderAlertPopup";
 import {
@@ -16,9 +24,14 @@ import { useNewOrderAlertSound } from "@/features/orders/ui/useNewOrderAlertSoun
 
 const POLL_INTERVAL_MS = 5_000;
 
-type NewOrderAlertHostProps = {
-  copy: NewOrderAlertCopy;
+type NewOrderAlertContextValue = {
+  /** Unacknowledged PENDING orders waiting for staff attention. */
+  waitingCount: number;
 };
+
+const NewOrderAlertContext = createContext<NewOrderAlertContextValue | null>(
+  null,
+);
 
 async function fetchOrderAlerts(
   after: string,
@@ -37,11 +50,19 @@ async function fetchOrderAlerts(
   return (await response.json()) as NewOrderAlertPollResponse;
 }
 
+type NewOrderAlertProviderProps = {
+  copy: NewOrderAlertCopy;
+  children: ReactNode;
+};
+
 /**
- * Polls for new PENDING orders and shows an acknowledge popup with sound.
- * Mount only for ADMIN / DISPATCHER sessions.
+ * Polls for new PENDING orders, plays alert sound, shows acknowledge popup,
+ * and exposes `waitingCount` for nav badges.
  */
-export function NewOrderAlertHost({ copy }: NewOrderAlertHostProps) {
+export function NewOrderAlertProvider({
+  copy,
+  children,
+}: NewOrderAlertProviderProps) {
   const [ackedAt, setAckedAt] = useState<string | null>(null);
   const [orders, setOrders] = useState<NewOrderAlertItem[]>([]);
 
@@ -88,24 +109,35 @@ export function NewOrderAlertHost({ copy }: NewOrderAlertHostProps) {
     };
   }, [ackedAt]);
 
-  function acknowledgeAll(): void {
+  const acknowledgeAll = useCallback((): void => {
     const newest = orders[0];
     const nextAckedAt = newest?.placedAt ?? new Date().toISOString();
     writeOrderAlertAckedAt(nextAckedAt);
     setAckedAt(nextAckedAt);
     setOrders([]);
-  }
+  }, [orders]);
 
-  if (!latest) {
-    return null;
-  }
+  const value = useMemo(
+    () => ({ waitingCount }),
+    [waitingCount],
+  );
 
   return (
-    <NewOrderAlertPopup
-      order={latest}
-      waitingCount={waitingCount}
-      copy={copy}
-      onAcknowledge={acknowledgeAll}
-    />
+    <NewOrderAlertContext.Provider value={value}>
+      {children}
+      {latest ? (
+        <NewOrderAlertPopup
+          order={latest}
+          waitingCount={waitingCount}
+          copy={copy}
+          onAcknowledge={acknowledgeAll}
+        />
+      ) : null}
+    </NewOrderAlertContext.Provider>
   );
+}
+
+/** Unacknowledged new-order count for staff nav badges (0 outside provider). */
+export function useNewOrderAlertWaitingCount(): number {
+  return useContext(NewOrderAlertContext)?.waitingCount ?? 0;
 }

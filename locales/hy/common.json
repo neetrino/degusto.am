@@ -64,16 +64,17 @@
     "addresses": [
       "Պարույր Սևակի 92",
       "Բագրատունյաց 11Ա",
-      "Ազատության 24/19, Coffee Studio by Degusto"
+      "Ազատության 24/19, Coffee Studio by Degusto",
+      "Գայի Պողոտա 17/3"
     ],
     "email": "info@degusto.am",
     "phones": "Հեռ. (060) 38-80-80 / (033)-80-80-80 / (010)-38-80-80",
     "privacyPolicy": "Գաղտնիության քաղաքականություն",
     "returnPolicy": "Վերադարձի քաղաքականություն",
     "terms": "Պայմաններ և դրույթներ",
-    "copyrightLead": "Copyright © {year} | Բոլոր իրավունքները պաշտպանված են | Ստեղծվել է",
+    "copyrightLead": "Copyright © {year} | All rights reserved | Created by",
     "copyrightBrand": "Neetrino IT Company",
-    "copyrightTrail": "կողմից",
+    "copyrightTrail": "",
     "neetrinoHref": "https://neetrino.com",
     "social": {
       "instagram": "https://www.instagram.com/degusto.foodstudio/",

@@ -176,23 +176,22 @@ export function AdminUsersView({
 
       {error ? <p className="mb-3 text-sm text-red-700">{error}</p> : null}
 
-      <Card className="mb-4 flex flex-wrap items-center justify-between gap-3 p-4">
-        <p className="text-sm text-[#5c564e]">
-          Selected {selected.size} user{selected.size === 1 ? "" : "s"}
-        </p>
-        <Button
-          type="button"
-          size="sm"
-          variant="danger"
-          disabled={isPending || selected.size === 0}
-          onClick={() => {
-            if (selected.size === 0) return;
-            setConfirmOpen(true);
-          }}
-        >
-          Delete Selected
-        </Button>
-      </Card>
+      {selected.size > 0 ? (
+        <Card className="mb-4 flex flex-wrap items-center justify-between gap-3 p-4">
+          <p className="text-sm text-[#5c564e]">
+            Selected {selected.size} user{selected.size === 1 ? "" : "s"}
+          </p>
+          <Button
+            type="button"
+            size="sm"
+            variant="danger"
+            disabled={isPending}
+            onClick={() => setConfirmOpen(true)}
+          >
+            Delete Selected
+          </Button>
+        </Card>
+      ) : null}
 
       <Card className={ADMIN_TABLE_CARD}>
         {users.length === 0 ? (

@@ -74,8 +74,8 @@ describe("mapPayment", () => {
       provider: "fastshift",
       method: "fastshift",
     });
-    expect(mapPayment("cash")).toEqual({ provider: "cod", method: "cache" });
-    expect(mapPayment(null)).toEqual({ provider: "cod", method: "cache" });
+    expect(mapPayment("cash")).toEqual({ provider: "cod", method: "cash" });
+    expect(mapPayment(null)).toEqual({ provider: "cod", method: "cash" });
   });
 });
 

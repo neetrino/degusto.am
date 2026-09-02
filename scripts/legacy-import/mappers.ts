@@ -54,9 +54,9 @@ export function mapPayment(method: string | null): {
     case "FastShift":
       return { provider: "fastshift", method: "fastshift" };
     case "cash":
-      return { provider: "cod", method: "cache" };
+      return { provider: "cod", method: "cash" };
     case null:
-      return { provider: "cod", method: "cache" };
+      return { provider: "cod", method: "cash" };
     default:
       return { provider: "unknown", method: method.toLowerCase() };
   }
