@@ -45,7 +45,7 @@
     "storePickupDescription": "Pick up your order from our store (Free)",
     "delivery": "Delivery",
     "deliveryDescription": "We will deliver your order to your address",
-    "freePickup": "Free (Store Pickup)",
+    "freePickup": "Free",
     "enterCity": "Enter City",
     "selectDeliveryLocation": "Select delivery location",
     "selectPickupBranch": "Select a branch"

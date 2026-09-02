@@ -25,33 +25,27 @@ const SECTION_CLASS =
 const SECTION_TITLE =
   "mb-6 font-display text-2xl leading-none font-black tracking-tight text-[#3C2F2F] uppercase";
 
-const RADIO_SELECTED =
-  "border-[#ff7f20] bg-[#fff5ed] shadow-[0_0_0_1px_rgba(255,127,32,0.15)]";
-const RADIO_IDLE =
-  "border-[#dedede] bg-white hover:border-[#ff7f20]/45 hover:bg-[#fffaf6]";
+const FULFILLMENT_TOGGLE_ACTIVE =
+  "border-[#ff7f20] bg-[#fff5ed] text-[#3C2F2F] shadow-[0_0_0_1px_rgba(255,127,32,0.15)]";
+const FULFILLMENT_TOGGLE_IDLE =
+  "border-[#dedede] bg-[#f7f7f8] text-[#3C2F2F] hover:border-[#ff7f20]/45 hover:bg-[#fffaf6]";
 
 type CheckoutDetailsLabels = {
   contactInformation: string;
   shippingMethod: string;
-  shippingAddress: string;
   paymentMethod: string;
   firstName: string;
   lastName: string;
   email: string;
   phone: string;
-  city: string;
   address: string;
   deliveryLocation: string;
-  selectLocation: string;
   pickupBranch: string;
   selectBranch: string;
   phonePlaceholder: string;
-  cityPlaceholder: string;
   addressPlaceholder: string;
   storePickup: string;
-  storePickupDescription: string;
   delivery: string;
-  deliveryDescription: string;
   changeTitle: string;
   changeHint: string;
   changeNone: string;
@@ -178,122 +172,99 @@ export function CheckoutDetailsSections({
 
       <motion.section
         variants={reduceMotion ? undefined : checkoutSectionItem}
-        className={SECTION_CLASS}
+        className={`${SECTION_CLASS} relative z-20`}
       >
         <h2 className={SECTION_TITLE}>{labels.shippingMethod}</h2>
-        <div className="space-y-3">
-          <label
-            className={`flex cursor-pointer items-center rounded-[24px] border-2 p-4 transition-all ${
-              shippingMethod === "pickup" ? RADIO_SELECTED : RADIO_IDLE
+        <div className="mb-4 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => onShippingMethodChange("pickup")}
+            disabled={pending}
+            aria-pressed={shippingMethod === "pickup"}
+            className={`rounded-[24px] border-2 px-3 py-2.5 text-center text-xs font-bold tracking-wide uppercase transition-all disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm ${
+              shippingMethod === "pickup"
+                ? FULFILLMENT_TOGGLE_ACTIVE
+                : FULFILLMENT_TOGGLE_IDLE
             }`}
           >
-            <input
-              type="radio"
-              name="shippingMethod"
-              value="pickup"
-              checked={shippingMethod === "pickup"}
-              onChange={() => onShippingMethodChange("pickup")}
-              className="mr-4 accent-[#ff7f20]"
-              disabled={pending}
-            />
-            <div className="flex-1">
-              <div className="font-semibold text-[#3C2F2F]">
-                {labels.storePickup}
-              </div>
-              <div className="mt-0.5 text-sm text-[#717182]">
-                {labels.storePickupDescription}
-              </div>
-            </div>
-          </label>
-          <label
-            className={`flex cursor-pointer items-center rounded-[24px] border-2 p-4 transition-all ${
-              shippingMethod === "delivery" ? RADIO_SELECTED : RADIO_IDLE
+            {labels.storePickup}
+          </button>
+          <button
+            type="button"
+            onClick={() => onShippingMethodChange("delivery")}
+            disabled={pending || deliveryOptions.length === 0}
+            aria-pressed={shippingMethod === "delivery"}
+            className={`rounded-[24px] border-2 px-3 py-2.5 text-center text-xs font-bold tracking-wide uppercase transition-all disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm ${
+              shippingMethod === "delivery"
+                ? FULFILLMENT_TOGGLE_ACTIVE
+                : FULFILLMENT_TOGGLE_IDLE
             }`}
           >
-            <input
-              type="radio"
-              name="shippingMethod"
-              value="delivery"
-              checked={shippingMethod === "delivery"}
-              onChange={() => onShippingMethodChange("delivery")}
-              className="mr-4 accent-[#ff7f20]"
-              disabled={pending || deliveryOptions.length === 0}
-            />
-            <div className="flex-1">
-              <div className="font-semibold text-[#3C2F2F]">
-                {labels.delivery}
-              </div>
-              <div className="mt-0.5 text-sm text-[#717182]">
-                {labels.deliveryDescription}
-              </div>
-            </div>
-          </label>
+            {labels.delivery}
+          </button>
         </div>
-      </motion.section>
 
-      <AnimatePresence initial={false}>
-        {shippingMethod === "pickup" ? (
-          <motion.section
-            key="pickup-branch"
-            initial={
-              reduceMotion
-                ? false
-                : { opacity: 0, y: 20, filter: "blur(8px)" }
-            }
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            exit={
-              reduceMotion
-                ? undefined
-                : { opacity: 0, y: -12, filter: "blur(6px)" }
-            }
-            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-            className={`${SECTION_CLASS} relative z-20`}
-          >
-            <h2 className={SECTION_TITLE}>{labels.pickupBranch}</h2>
-            <div className="max-w-xl">
-              <SelectDropdown
-                name="pickupBranchId"
-                ariaLabel={labels.pickupBranch}
-                value={pickupBranchId}
-                allLabel={labels.selectBranch}
-                options={pickupBranches.map((branch) => ({
-                  label: branch.label,
-                  value: branch.id,
-                }))}
-                disabled={pending || pickupBranches.length === 0}
-                onValueChange={onPickupBranchChange}
-              />
-            </div>
-          </motion.section>
-        ) : null}
-      </AnimatePresence>
-
-      <AnimatePresence initial={false}>
-        {shippingMethod === "delivery" ? (
-          <motion.section
-            key="shipping-address"
-            initial={
-              reduceMotion
-                ? false
-                : { opacity: 0, y: 20, filter: "blur(8px)" }
-            }
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            exit={
-              reduceMotion
-                ? undefined
-                : { opacity: 0, y: -12, filter: "blur(6px)" }
-            }
-            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-            className={`${SECTION_CLASS} relative z-20`}
-          >
-            <h2 className={SECTION_TITLE}>{labels.shippingAddress}</h2>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <AnimatePresence initial={false} mode="wait">
+          {shippingMethod === "pickup" ? (
+            <motion.div
+              key="pickup-branch"
+              initial={
+                reduceMotion
+                  ? false
+                  : { opacity: 0, y: 12, filter: "blur(6px)" }
+              }
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              exit={
+                reduceMotion
+                  ? undefined
+                  : { opacity: 0, y: -8, filter: "blur(4px)" }
+              }
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className="max-w-xl"
+            >
+              <div className="flex flex-col gap-2 text-sm font-semibold text-[#3C2F2F]">
+                {labels.pickupBranch}
+                <SelectDropdown
+                  name="pickupBranchId"
+                  ariaLabel={labels.pickupBranch}
+                  value={pickupBranchId}
+                  allLabel={labels.selectBranch}
+                  options={pickupBranches.map((branch) => ({
+                    label: branch.label,
+                    value: branch.id,
+                  }))}
+                  disabled={pending || pickupBranches.length === 0}
+                  onValueChange={onPickupBranchChange}
+                />
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="shipping-address"
+              initial={
+                reduceMotion
+                  ? false
+                  : { opacity: 0, y: 12, filter: "blur(6px)" }
+              }
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              exit={
+                reduceMotion
+                  ? undefined
+                  : { opacity: 0, y: -8, filter: "blur(4px)" }
+              }
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className="grid grid-cols-1 gap-4 md:grid-cols-2"
+            >
               <div className="flex flex-col gap-2 text-sm font-semibold text-[#3C2F2F]">
                 {labels.deliveryLocation}
-                <input type="hidden" name="deliveryRuleId" value={deliveryRuleId} />
+                <input
+                  type="hidden"
+                  name="deliveryRuleId"
+                  value={deliveryRuleId}
+                />
                 <div
                   aria-label={labels.deliveryLocation}
-                  className="flex h-12 w-full cursor-default select-none items-center rounded-[70px] border border-[#dedede] bg-[#f7f7f8] px-5 text-[#3C2F2F] pointer-events-none"
+                  className="pointer-events-none flex h-12 w-full cursor-default select-none items-center rounded-[70px] border border-[#dedede] bg-[#f7f7f8] px-5 text-[#3C2F2F]"
                 >
                   {deliveryOptions.find((option) => option.id === deliveryRuleId)
                     ?.label ?? "Yerevan, Armenia"}
@@ -311,10 +282,10 @@ export function CheckoutDetailsSections({
                   autoComplete="street-address"
                 />
               </label>
-            </div>
-          </motion.section>
-        ) : null}
-      </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.section>
 
       <motion.div variants={reduceMotion ? undefined : checkoutSectionItem}>
         <CheckoutPaymentMethods

@@ -45,7 +45,7 @@
     "storePickupDescription": "Заберите заказ в магазине (Бесплатно)",
     "delivery": "Доставка",
     "deliveryDescription": "Доставим заказ по вашему адресу",
-    "freePickup": "Бесплатно (Самовывоз)",
+    "freePickup": "Бесплатно",
     "enterCity": "Укажите город",
     "selectDeliveryLocation": "Выберите место доставки",
     "selectPickupBranch": "Выберите филиал"

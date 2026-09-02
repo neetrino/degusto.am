@@ -168,9 +168,12 @@ export function CheckoutOrderSummary({
                 </span>
               </div>
             ) : null}
-            <div className="flex justify-between gap-4 text-white/70">
-              <span>{shippingLabel}</span>
-              <span className="max-w-[60%] text-right tabular-nums text-white">
+            <div className="flex items-baseline justify-between gap-3 text-white/70">
+              <span className="shrink-0">{shippingLabel}</span>
+              <span
+                className="min-w-0 flex-1 truncate text-right text-white"
+                title={shippingFormatted}
+              >
                 {shippingFormatted}
               </span>
             </div>

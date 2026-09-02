@@ -129,7 +129,7 @@ export function BulkChangeOrderStatusForm({
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
-      {capabilities.canArchiveOrders ? (
+      {capabilities.canArchiveOrders && selected.size > 0 ? (
         <Card className="flex min-w-0 flex-wrap items-center justify-between gap-3 p-4">
           <p className="min-w-0 text-sm text-[#5c564e]">
             Selected {selected.size} order{selected.size === 1 ? "" : "s"}
@@ -138,20 +138,16 @@ export function BulkChangeOrderStatusForm({
             type="button"
             size="sm"
             variant="danger"
-            disabled={isPending || selected.size === 0}
+            disabled={isPending}
             onClick={deleteSelected}
             className="shrink-0"
           >
             {isPending ? "Deleting…" : "Delete selected"}
           </Button>
-          {error ? (
-            <p className="w-full text-sm text-red-700">{error}</p>
-          ) : null}
-          {message ? (
-            <p className="w-full text-sm text-green-700">{message}</p>
-          ) : null}
         </Card>
       ) : null}
+      {error ? <p className="text-sm text-red-700">{error}</p> : null}
+      {message ? <p className="text-sm text-green-700">{message}</p> : null}
 
       {/* Mobile card list */}
       <div className="flex min-w-0 flex-col gap-3 lg:hidden">

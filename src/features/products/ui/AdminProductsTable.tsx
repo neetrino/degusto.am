@@ -129,20 +129,22 @@ export function AdminProductsTable({
 
   return (
     <div className="flex flex-col gap-4">
-      <Card className="flex flex-wrap items-center justify-between gap-3 p-4">
-        <p className="text-sm text-[#5c564e]">
-          Selected {selected.size} product{selected.size === 1 ? "" : "s"}
-        </p>
-        <Button
-          type="button"
-          size="sm"
-          variant="danger"
-          disabled={isPending || selected.size === 0}
-          onClick={deleteSelected}
-        >
-          Delete Selected
-        </Button>
-      </Card>
+      {selected.size > 0 ? (
+        <Card className="flex flex-wrap items-center justify-between gap-3 p-4">
+          <p className="text-sm text-[#5c564e]">
+            Selected {selected.size} product{selected.size === 1 ? "" : "s"}
+          </p>
+          <Button
+            type="button"
+            size="sm"
+            variant="danger"
+            disabled={isPending}
+            onClick={deleteSelected}
+          >
+            Delete Selected
+          </Button>
+        </Card>
+      ) : null}
 
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
 
