@@ -47,6 +47,15 @@
     "hero": "Hero",
     "settings": "Settings"
   },
+  "newOrderAlert": {
+    "badge": "New order ({count} waiting)",
+    "orderTitle": "Order #{orderNumber}",
+    "customer": "Customer",
+    "total": "Total",
+    "payment": "Payment",
+    "time": "Time",
+    "acknowledge": "Got it — close all ({count})"
+  },
   "footer": {
     "addressesTitle": "Addresses",
     "contactsTitle": "Contacts",

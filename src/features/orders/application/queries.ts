@@ -23,6 +23,7 @@ import {
   products,
   users,
 } from "@/db/schema";
+import { latestPaymentMethodSql } from "@/features/orders/application/latest-payment-method-sql";
 import type { OrderStatus } from "@/features/orders/domain/order-status";
 import type { AdminOrdersFilter } from "@/features/orders/schemas/change-status";
 import { getStoreRevenue } from "@/features/settings/application/queries";
@@ -94,15 +95,6 @@ function buildOrderFilters(filters: AdminOrdersFilter): SQL | undefined {
 
   return conditions.length > 0 ? and(...conditions) : undefined;
 }
-
-/** Latest payment method for an order (highest attempt). */
-const latestPaymentMethodSql = sql<string | null>`(
-  select ${payments.method}
-  from ${payments}
-  where ${payments.orderId} = ${orders.id}
-  order by ${payments.attemptNumber} desc
-  limit 1
-)`.as("paymentMethod");
 
 const adminOrderListSelect = {
   id: orders.id,

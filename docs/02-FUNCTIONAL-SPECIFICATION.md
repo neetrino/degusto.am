@@ -229,6 +229,7 @@
 | AORD-004 | Full-height detail drawer-ը ցույց է տալիս customer, dates, items/media/title/SKU/qty/prices, totals, address, status history և admin notes։ |
 | AORD-005 | Status transition-ը server-side state machine-ով է և history row է ստեղծում նույն transaction-ում։ |
 | AORD-006 | Payment status-ը միայն authorized admin կամ verified provider event կարող է փոխել։ |
+| AORD-007 | Admin/Dispatcher session-ում նոր `PENDING` պատվերը ցույց է տալիս acknowledge popup + ձայնային ազդանշան մինչև «Լսեցի — փակել բոլորը»; հերթի քանակը թարմացվում է։ |
 
 ## 13. Admin products և inventory
 

@@ -8,12 +8,16 @@ import {
   ADMIN_MAIN_INNER,
   ADMIN_PAGE_SHELL,
 } from "@/features/admin/ui/admin-shell-classes";
+import { NewOrderAlertHost } from "@/features/orders/ui/NewOrderAlertHost";
+import type { NewOrderAlertCopy } from "@/features/orders/ui/new-order-alert-types";
 import type { StaffRole } from "@/features/users/domain/user-lifecycle";
 
 type AdminShellProps = {
   locale: string;
   role: StaffRole;
   children: ReactNode;
+  /** Localized copy for the new-order staff alert popup. */
+  newOrderAlert: NewOrderAlertCopy;
   /** Storefront bottom nav shown only below `lg`. */
   mobileBottom?: ReactNode;
 };
@@ -26,6 +30,7 @@ export function AdminShell({
   locale,
   role,
   children,
+  newOrderAlert,
   mobileBottom,
 }: AdminShellProps) {
   return (
@@ -46,6 +51,8 @@ export function AdminShell({
         {mobileBottom ? (
           <div className="contents lg:hidden">{mobileBottom}</div>
         ) : null}
+
+        <NewOrderAlertHost copy={newOrderAlert} />
       </div>
     </AdminSidebarCollapseProvider>
   );

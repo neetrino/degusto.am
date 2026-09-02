@@ -65,6 +65,7 @@ function buildDictionary(namespaces: LocaleNamespaces) {
     header: namespaces.common.header,
     footer: namespaces.common.footer,
     adminMobile: namespaces.common.adminMobile,
+    newOrderAlert: namespaces.common.newOrderAlert,
     home: namespaces.home,
     contact: namespaces.contact,
     about: namespaces.about,

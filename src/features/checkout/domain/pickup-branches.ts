@@ -1,7 +1,6 @@
 export const PICKUP_BRANCH_IDS = [
   "paruyr-sevak-92",
   "bagratunyats-11a",
-  "azatutyan-24-19",
 ] as const;
 
 export type PickupBranchId = (typeof PICKUP_BRANCH_IDS)[number];

@@ -65,17 +65,17 @@ describe("mapOrderStatus", () => {
 
 describe("mapPayment", () => {
   it("maps known providers", () => {
-    expect(mapPayment("idram")).toEqual({ provider: "idram", method: "IDRAM" });
+    expect(mapPayment("idram")).toEqual({ provider: "idram", method: "idram" });
     expect(mapPayment("inecobank")).toEqual({
       provider: "arca",
-      method: "ARCA",
+      method: "arca",
     });
     expect(mapPayment("FastShift")).toEqual({
       provider: "fastshift",
-      method: "FASTSHIFT",
+      method: "fastshift",
     });
-    expect(mapPayment("cash")).toEqual({ provider: "cod", method: "COD" });
-    expect(mapPayment(null)).toEqual({ provider: "cod", method: "COD" });
+    expect(mapPayment("cash")).toEqual({ provider: "cod", method: "cache" });
+    expect(mapPayment(null)).toEqual({ provider: "cod", method: "cache" });
   });
 });
 

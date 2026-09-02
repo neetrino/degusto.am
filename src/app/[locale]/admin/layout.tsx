@@ -34,6 +34,7 @@ export default async function AdminLayout({
     <AdminShell
       locale={locale}
       role={user.role}
+      newOrderAlert={dictionary.newOrderAlert}
       mobileBottom={
         <MobileBottomNavIsland
           locale={locale}

@@ -47,6 +47,15 @@
     "hero": "Hero",
     "settings": "Կարգավորումներ"
   },
+  "newOrderAlert": {
+    "badge": "ՆՈՐ ՊԱՏՎԵՐ ({count} ՍՊԱՍՈՒՄ Է)",
+    "orderTitle": "Պատվեր #{orderNumber}",
+    "customer": "Հաճախորդ",
+    "total": "Ընդամենը",
+    "payment": "Վճարում",
+    "time": "Ժամանակ",
+    "acknowledge": "Լսեցի — փակել բոլորը ({count})"
+  },
   "footer": {
     "addressesTitle": "Հասցեներ",
     "contactsTitle": "Կոնտակտներ",
