@@ -129,7 +129,7 @@ export function ProfilePageSkeleton() {
           </main>
         </div>
       </div>
-      <div className="mx-auto w-full max-w-md px-4 pt-6 pb-8 lg:hidden">
+      <div className="mx-auto w-full max-w-none px-1.5 pt-6 pb-8 sm:px-2 lg:hidden">
         <div
           className={`${pulse} h-[420px] rounded-[2rem] bg-[#f3f3f3] ring-1 ring-brand/20`}
         />

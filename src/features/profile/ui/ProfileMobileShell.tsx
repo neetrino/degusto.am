@@ -112,7 +112,7 @@ export function ProfileMobileShell({
   if (isDesktop === null) {
     return (
       <>
-        <div className="profile-mobile-page mx-auto w-full max-w-md px-4 pt-6 pb-8 lg:hidden">
+        <div className="profile-mobile-page mx-auto w-full max-w-none px-1.5 pt-6 pb-8 sm:px-2 lg:hidden">
           {hub}
         </div>
         <div className="hidden min-w-0 lg:col-span-8 lg:block xl:col-span-9">
@@ -129,7 +129,7 @@ export function ProfileMobileShell({
   }
 
   return (
-    <div className="profile-mobile-page mx-auto w-full max-w-md px-4 pt-6 pb-8">
+    <div className="profile-mobile-page mx-auto w-full max-w-none px-1.5 pt-6 pb-8 sm:px-2">
       {hub}
       <ProfileMobileTabSheet
         open={sheetOpen}

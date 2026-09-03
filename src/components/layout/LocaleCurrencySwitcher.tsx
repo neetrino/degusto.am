@@ -88,6 +88,7 @@ export function LocaleCurrencySwitcher({
   const [open, setOpen] = useState(false);
   const [rendered, setRendered] = useState(false);
   const [entered, setEntered] = useState(false);
+  const [canHover, setCanHover] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const menuId = useId();
@@ -121,6 +122,24 @@ export function LocaleCurrencySwitcher({
   useEffect(() => {
     return () => clearCloseTimer();
   }, [clearCloseTimer]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const syncHoverCapability = (): void => setCanHover(mediaQuery.matches);
+    syncHoverCapability();
+
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", syncHoverCapability);
+      return () => {
+        mediaQuery.removeEventListener("change", syncHoverCapability);
+      };
+    }
+
+    mediaQuery.addListener(syncHoverCapability);
+    return () => {
+      mediaQuery.removeListener(syncHoverCapability);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -206,8 +225,8 @@ export function LocaleCurrencySwitcher({
     <div
       ref={rootRef}
       className={open || rendered ? "relative z-[300]" : "relative z-0"}
-      onMouseEnter={openMenu}
-      onMouseLeave={scheduleClose}
+      onMouseEnter={canHover ? openMenu : undefined}
+      onMouseLeave={canHover ? scheduleClose : undefined}
     >
       <button
         type="button"
