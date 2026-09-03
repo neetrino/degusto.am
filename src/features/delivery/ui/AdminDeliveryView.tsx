@@ -14,6 +14,7 @@ import {
   ADMIN_PAGE_SUBTITLE,
   ADMIN_PAGE_TITLE,
 } from "@/features/admin/ui/admin-form-classes";
+import { getAdminCopy } from "@/features/admin/ui/admin-copy";
 import {
   ADMIN_TABLE,
   ADMIN_TABLE_CARD,
@@ -42,6 +43,8 @@ export function AdminDeliveryView({
   locations,
 }: AdminDeliveryViewProps) {
   const router = useRouter();
+  const copy = getAdminCopy(locale);
+  const pageCopy = copy.pages.delivery;
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingLocation, setEditingLocation] =
     useState<AdminDeliveryLocation | null>(null);
@@ -89,9 +92,9 @@ export function AdminDeliveryView({
     <section>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className={ADMIN_PAGE_TITLE}>Delivery</h1>
+          <h1 className={ADMIN_PAGE_TITLE}>{pageCopy.title}</h1>
           <p className={`mt-1 ${ADMIN_PAGE_SUBTITLE}`}>
-            Set delivery prices by country and city for checkout.
+            {pageCopy.subtitle}
           </p>
         </div>
         <Button
@@ -101,7 +104,7 @@ export function AdminDeliveryView({
           className="inline-flex items-center gap-1.5"
         >
           <Plus className="h-4 w-4" aria-hidden />
-          Add Location
+          {pageCopy.addLocation}
         </Button>
       </div>
 
@@ -110,19 +113,18 @@ export function AdminDeliveryView({
       <Card className={ADMIN_TABLE_CARD}>
         {locations.length === 0 ? (
           <p className={`${ADMIN_TABLE_STATE_INSET} text-sm text-[#5c564e]`}>
-            No delivery locations yet. Add a location to offer delivery at
-            checkout.
+            {pageCopy.noLocations}
           </p>
         ) : (
           <div className={ADMIN_TABLE_OUTER_SCROLL}>
             <table className={ADMIN_TABLE}>
               <thead className={ADMIN_TABLE_THEAD}>
                 <tr>
-                  <th className={ADMIN_TABLE_TH}>Country</th>
-                  <th className={ADMIN_TABLE_TH_CENTER}>City</th>
-                  <th className={ADMIN_TABLE_TH_CENTER}>Price</th>
-                  <th className={ADMIN_TABLE_TH_CENTER}>Free from</th>
-                  <th className={ADMIN_TABLE_TH_CENTER}>Actions</th>
+                  <th className={ADMIN_TABLE_TH}>{pageCopy.country}</th>
+                  <th className={ADMIN_TABLE_TH_CENTER}>{pageCopy.city}</th>
+                  <th className={ADMIN_TABLE_TH_CENTER}>{pageCopy.price}</th>
+                  <th className={ADMIN_TABLE_TH_CENTER}>{pageCopy.freeFrom}</th>
+                  <th className={ADMIN_TABLE_TH_CENTER}>{pageCopy.actions}</th>
                 </tr>
               </thead>
               <tbody className={ADMIN_TABLE_TBODY}>

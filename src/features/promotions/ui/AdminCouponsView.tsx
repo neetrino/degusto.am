@@ -31,6 +31,7 @@ import {
   deletePromotionAction,
   duplicatePromotionAction,
 } from "@/features/promotions/application/upsert-promotion";
+import { getAdminCopy } from "@/features/admin/ui/admin-copy";
 import type { AdminPromotionListItem } from "@/features/promotions/application/queries";
 import { CouponDrawer } from "@/features/promotions/ui/CouponDrawer";
 
@@ -38,10 +39,6 @@ type AdminCouponsViewProps = {
   locale: string;
   coupons: AdminPromotionListItem[];
 };
-
-function typeLabel(discountType: string): string {
-  return discountType === "PERCENTAGE" ? "Percent off" : "Fixed amount (AMD)";
-}
 
 function valueLabel(discountType: string, discountValue: number): string {
   return discountType === "PERCENTAGE"
@@ -59,6 +56,8 @@ function formatValidUntil(
 
 export function AdminCouponsView({ locale, coupons }: AdminCouponsViewProps) {
   const router = useRouter();
+  const copy = getAdminCopy(locale);
+  const pageCopy = copy.pages.coupons;
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] =
     useState<AdminPromotionListItem | null>(null);
@@ -118,9 +117,9 @@ export function AdminCouponsView({ locale, coupons }: AdminCouponsViewProps) {
     <section>
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className={ADMIN_PAGE_TITLE}>Promo codes</h1>
+          <h1 className={ADMIN_PAGE_TITLE}>{pageCopy.title}</h1>
           <p className={`mt-1 ${ADMIN_PAGE_SUBTITLE}`}>
-            Create, edit, or remove discount codes for checkout.
+            {pageCopy.subtitle}
           </p>
         </div>
         <Button
@@ -130,7 +129,7 @@ export function AdminCouponsView({ locale, coupons }: AdminCouponsViewProps) {
           className="inline-flex items-center gap-1.5"
         >
           <Plus className="h-4 w-4" aria-hidden />
-          Add Promo Code
+          {pageCopy.addPromoCode}
         </Button>
       </div>
 
@@ -139,21 +138,21 @@ export function AdminCouponsView({ locale, coupons }: AdminCouponsViewProps) {
       <Card className={ADMIN_TABLE_CARD}>
         {coupons.length === 0 ? (
           <p className={`${ADMIN_TABLE_STATE_INSET} text-sm text-[#5c564e]`}>
-            No promo codes yet.
+            {pageCopy.noPromoCodes}
           </p>
         ) : (
           <div className={ADMIN_TABLE_OUTER_SCROLL}>
             <table className={ADMIN_TABLE}>
               <thead className={ADMIN_TABLE_THEAD}>
                 <tr>
-                  <th className={ADMIN_TABLE_TH}>Code</th>
-                  <th className={ADMIN_TABLE_TH_CENTER}>Type</th>
-                  <th className={ADMIN_TABLE_TH_CENTER}>Value</th>
-                  <th className={ADMIN_TABLE_TH_CENTER}>Usage limit</th>
-                  <th className={ADMIN_TABLE_TH_CENTER}>Used</th>
-                  <th className={ADMIN_TABLE_TH_CENTER}>Active</th>
-                  <th className={ADMIN_TABLE_TH_CENTER}>Valid until</th>
-                  <th className={ADMIN_TABLE_TH_CENTER}>Actions</th>
+                  <th className={ADMIN_TABLE_TH}>{pageCopy.code}</th>
+                  <th className={ADMIN_TABLE_TH_CENTER}>{pageCopy.type}</th>
+                  <th className={ADMIN_TABLE_TH_CENTER}>{pageCopy.value}</th>
+                  <th className={ADMIN_TABLE_TH_CENTER}>{pageCopy.usageLimit}</th>
+                  <th className={ADMIN_TABLE_TH_CENTER}>{pageCopy.used}</th>
+                  <th className={ADMIN_TABLE_TH_CENTER}>{pageCopy.active}</th>
+                  <th className={ADMIN_TABLE_TH_CENTER}>{pageCopy.validUntil}</th>
+                  <th className={ADMIN_TABLE_TH_CENTER}>{pageCopy.actions}</th>
                 </tr>
               </thead>
               <tbody className={ADMIN_TABLE_TBODY}>
@@ -165,7 +164,9 @@ export function AdminCouponsView({ locale, coupons }: AdminCouponsViewProps) {
                       </span>
                     </td>
                     <td className={ADMIN_TABLE_TD_CENTER}>
-                      {typeLabel(promo.discountType)}
+                      {promo.discountType === "PERCENTAGE"
+                        ? pageCopy.percentOff
+                        : pageCopy.fixedAmount}
                     </td>
                     <td className={ADMIN_TABLE_TD_CENTER}>
                       {valueLabel(promo.discountType, promo.discountValue)}

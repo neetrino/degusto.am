@@ -28,6 +28,7 @@ import {
   toggleProductFeaturedAction,
   toggleProductVisibilityAction,
 } from "@/features/products/application/admin-product-actions";
+import { getAdminCopy } from "@/features/admin/ui/admin-copy";
 import type { AdminProductListItem } from "@/features/products/application/list-admin-products";
 import { AdminProductRow } from "@/features/products/ui/AdminProductRow";
 
@@ -55,6 +56,8 @@ export function AdminProductsTable({
   onEdit,
 }: AdminProductsTableProps) {
   const router = useRouter();
+  const copy = getAdminCopy(locale);
+  const pageCopy = copy.pages.products;
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -99,10 +102,7 @@ export function AdminProductsTable({
     setPendingDelete({
       kind: "bulk",
       productIds: [...selected],
-      label:
-        count === 1
-          ? "selected product"
-          : `${count} selected products`,
+      label: String(count),
     });
   }
 
@@ -132,7 +132,7 @@ export function AdminProductsTable({
       {selected.size > 0 ? (
         <Card className="flex flex-wrap items-center justify-between gap-3 p-4">
           <p className="text-sm text-[#5c564e]">
-            Selected {selected.size} product{selected.size === 1 ? "" : "s"}
+            {pageCopy.selectedProducts}: {selected.size}
           </p>
           <Button
             type="button"
@@ -141,7 +141,7 @@ export function AdminProductsTable({
             disabled={isPending}
             onClick={deleteSelected}
           >
-            Delete Selected
+            {pageCopy.deleteSelected}
           </Button>
         </Card>
       ) : null}
@@ -151,7 +151,7 @@ export function AdminProductsTable({
       <Card className={ADMIN_TABLE_CARD}>
         {products.length === 0 ? (
           <p className={`${ADMIN_TABLE_STATE_INSET} text-sm text-[#5c564e]`}>
-            No products match these filters.
+            {pageCopy.noProductsMatch}
           </p>
         ) : (
           <div className={ADMIN_TABLE_OUTER_SCROLL}>
@@ -165,33 +165,33 @@ export function AdminProductsTable({
                       checked={allSelected}
                       onChange={toggleAll}
                       disabled={isPending}
-                      aria-label="Select all products"
+                      aria-label={pageCopy.selectAllProducts}
                     />
                   </th>
                   <th className={ADMIN_TABLE_TH}>
                     <Link href={sortLinks.title} className="hover:text-[#ff7f20]">
-                      Product
+                      {pageCopy.product}
                     </Link>
                   </th>
                   <th className={ADMIN_TABLE_TH}>
                     <Link href={sortLinks.stock} className="hover:text-[#ff7f20]">
-                      Stock
+                      {pageCopy.stock}
                     </Link>
                   </th>
                   <th className={ADMIN_TABLE_TH}>
                     <Link href={sortLinks.price} className="hover:text-[#ff7f20]">
-                      Price
+                      {pageCopy.price}
                     </Link>
                   </th>
-                  <th className={ADMIN_TABLE_TH}>Category</th>
-                  <th className={ADMIN_TABLE_TH}>Featured</th>
-                  <th className={ADMIN_TABLE_TH}>Actions</th>
+                  <th className={ADMIN_TABLE_TH}>{pageCopy.category}</th>
+                  <th className={ADMIN_TABLE_TH}>{pageCopy.featured}</th>
+                  <th className={ADMIN_TABLE_TH}>{pageCopy.actions}</th>
                   <th className={ADMIN_TABLE_TH}>
                     <Link
                       href={sortLinks.created}
                       className="hover:text-[#ff7f20]"
                     >
-                      Created
+                      {pageCopy.created}
                     </Link>
                   </th>
                 </tr>
@@ -256,9 +256,15 @@ export function AdminProductsTable({
         title="Delete"
         description={
           pendingDelete?.kind === "bulk"
-            ? `Are you sure you want to delete ${pendingDelete.label}? This action cannot be undone.`
+            ? pageCopy.deleteConfirmBulk.replace(
+                "{count}",
+                pendingDelete.label,
+              )
             : pendingDelete
-              ? deleteConfirmDescription("product", pendingDelete.label)
+              ? pageCopy.deleteConfirmSingle.replace(
+                  "{label}",
+                  pendingDelete.label,
+                )
               : ""
         }
         isPending={isPending}

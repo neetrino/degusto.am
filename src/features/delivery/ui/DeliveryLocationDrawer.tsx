@@ -13,6 +13,7 @@ import {
   ADMIN_SHEET_SURFACE,
 } from "@/features/admin/ui/admin-form-classes";
 import { AdminSheetHeader } from "@/features/admin/ui/AdminSheetHeader";
+import { getAdminCopy } from "@/features/admin/ui/admin-copy";
 import {
   createDeliveryLocationAction,
   updateDeliveryLocationAction,
@@ -38,6 +39,9 @@ function DeliveryLocationForm({
   onClose,
 }: DeliveryLocationFormProps) {
   const router = useRouter();
+  const copy = getAdminCopy(locale);
+  const commonCopy = copy.common;
+  const drawerCopy = copy.drawers.delivery;
   const isEdit = location != null;
   const [country, setCountry] = useState(location?.country ?? "");
   const [city, setCity] = useState(location?.city ?? "");
@@ -92,11 +96,11 @@ function DeliveryLocationForm({
       <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label>
-            <span className={ADMIN_LABEL}>Country</span>
+            <span className={ADMIN_LABEL}>{drawerCopy.country}</span>
             <input
               value={country}
               onChange={(event) => setCountry(event.target.value)}
-              placeholder="Armenia"
+              placeholder={drawerCopy.countryPlaceholder}
               required
               className={ADMIN_INPUT}
               disabled={isPending}
@@ -104,11 +108,11 @@ function DeliveryLocationForm({
           </label>
 
           <label>
-            <span className={ADMIN_LABEL}>City</span>
+            <span className={ADMIN_LABEL}>{drawerCopy.city}</span>
             <input
               value={city}
               onChange={(event) => setCity(event.target.value)}
-              placeholder="Yerevan"
+              placeholder={drawerCopy.cityPlaceholder}
               required
               className={ADMIN_INPUT}
               disabled={isPending}
@@ -118,7 +122,7 @@ function DeliveryLocationForm({
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label>
-            <span className={ADMIN_LABEL}>Price (AMD)</span>
+            <span className={ADMIN_LABEL}>{drawerCopy.priceAmd}</span>
             <input
               type="number"
               min={0}
@@ -133,7 +137,7 @@ function DeliveryLocationForm({
           </label>
 
           <label>
-            <span className={ADMIN_LABEL}>Free delivery from (AMD)</span>
+            <span className={ADMIN_LABEL}>{drawerCopy.freeFromAmd}</span>
             <input
               type="number"
               min={0}
@@ -156,14 +160,14 @@ function DeliveryLocationForm({
           disabled={isPending}
           className={ADMIN_SHEET_PRIMARY_BUTTON}
         >
-          {isPending ? "Saving…" : "Save"}
+          {isPending ? commonCopy.saving : commonCopy.save}
         </Button>
         <button
           type="button"
           onClick={onClose}
           className={ADMIN_SHEET_CANCEL}
         >
-          Cancel
+          {commonCopy.cancel}
         </button>
       </div>
     </form>
@@ -177,18 +181,20 @@ export function DeliveryLocationDrawer({
   location = null,
 }: DeliveryLocationDrawerProps) {
   const formKey = location?.id ?? "new";
+  const copy = getAdminCopy(locale);
+  const drawerCopy = copy.drawers.delivery;
 
   return (
     <SideSheet
       open={open}
       onClose={onClose}
-      ariaLabel={location ? "Edit location" : "Add location"}
+      ariaLabel={location ? drawerCopy.editTitle : drawerCopy.addTitle}
       surfaceClassName={ADMIN_SHEET_SURFACE}
       closeTone="brand"
       backdropBlur
     >
       <AdminSheetHeader
-        title={location ? "Edit location" : "Add location"}
+        title={location ? drawerCopy.editTitle : drawerCopy.addTitle}
       />
 
       <DeliveryLocationForm

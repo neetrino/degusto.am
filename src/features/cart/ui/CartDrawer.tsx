@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { ArrowRight, ShoppingCart } from "lucide-react";
 
 import { AppLink } from "@/components/ui/AppLink";
@@ -17,6 +17,7 @@ import {
 import { useCartLocalView } from "@/features/cart/client/use-cart-local-cache";
 import type { CartDrawerView } from "@/features/cart/get-cart-drawer-view";
 import { loadCartDrawerViewAction } from "@/features/cart/load-cart-drawer-view-action";
+import { OPEN_CART_DRAWER_EVENT } from "@/features/cart/ui/cart-drawer-events";
 import { CartDrawerLineList } from "@/features/cart/ui/CartDrawerLineList";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
@@ -35,6 +36,7 @@ type CartDrawerProps = {
   currency: Currency;
   dictionary: Dictionary;
   itemCount: number;
+  openOnEventMediaQuery?: string;
   /** Custom trigger (e.g. mobile bottom nav). Defaults to header cart button. */
   renderTrigger?: (args: CartDrawerTriggerArgs) => React.ReactNode;
 };
@@ -54,6 +56,7 @@ export function CartDrawer({
   currency,
   dictionary,
   itemCount,
+  openOnEventMediaQuery,
   renderTrigger,
 }: CartDrawerProps) {
   const [open, setOpen] = useState(false);
@@ -101,6 +104,30 @@ export function CartDrawer({
     setOpen(true);
     fetchDrawerView();
   }
+
+  useEffect(() => {
+    function handleOpenRequested(): void {
+      if (openOnEventMediaQuery && !window.matchMedia(openOnEventMediaQuery).matches) {
+        return;
+      }
+      setOpen(true);
+      setLoadingView(true);
+      startTransition(async () => {
+        try {
+          const next = await loadCartDrawerViewAction(locale, currency);
+          setServerView(next);
+          replaceCartLocalFromServer(next, locale, currency);
+        } finally {
+          setLoadingView(false);
+        }
+      });
+    }
+
+    window.addEventListener(OPEN_CART_DRAWER_EVENT, handleOpenRequested);
+    return () => {
+      window.removeEventListener(OPEN_CART_DRAWER_EVENT, handleOpenRequested);
+    };
+  }, [currency, locale, openOnEventMediaQuery, startTransition]);
 
   function changeQuantity(itemId: string, quantity: number): void {
     beginCartMutation();

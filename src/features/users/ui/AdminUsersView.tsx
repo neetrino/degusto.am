@@ -247,9 +247,6 @@ export function AdminUsersView({
                           <p className="font-medium text-[#1f1a17] hover:underline">
                             {displayName(user)}
                           </p>
-                          <p className="truncate text-xs text-[#8a837a]">
-                            {user.id}
-                          </p>
                         </Link>
                       </td>
                       <td className={ADMIN_TABLE_TD}>

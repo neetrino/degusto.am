@@ -8,6 +8,7 @@ import {
   ADMIN_LABEL,
   ADMIN_TEXT_MUTED,
 } from "@/features/admin/ui/admin-form-classes";
+import { getAdminCopy } from "@/features/admin/ui/admin-copy";
 
 export type ProductModifierDraft = {
   key: string;
@@ -18,6 +19,7 @@ export type ProductModifierDraft = {
 };
 
 type ProductDrawerModifiersProps = {
+  locale: string;
   additions: readonly ProductModifierDraft[];
   exclusions: readonly ProductModifierDraft[];
   disabled?: boolean;
@@ -29,6 +31,8 @@ type ModifierColumnProps = {
   title: string;
   subtitle: string;
   placeholder: string;
+  pricePlaceholder: string;
+  addLabel: string;
   items: readonly ProductModifierDraft[];
   disabled: boolean;
   showPrice: boolean;
@@ -58,6 +62,8 @@ function ModifierColumn({
   title,
   subtitle,
   placeholder,
+  pricePlaceholder,
+  addLabel,
   items,
   disabled,
   showPrice,
@@ -202,7 +208,7 @@ function ModifierColumn({
               value={draftPrice}
               onChange={(event) => setDraftPrice(event.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Գին"
+              placeholder={pricePlaceholder}
               inputMode="numeric"
               disabled={disabled}
               className={`${ADMIN_INPUT} h-10 min-w-0 !w-full !rounded-xl !px-3 !text-sm tabular-nums`}
@@ -220,7 +226,7 @@ function ModifierColumn({
           className="inline-flex h-10 w-full items-center justify-center gap-1 rounded-xl bg-[#3c2f2f] px-3 text-sm font-medium text-white transition hover:bg-[#2a211f] disabled:opacity-50"
         >
           <Plus className="size-4" strokeWidth={2.5} aria-hidden />
-          Ավելացնել
+          {addLabel}
         </button>
       </div>
     </div>
@@ -229,30 +235,37 @@ function ModifierColumn({
 
 /** Admin product additions / exclusions editor. */
 export function ProductDrawerModifiers({
+  locale,
   additions,
   exclusions,
   disabled = false,
   onAdditionsChange,
   onExclusionsChange,
 }: ProductDrawerModifiersProps) {
+  const copy = getAdminCopy(locale);
+  const productCopy = copy.drawers.product;
   return (
     <fieldset disabled={disabled} className="min-w-0 space-y-3">
-      <legend className={ADMIN_LABEL}>Ավելացում / Բացառում</legend>
+      <legend className={ADMIN_LABEL}>{productCopy.modifiersLegend}</legend>
 
       <div className="grid gap-3 lg:grid-cols-2">
         <ModifierColumn
-          title="Ավելացում"
-          subtitle="լրացուցիչ + գին"
-          placeholder="Նոր ավելացում..."
+          title={productCopy.additionsTitle}
+          subtitle={productCopy.additionsSubtitle}
+          placeholder={productCopy.additionsPlaceholder}
+          pricePlaceholder={productCopy.modifierPricePlaceholder}
+          addLabel={copy.common.create}
           items={additions}
           disabled={disabled}
           showPrice
           onChange={onAdditionsChange}
         />
         <ModifierColumn
-          title="Բացառում (բաղադրիչներ)"
-          subtitle="ներառված են սկզբից"
-          placeholder="Նոր բաղադրիչ..."
+          title={productCopy.exclusionsTitle}
+          subtitle={productCopy.exclusionsSubtitle}
+          placeholder={productCopy.exclusionsPlaceholder}
+          pricePlaceholder={productCopy.modifierPricePlaceholder}
+          addLabel={copy.common.create}
           items={exclusions}
           disabled={disabled}
           showPrice={false}

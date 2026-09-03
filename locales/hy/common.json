@@ -47,6 +47,36 @@
     "hero": "Hero",
     "settings": "Կարգավորումներ"
   },
+  "adminDashboard": {
+    "title": "Ադմին",
+    "subtitle": "Բարի գալուստ ադմինի վահանակ",
+    "revenueDeltaSuffix": "նախորդի համեմատ",
+    "recentOrders": "Վերջին պատվերներ",
+    "topProducts": "Թոփ ապրանքներ",
+    "viewAll": "Տեսնել բոլորը",
+    "noRecentOrders": "Վերջին պատվերներ չկան։",
+    "soldSuffix": "վաճառք",
+    "noProductSales": "Այս միջակայքում վաճառք չի գրանցվել։",
+    "quickActions": "Արագ գործողություններ",
+    "actions": {
+      "addProduct": {
+        "title": "Ավելացնել ապրանք",
+        "subtitle": "Ստեղծել նոր ապրանք"
+      },
+      "manageOrders": {
+        "title": "Կառավարել պատվերները",
+        "subtitle": "Տեսնել բոլոր պատվերները"
+      },
+      "manageUsers": {
+        "title": "Կառավարել օգտատերերին",
+        "subtitle": "Տեսնել բոլոր օգտատերերին"
+      },
+      "settings": {
+        "title": "Կարգավորումներ",
+        "subtitle": "Կարգավորել խանութը"
+      }
+    }
+  },
   "newOrderAlert": {
     "badge": "ՆՈՐ ՊԱՏՎԵՐ ({count} ՍՊԱՍՈՒՄ Է)",
     "orderTitle": "Պատվեր #{orderNumber}",

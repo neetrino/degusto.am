@@ -61,17 +61,7 @@ export function FooterAddressesBlock({
 }: FooterAddressesBlockProps) {
   return (
     <div className="flex w-full max-w-[280px] flex-col gap-[17px]">
-      <div className="flex items-center gap-1.5">
-        <Image
-          src={ICON_PIN}
-          alt=""
-          width={18}
-          height={24}
-          className="h-6 w-[18px] object-contain"
-          aria-hidden
-        />
-        <h2 className={headingClassName()}>{footer.addressesTitle}</h2>
-      </div>
+      <h2 className={headingClassName()}>{footer.addressesTitle}</h2>
       <motion.ul
         variants={reduceMotion ? undefined : listVariants}
         className="flex flex-col gap-[5px]"
@@ -85,8 +75,16 @@ export function FooterAddressesBlock({
               href={googleMapsSearchUrl(address)}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm leading-[27px] text-white transition hover:text-brand"
+              className="flex items-center gap-2 text-sm leading-[27px] text-white transition hover:text-brand"
             >
+              <Image
+                src={ICON_PIN}
+                alt=""
+                width={14}
+                height={18}
+                className="h-[18px] w-[14px] shrink-0 object-contain brightness-0 invert"
+                aria-hidden
+              />
               {address}
             </a>
           </motion.li>
@@ -126,31 +124,33 @@ export function FooterContactsBlock({
           />
           {footer.email}
         </a>
-        <p className="flex items-start gap-[11px] text-sm leading-[27px] text-white">
-          <Image
-            src={ICON_PHONE}
-            alt=""
-            width={24}
-            height={25}
-            className="mt-0.5 h-6 w-6 shrink-0 object-contain"
-            aria-hidden
-          />
-          <span className="flex flex-col">
-            {splitPhoneLine(footer.phones).flatMap((part, index) =>
-              part.kind === "tel"
-                ? [
+        <div className="flex flex-col gap-1 text-sm leading-[27px] text-white">
+          {splitPhoneLine(footer.phones).flatMap((part, index) =>
+            part.kind === "tel"
+              ? [
+                  <p
+                    key={`${part.href}-${index}`}
+                    className="flex items-center gap-[11px]"
+                  >
+                    <Image
+                      src={ICON_PHONE}
+                      alt=""
+                      width={20}
+                      height={20}
+                      className="h-5 w-5 shrink-0 object-contain"
+                      aria-hidden
+                    />
                     <a
-                      key={`${part.href}-${index}`}
                       href={part.href}
                       className="transition hover:text-brand"
                     >
                       {part.display}
-                    </a>,
-                  ]
-                : [],
-            )}
-          </span>
-        </p>
+                    </a>
+                  </p>,
+                ]
+              : [],
+          )}
+        </div>
         <motion.ul
           variants={reduceMotion ? undefined : listVariants}
           className="mt-1 flex flex-wrap items-center gap-4"

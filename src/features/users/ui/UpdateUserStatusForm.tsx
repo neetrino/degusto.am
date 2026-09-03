@@ -5,9 +5,7 @@ import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { SelectDropdown } from "@/components/ui/SelectDropdown";
 import {
-  ADMIN_LABEL,
   ADMIN_SECTION_TITLE,
 } from "@/features/admin/ui/admin-form-classes";
 import { updateUserStatusAction } from "@/features/users/application/update-user";
@@ -64,22 +62,32 @@ export function UpdateUserStatusForm({
         <p className="text-sm text-[#5c564e]">
           Current: <strong className="text-[#1f1a17]">{currentStatus}</strong>
         </p>
-        <div>
-          <span className={ADMIN_LABEL}>New status</span>
-          <SelectDropdown
-            name="status"
-            ariaLabel="New status"
-            value={status}
-            options={eligibleStatuses.map((item) => ({
-              label: item,
-              value: item,
-            }))}
-            disabled={isPending}
-            deferChange={false}
-            className="mt-1"
-            onValueChange={setStatus}
-          />
-        </div>
+        <fieldset className="space-y-2">
+          <legend className="text-sm font-medium text-[#3e573d]">
+            New status
+          </legend>
+          <div className="flex flex-wrap gap-2 rounded-2xl border border-[#ead7bf] bg-[#fffaf2] p-2">
+            {eligibleStatuses.map((item) => {
+              const isActive = status === item;
+              return (
+                <button
+                  key={item}
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => setStatus(item)}
+                  className={`rounded-xl px-3 py-1.5 text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-[#1f3a22] text-[#fffdf8]"
+                      : "border border-[#ead7bf] bg-white text-[#5c564e] hover:border-[#ff7f20]/45 hover:bg-[#fff4eb] hover:text-[#1f1a17]"
+                  } disabled:cursor-not-allowed disabled:opacity-60`}
+                  aria-pressed={isActive}
+                >
+                  {item}
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
         {error ? <p className="text-sm text-red-700">{error}</p> : null}
         <Button type="submit" size="sm" disabled={isPending}>
           {isPending ? "Updating…" : "Update status"}

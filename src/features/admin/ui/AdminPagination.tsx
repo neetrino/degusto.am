@@ -10,6 +10,8 @@ type AdminPaginationProps = {
   totalPages: number;
   buildHref: (page: number) => string;
   ariaLabel?: string;
+  previousLabel?: string;
+  nextLabel?: string;
 };
 
 /**
@@ -20,6 +22,8 @@ export function AdminPagination({
   totalPages,
   buildHref,
   ariaLabel = "Pagination",
+  previousLabel = "Previous",
+  nextLabel = "Next",
 }: AdminPaginationProps) {
   if (totalPages <= 1) {
     return null;
@@ -31,10 +35,10 @@ export function AdminPagination({
     <nav aria-label={ariaLabel} className={ADMIN_PAGINATION}>
       {currentPage > 1 ? (
         <Link href={buildHref(currentPage - 1)} className={ADMIN_LINK}>
-          Previous
+          {previousLabel}
         </Link>
       ) : (
-        <span className="cursor-default text-[#c4bdb3]">Previous</span>
+        <span className="cursor-default text-[#c4bdb3]">{previousLabel}</span>
       )}
 
       <span className="mx-1 text-[#c4bdb3]" aria-hidden>
@@ -75,10 +79,10 @@ export function AdminPagination({
 
       {currentPage < totalPages ? (
         <Link href={buildHref(currentPage + 1)} className={ADMIN_LINK}>
-          Next
+          {nextLabel}
         </Link>
       ) : (
-        <span className="cursor-default text-[#c4bdb3]">Next</span>
+        <span className="cursor-default text-[#c4bdb3]">{nextLabel}</span>
       )}
     </nav>
   );

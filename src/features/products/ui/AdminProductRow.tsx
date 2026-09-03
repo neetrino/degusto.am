@@ -9,6 +9,7 @@ import {
   ADMIN_TABLE_TD_CHECK,
   ADMIN_TABLE_CHECKBOX,
 } from "@/features/admin/ui/admin-table-classes";
+import { getAdminCopy } from "@/features/admin/ui/admin-copy";
 import type { AdminProductListItem } from "@/features/products/application/list-admin-products";
 import { formatMoneyAmount } from "@/lib/money/format";
 
@@ -41,6 +42,8 @@ export function AdminProductRow({
   onDelete,
   onVisibility,
 }: AdminProductRowProps) {
+  const copy = getAdminCopy(locale);
+  const pageCopy = copy.pages.products;
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
   const isActive = product.status === "ACTIVE";
   const created = new Date(product.createdAt);
@@ -64,7 +67,7 @@ export function AdminProductRow({
         }
       }}
       tabIndex={disabled ? -1 : 0}
-      aria-label={`Edit ${product.title}`}
+      aria-label={`${copy.common.save} ${product.title}`}
     >
       <td className={ADMIN_TABLE_TD_CHECK} onClick={stopRowAction}>
         <input
@@ -73,7 +76,7 @@ export function AdminProductRow({
           checked={selected}
           onChange={onToggle}
           disabled={disabled}
-          aria-label={`Select ${product.title}`}
+          aria-label={`${pageCopy.actions}: ${product.title}`}
         />
       </td>
       <td className={ADMIN_TABLE_TD}>
@@ -93,7 +96,9 @@ export function AdminProductRow({
                 }}
               />
             ) : (
-              <span className="text-[10px] text-[#8a837a]">N/A</span>
+              <span className="text-[10px] text-[#8a837a]">
+                {pageCopy.notAvailableShort}
+              </span>
             )}
           </div>
           <div className="min-w-0">
@@ -103,7 +108,9 @@ export function AdminProductRow({
         </div>
       </td>
       <td className={ADMIN_TABLE_TD}>
-        <span className="text-[#1f1a17]">{product.stockOnHand} pcs</span>
+        <span className="text-[#1f1a17]">
+          {product.stockOnHand} {pageCopy.stockUnit}
+        </span>
       </td>
       <td className={ADMIN_TABLE_TD}>
         <div className="flex flex-col">
@@ -132,7 +139,7 @@ export function AdminProductRow({
           onClick={onFeatured}
           className="rounded p-1 text-[#8a837a] hover:bg-[#fff4eb] hover:text-amber-500"
           aria-label={
-            product.isFeatured ? "Unfeature product" : "Feature product"
+            product.isFeatured ? pageCopy.featured : pageCopy.featured
           }
         >
           <Star
@@ -177,7 +184,7 @@ export function AdminProductRow({
             className={`relative ml-1 h-5 w-9 rounded-full transition-colors ${
               isActive ? "bg-[#3e573d]" : "bg-[#d4ccc0]"
             }`}
-            aria-label={isActive ? "Deactivate product" : "Activate product"}
+            aria-label={isActive ? pageCopy.outOfStock : pageCopy.inStock}
           >
             <span
               className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition-transform ${

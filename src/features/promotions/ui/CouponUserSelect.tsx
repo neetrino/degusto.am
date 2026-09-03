@@ -7,6 +7,7 @@ import {
   ADMIN_INPUT,
   ADMIN_LABEL,
 } from "@/features/admin/ui/admin-form-classes";
+import { getAdminCopy } from "@/features/admin/ui/admin-copy";
 import {
   formatCouponUserLabel,
   MAX_COUPON_ALLOWED_USERS,
@@ -31,6 +32,8 @@ export function CouponUserSelect({
   disabled,
   onSelectedChange,
 }: CouponUserSelectProps) {
+  const copy = getAdminCopy(locale);
+  const couponCopy = copy.drawers.coupon;
   const listId = useId();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -41,8 +44,11 @@ export function CouponUserSelect({
   const selectedIds = new Set(selectedUsers.map((user) => user.id));
   const triggerHint =
     selectedUsers.length === 0
-      ? "All users can use this coupon"
-      : `${selectedUsers.length} selected user${selectedUsers.length === 1 ? "" : "s"}`;
+      ? couponCopy.allUsersAllowed
+      : couponCopy.selectedUsersCount.replace(
+          "{count}",
+          String(selectedUsers.length),
+        );
 
   useEffect(() => {
     if (!open) {
@@ -70,7 +76,12 @@ export function CouponUserSelect({
       return;
     }
     if (selectedUsers.length >= MAX_COUPON_ALLOWED_USERS) {
-      setError(`You can select up to ${MAX_COUPON_ALLOWED_USERS} users.`);
+      setError(
+        couponCopy.maxUsersError.replace(
+          "{count}",
+          String(MAX_COUPON_ALLOWED_USERS),
+        ),
+      );
       return;
     }
     onSelectedChange([...selectedUsers, user]);
@@ -83,7 +94,7 @@ export function CouponUserSelect({
 
   return (
     <div>
-      <span className={ADMIN_LABEL}>Allowed users</span>
+      <span className={ADMIN_LABEL}>{couponCopy.allowedUsers}</span>
       <div className={`relative mt-1 ${open ? "z-50" : "z-0"}`}>
         <button
           type="button"
@@ -95,7 +106,7 @@ export function CouponUserSelect({
         >
           <span className="min-w-0 flex-1">
             <span className="block truncate text-sm font-medium text-[#1f1a17]">
-              Select users
+                {couponCopy.selectUsers}
             </span>
             <span className="mt-0.5 block truncate text-sm text-[#8a837a]">
               {triggerHint}
@@ -125,7 +136,7 @@ export function CouponUserSelect({
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search by name, email, or phone"
+                placeholder={couponCopy.searchUsersPlaceholder}
                 className={ADMIN_INPUT}
                 disabled={disabled || isPending}
               />
@@ -154,17 +165,17 @@ export function CouponUserSelect({
                 </ul>
               ) : (
                 <p className="mt-3 text-sm text-[#8a837a]">
-                  Leave empty to allow all users.
+                  {couponCopy.leaveEmptyHint}
                 </p>
               )}
 
               <div className="mt-3 border-t border-[#ead7bf]/60 pt-3">
                 <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[#8a837a]">
-                  Search results
+                  {couponCopy.searchResults}
                 </p>
                 {results.length === 0 ? (
                   <p className="text-sm text-[#8a837a]">
-                    {isPending ? "Searching…" : "No users found."}
+                    {isPending ? couponCopy.searching : couponCopy.noUsersFound}
                   </p>
                 ) : (
                   <ul className="space-y-1">

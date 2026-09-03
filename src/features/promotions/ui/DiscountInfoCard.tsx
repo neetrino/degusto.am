@@ -1,18 +1,14 @@
 import Link from "next/link";
 import { Info } from "lucide-react";
+import { getAdminCopy } from "@/features/admin/ui/admin-copy";
 
 type DiscountInfoCardProps = {
   locale: string;
 };
 
-const INFO_POINTS = [
-  "Global discount applies to every product unless a stronger product rule exists.",
-  "Category discount applies to products in that category.",
-  "Product discount overrides category and global percentage for that item.",
-  "Clear removes the rule; Save persists the current percentage.",
-] as const;
-
 export function DiscountInfoCard({ locale }: DiscountInfoCardProps) {
+  const copy = getAdminCopy(locale);
+  const pageCopy = copy.pages.discounts;
   return (
     <article className="flex h-full flex-col rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
       <div className="mb-4 flex items-start gap-3">
@@ -21,14 +17,14 @@ export function DiscountInfoCard({ locale }: DiscountInfoCardProps) {
         </span>
         <div>
           <h2 className="text-base font-semibold text-gray-900">
-            Useful Information
+            {pageCopy.infoTitle}
           </h2>
-          <p className="text-sm text-gray-500">About Discounts</p>
+          <p className="text-sm text-gray-500">{pageCopy.infoSubtitle}</p>
         </div>
       </div>
 
       <ul className="flex-1 list-disc space-y-2 pl-5 text-sm text-gray-700">
-        {INFO_POINTS.map((point) => (
+        {pageCopy.infoPoints.map((point) => (
           <li key={point}>{point}</li>
         ))}
       </ul>
@@ -38,7 +34,7 @@ export function DiscountInfoCard({ locale }: DiscountInfoCardProps) {
           href={`/${locale}/admin/settings`}
           className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
         >
-          More Settings →
+          {pageCopy.infoMore}
         </Link>
       </div>
     </article>

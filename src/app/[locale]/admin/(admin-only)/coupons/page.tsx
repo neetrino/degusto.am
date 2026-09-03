@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ADMIN_LINK } from "@/features/admin/ui/admin-form-classes";
+import { getAdminCopy } from "@/features/admin/ui/admin-copy";
 import { listAdminPromotions } from "@/features/promotions/application/queries";
 import { adminPromotionsFilterSchema } from "@/features/promotions/schemas/admin-promotions";
 import { AdminCouponsView } from "@/features/promotions/ui/AdminCouponsView";
@@ -29,6 +30,7 @@ export default async function AdminCouponsPage({
   if (!isLocale(locale)) {
     notFound();
   }
+  const copy = getAdminCopy(locale);
 
   const raw = await searchParams;
   const parsed = adminPromotionsFilterSchema.safeParse({
@@ -60,18 +62,19 @@ export default async function AdminCouponsPage({
               href={`/${locale}/admin/coupons?page=${filters.page - 1}`}
               className={ADMIN_LINK}
             >
-              Previous
+              {copy.pages.pagination.previous}
             </Link>
           ) : null}
           <span>
-            Page {filters.page} / {totalPages}
+            {copy.pages.pagination.page} {filters.page} {copy.pages.pagination.of}{" "}
+            {totalPages}
           </span>
           {filters.page < totalPages ? (
             <Link
               href={`/${locale}/admin/coupons?page=${filters.page + 1}`}
               className={ADMIN_LINK}
             >
-              Next
+              {copy.pages.pagination.next}
             </Link>
           ) : null}
         </nav>

@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { X } from "lucide-react";
 
 import { ADMIN_LABEL } from "@/features/admin/ui/admin-form-classes";
+import { getAdminCopy } from "@/features/admin/ui/admin-copy";
 
 export type ProductDraftImage = {
   key: string;
@@ -15,16 +16,19 @@ export type ProductDraftImage = {
 };
 
 type ProductDrawerImagesProps = {
+  locale: string;
   images: ProductDraftImage[];
   disabled: boolean;
   onChange: (images: ProductDraftImage[]) => void;
 };
 
 export function ProductDrawerImages({
+  locale,
   images,
   disabled,
   onChange,
 }: ProductDrawerImagesProps) {
+  const copy = getAdminCopy(locale);
   const inputRef = useRef<HTMLInputElement>(null);
 
   function setPrimary(key: string): void {
@@ -72,7 +76,7 @@ export function ProductDrawerImages({
 
   return (
     <div>
-      <span className={ADMIN_LABEL}>Main Product Image</span>
+      <span className={ADMIN_LABEL}>{copy.drawers.product.mainImage}</span>
       <div className="mt-1 flex flex-wrap items-center gap-3">
         <button
           type="button"
@@ -80,7 +84,7 @@ export function ProductDrawerImages({
           onClick={() => inputRef.current?.click()}
           className="inline-flex items-center rounded-xl border border-dashed border-[#ead7bf] px-4 py-2 text-sm font-medium text-[#5c564e] hover:border-[#ff7f20]/50 hover:bg-[#fff4eb] disabled:opacity-50"
         >
-          + Upload Image
+          {copy.common.uploadImage}
         </button>
         <input
           ref={inputRef}
@@ -96,7 +100,7 @@ export function ProductDrawerImages({
         />
       </div>
       <p className="mt-1 text-xs text-[#8a837a]">
-        Upload one or more images, then mark the main image with the checkbox.
+        {copy.drawers.product.mainImageHint}
       </p>
 
       {images.length > 0 ? (
@@ -122,14 +126,14 @@ export function ProductDrawerImages({
                     onChange={() => setPrimary(image.key)}
                     className="h-3.5 w-3.5 rounded border-[#ead7bf]"
                   />
-                  Main
+                  {copy.drawers.product.mainImageTag}
                 </label>
                 <button
                   type="button"
                   disabled={disabled}
                   onClick={() => removeImage(image.key)}
                   className="rounded p-1 text-[#8a837a] hover:bg-white hover:text-red-600"
-                  aria-label="Remove image"
+                  aria-label={copy.common.remove}
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
