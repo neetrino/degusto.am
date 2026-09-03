@@ -47,6 +47,36 @@
     "hero": "Hero",
     "settings": "Настройки"
   },
+  "adminDashboard": {
+    "title": "Админ",
+    "subtitle": "Добро пожаловать в админ-панель",
+    "revenueDeltaSuffix": "к пред. периоду",
+    "recentOrders": "Последние заказы",
+    "topProducts": "Топ товаров",
+    "viewAll": "Смотреть все",
+    "noRecentOrders": "Последних заказов нет.",
+    "soldSuffix": "продано",
+    "noProductSales": "В этом диапазоне продаж нет.",
+    "quickActions": "Быстрые действия",
+    "actions": {
+      "addProduct": {
+        "title": "Добавить товар",
+        "subtitle": "Создать новый товар"
+      },
+      "manageOrders": {
+        "title": "Управление заказами",
+        "subtitle": "Смотреть все заказы"
+      },
+      "manageUsers": {
+        "title": "Управление пользователями",
+        "subtitle": "Смотреть всех пользователей"
+      },
+      "settings": {
+        "title": "Настройки",
+        "subtitle": "Настроить магазин"
+      }
+    }
+  },
   "newOrderAlert": {
     "badge": "Новый заказ ({count} ожидает)",
     "orderTitle": "Заказ #{orderNumber}",

@@ -8,6 +8,7 @@ import {
   isAdminTabActive,
   type AdminMenuItem,
 } from "@/features/admin/ui/admin-menu.config";
+import { getAdminCopy } from "@/features/admin/ui/admin-copy";
 import { AdminSidebarBrand } from "@/features/admin/ui/AdminSidebarBrand";
 import { useAdminSidebarCollapse } from "@/features/admin/ui/AdminSidebarCollapseContext";
 import {
@@ -46,6 +47,7 @@ function isNestedVisible(
 export function AdminSidebar({ locale, role }: AdminSidebarProps) {
   const pathname = usePathname() ?? `/${locale}/admin`;
   const tabs = getAdminMenuItems(locale, role);
+  const copy = getAdminCopy(locale);
   const { collapsed } = useAdminSidebarCollapse();
   const [productsNestedExpanded, toggleProductsNested] =
     useAdminProductsSubnavExpanded(pathname, locale);
@@ -76,14 +78,16 @@ export function AdminSidebar({ locale, role }: AdminSidebarProps) {
                   Degusto
                 </span>
                 <span className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8a837a]">
-                  {role === "DISPATCHER" ? "Dispatcher" : "Admin"}
+                  {role === "DISPATCHER"
+                    ? copy.sidebar.roleDispatcher
+                    : copy.sidebar.roleAdmin}
                 </span>
               </span>
             </Link>
             <Link
               href={adminHome}
               className={`${ADMIN_MOBILE_MENU_TRIGGER} lg:hidden`}
-              aria-label="Admin home"
+              aria-label={copy.sidebar.home}
             >
               <svg
                 className="h-4 w-4"
@@ -99,7 +103,7 @@ export function AdminSidebar({ locale, role }: AdminSidebarProps) {
                   d="M4 6H20M4 12H16M4 18H12"
                 />
               </svg>
-              Menu
+              {copy.sidebar.menu}
             </Link>
           </div>
         </div>
@@ -156,8 +160,8 @@ export function AdminSidebar({ locale, role }: AdminSidebarProps) {
                   <button
                     type="button"
                     aria-expanded={productsNestedExpanded}
-                    aria-label="Toggle product subpages"
-                    title="Toggle product subpages"
+                    aria-label={copy.sidebar.toggleProductsSubpages}
+                    title={copy.sidebar.toggleProductsSubpages}
                     onClick={(event) => {
                       event.preventDefault();
                       toggleProductsNested();

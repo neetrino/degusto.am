@@ -16,6 +16,7 @@ import {
   ADMIN_TEXTAREA,
 } from "@/features/admin/ui/admin-form-classes";
 import { AdminSheetHeader } from "@/features/admin/ui/AdminSheetHeader";
+import { getAdminCopy } from "@/features/admin/ui/admin-copy";
 import {
   createBlogPostAction,
   updateBlogPostAction,
@@ -92,6 +93,9 @@ export function BlogPostDrawer({
   post = null,
 }: BlogPostDrawerProps) {
   const router = useRouter();
+  const copy = getAdminCopy(locale);
+  const commonCopy = copy.common;
+  const drawerCopy = copy.drawers.blog;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isEdit = post != null;
   const [activeLocale, setActiveLocale] = useState<Locale>(() => {
@@ -166,14 +170,14 @@ export function BlogPostDrawer({
     <SideSheet
       open={open}
       onClose={onClose}
-      ariaLabel={isEdit ? "Edit blog post" : "Add blog post"}
+      ariaLabel={isEdit ? drawerCopy.editTitle : drawerCopy.addTitle}
       panelClassName="w-full max-w-lg"
       surfaceClassName={ADMIN_SHEET_SURFACE}
       closeTone="brand"
       backdropBlur
     >
         <AdminSheetHeader
-          title={isEdit ? "Edit blog post" : "Add blog post"}
+          title={isEdit ? drawerCopy.editTitle : drawerCopy.addTitle}
         />
 
         <form
@@ -183,7 +187,7 @@ export function BlogPostDrawer({
             const current = drafts[activeLocale];
             const slug = resolvedSlug(current);
             if (!current.title.trim() || !current.content.trim()) {
-              setError("Title and full text are required.");
+              setError(drawerCopy.requiredError);
               return;
             }
 
@@ -230,7 +234,7 @@ export function BlogPostDrawer({
           <div className="flex-1 space-y-6 overflow-y-auto px-5 py-5">
             <div>
               <p className="mb-2 text-xs font-semibold tracking-wide text-[#8a837a] uppercase">
-                Translations
+                {drawerCopy.translations}
               </p>
               <div className="flex flex-wrap gap-2">
                 {locales.map((loc) => {
@@ -255,7 +259,7 @@ export function BlogPostDrawer({
 
             <label className="block">
               <span className={ADMIN_LABEL}>
-                Title <span className="text-red-600">*</span>
+                {drawerCopy.title} <span className="text-red-600">*</span>
               </span>
               <input
                 required
@@ -269,7 +273,7 @@ export function BlogPostDrawer({
             </label>
 
             <label className="block">
-              <span className={ADMIN_LABEL}>Short excerpt</span>
+              <span className={ADMIN_LABEL}>{drawerCopy.shortExcerpt}</span>
               <input
                 value={draft.excerpt}
                 onChange={(event) =>
@@ -282,7 +286,7 @@ export function BlogPostDrawer({
 
             <label className="block">
               <span className={ADMIN_LABEL}>
-                Full text <span className="text-red-600">*</span>
+                {drawerCopy.fullText} <span className="text-red-600">*</span>
               </span>
               <textarea
                 required
@@ -295,17 +299,17 @@ export function BlogPostDrawer({
                 disabled={isPending}
               />
               <span className="mt-1 block text-xs text-[#8a837a]">
-                Plain text or HTML. Double line breaks create new paragraphs.
+                {drawerCopy.fullTextHint}
               </span>
             </label>
 
             <div>
               <p className="mb-2 text-xs font-semibold tracking-wide text-[#8a837a] uppercase">
-                Common
+                {drawerCopy.common}
               </p>
               <div className="space-y-4">
                 <label className="block">
-                  <span className={ADMIN_LABEL}>Publication date</span>
+                  <span className={ADMIN_LABEL}>{drawerCopy.publicationDate}</span>
                   <input
                     type="date"
                     value={publishedAt}
@@ -314,18 +318,18 @@ export function BlogPostDrawer({
                     disabled={isPending}
                   />
                   <span className="mt-1 block text-xs text-[#8a837a]">
-                    Shown on the post. Leave empty to use today when publishing.
+                    {drawerCopy.publicationDateHint}
                   </span>
                 </label>
                 <div>
-                  <span className={ADMIN_LABEL}>Status</span>
+                  <span className={ADMIN_LABEL}>{drawerCopy.status}</span>
                   <SelectDropdown
-                    ariaLabel="Status"
+                    ariaLabel={drawerCopy.status}
                     value={status}
                     options={[
-                      { label: "Draft", value: "DRAFT" },
-                      { label: "Published", value: "PUBLISHED" },
-                      { label: "Archived", value: "ARCHIVED" },
+                      { label: drawerCopy.draft, value: "DRAFT" },
+                      { label: drawerCopy.published, value: "PUBLISHED" },
+                      { label: drawerCopy.archived, value: "ARCHIVED" },
                     ]}
                     disabled={isPending}
                     deferChange={false}
@@ -339,7 +343,7 @@ export function BlogPostDrawer({
             </div>
 
             <div>
-              <span className={ADMIN_LABEL}>Cover image</span>
+              <span className={ADMIN_LABEL}>{drawerCopy.coverImage}</span>
               <div className="mt-1 flex flex-wrap items-center gap-3">
                 <button
                   type="button"
@@ -347,7 +351,7 @@ export function BlogPostDrawer({
                   onClick={() => fileInputRef.current?.click()}
                   className="inline-flex items-center rounded-xl border border-dashed border-[#ead7bf] px-4 py-2 text-sm font-medium text-[#5c564e] hover:border-[#ff7f20]/50 hover:bg-[#fff4eb] disabled:opacity-50"
                 >
-                  {imagePreview ? "Change image" : "+ Upload image"}
+                  {imagePreview ? drawerCopy.changeImage : drawerCopy.uploadImage}
                 </button>
                 <input
                   ref={fileInputRef}
@@ -386,7 +390,7 @@ export function BlogPostDrawer({
                     }}
                     className="text-sm font-medium text-[#5c564e] hover:text-red-600"
                   >
-                    Remove
+                    {drawerCopy.remove}
                   </button>
                 ) : null}
               </div>
@@ -399,7 +403,7 @@ export function BlogPostDrawer({
                 />
               ) : null}
               <p className="mt-1 text-xs text-[#8a837a]">
-                JPEG, PNG, WebP, or GIF. Max 5MB.
+                {drawerCopy.imageFormatsHint}
               </p>
             </div>
 
@@ -412,7 +416,7 @@ export function BlogPostDrawer({
               className={`w-full ${ADMIN_SHEET_PRIMARY_BUTTON}`}
               disabled={isPending}
             >
-              {isPending ? "Saving…" : "Save"}
+              {isPending ? commonCopy.saving : commonCopy.save}
             </Button>
           </div>
         </form>

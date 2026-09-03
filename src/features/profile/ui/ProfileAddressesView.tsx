@@ -18,7 +18,7 @@ import type { CustomerAddressListItem } from "@/features/profile/application/add
 import { ProfileAddressCard } from "@/features/profile/ui/ProfileAddressCard";
 
 const FIELD_CLASS =
-  "h-11 w-full rounded-lg border border-gray-200 px-3 text-gray-900 outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-200";
+  "h-11 w-full rounded-xl border border-brand/20 bg-white px-3 text-product-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20";
 
 type AddressFormState = {
   line1: string;
@@ -162,15 +162,15 @@ export function ProfileAddressesView({
 
   return (
     <div className="space-y-6 sm:space-y-8">
-      <Card className="rounded-2xl border border-gray-200/80 p-5 shadow-none sm:p-7 lg:p-8">
-        <div className="mb-6 flex flex-col gap-4 border-b border-gray-100 pb-5 sm:mb-8 sm:flex-row sm:items-center sm:justify-between sm:pb-6">
-          <h1 className="text-lg font-bold tracking-tight text-gray-900 sm:text-xl">
+      <Card className="border-0 bg-transparent p-0 shadow-none md:rounded-[24px] md:border md:border-brand/15 md:bg-white md:p-7 md:shadow-[0_14px_40px_-28px_rgba(28,25,23,0.35)] lg:p-8">
+        <div className="mb-6 flex flex-col gap-4 border-b border-brand/10 pb-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between sm:pb-5">
+          <h1 className="font-display text-lg font-black tracking-tight text-product-ink sm:text-xl">
             {labels.title}
           </h1>
           <Button
             type="button"
             variant="primary"
-            className="h-11 w-full shrink-0 sm:w-auto"
+            className="h-11 w-full shrink-0 !bg-brand text-white hover:!brightness-95 focus:!ring-brand sm:w-auto"
             onClick={toggleForm}
             disabled={isPending}
           >
@@ -181,13 +181,13 @@ export function ProfileAddressesView({
         {showForm ? (
           <form
             onSubmit={onSave}
-            className="mb-8 space-y-5 rounded-2xl border border-dashed border-gray-300 bg-gray-50/50 p-4 sm:mb-10 sm:p-6"
+            className="mb-8 space-y-5 rounded-2xl border border-brand/20 bg-[#fffaf5] p-4 sm:mb-10 sm:p-6"
           >
-            <h2 className="text-base font-semibold text-gray-900">
+            <h2 className="text-base font-semibold text-product-ink">
               {editingId ? labels.formEditTitle : labels.formAddTitle}
             </h2>
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6">
-              <label className="flex flex-col gap-1.5 text-sm font-medium text-gray-700">
+              <label className="flex flex-col gap-1.5 text-sm font-medium text-product-ink/75">
                 {labels.line1}
                 <input
                   required
@@ -199,7 +199,7 @@ export function ProfileAddressesView({
                   autoComplete="street-address"
                 />
               </label>
-              <label className="flex flex-col gap-1.5 text-sm font-medium text-gray-700">
+              <label className="flex flex-col gap-1.5 text-sm font-medium text-product-ink/75">
                 {labels.phone}
                 <input
                   required
@@ -226,7 +226,7 @@ export function ProfileAddressesView({
                 }
                 className="h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-900"
               />
-              <span className="text-sm text-gray-700">{labels.isDefault}</span>
+              <span className="text-sm text-product-ink/75">{labels.isDefault}</span>
             </label>
             <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:gap-3">
               <Button
@@ -244,7 +244,7 @@ export function ProfileAddressesView({
               <Button
                 type="submit"
                 variant="primary"
-                className="h-11 w-full sm:w-auto"
+                className="h-11 w-full !bg-brand text-white hover:!brightness-95 focus:!ring-brand sm:w-auto"
                 disabled={isPending}
               >
                 {isPending

@@ -38,16 +38,14 @@ function formatMoney(amount: number): string {
 const QUICK_ACTIONS = [
   {
     href: "products/new",
-    title: "Add product",
-    subtitle: "Create a new product",
+    copyKey: "addProduct",
     iconBg: "bg-[#3e573d]/15",
     iconColor: "text-[#3e573d]",
     iconPath: "M12 4v16m8-8H4",
   },
   {
     href: "orders",
-    title: "Manage orders",
-    subtitle: "View all orders",
+    copyKey: "manageOrders",
     iconBg: "bg-[#ff7f20]/15",
     iconColor: "text-[#ff7f20]",
     iconPath:
@@ -55,8 +53,7 @@ const QUICK_ACTIONS = [
   },
   {
     href: "users",
-    title: "Manage users",
-    subtitle: "View all users",
+    copyKey: "manageUsers",
     iconBg: "bg-[#9eff8e]/25",
     iconColor: "text-[#3e573d]",
     iconPath:
@@ -64,8 +61,7 @@ const QUICK_ACTIONS = [
   },
   {
     href: "settings",
-    title: "Settings",
-    subtitle: "Configure store",
+    copyKey: "settings",
     iconBg: "bg-[#f7d18f]/35",
     iconColor: "text-[#b7791f]",
     iconPath:
@@ -84,10 +80,11 @@ export default async function AdminPage({ params }: AdminPageProps) {
     getAdminDashboardMetrics(defaultAnalyticsDateRange()),
   ]);
   const dictionary = getDictionary(locale);
+  const dashboardDictionary = dictionary.adminDashboard;
   const revenueDelta = `${formatPeriodDelta(
     metrics.revenueAmount,
     metrics.previousRevenueAmount,
-  )} vs prev`;
+  )} ${dashboardDictionary.revenueDeltaSuffix}`;
 
   return (
     <>
@@ -103,10 +100,10 @@ export default async function AdminPage({ params }: AdminPageProps) {
       <section className="hidden lg:block">
         <div className="mb-8">
           <h1 className="text-3xl font-semibold tracking-tight text-[#1f1a17]">
-            Admin
+            {dashboardDictionary.title}
           </h1>
           <p className={`mt-1 ${ADMIN_PAGE_SUBTITLE}`}>
-            Welcome to the admin dashboard
+            {dashboardDictionary.subtitle}
           </p>
         </div>
 
@@ -123,13 +120,13 @@ export default async function AdminPage({ params }: AdminPageProps) {
           <Card className={ADMIN_DASHBOARD_CARD}>
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-[#1f1a17]">
-                Recent orders
+                {dashboardDictionary.recentOrders}
               </h2>
               <Link
                 href={`/${locale}/admin/orders`}
                 className={ADMIN_VIEW_ALL_LINK}
               >
-                View all
+                {dashboardDictionary.viewAll}
               </Link>
             </div>
             <div className="space-y-4">
@@ -163,7 +160,7 @@ export default async function AdminPage({ params }: AdminPageProps) {
               ))}
               {metrics.recentOrders.length === 0 ? (
                 <p className="py-8 text-center text-sm text-[#8a837a]">
-                  No recent orders.
+                  {dashboardDictionary.noRecentOrders}
                 </p>
               ) : null}
             </div>
@@ -172,13 +169,13 @@ export default async function AdminPage({ params }: AdminPageProps) {
           <Card className={ADMIN_DASHBOARD_CARD}>
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-[#1f1a17]">
-                Top products
+                {dashboardDictionary.topProducts}
               </h2>
               <Link
                 href={`/${locale}/admin/products`}
                 className={ADMIN_VIEW_ALL_LINK}
               >
-                View all
+                {dashboardDictionary.viewAll}
               </Link>
             </div>
             <div className="space-y-4">
@@ -195,14 +192,14 @@ export default async function AdminPage({ params }: AdminPageProps) {
                       {product.title}
                     </p>
                     <p className="text-xs text-[#8a837a]">
-                      {product.quantity} sold
+                      {product.quantity} {dashboardDictionary.soldSuffix}
                     </p>
                   </div>
                 </div>
               ))}
               {metrics.topProducts.length === 0 ? (
                 <p className="py-8 text-center text-sm text-[#8a837a]">
-                  No product sales in this range.
+                  {dashboardDictionary.noProductSales}
                 </p>
               ) : null}
             </div>
@@ -211,7 +208,7 @@ export default async function AdminPage({ params }: AdminPageProps) {
 
         <Card className={`mb-8 ${ADMIN_DASHBOARD_CARD}`}>
           <h2 className="mb-4 text-xl font-semibold text-[#1f1a17]">
-            Quick actions
+            {dashboardDictionary.quickActions}
           </h2>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             {QUICK_ACTIONS.filter(
@@ -241,8 +238,12 @@ export default async function AdminPage({ params }: AdminPageProps) {
                   </svg>
                 </div>
                 <div className="text-left">
-                  <p className="font-medium text-[#1f1a17]">{action.title}</p>
-                  <p className="text-xs text-[#8a837a]">{action.subtitle}</p>
+                  <p className="font-medium text-[#1f1a17]">
+                    {dashboardDictionary.actions[action.copyKey].title}
+                  </p>
+                  <p className="text-xs text-[#8a837a]">
+                    {dashboardDictionary.actions[action.copyKey].subtitle}
+                  </p>
                 </div>
               </Link>
             ))}

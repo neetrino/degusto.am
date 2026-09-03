@@ -10,7 +10,7 @@ import {
 } from "@/features/auth/change-password-action";
 
 const FIELD_CLASS =
-  "h-11 w-full rounded-lg border border-gray-200 px-3 text-gray-900 outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-200";
+  "h-11 w-full rounded-xl border border-brand/20 bg-white px-3 text-product-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20";
 
 type ChangePasswordFormProps = {
   locale: string;
@@ -52,9 +52,9 @@ export function ChangePasswordForm({ locale, labels }: ChangePasswordFormProps) 
   }, [state.success]);
 
   return (
-    <Card className="rounded-2xl border border-gray-200/80 p-5 shadow-none sm:p-7 lg:p-8">
-      <div className="mb-8 border-b border-gray-100 pb-5 sm:mb-10 sm:pb-6">
-        <h1 className="text-lg font-bold tracking-tight text-gray-900 sm:text-xl">
+    <Card className="border-0 bg-transparent p-0 shadow-none md:rounded-[24px] md:border md:border-brand/15 md:bg-white md:p-7 md:shadow-[0_14px_40px_-28px_rgba(28,25,23,0.35)] lg:p-8">
+      <div className="mb-6 border-b border-brand/10 pb-4 sm:mb-8 sm:pb-5">
+        <h1 className="font-display text-lg font-black tracking-tight text-product-ink sm:text-xl">
           {labels.title}
         </h1>
       </div>
@@ -63,7 +63,7 @@ export function ChangePasswordForm({ locale, labels }: ChangePasswordFormProps) 
         action={formAction}
         className="mx-auto max-w-xl space-y-6 lg:mx-0 lg:max-w-2xl"
       >
-        <label className="flex flex-col gap-1.5 text-sm font-medium text-gray-700">
+        <label className="flex flex-col gap-1.5 text-sm font-medium text-product-ink/75">
           {labels.currentPassword}
           <input
             name="currentPassword"
@@ -82,7 +82,7 @@ export function ChangePasswordForm({ locale, labels }: ChangePasswordFormProps) 
           />
         </label>
 
-        <label className="flex flex-col gap-1.5 text-sm font-medium text-gray-700">
+        <label className="flex flex-col gap-1.5 text-sm font-medium text-product-ink/75">
           {labels.newPassword}
           <input
             name="newPassword"
@@ -101,7 +101,7 @@ export function ChangePasswordForm({ locale, labels }: ChangePasswordFormProps) 
           />
         </label>
 
-        <label className="flex flex-col gap-1.5 text-sm font-medium text-gray-700">
+        <label className="flex flex-col gap-1.5 text-sm font-medium text-product-ink/75">
           {labels.confirmPassword}
           <input
             name="confirmPassword"
@@ -135,7 +135,7 @@ export function ChangePasswordForm({ locale, labels }: ChangePasswordFormProps) 
           <Button
             type="submit"
             variant="primary"
-            className="h-11 w-full sm:w-auto"
+            className="h-11 w-full !bg-brand text-white hover:!brightness-95 focus:!ring-brand sm:w-auto"
             disabled={isPending}
           >
             {isPending ? labels.changing : labels.change}

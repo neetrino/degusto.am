@@ -58,6 +58,7 @@ export function HeaderCartButton({
       currency={currency}
       dictionary={dictionary}
       itemCount={itemCount}
+      openOnEventMediaQuery="(min-width: 768px)"
       renderTrigger={({
         open,
         badgeCount,

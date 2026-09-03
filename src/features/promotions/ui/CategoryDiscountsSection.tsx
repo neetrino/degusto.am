@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/Button";
+import { getAdminCopy } from "@/features/admin/ui/admin-copy";
 import { ADMIN_INPUT } from "@/features/admin/ui/admin-form-classes";
 import type { DiscountBoardCategory } from "@/features/promotions/application/discounts-board";
 import { saveCategoryDiscountsAction } from "@/features/promotions/application/manage-discounts";
@@ -26,6 +27,8 @@ export function CategoryDiscountsSection({
   categories,
 }: CategoryDiscountsSectionProps) {
   const router = useRouter();
+  const copy = getAdminCopy(locale);
+  const pageCopy = copy.pages.discounts;
   const [drafts, setDrafts] = useState<Record<string, string>>(() =>
     Object.fromEntries(
       categories.map((category) => [
@@ -76,7 +79,7 @@ export function CategoryDiscountsSection({
     for (const category of categories) {
       const parsed = parsePercent(drafts[category.id] ?? "");
       if (parsed === "invalid") {
-        setError(`Invalid percentage for “${category.title}”. Use 1–100.`);
+        setError(pageCopy.productInvalid.replace("{title}", category.title));
         return;
       }
       items.push({ categoryId: category.id, percentage: parsed });
@@ -90,7 +93,9 @@ export function CategoryDiscountsSection({
         setError(result.error.message);
         return;
       }
-      setMessage(`Saved ${result.value.saved} category discount(s).`);
+      setMessage(
+        pageCopy.categorySaved.replace("{count}", String(result.value.saved)),
+      );
       router.refresh();
     });
   }
@@ -100,10 +105,10 @@ export function CategoryDiscountsSection({
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-base font-semibold text-gray-900">
-            Category Discounts
+            {pageCopy.categoryTitle}
           </h2>
           <p className="text-sm text-gray-500">
-            Apply discounts to each product within a category
+            {pageCopy.categorySubtitle}
           </p>
         </div>
         <Button
@@ -112,13 +117,13 @@ export function CategoryDiscountsSection({
           disabled={isPending || !isDirty || categories.length === 0}
           onClick={saveAll}
         >
-          {isPending ? "Saving…" : "Save"}
+          {isPending ? copy.common.saving : copy.common.save}
         </Button>
       </div>
 
       {categories.length === 0 ? (
         <div className="rounded-lg border border-dashed border-gray-300 px-4 py-10 text-center text-sm text-gray-500">
-          No categories found
+          {pageCopy.categoryNone}
         </div>
       ) : (
         <ul className="max-h-80 divide-y divide-gray-100 overflow-y-auto rounded-lg border border-gray-200">
@@ -162,7 +167,7 @@ export function CategoryDiscountsSection({
                   }
                   className="text-sm font-medium text-gray-600 hover:text-gray-900 disabled:opacity-50"
                 >
-                  Clear
+                  {pageCopy.clear}
                 </button>
               </div>
             </li>

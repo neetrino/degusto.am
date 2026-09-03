@@ -9,7 +9,7 @@ import type { OrderStatus } from "@/features/orders/domain/order-status";
 import type { PaymentStatus } from "@/features/orders/domain/payment-status";
 
 const FILTER_SEARCH =
-  "h-11 w-full min-w-0 shrink-0 rounded-2xl border border-gray-200 bg-white px-4 text-sm text-gray-900 shadow-sm outline-none transition-colors placeholder:text-gray-400 hover:border-gray-300 focus:border-gray-300 lg:flex-1 lg:shrink";
+  "h-11 w-full min-w-0 shrink-0 rounded-2xl border border-brand/20 bg-white px-4 text-sm text-product-ink shadow-sm outline-none transition-colors placeholder:text-product-ink/40 hover:border-brand/35 focus:border-brand focus:ring-2 focus:ring-brand/20 lg:flex-1 lg:shrink";
 
 const ORDER_STATUS_FILTERS = [
   { label: "Pending", value: "PENDING" },
@@ -52,7 +52,7 @@ export function CustomerOrdersFilters({
   }
 
   return (
-    <Card className="mb-6 overflow-visible">
+    <Card className="mb-6 overflow-visible border-brand/15 shadow-[0_14px_32px_-28px_rgba(28,25,23,0.5)]">
       <form
         ref={formRef}
         method="get"
@@ -84,8 +84,8 @@ export function CustomerOrdersFilters({
           aria-label="Search orders"
         />
       </form>
-      <div className="border-t border-gray-200 px-4 py-3">
-        <p className="text-sm text-gray-600">Total orders: {total}</p>
+      <div className="border-t border-brand/10 px-4 py-3">
+        <p className="text-sm text-product-ink/65">Total orders: {total}</p>
       </div>
     </Card>
   );

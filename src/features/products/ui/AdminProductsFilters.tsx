@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { flushSync } from "react-dom";
 
 import { SelectDropdown } from "@/components/ui/SelectDropdown";
+import { getAdminCopy } from "@/features/admin/ui/admin-copy";
 import { ADMIN_LABEL } from "@/features/admin/ui/admin-form-classes";
 import type { AdminCategoryOption } from "@/features/products/application/list-admin-products";
 
@@ -11,6 +12,7 @@ const FILTER_INPUT =
   "h-11 w-full rounded-2xl border border-[#ead7bf] bg-white px-4 text-sm text-[#1f1a17] shadow-sm outline-none transition-colors placeholder:text-[#8a837a] hover:border-[#ead7bf] focus:border-[#ead7bf]";
 
 type AdminProductsFiltersProps = {
+  locale: string;
   total: number;
   q?: string;
   sku?: string;
@@ -21,14 +23,8 @@ type AdminProductsFiltersProps = {
   dir: string;
 };
 
-const STOCK_OPTIONS = [
-  { label: "All Products", value: "all" },
-  { label: "In stock", value: "in_stock" },
-  { label: "Out of stock", value: "out_of_stock" },
-  { label: "Low stock", value: "low_stock" },
-] as const;
-
 export function AdminProductsFilters({
+  locale,
   total,
   q,
   sku,
@@ -38,6 +34,8 @@ export function AdminProductsFilters({
   sort,
   dir,
 }: AdminProductsFiltersProps) {
+  const copy = getAdminCopy(locale);
+  const pageCopy = copy.pages.products;
   const formRef = useRef<HTMLFormElement>(null);
   const [categoryValue, setCategoryValue] = useState(categoryId ?? "");
   const [stockValue, setStockValue] = useState(stock);
@@ -46,6 +44,12 @@ export function AdminProductsFilters({
     label: category.title,
     value: category.id,
   }));
+  const stockOptions = [
+    { label: pageCopy.allProducts, value: "all" },
+    { label: pageCopy.inStock, value: "in_stock" },
+    { label: pageCopy.outOfStock, value: "out_of_stock" },
+    { label: pageCopy.lowStock, value: "low_stock" },
+  ] as const;
 
   function applyCategory(next: string): void {
     flushSync(() => setCategoryValue(next));
@@ -66,7 +70,7 @@ export function AdminProductsFilters({
           #
         </span>
         <p className="text-sm text-[#5c564e]">
-          Total products:{" "}
+          {pageCopy.totalProducts}:{" "}
           <span className="font-bold tabular-nums text-[#1f1a17]">{total}</span>
         </p>
       </div>
@@ -78,44 +82,44 @@ export function AdminProductsFilters({
         <input type="hidden" name="sort" value={sort} />
         <input type="hidden" name="dir" value={dir} />
         <label>
-          <span className={ADMIN_LABEL}>Search by title or slug</span>
+          <span className={ADMIN_LABEL}>{pageCopy.searchTitleOrSlug}</span>
           <input
             name="q"
             defaultValue={q ?? ""}
-            placeholder="Search by title or slug..."
+            placeholder={`${pageCopy.searchTitleOrSlug}...`}
             className={`${FILTER_INPUT} mt-1`}
-            aria-label="Search by title or slug"
+            aria-label={pageCopy.searchTitleOrSlug}
           />
         </label>
         <label>
-          <span className={ADMIN_LABEL}>Search by SKU</span>
+          <span className={ADMIN_LABEL}>{pageCopy.searchSku}</span>
           <input
             name="sku"
             defaultValue={sku ?? ""}
-            placeholder="Enter SKU code"
+            placeholder={pageCopy.searchSku}
             className={`${FILTER_INPUT} mt-1`}
-            aria-label="Search by SKU"
+            aria-label={pageCopy.searchSku}
           />
         </label>
         <div>
-          <span className={ADMIN_LABEL}>Filter by Category</span>
+          <span className={ADMIN_LABEL}>{pageCopy.filterByCategory}</span>
           <SelectDropdown
             name="categoryId"
-            ariaLabel="Filter by category"
+            ariaLabel={pageCopy.filterByCategory}
             value={categoryValue}
-            allLabel="All Categories"
+            allLabel={pageCopy.allCategories}
             options={categoryOptions}
             className="mt-1"
             onValueChange={applyCategory}
           />
         </div>
         <div>
-          <span className={ADMIN_LABEL}>Filter by Stock</span>
+          <span className={ADMIN_LABEL}>{pageCopy.filterByStock}</span>
           <SelectDropdown
             name="stock"
-            ariaLabel="Filter by stock"
+            ariaLabel={pageCopy.filterByStock}
             value={stockValue}
-            options={STOCK_OPTIONS}
+            options={stockOptions}
             className="mt-1"
             onValueChange={applyStock}
           />

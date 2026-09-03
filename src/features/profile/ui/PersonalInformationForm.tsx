@@ -63,8 +63,8 @@ export function PersonalInformationForm({
   }
 
   return (
-    <Card className="rounded-[24px] border border-brand/15 p-5 shadow-[0_14px_40px_-28px_rgba(28,25,23,0.35)] sm:p-7 lg:p-8">
-      <div className="mb-8 border-b border-brand/10 pb-5 sm:mb-10 sm:pb-6">
+    <Card className="border-0 bg-transparent p-0 shadow-none md:rounded-[24px] md:border md:border-brand/15 md:bg-white md:p-7 md:shadow-[0_14px_40px_-28px_rgba(28,25,23,0.35)] lg:p-8">
+      <div className="mb-6 border-b border-brand/10 pb-4 sm:mb-8 sm:pb-5">
         <h1 className="font-display text-lg font-black tracking-tight text-product-ink sm:text-xl">
           {labels.title}
         </h1>
@@ -151,7 +151,7 @@ export function PersonalInformationForm({
           <Button
             type="submit"
             variant="primary"
-            className="h-11 w-full sm:w-auto"
+            className="h-11 w-full !bg-brand text-white hover:!brightness-95 focus:!ring-brand sm:w-auto"
             disabled={isPending}
           >
             {isPending ? labels.saving : labels.save}

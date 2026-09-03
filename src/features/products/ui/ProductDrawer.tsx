@@ -14,6 +14,7 @@ import {
   ADMIN_TEXT_MUTED,
   ADMIN_TEXTAREA,
 } from "@/features/admin/ui/admin-form-classes";
+import { getAdminCopy } from "@/features/admin/ui/admin-copy";
 import { AdminContentLocaleToggle } from "@/features/admin/ui/AdminContentLocaleToggle";
 import { AdminSheetHeader } from "@/features/admin/ui/AdminSheetHeader";
 import type {
@@ -224,6 +225,9 @@ export function ProductDrawer({
   categories: initialCategories,
 }: ProductDrawerProps) {
   const router = useRouter();
+  const copy = getAdminCopy(locale);
+  const commonCopy = copy.common;
+  const drawerCopy = copy.drawers.product;
   const isEdit = product != null;
   const initialContentLocale: Locale = isLocale(locale) ? locale : "hy";
   const [contentLocale, setContentLocale] =
@@ -325,14 +329,14 @@ export function ProductDrawer({
     <SideSheet
       open={open}
       onClose={onClose}
-      ariaLabel={isEdit ? "Edit product" : "Add new product"}
+      ariaLabel={isEdit ? drawerCopy.editTitle : drawerCopy.addTitle}
       panelClassName="w-[min(100%,48rem)] sm:w-[min(72%,56rem)]"
       surfaceClassName={ADMIN_SHEET_SURFACE}
       closeTone="brand"
       backdropBlur
     >
         <AdminSheetHeader
-          title={isEdit ? "Edit product" : "Add new product"}
+          title={isEdit ? drawerCopy.editTitle : drawerCopy.addTitle}
         />
 
         <form
@@ -341,7 +345,7 @@ export function ProductDrawer({
             event.preventDefault();
             if (filledLocales.length === 0) {
               setError(
-                "Fill title for at least one language (HY / EN / RU).",
+                drawerCopy.fillTitleError,
               );
               return;
             }
@@ -418,9 +422,7 @@ export function ProductDrawer({
                 onClose();
                 router.refresh();
               } catch {
-                setError(
-                  "Unable to save product. Try a different SKU or title.",
-                );
+                setError(drawerCopy.saveError);
               }
             });
           }}
@@ -428,10 +430,9 @@ export function ProductDrawer({
           <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className={ADMIN_LABEL}>Content language</p>
+                <p className={ADMIN_LABEL}>{drawerCopy.contentLanguage}</p>
                 <p className={`-mt-0.5 text-xs ${ADMIN_TEXT_MUTED}`}>
-                  Switch HY / EN / RU — title and description update per
-                  language. Slug is generated automatically.
+                  {drawerCopy.contentLanguageHint}
                 </p>
               </div>
               <AdminContentLocaleToggle
@@ -445,7 +446,7 @@ export function ProductDrawer({
             <div>
               <label>
                 <span className={ADMIN_LABEL}>
-                  Title ({contentLocale.toUpperCase()}){" "}
+                  {drawerCopy.title} ({contentLocale.toUpperCase()}){" "}
                   <span className="text-red-600">*</span>
                 </span>
                 <input
@@ -453,7 +454,7 @@ export function ProductDrawer({
                   onChange={(event) =>
                     patchActiveFields({ title: event.target.value })
                   }
-                  placeholder="Product title"
+                  placeholder={drawerCopy.titlePlaceholder}
                   className={ADMIN_INPUT}
                   disabled={isPending}
                 />
@@ -462,20 +463,21 @@ export function ProductDrawer({
 
             <label className="block">
               <span className={ADMIN_LABEL}>
-                Description ({contentLocale.toUpperCase()})
+                  {drawerCopy.description} ({contentLocale.toUpperCase()})
               </span>
               <textarea
                 value={activeFields.description}
                 onChange={(event) =>
                   patchActiveFields({ description: event.target.value })
                 }
-                placeholder="Product description"
+                placeholder={drawerCopy.descriptionPlaceholder}
                 className={ADMIN_TEXTAREA}
                 disabled={isPending}
               />
             </label>
 
             <ProductDrawerImages
+              locale={locale}
               images={images}
               disabled={isPending}
               onChange={handleImagesChange}
@@ -491,6 +493,7 @@ export function ProductDrawer({
             />
 
             <ProductDrawerDietBadges
+              locale={locale}
               isSpicy={isSpicy}
               isVegetarian={isVegetarian}
               disabled={isPending}
@@ -499,6 +502,7 @@ export function ProductDrawer({
             />
 
             <ProductDrawerModifiers
+              locale={locale}
               additions={additions}
               exclusions={exclusions}
               disabled={isPending}
@@ -509,7 +513,7 @@ export function ProductDrawer({
             <div className="grid gap-4 sm:grid-cols-2">
               <label>
                 <span className={ADMIN_LABEL}>
-                  Price <span className="text-red-600">*</span>
+                  {drawerCopy.price} <span className="text-red-600">*</span>
                 </span>
                 <input
                   required
@@ -517,19 +521,19 @@ export function ProductDrawer({
                   type="number"
                   value={priceAmount}
                   onChange={(event) => setPriceAmount(event.target.value)}
-                  placeholder="AMD price"
+                  placeholder={drawerCopy.pricePlaceholder}
                   className={ADMIN_INPUT}
                   disabled={isPending}
                 />
               </label>
               <label>
-                <span className={ADMIN_LABEL}>Compare at price</span>
+                <span className={ADMIN_LABEL}>{drawerCopy.compareAt}</span>
                 <input
                   min={0}
                   type="number"
                   value={compareAtAmount}
                   onChange={(event) => setCompareAtAmount(event.target.value)}
-                  placeholder="Optional"
+                  placeholder={drawerCopy.compareAtPlaceholder}
                   className={ADMIN_INPUT}
                   disabled={isPending}
                 />
@@ -539,7 +543,7 @@ export function ProductDrawer({
             <div className="grid gap-4 sm:grid-cols-2">
               <label>
                 <span className={ADMIN_LABEL}>
-                  SKU <span className="text-red-600">*</span>
+                  {drawerCopy.sku} <span className="text-red-600">*</span>
                 </span>
                 <input
                   required
@@ -563,18 +567,18 @@ export function ProductDrawer({
             >
               {isPending
                 ? isEdit
-                  ? "Saving…"
-                  : "Creating…"
+                  ? commonCopy.saving
+                  : commonCopy.creating
                 : isEdit
-                  ? "Save"
-                  : "Create"}
+                  ? commonCopy.save
+                  : commonCopy.create}
             </Button>
             <button
               type="button"
               onClick={onClose}
               className={ADMIN_SHEET_CANCEL}
             >
-              Cancel
+              {commonCopy.cancel}
             </button>
           </div>
         </form>

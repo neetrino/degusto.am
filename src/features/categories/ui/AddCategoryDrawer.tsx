@@ -13,6 +13,7 @@ import {
   ADMIN_SHEET_PRIMARY_BUTTON,
   ADMIN_SHEET_SURFACE,
 } from "@/features/admin/ui/admin-form-classes";
+import { getAdminCopy } from "@/features/admin/ui/admin-copy";
 import { AdminSheetHeader } from "@/features/admin/ui/AdminSheetHeader";
 import {
   createCategoryFromDrawerAction,
@@ -38,6 +39,9 @@ export function AddCategoryDrawer({
   category = null,
 }: AddCategoryDrawerProps) {
   const router = useRouter();
+  const copy = getAdminCopy(locale);
+  const commonCopy = copy.common;
+  const drawerCopy = copy.drawers.category;
   const isEdit = category != null;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState("");
@@ -90,13 +94,15 @@ export function AddCategoryDrawer({
     <SideSheet
       open={open}
       onClose={onClose}
-      ariaLabel={isEdit ? "Edit Category" : "Add Category"}
+      ariaLabel={isEdit ? drawerCopy.editTitle : drawerCopy.addTitle}
       panelClassName="w-full max-w-lg"
       surfaceClassName={ADMIN_SHEET_SURFACE}
       closeTone="brand"
       backdropBlur
     >
-      <AdminSheetHeader title={isEdit ? "Edit Category" : "Add Category"} />
+      <AdminSheetHeader
+        title={isEdit ? drawerCopy.editTitle : drawerCopy.addTitle}
+      />
 
         <form
           className="flex min-h-0 flex-1 flex-col"
@@ -147,7 +153,7 @@ export function AddCategoryDrawer({
                 onClose();
                 router.refresh();
               } catch {
-                setError("Upload failed. Try a smaller image and try again.");
+                setError(drawerCopy.uploadFailed);
               }
             });
           }}
@@ -155,13 +161,13 @@ export function AddCategoryDrawer({
           <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
             <label className="block">
               <span className={ADMIN_LABEL}>
-                Category Title <span className="text-red-600">*</span>
+                {drawerCopy.categoryTitle} <span className="text-red-600">*</span>
               </span>
               <input
                 required
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
-                placeholder="Enter category title"
+                placeholder={drawerCopy.categoryTitlePlaceholder}
                 className={ADMIN_INPUT}
                 disabled={isPending}
               />
@@ -180,17 +186,16 @@ export function AddCategoryDrawer({
                 disabled={isPending}
               />
               <span className="mt-1 block text-xs text-[#8a837a]">
-                English ASCII slug used in all storefront URLs. Saving writes
-                this value for every language.
+                {drawerCopy.slugHint}
               </span>
             </label>
 
             <div>
-              <span className={ADMIN_LABEL}>Parent Category</span>
+              <span className={ADMIN_LABEL}>{drawerCopy.parentCategory}</span>
               <SelectDropdown
-                ariaLabel="Parent Category"
+                ariaLabel={drawerCopy.parentCategory}
                 value={parentId}
-                allLabel="None (Root Category)"
+                allLabel={drawerCopy.noParent}
                 options={parentOptions.map((item) => ({
                   label: item.title,
                   value: item.id,
@@ -203,13 +208,13 @@ export function AddCategoryDrawer({
             </div>
 
             <div>
-              <span className={ADMIN_LABEL}>Status</span>
+              <span className={ADMIN_LABEL}>{drawerCopy.status}</span>
               <SelectDropdown
-                ariaLabel="Status"
+                ariaLabel={drawerCopy.status}
                 value={status}
                 options={[
-                  { label: "Published", value: "ACTIVE" },
-                  { label: "Archived", value: "ARCHIVED" },
+                  { label: drawerCopy.published, value: "ACTIVE" },
+                  { label: drawerCopy.archived, value: "ARCHIVED" },
                 ]}
                 disabled={isPending}
                 deferChange={false}
@@ -221,7 +226,7 @@ export function AddCategoryDrawer({
             </div>
 
             <div>
-              <span className={ADMIN_LABEL}>Image</span>
+              <span className={ADMIN_LABEL}>{drawerCopy.image}</span>
               <div className="mt-1 flex flex-wrap items-center gap-3">
                 <button
                   type="button"
@@ -229,7 +234,7 @@ export function AddCategoryDrawer({
                   onClick={() => fileInputRef.current?.click()}
                   className="inline-flex items-center rounded-xl border border-dashed border-[#ead7bf] px-4 py-2 text-sm font-medium text-[#5c564e] hover:border-[#ff7f20]/50 hover:bg-[#fff4eb] disabled:opacity-50"
                 >
-                  {imagePreview ? "Change Image" : "+ Upload Image"}
+                  {imagePreview ? commonCopy.changeImage : commonCopy.uploadImage}
                 </button>
                 <input
                   ref={fileInputRef}
@@ -268,7 +273,7 @@ export function AddCategoryDrawer({
                     }}
                     className="text-sm font-medium text-[#5c564e] hover:text-red-600"
                   >
-                    Remove
+                    {commonCopy.remove}
                   </button>
                 ) : null}
               </div>
@@ -294,18 +299,18 @@ export function AddCategoryDrawer({
             >
               {isPending
                 ? isEdit
-                  ? "Saving…"
-                  : "Creating…"
+                  ? commonCopy.saving
+                  : commonCopy.creating
                 : isEdit
-                  ? "Save"
-                  : "Create Category"}
+                  ? commonCopy.save
+                  : drawerCopy.createButton}
             </Button>
             <button
               type="button"
               onClick={onClose}
               className={`whitespace-nowrap ${ADMIN_SHEET_CANCEL}`}
             >
-              Cancel
+              {commonCopy.cancel}
             </button>
           </div>
         </form>

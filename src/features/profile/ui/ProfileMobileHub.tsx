@@ -206,7 +206,7 @@ export function ProfileMobileHub({
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col gap-4">
+    <div className="flex w-full flex-col gap-4">
       <section
         className="relative overflow-hidden rounded-[2rem] border border-brand/20 bg-white px-5 py-6 shadow-[0_18px_40px_-28px_rgba(246,104,18,0.55)]"
         aria-label={dictionary.title}

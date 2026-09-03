@@ -13,6 +13,7 @@ import {
   ADMIN_SHEET_SURFACE,
 } from "@/features/admin/ui/admin-form-classes";
 import { AdminSheetHeader } from "@/features/admin/ui/AdminSheetHeader";
+import { getAdminCopy } from "@/features/admin/ui/admin-copy";
 import {
   createHeroSlideAction,
   updateHeroSlideAction,
@@ -33,12 +34,14 @@ export function HeroSlideModal({
   slide = null,
 }: HeroSlideModalProps) {
   const isEdit = slide != null;
+  const copy = getAdminCopy(locale);
+  const drawerCopy = copy.drawers.hero;
 
   return (
     <SideSheet
       open={open}
       onClose={onClose}
-      ariaLabel={isEdit ? "Edit hero slide" : "Create hero slide"}
+      ariaLabel={isEdit ? drawerCopy.editTitle : drawerCopy.addTitle}
       panelClassName="w-full max-w-lg"
       surfaceClassName={ADMIN_SHEET_SURFACE}
       closeTone="brand"
@@ -67,6 +70,9 @@ function HeroSlideDrawerForm({
 }: HeroSlideDrawerFormProps) {
   const router = useRouter();
   const isEdit = slide != null;
+  const copy = getAdminCopy(locale);
+  const commonCopy = copy.common;
+  const drawerCopy = copy.drawers.hero;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState(
     slide && slide.title !== "Untitled" ? slide.title : "",
@@ -83,7 +89,7 @@ function HeroSlideDrawerForm({
   return (
     <>
         <AdminSheetHeader
-          title={isEdit ? "Edit hero slide" : "Create hero slide"}
+          title={isEdit ? drawerCopy.editTitle : drawerCopy.addTitle}
         />
 
         <form
@@ -119,7 +125,7 @@ function HeroSlideDrawerForm({
         >
           <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
             <label className="block">
-              <span className={ADMIN_LABEL}>Title</span>
+              <span className={ADMIN_LABEL}>{drawerCopy.title}</span>
               <input
                 required
                 value={title}
@@ -130,7 +136,7 @@ function HeroSlideDrawerForm({
             </label>
 
             <label className="block">
-              <span className={ADMIN_LABEL}>Subtitle</span>
+              <span className={ADMIN_LABEL}>{drawerCopy.subtitle}</span>
               <input
                 value={subtitle}
                 onChange={(event) => setSubtitle(event.target.value)}
@@ -140,7 +146,7 @@ function HeroSlideDrawerForm({
             </label>
 
             <div>
-              <span className={ADMIN_LABEL}>Upload image</span>
+              <span className={ADMIN_LABEL}>{drawerCopy.uploadImage}</span>
               <div className="mt-1 flex flex-wrap items-center gap-3">
                 <button
                   type="button"
@@ -148,7 +154,7 @@ function HeroSlideDrawerForm({
                   onClick={() => fileInputRef.current?.click()}
                   className="inline-flex items-center rounded-xl border border-dashed border-[#ead7bf] px-4 py-2 text-sm font-medium text-[#5c564e] hover:border-[#ff7f20]/50 hover:bg-[#fff4eb] disabled:opacity-50"
                 >
-                  {imagePreview ? "Change image" : "+ Upload image"}
+                  {imagePreview ? commonCopy.changeImage : commonCopy.uploadImage}
                 </button>
                 <input
                   ref={fileInputRef}
@@ -187,7 +193,7 @@ function HeroSlideDrawerForm({
                     }}
                     className="text-sm font-medium text-[#5c564e] hover:text-red-600"
                   >
-                    Remove
+                    {commonCopy.remove}
                   </button>
                 ) : null}
               </div>
@@ -212,18 +218,18 @@ function HeroSlideDrawerForm({
             >
               {isPending
                 ? isEdit
-                  ? "Saving…"
-                  : "Creating…"
+                  ? commonCopy.saving
+                  : commonCopy.creating
                 : isEdit
-                  ? "Edit"
-                  : "Create"}
+                  ? commonCopy.save
+                  : commonCopy.create}
             </Button>
             <button
               type="button"
               onClick={onClose}
               className={`whitespace-nowrap ${ADMIN_SHEET_CANCEL}`}
             >
-              Cancel
+              {commonCopy.cancel}
             </button>
           </div>
         </form>

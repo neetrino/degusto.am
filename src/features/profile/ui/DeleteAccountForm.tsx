@@ -10,7 +10,7 @@ import {
 } from "@/features/auth/delete-account-action";
 
 const FIELD_CLASS =
-  "h-11 w-full rounded-lg border border-gray-200 px-3 text-gray-900 outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-200";
+  "h-11 w-full rounded-xl border border-red-200 bg-white px-3 text-product-ink outline-none transition focus:border-red-400 focus:ring-2 focus:ring-red-200";
 
 type DeleteAccountFormProps = {
   locale: string;
@@ -37,17 +37,17 @@ export function DeleteAccountForm({ locale, labels }: DeleteAccountFormProps) {
   const [acknowledged, setAcknowledged] = useState(false);
 
   return (
-    <Card className="rounded-2xl border border-red-200 bg-red-50/30 p-5 shadow-none sm:p-7 lg:p-8">
+    <Card className="border border-red-200/80 bg-red-50/40 p-4 shadow-none sm:p-5 md:rounded-[24px] md:p-7 lg:p-8">
       <div className="mb-6 space-y-2 sm:mb-8">
-        <h1 className="text-lg font-bold tracking-tight text-gray-900 sm:text-xl">
+        <h1 className="font-display text-lg font-black tracking-tight text-product-ink sm:text-xl">
           {labels.title}
         </h1>
-        <p className="max-w-2xl text-sm leading-relaxed text-gray-700">
+        <p className="max-w-2xl text-sm leading-relaxed text-product-ink/70">
           {labels.description}
         </p>
       </div>
 
-      <ul className="mb-8 max-w-2xl list-disc space-y-2 pl-5 text-sm text-gray-600 sm:mb-10">
+      <ul className="mb-8 max-w-2xl list-disc space-y-2 pl-5 text-sm text-product-ink/70 sm:mb-10">
         <li>{labels.pointOrders}</li>
         <li>{labels.pointLogin}</li>
         <li>{labels.pointData}</li>
@@ -57,7 +57,7 @@ export function DeleteAccountForm({ locale, labels }: DeleteAccountFormProps) {
         action={formAction}
         className="mx-auto max-w-xl space-y-6 lg:mx-0 lg:max-w-2xl"
       >
-        <label className="flex flex-col gap-1.5 text-sm font-medium text-gray-700">
+        <label className="flex flex-col gap-1.5 text-sm font-medium text-product-ink/75">
           {labels.currentPassword}
           <input
             name="password"
@@ -80,7 +80,7 @@ export function DeleteAccountForm({ locale, labels }: DeleteAccountFormProps) {
             checked={acknowledged}
             onChange={(event) => setAcknowledged(event.target.checked)}
           />
-          <span className="text-sm leading-snug text-gray-800">
+          <span className="text-sm leading-snug text-product-ink">
             {labels.acknowledge}
           </span>
         </label>
@@ -95,7 +95,7 @@ export function DeleteAccountForm({ locale, labels }: DeleteAccountFormProps) {
           <Button
             type="submit"
             variant="primary"
-            className="h-11 w-full !bg-red-700 hover:!bg-red-800 focus:!ring-red-600 sm:w-auto"
+            className="h-11 w-full !bg-red-600 text-white hover:!bg-red-700 focus:!ring-red-500 sm:w-auto"
             disabled={isPending || !acknowledged}
           >
             {isPending ? labels.deleting : labels.submit}

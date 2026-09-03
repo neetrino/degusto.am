@@ -197,7 +197,7 @@ export function SiteFooter({ dictionary, locale }: SiteFooterProps) {
 
             <motion.div
               variants={reduceMotion ? undefined : columnVariants}
-              className="lg:col-span-2 lg:-translate-x-8 xl:-translate-x-12"
+              className="lg:col-span-2 lg:-translate-x-12 xl:-translate-x-20"
             >
               <h2 className={headingClassName()}>{footer.linksTitle}</h2>
               <motion.ul

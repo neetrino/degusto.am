@@ -7,6 +7,7 @@ import {
   ADMIN_INPUT,
   ADMIN_LABEL,
 } from "@/features/admin/ui/admin-form-classes";
+import { getAdminCopy } from "@/features/admin/ui/admin-copy";
 import { createCategoryAction } from "@/features/categories/actions";
 import { slugifyCategoryTitle } from "@/features/categories/domain/slugify";
 import type { AdminCategoryOption } from "@/features/products/application/list-admin-products";
@@ -28,6 +29,9 @@ export function ProductDrawerCategories({
   onCategoriesChange,
   onSelectedChange,
 }: ProductDrawerCategoriesProps) {
+  const copy = getAdminCopy(locale);
+  const commonCopy = copy.common;
+  const productCopy = copy.drawers.product;
   const listId = useId();
   const [open, setOpen] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
@@ -40,7 +44,7 @@ export function ProductDrawerCategories({
     .map((category) => category.title);
   const triggerLabel =
     selectedTitles.length === 0
-      ? "Select categories"
+      ? productCopy.selectCategories
       : selectedTitles.join(", ");
 
   function toggleCategory(id: string): void {
@@ -54,7 +58,7 @@ export function ProductDrawerCategories({
   function createCategory(): void {
     const title = newTitle.trim();
     if (!title) {
-      setError("Category title is required.");
+      setError(productCopy.categoryTitleRequired);
       return;
     }
 
@@ -83,7 +87,7 @@ export function ProductDrawerCategories({
 
   return (
     <div>
-      <span className={ADMIN_LABEL}>Categories</span>
+      <span className={ADMIN_LABEL}>{productCopy.categories}</span>
       <div className={`relative mt-1 ${open ? "z-50" : "z-0"}`}>
         <button
           type="button"
@@ -123,7 +127,7 @@ export function ProductDrawerCategories({
             >
               {categories.length === 0 ? (
                 <p className="px-4 py-2.5 text-sm text-[#8a837a]">
-                  No categories yet.
+                  {productCopy.noCategoriesYet}
                 </p>
               ) : (
                 categories.map((category) => {
@@ -177,7 +181,7 @@ export function ProductDrawerCategories({
           onClick={() => setShowAdd((value) => !value)}
           className="inline-flex items-center rounded-xl border border-dashed border-[#ead7bf] px-4 py-2 text-sm font-medium text-[#5c564e] hover:border-[#ff7f20]/50 hover:bg-[#fff4eb] disabled:opacity-50"
         >
-          + Add category
+          + {productCopy.addCategory}
         </button>
       </div>
 
@@ -185,12 +189,13 @@ export function ProductDrawerCategories({
         <div className="mt-3 space-y-2 rounded-xl border border-[#ead7bf] bg-[#fff8f0] p-3">
           <label className="block">
             <span className={ADMIN_LABEL}>
-              Category title <span className="text-red-600">*</span>
+              {copy.drawers.category.categoryTitle}{" "}
+              <span className="text-red-600">*</span>
             </span>
             <input
               value={newTitle}
               onChange={(event) => setNewTitle(event.target.value)}
-              placeholder="Enter category title"
+              placeholder={copy.drawers.category.categoryTitlePlaceholder}
               className={ADMIN_INPUT}
               disabled={disabled || isPending}
             />
@@ -202,7 +207,7 @@ export function ProductDrawerCategories({
               onClick={createCategory}
               className="rounded-lg bg-[#1f3a22] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#19311c] disabled:opacity-50"
             >
-              {isPending ? "Adding…" : "Add"}
+              {isPending ? commonCopy.creating : commonCopy.create}
             </button>
             <button
               type="button"
@@ -214,7 +219,7 @@ export function ProductDrawerCategories({
               }}
               className="text-sm font-medium text-[#5c564e] hover:text-[#ff7f20]"
             >
-              Cancel
+              {commonCopy.cancel}
             </button>
           </div>
           {error ? <p className="text-sm text-red-700">{error}</p> : null}

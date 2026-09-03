@@ -5,6 +5,7 @@ import { Check } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { ADMIN_LABEL } from "@/features/admin/ui/admin-form-classes";
+import { getAdminCopy } from "@/features/admin/ui/admin-copy";
 import { SHOW_DIET_UI } from "@/features/products/diet-ui";
 import { staticAssetUrl } from "@/lib/media/static-asset-url";
 
@@ -12,6 +13,7 @@ const SPICY_ICON = staticAssetUrl("/assets/product-card/spicy.webp");
 const VEGGIE_ICON = staticAssetUrl("/assets/product-card/veggie.webp");
 
 type ProductDrawerDietBadgesProps = {
+  locale: string;
   isSpicy: boolean;
   isVegetarian: boolean;
   disabled?: boolean;
@@ -85,25 +87,27 @@ function DietOption({
 
 /** Admin toggles for spicy / vegetarian badges shown on storefront cards. */
 export function ProductDrawerDietBadges({
+  locale,
   isSpicy,
   isVegetarian,
   disabled = false,
   onSpicyChange,
   onVegetarianChange,
 }: ProductDrawerDietBadgesProps) {
+  const copy = getAdminCopy(locale);
   if (!SHOW_DIET_UI) {
     return null;
   }
 
   return (
     <fieldset disabled={disabled} className="min-w-0">
-      <legend className={ADMIN_LABEL}>Կծու / Vegie</legend>
+      <legend className={ADMIN_LABEL}>{copy.drawers.product.dietLegend}</legend>
 
       <div className="mt-3 grid grid-cols-2 gap-3 rounded-[22px] border border-[#ead7bf] bg-gradient-to-br from-[#fffaf2] via-[#fffdf8] to-[#fff4eb] p-3 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.04)] sm:gap-4 sm:p-4">
         <DietOption
           pressed={isSpicy}
           disabled={disabled}
-          label="Կծու"
+          label={copy.drawers.product.spicyLabel}
           accent="spicy"
           onToggle={() => onSpicyChange(!isSpicy)}
           icon={
@@ -129,7 +133,7 @@ export function ProductDrawerDietBadges({
         <DietOption
           pressed={isVegetarian}
           disabled={disabled}
-          label="Vegie"
+          label={copy.drawers.product.vegetarianLabel}
           accent="veg"
           onToggle={() => onVegetarianChange(!isVegetarian)}
           icon={

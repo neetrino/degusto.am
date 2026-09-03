@@ -8,6 +8,7 @@ import type {
   AdminCategoryOption,
   AdminProductListItem,
 } from "@/features/products/application/list-admin-products";
+import { getAdminCopy } from "@/features/admin/ui/admin-copy";
 import { AdminProductsTable } from "@/features/products/ui/AdminProductsTable";
 import { ProductDrawer } from "@/features/products/ui/ProductDrawer";
 
@@ -33,6 +34,7 @@ export function AdminProductsView({
   categories,
   pagination,
 }: AdminProductsViewProps) {
+  const copy = getAdminCopy(locale);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingProduct, setEditingProduct] =
     useState<AdminProductListItem | null>(null);
@@ -60,7 +62,7 @@ export function AdminProductsView({
         className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#1f3a22] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#19311c]"
       >
         <Plus className="h-4 w-4" aria-hidden />
-        Add New Product
+        {copy.pages.products.addNewProduct}
       </button>
 
       <AdminProductsTable

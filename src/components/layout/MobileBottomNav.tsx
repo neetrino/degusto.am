@@ -145,6 +145,7 @@ export function MobileBottomNav({
           currency={currency}
           dictionary={dictionary}
           itemCount={cartItemCount}
+          openOnEventMediaQuery="(max-width: 767px)"
           renderTrigger={({
             open,
             badgeCount,

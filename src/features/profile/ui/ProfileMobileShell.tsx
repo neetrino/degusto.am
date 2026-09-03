@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { ProfileMobileHub } from "@/features/profile/ui/ProfileMobileHub";
@@ -101,7 +96,7 @@ export function ProfileMobileShell({
   );
 
   const desktopColumn = (
-    <div className="min-w-0 lg:col-span-8 xl:col-span-9">
+    <div className="hidden min-w-0 lg:col-span-8 lg:block xl:col-span-9">
       <div className="h-full min-h-[560px] rounded-[28px] border border-brand/20 bg-white p-5 shadow-[0_18px_50px_-28px_rgba(28,25,23,0.35)] sm:p-7">
         {children}
       </div>
@@ -112,7 +107,7 @@ export function ProfileMobileShell({
   if (isDesktop === null) {
     return (
       <>
-        <div className="profile-mobile-page mx-auto w-full max-w-md px-4 pt-6 pb-8 lg:hidden">
+        <div className="profile-mobile-page mx-auto w-full max-w-none px-1.5 pt-6 pb-8 sm:px-2 lg:hidden">
           {hub}
         </div>
         <div className="hidden min-w-0 lg:col-span-8 lg:block xl:col-span-9">
@@ -129,7 +124,7 @@ export function ProfileMobileShell({
   }
 
   return (
-    <div className="profile-mobile-page mx-auto w-full max-w-md px-4 pt-6 pb-8">
+    <div className="profile-mobile-page mx-auto w-full max-w-none px-1.5 pt-6 pb-8 sm:px-2">
       {hub}
       <ProfileMobileTabSheet
         open={sheetOpen}

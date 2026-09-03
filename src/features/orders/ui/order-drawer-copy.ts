@@ -21,6 +21,10 @@ export type OrderDrawerCopy = {
   email: string;
   comment: string;
   quantity: string;
+  reorderCta: string;
+  reordering: string;
+  reorderPartial: string;
+  reorderUnavailable: string;
   loading: string;
   ariaLabel: string;
 };
@@ -47,6 +51,10 @@ const COPY: Record<Locale, OrderDrawerCopy> = {
     email: "Էլ. փոստ",
     comment: "Մեկնաբանություն",
     quantity: "Քանակ",
+    reorderCta: "Կրկին պատվիրել",
+    reordering: "Ավելացվում է…",
+    reorderPartial: "Պատվերի հասանելի ապրանքները ավելացվել են զամբյուղում։",
+    reorderUnavailable: "Այս ապրանքները սպառվել են կամ հասանելի չեն.",
     loading: "Բեռնվում է…",
     ariaLabel: "Պատվերի մանրամասներ",
   },
@@ -71,6 +79,10 @@ const COPY: Record<Locale, OrderDrawerCopy> = {
     email: "Email",
     comment: "Comment",
     quantity: "Qty",
+    reorderCta: "Reorder",
+    reordering: "Adding…",
+    reorderPartial: "Available items were added to your cart.",
+    reorderUnavailable: "These products are out of stock or unavailable:",
     loading: "Loading order…",
     ariaLabel: "Order details",
   },
@@ -95,6 +107,10 @@ const COPY: Record<Locale, OrderDrawerCopy> = {
     email: "Email",
     comment: "Комментарий",
     quantity: "Кол-во",
+    reorderCta: "Заказать снова",
+    reordering: "Добавляем…",
+    reorderPartial: "Доступные товары добавлены в корзину.",
+    reorderUnavailable: "Эти товары закончились или недоступны:",
     loading: "Загрузка заказа…",
     ariaLabel: "Детали заказа",
   },

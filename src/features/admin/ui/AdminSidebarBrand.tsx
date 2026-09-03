@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { getAdminCopy } from "@/features/admin/ui/admin-copy";
 import { useAdminSidebarCollapse } from "@/features/admin/ui/AdminSidebarCollapseContext";
 
 type AdminSidebarBrandProps = {
@@ -10,6 +11,7 @@ type AdminSidebarBrandProps = {
 
 export function AdminSidebarBrand({ locale }: AdminSidebarBrandProps) {
   const { collapsed, toggleCollapsed } = useAdminSidebarCollapse();
+  const copy = getAdminCopy(locale);
 
   return (
     <div
@@ -23,7 +25,7 @@ export function AdminSidebarBrand({ locale }: AdminSidebarBrandProps) {
         <Link
           href={`/${locale}`}
           className="flex h-9 w-9 items-center justify-center rounded-md bg-white text-lg font-extrabold leading-none text-[#f66812] transition-colors hover:bg-[#fff2e8]"
-          title="Degusto home"
+          title={copy.sidebar.home}
         >
           D
         </Link>
@@ -31,7 +33,7 @@ export function AdminSidebarBrand({ locale }: AdminSidebarBrandProps) {
         <Link
           href={`/${locale}`}
           className="group flex min-w-0 flex-1 items-center gap-2 rounded-md px-2 py-2 transition-colors hover:bg-white/10"
-          title="Degusto home"
+          title={copy.sidebar.home}
         >
           <span className="truncate text-xl font-semibold tracking-tight text-white">
             Degusto
@@ -43,8 +45,12 @@ export function AdminSidebarBrand({ locale }: AdminSidebarBrandProps) {
         onClick={toggleCollapsed}
         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-white/25 text-white/80 transition-colors hover:border-white/45 hover:bg-white/10 hover:text-white"
         aria-expanded={!collapsed}
-        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        aria-label={
+          collapsed ? copy.sidebar.expandSidebar : copy.sidebar.collapseSidebar
+        }
+        title={
+          collapsed ? copy.sidebar.expandSidebar : copy.sidebar.collapseSidebar
+        }
       >
         {collapsed ? (
           <svg

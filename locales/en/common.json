@@ -47,6 +47,36 @@
     "hero": "Hero",
     "settings": "Settings"
   },
+  "adminDashboard": {
+    "title": "Admin",
+    "subtitle": "Welcome to the admin dashboard",
+    "revenueDeltaSuffix": "vs prev",
+    "recentOrders": "Recent orders",
+    "topProducts": "Top products",
+    "viewAll": "View all",
+    "noRecentOrders": "No recent orders.",
+    "soldSuffix": "sold",
+    "noProductSales": "No product sales in this range.",
+    "quickActions": "Quick actions",
+    "actions": {
+      "addProduct": {
+        "title": "Add product",
+        "subtitle": "Create a new product"
+      },
+      "manageOrders": {
+        "title": "Manage orders",
+        "subtitle": "View all orders"
+      },
+      "manageUsers": {
+        "title": "Manage users",
+        "subtitle": "View all users"
+      },
+      "settings": {
+        "title": "Settings",
+        "subtitle": "Configure store"
+      }
+    }
+  },
   "newOrderAlert": {
     "badge": "New order ({count} waiting)",
     "orderTitle": "Order #{orderNumber}",

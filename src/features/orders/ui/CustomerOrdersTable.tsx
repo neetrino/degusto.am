@@ -12,7 +12,6 @@ import {
   ADMIN_TABLE_FOOTER_ROUNDED_B,
   ADMIN_TABLE_OUTER_SCROLL,
   ADMIN_TABLE_ROW,
-  ADMIN_TABLE_STATE_INSET,
   ADMIN_TABLE_TBODY,
   ADMIN_TABLE_TD,
   ADMIN_TABLE_TH,
@@ -22,6 +21,7 @@ import {
   formatOrderDrawerMoney,
   formatOrderStatusLabel,
 } from "@/features/orders/ui/order-drawer-format";
+import { OrderPlacedAtCell } from "@/features/orders/ui/OrderPlacedAtCell";
 
 type CustomerOrderRow = {
   id: string;
@@ -42,9 +42,51 @@ export function CustomerOrdersTable({
   orders,
   onOpenOrder,
 }: CustomerOrdersTableProps) {
+  if (orders.length === 0) {
+    return (
+      <Card className="border-brand/15 shadow-[0_14px_32px_-28px_rgba(28,25,23,0.5)]">
+        <p className="px-4 py-8 text-center text-sm text-product-ink/60">
+          No orders match these filters.
+        </p>
+      </Card>
+    );
+  }
+
   return (
-    <Card className={ADMIN_TABLE_CARD}>
-      <div className={ADMIN_TABLE_OUTER_SCROLL}>
+    <Card
+      className={`${ADMIN_TABLE_CARD} border-brand/15 shadow-[0_14px_32px_-28px_rgba(28,25,23,0.5)]`}
+    >
+      <div className="space-y-3 p-3 sm:hidden">
+        {orders.map((order) => (
+          <button
+            key={order.id}
+            type="button"
+            onClick={() => onOpenOrder(order.orderNumber)}
+            className="flex w-full flex-col gap-2 rounded-2xl border border-brand/15 bg-white p-3 text-left"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <span className="font-semibold text-product-ink">{order.orderNumber}</span>
+              <span className="text-sm font-black text-product-ink">
+                {formatOrderDrawerMoney(order.totalAmount, order.baseCurrency)}
+              </span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className={`${ADMIN_BADGE} ${orderStatusBadgeClass(order.status)}`}
+              >
+                {formatOrderStatusLabel(order.status)}
+              </span>
+              <span
+                className={`${ADMIN_BADGE} ${paymentStatusBadgeClass(order.paymentStatus)}`}
+              >
+                {formatOrderStatusLabel(order.paymentStatus)}
+              </span>
+            </div>
+            <OrderPlacedAtCell value={order.placedAt} />
+          </button>
+        ))}
+      </div>
+      <div className={`${ADMIN_TABLE_OUTER_SCROLL} hidden sm:block`}>
         <table className={ADMIN_TABLE}>
           <thead className={ADMIN_TABLE_THEAD}>
             <tr>
@@ -57,15 +99,13 @@ export function CustomerOrdersTable({
           </thead>
           <tbody className={ADMIN_TABLE_TBODY}>
             {orders.map((order) => (
-              <tr key={order.id} className={ADMIN_TABLE_ROW}>
+              <tr
+                key={order.id}
+                className={`${ADMIN_TABLE_ROW} cursor-pointer`}
+                onClick={() => onOpenOrder(order.orderNumber)}
+              >
                 <td className={ADMIN_TABLE_TD}>
-                  <button
-                    type="button"
-                    onClick={() => onOpenOrder(order.orderNumber)}
-                    className="font-medium text-gray-900 hover:underline"
-                  >
-                    {order.orderNumber}
-                  </button>
+                  <span className="font-medium text-gray-900">{order.orderNumber}</span>
                 </td>
                 <td className={ADMIN_TABLE_TD}>
                   <span
@@ -90,30 +130,18 @@ export function CustomerOrdersTable({
                   </span>
                 </td>
                 <td className={ADMIN_TABLE_TD}>
-                  <span className="text-xs text-gray-500">
-                    {new Date(order.placedAt)
-                      .toISOString()
-                      .slice(0, 16)
-                      .replace("T", " ")}{" "}
-                    UTC
-                  </span>
+                  <OrderPlacedAtCell value={order.placedAt} />
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      {orders.length === 0 ? (
-        <p className={`${ADMIN_TABLE_STATE_INSET} text-sm text-gray-600`}>
-          No orders match these filters.
+      <div className={ADMIN_TABLE_FOOTER_ROUNDED_B}>
+        <p className="text-sm text-gray-600">
+          {orders.length} order{orders.length === 1 ? "" : "s"} on this page
         </p>
-      ) : (
-        <div className={ADMIN_TABLE_FOOTER_ROUNDED_B}>
-          <p className="text-sm text-gray-600">
-            {orders.length} order{orders.length === 1 ? "" : "s"} on this page
-          </p>
-        </div>
-      )}
+      </div>
     </Card>
   );
 }

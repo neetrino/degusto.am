@@ -49,6 +49,10 @@ function userRoleBadgeClass(role: string): string {
     : "bg-[#e8e2d9] text-[#5c564e]";
 }
 
+function formatUtcDateTime(value: Date): string {
+  return `${value.toISOString().slice(0, 16).replace("T", " ")} UTC`;
+}
+
 export default async function AdminUserDetailPage({
   params,
 }: AdminUserDetailPageProps) {
@@ -148,7 +152,7 @@ export default async function AdminUserDetailPage({
 
       <Card className="p-6">
         <h2 className={`mb-4 ${ADMIN_SECTION_TITLE}`}>Recent orders</h2>
-        <div className="space-y-3">
+        <div className="grid gap-3 md:grid-cols-2">
           {recentOrders.map((order) => (
             <Link
               key={order.id}
@@ -172,6 +176,9 @@ export default async function AdminUserDetailPage({
               </div>
               <p className="mt-1 text-sm text-[#5c564e]">
                 {order.totalAmount.toLocaleString("en-US")} {order.baseCurrency}
+              </p>
+              <p className="mt-1 text-xs text-[#8a8378]">
+                Placed: {formatUtcDateTime(order.placedAt)}
               </p>
             </Link>
           ))}

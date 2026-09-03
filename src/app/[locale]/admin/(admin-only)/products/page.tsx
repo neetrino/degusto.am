@@ -8,6 +8,7 @@ import {
 import { adminProductsFilterSchema } from "@/features/products/schemas/admin-list";
 import { AdminProductsFilters } from "@/features/products/ui/AdminProductsFilters";
 import { AdminProductsView } from "@/features/products/ui/AdminProductsView";
+import { getAdminCopy } from "@/features/admin/ui/admin-copy";
 import { isLocale } from "@/lib/i18n/config";
 
 type AdminProductsPageProps = {
@@ -56,6 +57,7 @@ export default async function AdminProductsPage({
   if (!isLocale(locale)) {
     notFound();
   }
+  const copy = getAdminCopy(locale);
 
   const raw = await searchParams;
   const parsed = adminProductsFilterSchema.safeParse({
@@ -109,6 +111,7 @@ export default async function AdminProductsPage({
   return (
     <section>
       <AdminProductsFilters
+        locale={locale}
         total={total}
         q={filters.q}
         sku={filters.sku}
@@ -129,6 +132,8 @@ export default async function AdminProductsPage({
             <AdminPagination
               currentPage={filters.page}
               totalPages={totalPages}
+              previousLabel={copy.pages.pagination.previous}
+              nextLabel={copy.pages.pagination.next}
               buildHref={(page) => {
                 const query = buildQuery(filters, { page });
                 return query

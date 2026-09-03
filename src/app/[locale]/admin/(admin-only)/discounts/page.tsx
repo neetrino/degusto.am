@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { ADMIN_PAGE_TITLE } from "@/features/admin/ui/admin-form-classes";
+import { getAdminCopy } from "@/features/admin/ui/admin-copy";
 import { getAdminDiscountsBoard } from "@/features/promotions/application/discounts-board";
 import { AdminDiscountsView } from "@/features/promotions/ui/AdminDiscountsView";
 import { isLocale } from "@/lib/i18n/config";
@@ -18,11 +19,12 @@ export default async function AdminDiscountsPage({
   }
 
   const board = await getAdminDiscountsBoard(locale);
+  const copy = getAdminCopy(locale);
 
   return (
     <section className="w-full">
       <div className="mb-6">
-        <h1 className={ADMIN_PAGE_TITLE}>Discounts</h1>
+        <h1 className={ADMIN_PAGE_TITLE}>{copy.pages.discounts.title}</h1>
       </div>
 
       <AdminDiscountsView locale={locale} board={board} />

@@ -15,6 +15,7 @@ import {
   ADMIN_SHEET_SURFACE,
 } from "@/features/admin/ui/admin-form-classes";
 import { AdminSheetHeader } from "@/features/admin/ui/AdminSheetHeader";
+import { getAdminCopy } from "@/features/admin/ui/admin-copy";
 import { getCouponAllowedUsersAction } from "@/features/promotions/application/coupon-user-actions";
 import {
   createPromotionAction,
@@ -57,6 +58,9 @@ export function CouponDrawer({
   coupon = null,
 }: CouponDrawerProps) {
   const router = useRouter();
+  const copy = getAdminCopy(locale);
+  const commonCopy = copy.common;
+  const drawerCopy = copy.drawers.coupon;
   const isEdit = coupon != null;
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
@@ -127,13 +131,15 @@ export function CouponDrawer({
     <SideSheet
       open={open}
       onClose={onClose}
-      ariaLabel={isEdit ? "Edit coupon" : "New coupon"}
+      ariaLabel={isEdit ? drawerCopy.editTitle : drawerCopy.addTitle}
       panelClassName="w-full max-w-md"
       surfaceClassName={ADMIN_SHEET_SURFACE}
       closeTone="brand"
       backdropBlur
     >
-        <AdminSheetHeader title={isEdit ? "Edit coupon" : "New coupon"} />
+      <AdminSheetHeader
+        title={isEdit ? drawerCopy.editTitle : drawerCopy.addTitle}
+      />
 
         <form
           className="flex min-h-0 flex-1 flex-col"
@@ -141,7 +147,7 @@ export function CouponDrawer({
             event.preventDefault();
             const nextCode = (code.trim() || name.trim()).toUpperCase();
             if (!nextCode) {
-              setError("Code is required.");
+              setError(drawerCopy.codeRequired);
               return;
             }
 
@@ -184,23 +190,23 @@ export function CouponDrawer({
           <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
             <div className="grid gap-4 sm:grid-cols-2">
               <label>
-                <span className={ADMIN_LABEL}>Name</span>
+                <span className={ADMIN_LABEL}>{drawerCopy.name}</span>
                 <input
                   value={name}
                   onChange={(event) => setName(event.target.value)}
-                  placeholder="Name"
+                  placeholder={drawerCopy.name}
                   className={ADMIN_INPUT}
                   disabled={isPending}
                 />
               </label>
               <label>
-                <span className={ADMIN_LABEL}>Code</span>
+                <span className={ADMIN_LABEL}>{drawerCopy.code}</span>
                 <input
                   value={code}
                   onChange={(event) =>
                     setCode(event.target.value.toUpperCase())
                   }
-                  placeholder="Code"
+                  placeholder={drawerCopy.code}
                   className={`${ADMIN_INPUT} uppercase`}
                   disabled={isPending}
                 />
@@ -209,13 +215,13 @@ export function CouponDrawer({
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <span className={ADMIN_LABEL}>Discount type</span>
+                <span className={ADMIN_LABEL}>{drawerCopy.discountType}</span>
                 <SelectDropdown
-                  ariaLabel="Discount type"
+                  ariaLabel={drawerCopy.discountType}
                   value={discountType}
                   options={[
-                    { label: "Percent off", value: "PERCENTAGE" },
-                    { label: "Fixed amount (AMD)", value: "FIXED" },
+                    { label: drawerCopy.percentOff, value: "PERCENTAGE" },
+                    { label: drawerCopy.fixedAmd, value: "FIXED" },
                   ]}
                   disabled={isPending}
                   deferChange={false}
@@ -226,7 +232,7 @@ export function CouponDrawer({
                 />
               </div>
               <label>
-                <span className={ADMIN_LABEL}>Value</span>
+                <span className={ADMIN_LABEL}>{drawerCopy.value}</span>
                 <input
                   type="number"
                   min={1}
@@ -241,7 +247,7 @@ export function CouponDrawer({
 
             <div className="grid gap-4 sm:grid-cols-2">
               <label>
-                <span className={ADMIN_LABEL}>Quantity</span>
+                <span className={ADMIN_LABEL}>{drawerCopy.quantity}</span>
                 <input
                   type="number"
                   min={1}
@@ -252,7 +258,7 @@ export function CouponDrawer({
                 />
               </label>
               <label>
-                <span className={ADMIN_LABEL}>Expires (optional)</span>
+                <span className={ADMIN_LABEL}>{drawerCopy.expiresOptional}</span>
                 <input
                   type="datetime-local"
                   value={expiresAt}
@@ -281,18 +287,18 @@ export function CouponDrawer({
             >
               {isPending
                 ? isEdit
-                  ? "Saving…"
-                  : "Creating…"
+                  ? commonCopy.saving
+                  : commonCopy.creating
                 : isEdit
-                  ? "Save"
-                  : "Create"}
+                  ? commonCopy.save
+                  : commonCopy.create}
             </Button>
             <button
               type="button"
               onClick={onClose}
               className={ADMIN_SHEET_CANCEL}
             >
-              Cancel
+              {commonCopy.cancel}
             </button>
           </div>
         </form>

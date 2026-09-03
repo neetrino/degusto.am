@@ -102,7 +102,12 @@ export async function HomeMobile({
   return (
     <HomeMobileMotionShell>
       <header className="relative z-[1100] overflow-visible px-4 pt-[58px]">
-        <HomeReveal variant="up" durationMs={700} amount={0.1}>
+        <HomeReveal
+          variant="up"
+          durationMs={700}
+          amount={0.1}
+          className="relative z-20"
+        >
           <div className="relative z-20 flex translate-y-5 items-start justify-between overflow-visible">
             <AppLink
               href={`/${locale}`}
@@ -154,7 +159,13 @@ export async function HomeMobile({
           </div>
         </HomeReveal>
 
-        <HomeReveal variant="up" delayMs={80} durationMs={700} amount={0.1}>
+        <HomeReveal
+          variant="up"
+          delayMs={80}
+          durationMs={700}
+          amount={0.1}
+          className="relative z-10"
+        >
           <div className="relative z-0">
             <HomeMobileSearch
               locale={locale}
