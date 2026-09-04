@@ -11,7 +11,10 @@ import {
 import { useActionState, useState, type ReactNode } from "react";
 
 import { AppLink } from "@/components/ui/AppLink";
-import { type AuthActionState } from "@/features/auth/login-action";
+import {
+  resolveAuthErrorMessage,
+  type AuthActionState,
+} from "@/features/auth/auth-action-state";
 import { registerAction } from "@/features/auth/register-action";
 import {
   authInputClassName,
@@ -34,9 +37,11 @@ export function RegisterForm({ locale, dictionary }: RegisterFormProps) {
   const [state, formAction, isPending] = useActionState(action, initialState);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmVisible, setConfirmVisible] = useState(false);
+  const alertMessage = resolveAuthErrorMessage(state, dictionary);
 
   return (
     <form action={formAction} className="space-y-4 sm:space-y-[18px]">
+      <input type="hidden" name="locale" value={locale} />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
         <AuthTextField
           id="firstName"
@@ -133,12 +138,12 @@ export function RegisterForm({ locale, dictionary }: RegisterFormProps) {
         </label>
       </div>
 
-      {state.error ? (
+      {alertMessage ? (
         <p
           role="alert"
           className="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-600"
         >
-          {state.error}
+          {alertMessage}
         </p>
       ) : null}
 

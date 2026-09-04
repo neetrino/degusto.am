@@ -63,7 +63,6 @@ export function ProductDetailMain({
 }: ProductDetailMainProps) {
   const labels = dictionary.product;
   const inStock = product.stockOnHand > 0;
-  const categoryTitle = product.categories[0]?.title ?? null;
   const description = pickLocalizedProductDescription(
     product.translation.description?.trim() ?? "",
     locale,
@@ -150,7 +149,7 @@ export function ProductDetailMain({
           >
             <motion.h1
               variants={reduceMotion ? undefined : productInfoItem}
-              className="mb-2 break-words text-[2.25rem] leading-normal font-bold text-[#3C2F2F]"
+              className="mb-2 break-words text-[30px] leading-normal font-bold text-[#3C2F2F] lg:text-[2.25rem]"
             >
               {product.translation.title}
             </motion.h1>
@@ -199,10 +198,10 @@ export function ProductDetailMain({
                 <ProductAnimatedPrice
                   amount={liveTotalAmount}
                   suffix=" Դ"
-                  className="text-[2.25rem] leading-none font-bold tabular-nums text-[#3C2F2F]"
+                  className="text-[30px] leading-none font-bold tabular-nums text-[#3C2F2F] lg:text-[2.25rem]"
                 />
               ) : (
-                <p className="text-[2.25rem] leading-none font-bold text-[#3C2F2F]">
+                <p className="text-[30px] leading-none font-bold text-[#3C2F2F] lg:text-[2.25rem]">
                   {priceFormatted}
                 </p>
               )}
@@ -212,15 +211,6 @@ export function ProductDetailMain({
                 </p>
               ) : null}
             </motion.div>
-
-            {categoryTitle ? (
-              <motion.p
-                variants={reduceMotion ? undefined : productInfoItem}
-                className="mb-5 max-w-[31.125rem] text-base leading-6 font-normal text-[#3C2F2F]"
-              >
-                {categoryTitle} — {product.translation.title}
-              </motion.p>
-            ) : null}
 
             {showDescription && descriptionHasMarkup ? (
               <motion.div

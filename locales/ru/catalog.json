@@ -1,7 +1,9 @@
 {
   "paginationLabel": "Страницы каталога",
+  "firstPage": "Первая страница",
   "previousPage": "Назад",
   "nextPage": "Далее",
+  "lastPage": "Последняя страница",
   "pageStatus": "Страница {page} из {total}",
   "menuTitle": "Кухня",
   "menuSubtitle": "Выберите любимые блюда из нашего ассортимента",

@@ -91,7 +91,7 @@ export function HomeMobileSheet({ children }: HomeMobileSheetProps) {
         damping: 18,
         delay: 0.2,
       }}
-      className="relative z-10 mt-[87px] min-h-[calc(100dvh-10rem)] rounded-t-[30px] bg-white px-0 pt-8 pb-[110px]"
+      className="relative z-10 mt-[87px] min-h-[calc(100dvh-10rem)] rounded-t-[30px] bg-white px-0 pt-8 pb-[calc(4.25rem+2.5rem)]"
     >
       {children}
     </motion.div>

@@ -14,10 +14,9 @@ import {
 } from "@/lib/auth/password";
 import type { UserRole } from "@/features/users/domain/user-lifecycle";
 import { staffHomePath } from "@/lib/auth/policies";
+import { type AuthActionState } from "@/features/auth/auth-action-state";
 import { defaultLocale, isLocale, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
-
-export type AuthActionState = { error?: string };
 
 function resolveSafeNextPath(
   locale: Locale,

@@ -71,8 +71,10 @@ type ShopCatalogPanelProps = {
   rating: number;
   isSignedIn: boolean;
   paginationLabel: string;
+  firstLabel: string;
   previousLabel: string;
   nextLabel: string;
+  lastLabel: string;
   currentPage: number;
   totalPages: number;
   paginationLocale: string;
@@ -126,8 +128,10 @@ export function ShopCatalogPanel({
   rating,
   isSignedIn,
   paginationLabel,
+  firstLabel,
   previousLabel,
   nextLabel,
+  lastLabel,
   currentPage,
   totalPages,
   paginationLocale,
@@ -266,8 +270,10 @@ export function ShopCatalogPanel({
         >
           <ShopPagination
             ariaLabel={paginationLabel}
+            firstLabel={firstLabel}
             previousLabel={previousLabel}
             nextLabel={nextLabel}
+            lastLabel={lastLabel}
             currentPage={currentPage}
             totalPages={totalPages}
             buildHref={buildPageHref}

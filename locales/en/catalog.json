@@ -1,7 +1,9 @@
 {
   "paginationLabel": "Catalog pages",
+  "firstPage": "First page",
   "previousPage": "Previous",
   "nextPage": "Next",
+  "lastPage": "Last page",
   "pageStatus": "Page {page} of {total}",
   "menuTitle": "Kitchen",
   "menuSubtitle": "Choose your favorite dishes from our wide selection",
