@@ -2,7 +2,7 @@ import "server-only";
 
 import { getEnv } from "@/config/env";
 import { getStoreFxRates } from "@/features/settings/application/queries";
-import { createStubEmailAdapter } from "@/lib/email/stub-adapter";
+import { createEmailAdapter } from "@/lib/email/create-adapter";
 import type { EmailAdapter } from "@/lib/email/types";
 import { createStaticExchangeRateAdapter } from "@/lib/fx/static-adapter";
 import type { ExchangeRateAdapter } from "@/lib/fx/types";
@@ -14,7 +14,7 @@ import {
 import { isR2Configured } from "@/lib/r2/is-configured";
 import { createStubObjectStorageAdapter } from "@/lib/r2/stub-adapter";
 import type { ObjectStorageAdapter } from "@/lib/r2/types";
-import { createMemoryRedisAdapter } from "@/lib/redis/memory-adapter";
+import { createRedisAdapter } from "@/lib/redis/create-adapter";
 import type { RedisAdapter } from "@/lib/redis/types";
 
 export type AppProviders = {
@@ -50,17 +50,18 @@ function createStorageAdapter(): ObjectStorageAdapter {
 
 /**
  * Provider composition root. Real Upstash/R2/Resend adapters replace stubs
- * when credentials are present and feature wiring needs them.
+ * when credentials are present.
  */
 export function getProviders(): AppProviders {
   if (cachedProviders) {
     return cachedProviders;
   }
 
+  const env = getEnv();
   cachedProviders = {
-    redis: createMemoryRedisAdapter(),
+    redis: createRedisAdapter(env),
     storage: createStorageAdapter(),
-    email: createStubEmailAdapter(),
+    email: createEmailAdapter(env),
     payment: createCodPaymentAdapter(),
     exchangeRates: createStaticExchangeRateAdapter({
       getRatesFromAmd: async () => {

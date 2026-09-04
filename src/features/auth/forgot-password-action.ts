@@ -9,6 +9,7 @@ import { users } from "@/db/schema";
 import { forgotPasswordSchema } from "@/features/auth/schemas";
 import { issuePasswordResetToken } from "@/lib/auth/password-reset-tokens";
 import { defaultLocale, isLocale, type Locale } from "@/lib/i18n/config";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { logger } from "@/lib/observability/logger";
 
 export type ForgotPasswordActionState = {
@@ -50,7 +51,7 @@ export async function forgotPasswordAction(
   });
 
   if (!parsed.success) {
-    return { error: "Please enter a valid email address." };
+    return { error: getDictionary(locale).auth.forgotPasswordInvalid };
   }
 
   try {
@@ -72,7 +73,14 @@ export async function forgotPasswordAction(
       );
       resetUrl.searchParams.set("token", rawToken);
 
-      const email = buildResetEmail(resetUrl.toString());
+      const resetHref = resetUrl.toString();
+      if (getEnv().NODE_ENV !== "production") {
+        logger.info("auth.forgot_password_dev_reset_url", {
+          resetUrl: resetHref,
+        });
+      }
+
+      const email = buildResetEmail(resetHref);
       await providers.email.send({
         to: user.email,
         subject: email.subject,
@@ -85,7 +93,7 @@ export async function forgotPasswordAction(
       error: error instanceof Error ? error.message : "unknown",
     });
     return {
-      error: "Unable to process the request right now. Please try again.",
+      error: getDictionary(locale).auth.forgotPasswordUnavailable,
     };
   }
 
