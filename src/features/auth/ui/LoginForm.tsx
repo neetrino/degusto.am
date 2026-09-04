@@ -5,7 +5,8 @@ import { useActionState, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { AppLink } from "@/components/ui/AppLink";
-import { loginAction, type AuthActionState } from "@/features/auth/login-action";
+import { type AuthActionState } from "@/features/auth/auth-action-state";
+import { loginAction } from "@/features/auth/login-action";
 import {
   authIconBubbleClassName,
   authInputClassName,

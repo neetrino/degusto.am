@@ -18,8 +18,6 @@ import { type AuthActionState } from "@/features/auth/auth-action-state";
 import { defaultLocale, isLocale, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 
-export type { AuthActionState };
-
 function resolveSafeNextPath(
   locale: Locale,
   raw: FormDataEntryValue | null,
