@@ -22,7 +22,15 @@ const envSchema = z.object({
   R2_PUBLIC_BASE_URL: z.string().url().optional(),
   /** Optional custom S3 API endpoint; defaults to account R2 endpoint. */
   R2_ENDPOINT: z.string().url().optional(),
-  EMAIL_FROM: z.string().email().optional(),
+  EMAIL_FROM: z
+    .string()
+    .refine((value) => {
+      const trimmed = value.trim();
+      const angled = trimmed.match(/^[^<>]*<([^<>]+)>$/);
+      const address = angled?.[1]?.trim() ?? trimmed;
+      return z.string().email().safeParse(address).success;
+    }, "Invalid email")
+    .optional(),
   RESEND_API_KEY: z.string().min(1).optional(),
   IDRAM_TEST_MODE: z.string().optional(),
   IDRAM_REC_ACCOUNT: z.string().min(1).optional(),

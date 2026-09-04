@@ -15,6 +15,7 @@ import {
 import type { UserRole } from "@/features/users/domain/user-lifecycle";
 import { staffHomePath } from "@/lib/auth/policies";
 import { defaultLocale, isLocale, type Locale } from "@/lib/i18n/config";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 
 export type AuthActionState = { error?: string };
 
@@ -52,9 +53,10 @@ export async function loginAction(
 ): Promise<AuthActionState> {
   const parsed = loginSchema.safeParse(Object.fromEntries(formData));
   const locale: Locale = isLocale(localeInput) ? localeInput : defaultLocale;
+  const invalidCredentials = getDictionary(locale).auth.genericError;
 
   if (!parsed.success) {
-    return { error: "Invalid email or password." };
+    return { error: invalidCredentials };
   }
 
   const [user] = await getDb()
@@ -67,7 +69,7 @@ export async function loginAction(
     : false;
 
   if (!user || !passwordMatches || user.status !== "ACTIVE") {
-    return { error: "Invalid email or password." };
+    return { error: invalidCredentials };
   }
 
   const now = new Date();
