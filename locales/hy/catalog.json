@@ -1,7 +1,9 @@
 {
   "paginationLabel": "Կատալոգի էջեր",
+  "firstPage": "Առաջին էջ",
   "previousPage": "Նախորդ",
   "nextPage": "Հաջորդ",
+  "lastPage": "Վերջին էջ",
   "pageStatus": "Էջ {page} / {total}",
   "menuTitle": "Խոհանոց",
   "menuSubtitle": "Ընտրեք ձեր նախընտրած ուտեստները մեր լայն տեսականուց",
