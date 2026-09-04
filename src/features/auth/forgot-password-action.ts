@@ -6,6 +6,7 @@ import { getEnv } from "@/config/env";
 import { getProviders } from "@/config/providers";
 import { getDb } from "@/db/client";
 import { users } from "@/db/schema";
+import { buildResetPasswordEmail } from "@/features/auth/reset-password-email";
 import { forgotPasswordSchema } from "@/features/auth/schemas";
 import { issuePasswordResetToken } from "@/lib/auth/password-reset-tokens";
 import { defaultLocale, isLocale, type Locale } from "@/lib/i18n/config";
@@ -16,29 +17,6 @@ export type ForgotPasswordActionState = {
   error?: string;
   sent?: boolean;
 };
-
-function buildResetEmail(resetUrl: string) {
-  const text = [
-    "We received a request to reset your Degusto password.",
-    "",
-    "Open this link to choose a new password (expires in 1 hour):",
-    resetUrl,
-    "",
-    "If you did not request this, you can ignore this email.",
-  ].join("\n");
-
-  const html = `
-    <p>We received a request to reset your Degusto password.</p>
-    <p><a href="${resetUrl}">Choose a new password</a> (link expires in 1 hour).</p>
-    <p>If you did not request this, you can ignore this email.</p>
-  `.trim();
-
-  return {
-    subject: "Reset your Degusto password",
-    text,
-    html,
-  };
-}
 
 export async function forgotPasswordAction(
   localeInput: string,
@@ -80,7 +58,7 @@ export async function forgotPasswordAction(
         });
       }
 
-      const email = buildResetEmail(resetHref);
+      const email = buildResetPasswordEmail(locale, resetHref);
       await providers.email.send({
         to: user.email,
         subject: email.subject,
