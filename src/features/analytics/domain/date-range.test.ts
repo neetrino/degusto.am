@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   fillDailyAnalyticsGaps,
   formatAnalyticsDisplayDate,
+  formatAnalyticsMonthLabel,
   formatAnalyticsShortDate,
   formatPeriodDelta,
   matchAnalyticsPeriodPreset,
@@ -43,6 +44,13 @@ describe("rangeForOverviewPeriod", () => {
       Math.floor((end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000)) + 1;
     expect(days).toBe(7);
   });
+
+  it("starts quarter on a calendar quarter month", () => {
+    const range = rangeForOverviewPeriod("quarter");
+    const month = Number(range.from.slice(5, 7));
+    expect([1, 4, 7, 10]).toContain(month);
+    expect(range.from.endsWith("-01")).toBe(true);
+  });
 });
 
 describe("period deltas", () => {
@@ -80,5 +88,12 @@ describe("deterministic Armenian date formatting", () => {
   it("formats display and short dates without Intl", () => {
     expect(formatAnalyticsDisplayDate("2026-08-21")).toBe("21 օգոստոս, 2026");
     expect(formatAnalyticsShortDate("2026-08-21")).toBe("21 օգս");
+  });
+});
+
+describe("formatAnalyticsMonthLabel", () => {
+  it("formats YYYY-MM per locale without Intl", () => {
+    expect(formatAnalyticsMonthLabel("2026-03", "en")).toBe("March 2026");
+    expect(formatAnalyticsMonthLabel("2026-03", "hy")).toBe("մարտ 2026");
   });
 });

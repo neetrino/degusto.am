@@ -201,10 +201,10 @@
 
 ### Dashboard
 
-- Cards՝ users count, products count, orders count, revenue։
+- Cards՝ users count, products count, today/week/month/quarter sales, 6-month/year trend։
 - 50/50 area՝ recent orders և top-selling products։
-- Date range + previous-period comparison։
-- Revenue-ը ներառում է միայն settings-ում revenue-generating statuses-ը; cancelled/refunded-ը default exclude են։
+- Date range + previous-period comparison (Asia/Yerevan calendar days)։
+- Revenue/order count/AOV/top rankings count every non-archived order that is not `CANCELLED`/`REFUNDED` and whose payment is not `FAILED`/`CANCELLED`/`REFUNDED`. Process statuses such as `PENDING` count.
 
 ### Analytics
 

@@ -21,6 +21,7 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), {
 
 type AnalyticsTrendChartRow = AnalyticsCsvRow & {
   revenueLabel: string;
+  label?: string;
 };
 
 type AnalyticsTrendChartProps = {
@@ -32,7 +33,7 @@ type AnalyticsTrendChartProps = {
  */
 export function AnalyticsTrendChart({ rows }: AnalyticsTrendChartProps) {
   const categories = useMemo(
-    () => rows.map((row) => formatAnalyticsShortDate(row.date)),
+    () => rows.map((row) => row.label ?? formatAnalyticsShortDate(row.date)),
     [rows],
   );
   const revenueSeries = useMemo(

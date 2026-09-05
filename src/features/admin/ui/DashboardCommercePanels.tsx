@@ -1,0 +1,213 @@
+import Link from "next/link";
+
+import { Card } from "@/components/ui/Card";
+import {
+  ADMIN_DASHBOARD_CARD,
+  ADMIN_QUICK_ACTION,
+  ADMIN_VIEW_ALL_LINK,
+} from "@/features/admin/ui/admin-form-classes";
+import {
+  ADMIN_BADGE,
+  orderStatusBadgeClass,
+} from "@/features/admin/ui/status-badge";
+import { SHOW_ADMIN_SETTINGS_UI } from "@/features/settings/admin-settings-ui";
+import type { Dictionary } from "@/lib/i18n/get-dictionary";
+
+type DashboardOrder = {
+  id: string;
+  orderNumber: string;
+  status: string;
+  contactEmail: string;
+  totalAmount: number;
+  baseCurrency: string;
+};
+
+type DashboardProduct = {
+  productId: string;
+  title: string;
+  quantity: number;
+};
+
+type DashboardCommercePanelsProps = {
+  locale: string;
+  copy: Dictionary["adminDashboard"];
+  recentOrders: DashboardOrder[];
+  topProducts: DashboardProduct[];
+  formatMoney: (amount: number) => string;
+};
+
+const QUICK_ACTIONS = [
+  {
+    href: "products/new",
+    copyKey: "addProduct",
+    iconBg: "bg-[#3e573d]/15",
+    iconColor: "text-[#3e573d]",
+    iconPath: "M12 4v16m8-8H4",
+  },
+  {
+    href: "orders",
+    copyKey: "manageOrders",
+    iconBg: "bg-[#ff7f20]/15",
+    iconColor: "text-[#ff7f20]",
+    iconPath:
+      "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2",
+  },
+  {
+    href: "users",
+    copyKey: "manageUsers",
+    iconBg: "bg-[#9eff8e]/25",
+    iconColor: "text-[#3e573d]",
+    iconPath:
+      "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z",
+  },
+  {
+    href: "settings",
+    copyKey: "settings",
+    iconBg: "bg-[#f7d18f]/35",
+    iconColor: "text-[#b7791f]",
+    iconPath:
+      "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z",
+  },
+] as const;
+
+export function DashboardCommercePanels({
+  locale,
+  copy,
+  recentOrders,
+  topProducts,
+  formatMoney,
+}: DashboardCommercePanelsProps) {
+  return (
+    <>
+      <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card className={ADMIN_DASHBOARD_CARD}>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-[#1f1a17]">
+              {copy.recentOrders}
+            </h2>
+            <Link href={`/${locale}/admin/orders`} className={ADMIN_VIEW_ALL_LINK}>
+              {copy.viewAll}
+            </Link>
+          </div>
+          <div className="space-y-4">
+            {recentOrders.map((order) => (
+              <Link
+                key={order.id}
+                href={`/${locale}/admin/orders/${order.orderNumber}`}
+                className="block rounded-lg border border-[#e8e2d9] p-4 transition-colors hover:border-[#ff7f20]/30 hover:bg-[#fff8f2]"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-1 flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-medium text-[#1f1a17]">
+                        #{order.orderNumber}
+                      </p>
+                      <span
+                        className={`${ADMIN_BADGE} ${orderStatusBadgeClass(order.status)}`}
+                      >
+                        {order.status}
+                      </span>
+                    </div>
+                    <p className="truncate text-xs text-[#5c564e]">
+                      {order.contactEmail}
+                    </p>
+                  </div>
+                  <p className="shrink-0 text-sm font-semibold text-[#1f1a17]">
+                    {formatMoney(order.totalAmount)}
+                  </p>
+                </div>
+              </Link>
+            ))}
+            {recentOrders.length === 0 ? (
+              <p className="py-8 text-center text-sm text-[#8a837a]">
+                {copy.noRecentOrders}
+              </p>
+            ) : null}
+          </div>
+        </Card>
+
+        <Card className={ADMIN_DASHBOARD_CARD}>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-[#1f1a17]">
+              {copy.topProducts}
+            </h2>
+            <Link
+              href={`/${locale}/admin/products`}
+              className={ADMIN_VIEW_ALL_LINK}
+            >
+              {copy.viewAll}
+            </Link>
+          </div>
+          <div className="space-y-4">
+            {topProducts.map((product, index) => (
+              <div
+                key={product.productId}
+                className="flex items-center gap-4 rounded-lg border border-[#e8e2d9] p-3"
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-[#3e573d]/10 text-xs font-bold text-[#3e573d]">
+                  {index + 1}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-[#1f1a17]">
+                    {product.title}
+                  </p>
+                  <p className="text-xs text-[#8a837a]">
+                    {product.quantity} {copy.soldSuffix}
+                  </p>
+                </div>
+              </div>
+            ))}
+            {topProducts.length === 0 ? (
+              <p className="py-8 text-center text-sm text-[#8a837a]">
+                {copy.noProductSales}
+              </p>
+            ) : null}
+          </div>
+        </Card>
+      </div>
+
+      <Card className={`mb-8 ${ADMIN_DASHBOARD_CARD}`}>
+        <h2 className="mb-4 text-xl font-semibold text-[#1f1a17]">
+          {copy.quickActions}
+        </h2>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {QUICK_ACTIONS.filter(
+            (action) => action.href !== "settings" || SHOW_ADMIN_SETTINGS_UI,
+          ).map((action) => (
+            <Link
+              key={action.href}
+              href={`/${locale}/admin/${action.href}`}
+              className={ADMIN_QUICK_ACTION}
+            >
+              <div
+                className={`flex h-10 w-10 items-center justify-center rounded-full ${action.iconBg}`}
+              >
+                <svg
+                  className={`h-5 w-5 ${action.iconColor}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d={action.iconPath}
+                  />
+                </svg>
+              </div>
+              <div className="text-left">
+                <p className="font-medium text-[#1f1a17]">
+                  {copy.actions[action.copyKey].title}
+                </p>
+                <p className="text-xs text-[#8a837a]">
+                  {copy.actions[action.copyKey].subtitle}
+                </p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </Card>
+    </>
+  );
+}

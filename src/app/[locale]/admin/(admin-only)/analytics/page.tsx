@@ -5,8 +5,10 @@ import {
   ADMIN_PAGE_TITLE,
 } from "@/features/admin/ui/admin-form-classes";
 import { getAnalyticsSummary } from "@/features/analytics/application/queries";
+import { buildAnalyticsTrendSeries } from "@/features/analytics/domain/dashboard-periods";
 import {
   analyticsDateRangeSchema,
+  formatAnalyticsShortDate,
   matchAnalyticsPeriodPreset,
   rangeForAnalyticsPeriod,
 } from "@/features/analytics/domain/date-range";
@@ -15,7 +17,6 @@ import { AnalyticsPeriodCard } from "@/features/analytics/ui/AnalyticsPeriodCard
 import { AnalyticsSelectedRangeCards } from "@/features/analytics/ui/AnalyticsSelectedRangeCards";
 import { AnalyticsTopRankings } from "@/features/analytics/ui/AnalyticsTopRankings";
 import { AnalyticsTrendPanel } from "@/features/analytics/ui/AnalyticsTrendPanel";
-import { formatAnalyticsShortDate } from "@/features/analytics/domain/date-range";
 import { isLocale } from "@/lib/i18n/config";
 import { formatMoneyAmount } from "@/lib/money/format";
 
@@ -60,9 +61,23 @@ export default async function AdminAnalyticsPage({
   const formatMoney = (amount: number): string =>
     formatMoneyAmount(amount, "AMD", locale);
 
-  const chartRows = summary.dailyRows.map((row) => ({
-    ...row,
-    revenueLabel: formatMoney(row.revenueAmount),
+  const trendPoints = buildAnalyticsTrendSeries(
+    summary.dailyRows,
+    range,
+    locale,
+  );
+  const chartRows = trendPoints.map((point) => ({
+    date: point.key.includes("-") && point.key.length === 7
+      ? `${point.key}-01`
+      : point.key,
+    label: point.label,
+    orderCount: point.orderCount,
+    revenueAmount: point.revenueAmount,
+    averageOrderValue:
+      point.orderCount === 0
+        ? 0
+        : Math.round((point.revenueAmount / point.orderCount) * 100) / 100,
+    revenueLabel: formatMoney(point.revenueAmount),
   }));
 
   return (

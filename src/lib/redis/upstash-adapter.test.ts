@@ -17,6 +17,8 @@ describe("createUpstashRedisAdapter", () => {
     }).getClient();
 
     await expect(redis.get("rate")).resolves.toBe("5");
+    client.get.mockResolvedValueOnce({ orderCount: 2 });
+    await expect(redis.get("analytics")).resolves.toBe('{"orderCount":2}');
     await expect(redis.set("token", "abc", { ex: 60, nx: true })).resolves.toBe(
       "OK",
     );

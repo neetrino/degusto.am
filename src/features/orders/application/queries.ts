@@ -7,7 +7,6 @@ import {
   eq,
   gte,
   ilike,
-  inArray,
   lte,
   or,
   sql,
@@ -24,9 +23,9 @@ import {
   users,
 } from "@/db/schema";
 import { latestPaymentMethodSql } from "@/features/orders/application/latest-payment-method-sql";
-import type { OrderStatus } from "@/features/orders/domain/order-status";
+import { revenueEligibleOrderWhere } from "@/features/analytics/application/revenue-where";
+import { comparableAnalyticsPeriodBounds } from "@/features/analytics/domain/date-range";
 import type { AdminOrdersFilter } from "@/features/orders/schemas/change-status";
-import { getStoreRevenue } from "@/features/settings/application/queries";
 
 const PAGE_SIZE = 20;
 
@@ -216,28 +215,8 @@ export type DashboardMetrics = {
   previousTo: string;
 };
 
-function periodBounds(from: string, to: string): {
-  start: Date;
-  end: Date;
-  previousStart: Date;
-  previousEnd: Date;
-  previousFrom: string;
-  previousTo: string;
-} {
-  const start = new Date(`${from}T00:00:00.000Z`);
-  const end = new Date(`${to}T23:59:59.999Z`);
-  const durationMs = Math.max(end.getTime() - start.getTime(), 24 * 60 * 60 * 1000 - 1);
-  const previousEnd = new Date(start.getTime() - 1);
-  const previousStart = new Date(previousEnd.getTime() - durationMs);
-
-  return {
-    start,
-    end,
-    previousStart,
-    previousEnd,
-    previousFrom: previousStart.toISOString().slice(0, 10),
-    previousTo: previousEnd.toISOString().slice(0, 10),
-  };
+function periodBounds(from: string, to: string) {
+  return comparableAnalyticsPeriodBounds(from, to);
 }
 
 /** Admin dashboard cards with previous-period revenue comparison. */
@@ -245,15 +224,12 @@ export async function getAdminDashboardMetrics(input: {
   from: string;
   to: string;
 }): Promise<DashboardMetrics> {
-  const revenue = await getStoreRevenue();
   const bounds = periodBounds(input.from, input.to);
-  const revenueStatuses = revenue.statuses as OrderStatus[];
 
   const [
     [usersRow],
     [productsRow],
-    [ordersRow],
-    [revenueRow],
+    [metricsRow],
     [previousRevenueRow],
     recentOrders,
     topProductRows,
@@ -264,11 +240,16 @@ export async function getAdminDashboardMetrics(input: {
       .from(products)
       .where(eq(products.status, "ACTIVE")),
     getDb()
-      .select({ value: count() })
+      .select({
+        orderCount: count(),
+        revenueAmount: sql<number>`coalesce(sum(${orders.totalAmount}), 0)`.mapWith(
+          Number,
+        ),
+      })
       .from(orders)
       .where(
         and(
-          eq(orders.isArchived, false),
+          revenueEligibleOrderWhere(),
           gte(orders.placedAt, bounds.start),
           lte(orders.placedAt, bounds.end),
         ),
@@ -282,25 +263,9 @@ export async function getAdminDashboardMetrics(input: {
       .from(orders)
       .where(
         and(
-          eq(orders.isArchived, false),
-          gte(orders.placedAt, bounds.start),
-          lte(orders.placedAt, bounds.end),
-          inArray(orders.status, revenueStatuses),
-        ),
-      ),
-    getDb()
-      .select({
-        value: sql<number>`coalesce(sum(${orders.totalAmount}), 0)`.mapWith(
-          Number,
-        ),
-      })
-      .from(orders)
-      .where(
-        and(
-          eq(orders.isArchived, false),
+          revenueEligibleOrderWhere(),
           gte(orders.placedAt, bounds.previousStart),
           lte(orders.placedAt, bounds.previousEnd),
-          inArray(orders.status, revenueStatuses),
         ),
       ),
     getDb()
@@ -321,10 +286,9 @@ export async function getAdminDashboardMetrics(input: {
       .innerJoin(orders, eq(orderItems.orderId, orders.id))
       .where(
         and(
-          eq(orders.isArchived, false),
+          revenueEligibleOrderWhere(),
           gte(orders.placedAt, bounds.start),
           lte(orders.placedAt, bounds.end),
-          inArray(orders.status, revenueStatuses),
         ),
       )
       .groupBy(orderItems.productId, orderItems.productTitleSnapshot)
@@ -335,8 +299,8 @@ export async function getAdminDashboardMetrics(input: {
   return {
     users: usersRow?.value ?? 0,
     products: productsRow?.value ?? 0,
-    orders: ordersRow?.value ?? 0,
-    revenueAmount: revenueRow?.value ?? 0,
+    orders: metricsRow?.orderCount ?? 0,
+    revenueAmount: metricsRow?.revenueAmount ?? 0,
     previousRevenueAmount: previousRevenueRow?.value ?? 0,
     recentOrders,
     topProducts: topProductRows.map((row) => ({

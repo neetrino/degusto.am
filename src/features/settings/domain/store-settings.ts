@@ -93,6 +93,7 @@ function isPositiveRateString(value: unknown): value is string {
 }
 
 export const DEFAULT_REVENUE_STATUSES: OrderStatus[] = [
+  "PENDING",
   "CONFIRMED",
   "PROCESSING",
   "SHIPPED",
@@ -118,8 +119,7 @@ export function parseRevenueStatuses(value: unknown): OrderStatus[] {
       typeof item === "string" &&
       (ORDER_STATUSES as readonly string[]).includes(item) &&
       item !== "CANCELLED" &&
-      item !== "REFUNDED" &&
-      item !== "PENDING",
+      item !== "REFUNDED",
   );
 
   return parsed.length > 0 ? parsed : [...DEFAULT_REVENUE_STATUSES];
