@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 
 import { SelectDropdown } from "@/components/ui/SelectDropdown";
@@ -10,6 +10,9 @@ import type { AdminCategoryOption } from "@/features/products/application/list-a
 
 const FILTER_INPUT =
   "h-11 w-full rounded-2xl border border-[#ead7bf] bg-white px-4 text-sm text-[#1f1a17] shadow-sm outline-none transition-colors placeholder:text-[#8a837a] hover:border-[#ead7bf] focus:border-[#ead7bf]";
+
+/** Idle time after the last keystroke before text filters commit. */
+const TEXT_FILTER_DEBOUNCE_MS = 400;
 
 type AdminProductsFiltersProps = {
   locale: string;
@@ -37,6 +40,7 @@ export function AdminProductsFilters({
   const copy = getAdminCopy(locale);
   const pageCopy = copy.pages.products;
   const formRef = useRef<HTMLFormElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [categoryValue, setCategoryValue] = useState(categoryId ?? "");
   const [stockValue, setStockValue] = useState(stock);
 
@@ -51,16 +55,42 @@ export function AdminProductsFilters({
     { label: pageCopy.lowStock, value: "low_stock" },
   ] as const;
 
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
+
+  function submitFilters(): void {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+    formRef.current?.requestSubmit();
+  }
+
+  function scheduleTextFilterSubmit(): void {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
+      debounceRef.current = null;
+      formRef.current?.requestSubmit();
+    }, TEXT_FILTER_DEBOUNCE_MS);
+  }
+
   function applyCategory(next: string): void {
     flushSync(() => setCategoryValue(next));
-    formRef.current?.requestSubmit();
+    submitFilters();
   }
 
   function applyStock(next: string): void {
     flushSync(() =>
       setStockValue(next as AdminProductsFiltersProps["stock"]),
     );
-    formRef.current?.requestSubmit();
+    submitFilters();
   }
 
   return (
@@ -79,6 +109,9 @@ export function AdminProductsFilters({
         method="get"
         className="grid grid-cols-1 gap-4 md:grid-cols-2"
       >
+        <button type="submit" className="sr-only">
+          {pageCopy.searchTitleOrSlug}
+        </button>
         <input type="hidden" name="sort" value={sort} />
         <input type="hidden" name="dir" value={dir} />
         <label>
@@ -89,6 +122,7 @@ export function AdminProductsFilters({
             placeholder={`${pageCopy.searchTitleOrSlug}...`}
             className={`${FILTER_INPUT} mt-1`}
             aria-label={pageCopy.searchTitleOrSlug}
+            onChange={scheduleTextFilterSubmit}
           />
         </label>
         <label>
@@ -99,6 +133,7 @@ export function AdminProductsFilters({
             placeholder={pageCopy.searchSku}
             className={`${FILTER_INPUT} mt-1`}
             aria-label={pageCopy.searchSku}
+            onChange={scheduleTextFilterSubmit}
           />
         </label>
         <div>

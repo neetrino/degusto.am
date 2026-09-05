@@ -5,16 +5,31 @@ import { redirect } from "next/navigation";
 
 import { getDb } from "@/db/client";
 import { users } from "@/db/schema";
-import { type AuthActionState } from "@/features/auth/login-action";
+import {
+  REGISTER_ERROR_CODES,
+  type AuthActionState,
+} from "@/features/auth/auth-action-state";
 import { registerSchema } from "@/features/auth/schemas";
 import { hashPassword } from "@/lib/auth/password";
 import { createSession } from "@/lib/auth/session";
 import { createId } from "@/lib/id";
 import { defaultLocale, isLocale, type Locale } from "@/lib/i18n/config";
-import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { logger } from "@/lib/observability/logger";
 
 const TERMS_VERSION = "1.0";
+
+function resolveLocale(localeInput: string, formData: FormData): Locale {
+  if (isLocale(localeInput)) {
+    return localeInput;
+  }
+
+  const fromForm = formData.get("locale");
+  if (typeof fromForm === "string" && isLocale(fromForm)) {
+    return fromForm;
+  }
+
+  return defaultLocale;
+}
 
 function isUniqueEmailConflict(error: unknown): boolean {
   if (!error || typeof error !== "object") {
@@ -61,8 +76,7 @@ export async function registerAction(
   _previousState: AuthActionState,
   formData: FormData,
 ): Promise<AuthActionState> {
-  const locale: Locale = isLocale(localeInput) ? localeInput : defaultLocale;
-  const dictionary = getDictionary(locale).auth;
+  const locale = resolveLocale(localeInput, formData);
   const parsed = registerSchema.safeParse(Object.fromEntries(formData));
 
   if (!parsed.success) {
@@ -70,9 +84,9 @@ export async function registerAction(
       (issue) => issue.path[0] === "confirmPassword",
     );
     return {
-      error: isMismatch
-        ? dictionary.registerPasswordsMismatch
-        : dictionary.registerInvalid,
+      errorCode: isMismatch
+        ? REGISTER_ERROR_CODES.PASSWORDS_MISMATCH
+        : REGISTER_ERROR_CODES.INVALID,
     };
   }
 
@@ -82,14 +96,14 @@ export async function registerAction(
     .where(eq(users.email, parsed.data.email))
     .limit(1);
   if (existingUser) {
-    return { error: dictionary.registerFailed };
+    return { errorCode: REGISTER_ERROR_CODES.FAILED };
   }
 
   let userId: string;
   try {
     const createdId = await insertCustomer(parsed.data);
     if (!createdId) {
-      return { error: dictionary.registerFailed };
+      return { errorCode: REGISTER_ERROR_CODES.FAILED };
     }
     userId = createdId;
   } catch (error) {
@@ -98,7 +112,7 @@ export async function registerAction(
         error: error instanceof Error ? error.message : "unknown",
       });
     }
-    return { error: dictionary.registerFailed };
+    return { errorCode: REGISTER_ERROR_CODES.FAILED };
   }
 
   await createSession(userId);

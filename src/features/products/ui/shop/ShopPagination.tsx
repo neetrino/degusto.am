@@ -2,18 +2,31 @@ import { AppLink } from "@/components/ui/AppLink";
 
 type ShopPaginationProps = {
   ariaLabel: string;
+  firstLabel: string;
   previousLabel: string;
   nextLabel: string;
+  lastLabel: string;
   currentPage: number;
   totalPages: number;
   buildHref: (page: number) => string;
 };
 
-/** Numbered catalog pagination with ellipsis — live shop parity. */
+const CIRCLE_BASE =
+  "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition";
+
+const CIRCLE_IDLE = `${CIRCLE_BASE} border border-[#dedede] bg-white text-product-ink hover:border-brand hover:bg-[#fff5ed]`;
+
+const CIRCLE_ACTIVE = `${CIRCLE_BASE} bg-brand font-bold text-white`;
+
+const CIRCLE_DISABLED = `${CIRCLE_BASE} cursor-default border border-transparent bg-brand/10 text-brand/35`;
+
+/** Compact circular catalog pagination — first / prev / pages / next / last. */
 export function ShopPagination({
   ariaLabel,
+  firstLabel,
   previousLabel,
   nextLabel,
+  lastLabel,
   currentPage,
   totalPages,
   buildHref,
@@ -23,37 +36,35 @@ export function ShopPagination({
   }
 
   const pages = buildPageList(currentPage, totalPages);
+  const isFirst = currentPage <= 1;
+  const isLast = currentPage >= totalPages;
 
   return (
     <nav
       aria-label={ariaLabel}
-      className="mt-16 flex flex-nowrap items-center justify-center gap-1 lg:flex-wrap lg:gap-2"
+      className="mt-16 flex w-fit max-w-full flex-nowrap items-center justify-center gap-2 self-center mx-auto"
     >
-      {currentPage > 1 ? (
-        <AppLink
-          href={buildHref(currentPage - 1)}
-          prefetchPolicy="intent"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#dedede] bg-white text-sm font-medium text-product-ink transition hover:border-[#ff7f20] hover:bg-[#fff5ed] lg:min-w-[5.5rem] lg:w-auto lg:px-4 lg:py-2"
-        >
-          <span className="lg:hidden" aria-hidden>
-            ‹
-          </span>
-          <span className="hidden lg:inline">{previousLabel}</span>
-        </AppLink>
-      ) : (
-        <span className="flex h-10 w-10 shrink-0 cursor-default items-center justify-center rounded-full border border-[#e4e4e7] bg-[#fafafc] text-[#a1a1aa] lg:min-w-[5.5rem] lg:w-auto lg:px-4 lg:py-2 lg:text-sm lg:font-medium">
-          <span className="lg:hidden" aria-hidden>
-            ‹
-          </span>
-          <span className="hidden lg:inline">{previousLabel}</span>
-        </span>
-      )}
+      <NavCircle
+        href={isFirst ? undefined : buildHref(1)}
+        label={firstLabel}
+        disabled={isFirst}
+      >
+        «
+      </NavCircle>
+      <NavCircle
+        href={isFirst ? undefined : buildHref(currentPage - 1)}
+        label={previousLabel}
+        disabled={isFirst}
+      >
+        ‹
+      </NavCircle>
 
       {pages.map((page, index) =>
         page === "…" ? (
           <span
             key={`ellipsis-${index}`}
-            className="px-2 text-sm font-medium text-[#717182]"
+            className="px-1 text-sm font-medium text-[#717182]"
+            aria-hidden
           >
             …
           </span>
@@ -61,7 +72,7 @@ export function ShopPagination({
           <span
             key={page}
             aria-current="page"
-            className="flex h-10 min-w-10 items-center justify-center rounded-full bg-[#ff7f20] px-3 text-sm font-bold text-white"
+            className={CIRCLE_ACTIVE}
           >
             {page}
           </span>
@@ -70,33 +81,60 @@ export function ShopPagination({
             key={page}
             href={buildHref(page)}
             prefetchPolicy="intent"
-            className="flex h-10 min-w-10 items-center justify-center rounded-full border border-[#dedede] bg-white px-3 text-sm font-semibold text-product-ink transition hover:border-[#ff7f20] hover:bg-[#fff5ed]"
+            className={CIRCLE_IDLE}
           >
             {page}
           </AppLink>
         ),
       )}
 
-      {currentPage < totalPages ? (
-        <AppLink
-          href={buildHref(currentPage + 1)}
-          prefetchPolicy="intent"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#dedede] bg-white text-sm font-medium text-product-ink transition hover:border-[#ff7f20] hover:bg-[#fff5ed] lg:min-w-[5.5rem] lg:w-auto lg:px-4 lg:py-2"
-        >
-          <span className="lg:hidden" aria-hidden>
-            ›
-          </span>
-          <span className="hidden lg:inline">{nextLabel}</span>
-        </AppLink>
-      ) : (
-        <span className="flex h-10 w-10 shrink-0 cursor-default items-center justify-center rounded-full border border-[#e4e4e7] bg-[#fafafc] text-[#a1a1aa] lg:min-w-[5.5rem] lg:w-auto lg:px-4 lg:py-2 lg:text-sm lg:font-medium">
-          <span className="lg:hidden" aria-hidden>
-            ›
-          </span>
-          <span className="hidden lg:inline">{nextLabel}</span>
-        </span>
-      )}
+      <NavCircle
+        href={isLast ? undefined : buildHref(currentPage + 1)}
+        label={nextLabel}
+        disabled={isLast}
+      >
+        ›
+      </NavCircle>
+      <NavCircle
+        href={isLast ? undefined : buildHref(totalPages)}
+        label={lastLabel}
+        disabled={isLast}
+      >
+        »
+      </NavCircle>
     </nav>
+  );
+}
+
+type NavCircleProps = {
+  href?: string;
+  label: string;
+  disabled: boolean;
+  children: string;
+};
+
+function NavCircle({ href, label, disabled, children }: NavCircleProps) {
+  if (disabled || !href) {
+    return (
+      <span
+        aria-label={label}
+        aria-disabled="true"
+        className={CIRCLE_DISABLED}
+      >
+        <span aria-hidden>{children}</span>
+      </span>
+    );
+  }
+
+  return (
+    <AppLink
+      href={href}
+      prefetchPolicy="intent"
+      aria-label={label}
+      className={CIRCLE_IDLE}
+    >
+      <span aria-hidden>{children}</span>
+    </AppLink>
   );
 }
 
