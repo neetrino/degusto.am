@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+import {
+  appDayEndUtc,
+  appDayStartUtc,
+  formatAppIsoDate,
+} from "@/lib/datetime/app-timezone";
+
 const MAX_RANGE_DAYS = 366;
 
 export const ANALYTICS_PERIOD_PRESETS = [
@@ -72,56 +78,103 @@ export function analyticsOverviewLabel(
   return OVERVIEW_LABELS[period];
 }
 
-function utcToday(): Date {
-  const now = new Date();
-  return new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
-  );
-}
-
 function toIsoDate(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-/** Inclusive UTC date range for a named analytics period preset. */
+function appTodayIso(): string {
+  return formatAppIsoDate(new Date());
+}
+
+function shiftAppIsoDays(isoDate: string, deltaDays: number): string {
+  const shifted = new Date(
+    appDayStartUtc(isoDate).getTime() + deltaDays * 24 * 60 * 60 * 1000,
+  );
+  return formatAppIsoDate(shifted);
+}
+
+function calendarMonthStart(isoDate: string): string {
+  return `${isoDate.slice(0, 7)}-01`;
+}
+
+function calendarQuarterStart(isoDate: string): string {
+  const [year, month] = isoDate.split("-").map(Number) as [number, number];
+  const quarterStartMonth = Math.floor((month - 1) / 3) * 3 + 1;
+  return `${year}-${String(quarterStartMonth).padStart(2, "0")}-01`;
+}
+
+/** Inclusive Yerevan-day UTC bounds for an ISO from/to range. */
+export function analyticsPeriodUtcBounds(
+  from: string,
+  to: string,
+): { start: Date; end: Date } {
+  return {
+    start: appDayStartUtc(from),
+    end: appDayEndUtc(to),
+  };
+}
+
+/** Current and previous windows of equal length in Yerevan calendar days. */
+export function comparableAnalyticsPeriodBounds(
+  from: string,
+  to: string,
+): {
+  start: Date;
+  end: Date;
+  previousStart: Date;
+  previousEnd: Date;
+  previousFrom: string;
+  previousTo: string;
+} {
+  const { start, end } = analyticsPeriodUtcBounds(from, to);
+  const durationMs = Math.max(
+    end.getTime() - start.getTime(),
+    24 * 60 * 60 * 1000 - 1,
+  );
+  const previousEnd = new Date(start.getTime() - 1);
+  const previousStart = new Date(previousEnd.getTime() - durationMs);
+
+  return {
+    start,
+    end,
+    previousStart,
+    previousEnd,
+    previousFrom: formatAppIsoDate(previousStart),
+    previousTo: formatAppIsoDate(previousEnd),
+  };
+}
+
+/** Inclusive Yerevan date range for a named analytics period preset. */
 export function rangeForAnalyticsPeriod(
   preset: Exclude<AnalyticsPeriodPreset, "custom">,
 ): AnalyticsDateRange {
-  const toDate = utcToday();
-  const fromDate = new Date(toDate);
+  const to = appTodayIso();
 
-  if (preset === "last_7_days") {
-    fromDate.setUTCDate(fromDate.getUTCDate() - 6);
-  } else if (preset === "last_30_days") {
-    fromDate.setUTCDate(fromDate.getUTCDate() - 29);
-  } else if (preset === "last_90_days") {
-    fromDate.setUTCDate(fromDate.getUTCDate() - 89);
-  } else {
-    fromDate.setUTCDate(1);
+  if (preset === "this_month") {
+    return { from: calendarMonthStart(to), to };
   }
 
-  return { from: toIsoDate(fromDate), to: toIsoDate(toDate) };
+  const daysBack =
+    preset === "last_7_days" ? 6 : preset === "last_30_days" ? 29 : 89;
+  return { from: shiftAppIsoDays(to, -daysBack), to };
 }
 
-/** Inclusive UTC ranges for dashboard overview cards. */
+/** Inclusive Yerevan ranges for dashboard overview cards. */
 export function rangeForOverviewPeriod(
   period: AnalyticsOverviewPeriod,
 ): AnalyticsDateRange {
-  const toDate = utcToday();
-  const fromDate = new Date(toDate);
+  const to = appTodayIso();
 
   if (period === "today") {
-    return { from: toIsoDate(toDate), to: toIsoDate(toDate) };
+    return { from: to, to };
   }
   if (period === "week") {
-    fromDate.setUTCDate(fromDate.getUTCDate() - 6);
-  } else if (period === "month") {
-    fromDate.setUTCDate(1);
-  } else {
-    fromDate.setUTCDate(fromDate.getUTCDate() - 89);
+    return { from: shiftAppIsoDays(to, -6), to };
   }
-
-  return { from: toIsoDate(fromDate), to: toIsoDate(toDate) };
+  if (period === "month") {
+    return { from: calendarMonthStart(to), to };
+  }
+  return { from: calendarQuarterStart(to), to };
 }
 
 /** Default inclusive last-7-days range in UTC ISO dates. */
@@ -147,66 +200,11 @@ export function matchAnalyticsPeriodPreset(
   return "custom";
 }
 
-const HY_MONTHS_LONG = [
-  "հունվար",
-  "փետրվար",
-  "մարտ",
-  "ապրիլ",
-  "մայիս",
-  "հունիս",
-  "հուլիս",
-  "օգոստոս",
-  "սեպտեմբեր",
-  "հոկտեմբեր",
-  "նոյեմբեր",
-  "դեկտեմբեր",
-] as const;
-
-const HY_MONTHS_SHORT = [
-  "հնվ",
-  "փտվ",
-  "մրտ",
-  "ապր",
-  "մյս",
-  "հնս",
-  "հլս",
-  "օգս",
-  "սեպ",
-  "հոկ",
-  "նոյ",
-  "դեկ",
-] as const;
-
-function parseUtcIsoDate(isoDate: string): {
-  day: number;
-  monthIndex: number;
-  year: number;
-} {
-  const date = new Date(`${isoDate}T00:00:00.000Z`);
-  return {
-    day: date.getUTCDate(),
-    monthIndex: date.getUTCMonth(),
-    year: date.getUTCFullYear(),
-  };
-}
-
-/**
- * Formats an ISO date for analytics headers (deterministic Armenian).
- * Avoids Intl locale hydration mismatches between Node and browser.
- */
-export function formatAnalyticsDisplayDate(isoDate: string): string {
-  const { day, monthIndex, year } = parseUtcIsoDate(isoDate);
-  return `${day} ${HY_MONTHS_LONG[monthIndex]}, ${year}`;
-}
-
-/**
- * Formats a short chart/list date (deterministic Armenian).
- * Avoids Intl locale hydration mismatches between Node and browser.
- */
-export function formatAnalyticsShortDate(isoDate: string): string {
-  const { day, monthIndex } = parseUtcIsoDate(isoDate);
-  return `${day} ${HY_MONTHS_SHORT[monthIndex]}`;
-}
+export {
+  formatAnalyticsDisplayDate,
+  formatAnalyticsMonthLabel,
+  formatAnalyticsShortDate,
+} from "@/features/analytics/domain/date-labels";
 
 /** Formats percent delta vs a previous numeric value. */
 export function formatPeriodDelta(current: number, previous: number): string {

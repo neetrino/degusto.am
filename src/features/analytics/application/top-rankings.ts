@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, countDistinct, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import { and, countDistinct, desc, eq, gte, lte, sql } from "drizzle-orm";
 
 import { getDb } from "@/db/client";
 import {
@@ -10,7 +10,7 @@ import {
   productCategories,
   type TranslationsJson,
 } from "@/db/schema";
-import type { OrderStatus } from "@/features/orders/domain/order-status";
+import { revenueEligibleOrderWhere } from "@/features/analytics/application/revenue-where";
 import type { Locale } from "@/lib/i18n/config";
 import { mediaPublicUrl } from "@/lib/media/public-url";
 
@@ -47,7 +47,6 @@ function categoryTitle(translations: TranslationsJson, locale: Locale): string {
 export async function queryTopSellingProducts(input: {
   start: Date;
   end: Date;
-  revenueStatuses: OrderStatus[];
   limit?: number;
 }): Promise<AnalyticsTopProduct[]> {
   const limit = input.limit ?? 5;
@@ -72,10 +71,9 @@ export async function queryTopSellingProducts(input: {
     .innerJoin(orders, eq(orderItems.orderId, orders.id))
     .where(
       and(
-        eq(orders.isArchived, false),
+        revenueEligibleOrderWhere(),
         gte(orders.placedAt, input.start),
         lte(orders.placedAt, input.end),
-        inArray(orders.status, input.revenueStatuses),
       ),
     )
     .groupBy(
@@ -103,7 +101,6 @@ export async function queryTopSellingProducts(input: {
 export async function queryTopCategories(input: {
   start: Date;
   end: Date;
-  revenueStatuses: OrderStatus[];
   locale: Locale;
   limit?: number;
 }): Promise<AnalyticsTopCategory[]> {
@@ -129,10 +126,9 @@ export async function queryTopCategories(input: {
     .innerJoin(categories, eq(categories.id, productCategories.categoryId))
     .where(
       and(
-        eq(orders.isArchived, false),
+        revenueEligibleOrderWhere(),
         gte(orders.placedAt, input.start),
         lte(orders.placedAt, input.end),
-        inArray(orders.status, input.revenueStatuses),
       ),
     )
     .groupBy(categories.id, categories.translations)

@@ -6,6 +6,7 @@ import {
   Sparkles,
   type LucideIcon,
 } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { Card } from "@/components/ui/Card";
 import type { AnalyticsCsvRow } from "@/features/analytics/domain/csv";
@@ -13,6 +14,18 @@ import { AnalyticsTrendChart } from "@/features/analytics/ui/AnalyticsTrendChart
 
 type TrendChartRow = AnalyticsCsvRow & {
   revenueLabel: string;
+  label?: string;
+};
+
+export type AnalyticsTrendPanelCopy = {
+  title: string;
+  subtitle: string;
+  revenue: string;
+  orders: string;
+  averageOrder: string;
+  empty: string;
+  bestTitle: string;
+  bestEmpty: string;
 };
 
 type AnalyticsTrendPanelProps = {
@@ -22,11 +35,24 @@ type AnalyticsTrendPanelProps = {
   orderCountLabel: string;
   revenueLabel: string;
   averageOrderLabel: string;
+  copy?: AnalyticsTrendPanelCopy;
+  headerAction?: ReactNode;
 };
 
 type SummaryTone = "rose" | "amber" | "emerald";
 
 /** Trend section with dual-series chart and side summary. */
+const DEFAULT_COPY: AnalyticsTrendPanelCopy = {
+  title: "Օրվա աճ",
+  subtitle: "Եկամուտ և պատվերներ՝ օր օրի",
+  revenue: "Եկամուտ",
+  orders: "Պատվերներ",
+  averageOrder: "Միջին պատվեր",
+  empty: "Այս միջակայքում պատվերներ չկան։",
+  bestTitle: "Լավագույն օր",
+  bestEmpty: "Տվյալներ չկան",
+};
+
 export function AnalyticsTrendPanel({
   rows,
   bestDayLabel,
@@ -34,6 +60,8 @@ export function AnalyticsTrendPanel({
   orderCountLabel,
   revenueLabel,
   averageOrderLabel,
+  copy = DEFAULT_COPY,
+  headerAction,
 }: AnalyticsTrendPanelProps) {
   const isEmpty = rows.every(
     (row) => row.orderCount === 0 && row.revenueAmount === 0,
@@ -53,32 +81,35 @@ export function AnalyticsTrendPanel({
             </div>
             <div>
               <h2 className="text-lg font-semibold tracking-tight text-[#1f1a17]">
-                Օրվա աճ
+                {copy.title}
               </h2>
               <p className="mt-0.5 text-sm text-[#8a837a]">
-                Եկամուտ և պատվերներ՝ օր օրի
+                {copy.subtitle}
               </p>
             </div>
           </div>
 
-          {!isEmpty ? (
-            <div className="flex flex-wrap items-center gap-2">
-              <LegendPill
-                swatchClass="h-1 w-4 rounded-full bg-gradient-to-r from-[#ff8a3d] to-[#f55c0a]"
-                label="Եկամուտ"
-              />
-              <LegendPill
-                swatchClass="size-2.5 rounded-full border-2 border-[#2f6b4f] bg-white"
-                label="Պատվերներ"
-              />
-            </div>
-          ) : null}
+          <div className="flex flex-wrap items-center gap-2">
+            {headerAction}
+            {!isEmpty ? (
+              <>
+                <LegendPill
+                  swatchClass="h-1 w-4 rounded-full bg-gradient-to-r from-[#ff8a3d] to-[#f55c0a]"
+                  label={copy.revenue}
+                />
+                <LegendPill
+                  swatchClass="size-2.5 rounded-full border-2 border-[#2f6b4f] bg-white"
+                  label={copy.orders}
+                />
+              </>
+            ) : null}
+          </div>
         </div>
       </div>
 
       {isEmpty ? (
         <p className="px-5 py-12 text-center text-sm text-[#8a837a] sm:px-6">
-          Այս միջակայքում պատվերներ չկան։
+          {copy.empty}
         </p>
       ) : (
         <div className="grid gap-4 bg-[#fffcf8] px-5 py-5 lg:grid-cols-[minmax(0,1fr)_232px] lg:items-stretch sm:px-6 sm:py-6">
@@ -98,19 +129,19 @@ export function AnalyticsTrendPanel({
 
           <div className="grid grid-cols-1 gap-2.5 lg:content-start">
             <SummaryTile
-              label="Եկամուտ"
+              label={copy.revenue}
               value={revenueLabel}
               tone="rose"
               icon={DollarSign}
             />
             <SummaryTile
-              label="Պատվերներ"
+              label={copy.orders}
               value={orderCountLabel}
               tone="amber"
               icon={ClipboardList}
             />
             <SummaryTile
-              label="Միջին պատվեր"
+              label={copy.averageOrder}
               value={averageOrderLabel}
               tone="emerald"
               icon={ShoppingBag}
@@ -122,7 +153,7 @@ export function AnalyticsTrendPanel({
               />
               <div className="relative flex items-start justify-between gap-2">
                 <p className="text-[11px] font-bold tracking-[0.12em] text-[#f55c0a] uppercase">
-                  Լավագույն օր
+                  {copy.bestTitle}
                 </p>
                 <span className="flex size-7 items-center justify-center rounded-lg bg-white/80 text-[#f55c0a] shadow-sm">
                   <Sparkles className="size-3.5" aria-hidden />
@@ -139,7 +170,7 @@ export function AnalyticsTrendPanel({
                 </>
               ) : (
                 <p className="relative mt-1.5 text-sm text-[#8a837a]">
-                  Տվյալներ չկան
+                  {copy.bestEmpty}
                 </p>
               )}
             </div>

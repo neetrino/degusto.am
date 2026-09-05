@@ -26,12 +26,13 @@
 - Admin dashboard metrics + previous-period revenue comparison
 - Orders: payment/date/archive filters, bulk status, archive, notes
 - Users/promotions already present; checkout applies coupon codes
-- Revenue-generating statuses via `store.revenue` settings
+- Revenue-generating statuses via `store.revenue` settings (defaults exclude only cancelled/refunded)
 
 ### Phase 9
 - Hero CMS + contact spam/rate-limit + messages inbox
 - Blog CMS/public routes + HTML sanitizer + BlogPosting JSON-LD
 - Analytics dashboard + Redis cache + CSV export (formula-safe)
+- Sales analytics treat pending/process orders as realized unless a negative fulfillment or payment status is set
 - Store settings (identity, branding, social, stacking, revenue, maintenance)
 - Maintenance gate for non-admin storefront users
 

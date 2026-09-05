@@ -6,11 +6,19 @@ import {
   analyticsOverviewLabel,
   formatPeriodDelta,
   periodDeltaPercent,
+  type AnalyticsOverviewPeriod,
 } from "@/features/analytics/domain/date-range";
+
+export type AnalyticsOverviewCopy = {
+  periods?: Partial<Record<AnalyticsOverviewPeriod, string>>;
+  orders: string;
+  averageOrder: string;
+};
 
 type AnalyticsOverviewCardsProps = {
   snapshots: AnalyticsPeriodSnapshot[];
   formatMoney: (amount: number) => string;
+  copy?: AnalyticsOverviewCopy;
 };
 
 function DeltaBadge({
@@ -52,7 +60,11 @@ function DeltaBadge({
 export function AnalyticsOverviewCards({
   snapshots,
   formatMoney,
+  copy,
 }: AnalyticsOverviewCardsProps) {
+  const ordersLabel = copy?.orders ?? "Պատվերներ";
+  const averageLabel = copy?.averageOrder ?? "Միջին պատվեր";
+
   return (
     <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {snapshots.map((snapshot) => (
@@ -62,7 +74,7 @@ export function AnalyticsOverviewCards({
         >
           <div className="mb-3 flex items-center justify-between gap-2">
             <h2 className="text-[11px] font-bold tracking-[0.12em] text-[#8a837a] uppercase">
-              {analyticsOverviewLabel(snapshot.id)}
+              {copy?.periods?.[snapshot.id] ?? analyticsOverviewLabel(snapshot.id)}
             </h2>
             <DeltaBadge
               current={snapshot.revenueAmount}
@@ -74,13 +86,13 @@ export function AnalyticsOverviewCards({
           </p>
           <div className="mt-3 space-y-1.5 border-t border-[#f0ebe3] pt-3 text-xs text-[#5c564e]">
             <p className="flex items-center justify-between gap-2">
-              <span>Պատվերներ</span>
+              <span>{ordersLabel}</span>
               <span className="font-semibold text-[#1f1a17]">
                 {snapshot.orderCount}
               </span>
             </p>
             <p className="flex items-center justify-between gap-2">
-              <span>Միջին պատվեր</span>
+              <span>{averageLabel}</span>
               <span className="font-semibold text-[#1f1a17]">
                 {formatMoney(snapshot.averageOrderValue)}
               </span>

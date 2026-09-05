@@ -16,7 +16,8 @@ import {
 describe("store settings parsers", () => {
   it("defaults revenue statuses safely", () => {
     expect(parseRevenueStatuses(null)).toEqual(DEFAULT_REVENUE_STATUSES);
-    expect(parseRevenueStatuses({ statuses: ["DELIVERED", "CANCELLED"] })).toEqual([
+    expect(parseRevenueStatuses({ statuses: ["PENDING", "DELIVERED", "CANCELLED"] })).toEqual([
+      "PENDING",
       "DELIVERED",
     ]);
   });

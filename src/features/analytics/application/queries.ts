@@ -4,9 +4,7 @@ import {
   and,
   count,
   countDistinct,
-  eq,
   gte,
-  inArray,
   lte,
   sql,
 } from "drizzle-orm";
@@ -14,6 +12,7 @@ import {
 import { getProviders } from "@/config/providers";
 import { getDb } from "@/db/client";
 import { orders } from "@/db/schema";
+import { revenueEligibleOrderWhere } from "@/features/analytics/application/revenue-where";
 import {
   queryTopCategories,
   queryTopSellingProducts,
@@ -23,12 +22,12 @@ import {
 import type { AnalyticsCsvRow } from "@/features/analytics/domain/csv";
 import {
   ANALYTICS_OVERVIEW_PERIODS,
+  comparableAnalyticsPeriodBounds,
   fillDailyAnalyticsGaps,
   rangeForOverviewPeriod,
   type AnalyticsOverviewPeriod,
 } from "@/features/analytics/domain/date-range";
-import type { OrderStatus } from "@/features/orders/domain/order-status";
-import { getStoreRevenue } from "@/features/settings/application/queries";
+import { APP_TIMEZONE } from "@/lib/datetime/app-timezone";
 import type { Locale } from "@/lib/i18n/config";
 
 export type {
@@ -39,7 +38,7 @@ export type { AnalyticsCsvRow } from "@/features/analytics/domain/csv";
 export { buildAnalyticsCsv, guardCsvCell } from "@/features/analytics/domain/csv";
 
 const CACHE_TTL_SECONDS = 300;
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v4";
 const cacheKeys = new Set<string>();
 
 export type AnalyticsPeriodSnapshot = {
@@ -80,31 +79,8 @@ export type AnalyticsSummary = {
   topCategories: AnalyticsTopCategory[];
 };
 
-function periodBounds(from: string, to: string): {
-  start: Date;
-  end: Date;
-  previousStart: Date;
-  previousEnd: Date;
-  previousFrom: string;
-  previousTo: string;
-} {
-  const start = new Date(`${from}T00:00:00.000Z`);
-  const end = new Date(`${to}T23:59:59.999Z`);
-  const durationMs = Math.max(
-    end.getTime() - start.getTime(),
-    24 * 60 * 60 * 1000 - 1,
-  );
-  const previousEnd = new Date(start.getTime() - 1);
-  const previousStart = new Date(previousEnd.getTime() - durationMs);
-
-  return {
-    start,
-    end,
-    previousStart,
-    previousEnd,
-    previousFrom: previousStart.toISOString().slice(0, 10),
-    previousTo: previousEnd.toISOString().slice(0, 10),
-  };
+function periodBounds(from: string, to: string) {
+  return comparableAnalyticsPeriodBounds(from, to);
 }
 
 function averageOrderValue(revenue: number, orderCount: number): number {
@@ -121,29 +97,26 @@ function cacheKey(from: string, to: string, locale: Locale): string {
 async function queryPeriodMetrics(input: {
   start: Date;
   end: Date;
-  revenueStatuses: OrderStatus[];
 }): Promise<{ orderCount: number; revenueAmount: number }> {
-  const where = and(
-    eq(orders.isArchived, false),
-    gte(orders.placedAt, input.start),
-    lte(orders.placedAt, input.end),
-  );
-
-  const [[ordersRow], [revenueRow]] = await Promise.all([
-    getDb().select({ value: count() }).from(orders).where(where),
-    getDb()
-      .select({
-        value: sql<number>`coalesce(sum(${orders.totalAmount}), 0)`.mapWith(
-          Number,
-        ),
-      })
-      .from(orders)
-      .where(and(where, inArray(orders.status, input.revenueStatuses))),
-  ]);
+  const [row] = await getDb()
+    .select({
+      orderCount: count(),
+      revenueAmount: sql<number>`coalesce(sum(${orders.totalAmount}), 0)`.mapWith(
+        Number,
+      ),
+    })
+    .from(orders)
+    .where(
+      and(
+        revenueEligibleOrderWhere(),
+        gte(orders.placedAt, input.start),
+        lte(orders.placedAt, input.end),
+      ),
+    );
 
   return {
-    orderCount: ordersRow?.value ?? 0,
-    revenueAmount: revenueRow?.value ?? 0,
+    orderCount: row?.orderCount ?? 0,
+    revenueAmount: row?.revenueAmount ?? 0,
   };
 }
 
@@ -158,7 +131,7 @@ async function queryCustomerCount(input: {
     .from(orders)
     .where(
       and(
-        eq(orders.isArchived, false),
+        revenueEligibleOrderWhere(),
         gte(orders.placedAt, input.start),
         lte(orders.placedAt, input.end),
       ),
@@ -170,31 +143,27 @@ async function queryCustomerCount(input: {
 async function queryDailyRows(input: {
   from: string;
   to: string;
-  revenueStatuses: OrderStatus[];
 }): Promise<AnalyticsCsvRow[]> {
   const bounds = periodBounds(input.from, input.to);
-  const revenueStatusSql = sql.join(
-    input.revenueStatuses.map((status) => sql`${status}`),
-    sql`, `,
-  );
+  const daySql = sql<string>`to_char(${orders.placedAt} at time zone ${sql.raw(`'${APP_TIMEZONE}'`)}, 'YYYY-MM-DD')`;
   const rows = await getDb()
     .select({
-      date: sql<string>`to_char(${orders.placedAt} at time zone 'UTC', 'YYYY-MM-DD')`,
+      date: daySql,
       orderCount: count(),
-      revenueAmount: sql<number>`coalesce(sum(case when ${orders.status} in (${revenueStatusSql}) then ${orders.totalAmount} else 0 end), 0)`.mapWith(
+      revenueAmount: sql<number>`coalesce(sum(${orders.totalAmount}), 0)`.mapWith(
         Number,
       ),
     })
     .from(orders)
     .where(
       and(
-        eq(orders.isArchived, false),
+        revenueEligibleOrderWhere(),
         gte(orders.placedAt, bounds.start),
         lte(orders.placedAt, bounds.end),
       ),
     )
-    .groupBy(sql`to_char(${orders.placedAt} at time zone 'UTC', 'YYYY-MM-DD')`)
-    .orderBy(sql`to_char(${orders.placedAt} at time zone 'UTC', 'YYYY-MM-DD')`);
+    .groupBy(daySql)
+    .orderBy(daySql);
 
   const mapped = rows.map((row) => ({
     date: row.date,
@@ -236,9 +205,7 @@ function pickBestDay(rows: AnalyticsCsvRow[]): AnalyticsBestDay | null {
   };
 }
 
-async function queryOverviewSnapshots(
-  revenueStatuses: OrderStatus[],
-): Promise<AnalyticsPeriodSnapshot[]> {
+async function queryOverviewSnapshots(): Promise<AnalyticsPeriodSnapshot[]> {
   return Promise.all(
     ANALYTICS_OVERVIEW_PERIODS.map(async (id) => {
       const range = rangeForOverviewPeriod(id);
@@ -247,12 +214,10 @@ async function queryOverviewSnapshots(
         queryPeriodMetrics({
           start: bounds.start,
           end: bounds.end,
-          revenueStatuses,
         }),
         queryPeriodMetrics({
           start: bounds.previousStart,
           end: bounds.previousEnd,
-          revenueStatuses,
         }),
       ]);
 
@@ -282,8 +247,6 @@ async function computeAnalyticsSummary(input: {
   to: string;
   locale: Locale;
 }): Promise<AnalyticsSummary> {
-  const revenue = await getStoreRevenue();
-  const revenueStatuses = revenue.statuses as OrderStatus[];
   const bounds = periodBounds(input.from, input.to);
 
   const [
@@ -299,17 +262,14 @@ async function computeAnalyticsSummary(input: {
     queryPeriodMetrics({
       start: bounds.start,
       end: bounds.end,
-      revenueStatuses,
     }),
     queryPeriodMetrics({
       start: bounds.previousStart,
       end: bounds.previousEnd,
-      revenueStatuses,
     }),
     queryDailyRows({
       from: input.from,
       to: input.to,
-      revenueStatuses,
     }),
     queryCustomerCount({ start: bounds.start, end: bounds.end }),
     queryCustomerCount({
@@ -319,15 +279,13 @@ async function computeAnalyticsSummary(input: {
     queryTopSellingProducts({
       start: bounds.start,
       end: bounds.end,
-      revenueStatuses,
     }),
     queryTopCategories({
       start: bounds.start,
       end: bounds.end,
-      revenueStatuses,
       locale: input.locale,
     }),
-    queryOverviewSnapshots(revenueStatuses),
+    queryOverviewSnapshots(),
   ]);
 
   return {
@@ -369,7 +327,11 @@ export async function getAnalyticsSummary(input: {
   const cached = await redis.get(key);
 
   if (cached) {
-    return JSON.parse(cached) as AnalyticsSummary;
+    try {
+      return JSON.parse(cached) as AnalyticsSummary;
+    } catch {
+      await redis.del(key);
+    }
   }
 
   const summary = await computeAnalyticsSummary({
