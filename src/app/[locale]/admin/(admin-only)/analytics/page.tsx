@@ -12,11 +12,24 @@ import {
   matchAnalyticsPeriodPreset,
   rangeForAnalyticsPeriod,
 } from "@/features/analytics/domain/date-range";
+import {
+  analyticsPaymentMethodFilterLabel,
+  parseAnalyticsPaymentMethodFilter,
+  type AnalyticsPaymentMethodFilter,
+} from "@/features/analytics/domain/payment-method-filter";
 import { AnalyticsOverviewCards } from "@/features/analytics/ui/AnalyticsOverviewCards";
+import { AnalyticsPaymentBreakdown } from "@/features/analytics/ui/AnalyticsPaymentBreakdown";
 import { AnalyticsPeriodCard } from "@/features/analytics/ui/AnalyticsPeriodCard";
 import { AnalyticsSelectedRangeCards } from "@/features/analytics/ui/AnalyticsSelectedRangeCards";
+import { AnalyticsShippingBreakdown } from "@/features/analytics/ui/AnalyticsShippingBreakdown";
+import { AnalyticsTodaySoldProducts } from "@/features/analytics/ui/AnalyticsTodaySoldProducts";
 import { AnalyticsTopRankings } from "@/features/analytics/ui/AnalyticsTopRankings";
 import { AnalyticsTrendPanel } from "@/features/analytics/ui/AnalyticsTrendPanel";
+import {
+  canChangeOrderStatus,
+  canManageOrderAdmin,
+} from "@/features/users/domain/user-lifecycle";
+import { requireAdmin } from "@/lib/auth/policies";
 import { isLocale } from "@/lib/i18n/config";
 import { formatMoneyAmount } from "@/lib/money/format";
 
@@ -43,6 +56,7 @@ export default async function AdminAnalyticsPage({
     notFound();
   }
 
+  const user = await requireAdmin(locale);
   const raw = await searchParams;
   const defaults = rangeForAnalyticsPeriod("last_7_days");
   const parsed = analyticsDateRangeSchema.safeParse({
@@ -52,14 +66,42 @@ export default async function AdminAnalyticsPage({
 
   const range = parsed.success ? parsed.data : defaults;
   const preset = matchAnalyticsPeriodPreset(range);
-  const summary = await getAnalyticsSummary({ ...range, locale });
-  const exportQuery = new URLSearchParams({
+  const paymentMethod = parseAnalyticsPaymentMethodFilter(
+    firstParam(raw.paymentMethod),
+  );
+  const summary = await getAnalyticsSummary({
+    ...range,
+    locale,
+    paymentMethod,
+  });
+  const exportParams = new URLSearchParams({
     from: range.from,
     to: range.to,
-  }).toString();
+  });
+  if (paymentMethod !== "all") {
+    exportParams.set("paymentMethod", paymentMethod);
+  }
+  const exportQuery = exportParams.toString();
+
+  function hrefForPaymentMethod(
+    nextPaymentMethod: AnalyticsPaymentMethodFilter,
+  ): string {
+    const params = new URLSearchParams({
+      from: range.from,
+      to: range.to,
+    });
+    if (nextPaymentMethod !== "all") {
+      params.set("paymentMethod", nextPaymentMethod);
+    }
+    return `/${locale}/admin/analytics?${params.toString()}`;
+  }
 
   const formatMoney = (amount: number): string =>
     formatMoneyAmount(amount, "AMD", locale);
+  const paymentFilterHint =
+    paymentMethod === "all"
+      ? "Ընտրված միջակայք"
+      : `${analyticsPaymentMethodFilterLabel(paymentMethod)} · ընտրված միջակայք`;
 
   const trendPoints = buildAnalyticsTrendSeries(
     summary.dailyRows,
@@ -95,11 +137,12 @@ export default async function AdminAnalyticsPage({
       />
 
       <AnalyticsPeriodCard
-        key={`${range.from}:${range.to}`}
+        key={`${range.from}:${range.to}:${paymentMethod}`}
         locale={locale}
         from={range.from}
         to={range.to}
         preset={preset}
+        paymentMethod={paymentMethod}
         exportQuery={exportQuery}
         rangeInvalid={!parsed.success}
       />
@@ -109,6 +152,20 @@ export default async function AdminAnalyticsPage({
         orderCount={summary.orderCount}
         averageOrderLabel={formatMoney(summary.averageOrderValue)}
         customerCount={summary.customerCount}
+        rangeHint={paymentFilterHint}
+      />
+
+      <AnalyticsPaymentBreakdown
+        rows={summary.paymentBreakdown}
+        activeFilter={paymentMethod}
+        formatMoney={formatMoney}
+        hrefForMethod={hrefForPaymentMethod}
+      />
+
+      <AnalyticsShippingBreakdown
+        rows={summary.shippingBreakdown}
+        paymentMethod={paymentMethod}
+        formatMoney={formatMoney}
       />
 
       <AnalyticsTrendPanel
@@ -132,6 +189,16 @@ export default async function AdminAnalyticsPage({
         products={summary.topProducts}
         categories={summary.topCategories}
         formatMoney={formatMoney}
+      />
+
+      <AnalyticsTodaySoldProducts
+        locale={locale}
+        items={summary.todaySoldItems}
+        capabilities={{
+          canChangeOrderStatus: canChangeOrderStatus(user.role),
+          canChangePaymentStatus: canManageOrderAdmin(user.role),
+          canArchiveOrders: canManageOrderAdmin(user.role),
+        }}
       />
     </section>
   );

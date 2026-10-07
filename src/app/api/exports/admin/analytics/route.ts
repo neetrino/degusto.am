@@ -5,6 +5,7 @@ import {
   getAnalyticsSummary,
 } from "@/features/analytics/application/queries";
 import { analyticsDateRangeSchema } from "@/features/analytics/domain/date-range";
+import { parseAnalyticsPaymentMethodFilter } from "@/features/analytics/domain/payment-method-filter";
 import { getCurrentUser } from "@/lib/auth/session";
 
 function firstQueryParam(
@@ -36,9 +37,17 @@ export async function GET(request: Request): Promise<Response> {
     );
   }
 
-  const summary = await getAnalyticsSummary(parsed.data);
+  const paymentMethod = parseAnalyticsPaymentMethodFilter(
+    firstQueryParam(url.searchParams.get("paymentMethod") ?? undefined),
+  );
+  const summary = await getAnalyticsSummary({
+    ...parsed.data,
+    paymentMethod,
+  });
   const csv = buildAnalyticsCsv(summary.dailyRows);
-  const filename = `analytics-${parsed.data.from}-${parsed.data.to}.csv`;
+  const paymentSuffix =
+    paymentMethod === "all" ? "" : `-${paymentMethod}`;
+  const filename = `analytics-${parsed.data.from}-${parsed.data.to}${paymentSuffix}.csv`;
 
   return new Response(csv, {
     status: 200,

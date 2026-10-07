@@ -20,11 +20,13 @@ describe("dashboard periods", () => {
     );
   });
 
-  it("starts a calendar quarter on Jan/Apr/Jul/Oct", () => {
+  it("uses a rolling 90-day quarter window", () => {
     const range = rangeForDashboardMetricPeriod("quarter");
-    const month = Number(range.from.slice(5, 7));
-    expect([1, 4, 7, 10]).toContain(month);
-    expect(range.from.endsWith("-01")).toBe(true);
+    const start = new Date(`${range.from}T00:00:00.000Z`);
+    const end = new Date(`${range.to}T00:00:00.000Z`);
+    const days =
+      Math.floor((end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000)) + 1;
+    expect(days).toBe(90);
     expect(range.from <= range.to).toBe(true);
   });
 

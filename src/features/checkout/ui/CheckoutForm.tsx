@@ -9,7 +9,7 @@ import type { CheckoutOrderProduct } from "@/features/checkout/ui/checkout-order
 import { previewCouponAction } from "@/features/checkout/application/preview-coupon";
 import { createOrderAction } from "@/features/checkout/create-order";
 import {
-  isCashPaymentAllowed,
+  isOnlinePaymentAllowed,
   type CheckoutPaymentMethod,
 } from "@/features/checkout/domain/payment-methods";
 import {
@@ -225,7 +225,7 @@ export function CheckoutForm({
   const canPlaceOrder =
     shippingMethod === "pickup" ? true : canPlaceDelivery;
 
-  const cashAllowed = isCashPaymentAllowed({
+  const onlineAllowed = isOnlinePaymentAllowed({
     shippingMethod,
     pickupBranchId,
   });
@@ -274,11 +274,11 @@ export function CheckoutForm({
         ],
       },
     ];
-    return cashAllowed
+    return onlineAllowed
       ? options
-      : options.filter((option) => option.id !== "cash_on_delivery");
+      : options.filter((option) => option.id === "cash_on_delivery");
   }, [
-    cashAllowed,
+    onlineAllowed,
     labels.arca,
     labels.arcaDescription,
     labels.cashOnDelivery,
@@ -287,17 +287,16 @@ export function CheckoutForm({
     labels.idramDescription,
   ]);
 
-  function clearCashIfDisallowed(
+  function forceCashIfOnlineDisallowed(
     nextShippingMethod: "pickup" | "delivery",
     nextPickupBranchId: string,
   ): void {
-    const nextCashAllowed = isCashPaymentAllowed({
+    const nextOnlineAllowed = isOnlinePaymentAllowed({
       shippingMethod: nextShippingMethod,
       pickupBranchId: nextPickupBranchId,
     });
-    if (!nextCashAllowed && paymentMethod === "cash_on_delivery") {
-      setPaymentMethod("arca");
-      setCashChangePreference(null);
+    if (!nextOnlineAllowed && paymentMethod !== "cash_on_delivery") {
+      setPaymentMethod("cash_on_delivery");
     }
   }
 
@@ -325,12 +324,12 @@ export function CheckoutForm({
 
   function onShippingMethodChange(method: "pickup" | "delivery"): void {
     setShippingMethod(method);
-    clearCashIfDisallowed(method, pickupBranchId);
+    forceCashIfOnlineDisallowed(method, pickupBranchId);
   }
 
   function onPickupBranchChange(branchId: string): void {
     setPickupBranchId(branchId);
-    clearCashIfDisallowed(shippingMethod, branchId);
+    forceCashIfOnlineDisallowed(shippingMethod, branchId);
   }
 
   function onPaymentMethodChange(method: CheckoutPaymentMethod): void {

@@ -9,6 +9,7 @@ import {
 const MAX_RANGE_DAYS = 366;
 
 export const ANALYTICS_PERIOD_PRESETS = [
+  "today",
   "last_7_days",
   "last_30_days",
   "last_90_days",
@@ -52,6 +53,7 @@ export const analyticsDateRangeSchema = z
 export type AnalyticsDateRange = z.infer<typeof analyticsDateRangeSchema>;
 
 const PRESET_LABELS: Record<AnalyticsPeriodPreset, string> = {
+  today: "Այսօր",
   last_7_days: "Վերջին 7 օր",
   last_30_days: "Վերջին 30 օր",
   last_90_days: "Վերջին 90 օր",
@@ -61,9 +63,9 @@ const PRESET_LABELS: Record<AnalyticsPeriodPreset, string> = {
 
 const OVERVIEW_LABELS: Record<AnalyticsOverviewPeriod, string> = {
   today: "Այսօր",
-  week: "Շաբաթ",
-  month: "Ամիս",
-  quarter: "Եռամսյակ",
+  week: "Շաբաթ · 7 օր",
+  month: "Ամիս · 30 օր",
+  quarter: "Եռամսյակ · 90 օր",
 };
 
 /** Human label for a period preset select option. */
@@ -95,12 +97,6 @@ function shiftAppIsoDays(isoDate: string, deltaDays: number): string {
 
 function calendarMonthStart(isoDate: string): string {
   return `${isoDate.slice(0, 7)}-01`;
-}
-
-function calendarQuarterStart(isoDate: string): string {
-  const [year, month] = isoDate.split("-").map(Number) as [number, number];
-  const quarterStartMonth = Math.floor((month - 1) / 3) * 3 + 1;
-  return `${year}-${String(quarterStartMonth).padStart(2, "0")}-01`;
 }
 
 /** Inclusive Yerevan-day UTC bounds for an ISO from/to range. */
@@ -150,6 +146,9 @@ export function rangeForAnalyticsPeriod(
 ): AnalyticsDateRange {
   const to = appTodayIso();
 
+  if (preset === "today") {
+    return { from: to, to };
+  }
   if (preset === "this_month") {
     return { from: calendarMonthStart(to), to };
   }
@@ -159,7 +158,11 @@ export function rangeForAnalyticsPeriod(
   return { from: shiftAppIsoDays(to, -daysBack), to };
 }
 
-/** Inclusive Yerevan ranges for dashboard overview cards. */
+/**
+ * Inclusive Yerevan ranges for dashboard overview cards.
+ * Uses rolling windows (7 / 30 / 90 days) so month and quarter do not collapse
+ * into the same window as week near the start of a calendar month/quarter.
+ */
 export function rangeForOverviewPeriod(
   period: AnalyticsOverviewPeriod,
 ): AnalyticsDateRange {
@@ -172,9 +175,9 @@ export function rangeForOverviewPeriod(
     return { from: shiftAppIsoDays(to, -6), to };
   }
   if (period === "month") {
-    return { from: calendarMonthStart(to), to };
+    return { from: shiftAppIsoDays(to, -29), to };
   }
-  return { from: calendarQuarterStart(to), to };
+  return { from: shiftAppIsoDays(to, -89), to };
 }
 
 /** Default inclusive last-7-days range in UTC ISO dates. */
@@ -187,6 +190,7 @@ export function matchAnalyticsPeriodPreset(
   range: AnalyticsDateRange,
 ): AnalyticsPeriodPreset {
   for (const preset of [
+    "today",
     "last_7_days",
     "last_30_days",
     "last_90_days",

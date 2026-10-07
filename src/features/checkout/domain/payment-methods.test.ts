@@ -1,35 +1,35 @@
 import { describe, expect, it } from "vitest";
 
-import { isCashPaymentAllowed } from "@/features/checkout/domain/payment-methods";
+import { isOnlinePaymentAllowed } from "@/features/checkout/domain/payment-methods";
 
-describe("isCashPaymentAllowed", () => {
-  it("allows cash for delivery", () => {
+describe("isOnlinePaymentAllowed", () => {
+  it("allows online payment for delivery", () => {
     expect(
-      isCashPaymentAllowed({
+      isOnlinePaymentAllowed({
         shippingMethod: "delivery",
         pickupBranchId: "bagratunyats-11a",
       }),
     ).toBe(true);
   });
 
-  it("allows cash for Paruyr Sevak pickup", () => {
+  it("allows online payment for Paruyr Sevak pickup", () => {
     expect(
-      isCashPaymentAllowed({
+      isOnlinePaymentAllowed({
         shippingMethod: "pickup",
         pickupBranchId: "paruyr-sevak-92",
       }),
     ).toBe(true);
   });
 
-  it("blocks cash for Bagratunyats and Gai Avenue pickup", () => {
+  it("blocks online payment for Bagratunyats and Gai Avenue pickup", () => {
     expect(
-      isCashPaymentAllowed({
+      isOnlinePaymentAllowed({
         shippingMethod: "pickup",
         pickupBranchId: "bagratunyats-11a",
       }),
     ).toBe(false);
     expect(
-      isCashPaymentAllowed({
+      isOnlinePaymentAllowed({
         shippingMethod: "pickup",
         pickupBranchId: "gai-avenue-17-3",
       }),

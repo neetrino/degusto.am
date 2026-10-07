@@ -12,7 +12,12 @@ import {
 import { getProviders } from "@/config/providers";
 import { getDb } from "@/db/client";
 import { orders } from "@/db/schema";
+import { latestPaymentMethodBucketSql } from "@/features/analytics/application/payment-method-where";
 import { revenueEligibleOrderWhere } from "@/features/analytics/application/revenue-where";
+import {
+  queryTodaySoldItems,
+  type AnalyticsTodaySoldItem,
+} from "@/features/analytics/application/today-sold-items";
 import {
   queryTopCategories,
   queryTopSellingProducts,
@@ -27,6 +32,20 @@ import {
   rangeForOverviewPeriod,
   type AnalyticsOverviewPeriod,
 } from "@/features/analytics/domain/date-range";
+import {
+  buildPaymentBreakdown,
+  type PaymentBreakdownRow,
+} from "@/features/analytics/domain/payment-breakdown";
+import type {
+  AnalyticsPaymentMethod,
+  AnalyticsPaymentMethodFilter,
+} from "@/features/analytics/domain/payment-method-filter";
+import { ANALYTICS_PAYMENT_METHODS } from "@/features/analytics/domain/payment-method-filter";
+import {
+  buildShippingBreakdown,
+  type AnalyticsShippingMethod,
+  type ShippingBreakdownRow,
+} from "@/features/analytics/domain/shipping-breakdown";
 import { APP_TIMEZONE } from "@/lib/datetime/app-timezone";
 import type { Locale } from "@/lib/i18n/config";
 
@@ -34,11 +53,30 @@ export type {
   AnalyticsTopCategory,
   AnalyticsTopProduct,
 } from "@/features/analytics/application/top-rankings";
+export type { AnalyticsTodaySoldItem } from "@/features/analytics/application/today-sold-items";
 export type { AnalyticsCsvRow } from "@/features/analytics/domain/csv";
 export { buildAnalyticsCsv, guardCsvCell } from "@/features/analytics/domain/csv";
+export type {
+  AnalyticsPaymentMethod,
+  AnalyticsPaymentMethodFilter,
+} from "@/features/analytics/domain/payment-method-filter";
+export type {
+  AnalyticsShippingMethod,
+  ShippingBreakdownRow,
+} from "@/features/analytics/domain/shipping-breakdown";
 
 const CACHE_TTL_SECONDS = 300;
-const CACHE_VERSION = "v4";
+const CACHE_VERSION = "v12";
+
+/** Matches order-detail pickup detection (`deliveryLabelSnapshot === "Store pickup"`). */
+function shippingMethodBucketSql() {
+  return sql<string>`
+    case
+      when ${orders.deliveryLabelSnapshot} = 'Store pickup' then 'pickup'
+      else 'delivery'
+    end
+  `;
+}
 const cacheKeys = new Set<string>();
 
 export type AnalyticsPeriodSnapshot = {
@@ -59,9 +97,13 @@ export type AnalyticsBestDay = {
   revenueAmount: number;
 };
 
+export type AnalyticsPaymentBreakdownRow = PaymentBreakdownRow;
+export type AnalyticsShippingBreakdownRow = ShippingBreakdownRow;
+
 export type AnalyticsSummary = {
   from: string;
   to: string;
+  paymentMethod: AnalyticsPaymentMethodFilter;
   previousFrom: string;
   previousTo: string;
   orderCount: number;
@@ -74,9 +116,12 @@ export type AnalyticsSummary = {
   previousCustomerCount: number;
   dailyRows: AnalyticsCsvRow[];
   overview: AnalyticsPeriodSnapshot[];
+  paymentBreakdown: AnalyticsPaymentBreakdownRow[];
+  shippingBreakdown: AnalyticsShippingBreakdownRow[];
   bestDay: AnalyticsBestDay | null;
   topProducts: AnalyticsTopProduct[];
   topCategories: AnalyticsTopCategory[];
+  todaySoldItems: AnalyticsTodaySoldItem[];
 };
 
 function periodBounds(from: string, to: string) {
@@ -90,14 +135,21 @@ function averageOrderValue(revenue: number, orderCount: number): number {
   return Math.round((revenue / orderCount) * 100) / 100;
 }
 
-function cacheKey(from: string, to: string, locale: Locale): string {
-  return `analytics:${CACHE_VERSION}:${locale}:${from}:${to}`;
+function cacheKey(
+  from: string,
+  to: string,
+  locale: Locale,
+  paymentMethod: AnalyticsPaymentMethodFilter,
+): string {
+  return `analytics:${CACHE_VERSION}:${locale}:${paymentMethod}:${from}:${to}`;
 }
 
 async function queryPeriodMetrics(input: {
   start: Date;
   end: Date;
+  paymentMethod?: AnalyticsPaymentMethodFilter;
 }): Promise<{ orderCount: number; revenueAmount: number }> {
+  const paymentMethod = input.paymentMethod ?? "all";
   const [row] = await getDb()
     .select({
       orderCount: count(),
@@ -108,7 +160,7 @@ async function queryPeriodMetrics(input: {
     .from(orders)
     .where(
       and(
-        revenueEligibleOrderWhere(),
+        revenueEligibleOrderWhere(paymentMethod),
         gte(orders.placedAt, input.start),
         lte(orders.placedAt, input.end),
       ),
@@ -123,7 +175,9 @@ async function queryPeriodMetrics(input: {
 async function queryCustomerCount(input: {
   start: Date;
   end: Date;
+  paymentMethod?: AnalyticsPaymentMethodFilter;
 }): Promise<number> {
+  const paymentMethod = input.paymentMethod ?? "all";
   const [row] = await getDb()
     .select({
       value: countDistinct(orders.contactEmail),
@@ -131,7 +185,7 @@ async function queryCustomerCount(input: {
     .from(orders)
     .where(
       and(
-        revenueEligibleOrderWhere(),
+        revenueEligibleOrderWhere(paymentMethod),
         gte(orders.placedAt, input.start),
         lte(orders.placedAt, input.end),
       ),
@@ -143,6 +197,7 @@ async function queryCustomerCount(input: {
 async function queryDailyRows(input: {
   from: string;
   to: string;
+  paymentMethod: AnalyticsPaymentMethodFilter;
 }): Promise<AnalyticsCsvRow[]> {
   const bounds = periodBounds(input.from, input.to);
   const daySql = sql<string>`to_char(${orders.placedAt} at time zone ${sql.raw(`'${APP_TIMEZONE}'`)}, 'YYYY-MM-DD')`;
@@ -157,7 +212,7 @@ async function queryDailyRows(input: {
     .from(orders)
     .where(
       and(
-        revenueEligibleOrderWhere(),
+        revenueEligibleOrderWhere(input.paymentMethod),
         gte(orders.placedAt, bounds.start),
         lte(orders.placedAt, bounds.end),
       ),
@@ -205,6 +260,10 @@ function pickBestDay(rows: AnalyticsCsvRow[]): AnalyticsBestDay | null {
   };
 }
 
+/**
+ * Fixed today/week/month/quarter KPIs — always all payment methods.
+ * Selected-range filters must not change these cards (different date windows).
+ */
 async function queryOverviewSnapshots(): Promise<AnalyticsPeriodSnapshot[]> {
   return Promise.all(
     ANALYTICS_OVERVIEW_PERIODS.map(async (id) => {
@@ -214,10 +273,12 @@ async function queryOverviewSnapshots(): Promise<AnalyticsPeriodSnapshot[]> {
         queryPeriodMetrics({
           start: bounds.start,
           end: bounds.end,
+          paymentMethod: "all",
         }),
         queryPeriodMetrics({
           start: bounds.previousStart,
           end: bounds.previousEnd,
+          paymentMethod: "all",
         }),
       ]);
 
@@ -242,12 +303,105 @@ async function queryOverviewSnapshots(): Promise<AnalyticsPeriodSnapshot[]> {
   );
 }
 
+/** Per-method totals for the selected date range (all methods, unfiltered). */
+async function queryPaymentMethodTotals(input: {
+  start: Date;
+  end: Date;
+}): Promise<Map<AnalyticsPaymentMethod, { orderCount: number; revenueAmount: number }>> {
+  const methodBucket = latestPaymentMethodBucketSql();
+  const rows = await getDb()
+    .select({
+      method: methodBucket,
+      orderCount: count(),
+      revenueAmount: sql<number>`coalesce(sum(${orders.totalAmount}), 0)`.mapWith(
+        Number,
+      ),
+    })
+    .from(orders)
+    .where(
+      and(
+        revenueEligibleOrderWhere("all"),
+        gte(orders.placedAt, input.start),
+        lte(orders.placedAt, input.end),
+      ),
+    )
+    .groupBy(methodBucket);
+
+  const byMethod = new Map<
+    AnalyticsPaymentMethod,
+    { orderCount: number; revenueAmount: number }
+  >();
+  for (const row of rows) {
+    const method = row.method.trim();
+    if (!(ANALYTICS_PAYMENT_METHODS as readonly string[]).includes(method)) {
+      continue;
+    }
+    byMethod.set(method as AnalyticsPaymentMethod, {
+      orderCount: row.orderCount,
+      revenueAmount: row.revenueAmount,
+    });
+  }
+  return byMethod;
+}
+
+/**
+ * Pickup vs delivery totals for the selected date range.
+ * Respects the active payment-method filter (e.g. Idram-only split).
+ */
+async function queryShippingMethodTotals(input: {
+  start: Date;
+  end: Date;
+  paymentMethod: AnalyticsPaymentMethodFilter;
+}): Promise<
+  Map<AnalyticsShippingMethod, { orderCount: number; revenueAmount: number }>
+> {
+  const shippingBucket = shippingMethodBucketSql();
+  const rows = await getDb()
+    .select({
+      method: shippingBucket,
+      orderCount: count(),
+      revenueAmount: sql<number>`coalesce(sum(${orders.totalAmount}), 0)`.mapWith(
+        Number,
+      ),
+    })
+    .from(orders)
+    .where(
+      and(
+        revenueEligibleOrderWhere(input.paymentMethod),
+        gte(orders.placedAt, input.start),
+        lte(orders.placedAt, input.end),
+      ),
+    )
+    .groupBy(shippingBucket);
+
+  const byMethod = new Map<
+    AnalyticsShippingMethod,
+    { orderCount: number; revenueAmount: number }
+  >();
+  for (const row of rows) {
+    const method = row.method.trim();
+    if (method !== "pickup" && method !== "delivery") {
+      continue;
+    }
+    byMethod.set(method, {
+      orderCount: row.orderCount,
+      revenueAmount: row.revenueAmount,
+    });
+  }
+  return byMethod;
+}
+
 async function computeAnalyticsSummary(input: {
   from: string;
   to: string;
   locale: Locale;
+  paymentMethod: AnalyticsPaymentMethodFilter;
 }): Promise<AnalyticsSummary> {
   const bounds = periodBounds(input.from, input.to);
+  const { paymentMethod } = input;
+  /** Rankings always reflect today — independent of the selected date range. */
+  const todayRange = rangeForOverviewPeriod("today");
+  const todayBounds = periodBounds(todayRange.from, todayRange.to);
 
   const [
     current,
@@ -257,40 +411,82 @@ async function computeAnalyticsSummary(input: {
     previousCustomerCount,
     topProducts,
     topCategories,
+    todaySoldItems,
     overview,
+    paymentTotals,
+    shippingTotals,
   ] = await Promise.all([
     queryPeriodMetrics({
       start: bounds.start,
       end: bounds.end,
+      paymentMethod,
     }),
     queryPeriodMetrics({
       start: bounds.previousStart,
       end: bounds.previousEnd,
+      paymentMethod,
     }),
     queryDailyRows({
       from: input.from,
       to: input.to,
+      paymentMethod,
     }),
-    queryCustomerCount({ start: bounds.start, end: bounds.end }),
+    queryCustomerCount({
+      start: bounds.start,
+      end: bounds.end,
+      paymentMethod,
+    }),
     queryCustomerCount({
       start: bounds.previousStart,
       end: bounds.previousEnd,
+      paymentMethod,
     }),
     queryTopSellingProducts({
-      start: bounds.start,
-      end: bounds.end,
+      start: todayBounds.start,
+      end: todayBounds.end,
+      paymentMethod,
     }),
     queryTopCategories({
-      start: bounds.start,
-      end: bounds.end,
+      start: todayBounds.start,
+      end: todayBounds.end,
       locale: input.locale,
+      paymentMethod,
+    }),
+    queryTodaySoldItems({
+      start: todayBounds.start,
+      end: todayBounds.end,
+      paymentMethod,
     }),
     queryOverviewSnapshots(),
+    paymentMethod === "all"
+      ? queryPaymentMethodTotals({
+          start: bounds.start,
+          end: bounds.end,
+        })
+      : Promise.resolve(
+          new Map<AnalyticsPaymentMethod, { orderCount: number; revenueAmount: number }>(),
+        ),
+    queryShippingMethodTotals({
+      start: bounds.start,
+      end: bounds.end,
+      paymentMethod,
+    }),
   ]);
+
+  const paymentBreakdown = buildPaymentBreakdown({
+    paymentMethod,
+    selectedRange: {
+      orderCount: current.orderCount,
+      revenueAmount: current.revenueAmount,
+    },
+    byMethod: paymentTotals,
+  });
+  const shippingBreakdown = buildShippingBreakdown(shippingTotals);
 
   return {
     from: input.from,
     to: input.to,
+    paymentMethod,
     previousFrom: bounds.previousFrom,
     previousTo: bounds.previousTo,
     orderCount: current.orderCount,
@@ -309,9 +505,12 @@ async function computeAnalyticsSummary(input: {
     previousCustomerCount,
     dailyRows,
     overview,
+    paymentBreakdown,
+    shippingBreakdown,
     bestDay: pickBestDay(dailyRows),
     topProducts,
     topCategories,
+    todaySoldItems,
   };
 }
 
@@ -320,15 +519,26 @@ export async function getAnalyticsSummary(input: {
   from: string;
   to: string;
   locale?: Locale;
+  paymentMethod?: AnalyticsPaymentMethodFilter;
 }): Promise<AnalyticsSummary> {
   const locale = input.locale ?? "hy";
-  const key = cacheKey(input.from, input.to, locale);
+  const paymentMethod = input.paymentMethod ?? "all";
+  const key = cacheKey(input.from, input.to, locale, paymentMethod);
   const redis = getProviders().redis.getClient();
   const cached = await redis.get(key);
 
   if (cached) {
     try {
-      return JSON.parse(cached) as AnalyticsSummary;
+      const parsed = JSON.parse(cached) as AnalyticsSummary;
+      if (
+        Array.isArray(parsed.paymentBreakdown) &&
+        Array.isArray(parsed.shippingBreakdown) &&
+        Array.isArray(parsed.todaySoldItems) &&
+        parsed.paymentMethod === paymentMethod
+      ) {
+        return parsed;
+      }
+      await redis.del(key);
     } catch {
       await redis.del(key);
     }
@@ -338,6 +548,7 @@ export async function getAnalyticsSummary(input: {
     from: input.from,
     to: input.to,
     locale,
+    paymentMethod,
   });
   await redis.set(key, JSON.stringify(summary), { ex: CACHE_TTL_SECONDS });
   cacheKeys.add(key);

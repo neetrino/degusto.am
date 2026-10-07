@@ -17,12 +17,18 @@ import {
   rangeForAnalyticsPeriod,
   type AnalyticsPeriodPreset,
 } from "@/features/analytics/domain/date-range";
+import {
+  ANALYTICS_PAYMENT_METHOD_FILTERS,
+  analyticsPaymentMethodFilterLabel,
+  type AnalyticsPaymentMethodFilter,
+} from "@/features/analytics/domain/payment-method-filter";
 
 type AnalyticsPeriodCardProps = {
   locale: string;
   from: string;
   to: string;
   preset: AnalyticsPeriodPreset;
+  paymentMethod: AnalyticsPaymentMethodFilter;
   exportQuery: string;
   rangeInvalid: boolean;
 };
@@ -32,6 +38,7 @@ export function AnalyticsPeriodCard({
   from,
   to,
   preset,
+  paymentMethod,
   exportQuery,
   rangeInvalid,
 }: AnalyticsPeriodCardProps) {
@@ -42,8 +49,24 @@ export function AnalyticsPeriodCard({
     ? "custom"
     : preset;
 
-  function navigate(nextFrom: string, nextTo: string): void {
+  function buildParams(
+    nextFrom: string,
+    nextTo: string,
+    nextPaymentMethod: AnalyticsPaymentMethodFilter,
+  ): URLSearchParams {
     const params = new URLSearchParams({ from: nextFrom, to: nextTo });
+    if (nextPaymentMethod !== "all") {
+      params.set("paymentMethod", nextPaymentMethod);
+    }
+    return params;
+  }
+
+  function navigate(
+    nextFrom: string,
+    nextTo: string,
+    nextPaymentMethod: AnalyticsPaymentMethodFilter = paymentMethod,
+  ): void {
+    const params = buildParams(nextFrom, nextTo, nextPaymentMethod);
     setForceCustom(false);
     startTransition(() => {
       router.push(`/${locale}/admin/analytics?${params.toString()}`);
@@ -58,6 +81,10 @@ export function AnalyticsPeriodCard({
     }
     const range = rangeForAnalyticsPeriod(next);
     navigate(range.from, range.to);
+  }
+
+  function onPaymentMethodChange(value: string): void {
+    navigate(from, to, value as AnalyticsPaymentMethodFilter);
   }
 
   function onCustomSubmit(event: FormEvent<HTMLFormElement>): void {
@@ -85,20 +112,37 @@ export function AnalyticsPeriodCard({
             </p>
           </div>
 
-          <div className="max-w-md">
-            <span className={ADMIN_LABEL}>Ընտրել միջակայք</span>
-            <SelectDropdown
-              ariaLabel="Ժամանակահատված"
-              value={selectedPreset}
-              options={ANALYTICS_PERIOD_PRESETS.map((option) => ({
-                label: analyticsPeriodLabel(option),
-                value: option,
-              }))}
-              disabled={pending}
-              deferChange={false}
-              className="mt-1"
-              onValueChange={onPeriodChange}
-            />
+          <div className="grid max-w-2xl gap-3 sm:grid-cols-2">
+            <div>
+              <span className={ADMIN_LABEL}>Ընտրել միջակայք</span>
+              <SelectDropdown
+                ariaLabel="Ժամանակահատված"
+                value={selectedPreset}
+                options={ANALYTICS_PERIOD_PRESETS.map((option) => ({
+                  label: analyticsPeriodLabel(option),
+                  value: option,
+                }))}
+                disabled={pending}
+                deferChange={false}
+                className="mt-1"
+                onValueChange={onPeriodChange}
+              />
+            </div>
+            <div>
+              <span className={ADMIN_LABEL}>Վճարման եղանակ</span>
+              <SelectDropdown
+                ariaLabel="Վճարման եղանակ"
+                value={paymentMethod}
+                options={ANALYTICS_PAYMENT_METHOD_FILTERS.map((option) => ({
+                  label: analyticsPaymentMethodFilterLabel(option),
+                  value: option,
+                }))}
+                disabled={pending}
+                deferChange={false}
+                className="mt-1"
+                onValueChange={onPaymentMethodChange}
+              />
+            </div>
           </div>
 
           {selectedPreset === "custom" ? (

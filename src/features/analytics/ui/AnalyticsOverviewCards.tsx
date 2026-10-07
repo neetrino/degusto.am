@@ -56,7 +56,7 @@ function DeltaBadge({
   );
 }
 
-/** Four fixed overview cards: today / week / month / quarter. */
+/** Four fixed overview cards: today / week / month / quarter (all payments). */
 export function AnalyticsOverviewCards({
   snapshots,
   formatMoney,
@@ -66,40 +66,46 @@ export function AnalyticsOverviewCards({
   const averageLabel = copy?.averageOrder ?? "Միջին պատվեր";
 
   return (
-    <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      {snapshots.map((snapshot) => (
-        <Card
-          key={snapshot.id}
-          className="rounded-2xl border-[#ead7bf]/80 bg-white p-4 shadow-[0_8px_22px_rgba(31,26,23,0.04)]"
-        >
-          <div className="mb-3 flex items-center justify-between gap-2">
-            <h2 className="text-[11px] font-bold tracking-[0.12em] text-[#8a837a] uppercase">
-              {copy?.periods?.[snapshot.id] ?? analyticsOverviewLabel(snapshot.id)}
-            </h2>
-            <DeltaBadge
-              current={snapshot.revenueAmount}
-              previous={snapshot.previousRevenueAmount}
-            />
-          </div>
-          <p className="text-xl font-bold tracking-tight text-[#1f1a17]">
-            {formatMoney(snapshot.revenueAmount)}
-          </p>
-          <div className="mt-3 space-y-1.5 border-t border-[#f0ebe3] pt-3 text-xs text-[#5c564e]">
-            <p className="flex items-center justify-between gap-2">
-              <span>{ordersLabel}</span>
-              <span className="font-semibold text-[#1f1a17]">
-                {snapshot.orderCount}
-              </span>
+    <section className="mb-5">
+      <h2 className="mb-3 text-[11px] font-bold tracking-[0.14em] text-[#8a837a] uppercase">
+        Ընդհանուր ակնարկ · բոլոր վճարումներ
+      </h2>
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {snapshots.map((snapshot) => (
+          <Card
+            key={snapshot.id}
+            className="rounded-2xl border-[#ead7bf]/80 bg-white p-4 shadow-[0_8px_22px_rgba(31,26,23,0.04)]"
+          >
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h2 className="text-[11px] font-bold tracking-[0.12em] text-[#8a837a] uppercase">
+                {copy?.periods?.[snapshot.id] ??
+                  analyticsOverviewLabel(snapshot.id)}
+              </h2>
+              <DeltaBadge
+                current={snapshot.revenueAmount}
+                previous={snapshot.previousRevenueAmount}
+              />
+            </div>
+            <p className="text-xl font-bold tracking-tight text-[#1f1a17]">
+              {formatMoney(snapshot.revenueAmount)}
             </p>
-            <p className="flex items-center justify-between gap-2">
-              <span>{averageLabel}</span>
-              <span className="font-semibold text-[#1f1a17]">
-                {formatMoney(snapshot.averageOrderValue)}
-              </span>
-            </p>
-          </div>
-        </Card>
-      ))}
-    </div>
+            <div className="mt-3 space-y-1.5 border-t border-[#f0ebe3] pt-3 text-xs text-[#5c564e]">
+              <p className="flex items-center justify-between gap-2">
+                <span>{ordersLabel}</span>
+                <span className="font-semibold text-[#1f1a17]">
+                  {snapshot.orderCount}
+                </span>
+              </p>
+              <p className="flex items-center justify-between gap-2">
+                <span>{averageLabel}</span>
+                <span className="font-semibold text-[#1f1a17]">
+                  {formatMoney(snapshot.averageOrderValue)}
+                </span>
+              </p>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </section>
   );
 }

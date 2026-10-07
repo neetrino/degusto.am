@@ -10,7 +10,9 @@ import {
   productCategories,
   type TranslationsJson,
 } from "@/db/schema";
+import { resolvePrimaryProductImageUrls } from "@/features/analytics/application/resolve-product-images";
 import { revenueEligibleOrderWhere } from "@/features/analytics/application/revenue-where";
+import type { AnalyticsPaymentMethodFilter } from "@/features/analytics/domain/payment-method-filter";
 import type { Locale } from "@/lib/i18n/config";
 import { mediaPublicUrl } from "@/lib/media/public-url";
 
@@ -43,19 +45,31 @@ function categoryTitle(translations: TranslationsJson, locale: Locale): string {
   );
 }
 
-/** Top products by units sold in the analytics window. */
+/** Stable product key: catalog id, else legacy SKU snapshot. */
+function productIdentitySql() {
+  return sql<string>`coalesce(${orderItems.productId}::text, 'sku:' || ${orderItems.productSkuSnapshot})`;
+}
+
+/** Top products by line revenue in the analytics window. */
 export async function queryTopSellingProducts(input: {
   start: Date;
   end: Date;
+  paymentMethod?: AnalyticsPaymentMethodFilter;
   limit?: number;
 }): Promise<AnalyticsTopProduct[]> {
   const limit = input.limit ?? 5;
+  const paymentMethod = input.paymentMethod ?? "all";
+  const productKey = productIdentitySql();
+
   const rows = await getDb()
     .select({
-      productId: orderItems.productId,
-      title: orderItems.productTitleSnapshot,
-      sku: orderItems.productSkuSnapshot,
-      imageKey: orderItems.productImageKeySnapshot,
+      productId: productKey,
+      catalogProductId: sql<string | null>`max(${orderItems.productId}::text)`,
+      title: sql<string>`max(${orderItems.productTitleSnapshot})`.mapWith(
+        String,
+      ),
+      sku: sql<string>`max(${orderItems.productSkuSnapshot})`.mapWith(String),
+      imageKey: sql<string | null>`max(${orderItems.productImageKeySnapshot})`,
       quantitySold: sql<number>`coalesce(sum(${orderItems.quantity}), 0)`.mapWith(
         Number,
       ),
@@ -63,38 +77,50 @@ export async function queryTopSellingProducts(input: {
       revenueAmount: sql<number>`coalesce(sum(${orderItems.lineTotalAmount}), 0)`.mapWith(
         Number,
       ),
-      unitPriceAmount: sql<number>`coalesce(max(${orderItems.unitBaseAmount}), 0)`.mapWith(
-        Number,
-      ),
+      unitPriceAmount: sql<number>`coalesce(
+        round(
+          sum(${orderItems.lineTotalAmount})::numeric
+          / nullif(sum(${orderItems.quantity}), 0)
+        ),
+        0
+      )`.mapWith(Number),
     })
     .from(orderItems)
     .innerJoin(orders, eq(orderItems.orderId, orders.id))
     .where(
       and(
-        revenueEligibleOrderWhere(),
+        revenueEligibleOrderWhere(paymentMethod),
         gte(orders.placedAt, input.start),
         lte(orders.placedAt, input.end),
       ),
     )
-    .groupBy(
-      orderItems.productId,
-      orderItems.productTitleSnapshot,
-      orderItems.productSkuSnapshot,
-      orderItems.productImageKeySnapshot,
-    )
-    .orderBy(desc(sql`sum(${orderItems.quantity})`))
+    .groupBy(productKey)
+    .orderBy(desc(sql`sum(${orderItems.lineTotalAmount})`))
     .limit(limit);
 
-  return rows.map((row) => ({
-    productId: row.productId ?? `sku:${row.sku}`,
-    title: row.title,
-    sku: row.sku,
-    imageUrl: row.imageKey ? mediaPublicUrl(row.imageKey) : null,
-    quantitySold: row.quantitySold,
-    orderCount: row.orderCount,
-    revenueAmount: row.revenueAmount,
-    unitPriceAmount: row.unitPriceAmount,
-  }));
+  const missingImageProductIds = rows
+    .filter((row) => !row.imageKey && row.catalogProductId)
+    .map((row) => row.catalogProductId as string);
+  const fallbackImages =
+    await resolvePrimaryProductImageUrls(missingImageProductIds);
+
+  return rows.map((row) => {
+    const snapshotUrl = row.imageKey ? mediaPublicUrl(row.imageKey) : null;
+    const fallbackUrl = row.catalogProductId
+      ? (fallbackImages.get(row.catalogProductId) ?? null)
+      : null;
+
+    return {
+      productId: row.productId,
+      title: row.title,
+      sku: row.sku,
+      imageUrl: snapshotUrl ?? fallbackUrl,
+      quantitySold: row.quantitySold,
+      orderCount: row.orderCount,
+      revenueAmount: row.revenueAmount,
+      unitPriceAmount: row.unitPriceAmount,
+    };
+  });
 }
 
 /** Top categories by line revenue in the analytics window. */
@@ -102,9 +128,11 @@ export async function queryTopCategories(input: {
   start: Date;
   end: Date;
   locale: Locale;
+  paymentMethod?: AnalyticsPaymentMethodFilter;
   limit?: number;
 }): Promise<AnalyticsTopCategory[]> {
   const limit = input.limit ?? 5;
+  const paymentMethod = input.paymentMethod ?? "all";
   const rows = await getDb()
     .select({
       categoryId: categories.id,
@@ -126,7 +154,7 @@ export async function queryTopCategories(input: {
     .innerJoin(categories, eq(categories.id, productCategories.categoryId))
     .where(
       and(
-        revenueEligibleOrderWhere(),
+        revenueEligibleOrderWhere(paymentMethod),
         gte(orders.placedAt, input.start),
         lte(orders.placedAt, input.end),
       ),
