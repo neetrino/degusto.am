@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import type { ReactNode } from "react";
 
 import { SelectDropdown } from "@/components/ui/SelectDropdown";
 import type { CheckoutPaymentMethod } from "@/features/checkout/domain/payment-methods";
@@ -78,6 +79,8 @@ type CheckoutDetailsSectionsProps = {
   defaultEmail: string;
   defaultPhone: string;
   defaultLine1: string;
+  /** Rendered after shipping method / address (e.g. delivery date-time). */
+  afterShipping?: ReactNode;
 };
 
 export function CheckoutDetailsSections({
@@ -100,6 +103,7 @@ export function CheckoutDetailsSections({
   defaultEmail,
   defaultPhone,
   defaultLine1,
+  afterShipping = null,
 }: CheckoutDetailsSectionsProps) {
   const reduceMotion = useReducedMotion();
 
@@ -286,6 +290,8 @@ export function CheckoutDetailsSections({
           )}
         </AnimatePresence>
       </motion.section>
+
+      {afterShipping}
 
       <motion.div variants={reduceMotion ? undefined : checkoutSectionItem}>
         <CheckoutPaymentMethods

@@ -109,6 +109,51 @@ const upsertSchema = z.discriminatedUnion("key", [
         message: "At least one storefront currency must stay enabled.",
       }),
   }),
+  z.object({
+    key: z.literal("store.deliverySchedule"),
+    value: z.object({
+      slotIntervalMinutes: z.number().int().min(15).max(240),
+      bookingDaysAhead: z.number().int().min(1).max(30),
+      week: z.object({
+        monday: z.object({
+          open: z.boolean(),
+          start: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
+          end: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
+        }),
+        tuesday: z.object({
+          open: z.boolean(),
+          start: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
+          end: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
+        }),
+        wednesday: z.object({
+          open: z.boolean(),
+          start: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
+          end: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
+        }),
+        thursday: z.object({
+          open: z.boolean(),
+          start: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
+          end: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
+        }),
+        friday: z.object({
+          open: z.boolean(),
+          start: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
+          end: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
+        }),
+        saturday: z.object({
+          open: z.boolean(),
+          start: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
+          end: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
+        }),
+        sunday: z.object({
+          open: z.boolean(),
+          start: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
+          end: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
+        }),
+      }),
+      closedDates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).max(366),
+    }),
+  }),
 ]);
 
 export type UpsertStoreSettingInput = z.infer<typeof upsertSchema>;
@@ -178,6 +223,10 @@ export async function upsertStoreSettingAction(
 
     revalidatePath(`/${locale}/admin/settings`);
     revalidatePath(`/${locale}/admin`);
+    if (parsed.data.key === "store.deliverySchedule") {
+      revalidatePath(`/${locale}/admin/delivery`);
+      revalidatePath(`/${locale}/checkout`);
+    }
     if (parsed.data.key === "store.storefrontCurrencies") {
       revalidatePath("/", "layout");
     }

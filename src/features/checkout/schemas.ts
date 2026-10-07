@@ -36,6 +36,20 @@ export const checkoutSchema = z
         z.literal(20_000),
       ])
       .optional(),
+    /** Delivery timing — ignored for pickup. */
+    deliveryTimingMode: z.enum(["asap", "scheduled"]).optional(),
+    deliverySlotDate: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional(),
+    deliverySlotStart: z
+      .string()
+      .regex(/^([01]\d|2[0-3]):([0-5]\d)$/)
+      .optional(),
+    deliverySlotEnd: z
+      .string()
+      .regex(/^([01]\d|2[0-3]):([0-5]\d)$/)
+      .optional(),
   })
   .superRefine((value, ctx) => {
     if (value.shippingMethod === "delivery") {
@@ -52,6 +66,26 @@ export const checkoutSchema = z
           path: ["line1"],
           message: "Address is required for delivery.",
         });
+      }
+      if (!value.deliveryTimingMode) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["deliveryTimingMode"],
+          message: "Delivery time is required.",
+        });
+      }
+      if (value.deliveryTimingMode === "scheduled") {
+        if (
+          !value.deliverySlotDate ||
+          !value.deliverySlotStart ||
+          !value.deliverySlotEnd
+        ) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["deliverySlotDate"],
+            message: "Delivery slot is required.",
+          });
+        }
       }
     }
     if (value.shippingMethod === "pickup" && !value.pickupBranchId) {

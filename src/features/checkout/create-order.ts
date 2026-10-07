@@ -37,7 +37,6 @@ import {
   type CheckoutInput,
 } from "@/features/checkout/schemas";
 import { calculateBagFeeAmount } from "@/features/checkout/domain/bag-fee";
-import { isOrderingOpen } from "@/features/checkout/domain/ordering-hours";
 import { toPaymentRecord } from "@/features/checkout/domain/payment-methods";
 import { planStockAfterSale } from "@/features/products/domain/auto-stock";
 import {
@@ -45,6 +44,12 @@ import {
   resolvePickupBranchLabel,
   type PickupBranchOption,
 } from "@/features/checkout/domain/pickup-branches";
+import {
+  isValidDeliverySlot,
+  resolveAsapDeliveryWindow,
+  zonedDateTimeToUtc,
+} from "@/features/delivery/domain/delivery-schedule";
+import { getDeliverySchedule } from "@/features/settings/application/queries";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { isLocale } from "@/lib/i18n/config";
 import { getArcaCredentials } from "@/lib/payments/arca/credentials";
@@ -218,14 +223,13 @@ export async function createOrderAction(
         };
       }
 
-      if (!isOrderingOpen(new Date())) {
-        throw new Error(
-          getDictionary(input.locale).checkout.errors.orderingClosed,
-        );
-      }
-
       let delivery: typeof deliveryRules.$inferSelect | null = null;
       let pickupBranchLabel: string | null = null;
+      let deliveryTimingMode: "asap" | "scheduled" | null = null;
+      let deliverySlotStartAt: Date | null = null;
+      let deliverySlotEndAt: Date | null = null;
+      let deliveryEstimateSnapshot: string | null = null;
+
       if (input.shippingMethod === "delivery") {
         if (!input.deliveryRuleId) {
           throw new Error("Delivery location is required.");
@@ -247,6 +251,44 @@ export async function createOrderAction(
         }
 
         delivery = matched;
+
+        const schedule = await getDeliverySchedule();
+        const now = new Date();
+        const dict = getDictionary(input.locale).checkout;
+        const timingMode = input.deliveryTimingMode ?? "asap";
+
+        if (timingMode === "asap") {
+          const asapWindow = resolveAsapDeliveryWindow(schedule, now);
+          if (!asapWindow) {
+            throw new Error(dict.errors.orderingClosed);
+          }
+          deliveryTimingMode = "asap";
+          deliverySlotStartAt = zonedDateTimeToUtc(
+            asapWindow.date,
+            asapWindow.start,
+          );
+          deliverySlotEndAt = zonedDateTimeToUtc(
+            asapWindow.date,
+            asapWindow.end,
+          );
+          deliveryEstimateSnapshot = `${asapWindow.date} ${asapWindow.start}–${asapWindow.end}`;
+        } else {
+          const date = input.deliverySlotDate;
+          const start = input.deliverySlotStart;
+          const end = input.deliverySlotEnd;
+          if (
+            !date ||
+            !start ||
+            !end ||
+            !isValidDeliverySlot(schedule, date, start, end, now)
+          ) {
+            throw new Error(dict.errors.invalidDeliverySlot);
+          }
+          deliveryTimingMode = "scheduled";
+          deliverySlotStartAt = zonedDateTimeToUtc(date, start);
+          deliverySlotEndAt = zonedDateTimeToUtc(date, end);
+          deliveryEstimateSnapshot = `${date} ${start}–${end}`;
+        }
       } else {
         if (!input.pickupBranchId) {
           throw new Error("Pickup branch is required.");
@@ -485,12 +527,10 @@ export async function createOrderAction(
             : delivery
               ? deliveryLabel(delivery.countryCode, delivery.city)
               : "Delivery",
-        deliveryEstimateSnapshot:
-          input.shippingMethod === "pickup"
-            ? null
-            : delivery
-              ? `${delivery.estimatedDaysMin ?? 1}-${delivery.estimatedDaysMax ?? 3} days`
-              : null,
+        deliveryEstimateSnapshot,
+        deliveryTimingMode,
+        deliverySlotStartAt,
+        deliverySlotEndAt,
         customerComment,
         idempotencyScopeHash: scopeHash,
         idempotencyKeyHash: keyHash,

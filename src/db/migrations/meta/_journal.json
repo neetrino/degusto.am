@@ -64,6 +64,13 @@
       "when": 1788276710448,
       "tag": "0008_keen_quasimodo",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791378049099,
+      "tag": "0009_adorable_yellow_claw",
+      "breakpoints": true
     }
   ]
 }
