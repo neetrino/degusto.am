@@ -8,8 +8,10 @@ import { useMemo, useState, useTransition, type FormEvent } from "react";
 import type { CheckoutOrderProduct } from "@/features/checkout/ui/checkout-order-product";
 import { previewCouponAction } from "@/features/checkout/application/preview-coupon";
 import { createOrderAction } from "@/features/checkout/create-order";
-import { isOrderingOpen } from "@/features/checkout/domain/ordering-hours";
-import type { CheckoutPaymentMethod } from "@/features/checkout/domain/payment-methods";
+import {
+  isCashPaymentAllowed,
+  type CheckoutPaymentMethod,
+} from "@/features/checkout/domain/payment-methods";
 import {
   isPickupBranchId,
   resolvePickupBranchLabel,
@@ -19,6 +21,11 @@ import {
 import type { CashChangePreference } from "@/features/checkout/ui/CheckoutCashChange";
 import { CheckoutDetailsSections } from "@/features/checkout/ui/CheckoutDetailsSections";
 import {
+  CheckoutDeliverySchedule,
+  type CheckoutDeliveryScheduleLabels,
+  type CheckoutDeliveryTiming,
+} from "@/features/checkout/ui/CheckoutDeliverySchedule";
+import {
   CHECKOUT_EASE,
   checkoutBlock,
 } from "@/features/checkout/ui/CheckoutMotion";
@@ -26,11 +33,40 @@ import { CheckoutOrderSummary } from "@/features/checkout/ui/CheckoutOrderSummar
 import { CheckoutProductsInOrder } from "@/features/checkout/ui/CheckoutProductsInOrder";
 import { CheckoutSmoothScroll } from "@/features/checkout/ui/CheckoutSmoothScroll";
 import { submitIdramForm } from "@/features/checkout/ui/submit-idram-form";
-import { useOrderingWindow } from "@/features/checkout/ui/use-ordering-window";
 import type { CheckoutDeliveryOption } from "@/features/delivery/application/queries";
+import {
+  isAsapDeliveryAvailable,
+  listCalendarDays,
+  listSlotsForDate,
+  type DeliverySchedule,
+} from "@/features/delivery/domain/delivery-schedule";
 import type { Locale } from "@/lib/i18n/config";
 import { formatMoneyAmount } from "@/lib/money/format";
 import { staticAssetUrl } from "@/lib/media/static-asset-url";
+
+function resolveInitialDeliveryTiming(
+  schedule: DeliverySchedule,
+): CheckoutDeliveryTiming {
+  const now = new Date();
+  if (isAsapDeliveryAvailable(schedule, now)) {
+    return { mode: "asap" };
+  }
+  for (const day of listCalendarDays(schedule, now)) {
+    if (!day.available) {
+      continue;
+    }
+    const slot = listSlotsForDate(schedule, day.date, now)[0];
+    if (slot) {
+      return {
+        mode: "scheduled",
+        date: day.date,
+        start: slot.start,
+        end: slot.end,
+      };
+    }
+  }
+  return { mode: "asap" };
+}
 
 type CheckoutLabels = {
   title: string;
@@ -91,6 +127,7 @@ type CheckoutLabels = {
   continueShopping: string;
   cartEmpty: string;
   orderingClosed: string;
+  deliverySchedule: CheckoutDeliveryScheduleLabels;
 };
 
 type CheckoutFormProps = {
@@ -109,7 +146,7 @@ type CheckoutFormProps = {
   pickupBranches: ReadonlyArray<PickupBranchOption>;
   hasItems: boolean;
   paymentNotice?: string | null;
-  orderingOpenInitially: boolean;
+  deliverySchedule: DeliverySchedule;
 };
 
 function quoteDeliveryAmount(
@@ -152,11 +189,10 @@ export function CheckoutForm({
   pickupBranches,
   hasItems,
   paymentNotice = null,
-  orderingOpenInitially,
+  deliverySchedule,
 }: CheckoutFormProps) {
   const router = useRouter();
   const reduceMotion = useReducedMotion();
-  const orderingOpen = useOrderingWindow(orderingOpenInitially);
   const idempotencyKey = useMemo(() => crypto.randomUUID(), []);
   const lockedDelivery = resolveLockedDeliveryOption(deliveryOptions);
   const deliveryRuleId = lockedDelivery?.id ?? "";
@@ -176,13 +212,26 @@ export function CheckoutForm({
   const [discountAmount, setDiscountAmount] = useState(0);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [customerComment, setCustomerComment] = useState("");
+  const [deliveryTiming, setDeliveryTiming] = useState<CheckoutDeliveryTiming>(
+    () => resolveInitialDeliveryTiming(deliverySchedule),
+  );
   const [pending, startTransition] = useTransition();
   const [applyingCoupon, startApplyCoupon] = useTransition();
 
   const selectedDelivery = lockedDelivery;
+  const canPlaceDelivery =
+    deliveryTiming.mode === "scheduled" ||
+    isAsapDeliveryAvailable(deliverySchedule, new Date());
+  const canPlaceOrder =
+    shippingMethod === "pickup" ? true : canPlaceDelivery;
 
-  const paymentOptions = useMemo(
-    () => [
+  const cashAllowed = isCashPaymentAllowed({
+    shippingMethod,
+    pickupBranchId,
+  });
+
+  const paymentOptions = useMemo(() => {
+    const options = [
       {
         id: "cash_on_delivery" as const,
         name: labels.cashOnDelivery,
@@ -224,16 +273,33 @@ export function CheckoutForm({
           },
         ],
       },
-    ],
-    [
-      labels.arca,
-      labels.arcaDescription,
-      labels.cashOnDelivery,
-      labels.cashOnDeliveryDescription,
-      labels.idram,
-      labels.idramDescription,
-    ],
-  );
+    ];
+    return cashAllowed
+      ? options
+      : options.filter((option) => option.id !== "cash_on_delivery");
+  }, [
+    cashAllowed,
+    labels.arca,
+    labels.arcaDescription,
+    labels.cashOnDelivery,
+    labels.cashOnDeliveryDescription,
+    labels.idram,
+    labels.idramDescription,
+  ]);
+
+  function clearCashIfDisallowed(
+    nextShippingMethod: "pickup" | "delivery",
+    nextPickupBranchId: string,
+  ): void {
+    const nextCashAllowed = isCashPaymentAllowed({
+      shippingMethod: nextShippingMethod,
+      pickupBranchId: nextPickupBranchId,
+    });
+    if (!nextCashAllowed && paymentMethod === "cash_on_delivery") {
+      setPaymentMethod("arca");
+      setCashChangePreference(null);
+    }
+  }
 
   function formatMoney(amount: number): string {
     return formatMoneyAmount(amount, "AMD", locale);
@@ -257,8 +323,14 @@ export function CheckoutForm({
         ? formatMoney(shippingAmount)
         : labels.selectDeliveryLocation;
 
+  function onShippingMethodChange(method: "pickup" | "delivery"): void {
+    setShippingMethod(method);
+    clearCashIfDisallowed(method, pickupBranchId);
+  }
+
   function onPickupBranchChange(branchId: string): void {
     setPickupBranchId(branchId);
+    clearCashIfDisallowed(shippingMethod, branchId);
   }
 
   function onPaymentMethodChange(method: CheckoutPaymentMethod): void {
@@ -353,7 +425,7 @@ export function CheckoutForm({
     const data = new FormData(event.currentTarget);
     setError(null);
 
-    if (!isOrderingOpen(new Date())) {
+    if (shippingMethod === "delivery" && !canPlaceDelivery) {
       setError(labels.orderingClosed);
       return;
     }
@@ -407,6 +479,20 @@ export function CheckoutForm({
             : (pickupBranchLabel ?? undefined),
         couponCode: appliedCouponCode ?? undefined,
         customerComment: customerComment.trim() || undefined,
+        deliveryTimingMode:
+          shippingMethod === "delivery" ? deliveryTiming.mode : undefined,
+        deliverySlotDate:
+          shippingMethod === "delivery" && deliveryTiming.mode === "scheduled"
+            ? deliveryTiming.date
+            : undefined,
+        deliverySlotStart:
+          shippingMethod === "delivery" && deliveryTiming.mode === "scheduled"
+            ? deliveryTiming.start
+            : undefined,
+        deliverySlotEnd:
+          shippingMethod === "delivery" && deliveryTiming.mode === "scheduled"
+            ? deliveryTiming.end
+            : undefined,
       });
 
       if (!result.ok) {
@@ -470,7 +556,7 @@ export function CheckoutForm({
                   labels={labels}
                   pending={pending}
                   shippingMethod={shippingMethod}
-                  onShippingMethodChange={setShippingMethod}
+                  onShippingMethodChange={onShippingMethodChange}
                   deliveryOptions={deliveryOptions}
                   deliveryRuleId={deliveryRuleId}
                   pickupBranches={pickupBranches}
@@ -486,6 +572,17 @@ export function CheckoutForm({
                   defaultEmail={defaultEmail}
                   defaultPhone={defaultPhone}
                   defaultLine1={defaultLine1}
+                  afterShipping={
+                    shippingMethod === "delivery" ? (
+                      <CheckoutDeliverySchedule
+                        labels={labels.deliverySchedule}
+                        schedule={deliverySchedule}
+                        timing={deliveryTiming}
+                        onTimingChange={setDeliveryTiming}
+                        disabled={pending}
+                      />
+                    ) : null
+                  }
                 />
               </motion.div>
 
@@ -518,9 +615,9 @@ export function CheckoutForm({
                   isApplyingCoupon={applyingCoupon}
                   customerComment={customerComment}
                   onCustomerCommentChange={setCustomerComment}
-                  error={orderingOpen ? error : labels.orderingClosed}
+                  error={canPlaceOrder ? error : labels.orderingClosed}
                   isSubmitting={pending}
-                  canPlaceOrder={orderingOpen}
+                  canPlaceOrder={canPlaceOrder}
                   placeOrderLabel={labels.placeOrder}
                   processingLabel={labels.processing}
                 />

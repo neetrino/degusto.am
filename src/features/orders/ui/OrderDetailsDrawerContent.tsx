@@ -179,6 +179,14 @@ export function OrderDetailsDrawerContent({
 
       <DrawerSection title={copy.deliveryMethod}>
         <DetailField label={copy.method} value={detail.shippingMethod} />
+        {!detail.isPickup && detail.deliveryTimingLabel ? (
+          <div className="mt-2">
+            <DetailField
+              label={copy.deliveryDateTime}
+              value={detail.deliveryTimingLabel}
+            />
+          </div>
+        ) : null}
       </DrawerSection>
 
       <DrawerSection title={copy.deliveryAddress}>

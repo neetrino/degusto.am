@@ -20,6 +20,7 @@ export const STORE_SETTING_KEYS = [
   "store.globalDiscount",
   "store.fxRates",
   "store.storefrontCurrencies",
+  "store.deliverySchedule",
 ] as const;
 
 export type StoreSettingKey = (typeof STORE_SETTING_KEYS)[number];

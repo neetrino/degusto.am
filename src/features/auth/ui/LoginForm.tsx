@@ -138,7 +138,7 @@ export function LoginForm({ locale, dictionary }: LoginFormProps) {
       <button
         type="submit"
         disabled={isPending}
-        className="mt-1 h-12 w-full rounded-2xl border border-[#1f3a22] bg-[#1f3a22] text-base font-semibold text-[#fffdf8] shadow-[0px_10px_20px_rgba(31,58,34,0.24)] transition-[background-color,transform,box-shadow] duration-200 hover:bg-[#19311c] hover:shadow-[0px_14px_24px_rgba(31,58,34,0.28)] active:scale-[0.99] disabled:scale-100 disabled:opacity-60"
+        className="mt-1 h-12 w-full rounded-full border border-[#1f3a22] bg-[#1f3a22] text-base font-semibold text-[#fffdf8] shadow-[0px_10px_20px_rgba(31,58,34,0.24)] transition-[background-color,transform,box-shadow] duration-200 hover:bg-[#19311c] hover:shadow-[0px_14px_24px_rgba(31,58,34,0.28)] active:scale-[0.99] disabled:scale-100 disabled:opacity-60"
       >
         {isPending ? dictionary.submittingLogin : dictionary.submitLogin}
       </button>

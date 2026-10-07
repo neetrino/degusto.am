@@ -11,6 +11,7 @@ export type OrderDrawerCopy = {
   bag: string;
   total: string;
   deliveryMethod: string;
+  deliveryDateTime: string;
   deliveryAddress: string;
   payment: string;
   method: string;
@@ -41,6 +42,7 @@ const COPY: Record<Locale, OrderDrawerCopy> = {
     bag: "Տոպրակի գումար",
     total: "Ընդամենը",
     deliveryMethod: "Առաքման եղանակ",
+    deliveryDateTime: "Ամսաթիվ և ժամ",
     deliveryAddress: "Առաքման հասցե",
     payment: "Վճարում",
     method: "Եղանակ",
@@ -69,6 +71,7 @@ const COPY: Record<Locale, OrderDrawerCopy> = {
     bag: "Bag fee",
     total: "Total",
     deliveryMethod: "Delivery method",
+    deliveryDateTime: "Date and time",
     deliveryAddress: "Delivery address",
     payment: "Payment",
     method: "Method",
@@ -97,6 +100,7 @@ const COPY: Record<Locale, OrderDrawerCopy> = {
     bag: "Сумма пакета",
     total: "Итого",
     deliveryMethod: "Способ доставки",
+    deliveryDateTime: "Дата и время",
     deliveryAddress: "Адрес доставки",
     payment: "Оплата",
     method: "Способ",

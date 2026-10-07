@@ -83,6 +83,18 @@ export const orders = pgTable(
     }),
     deliveryLabelSnapshot: text("delivery_label_snapshot"),
     deliveryEstimateSnapshot: text("delivery_estimate_snapshot"),
+    /** `asap` or `scheduled`. Null on legacy / pickup orders. */
+    deliveryTimingMode: text("delivery_timing_mode"),
+    /** Scheduled slot start (Yerevan wall time stored as timestamptz). */
+    deliverySlotStartAt: timestamp("delivery_slot_start_at", {
+      withTimezone: true,
+      mode: "date",
+    }),
+    /** Scheduled slot end (Yerevan wall time stored as timestamptz). */
+    deliverySlotEndAt: timestamp("delivery_slot_end_at", {
+      withTimezone: true,
+      mode: "date",
+    }),
     /** Optional customer note from checkout (max 1000 chars at write boundary). */
     customerComment: text("customer_comment"),
     idempotencyScopeHash: text("idempotency_scope_hash").notNull(),

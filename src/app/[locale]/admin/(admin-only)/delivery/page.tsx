@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { listAdminDeliveryLocations } from "@/features/delivery/application/queries";
 import { AdminDeliveryView } from "@/features/delivery/ui/AdminDeliveryView";
+import { getDeliverySchedule } from "@/features/settings/application/queries";
 import { isLocale } from "@/lib/i18n/config";
 
 type AdminDeliveryPageProps = {
@@ -16,7 +17,16 @@ export default async function AdminDeliveryPage({
     notFound();
   }
 
-  const locations = await listAdminDeliveryLocations();
+  const [locations, schedule] = await Promise.all([
+    listAdminDeliveryLocations(),
+    getDeliverySchedule(),
+  ]);
 
-  return <AdminDeliveryView locale={locale} locations={locations} />;
+  return (
+    <AdminDeliveryView
+      locale={locale}
+      locations={locations}
+      schedule={schedule}
+    />
+  );
 }

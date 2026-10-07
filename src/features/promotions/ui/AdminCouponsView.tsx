@@ -6,10 +6,7 @@ import { Check, Copy, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import {
-  ConfirmDialog,
-  deleteConfirmDescription,
-} from "@/components/ui/ConfirmDialog";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
   ADMIN_PAGE_SUBTITLE,
   ADMIN_PAGE_TITLE,
@@ -252,10 +249,10 @@ export function AdminCouponsView({ locale, coupons }: AdminCouponsViewProps) {
 
       <ConfirmDialog
         open={pendingDelete !== null}
-        title="Delete"
+        title={copy.common.remove}
         description={
           pendingDelete
-            ? deleteConfirmDescription("promo code", pendingDelete.code)
+            ? pageCopy.deleteConfirm.replace("{code}", pendingDelete.code)
             : ""
         }
         isPending={isPending}

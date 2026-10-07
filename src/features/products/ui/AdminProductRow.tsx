@@ -67,7 +67,7 @@ export function AdminProductRow({
         }
       }}
       tabIndex={disabled ? -1 : 0}
-      aria-label={`${copy.common.save} ${product.title}`}
+      aria-label={`${pageCopy.product}: ${product.title}`}
     >
       <td className={ADMIN_TABLE_TD_CHECK} onClick={stopRowAction}>
         <input
@@ -138,9 +138,7 @@ export function AdminProductRow({
           disabled={disabled}
           onClick={onFeatured}
           className="rounded p-1 text-[#8a837a] hover:bg-[#fff4eb] hover:text-amber-500"
-          aria-label={
-            product.isFeatured ? pageCopy.featured : pageCopy.featured
-          }
+          aria-label={pageCopy.featured}
         >
           <Star
             className={`h-4 w-4 ${product.isFeatured ? "fill-amber-400 text-amber-400" : ""}`}

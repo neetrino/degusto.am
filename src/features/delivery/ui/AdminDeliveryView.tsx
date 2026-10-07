@@ -6,10 +6,7 @@ import { Pencil, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import {
-  ConfirmDialog,
-  deleteConfirmDescription,
-} from "@/components/ui/ConfirmDialog";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
   ADMIN_PAGE_SUBTITLE,
   ADMIN_PAGE_TITLE,
@@ -30,17 +27,21 @@ import {
 } from "@/features/admin/ui/admin-table-classes";
 import { deleteDeliveryLocationAction } from "@/features/delivery/application/manage-delivery";
 import type { AdminDeliveryLocation } from "@/features/delivery/application/queries";
+import type { DeliverySchedule } from "@/features/delivery/domain/delivery-schedule";
+import { AdminDeliveryScheduleForm } from "@/features/delivery/ui/AdminDeliveryScheduleForm";
 import { DeliveryLocationDrawer } from "@/features/delivery/ui/DeliveryLocationDrawer";
 import { formatMoneyAmount } from "@/lib/money/format";
 
 type AdminDeliveryViewProps = {
   locale: string;
   locations: AdminDeliveryLocation[];
+  schedule: DeliverySchedule;
 };
 
 export function AdminDeliveryView({
   locale,
   locations,
+  schedule,
 }: AdminDeliveryViewProps) {
   const router = useRouter();
   const copy = getAdminCopy(locale);
@@ -187,10 +188,10 @@ export function AdminDeliveryView({
 
       <ConfirmDialog
         open={pendingDelete !== null}
-        title="Delete"
+        title={copy.common.remove}
         description={
           pendingDelete
-            ? deleteConfirmDescription("delivery location", pendingDelete.city)
+            ? pageCopy.deleteConfirm.replace("{city}", pendingDelete.city)
             : ""
         }
         isPending={isPending}
@@ -199,6 +200,8 @@ export function AdminDeliveryView({
         }}
         onConfirm={confirmDelete}
       />
+
+      <AdminDeliveryScheduleForm locale={locale} initialSchedule={schedule} />
     </section>
   );
 }

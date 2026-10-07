@@ -25,6 +25,7 @@ import {
 } from "@/features/admin/ui/status-badge";
 import { getAdminOrderByNumber } from "@/features/orders/application/queries";
 import { displayOrderContactName } from "@/features/orders/domain/contact-display";
+import { formatDeliveryTimingLabel } from "@/features/orders/domain/format-delivery-timing";
 import { isLocale } from "@/lib/i18n/config";
 
 type AdminOrderDetailPageProps = {
@@ -50,6 +51,16 @@ export default async function AdminOrderDetailPage({
 
   const { order, items, events } = detail;
   const address = order.shippingAddress;
+  const deliveryTimingLabel =
+    order.deliveryLabelSnapshot === "Store pickup"
+      ? null
+      : formatDeliveryTimingLabel({
+          locale: order.locale,
+          placedAt: order.placedAt,
+          deliveryEstimateSnapshot: order.deliveryEstimateSnapshot,
+          deliverySlotStartAt: order.deliverySlotStartAt,
+          deliverySlotEndAt: order.deliverySlotEndAt,
+        });
 
   return (
     <section>
@@ -116,6 +127,11 @@ export default async function AdminOrderDetailPage({
               : ""}
             : {formatMoney(order.deliveryAmount, order.baseCurrency)}
           </p>
+          {deliveryTimingLabel ? (
+            <p className="text-sm text-[#5c564e]">
+              Date & time: {deliveryTimingLabel}
+            </p>
+          ) : null}
           <p className="text-sm text-[#5c564e]">
             Bag fee: {formatMoney(order.bagAmount, order.baseCurrency)}
           </p>

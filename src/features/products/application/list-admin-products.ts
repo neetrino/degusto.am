@@ -115,6 +115,10 @@ function buildWhere(filters: AdminProductsFilter, locale: Locale): SQL | undefin
     );
   }
 
+  if (filters.status !== "all") {
+    conditions.push(eq(products.status, filters.status));
+  }
+
   if (filters.categoryId) {
     conditions.push(
       sql`exists (

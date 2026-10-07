@@ -10,10 +10,10 @@ import {
   isPickupBranchId,
   type PickupBranchOption,
 } from "@/features/checkout/domain/pickup-branches";
-import { isOrderingOpen } from "@/features/checkout/domain/ordering-hours";
 import { CheckoutForm } from "@/features/checkout/ui/CheckoutForm";
 import { getDefaultShippingAddress } from "@/features/profile/application/address-queries";
 import { resolveProductPrices } from "@/features/promotions/application/resolve-product-prices";
+import { getDeliverySchedule } from "@/features/settings/application/queries";
 import { getCurrentUser } from "@/lib/auth/session";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
@@ -41,11 +41,13 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
 
   const dictionary = getDictionary(rawLocale);
   const copy = dictionary.checkout;
-  const [user, { items }, deliveryOptions] = await Promise.all([
-    getCurrentUser(),
-    getCartWithItems(),
-    getCheckoutDeliveryOptions(),
-  ]);
+  const [user, { items }, deliveryOptions, deliverySchedule] =
+    await Promise.all([
+      getCurrentUser(),
+      getCartWithItems(),
+      getCheckoutDeliveryOptions(),
+      getDeliverySchedule(),
+    ]);
   const [defaultAddress, prices, orderProducts] = await Promise.all([
     user ? getDefaultShippingAddress(user.id) : Promise.resolve(null),
     resolveProductPrices(
@@ -86,7 +88,7 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
     bagAmount,
     deliveryOptions,
     pickupBranches,
-    orderingOpenInitially: isOrderingOpen(new Date()),
+    deliverySchedule,
     labels: {
       title: copy.title,
       productsInOrder: copy.productsInOrder,
@@ -146,6 +148,38 @@ export default async function CheckoutPage({ params, searchParams }: CheckoutPag
       continueShopping: copy.buttons.continueShopping,
       cartEmpty: copy.errors.cartEmpty,
       orderingClosed: copy.errors.orderingClosed,
+      deliverySchedule: {
+        dateAndTime: copy.deliverySchedule.dateAndTime,
+        change: copy.deliverySchedule.change,
+        selectDay: copy.deliverySchedule.selectDay,
+        selectTime: copy.deliverySchedule.selectTime,
+        approxHours: copy.deliverySchedule.approxHours,
+        approxMinutes: copy.deliverySchedule.approxMinutes,
+        weekdayShort: copy.deliverySchedule.weekdayShort as [
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+        ],
+        monthNames: copy.deliverySchedule.monthNames as [
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+        ],
+        delivery: copy.shipping.delivery,
+      },
     },
     paymentNotice:
       query.payment === "failed" ? copy.errors.paymentFailed : null,

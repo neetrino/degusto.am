@@ -251,14 +251,20 @@ export async function HomeMobile({
 
         <HomeReveal variant="up" delayMs={140} durationMs={700}>
           <div className="mt-10 mb-6 flex justify-center px-3">
-            <a
-              href={dictionary.footer.neetrinoHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs font-black tracking-[0.18em] text-brand hover:underline"
-            >
-              {dictionary.footer.neetrinoLabel}
-            </a>
+            <p className="max-w-sm text-center text-xs leading-5 text-black/70">
+              {dictionary.footer.copyrightLead.replace(
+                "{year}",
+                String(new Date().getFullYear()),
+              )}{" "}
+              <a
+                href={dictionary.footer.neetrinoHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-black text-brand hover:underline"
+              >
+                Neetrino
+              </a>
+            </p>
           </div>
         </HomeReveal>
       </HomeMobileSheet>

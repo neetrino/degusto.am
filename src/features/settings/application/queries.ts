@@ -6,6 +6,10 @@ import { cache } from "react";
 import { getDb } from "@/db/client";
 import { storeSettings } from "@/db/schema";
 import {
+  parseDeliverySchedule,
+  type DeliverySchedule,
+} from "@/features/delivery/domain/delivery-schedule";
+import {
   parseFxRates,
   parseGlobalDiscount,
   parseIdentity,
@@ -72,6 +76,10 @@ export const getStorefrontCurrencies = cache(
     );
   },
 );
+
+export const getDeliverySchedule = cache(async (): Promise<DeliverySchedule> => {
+  return parseDeliverySchedule(await getSettingValue("store.deliverySchedule"));
+});
 
 export async function getAllStoreSettings(): Promise<{
   identity: StoreIdentity;

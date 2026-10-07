@@ -83,10 +83,34 @@
     "processing": "Processing...",
     "continueShopping": "Continue Shopping"
   },
+  "deliverySchedule": {
+    "dateAndTime": "Date and time",
+    "change": "Change",
+    "selectDay": "Select the day",
+    "selectTime": "Select the time",
+    "approxHours": "approximately in {value} hour(s)",
+    "approxMinutes": "approximately in {value} minutes",
+    "weekdayShort": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    "monthNames": [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December"
+    ]
+  },
   "errors": {
     "cartEmpty": "Cart is empty",
     "paymentFailed": "Payment was not completed. You can try again.",
-    "orderingClosed": "We are not accepting orders right now. Ordering hours: 09:00–23:59."
+    "orderingClosed": "ASAP delivery is unavailable right now. Please choose another day or time.",
+    "invalidDeliverySlot": "The selected delivery slot is unavailable. Please choose another slot."
   },
   "success": {
     "title": "Order confirmed",

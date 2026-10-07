@@ -31,6 +31,7 @@ function buildQuery(
     sku?: string;
     categoryId?: string;
     stock: string;
+    status: string;
     sort: string;
     dir: string;
     page: number;
@@ -43,6 +44,7 @@ function buildQuery(
   if (merged.sku) params.set("sku", merged.sku);
   if (merged.categoryId) params.set("categoryId", merged.categoryId);
   if (merged.stock !== "all") params.set("stock", merged.stock);
+  if (merged.status !== "all") params.set("status", merged.status);
   if (merged.sort !== "created") params.set("sort", merged.sort);
   if (merged.dir !== "desc") params.set("dir", merged.dir);
   if (merged.page > 1) params.set("page", String(merged.page));
@@ -65,6 +67,7 @@ export default async function AdminProductsPage({
     sku: firstParam(raw.sku) || undefined,
     categoryId: firstParam(raw.categoryId) || undefined,
     stock: firstParam(raw.stock) ?? "all",
+    status: firstParam(raw.status) || "all",
     sort: firstParam(raw.sort) ?? "created",
     dir: firstParam(raw.dir) ?? "desc",
     page: firstParam(raw.page) ?? "1",
@@ -75,6 +78,7 @@ export default async function AdminProductsPage({
     : {
         page: 1 as const,
         stock: "all" as const,
+        status: "all" as const,
         sort: "created" as const,
         dir: "desc" as const,
         q: undefined,
@@ -117,6 +121,7 @@ export default async function AdminProductsPage({
         sku={filters.sku}
         categoryId={filters.categoryId}
         stock={filters.stock}
+        status={filters.status}
         categories={categories}
         sort={filters.sort}
         dir={filters.dir}

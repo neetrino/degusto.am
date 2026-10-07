@@ -28,6 +28,28 @@ type HomeMobileCategoriesProps = {
   categories: readonly CategoryItem[];
 };
 
+function CategoriesMoreChevron() {
+  return (
+    <svg
+      width={8}
+      height={13}
+      viewBox="0 0 8 13"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+      className="-scale-x-100"
+    >
+      <path
+        d="M5.78 2 3.059 4.136a4.4 4.4 0 0 0-1.78 3.203 4.4 4.4 0 0 0 1.78 3.203L5.78 10.674"
+        stroke="currentColor"
+        strokeWidth={3}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function CategoryChip({ category }: { category: CategoryItem }) {
   return (
     <AppLink
@@ -36,16 +58,16 @@ function CategoryChip({ category }: { category: CategoryItem }) {
       aria-label={category.title}
       className="min-w-0 w-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f66a13]"
     >
-      <div className="relative mx-auto flex h-[72px] w-12 items-center justify-center rounded-[24px] bg-[#090909]">
+      <div className="relative mx-auto flex h-[62px] w-[59px] items-center justify-center overflow-hidden rounded-[30px] bg-[#090909]">
         <Image
           src={category.imageUrl}
           alt={category.title}
           width={40}
-          height={42}
-          className="relative h-[42px] w-10 rounded-[10px] object-cover"
+          height={46}
+          className="relative h-[46px] w-10 object-cover"
         />
       </div>
-      <p className="mt-1.5 line-clamp-2 text-center text-xs leading-5 text-black">
+      <p className="mt-1.5 line-clamp-2 text-center text-xs leading-5 font-normal text-black">
         {category.title}
       </p>
     </AppLink>
@@ -62,6 +84,7 @@ function scrollToLoopPage(
 
 /**
  * Home mobile category chips — five visible, wrap-filled, infinite snap loop.
+ * Layout matches Figma mobile categories (node 1:1202).
  */
 export function HomeMobileCategories({
   title,
@@ -137,7 +160,7 @@ export function HomeMobileCategories({
   }
 
   return (
-    <section className="space-y-3 px-3">
+    <section className="space-y-4 px-3">
       <div className="flex items-center justify-between">
         <h2 className="text-base leading-5 font-semibold text-black">
           {title}
@@ -145,9 +168,10 @@ export function HomeMobileCategories({
         <AppLink
           href={viewAllHref}
           prefetchPolicy="intent"
-          className="inline-flex items-center justify-center rounded-full px-2 py-1 text-base leading-6 font-bold text-[#f66a13]"
+          className="inline-flex items-center gap-[5px] rounded-full py-0.5 pl-2 text-base leading-6 font-bold text-[#f66a13]"
         >
           {viewAllLabel}
+          <CategoriesMoreChevron />
         </AppLink>
       </div>
 
@@ -159,7 +183,7 @@ export function HomeMobileCategories({
           Array.from({ length: logicalCount }, (_, pageIndex) => (
             <div
               key={`category-copy-${copy}-page-${pageIndex}`}
-              className="grid w-full shrink-0 basis-full grid-cols-5 gap-2 snap-start snap-always"
+              className="grid w-full shrink-0 basis-full grid-cols-5 snap-start snap-always"
             >
               {Array.from({ length: CATEGORIES_PER_PAGE }, (_, slot) => {
                 const item =

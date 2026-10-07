@@ -1,6 +1,9 @@
 import { z } from "zod";
 
-import { CHECKOUT_PAYMENT_METHODS } from "@/features/checkout/domain/payment-methods";
+import {
+  CHECKOUT_PAYMENT_METHODS,
+  isCashPaymentAllowed,
+} from "@/features/checkout/domain/payment-methods";
 import { PICKUP_BRANCH_IDS } from "@/features/checkout/domain/pickup-branches";
 
 export const checkoutSchema = z
@@ -33,6 +36,20 @@ export const checkoutSchema = z
         z.literal(20_000),
       ])
       .optional(),
+    /** Delivery timing — ignored for pickup. */
+    deliveryTimingMode: z.enum(["asap", "scheduled"]).optional(),
+    deliverySlotDate: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional(),
+    deliverySlotStart: z
+      .string()
+      .regex(/^([01]\d|2[0-3]):([0-5]\d)$/)
+      .optional(),
+    deliverySlotEnd: z
+      .string()
+      .regex(/^([01]\d|2[0-3]):([0-5]\d)$/)
+      .optional(),
   })
   .superRefine((value, ctx) => {
     if (value.shippingMethod === "delivery") {
@@ -50,12 +67,45 @@ export const checkoutSchema = z
           message: "Address is required for delivery.",
         });
       }
+      if (!value.deliveryTimingMode) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["deliveryTimingMode"],
+          message: "Delivery time is required.",
+        });
+      }
+      if (value.deliveryTimingMode === "scheduled") {
+        if (
+          !value.deliverySlotDate ||
+          !value.deliverySlotStart ||
+          !value.deliverySlotEnd
+        ) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["deliverySlotDate"],
+            message: "Delivery slot is required.",
+          });
+        }
+      }
     }
     if (value.shippingMethod === "pickup" && !value.pickupBranchId) {
       ctx.addIssue({
         code: "custom",
         path: ["pickupBranchId"],
         message: "Pickup branch is required.",
+      });
+    }
+    if (
+      value.paymentMethod === "cash_on_delivery" &&
+      !isCashPaymentAllowed({
+        shippingMethod: value.shippingMethod,
+        pickupBranchId: value.pickupBranchId,
+      })
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["paymentMethod"],
+        message: "Cash payment is not available for this pickup branch.",
       });
     }
     if (

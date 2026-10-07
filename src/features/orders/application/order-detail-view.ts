@@ -7,6 +7,7 @@ import {
   type AdminOrderDetail,
 } from "@/features/orders/application/queries";
 import { displayOrderContactName } from "@/features/orders/domain/contact-display";
+import { formatDeliveryTimingLabel } from "@/features/orders/domain/format-delivery-timing";
 import { displayPaymentMethodLabel } from "@/features/orders/domain/payment-method-display";
 
 export type AdminOrderDetailItemView = {
@@ -34,6 +35,7 @@ export type AdminOrderDetailView = {
   discountAmount: number;
   totalAmount: number;
   deliveryLabel: string | null;
+  deliveryTimingLabel: string | null;
   couponCode: string | null;
   isPickup: boolean;
   storeName: string;
@@ -88,12 +90,21 @@ export function toAdminOrderDetailView(
     discountAmount: order.discountAmount,
     totalAmount: order.totalAmount,
     deliveryLabel: order.deliveryLabelSnapshot,
+    deliveryTimingLabel: isPickup
+      ? null
+      : formatDeliveryTimingLabel({
+          locale: order.locale,
+          placedAt: order.placedAt,
+          deliveryEstimateSnapshot: order.deliveryEstimateSnapshot,
+          deliverySlotStartAt: order.deliverySlotStartAt,
+          deliverySlotEndAt: order.deliverySlotEndAt,
+        }),
     couponCode: order.promotionCodeSnapshot,
     isPickup,
     storeName,
     shippingMethod: isPickup
       ? "pickup"
-      : (order.deliveryLabelSnapshot ?? "delivery"),
+      : "delivery",
     addressLine: formatAddressLine(order.shippingAddress),
     addressHint: isPickup
       ? "You can pick up your order at this store"
