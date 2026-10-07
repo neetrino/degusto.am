@@ -253,7 +253,7 @@ export function AdminProductsTable({
 
       <ConfirmDialog
         open={pendingDelete !== null}
-        title="Delete"
+        title={copy.common.remove}
         description={
           pendingDelete?.kind === "bulk"
             ? pageCopy.deleteConfirmBulk.replace(

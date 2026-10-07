@@ -14,13 +14,17 @@ const FILTER_INPUT =
 /** Idle time after the last keystroke before text filters commit. */
 const TEXT_FILTER_DEBOUNCE_MS = 400;
 
+type AdminProductsStockFilter = "all" | "in_stock" | "out_of_stock" | "low_stock";
+type AdminProductsStatusFilter = "all" | "DRAFT" | "ACTIVE" | "ARCHIVED";
+
 type AdminProductsFiltersProps = {
   locale: string;
   total: number;
   q?: string;
   sku?: string;
   categoryId?: string;
-  stock: "all" | "in_stock" | "out_of_stock" | "low_stock";
+  stock: AdminProductsStockFilter;
+  status: AdminProductsStatusFilter;
   categories: AdminCategoryOption[];
   sort: string;
   dir: string;
@@ -33,6 +37,7 @@ export function AdminProductsFilters({
   sku,
   categoryId,
   stock,
+  status,
   categories,
   sort,
   dir,
@@ -43,6 +48,7 @@ export function AdminProductsFilters({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [categoryValue, setCategoryValue] = useState(categoryId ?? "");
   const [stockValue, setStockValue] = useState(stock);
+  const [statusValue, setStatusValue] = useState(status);
 
   const categoryOptions = categories.map((category) => ({
     label: category.title,
@@ -53,6 +59,11 @@ export function AdminProductsFilters({
     { label: pageCopy.inStock, value: "in_stock" },
     { label: pageCopy.outOfStock, value: "out_of_stock" },
     { label: pageCopy.lowStock, value: "low_stock" },
+  ] as const;
+  const statusOptions = [
+    { label: pageCopy.statusDraft, value: "DRAFT" },
+    { label: pageCopy.statusActive, value: "ACTIVE" },
+    { label: pageCopy.statusArchived, value: "ARCHIVED" },
   ] as const;
 
   useEffect(() => {
@@ -87,8 +98,13 @@ export function AdminProductsFilters({
   }
 
   function applyStock(next: string): void {
+    flushSync(() => setStockValue(next as AdminProductsStockFilter));
+    submitFilters();
+  }
+
+  function applyStatus(next: string): void {
     flushSync(() =>
-      setStockValue(next as AdminProductsFiltersProps["stock"]),
+      setStatusValue((next || "all") as AdminProductsStatusFilter),
     );
     submitFilters();
   }
@@ -157,6 +173,18 @@ export function AdminProductsFilters({
             options={stockOptions}
             className="mt-1"
             onValueChange={applyStock}
+          />
+        </div>
+        <div>
+          <span className={ADMIN_LABEL}>{pageCopy.filterByStatus}</span>
+          <SelectDropdown
+            name="status"
+            ariaLabel={pageCopy.filterByStatus}
+            value={statusValue === "all" ? "" : statusValue}
+            allLabel={pageCopy.allStatuses}
+            options={statusOptions}
+            className="mt-1"
+            onValueChange={applyStatus}
           />
         </div>
       </form>

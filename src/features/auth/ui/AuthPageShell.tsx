@@ -30,16 +30,16 @@ export function firstAuthPhoneHref(phones: string): string {
 }
 
 /**
- * Auth canvas — mobile orange chrome + cream sheet; desktop transparent over shell hero.
+ * Auth canvas — mobile orange chrome + white sheet; desktop transparent over shell hero.
  */
 export function AuthPageShell({ children, mobileChrome }: AuthPageShellProps) {
   return (
-    <div data-auth-page className="bg-[#FBF6EA] lg:bg-transparent">
+    <div data-auth-page className="bg-white lg:bg-transparent">
       <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen lg:hidden">
         <StorefrontMobileChrome
           {...mobileChrome}
-          sheetClassName="bg-[#FBF6EA]"
-          sheetSpacingClassName="mt-5 flex-1 px-4 pt-3 pb-[6.75rem]"
+          sheetClassName="bg-white"
+          sheetSpacingClassName="mt-10 flex-1 px-4 pt-3 pb-[6.75rem]"
         >
           {children}
         </StorefrontMobileChrome>
@@ -62,10 +62,10 @@ type AuthCardProps = {
   children: ReactNode;
 };
 
-/** Cream gradient auth card with chef-hat badge — Degusto login/register. */
+/** White auth card with chef-hat badge — Degusto login/register. */
 export function AuthCard({ title, subtitle, children }: AuthCardProps) {
   return (
-    <div className="relative overflow-visible rounded-[28px] border border-[#FFE5CF] bg-[linear-gradient(168deg,#fffef9_0%,#fff7eb_44%,#ffeed9_100%)] px-4 pt-6 pb-7 shadow-[0_24px_60px_rgba(50,24,0,0.16)] sm:rounded-[32px] sm:p-8 lg:rounded-[40px] lg:px-10 lg:pt-11 lg:pb-10 lg:shadow-[0_28px_70px_rgba(50,24,0,0.22)]">
+    <div className="relative overflow-visible px-1 pt-4 pb-7 lg:rounded-[40px] lg:border lg:border-[#FFE5CF] lg:bg-white lg:px-10 lg:pt-11 lg:pb-10 lg:shadow-[0_28px_70px_rgba(50,24,0,0.22)]">
       <header className="mb-5 text-center sm:mb-8">
         <div className="mb-2 flex justify-center sm:mb-5">
           <div className="rounded-full bg-[#f4dfbf] p-1 shadow-[0_10px_22px_rgba(49,27,0,0.2)]">

@@ -3,13 +3,22 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "motion/react";
-import { useMemo, useState, useTransition, type FormEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  useTransition,
+  type FormEvent,
+} from "react";
 
 import type { CheckoutOrderProduct } from "@/features/checkout/ui/checkout-order-product";
 import { previewCouponAction } from "@/features/checkout/application/preview-coupon";
 import { createOrderAction } from "@/features/checkout/create-order";
 import { isOrderingOpen } from "@/features/checkout/domain/ordering-hours";
-import type { CheckoutPaymentMethod } from "@/features/checkout/domain/payment-methods";
+import {
+  isCashPaymentAllowed,
+  type CheckoutPaymentMethod,
+} from "@/features/checkout/domain/payment-methods";
 import {
   isPickupBranchId,
   resolvePickupBranchLabel,
@@ -181,8 +190,13 @@ export function CheckoutForm({
 
   const selectedDelivery = lockedDelivery;
 
-  const paymentOptions = useMemo(
-    () => [
+  const cashAllowed = isCashPaymentAllowed({
+    shippingMethod,
+    pickupBranchId,
+  });
+
+  const paymentOptions = useMemo(() => {
+    const options = [
       {
         id: "cash_on_delivery" as const,
         name: labels.cashOnDelivery,
@@ -224,16 +238,26 @@ export function CheckoutForm({
           },
         ],
       },
-    ],
-    [
-      labels.arca,
-      labels.arcaDescription,
-      labels.cashOnDelivery,
-      labels.cashOnDeliveryDescription,
-      labels.idram,
-      labels.idramDescription,
-    ],
-  );
+    ];
+    return cashAllowed
+      ? options
+      : options.filter((option) => option.id !== "cash_on_delivery");
+  }, [
+    cashAllowed,
+    labels.arca,
+    labels.arcaDescription,
+    labels.cashOnDelivery,
+    labels.cashOnDeliveryDescription,
+    labels.idram,
+    labels.idramDescription,
+  ]);
+
+  useEffect(() => {
+    if (!cashAllowed && paymentMethod === "cash_on_delivery") {
+      setPaymentMethod("arca");
+      setCashChangePreference(null);
+    }
+  }, [cashAllowed, paymentMethod]);
 
   function formatMoney(amount: number): string {
     return formatMoneyAmount(amount, "AMD", locale);

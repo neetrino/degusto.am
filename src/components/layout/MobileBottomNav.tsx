@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 
+import { MobileBottomNavDock } from "@/components/layout/MobileBottomNavDock";
 import { AppLink } from "@/components/ui/AppLink";
 import { CartDrawer } from "@/features/cart/ui/CartDrawer";
 import { buildCategoryPickerHref } from "@/features/products/ui/shop/build-catalog-href";
@@ -86,15 +87,7 @@ export function MobileBottomNav({
       className="mobile-bottom-nav pointer-events-none fixed -bottom-3 left-1/2 z-40 h-[calc(159px+env(safe-area-inset-bottom))] w-[375px] max-w-full -translate-x-1/2 pb-[env(safe-area-inset-bottom)] md:hidden"
       aria-hidden={false}
     >
-      <Image
-        src={staticAssetUrl("/assets/mobile/nav/dock.webp")}
-        alt=""
-        width={375}
-        height={80}
-        className="absolute bottom-0 left-0 h-20 w-[375px] max-w-none object-cover"
-        aria-hidden
-        priority
-      />
+      <MobileBottomNavDock />
 
       <AppLink
         href={buildCategoryPickerHref(locale)}

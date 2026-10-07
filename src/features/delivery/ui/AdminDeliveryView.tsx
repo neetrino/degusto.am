@@ -6,10 +6,7 @@ import { Pencil, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import {
-  ConfirmDialog,
-  deleteConfirmDescription,
-} from "@/components/ui/ConfirmDialog";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
   ADMIN_PAGE_SUBTITLE,
   ADMIN_PAGE_TITLE,
@@ -187,10 +184,10 @@ export function AdminDeliveryView({
 
       <ConfirmDialog
         open={pendingDelete !== null}
-        title="Delete"
+        title={copy.common.remove}
         description={
           pendingDelete
-            ? deleteConfirmDescription("delivery location", pendingDelete.city)
+            ? pageCopy.deleteConfirm.replace("{city}", pendingDelete.city)
             : ""
         }
         isPending={isPending}
