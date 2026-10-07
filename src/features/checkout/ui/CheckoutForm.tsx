@@ -3,13 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "motion/react";
-import {
-  useEffect,
-  useMemo,
-  useState,
-  useTransition,
-  type FormEvent,
-} from "react";
+import { useMemo, useState, useTransition, type FormEvent } from "react";
 
 import type { CheckoutOrderProduct } from "@/features/checkout/ui/checkout-order-product";
 import { previewCouponAction } from "@/features/checkout/application/preview-coupon";
@@ -293,12 +287,19 @@ export function CheckoutForm({
     labels.idramDescription,
   ]);
 
-  useEffect(() => {
-    if (!cashAllowed && paymentMethod === "cash_on_delivery") {
+  function clearCashIfDisallowed(
+    nextShippingMethod: "pickup" | "delivery",
+    nextPickupBranchId: string,
+  ): void {
+    const nextCashAllowed = isCashPaymentAllowed({
+      shippingMethod: nextShippingMethod,
+      pickupBranchId: nextPickupBranchId,
+    });
+    if (!nextCashAllowed && paymentMethod === "cash_on_delivery") {
       setPaymentMethod("arca");
       setCashChangePreference(null);
     }
-  }, [cashAllowed, paymentMethod]);
+  }
 
   function formatMoney(amount: number): string {
     return formatMoneyAmount(amount, "AMD", locale);
@@ -322,8 +323,14 @@ export function CheckoutForm({
         ? formatMoney(shippingAmount)
         : labels.selectDeliveryLocation;
 
+  function onShippingMethodChange(method: "pickup" | "delivery"): void {
+    setShippingMethod(method);
+    clearCashIfDisallowed(method, pickupBranchId);
+  }
+
   function onPickupBranchChange(branchId: string): void {
     setPickupBranchId(branchId);
+    clearCashIfDisallowed(shippingMethod, branchId);
   }
 
   function onPaymentMethodChange(method: CheckoutPaymentMethod): void {
@@ -549,7 +556,7 @@ export function CheckoutForm({
                   labels={labels}
                   pending={pending}
                   shippingMethod={shippingMethod}
-                  onShippingMethodChange={setShippingMethod}
+                  onShippingMethodChange={onShippingMethodChange}
                   deliveryOptions={deliveryOptions}
                   deliveryRuleId={deliveryRuleId}
                   pickupBranches={pickupBranches}
