@@ -43,7 +43,7 @@ export function AnalyticsTopRankings({
       <Card className="rounded-2xl p-5 sm:p-6">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="text-lg font-semibold text-[#1f1a17]">
-            Թոփ վաճառվող ապրանքներ
+            Այսօր · թոփ վաճառվող ապրանքներ
           </h2>
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-[#ff7f20]">
             <TrendingUp className="h-4 w-4" aria-hidden />
@@ -82,8 +82,8 @@ export function AnalyticsTopRankings({
                   <span>{product.orderCount} պատվեր</span>
                 </p>
               </div>
-              <p className="shrink-0 text-sm font-bold text-[#1f1a17]">
-                {formatMoney(product.unitPriceAmount)}
+              <p className="shrink-0 text-right text-sm font-bold text-[#1f1a17]">
+                {formatMoney(product.revenueAmount)}
               </p>
             </div>
           ))}
@@ -97,7 +97,9 @@ export function AnalyticsTopRankings({
 
       <Card className="rounded-2xl p-5 sm:p-6">
         <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold text-[#1f1a17]">Թոփ կատեգորիաներ</h2>
+          <h2 className="text-lg font-semibold text-[#1f1a17]">
+            Այսօր · թոփ կատեգորիաներ
+          </h2>
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
             <Tag className="h-4 w-4" aria-hidden />
           </div>

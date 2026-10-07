@@ -13,6 +13,12 @@ import {
 } from "@/features/analytics/domain/date-range";
 
 describe("rangeForAnalyticsPeriod", () => {
+  it("returns a single-day window for today", () => {
+    const range = rangeForAnalyticsPeriod("today");
+    expect(range.from).toBe(range.to);
+    expect(matchAnalyticsPeriodPreset(range)).toBe("today");
+  });
+
   it("returns an inclusive last-7-days window", () => {
     const range = rangeForAnalyticsPeriod("last_7_days");
     const start = new Date(`${range.from}T00:00:00.000Z`);
@@ -45,11 +51,24 @@ describe("rangeForOverviewPeriod", () => {
     expect(days).toBe(7);
   });
 
-  it("starts quarter on a calendar quarter month", () => {
-    const range = rangeForOverviewPeriod("quarter");
-    const month = Number(range.from.slice(5, 7));
-    expect([1, 4, 7, 10]).toContain(month);
-    expect(range.from.endsWith("-01")).toBe(true);
+  it("uses rolling 30-day and 90-day windows for month and quarter", () => {
+    const month = rangeForOverviewPeriod("month");
+    const quarter = rangeForOverviewPeriod("quarter");
+    const week = rangeForOverviewPeriod("week");
+
+    const dayCount = (range: { from: string; to: string }) => {
+      const start = new Date(`${range.from}T00:00:00.000Z`);
+      const end = new Date(`${range.to}T00:00:00.000Z`);
+      return (
+        Math.floor((end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000)) + 1
+      );
+    };
+
+    expect(dayCount(week)).toBe(7);
+    expect(dayCount(month)).toBe(30);
+    expect(dayCount(quarter)).toBe(90);
+    expect(month.from).not.toBe(week.from);
+    expect(quarter.from).not.toBe(month.from);
   });
 });
 

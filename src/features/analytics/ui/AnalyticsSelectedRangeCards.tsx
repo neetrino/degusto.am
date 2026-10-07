@@ -49,6 +49,8 @@ type AnalyticsSelectedRangeCardsProps = {
   orderCount: number;
   averageOrderLabel: string;
   customerCount: number;
+  /** Optional override for the revenue card hint (e.g. active payment filter). */
+  rangeHint?: string;
 };
 
 /** Selected-range summary strip matching the analytics mock. */
@@ -57,12 +59,13 @@ export function AnalyticsSelectedRangeCards({
   orderCount,
   averageOrderLabel,
   customerCount,
+  rangeHint = "Ընտրված միջակայք",
 }: AnalyticsSelectedRangeCardsProps) {
   const metrics: SelectedMetric[] = [
     {
       label: "Եկամուտ",
       value: revenueLabel,
-      hint: "Ընտրված միջակայք",
+      hint: rangeHint,
       tone: "rose",
       icon: DollarSign,
     },

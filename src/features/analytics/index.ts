@@ -2,8 +2,11 @@ export {
   getAnalyticsSummary,
   invalidateAnalyticsCache,
   type AnalyticsBestDay,
+  type AnalyticsPaymentBreakdownRow,
   type AnalyticsPeriodSnapshot,
+  type AnalyticsShippingBreakdownRow,
   type AnalyticsSummary,
+  type AnalyticsTodaySoldItem,
 } from "@/features/analytics/application/queries";
 export {
   buildAnalyticsCsv,
@@ -31,6 +34,28 @@ export {
   type AnalyticsOverviewPeriod,
   type AnalyticsPeriodPreset,
 } from "@/features/analytics/domain/date-range";
+export {
+  buildPaymentBreakdown,
+  type PaymentBreakdownRow,
+} from "@/features/analytics/domain/payment-breakdown";
+export {
+  ANALYTICS_PAYMENT_METHODS,
+  ANALYTICS_PAYMENT_METHOD_FILTERS,
+  analyticsPaymentMethodFilterLabel,
+  analyticsPaymentMethodFilterSchema,
+  normalizeAnalyticsPaymentMethod,
+  parseAnalyticsPaymentMethodFilter,
+  paymentMethodDbAliases,
+  type AnalyticsPaymentMethod,
+  type AnalyticsPaymentMethodFilter,
+} from "@/features/analytics/domain/payment-method-filter";
+export {
+  ANALYTICS_SHIPPING_METHODS,
+  analyticsShippingMethodLabel,
+  buildShippingBreakdown,
+  type AnalyticsShippingMethod,
+  type ShippingBreakdownRow,
+} from "@/features/analytics/domain/shipping-breakdown";
 export {
   buildAnalyticsTrendSeries,
   buildDashboardMonthlySeries,

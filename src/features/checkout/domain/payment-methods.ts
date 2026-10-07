@@ -1,4 +1,4 @@
-import { isCardOnlyPickupBranch } from "@/features/checkout/domain/pickup-branches";
+import { isCashOnlyPickupBranch } from "@/features/checkout/domain/pickup-branches";
 
 export const CHECKOUT_PAYMENT_METHODS = [
   "cash_on_delivery",
@@ -14,15 +14,19 @@ export function isCheckoutPaymentMethod(
   return (CHECKOUT_PAYMENT_METHODS as readonly string[]).includes(value);
 }
 
-/** Cash is unavailable for specific pickup branches (card/wallet only). */
-export function isCashPaymentAllowed(input: {
+type PaymentAvailabilityInput = {
   shippingMethod: "pickup" | "delivery";
   pickupBranchId?: string | null;
-}): boolean {
+};
+
+/** Online methods (idram/arca) are unavailable for cash-only pickup branches. */
+export function isOnlinePaymentAllowed(
+  input: PaymentAvailabilityInput,
+): boolean {
   if (input.shippingMethod !== "pickup" || !input.pickupBranchId) {
     return true;
   }
-  return !isCardOnlyPickupBranch(input.pickupBranchId);
+  return !isCashOnlyPickupBranch(input.pickupBranchId);
 }
 
 /** Maps checkout UI payment choice to payments.provider / payments.method. */

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import {
   CHECKOUT_PAYMENT_METHODS,
-  isCashPaymentAllowed,
+  isOnlinePaymentAllowed,
 } from "@/features/checkout/domain/payment-methods";
 import { PICKUP_BRANCH_IDS } from "@/features/checkout/domain/pickup-branches";
 
@@ -96,8 +96,8 @@ export const checkoutSchema = z
       });
     }
     if (
-      value.paymentMethod === "cash_on_delivery" &&
-      !isCashPaymentAllowed({
+      value.paymentMethod !== "cash_on_delivery" &&
+      !isOnlinePaymentAllowed({
         shippingMethod: value.shippingMethod,
         pickupBranchId: value.pickupBranchId,
       })
@@ -105,7 +105,7 @@ export const checkoutSchema = z
       ctx.addIssue({
         code: "custom",
         path: ["paymentMethod"],
-        message: "Cash payment is not available for this pickup branch.",
+        message: "Only cash payment is available for this pickup branch.",
       });
     }
     if (
