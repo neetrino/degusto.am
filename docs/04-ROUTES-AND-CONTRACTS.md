@@ -112,6 +112,7 @@ Implementation: `src/lib/legacy-urls/legacy-path-map.ts`, `next.config.ts` `redi
 
 | Endpoint family | Method | Purpose/security |
 |---|---|---|
+| `/api/health` | GET | Public runtime probe; no auth, no input, no rate limit, no idempotency, `Cache-Control: no-store`, no audit; must not touch the database or external services |
 | `/api/auth/[...nextauth]` | Auth.js-defined | Auth callbacks/session; Auth.js contract |
 | `/api/uploads/intents` | POST | Admin upload intent; auth, purpose/MIME/size validation, rate limit |
 | `/api/uploads/[id]/finalize` | POST | Ownership/object metadata verification |
